@@ -22,8 +22,9 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: 
-  Name: 
+  ID: arm1
+  Name: armm
   Rarity: 0
+  Set: 2
   NumberOfFingers: 4
   HasClaws: 0

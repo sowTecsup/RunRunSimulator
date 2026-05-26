@@ -22,8 +22,9 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: 
-  Name: 
+  ID: Mouth1
+  Name: Mouthh
   Rarity: 0
+  Set: 10
   TeethType: 0
   HasTentacles: 0

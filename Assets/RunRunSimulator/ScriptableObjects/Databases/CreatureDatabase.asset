@@ -20,80 +20,8 @@ MonoBehaviour:
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes:
-    - Name: Bodies
-      Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[CreaturePartData,
-        Assembly-CSharp]], mscorlib
-    - Name: comparer
-      Entry: 7
-      Data: 1|System.Collections.Generic.GenericEqualityComparer`1[[System.String,
-        mscorlib]], mscorlib
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: cabezuco
-    - Name: $v
-      Entry: 7
-      Data: 2|CreaturePartData, Assembly-CSharp
-    - Name: Sprite
-      Entry: 6
-      Data: 
-    - Name: ID
-      Entry: 1
-      Data: a
-    - Name: Name
-      Entry: 1
-      Data: asdas
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Heads
-      Entry: 7
-      Data: 3|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[CreaturePartData,
-        Assembly-CSharp]], mscorlib
-    - Name: comparer
-      Entry: 9
-      Data: 1
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Limbs
-      Entry: 7
-      Data: 4|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[CreaturePartData,
-        Assembly-CSharp]], mscorlib
-    - Name: comparer
-      Entry: 9
-      Data: 1
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
+    SerializationNodes: []
+  BodyShapes: {fileID: 11400000, guid: 44e6891762b141740a998ee4846d576b, type: 2}
+  Arms: {fileID: 11400000, guid: 25eaf568caff21147bed2f32283732b2, type: 2}
+  Eyes: {fileID: 11400000, guid: ae8f104b3c12a9140a9c13c275ec070f, type: 2}
+  Mouths: {fileID: 11400000, guid: a57ef5ad72255c64e8eefa3c2e8d0eca, type: 2}

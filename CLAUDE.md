@@ -1,5 +1,23 @@
 # RunRunSimulator — MoriMonchis — CLAUDE.md
 
+## 📚 Fuente de Verdad — Leer SIEMPRE primero
+
+> **Antes de cualquier sesión de trabajo, consultar el Notion Wiki.** Contiene el GDD completo, todas las decisiones de diseño tomadas, el roadmap actualizado y las preguntas de diseño abiertas. Este CLAUDE.md es un resumen de referencia rápida; el Notion es el documento vivo y autoritativo.
+
+| Recurso | URL |
+|---------|-----|
+| 🟣 **Notion Wiki (GDD + Decisiones)** | https://www.notion.so/36cac10136a781819b74e176ed7c00d9 |
+
+**Secciones clave del Notion a revisar según la tarea:**
+- Trabajando en genética/DNA → sección *Sistema Genético* + *Breeding — Detalle Completo*
+- Trabajando en batalla → sección *Sistema de Batalla — Detalle* + *Sistema de Bidding*
+- Trabajando en tienda/economía → sección *Tienda y Economía* + *Decoraciones*
+- Dudas de lore → sección *Diseño de Juego (GDD)* + *MoriMonchis Honorarios*
+- Decisiones recientes → sección *Decisiones de Diseño — Etapa 1 (Ronda 4)* y rondas anteriores
+- Preguntas aún abiertas → secciones *Preguntas de Diseño Abiertas (Ronda N)*
+
+---
+
 ## Qué es este proyecto
 Simulador de tienda retro 3D ambientado en los años 80s. El jugador es el dueño de una tienda que se sumó a la tendencia "MoriMonchis": criaturas biológicas del tamaño de la palma de la mano (estética Gremlins + Furby + Tamagotchi). En la trastienda opera un club de peleas clandestino asíncrono. Referencia de género: los *Simulator games* del mercado actual (PowerWash Simulator, etc.) pero con genética y muerte permanente.
 

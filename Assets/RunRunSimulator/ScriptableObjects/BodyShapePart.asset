@@ -22,8 +22,9 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: 
-  Name: 
+  ID: body1
+  Name: bodyy
   Rarity: 0
+  Set: 1
   BodyType: 0
   SizeScale: 1

@@ -461,13 +461,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 475f1fc76588939468d4c059b89ae098, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  _database: {fileID: 0}
+  _database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
   _currentDNA:
-    BodyID: 
-    HeadID: 
-    LimbID: 
-    PrimaryColor: {r: 1, g: 1, b: 1, a: 1}
-  _currentDNAString: ---
+    BodyShapeID: body1
+    ArmID: arm1
+    EyeID: Eye1
+    MouthID: Mouth1
+    PrimaryColor: {r: 0.69514585, g: 0.023396773, b: 0.85792565, a: 1}
+    Gender: 0
+  _currentDNAString: body1-arm1-Eye1-Mouth1-B106DB
   _loadIDInput: 
 --- !u!4 &1046970363
 Transform:
