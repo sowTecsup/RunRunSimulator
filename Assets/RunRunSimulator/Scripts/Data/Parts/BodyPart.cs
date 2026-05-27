@@ -9,6 +9,7 @@ public abstract class BodyPart : SerializedScriptableObject
     public Sprite Icon;
 
     [VerticalGroup("Header/Info"), LabelWidth(55)]
+    [ReadOnly]
     public string ID;
 
     [VerticalGroup("Header/Info"), LabelWidth(55)]
@@ -19,8 +20,23 @@ public abstract class BodyPart : SerializedScriptableObject
     public Rarity Rarity;
 
     [VerticalGroup("Header/Info"), LabelWidth(55)]
+    public Tier Tier;
+
+    [VerticalGroup("Header/Info"), LabelWidth(55)]
     [GUIColor(nameof(GetSetColor))]
     public PartSet Set;
+
+    [Button("Roll Name"), GUIColor(0.5f, 0.85f, 1f)]
+    private void RollName()
+    {
+        Name = PartNameBank.GetRandomName(Set, GetPartRole());
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+#endif
+    }
+
+    // Each subclass declares which anatomical slot it occupies.
+    public abstract PartRole GetPartRole();
 
     private Color GetRarityColor() => Rarity switch
     {

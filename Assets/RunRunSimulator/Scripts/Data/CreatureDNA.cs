@@ -1,11 +1,14 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-// String format: "BODYSHAPE-ARM-EYE-MOUTH-RRGGBB"  (e.g. "BS1-A4-E2-M3-FF00AA")
-// Constraint: part IDs must not contain the '-' character.
+// Genetic string format: "BODYSHAPE-ARM-EYE-MOUTH-RRGGBB"  (e.g. "BS0-A3-E1-M2-FF00AA")
+// Registry key (UniqueID): "<genetic_string>-<timestamp_ticks>"
+// Part IDs must not contain '-'.
 [Serializable]
 public class CreatureDNA
 {
+    // ── Genetics ──────────────────────────────────────────────────
     public string BodyShapeID = "";
     public string ArmID       = "";
     public string EyeID       = "";
@@ -14,16 +17,44 @@ public class CreatureDNA
     [ColorUsage(false)]
     public Color PrimaryColor = Color.white;
 
-    // Gender is instance metadata — NOT encoded in the DNA string.
-    // Determined during breeding based on the parent's battle-index.
-    // Wild-caught and generated MoriMonchis default to Unknown.
+    // ── Identity ──────────────────────────────────────────────────
+    public long     Timestamp = 0;       // UTC ticks set on Stamp(); 0 = not yet registered
+    public DateTime BirthDate;           // human-readable creation time
+
+    // ── Lineage ───────────────────────────────────────────────────
+    public string       MotherID    = "";
+    public string       FatherID    = "";
+    public List<string> ChildrenIDs = new List<string>();
+
+    // ── Social ────────────────────────────────────────────────────
     public CreatureGender Gender = CreatureGender.Unknown;
 
-    public string ToStringID()
+    // Unique registry key: two creatures with identical genes are still different entries.
+    public string UniqueID => Timestamp > 0 ? $"{ToStringID()}-{Timestamp}" : "";
+
+    // Call once before registering. Sets Timestamp and BirthDate atomically.
+    public void Stamp()
     {
-        return $"{BodyShapeID}-{ArmID}-{EyeID}-{MouthID}-{ColorUtility.ToHtmlStringRGB(PrimaryColor)}";
+        var now   = DateTime.UtcNow;
+        Timestamp = now.Ticks;
+        BirthDate = now;
     }
 
+    public string ToStringID() =>
+        $"{BodyShapeID}-{ArmID}-{EyeID}-{MouthID}-{ColorUtility.ToHtmlStringRGB(PrimaryColor)}";
+
+    // Returns "{body} {arm} {eye} {mouth}" using part Name fields; falls back to part IDs.
+    public string GetDisplayName(CreatureDatabaseSO db)
+    {
+        string body  = db?.GetBodyShape(BodyShapeID)?.Name ?? BodyShapeID;
+        string arm   = db?.GetArm(ArmID)?.Name             ?? ArmID;
+        string eye   = db?.GetEye(EyeID)?.Name             ?? EyeID;
+        string mouth = db?.GetMouth(MouthID)?.Name         ?? MouthID;
+        return $"{body} {arm} {eye} {mouth}";
+    }
+
+    // Parses only the genetic string (BODYSHAPE-ARM-EYE-MOUTH-RRGGBB).
+    // Does not parse Timestamp or lineage — use JSON deserialization for full state.
     public static CreatureDNA FromID(string id)
     {
         if (string.IsNullOrEmpty(id))
@@ -32,7 +63,6 @@ public class CreatureDNA
             return new CreatureDNA();
         }
 
-        // Color hex is always the last 6 chars, preceded by '-'
         int lastDash = id.LastIndexOf('-');
         if (lastDash < 0 || id.Length - lastDash - 1 != 6)
         {
@@ -40,12 +70,12 @@ public class CreatureDNA
             return new CreatureDNA();
         }
 
-        string colorHex = id.Substring(lastDash + 1);
-        string[] parts  = id.Substring(0, lastDash).Split('-');
+        string   colorHex = id.Substring(lastDash + 1);
+        string[] parts    = id.Substring(0, lastDash).Split('-');
 
         if (parts.Length != 4)
         {
-            Debug.LogError($"[CreatureDNA] Expected 4 part IDs, got {parts.Length} in '{id}'.");
+            Debug.LogError($"[CreatureDNA] Expected 4 part tokens, got {parts.Length} in '{id}'.");
             return new CreatureDNA();
         }
 

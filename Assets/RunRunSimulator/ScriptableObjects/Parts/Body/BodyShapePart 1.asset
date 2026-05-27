@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 19b9d714c3987f04396dc646b5f539a6, type: 3}
-  m_Name: BodyShapePart
+  m_Name: BodyShapePart 1
   m_EditorClassIdentifier: Assembly-CSharp::BodyShapePart
   serializationData:
     SerializedFormat: 2
@@ -22,9 +22,7 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: body1
-  Name: bodyy
-  Rarity: 0
+  ID: BS0
+  Name: Ooze
+  Rarity: 1
   Set: 1
-  BodyType: 0
-  SizeScale: 1

@@ -3,12 +3,40 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    // ── Setup ─────────────────────────────────────────────────────
+
     [Required, AssetsOnly]
-    [Title("RunRunSimulator — Genetics Lab", "Assign the Creature Database to begin.", TitleAlignments.Centered)]
+    [Title("RunRunSimulator — Genetics Lab", "Assign all assets below to begin.", TitleAlignments.Centered)]
     [BoxGroup("Setup")]
     [SerializeField] private CreatureDatabaseSO _database;
 
-    // ──────────────── Current Creature ────────────────
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private RarityOddsTableSO _rarityOddsTable;
+
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private InheritanceOddsTableSO _inheritanceOddsTable;
+
+    // ── Registry (runtime, not Unity-serialized) ──────────────────
+
+    private CreatureDatabase _creatureDatabase;
+
+    [ShowInInspector, ReadOnly, LabelText("Registered Creatures")]
+    [BoxGroup("Registry")]
+    private int RegistryCount => _creatureDatabase?.Count ?? 0;
+
+    // ── Lifecycle ─────────────────────────────────────────────────
+
+    private void Awake()
+    {
+        _creatureDatabase = SaveSystem.LoadDatabase();
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveSystem.SaveDatabase(_creatureDatabase);
+    }
+
+    // ── Generate (preview only — not registered) ──────────────────
 
     [BoxGroup("Current Creature")]
     [SerializeField, ReadOnly, InlineProperty, HideLabel]
@@ -22,13 +50,77 @@ public class GameManager : MonoBehaviour
     [BoxGroup("Current Creature")]
     private void GenerateRandomCreature()
     {
-        _currentDNA       = CreatureGenerator.GenerateRandom(_database);
+        _currentDNA       = CreatureGenerator.GenerateRandom(_database, _rarityOddsTable);
         _currentDNAString = _currentDNA.ToStringID();
         RefreshRarityBreakdown();
-        Debug.Log($"[GameManager] Generated: {_currentDNAString}");
+        Debug.Log($"[GameManager] Generated (preview): {_currentDNAString}");
     }
 
-    // ──────────────── Rarity Breakdown ────────────────
+    // ── Mint (generate + register + save) ─────────────────────────
+
+    [ShowInInspector, ReadOnly, LabelText("Last Minted ID")]
+    [BoxGroup("Mint")]
+    private string _lastMintedID = "---";
+
+    [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f)]
+    [BoxGroup("Mint")]
+    public void MintRandomCreature()
+    {
+        var dna    = CreatureGenerator.GenerateRandom(_database, _rarityOddsTable);
+        dna.Gender = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
+        dna.Stamp();
+
+        if (_creatureDatabase.Register(dna))
+        {
+            SaveSystem.SaveDatabase(_creatureDatabase);
+            _lastMintedID = dna.UniqueID;
+            Debug.Log($"[GameManager] Minted: {dna.UniqueID}  ({dna.Gender})");
+        }
+    }
+
+    // ── Breed ─────────────────────────────────────────────────────
+
+    [BoxGroup("Breed")]
+    [SerializeField, LabelText("Mother ID")] private string _breedMotherID = "";
+
+    [BoxGroup("Breed")]
+    [SerializeField, LabelText("Father ID")] private string _breedFatherID = "";
+
+    [ShowInInspector, ReadOnly, LabelText("Last Child ID")]
+    [BoxGroup("Breed")]
+    private string _lastChildID = "---";
+
+    [Button("Breed Creatures", ButtonSizes.Large), GUIColor(1f, 0.7f, 0.85f)]
+    [BoxGroup("Breed")]
+    public void BreedCreatures(string motherID, string fatherID)
+    {
+        var odds = _inheritanceOddsTable ?? InheritanceOddsTableSO.Current;
+        if (odds == null)
+        {
+            Debug.LogError("[GameManager] No InheritanceOddsTable assigned.");
+            return;
+        }
+
+        var child = BreedingService.Breed(motherID, fatherID, _creatureDatabase, _database, odds);
+        if (child == null) return;
+
+        child.Stamp();
+        if (!_creatureDatabase.Register(child)) return;
+
+        // Wire up children lists on both parents
+        if (_creatureDatabase.TryGet(motherID, out var mother)) mother.ChildrenIDs.Add(child.UniqueID);
+        if (_creatureDatabase.TryGet(fatherID, out var father)) father.ChildrenIDs.Add(child.UniqueID);
+
+        SaveSystem.SaveDatabase(_creatureDatabase);
+        _lastChildID = child.UniqueID;
+        Debug.Log($"[GameManager] Bred child: {child.UniqueID}  ({child.Gender})");
+    }
+
+    [Button("Breed"), GUIColor(1f, 0.7f, 0.85f)]
+    [BoxGroup("Breed")]
+    private void BreedButton() => BreedCreatures(_breedMotherID, _breedFatherID);
+
+    // ── Rarity Breakdown ──────────────────────────────────────────
 
     [Title("Rarity Breakdown")]
     [BoxGroup("Current Creature / Rarity")]
@@ -65,14 +157,14 @@ public class GameManager : MonoBehaviour
         _rarityEyes      = eye?.Rarity       ?? Rarity.Common;
         _rarityMouth     = mouth?.Rarity     ?? Rarity.Common;
 
-        float avg = ((int)_rarityBodyShape + (int)_rarityArms + (int)_rarityEyes + (int)_rarityMouth) / 4f;
+        float avg    = ((int)_rarityBodyShape + (int)_rarityArms + (int)_rarityEyes + (int)_rarityMouth) / 4f;
         _rarityScore = $"{(Rarity)Mathf.RoundToInt(avg)}  (avg {avg:F2})";
     }
 
-    // ──────────────── Load by ID ────────────────
+    // ── Load by DNA String ─────────────────────────────────────────
 
     [BoxGroup("Load by ID")]
-    [InfoBox("Format: BODYSHAPEID-ARMID-EYEID-MOUTHID-RRGGBB   (e.g.  BS1-A4-E2-M3-FF00AA)")]
+    [InfoBox("Format: BODYSHAPEID-ARMID-EYEID-MOUTHID-RRGGBB   (e.g.  BS0-A3-E1-M2-FF00AA)")]
     [SerializeField, LabelText("DNA String")]
     private string _loadIDInput = "";
 
@@ -89,7 +181,6 @@ public class GameManager : MonoBehaviour
         _currentDNA       = CreatureDNA.FromID(_loadIDInput);
         _currentDNAString = _currentDNA.ToStringID();
         RefreshRarityBreakdown();
-
         Debug.Log($"[GameManager] Loaded: {_currentDNAString}");
         ValidateDNA(_currentDNA);
     }
@@ -97,11 +188,10 @@ public class GameManager : MonoBehaviour
     private void ValidateDNA(CreatureDNA dna)
     {
         if (_database == null) return;
-
-        LogPart("Body", _database.GetBodyShape(dna.BodyShapeID), dna.BodyShapeID);
-        LogPart("Arms", _database.GetArm(dna.ArmID),             dna.ArmID);
-        LogPart("Eyes", _database.GetEye(dna.EyeID),             dna.EyeID);
-        LogPart("Mouth", _database.GetMouth(dna.MouthID),        dna.MouthID);
+        LogPart("Body",  _database.GetBodyShape(dna.BodyShapeID), dna.BodyShapeID);
+        LogPart("Arms",  _database.GetArm(dna.ArmID),            dna.ArmID);
+        LogPart("Eyes",  _database.GetEye(dna.EyeID),             dna.EyeID);
+        LogPart("Mouth", _database.GetMouth(dna.MouthID),         dna.MouthID);
     }
 
     private static void LogPart(string label, BodyPart part, string id)

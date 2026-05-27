@@ -7,24 +7,6 @@ public enum Rarity
     Legendary = 4
 }
 
-public enum BodyType
-{
-    Bipedal,
-    Quadruped,
-    Serpentine,
-    Floating,
-    Blob
-}
-
-public enum TeethType
-{
-    None,
-    Flat,
-    Fanged,
-    Serrated,
-    Beak
-}
-
 // Thematic sets — group parts into coherent visual/lore collections.
 // Future: full-set bonuses, themed packs, set-filtered matchmaking.
 public enum PartSet
@@ -47,4 +29,20 @@ public enum CreatureGender
     Unknown = 0,  // Wild-caught or generated, not yet determined
     Male    = 1,
     Female  = 2
+}
+
+// Identifies the anatomical slot a part occupies — used for thematic name generation.
+public enum PartRole
+{
+    Body  = 0,
+    Arm   = 1,
+    Eye   = 2,
+    Mouth = 3,
+}
+
+public enum Tier
+{
+    Tier1 = 1,
+    Tier2 = 2,
+    Tier3 = 3,
 }

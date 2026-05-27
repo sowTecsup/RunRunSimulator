@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9db6f66f17312e439ad9a0996fbed5f, type: 3}
-  m_Name: EyePart
-  m_EditorClassIdentifier: Assembly-CSharp::EyePart
+  m_Script: {fileID: 11500000, guid: 19b9d714c3987f04396dc646b5f539a6, type: 3}
+  m_Name: BodyShapePart
+  m_EditorClassIdentifier: Assembly-CSharp::BodyShapePart
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
@@ -22,9 +22,8 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: Eye1
-  Name: eyee
+  ID: BS0
+  Name: Ooze
   Rarity: 0
-  Set: 5
-  IsCompound: 0
-  EyeCount: 2
+  Set: 1
+  SizeScale: 1

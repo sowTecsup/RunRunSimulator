@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82ecef89f6b221a40bbba874eddda30c, type: 3}
-  m_Name: MouthPart
-  m_EditorClassIdentifier: Assembly-CSharp::MouthPart
+  m_Script: {fileID: 11500000, guid: fe74ee146cb8b37479d1a30ed5df7ed4, type: 3}
+  m_Name: ArmPart2
+  m_EditorClassIdentifier: Assembly-CSharp::ArmPart
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
@@ -22,9 +22,7 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: Mouth1
-  Name: Mouthh
-  Rarity: 0
-  Set: 10
-  TeethType: 0
-  HasTentacles: 0
+  ID: A1
+  Name: Drag
+  Rarity: 1
+  Set: 2

@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe74ee146cb8b37479d1a30ed5df7ed4, type: 3}
-  m_Name: ArmPart
-  m_EditorClassIdentifier: Assembly-CSharp::ArmPart
+  m_Script: {fileID: 11500000, guid: 82ecef89f6b221a40bbba874eddda30c, type: 3}
+  m_Name: MouthPart 2
+  m_EditorClassIdentifier: Assembly-CSharp::MouthPart
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
@@ -22,9 +22,8 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: arm1
-  Name: armm
+  ID: Mouth1
+  Name: Sizzle
   Rarity: 0
-  Set: 2
-  NumberOfFingers: 4
-  HasClaws: 0
+  Set: 10
+  HasTentacles: 0
