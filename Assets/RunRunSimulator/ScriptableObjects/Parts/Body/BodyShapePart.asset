@@ -23,7 +23,7 @@ MonoBehaviour:
     SerializationNodes: []
   Icon: {fileID: 0}
   ID: BS0
-  Name: Ooze
+  Name: Blurp
   Rarity: 0
+  Tier: 0
   Set: 1
-  SizeScale: 1

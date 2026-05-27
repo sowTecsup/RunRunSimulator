@@ -22,7 +22,8 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: BS0
-  Name: Ooze
+  ID: BS1
+  Name: Gloop
   Rarity: 1
+  Tier: 0
   Set: 1

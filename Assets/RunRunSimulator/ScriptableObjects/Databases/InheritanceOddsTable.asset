@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 82ecef89f6b221a40bbba874eddda30c, type: 3}
-  m_Name: MouthPart 1
-  m_EditorClassIdentifier: Assembly-CSharp::MouthPart
+  m_Script: {fileID: 11500000, guid: 239189705888d064a8dd0a4061fdba78, type: 3}
+  m_Name: InheritanceOddsTable
+  m_EditorClassIdentifier: Assembly-CSharp::InheritanceOddsTableSO
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
@@ -21,9 +21,8 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  Icon: {fileID: 0}
-  ID: M1
-  Name: Sizzle
-  Rarity: 1
-  Tier: 0
-  Set: 10
+  ParentWeight: 40
+  GrandparentWeight: 20
+  GreatGrandparentWeight: 10
+  MutationWeight: 20
+  BaseWeight: 10

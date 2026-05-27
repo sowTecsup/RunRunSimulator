@@ -23,6 +23,7 @@ MonoBehaviour:
     SerializationNodes: []
   Icon: {fileID: 0}
   ID: A0
-  Name: Clutch
+  Name: Squelch
   Rarity: 0
+  Tier: 0
   Set: 2

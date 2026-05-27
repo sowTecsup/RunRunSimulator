@@ -123,23 +123,23 @@ public class GameManager : MonoBehaviour
     // ── Rarity Breakdown ──────────────────────────────────────────
 
     [Title("Rarity Breakdown")]
-    [BoxGroup("Current Creature / Rarity")]
+    [BoxGroup("Current Creature/Rarity")]
     [ShowInInspector, ReadOnly, LabelText("Body Shape"), LabelWidth(80)]
     private Rarity _rarityBodyShape;
 
-    [BoxGroup("Current Creature / Rarity")]
+    [BoxGroup("Current Creature/Rarity")]
     [ShowInInspector, ReadOnly, LabelText("Arms"), LabelWidth(80)]
     private Rarity _rarityArms;
 
-    [BoxGroup("Current Creature / Rarity")]
+    [BoxGroup("Current Creature/Rarity")]
     [ShowInInspector, ReadOnly, LabelText("Eyes"), LabelWidth(80)]
     private Rarity _rarityEyes;
 
-    [BoxGroup("Current Creature / Rarity")]
+    [BoxGroup("Current Creature/Rarity")]
     [ShowInInspector, ReadOnly, LabelText("Mouth"), LabelWidth(80)]
     private Rarity _rarityMouth;
 
-    [BoxGroup("Current Creature / Rarity")]
+    [BoxGroup("Current Creature/Rarity")]
     [ShowInInspector, ReadOnly, LabelText("Score"), LabelWidth(80)]
     private string _rarityScore = "---";
 

@@ -23,8 +23,7 @@ MonoBehaviour:
     SerializationNodes: []
   Icon: {fileID: 0}
   ID: E0
-  Name: Flare
+  Name: Pulse
   Rarity: 0
+  Tier: 0
   Set: 5
-  IsCompound: 0
-  EyeCount: 2

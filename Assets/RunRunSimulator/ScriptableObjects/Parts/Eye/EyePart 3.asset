@@ -22,7 +22,8 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: E0
-  Name: Flare
+  ID: E3
+  Name: Shine
   Rarity: 3
+  Tier: 0
   Set: 5

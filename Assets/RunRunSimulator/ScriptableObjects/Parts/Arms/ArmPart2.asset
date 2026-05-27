@@ -23,6 +23,7 @@ MonoBehaviour:
     SerializationNodes: []
   Icon: {fileID: 0}
   ID: A1
-  Name: Drag
+  Name: Grasp
   Rarity: 1
+  Tier: 0
   Set: 2

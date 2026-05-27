@@ -22,7 +22,8 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: E0
-  Name: Flare
+  ID: E1
+  Name: Blaze
   Rarity: 1
+  Tier: 0
   Set: 5

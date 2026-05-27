@@ -22,7 +22,8 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: A1
-  Name: Drag
+  ID: A3
+  Name: Clutch
   Rarity: 3
+  Tier: 0
   Set: 2

@@ -22,8 +22,8 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: Mouth1
+  ID: M0
   Name: Sizzle
   Rarity: 0
+  Tier: 0
   Set: 10
-  HasTentacles: 0
