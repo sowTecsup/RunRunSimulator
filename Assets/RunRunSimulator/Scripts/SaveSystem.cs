@@ -6,7 +6,7 @@ using Newtonsoft.Json.Converters;
 using UnityEngine;
 
 // Requires: com.unity.nuget.newtonsoft-json in Package Manager.
-// Saves/loads the full CreatureDatabase (including genealogy tree) to Application.persistentDataPath.
+// Saves/loads the full CreatureRegistrySO (including genealogy tree) to Application.persistentDataPath.
 public static class SaveSystem
 {
     private const string DB_FILENAME = "creature_database.json";
@@ -20,32 +20,27 @@ public static class SaveSystem
         NullValueHandling = NullValueHandling.Ignore,
     };
 
-    public static void SaveDatabase(CreatureDatabase db)
+    public static void SaveDatabase(CreatureRegistrySO registry)
     {
-        string json = JsonConvert.SerializeObject(db.GetAll(), Settings);
+        string json = JsonConvert.SerializeObject(registry.GetAll(), Settings);
         File.WriteAllText(DbPath, json);
-        Debug.Log($"[SaveSystem] Saved {db.Count} creatures → {DbPath}");
+        Debug.Log($"[SaveSystem] Saved {registry.Count} creatures → {DbPath}");
     }
 
-    public static CreatureDatabase LoadDatabase()
+    public static void LoadInto(CreatureRegistrySO registry)
     {
-        var db = new CreatureDatabase();
-
         if (!File.Exists(DbPath))
         {
             Debug.Log("[SaveSystem] No save file found — starting fresh.");
-            return db;
+            registry.LoadFrom(null);
+            return;
         }
 
         var data = JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(
             File.ReadAllText(DbPath), Settings);
 
-        if (data != null)
-            foreach (var dna in data.Values)
-                db.Register(dna);
-
-        Debug.Log($"[SaveSystem] Loaded {db.Count} creatures from {DbPath}");
-        return db;
+        registry.LoadFrom(data);
+        Debug.Log($"[SaveSystem] Loaded {registry.Count} creatures from {DbPath}");
     }
 
     // Serializes UnityEngine.Color as a 6-character hex string (e.g. "FF00AA").

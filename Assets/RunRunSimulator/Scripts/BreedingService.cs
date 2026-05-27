@@ -11,8 +11,8 @@ public static class BreedingService
     public static CreatureDNA Breed(
         string                 motherID,
         string                 fatherID,
-        CreatureDatabase       registry,
-        CreatureDatabaseSO     partDb,
+        CreatureRegistrySO       registry,
+        CreatureRegistrySO     partDb,
         InheritanceOddsTableSO odds)
     {
         if (!registry.TryGet(motherID, out var mother))
@@ -50,8 +50,8 @@ public static class BreedingService
         PartRole               role,
         string                 motherID,
         string                 fatherID,
-        CreatureDatabase       registry,
-        CreatureDatabaseSO     partDb,
+        CreatureRegistrySO       registry,
+        CreatureRegistrySO     partDb,
         InheritanceOddsTableSO odds)
     {
         var slot = odds.Roll();
@@ -77,7 +77,7 @@ public static class BreedingService
         int              levels,
         string           motherID,
         string           fatherID,
-        CreatureDatabase registry)
+        CreatureRegistrySO registry)
     {
         var generation = ExpandGenerations(new[] { motherID, fatherID }, levels, registry);
 
@@ -94,7 +94,7 @@ public static class BreedingService
     private static List<string> ExpandGenerations(
         IEnumerable<string> origins,
         int                 levels,
-        CreatureDatabase    registry)
+        CreatureRegistrySO    registry)
     {
         var current = origins.Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
 
@@ -121,7 +121,7 @@ public static class BreedingService
         _              => ""
     };
 
-    private static string RandomPartID(PartRole role, CreatureDatabaseSO partDb) => role switch
+    private static string RandomPartID(PartRole role, CreatureRegistrySO partDb) => role switch
     {
         PartRole.Body  => partDb.BodyShapes?.GetRandomPart()?.ID ?? "",
         PartRole.Arm   => partDb.Arms?.GetRandomPart()?.ID       ?? "",

@@ -16,24 +16,26 @@ public class GameManager : MonoBehaviour
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private InheritanceOddsTableSO _inheritanceOddsTable;
 
-    // ── Registry (runtime, not Unity-serialized) ──────────────────
+    // ── Registry ──────────────────────────────────────────────────
 
-    private CreatureDatabase _creatureDatabase;
+    [Required, AssetsOnly]
+    [BoxGroup("Setup")]
+    [SerializeField] private CreatureRegistrySO _creatureRegistry;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures")]
     [BoxGroup("Registry")]
-    private int RegistryCount => _creatureDatabase?.Count ?? 0;
+    private int RegistryCount => _creatureRegistry?.Count ?? 0;
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
     private void Awake()
     {
-        _creatureDatabase = SaveSystem.LoadDatabase();
+        SaveSystem.LoadInto(_creatureRegistry);
     }
 
     private void OnApplicationQuit()
     {
-        SaveSystem.SaveDatabase(_creatureDatabase);
+        SaveSystem.SaveDatabase(_creatureRegistry);
     }
 
     // ── Generate (preview only — not registered) ──────────────────
@@ -70,9 +72,9 @@ public class GameManager : MonoBehaviour
         dna.Gender = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
         dna.Stamp();
 
-        if (_creatureDatabase.Register(dna))
+        if (_creatureRegistry.Register(dna))
         {
-            SaveSystem.SaveDatabase(_creatureDatabase);
+            SaveSystem.SaveDatabase(_creatureRegistry);
             _lastMintedID = dna.UniqueID;
             Debug.Log($"[GameManager] Minted: {dna.UniqueID}  ({dna.Gender})");
         }
@@ -101,17 +103,17 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        var child = BreedingService.Breed(motherID, fatherID, _creatureDatabase, _database, odds);
+        var child = BreedingService.Breed(motherID, fatherID, _creatureRegistry, _database, odds);
         if (child == null) return;
 
         child.Stamp();
-        if (!_creatureDatabase.Register(child)) return;
+        if (!_creatureRegistry.Register(child)) return;
 
         // Wire up children lists on both parents
-        if (_creatureDatabase.TryGet(motherID, out var mother)) mother.ChildrenIDs.Add(child.UniqueID);
-        if (_creatureDatabase.TryGet(fatherID, out var father)) father.ChildrenIDs.Add(child.UniqueID);
+        if (_creatureRegistry.TryGet(motherID, out var mother)) mother.ChildrenIDs.Add(child.UniqueID);
+        if (_creatureRegistry.TryGet(fatherID, out var father)) father.ChildrenIDs.Add(child.UniqueID);
 
-        SaveSystem.SaveDatabase(_creatureDatabase);
+        SaveSystem.SaveDatabase(_creatureRegistry);
         _lastChildID = child.UniqueID;
         Debug.Log($"[GameManager] Bred child: {child.UniqueID}  ({child.Gender})");
     }

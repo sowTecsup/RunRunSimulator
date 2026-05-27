@@ -465,17 +465,17 @@ MonoBehaviour:
   _rarityOddsTable: {fileID: 11400000, guid: a3afe6af2bf139b4e9e397193f27a2e0, type: 2}
   _inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
   _currentDNA:
-    BodyShapeID: body1
-    ArmID: arm1
-    EyeID: Eye1
-    MouthID: Mouth1
-    PrimaryColor: {r: 0.69514585, g: 0.023396773, b: 0.85792565, a: 1}
+    BodyShapeID: BS0
+    ArmID: A2
+    EyeID: E0
+    MouthID: M3
+    PrimaryColor: {r: 0.23758629, g: 0.46258304, b: 0.7177493, a: 1}
     Timestamp: 0
     MotherID: 
     FatherID: 
     ChildrenIDs: []
     Gender: 0
-  _currentDNAString: body1-arm1-Eye1-Mouth1-B106DB
+  _currentDNAString: BS0-A2-E0-M3-3D76B7
   _breedMotherID: 
   _breedFatherID: 
   _loadIDInput: 
