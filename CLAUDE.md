@@ -44,10 +44,10 @@ Assets/RunRunSimulator/Scripts/
 ├── GameManager.cs                    # Lab: Generate / Mint / Breed + inspector Odin
 ├── CreatureGenerator.cs              # static: GenerateRandom(db, oddsTable?)
 ├── BreedingService.cs                # static: Breed() — traversal árbol genealógico
-├── SaveSystem.cs                     # static: SaveDatabase / LoadDatabase (Newtonsoft.Json)
+├── SaveSystem.cs                     # static: SaveDatabase(registry) / LoadInto(registry) (Newtonsoft.Json)
 ├── Data/
 │   ├── CreatureDNA.cs                # Genética + Identidad (UniqueID, Stamp) + Linaje
-│   ├── CreatureDatabase.cs           # Plain C# registry: Dictionary<string, CreatureDNA>
+│   ├── CreatureRegistrySO.cs         # SO registry [ReadOnly]: Dictionary<string, CreatureDNA> — visual, JSON es source of truth
 │   ├── CreatureDatabaseSO.cs         # SO orquestador: refs sub-DBs + validación de IDs
 │   ├── CreaturePartData.cs
 │   ├── PartNameBank.cs               # static: pools de nombres por (PartSet, PartRole)
@@ -88,7 +88,7 @@ Assets/RunRunSimulator/Scripts/
 |---------|--------|
 | `BreedingService.Breed()` con traversal genealógico | ✅ |
 | `InheritanceOddsTableSO` con hot-reload JSON | ✅ |
-| `CreatureDatabase` registro O(1) | ✅ |
+| `CreatureRegistrySO` registry visual [ReadOnly] + JSON source of truth | ✅ |
 | `SaveSystem` persistencia JSON completa | ✅ |
 | `GameManager.MintRandomCreature()` y `BreedCreatures()` | ✅ |
 | Validación límite máximo de crías (4) y combates (5) | 🔲 Pendiente |
@@ -195,10 +195,11 @@ Cada `BodyPart` tiene `Set` que agrupa partes en un tema visual/lore. 10 sets: `
 | `creature_database.json` | Registro completo de criaturas + árbol genealógico | Newtonsoft.Json |
 | `inheritance_odds.json` | Pesos de herencia para hot-reload | Newtonsoft.Json |
 
-- `SaveDatabase()` se llama automáticamente en `Mint`, `Breed` y `OnApplicationQuit`.
-- `LoadDatabase()` se llama en `Awake` del GameManager.
+- `SaveDatabase(registry)` se llama automáticamente en `Mint`, `Breed` y `OnApplicationQuit`.
+- `LoadInto(registry)` se llama en `Awake` del GameManager — popula el SO desde JSON.
 - `UnityEngine.Color` → hex string via custom `UnityColorConverter`.
-- **Dependencia**: package `com.unity.nuget.newtonsoft-json` en Package Manager.
+- **Dependencia**: package `com.unity.nuget.newtonsoft-json` `3.2.1` en Package Manager (namespace `Newtonsoft.Json`, **no** `Unity.Plastic.Newtonsoft.Json`).
+- `CreatureRegistrySO` es el SO asset asignado en GameManager → Setup. JSON es la única fuente de verdad; el SO es vista visual [ReadOnly].
 
 ---
 
@@ -222,6 +223,15 @@ RunRunSimulator/Databases/Eye Database
 RunRunSimulator/Databases/Mouth Database
 RunRunSimulator/Databases/Body Shape Database
 RunRunSimulator/Creature Database (Orchestrator)
+RunRunSimulator/Creature Registry
 RunRunSimulator/Rarity Odds Table
 RunRunSimulator/Inheritance Odds Table
 ```
+
+---
+
+## Bugs conocidos (pendientes de fix)
+
+| Archivo | Bug | Prioridad |
+|---------|-----|-----------|
+| `BreedingService.cs` | El parámetro `partDb` fue renombrado a tipo `CreatureRegistrySO` por error (debería ser `CreatureDatabaseSO`). `RandomPartID()` llama `.BodyShapes/.Arms/.Eyes/.Mouths` que no existen en `CreatureRegistrySO` → error de compilación. | Alta — fix próxima sesión |
