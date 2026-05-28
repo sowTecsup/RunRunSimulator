@@ -46,7 +46,7 @@ Assets/RunRunSimulator/Scripts/
 ├── CreatureGenerator.cs              # static: GenerateRandom(db, oddsTable?)
 ├── BreedingService.cs                # static: Breed() — traversal árbol genealógico
 ├── CombatService.cs                  # static: Simulate() — combate por turnos, evolución, muerte
-├── CloudSyncService.cs               # MonoBehaviour: UGS auth anónima + Cloud Save push/pull + SyncMeta
+├── CloudSyncService.cs               # MonoBehaviour: Unity Player Account auth + sesiones persistentes + nombre + Cloud Save push/pull/reset + SyncMeta
 ├── SaveSystem.cs                     # static: SaveDatabase / LoadInto / Serialize / Deserialize (Newtonsoft.Json)
 ├── Data/
 │   ├── CreatureDNA.cs                # Genética + Identidad + Linaje + Progresión + Tier/slot + Stats + IsDead
@@ -56,8 +56,8 @@ Assets/RunRunSimulator/Scripts/
 │   ├── PartNameBank.cs               # static: pools de nombres por (PartSet, PartRole)
 │   ├── RarityOddsTableSO.cs          # SO: pesos por Rarity → Roll() independiente por slot
 │   ├── InheritanceOddsTableSO.cs     # SO singleton: odds breeding — pesos configurables en inspector (sin JSON)
-│   ├── CombatManagerSO.cs            # SO singleton: EvolutionChance, DeathChance, CritChance, MaxRounds
-│   ├── CombatResult.cs               # Data class: WinnerID, LoserID, Log, LoserDied, WinnerEvolved
+│   ├── CombatManagerSO.cs            # SO singleton: EvolutionChance, DeathChance, CritChance, MaxRounds, MaxFightCount(5)
+│   ├── CombatResult.cs               # Data class: WinnerID, LoserID, Log, LoserDied, WinnerEvolved, IsDraw
 │   ├── Parts/
 │   │   ├── BodyPart.cs               # abstract SO: ID[ReadOnly], Name, Rarity, Tier, Set + HP/Attack/Speed
 │   │   ├── ArmPart.cs                # GetPartRole() = Arm
@@ -82,8 +82,8 @@ Assets/RunRunSimulator/Scripts/
 | 1 | 1.2 Visualizador de criaturas (leer DNA → ensamblar Prefab 3D) | 🔲 Siguiente |
 | 1 | 1.3 Sistema de Breeding (herencia, linaje, registro, persistencia) | 🔶 En progreso |
 | 2 | 2.1 Sistema de Estadísticas (HP, Fuerza, Velocidad desde partes) | 🔶 Iniciado — BaseStats en DNA + stats por pieza en BodyPart SO |
-| 2 | 2.2 Simulador de Batalla local → Battle Log | 🔶 Iniciado — CombatService por turnos implementado |
-| 2 | 2.3 Integración Unity Services (async battles) | 🔶 Preview — CloudSyncService con auth anónima + Cloud Save |
+| 2 | 2.2 Simulador de Batalla local → Battle Log | 🔶 Iniciado — CombatService completo: turnos, empate, límite de peleas, log detallado por turno |
+| 2 | 2.3 Integración Unity Services (async battles) | 🔶 Preview — Unity Player Account auth + sesiones persistentes + Cloud Save + reset dev |
 | 3 | 3.1 Tienda Local (NPCs, inventario, vitrinas) | 🔲 Pendiente |
 | 3 | 3.2 Mercado Online (P2P via Unity Services) | 🔲 Pendiente |
 
@@ -96,7 +96,11 @@ Assets/RunRunSimulator/Scripts/
 | `CreatureRegistrySO` registry visual [ReadOnly] + JSON source of truth | ✅ |
 | `SaveSystem` persistencia JSON completa | ✅ |
 | `GameManager.MintRandomCreature()` y `BreedCreatures()` | ✅ |
-| Validación límite máximo de crías (4) y combates (5) | 🔲 Pendiente |
+| Validación límite máximo de crías (4) — `BreedingService.MaxBreedCount` | ✅ |
+| Validación límite máximo de combates (5) — `CombatManagerSO.MaxFightCount` | ✅ |
+| `IsDead` bloquea breed y combate (validado en BreedingService y CombatService) | ✅ |
+| Herencia de stats en Breed: 50/50 madre/padre + delta ±1, mínimo 1 | ✅ |
+| GameManager: Fill Random Breeders + Fill Random Fighters con info de límites | ✅ |
 | Género por battle-index del padre (actualmente 50/50) | 🔲 Pendiente (Etapa 2) |
 | Bonus de rareza en la 4ª cría (última posible) | 🔲 Pendiente |
 | Herencia del nivel Tier de las partes | 🔲 Pendiente |
@@ -168,6 +172,9 @@ Probabilidades por defecto — configurables, normalizadas internamente:
 - Si un ancestro no existe en el registro, cae automáticamente al fallback random.
 - Pesos editables directo en el inspector del SO asset — la serialización es la de Unity (no JSON).
 - Singleton: `InheritanceOddsTableSO.Current` (se setea en `OnEnable` del SO).
+- **Validaciones en `BreedingService.Breed()`**: `IsDead`, género correcto, `BreedCount < MaxBreedCount (4)`. `BreedCount` se incrementa en ambos padres dentro del servicio.
+- **Stats del hijo**: cada stat (HP, ATK, SPD) hereda 50/50 de madre o padre, luego aplica delta aleatorio de -1, 0 o +1. Mínimo garantizado: 1.
+- `GameManager`: botón **Fill Random Breeders** — selecciona hembra + macho vivos bajo el límite. Muestra info de breeds restantes en inspector.
 
 ---
 
@@ -243,15 +250,24 @@ RunRunSimulator/Combat Manager
 
 - Stats efectivos = `BaseStat (DNA) + Σ(part.Stat + (tier-1))` por slot. Calculados en runtime, no almacenados.
 - Orden por `Speed`; empates aleatorios. 20% crit = ×3 daño. Safety cap: `MaxRounds = 50`.
-- Post-combate: ganador puede evolucionar parte aleatoria (no Tier3); perdedor puede morir.
+- **Límite de peleas**: `MaxFightCount = 5` (en `CombatManagerSO`). `CombatService.Simulate()` valida que `FightCount < MaxFightCount` antes de simular.
+- **Empate**: si ninguno llega a 0 HP antes de `MaxRounds` → `IsDraw = true`, `FightCount++` en ambos, sin evolución ni muerte.
+- **Log por turno**: cada round loguea quién ataca primero, daño, si fue crit, y HP restante del defensor.
+- Post-combate (solo si hubo KO): ganador puede evolucionar parte aleatoria (no Tier3); perdedor puede morir.
 - `CombatManagerSO.Current` — singleton configurable. Asignar en `GameManager → Setup`.
+- `GameManager`: botón **Fill Random Fighters** — selecciona 2 criaturas vivas con peleas disponibles. Muestra fights restantes en inspector.
 
 ## UGS Cloud Save (CloudSyncService)
 
 - Adjuntar al mismo GameObject que `GameManager`. Asignar `CreatureRegistrySO`.
-- Requiere en Unity Dashboard: **Authentication** (modo Anonymous) + **Cloud Save**.
-- Push/Pull en Play Mode con los botones del inspector.
+- Requiere en Unity Dashboard: **Authentication** (Anonymous + **Unity Player Accounts**) + **Cloud Save**.
+- **Autenticación**: Unity Player Account via `PlayerAccountService.StartSignInAsync()` (browser). Primer login abre browser; siguientes launches reanudan sesión silenciosamente via `SessionTokenExists`.
+- **Player name**: visible en inspector `[Status]`. Botón `Update Name` en bloque `[Account]`.
+- **Sign Out**: cierra la sesión actual; el session token se conserva (el próximo launch auto-reanuda).
+- **Sesión persistente**: en `Start`, si `AuthenticationService.Instance.SessionTokenExists` → `SignInAnonymouslyAsync()` reutiliza el token cacheado sin browser.
+- Push/Pull en Play Mode con los botones del inspector (`EnableIf(_isSignedIn)`).
 - `sync_meta.json` local registra timestamps de seguridad para detección de rollback/edición manual.
+- **Reset All Progress (DEV)**: borra keys de Cloud Save + vacía JSON local + borra sync_meta.
 - **Dev mode**: CHEAT ALERT solo imprime en consola — activar bloqueo en Etapa 2.3 con Cloud Code.
 
 ## Bugs conocidos (pendientes de fix)
