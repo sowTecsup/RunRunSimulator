@@ -94,7 +94,7 @@ public static class CombatService
             dnaB.FightCount++;
             result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. A:{hpA:F1}HP  B:{hpB:F1}HP ===");
             result.Log.Add("[DRAW] No consequences for either fighter.");
-            result.Log.Add($"=== COMBAT END === {result.Summary}");
+            result.Log.Add($"=== COMBAT END === DRAW");
             return result;
         }
 
@@ -141,7 +141,8 @@ public static class CombatService
             result.Log.Add("[DEATH] Loser has perished permanently.");
         }
 
-        result.Log.Add($"=== COMBAT END === {result.Summary}");
+        string evolvedLine = result.WinnerEvolved ? $" | Evolved: {result.EvolvedSlot} → Tier{GetSlotTier(winner, result.EvolvedSlot)}" : "";
+        result.Log.Add($"=== COMBAT END === Winner: \"{winner.CustomName}\"  {winner.UniqueID}{evolvedLine}");
         return result;
     }
 
