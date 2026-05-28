@@ -18,6 +18,7 @@ public class CreatureDNA
     public Color PrimaryColor = Color.white;
 
     // ── Identity ──────────────────────────────────────────────────
+    public string   CustomName = "";     // editable display name — auto-assigned on Mint/Breed
     public long     Timestamp = 0;       // UTC ticks set on Stamp(); 0 = not yet registered
     public DateTime BirthDate;           // human-readable creation time
 

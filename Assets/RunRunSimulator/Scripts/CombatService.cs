@@ -47,8 +47,8 @@ public static class CombatService
         var statsB = ComputeStats(dnaB, db);
 
         result.Log.Add($"=== COMBAT START ===");
-        result.Log.Add($"[A] {Clip(idA)}  HP:{statsA.TotalHP:F1}  ATK:{statsA.Attack:F1}  SPD:{statsA.Speed:F1}");
-        result.Log.Add($"[B] {Clip(idB)}  HP:{statsB.TotalHP:F1}  ATK:{statsB.Attack:F1}  SPD:{statsB.Speed:F1}");
+        result.Log.Add($"[A] \"{dnaA.CustomName}\"  {Clip(idA)}  HP:{statsA.TotalHP:F1}  ATK:{statsA.Attack:F1}  SPD:{statsA.Speed:F1}");
+        result.Log.Add($"[B] \"{dnaB.CustomName}\"  {Clip(idB)}  HP:{statsB.TotalHP:F1}  ATK:{statsB.Attack:F1}  SPD:{statsB.Speed:F1}");
 
         float hpA = statsA.TotalHP;
         float hpB = statsB.TotalHP;
@@ -104,9 +104,12 @@ public static class CombatService
         var  winner = aWins ? dnaA : dnaB;
         var  loser  = aWins ? dnaB : dnaA;
 
-        result.WinnerID = winner.UniqueID;
-        result.LoserID  = loser.UniqueID;
-        result.Log.Add($"=== KO === {(aWins ? "A" : "B")} wins | A:{Mathf.Max(0, hpA):F1}HP  B:{Mathf.Max(0, hpB):F1}HP ===");
+        result.WinnerID   = winner.UniqueID;
+        result.LoserID    = loser.UniqueID;
+        result.WinnerName = winner.CustomName;
+        result.LoserName  = loser.CustomName;
+        string winnerLabel = aWins ? $"A \"{dnaA.CustomName}\"" : $"B \"{dnaB.CustomName}\"";
+        result.Log.Add($"=== KO === {winnerLabel} wins | A:{Mathf.Max(0, hpA):F1}HP  B:{Mathf.Max(0, hpB):F1}HP ===");
 
         // ── Update combat stats ───────────────────────────────────
 
@@ -121,8 +124,12 @@ public static class CombatService
             result.EvolvedSlot   = TryEvolveRandomSlot(winner);
             result.WinnerEvolved = result.EvolvedSlot != null;
             result.Log.Add(result.WinnerEvolved
-                ? $"[EVOLUTION] Winner's {result.EvolvedSlot} evolved to Tier{GetSlotTier(winner, result.EvolvedSlot)}!"
-                : "[EVOLUTION] All parts already at max Tier.");
+                ? $"[EVOLUTION] \"{winner.CustomName}\" — {result.EvolvedSlot} evolved to Tier{GetSlotTier(winner, result.EvolvedSlot)}!"
+                : $"[EVOLUTION] \"{winner.CustomName}\" — all parts already at max Tier.");
+        }
+        else
+        {
+            result.Log.Add($"[EVOLUTION] No evolution this fight ({config.EvolutionChance * 100f:F0}% chance — not triggered).");
         }
 
         // ── Death (loser) ─────────────────────────────────────────

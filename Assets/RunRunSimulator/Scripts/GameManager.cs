@@ -274,13 +274,14 @@ public class GameManager : MonoBehaviour
         dna.BaseHP     = Random.Range(1, 11);
         dna.BaseAttack = Random.Range(1, 11);
         dna.BaseSpeed  = Random.Range(1, 11);
+        dna.CustomName = CreatureNameBank.GetRandomName();
         dna.Stamp();
 
         if (!creatureRegistry.Register(dna)) return;
 
         SaveSystem.SaveDatabase(creatureRegistry);
         lastMintedID = dna.UniqueID;
-        Debug.Log($"[GameManager] Minted: {dna.UniqueID}  ({dna.Gender})");
+        Debug.Log($"[GameManager] Minted: \"{dna.CustomName}\"  {dna.UniqueID}  ({dna.Gender})");
     }
 
     [Button("Breed Creatures", ButtonSizes.Large), GUIColor(1f, 0.7f, 0.85f), BoxGroup("Breed")]
@@ -292,6 +293,7 @@ public class GameManager : MonoBehaviour
         var child = BreedingService.Breed(motherID, fatherID, creatureRegistry, database, odds);
         if (child == null) return;
 
+        child.CustomName = CreatureNameBank.GetRandomName();
         child.Stamp();
         if (!creatureRegistry.Register(child)) return;
 
@@ -301,7 +303,7 @@ public class GameManager : MonoBehaviour
         SaveSystem.SaveDatabase(creatureRegistry);
         lastChildID = child.UniqueID;
         RefreshBreedInfo();
-        Debug.Log($"[GameManager] Bred child: {child.UniqueID}  ({child.Gender})");
+        Debug.Log($"[GameManager] Bred child: \"{child.CustomName}\"  {child.UniqueID}  ({child.Gender})");
     }
 
     // ── Getters ───────────────────────────────────────────────────
