@@ -162,6 +162,7 @@ BirthDate    = DateTime (UTC)
 Stamp()      → setea Timestamp + BirthDate de forma atómica antes de registrar
 ```
 
+- `CustomName` — nombre editable, auto-asignado en Mint y Breed via `CreatureNameBank.GetRandomName()`. Formato: adjetivo + sustantivo ("Fuzzy Blob"). Editable por el usuario.
 - `MotherID`, `FatherID`, `ChildrenIDs` — referencias por `UniqueID` (no genetic strings)
 - `Gender` — `Unknown` hasta mintearse. Se asigna 50/50 en `Mint` y en `Breed`.
 - `FightCount`, `WinCount`, `BreedCount` — progresión, escritos por CombatService y BreedingService
@@ -268,8 +269,10 @@ RunRunSimulator/Combat Manager
 - Orden por `Speed`; empates aleatorios. 20% crit = ×3 daño. Safety cap: `MaxRounds = 50`.
 - **Límite de peleas**: `MaxFightCount = 5` (en `CombatManagerSO`). `CombatService.Simulate()` valida que `FightCount < MaxFightCount` antes de simular.
 - **Empate**: si ninguno llega a 0 HP antes de `MaxRounds` → `IsDraw = true`, `FightCount++` en ambos, sin evolución ni muerte.
-- **Log por turno**: cada round loguea quién ataca primero, daño, si fue crit, y HP restante del defensor.
-- Post-combate (solo si hubo KO): ganador puede evolucionar parte aleatoria (no Tier3); perdedor puede morir.
+- **Log por turno**: cada round loguea quién ataca primero, daño, si fue crit, y HP restante del defensor. La línea final siempre incluye nombre, UniqueID y parte evolucionada.
+- **Evolución (ganador)**: el ganador **siempre** evoluciona una parte aleatoria elegible (< Tier3). Si todas están en Tier3, se loguea que no hay más evolución posible.
+- **Evolución futura (pendiente)**: la parte a evolucionar se elegirá por peso según su tier actual — las partes en Tier1 tienen más probabilidad de ser seleccionadas que las de Tier2, y éstas más que las de Tier3. Regla diseñada: **70% peso Tier1 → Tier2 / 20% peso Tier2 → Tier3 / 10% peso Tier3** (tier máximo, sin efecto). Si un pool está vacío se excluye y los pesos restantes se renormalizan. `CombatManagerSO.EvolutionChance` queda reservado para reglas futuras.
+- **Muerte (perdedor)**: probabilidad configurable `DeathChance` en `CombatManagerSO`.
 - `CombatManagerSO.Current` — singleton configurable. Asignar en `GameManager → Setup`.
 - `GameManager`: botón **Fill Random Fighters** — selecciona 2 criaturas vivas con peleas disponibles. Muestra fights restantes en inspector.
 
