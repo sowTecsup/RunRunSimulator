@@ -5,7 +5,7 @@ using UnityEngine;
 // Creature display name = Body + Arm + Eye + Mouth words in that order.
 public static class PartNameBank
 {
-    private static readonly Dictionary<PartSet, Dictionary<PartRole, string[]>> _bank =
+    private static readonly Dictionary<PartSet, Dictionary<PartRole, string[]>> bank =
         new Dictionary<PartSet, Dictionary<PartRole, string[]>>
         {
             {
@@ -100,7 +100,7 @@ public static class PartNameBank
             },
         };
 
-    private static readonly Dictionary<PartRole, string[]> _fallback =
+    private static readonly Dictionary<PartRole, string[]> fallback =
         new Dictionary<PartRole, string[]>
         {
             { PartRole.Body,  new[] { "Glob",  "Blorp", "Gunk",   "Crud",   "Sludge" } },
@@ -111,12 +111,12 @@ public static class PartNameBank
 
     public static string GetRandomName(PartSet set, PartRole role)
     {
-        if (_bank.TryGetValue(set, out var roleMap) &&
+        if (bank.TryGetValue(set, out var roleMap) &&
             roleMap.TryGetValue(role, out var pool) &&
             pool.Length > 0)
             return pool[Random.Range(0, pool.Length)];
 
-        if (_fallback.TryGetValue(role, out var fallbackPool) && fallbackPool.Length > 0)
+        if (fallback.TryGetValue(role, out var fallbackPool) && fallbackPool.Length > 0)
             return fallbackPool[Random.Range(0, fallbackPool.Length)];
 
         return "Bloop";

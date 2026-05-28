@@ -9,8 +9,7 @@ public abstract class PartDatabaseSO<T> : SerializedScriptableObject where T : B
     // Each concrete database provides its prefix: "A", "E", "M", "BS"
     protected abstract string IDPrefix { get; }
 
-    [ShowInInspector, ReadOnly, LabelText("Total Parts")]
-    private int PartCount => _parts?.Count ?? 0;
+    // ── Private Fields ────────────────────────────────────────────
 
     [Title("Parts Dictionary", "Primary data source — add and edit entries here.")]
     [Searchable]
@@ -19,50 +18,23 @@ public abstract class PartDatabaseSO<T> : SerializedScriptableObject where T : B
         ValueLabel = "Part",
         DisplayMode = DictionaryDisplayOptions.ExpandedFoldout)]
     [OdinSerialize]
-    private Dictionary<string, T> _parts = new Dictionary<string, T>();
+    [PreviouslySerializedAs("_parts")]
+    private Dictionary<string, T> parts = new Dictionary<string, T>();
 
-    [Title("Parts Overview")]
-    [ShowInInspector, ReadOnly]
-    [TableList(AlwaysExpanded = false, DrawScrollView = true, MaxScrollViewHeight = 300)]
-    private List<T> PartsTable => _parts?.Values.Where(p => p != null).ToList() ?? new List<T>();
-
-    public Dictionary<string, T> Parts => _parts;
-
-    public T GetPartByID(string id)
-    {
-        if (string.IsNullOrEmpty(id)) return null;
-        _parts.TryGetValue(id, out T part);
-        return part;
-    }
-
-    public T GetRandomPart(Rarity? rarityFilter = null, PartSet? setFilter = null)
-    {
-        var pool = _parts.Values.Where(p => p != null);
-
-        if (rarityFilter.HasValue) pool = pool.Where(p => p.Rarity == rarityFilter.Value);
-        if (setFilter.HasValue)    pool = pool.Where(p => p.Set    == setFilter.Value);
-
-        var list = pool.ToList();
-        return list.Count > 0 ? list[Random.Range(0, list.Count)] : null;
-    }
-
-    public List<T>      GetBySet(PartSet set)  => _parts.Values.Where(p => p != null && p.Set == set).ToList();
-    public List<string> GetAllIDs()            => _parts?.Keys.ToList() ?? new List<string>();
-
-    // ──────────────── Admin Buttons ────────────────
+    // ── Private Methods ───────────────────────────────────────────
 
     [ButtonGroup("Admin")]
     [Button("Sync All IDs"), GUIColor(1f, 0.85f, 0.3f)]
     private void SyncAllIDs()
     {
-        var orderedParts = _parts.Values.Where(p => p != null).ToList();
-        _parts.Clear();
+        var orderedParts = parts.Values.Where(p => p != null).ToList();
+        parts.Clear();
 
         for (int i = 0; i < orderedParts.Count; i++)
         {
             string newKey        = $"{IDPrefix}{i}";
             orderedParts[i].ID   = newKey;
-            _parts[newKey]       = orderedParts[i];
+            parts[newKey]        = orderedParts[i];
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(orderedParts[i]);
 #endif
@@ -79,7 +51,7 @@ public abstract class PartDatabaseSO<T> : SerializedScriptableObject where T : B
     private void RollAllNames()
     {
         int count = 0;
-        foreach (var part in _parts.Values.Where(p => p != null))
+        foreach (var part in parts.Values.Where(p => p != null))
         {
             part.Name = PartNameBank.GetRandomName(part.Set, part.GetPartRole());
             count++;
@@ -92,4 +64,39 @@ public abstract class PartDatabaseSO<T> : SerializedScriptableObject where T : B
 #endif
         Debug.Log($"[{GetType().Name}] Rolled names for {count} parts.");
     }
+
+    // ── Public Methods ────────────────────────────────────────────
+
+    public T GetPartByID(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return null;
+        parts.TryGetValue(id, out T part);
+        return part;
+    }
+
+    public T GetRandomPart(Rarity? rarityFilter = null, PartSet? setFilter = null)
+    {
+        var pool = parts.Values.Where(p => p != null);
+
+        if (rarityFilter.HasValue) pool = pool.Where(p => p.Rarity == rarityFilter.Value);
+        if (setFilter.HasValue)    pool = pool.Where(p => p.Set    == setFilter.Value);
+
+        var list = pool.ToList();
+        return list.Count > 0 ? list[Random.Range(0, list.Count)] : null;
+    }
+
+    public List<T>      GetBySet(PartSet set) => parts.Values.Where(p => p != null && p.Set == set).ToList();
+    public List<string> GetAllIDs()           => parts?.Keys.ToList() ?? new List<string>();
+
+    // ── Getters ───────────────────────────────────────────────────
+
+    public Dictionary<string, T> Parts => parts;
+
+    [ShowInInspector, ReadOnly, LabelText("Total Parts")]
+    public int PartCount => parts?.Count ?? 0;
+
+    [Title("Parts Overview")]
+    [ShowInInspector, ReadOnly]
+    [TableList(AlwaysExpanded = false, DrawScrollView = true, MaxScrollViewHeight = 300)]
+    public List<T> PartsTable => parts?.Values.Where(p => p != null).ToList() ?? new List<T>();
 }
