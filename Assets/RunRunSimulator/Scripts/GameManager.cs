@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -15,6 +17,9 @@ public class GameManager : MonoBehaviour
 
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private InheritanceOddsTableSO _inheritanceOddsTable;
+
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private CombatManagerSO _combatManager;
 
     // ── Registry ──────────────────────────────────────────────────
 
@@ -91,9 +96,40 @@ public class GameManager : MonoBehaviour
     [BoxGroup("Breed")]
     [SerializeField, LabelText("Father ID")] private string _breedFatherID = "";
 
+    [ShowInInspector, ReadOnly, LabelText("Mother Info")]
+    [BoxGroup("Breed")]
+    private string _motherBreedInfo = "---";
+
+    [ShowInInspector, ReadOnly, LabelText("Father Info")]
+    [BoxGroup("Breed")]
+    private string _fatherBreedInfo = "---";
+
     [ShowInInspector, ReadOnly, LabelText("Last Child ID")]
     [BoxGroup("Breed")]
     private string _lastChildID = "---";
+
+    [Button("Fill Random Breeders"), GUIColor(0.85f, 0.6f, 1f)]
+    [BoxGroup("Breed")]
+    private void FillRandomBreeders()
+    {
+        var all     = _creatureRegistry.GetAll().Values.ToList();
+        var females = all.Where(d => !d.IsDead && d.Gender == CreatureGender.Female && d.BreedCount < BreedingService.MaxBreedCount).ToList();
+        var males   = all.Where(d => !d.IsDead && d.Gender == CreatureGender.Male   && d.BreedCount < BreedingService.MaxBreedCount).ToList();
+
+        if (females.Count == 0 || males.Count == 0)
+        {
+            Debug.LogError("[GameManager] Not enough valid breeders — need at least one alive Male and one alive Female under the breed limit.");
+            return;
+        }
+
+        var mother = females[Random.Range(0, females.Count)];
+        var father = males[Random.Range(0, males.Count)];
+
+        _breedMotherID = mother.UniqueID;
+        _breedFatherID = father.UniqueID;
+        RefreshBreedInfo();
+        Debug.Log($"[GameManager] Random breeders selected — Mother: {Clip(mother.UniqueID)} | Father: {Clip(father.UniqueID)}");
+    }
 
     [Button("Breed Creatures", ButtonSizes.Large), GUIColor(1f, 0.7f, 0.85f)]
     [BoxGroup("Breed")]
@@ -112,12 +148,12 @@ public class GameManager : MonoBehaviour
         child.Stamp();
         if (!_creatureRegistry.Register(child)) return;
 
-        // Wire up children lists on both parents
         if (_creatureRegistry.TryGet(motherID, out var mother)) mother.ChildrenIDs.Add(child.UniqueID);
         if (_creatureRegistry.TryGet(fatherID, out var father)) father.ChildrenIDs.Add(child.UniqueID);
 
         SaveSystem.SaveDatabase(_creatureRegistry);
         _lastChildID = child.UniqueID;
+        RefreshBreedInfo();
         Debug.Log($"[GameManager] Bred child: {child.UniqueID}  ({child.Gender})");
     }
 
@@ -127,18 +163,54 @@ public class GameManager : MonoBehaviour
 
     // ── Combat ────────────────────────────────────────────────────
 
-    [AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CombatManagerSO _combatManager;
-
     [BoxGroup("Combat")]
     [SerializeField, LabelText("Fighter A — UniqueID")] private string _combatAID = "";
 
     [BoxGroup("Combat")]
     [SerializeField, LabelText("Fighter B — UniqueID")] private string _combatBID = "";
 
+    [ShowInInspector, ReadOnly, LabelText("Fighter A Info")]
+    [BoxGroup("Combat")]
+    private string _fighterAInfo = "---";
+
+    [ShowInInspector, ReadOnly, LabelText("Fighter B Info")]
+    [BoxGroup("Combat")]
+    private string _fighterBInfo = "---";
+
     [ShowInInspector, ReadOnly, LabelText("Last Result")]
     [BoxGroup("Combat")]
     private string _lastCombatResult = "---";
+
+    [Button("Fill Random Fighters"), GUIColor(1f, 0.65f, 0.5f)]
+    [BoxGroup("Combat")]
+    private void FillRandomFighters()
+    {
+        var config = _combatManager ?? CombatManagerSO.Current;
+        if (config == null)
+        {
+            Debug.LogError("[GameManager] No CombatManager assigned.");
+            return;
+        }
+
+        var eligible = _creatureRegistry.GetAll().Values
+            .Where(d => !d.IsDead && d.FightCount < config.MaxFightCount)
+            .ToList();
+
+        if (eligible.Count < 2)
+        {
+            Debug.LogError("[GameManager] Not enough valid fighters — need at least 2 alive creatures under the fight limit.");
+            return;
+        }
+
+        int idxA = Random.Range(0, eligible.Count);
+        int idxB;
+        do { idxB = Random.Range(0, eligible.Count); } while (idxB == idxA);
+
+        _combatAID = eligible[idxA].UniqueID;
+        _combatBID = eligible[idxB].UniqueID;
+        RefreshCombatInfo(config);
+        Debug.Log($"[GameManager] Random fighters — A: {Clip(_combatAID)} | B: {Clip(_combatBID)}");
+    }
 
     [Button("Simulate Combat", ButtonSizes.Large), GUIColor(1f, 0.45f, 0.45f)]
     [BoxGroup("Combat")]
@@ -159,7 +231,43 @@ public class GameManager : MonoBehaviour
 
         SaveSystem.SaveDatabase(_creatureRegistry);
         _lastCombatResult = result.Summary;
+        RefreshCombatInfo(config);
     }
+
+    // ── Helpers ───────────────────────────────────────────────────
+
+    private void RefreshBreedInfo()
+    {
+        _motherBreedInfo = BuildBreedInfo(_breedMotherID);
+        _fatherBreedInfo = BuildBreedInfo(_breedFatherID);
+    }
+
+    private string BuildBreedInfo(string id)
+    {
+        if (string.IsNullOrEmpty(id) || !_creatureRegistry.TryGet(id, out var dna))
+            return "---";
+        if (dna.IsDead)
+            return $"{dna.Gender} | DEAD";
+        return $"{dna.Gender} | Breeds: {dna.BreedCount}/{BreedingService.MaxBreedCount}";
+    }
+
+    private void RefreshCombatInfo(CombatManagerSO config)
+    {
+        _fighterAInfo = BuildFightInfo(_combatAID, config);
+        _fighterBInfo = BuildFightInfo(_combatBID, config);
+    }
+
+    private string BuildFightInfo(string id, CombatManagerSO config)
+    {
+        if (string.IsNullOrEmpty(id) || !_creatureRegistry.TryGet(id, out var dna))
+            return "---";
+        if (dna.IsDead)
+            return "DEAD — cannot fight";
+        int remaining = config.MaxFightCount - dna.FightCount;
+        return $"Fights left: {remaining}/{config.MaxFightCount}  (used: {dna.FightCount})";
+    }
+
+    private static string Clip(string id) => id.Length > 14 ? id[..14] + "…" : id;
 
     // ── Rarity Breakdown ──────────────────────────────────────────
 

@@ -5,8 +5,10 @@ using UnityEngine;
 // Stateless service — called by GameManager. All state lives in the passed-in databases.
 public static class BreedingService
 {
+    public const int MaxBreedCount = 4;
+
     // Validates parents, builds a child DNA by inheriting from the genealogical tree,
-    // and wires up MotherID / FatherID on the child.
+    // wires up MotherID / FatherID on the child, and increments BreedCount on both parents.
     // Returns null if any validation fails.
     public static CreatureDNA Breed(
         string                 motherID,
@@ -25,13 +27,28 @@ public static class BreedingService
             Debug.LogError($"[BreedingService] Father ID '{fatherID}' not found in registry.");
             return null;
         }
+        if (mother.IsDead || father.IsDead)
+        {
+            Debug.LogError("[BreedingService] Cannot breed: one or both creatures are dead.");
+            return null;
+        }
         if (mother.Gender != CreatureGender.Female || father.Gender != CreatureGender.Male)
         {
             Debug.LogError("[BreedingService] Breeding requires one Female (mother) and one Male (father).");
             return null;
         }
+        if (mother.BreedCount >= MaxBreedCount)
+        {
+            Debug.LogError($"[BreedingService] Mother has reached max breeds ({MaxBreedCount}).");
+            return null;
+        }
+        if (father.BreedCount >= MaxBreedCount)
+        {
+            Debug.LogError($"[BreedingService] Father has reached max breeds ({MaxBreedCount}).");
+            return null;
+        }
 
-        return new CreatureDNA
+        var child = new CreatureDNA
         {
             BodyShapeID  = ResolveSlot(PartRole.Body,  motherID, fatherID, registry, partDb, odds),
             ArmID        = ResolveSlot(PartRole.Arm,   motherID, fatherID, registry, partDb, odds),
@@ -41,7 +58,15 @@ public static class BreedingService
             Gender       = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female,
             MotherID     = motherID,
             FatherID     = fatherID,
+            BaseHP       = InheritStat(mother.BaseHP,     father.BaseHP),
+            BaseAttack   = InheritStat(mother.BaseAttack, father.BaseAttack),
+            BaseSpeed    = InheritStat(mother.BaseSpeed,  father.BaseSpeed),
         };
+
+        mother.BreedCount++;
+        father.BreedCount++;
+
+        return child;
     }
 
     // ── Private helpers ───────────────────────────────────────────
@@ -90,7 +115,6 @@ public static class BreedingService
     }
 
     // Climbs the family tree 'levels' steps from the origin IDs.
-    // level=0 → origins, level=1 → their parents, level=2 → their grandparents, etc.
     private static List<string> ExpandGenerations(
         IEnumerable<string> origins,
         int                 levels,
@@ -129,4 +153,13 @@ public static class BreedingService
         PartRole.Mouth => partDb.Mouths?.GetRandomPart()?.ID     ?? "",
         _              => ""
     };
+
+    // 50/50 inherit from mother or father, then apply a random delta of -1, 0, or +1.
+    // Result is clamped to a minimum of 1.
+    private static float InheritStat(float motherStat, float fatherStat)
+    {
+        float inherited = Random.value < 0.5f ? motherStat : fatherStat;
+        int   delta     = Random.Range(-1, 2);   // -1, 0, or +1 with equal probability
+        return Mathf.Max(1f, inherited + delta);
+    }
 }

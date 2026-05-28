@@ -18,5 +18,6 @@ public class CombatManagerSO : SerializedScriptableObject
     [LabelWidth(160)] public float CritMultiplier = 3f;
 
     [Title("Safety")]
-    [LabelWidth(160)] public int MaxRounds = 50;
+    [LabelWidth(160)] public int MaxRounds    = 50;
+    [LabelWidth(160)] public int MaxFightCount = 5;
 }

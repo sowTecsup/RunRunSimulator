@@ -6,6 +6,7 @@ using UnityEngine;
 // Attack order: highest Speed attacks first each round.
 // Critical hit: CritChance probability → damage × CritMultiplier.
 // Post-combat: winner may evolve a random part (Tier1/2 only); loser may die.
+// Draw: if neither creature reaches 0 HP before MaxRounds → no consequences, FightCount++ for both.
 public static class CombatService
 {
     public static CombatResult Simulate(
@@ -30,53 +31,82 @@ public static class CombatService
             Debug.LogError("[CombatService] Cannot simulate combat: one or both creatures are dead.");
             return null;
         }
+        if (dnaA.FightCount >= config.MaxFightCount)
+        {
+            Debug.LogError($"[CombatService] '{idA}' has no fights remaining ({dnaA.FightCount}/{config.MaxFightCount}).");
+            return null;
+        }
+        if (dnaB.FightCount >= config.MaxFightCount)
+        {
+            Debug.LogError($"[CombatService] '{idB}' has no fights remaining ({dnaB.FightCount}/{config.MaxFightCount}).");
+            return null;
+        }
 
         var result = new CombatResult();
         var statsA = ComputeStats(dnaA, db);
         var statsB = ComputeStats(dnaB, db);
 
         result.Log.Add($"=== COMBAT START ===");
-        result.Log.Add($"[A] {idA[..Mathf.Min(14, idA.Length)]}  HP:{statsA.TotalHP:F1}  ATK:{statsA.Attack:F1}  SPD:{statsA.Speed:F1}");
-        result.Log.Add($"[B] {idB[..Mathf.Min(14, idB.Length)]}  HP:{statsB.TotalHP:F1}  ATK:{statsB.Attack:F1}  SPD:{statsB.Speed:F1}");
+        result.Log.Add($"[A] {Clip(idA)}  HP:{statsA.TotalHP:F1}  ATK:{statsA.Attack:F1}  SPD:{statsA.Speed:F1}");
+        result.Log.Add($"[B] {Clip(idB)}  HP:{statsB.TotalHP:F1}  ATK:{statsB.Attack:F1}  SPD:{statsB.Speed:F1}");
 
         float hpA = statsA.TotalHP;
         float hpB = statsB.TotalHP;
 
         // ── Turn simulation ───────────────────────────────────────
 
+        bool someoneKO = false;
         for (int round = 1; round <= config.MaxRounds; round++)
         {
-            // Faster creature attacks first; ties broken randomly
             bool aFirst = statsA.Speed > statsB.Speed ||
                           (Mathf.Approximately(statsA.Speed, statsB.Speed) && Random.value < 0.5f);
 
+            result.Log.Add($"--- Round {round} (first: {(aFirst ? "A" : "B")}) ---");
+
             if (aFirst)
             {
-                hpB -= Strike(dnaA, dnaB, statsA.Attack, config, result.Log, round, "A→B");
-                if (hpB <= 0f) break;
-                hpA -= Strike(dnaB, dnaA, statsB.Attack, config, result.Log, round, "B→A");
-                if (hpA <= 0f) break;
+                float dmg = Strike("A→B", statsA.Attack, hpB, config, result.Log, round);
+                hpB -= dmg;
+                if (hpB <= 0f) { someoneKO = true; break; }
+
+                dmg  = Strike("B→A", statsB.Attack, hpA, config, result.Log, round);
+                hpA -= dmg;
+                if (hpA <= 0f) { someoneKO = true; break; }
             }
             else
             {
-                hpA -= Strike(dnaB, dnaA, statsB.Attack, config, result.Log, round, "B→A");
-                if (hpA <= 0f) break;
-                hpB -= Strike(dnaA, dnaB, statsA.Attack, config, result.Log, round, "A→B");
-                if (hpB <= 0f) break;
+                float dmg = Strike("B→A", statsB.Attack, hpA, config, result.Log, round);
+                hpA -= dmg;
+                if (hpA <= 0f) { someoneKO = true; break; }
+
+                dmg  = Strike("A→B", statsA.Attack, hpB, config, result.Log, round);
+                hpB -= dmg;
+                if (hpB <= 0f) { someoneKO = true; break; }
             }
+        }
+
+        // ── Draw: MaxRounds reached with no KO ───────────────────
+
+        if (!someoneKO)
+        {
+            result.IsDraw   = true;
+            dnaA.FightCount++;
+            dnaB.FightCount++;
+            result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. A:{hpA:F1}HP  B:{hpB:F1}HP ===");
+            result.Log.Add("[DRAW] No consequences for either fighter.");
+            result.Log.Add($"=== COMBAT END === {result.Summary}");
+            return result;
         }
 
         // ── Determine winner ──────────────────────────────────────
 
-        // After MaxRounds: whoever has more HP remaining wins; tie → random
-        bool aWins = hpA > hpB || (Mathf.Approximately(hpA, hpB) && Random.value < 0.5f);
-
-        var winner = aWins ? dnaA : dnaB;
-        var loser  = aWins ? dnaB : dnaA;
+        bool aWins  = hpA > 0f;   // whoever survived the KO check wins
+        var  winner = aWins ? dnaA : dnaB;
+        var  loser  = aWins ? dnaB : dnaA;
 
         result.WinnerID = winner.UniqueID;
         result.LoserID  = loser.UniqueID;
-        result.Log.Add($"=== WINNER: {(aWins ? "A" : "B")} | Remaining HP — A:{hpA:F1}  B:{hpB:F1} ===");
+        result.Log.Add($"=== KO === {(aWins ? "A" : "B")} wins | A:{Mathf.Max(0, hpA):F1}HP  B:{Mathf.Max(0, hpB):F1}HP ===");
 
         // ── Update combat stats ───────────────────────────────────
 
@@ -88,12 +118,11 @@ public static class CombatService
 
         if (Random.value < config.EvolutionChance)
         {
-            result.EvolvedSlot  = TryEvolveRandomSlot(winner);
+            result.EvolvedSlot   = TryEvolveRandomSlot(winner);
             result.WinnerEvolved = result.EvolvedSlot != null;
-            if (result.WinnerEvolved)
-                result.Log.Add($"[EVOLUTION] Winner's {result.EvolvedSlot} part evolved to Tier {GetSlotTier(winner, result.EvolvedSlot)}!");
-            else
-                result.Log.Add("[EVOLUTION] All parts already at max Tier.");
+            result.Log.Add(result.WinnerEvolved
+                ? $"[EVOLUTION] Winner's {result.EvolvedSlot} evolved to Tier{GetSlotTier(winner, result.EvolvedSlot)}!"
+                : "[EVOLUTION] All parts already at max Tier.");
         }
 
         // ── Death (loser) ─────────────────────────────────────────
@@ -102,7 +131,7 @@ public static class CombatService
         {
             loser.IsDead    = true;
             result.LoserDied = true;
-            result.Log.Add($"[DEATH] Loser has perished. RIP.");
+            result.Log.Add("[DEATH] Loser has perished permanently.");
         }
 
         result.Log.Add($"=== COMBAT END === {result.Summary}");
@@ -141,15 +170,16 @@ public static class CombatService
         spd += part.Speed  + bonus;
     }
 
-    // Executes one attack and appends a log line. Returns damage dealt.
+    // Executes one attack. defenderHP is HP before the hit (used only for logging).
+    // Returns damage dealt.
     private static float Strike(
-        CreatureDNA attacker, CreatureDNA defender,
-        float baseAttack, CombatManagerSO config,
-        List<string> log, int round, string dir)
+        string dir, float attack, float defenderHP,
+        CombatManagerSO config, List<string> log, int round)
     {
-        bool  isCrit = Random.value < config.CritChance;
-        float damage = baseAttack * (isCrit ? config.CritMultiplier : 1f);
-        log.Add($"R{round:D2} [{dir}] {(isCrit ? "CRIT! " : "")}dmg:{damage:F1}");
+        bool  isCrit  = Random.value < config.CritChance;
+        float damage  = attack * (isCrit ? config.CritMultiplier : 1f);
+        float hpAfter = Mathf.Max(0f, defenderHP - damage);
+        log.Add($"  [{dir}]{(isCrit ? " CRIT!" : "")} dmg:{damage:F1}  defender HP after:{hpAfter:F1}");
         return damage;
     }
 
@@ -184,4 +214,6 @@ public static class CombatService
         "Mouth" => (int)dna.MouthTier,
         _       => 0
     };
+
+    private static string Clip(string id) => id[..Mathf.Min(14, id.Length)];
 }
