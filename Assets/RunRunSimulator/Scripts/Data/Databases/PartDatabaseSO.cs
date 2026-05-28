@@ -23,6 +23,46 @@ public abstract class PartDatabaseSO<T> : SerializedScriptableObject where T : B
 
     // ── Private Methods ───────────────────────────────────────────
 
+#if UNITY_EDITOR
+    [Title("Bulk Add")]
+    [InfoBox("Arrastra aquí varios assets de una vez y pulsa Populate para añadirlos, sincronizar IDs y generar nombres.")]
+    [OdinSerialize, AssetsOnly]
+    [ListDrawerSettings(DraggableItems = false, HideAddButton = false, HideRemoveButton = false)]
+    private List<T> dropBuffer = new List<T>();
+
+    [Button("Populate from Buffer", ButtonSizes.Large), GUIColor(0.4f, 1f, 0.6f)]
+    private void PopulateFromBuffer()
+    {
+        if (dropBuffer == null || dropBuffer.Count == 0)
+        {
+            Debug.LogWarning($"[{GetType().Name}] El buffer está vacío — arrastra assets primero.");
+            return;
+        }
+
+        var existing = new HashSet<T>(parts.Values);
+        int added = 0;
+        foreach (var part in dropBuffer)
+        {
+            if (part == null || existing.Contains(part)) continue;
+            parts[$"_tmp_{System.Guid.NewGuid():N}"] = part;
+            existing.Add(part);
+            added++;
+        }
+
+        dropBuffer.Clear();
+
+        if (added == 0)
+        {
+            Debug.LogWarning($"[{GetType().Name}] Todas las partes ya estaban registradas.");
+            return;
+        }
+
+        SyncAllIDs();
+        RollAllNames();
+        Debug.Log($"[{GetType().Name}] Populate: {added} partes añadidas, IDs sincronizados, nombres generados.");
+    }
+#endif
+
     [ButtonGroup("Admin")]
     [Button("Sync All IDs"), GUIColor(1f, 0.85f, 0.3f)]
     private void SyncAllIDs()
