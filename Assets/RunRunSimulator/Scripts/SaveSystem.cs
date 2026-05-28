@@ -27,6 +27,12 @@ public static class SaveSystem
         Debug.Log($"[SaveSystem] Saved {registry.Count} creatures → {DbPath}");
     }
 
+    public static string Serialize(Dictionary<string, CreatureDNA> data) =>
+        JsonConvert.SerializeObject(data, Settings);
+
+    public static Dictionary<string, CreatureDNA> Deserialize(string json) =>
+        JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(json, Settings);
+
     public static void LoadInto(CreatureRegistrySO registry)
     {
         if (!File.Exists(DbPath))

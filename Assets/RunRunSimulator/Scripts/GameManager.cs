@@ -68,8 +68,11 @@ public class GameManager : MonoBehaviour
     [BoxGroup("Mint")]
     public void MintRandomCreature()
     {
-        var dna    = CreatureGenerator.GenerateRandom(_database, _rarityOddsTable);
-        dna.Gender = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
+        var dna        = CreatureGenerator.GenerateRandom(_database, _rarityOddsTable);
+        dna.Gender     = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
+        dna.BaseHP     = Random.Range(1, 11);
+        dna.BaseAttack = Random.Range(1, 11);
+        dna.BaseSpeed  = Random.Range(1, 11);
         dna.Stamp();
 
         if (_creatureRegistry.Register(dna))
@@ -121,6 +124,42 @@ public class GameManager : MonoBehaviour
     [Button("Breed"), GUIColor(1f, 0.7f, 0.85f)]
     [BoxGroup("Breed")]
     private void BreedButton() => BreedCreatures(_breedMotherID, _breedFatherID);
+
+    // ── Combat ────────────────────────────────────────────────────
+
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private CombatManagerSO _combatManager;
+
+    [BoxGroup("Combat")]
+    [SerializeField, LabelText("Fighter A — UniqueID")] private string _combatAID = "";
+
+    [BoxGroup("Combat")]
+    [SerializeField, LabelText("Fighter B — UniqueID")] private string _combatBID = "";
+
+    [ShowInInspector, ReadOnly, LabelText("Last Result")]
+    [BoxGroup("Combat")]
+    private string _lastCombatResult = "---";
+
+    [Button("Simulate Combat", ButtonSizes.Large), GUIColor(1f, 0.45f, 0.45f)]
+    [BoxGroup("Combat")]
+    private void SimulateCombatButton()
+    {
+        var config = _combatManager ?? CombatManagerSO.Current;
+        if (config == null)
+        {
+            Debug.LogError("[GameManager] No CombatManager assigned.");
+            return;
+        }
+
+        var result = CombatService.Simulate(_combatAID, _combatBID, _creatureRegistry, _database, config);
+        if (result == null) return;
+
+        foreach (var line in result.Log)
+            Debug.Log($"[Combat] {line}");
+
+        SaveSystem.SaveDatabase(_creatureRegistry);
+        _lastCombatResult = result.Summary;
+    }
 
     // ── Rarity Breakdown ──────────────────────────────────────────
 

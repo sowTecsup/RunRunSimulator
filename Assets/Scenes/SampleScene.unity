@@ -119,6 +119,51 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &206846821
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 206846823}
+  - component: {fileID: 206846822}
+  m_Layer: 0
+  m_Name: CloudSave
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &206846822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 206846821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a578c0007a993294a9d5f8163aefb035, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CloudSyncService
+  _registry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
+--- !u!4 &206846823
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 206846821}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -8.93638, y: 0, z: -13.68567}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -464,6 +509,7 @@ MonoBehaviour:
   _database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
   _rarityOddsTable: {fileID: 11400000, guid: a3afe6af2bf139b4e9e397193f27a2e0, type: 2}
   _inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
+  _creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
   _currentDNA:
     BodyShapeID: body1
     ArmID: arm1
@@ -475,9 +521,23 @@ MonoBehaviour:
     FatherID: 
     ChildrenIDs: []
     Gender: 0
+    FightCount: 0
+    WinCount: 0
+    BreedCount: 0
+    BodyTier: 1
+    ArmTier: 1
+    EyeTier: 1
+    MouthTier: 1
+    BaseHP: 0
+    BaseAttack: 0
+    BaseSpeed: 0
+    IsDead: 0
   _currentDNAString: body1-arm1-Eye1-Mouth1-B106DB
   _breedMotherID: 
   _breedFatherID: 
+  _combatManager: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
+  _combatAID: 
+  _combatBID: 
   _loadIDInput: 
 --- !u!4 &1046970363
 Transform:
@@ -502,3 +562,4 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1046970363}
+  - {fileID: 206846823}

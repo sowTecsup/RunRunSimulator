@@ -11,8 +11,8 @@ public static class BreedingService
     public static CreatureDNA Breed(
         string                 motherID,
         string                 fatherID,
-        CreatureRegistrySO       registry,
-        CreatureRegistrySO     partDb,
+        CreatureRegistrySO     registry,
+        CreatureDatabaseSO     partDb,
         InheritanceOddsTableSO odds)
     {
         if (!registry.TryGet(motherID, out var mother))
@@ -50,8 +50,8 @@ public static class BreedingService
         PartRole               role,
         string                 motherID,
         string                 fatherID,
-        CreatureRegistrySO       registry,
-        CreatureRegistrySO     partDb,
+        CreatureRegistrySO     registry,
+        CreatureDatabaseSO     partDb,
         InheritanceOddsTableSO odds)
     {
         var slot = odds.Roll();
@@ -121,12 +121,12 @@ public static class BreedingService
         _              => ""
     };
 
-    private static string RandomPartID(PartRole role, CreatureRegistrySO partDb) => role switch
+    private static string RandomPartID(PartRole role, CreatureDatabaseSO partDb) => role switch
     {
         PartRole.Body  => partDb.BodyShapes?.GetRandomPart()?.ID ?? "",
         PartRole.Arm   => partDb.Arms?.GetRandomPart()?.ID       ?? "",
-        PartRole.Eye   => partDb.Eyes?.GetRandomPart()?.ID        ?? "",
-        PartRole.Mouth => partDb.Mouths?.GetRandomPart()?.ID      ?? "",
+        PartRole.Eye   => partDb.Eyes?.GetRandomPart()?.ID       ?? "",
+        PartRole.Mouth => partDb.Mouths?.GetRandomPart()?.ID     ?? "",
         _              => ""
     };
 }

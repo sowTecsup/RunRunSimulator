@@ -29,6 +29,25 @@ public class CreatureDNA
     // ── Social ────────────────────────────────────────────────────
     public CreatureGender Gender = CreatureGender.Unknown;
 
+    // ── Progression ───────────────────────────────────────────────
+    public int FightCount = 0;
+    public int WinCount   = 0;
+    public int BreedCount = 0;
+
+    // ── Tier per slot ─────────────────────────────────────────────
+    public Tier BodyTier  = Tier.Tier1;
+    public Tier ArmTier   = Tier.Tier1;
+    public Tier EyeTier   = Tier.Tier1;
+    public Tier MouthTier = Tier.Tier1;
+
+    // ── Base Stats (asignados en Mint por StatCalculator — Etapa 2.1) ─
+    public float BaseHP     = 0f;
+    public float BaseAttack = 0f;
+    public float BaseSpeed  = 0f;
+
+    // ── Mortality ─────────────────────────────────────────────────
+    public bool IsDead = false;
+
     // Unique registry key: two creatures with identical genes are still different entries.
     public string UniqueID => Timestamp > 0 ? $"{ToStringID()}-{Timestamp}" : "";
 

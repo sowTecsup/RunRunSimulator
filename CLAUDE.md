@@ -10,7 +10,8 @@
 
 **Secciones clave del Notion a revisar según la tarea:**
 - Trabajando en genética/DNA → sección *Sistema Genético* + *Breeding — Detalle Completo*
-- Trabajando en batalla → sección *Sistema de Batalla — Detalle* + *Sistema de Bidding*
+- Trabajando en batalla/combate → sección *Sistema de Combate Local — Implementado* + *Sistema de Batalla — Detalle* + *Sistema de Bidding*
+- Trabajando en UGS/cloud → sección *UGS — Cloud Save (Preview Etapa 2.3)*
 - Trabajando en tienda/economía → sección *Tienda y Economía* + *Decoraciones*
 - Dudas de lore → sección *Diseño de Juego (GDD)* + *MoriMonchis Honorarios*
 - Decisiones recientes → sección *Decisiones de Diseño — Etapa 1 (Ronda 4)* y rondas anteriores
@@ -44,17 +45,21 @@ Assets/RunRunSimulator/Scripts/
 ├── GameManager.cs                    # Lab: Generate / Mint / Breed + inspector Odin
 ├── CreatureGenerator.cs              # static: GenerateRandom(db, oddsTable?)
 ├── BreedingService.cs                # static: Breed() — traversal árbol genealógico
-├── SaveSystem.cs                     # static: SaveDatabase(registry) / LoadInto(registry) (Newtonsoft.Json)
+├── CombatService.cs                  # static: Simulate() — combate por turnos, evolución, muerte
+├── CloudSyncService.cs               # MonoBehaviour: UGS auth anónima + Cloud Save push/pull + SyncMeta
+├── SaveSystem.cs                     # static: SaveDatabase / LoadInto / Serialize / Deserialize (Newtonsoft.Json)
 ├── Data/
-│   ├── CreatureDNA.cs                # Genética + Identidad (UniqueID, Stamp) + Linaje
-│   ├── CreatureRegistrySO.cs         # SO registry [ReadOnly]: Dictionary<string, CreatureDNA> — visual, JSON es source of truth
+│   ├── CreatureDNA.cs                # Genética + Identidad + Linaje + Progresión + Tier/slot + Stats + IsDead
+│   ├── CreatureRegistrySO.cs         # SO registry: Dictionary<string, CreatureDNA> — InfoBox warning + Sync btn
 │   ├── CreatureDatabaseSO.cs         # SO orquestador: refs sub-DBs + validación de IDs
 │   ├── CreaturePartData.cs
 │   ├── PartNameBank.cs               # static: pools de nombres por (PartSet, PartRole)
 │   ├── RarityOddsTableSO.cs          # SO: pesos por Rarity → Roll() independiente por slot
-│   ├── InheritanceOddsTableSO.cs     # SO singleton: odds breeding + JSON hot-reload
+│   ├── InheritanceOddsTableSO.cs     # SO singleton: odds breeding — pesos configurables en inspector (sin JSON)
+│   ├── CombatManagerSO.cs            # SO singleton: EvolutionChance, DeathChance, CritChance, MaxRounds
+│   ├── CombatResult.cs               # Data class: WinnerID, LoserID, Log, LoserDied, WinnerEvolved
 │   ├── Parts/
-│   │   ├── BodyPart.cs               # abstract SO: ID[ReadOnly], Name, Rarity, Tier, Set
+│   │   ├── BodyPart.cs               # abstract SO: ID[ReadOnly], Name, Rarity, Tier, Set + HP/Attack/Speed
 │   │   ├── ArmPart.cs                # GetPartRole() = Arm
 │   │   ├── EyePart.cs                # GetPartRole() = Eye
 │   │   ├── MouthPart.cs              # GetPartRole() = Mouth
@@ -76,9 +81,9 @@ Assets/RunRunSimulator/Scripts/
 | 1 | 1.1 Arquitectura genética + DNA string + Databases de partes | ✅ Completo |
 | 1 | 1.2 Visualizador de criaturas (leer DNA → ensamblar Prefab 3D) | 🔲 Siguiente |
 | 1 | 1.3 Sistema de Breeding (herencia, linaje, registro, persistencia) | 🔶 En progreso |
-| 2 | 2.1 Sistema de Estadísticas (HP, Fuerza, Velocidad desde partes) | 🔲 Pendiente |
-| 2 | 2.2 Simulador de Batalla local → Battle Log | 🔲 Pendiente |
-| 2 | 2.3 Integración Unity Services (async battles) | 🔲 Pendiente |
+| 2 | 2.1 Sistema de Estadísticas (HP, Fuerza, Velocidad desde partes) | 🔶 Iniciado — BaseStats en DNA + stats por pieza en BodyPart SO |
+| 2 | 2.2 Simulador de Batalla local → Battle Log | 🔶 Iniciado — CombatService por turnos implementado |
+| 2 | 2.3 Integración Unity Services (async battles) | 🔶 Preview — CloudSyncService con auth anónima + Cloud Save |
 | 3 | 3.1 Tienda Local (NPCs, inventario, vitrinas) | 🔲 Pendiente |
 | 3 | 3.2 Mercado Online (P2P via Unity Services) | 🔲 Pendiente |
 
@@ -87,7 +92,7 @@ Assets/RunRunSimulator/Scripts/
 | Feature | Estado |
 |---------|--------|
 | `BreedingService.Breed()` con traversal genealógico | ✅ |
-| `InheritanceOddsTableSO` con hot-reload JSON | ✅ |
+| `InheritanceOddsTableSO` SO puro (pesos configurables en inspector) | ✅ |
 | `CreatureRegistrySO` registry visual [ReadOnly] + JSON source of truth | ✅ |
 | `SaveSystem` persistencia JSON completa | ✅ |
 | `GameManager.MintRandomCreature()` y `BreedCreatures()` | ✅ |
@@ -131,7 +136,7 @@ Assets/RunRunSimulator/Scripts/
 ## Identidad de Criaturas (CreatureDNA)
 
 ```
-ToStringID() = "BS0-A3-E1-M2-FF00AA"              // genetic string — contrato de red
+ToStringID() = "BS0-A3-E1-M2-FF00AA"              // genetic string — contrato de red (inmutable)
 UniqueID     = "BS0-A3-E1-M2-FF00AA-{Ticks}"      // clave en el registro
 BirthDate    = DateTime (UTC)
 Stamp()      → setea Timestamp + BirthDate de forma atómica antes de registrar
@@ -139,6 +144,10 @@ Stamp()      → setea Timestamp + BirthDate de forma atómica antes de registra
 
 - `MotherID`, `FatherID`, `ChildrenIDs` — referencias por `UniqueID` (no genetic strings)
 - `Gender` — `Unknown` hasta mintearse. Se asigna 50/50 en `Mint` y en `Breed`.
+- `FightCount`, `WinCount`, `BreedCount` — progresión, escritos por CombatService y BreedingService
+- `BodyTier`, `ArmTier`, `EyeTier`, `MouthTier` — Tier por slot, independiente por instancia (Tier1 al nacer)
+- `BaseHP`, `BaseAttack`, `BaseSpeed` — stats base aleatorios 1–10, asignados en Mint
+- `IsDead` — muerte permanente; bloquea combate y breeding si es `true`
 
 ---
 
@@ -157,7 +166,7 @@ Probabilidades por defecto — configurables, normalizadas internamente:
 - Cada slot (body, arm, eye, mouth) hace su **propio roll independiente**.
 - Mutación y Base → parte aleatoria del pool completo (sin filtro de rarity ni set).
 - Si un ancestro no existe en el registro, cae automáticamente al fallback random.
-- Hot-reload: botones **Save/Load JSON** en el SO ↔ `persistentDataPath/inheritance_odds.json`.
+- Pesos editables directo en el inspector del SO asset — la serialización es la de Unity (no JSON).
 - Singleton: `InheritanceOddsTableSO.Current` (se setea en `OnEnable` del SO).
 
 ---
@@ -193,7 +202,6 @@ Cada `BodyPart` tiene `Set` que agrupa partes en un tema visual/lore. 10 sets: `
 | Archivo | Contenido | Formato |
 |---------|-----------|---------|
 | `creature_database.json` | Registro completo de criaturas + árbol genealógico | Newtonsoft.Json |
-| `inheritance_odds.json` | Pesos de herencia para hot-reload | Newtonsoft.Json |
 
 - `SaveDatabase(registry)` se llama automáticamente en `Mint`, `Breed` y `OnApplicationQuit`.
 - `LoadInto(registry)` se llama en `Awake` del GameManager — popula el SO desde JSON.
@@ -226,12 +234,26 @@ RunRunSimulator/Creature Database (Orchestrator)
 RunRunSimulator/Creature Registry
 RunRunSimulator/Rarity Odds Table
 RunRunSimulator/Inheritance Odds Table
+RunRunSimulator/Combat Manager
 ```
 
 ---
 
+## Sistema de Combate (CombatService)
+
+- Stats efectivos = `BaseStat (DNA) + Σ(part.Stat + (tier-1))` por slot. Calculados en runtime, no almacenados.
+- Orden por `Speed`; empates aleatorios. 20% crit = ×3 daño. Safety cap: `MaxRounds = 50`.
+- Post-combate: ganador puede evolucionar parte aleatoria (no Tier3); perdedor puede morir.
+- `CombatManagerSO.Current` — singleton configurable. Asignar en `GameManager → Setup`.
+
+## UGS Cloud Save (CloudSyncService)
+
+- Adjuntar al mismo GameObject que `GameManager`. Asignar `CreatureRegistrySO`.
+- Requiere en Unity Dashboard: **Authentication** (modo Anonymous) + **Cloud Save**.
+- Push/Pull en Play Mode con los botones del inspector.
+- `sync_meta.json` local registra timestamps de seguridad para detección de rollback/edición manual.
+- **Dev mode**: CHEAT ALERT solo imprime en consola — activar bloqueo en Etapa 2.3 con Cloud Code.
+
 ## Bugs conocidos (pendientes de fix)
 
-| Archivo | Bug | Prioridad |
-|---------|-----|-----------|
-| `BreedingService.cs` | El parámetro `partDb` fue renombrado a tipo `CreatureRegistrySO` por error (debería ser `CreatureDatabaseSO`). `RandomPartID()` llama `.BodyShapes/.Arms/.Eyes/.Mouths` que no existen en `CreatureRegistrySO` → error de compilación. | Alta — fix próxima sesión |
+Ninguno por el momento.

@@ -26,6 +26,14 @@ public abstract class BodyPart : SerializedScriptableObject
     [GUIColor(nameof(GetSetColor))]
     public PartSet Set;
 
+    // ── Stat contributions ────────────────────────────────────────
+    [BoxGroup("Stats"), LabelWidth(80), Range(0, 10)]
+    public float HP     = 0f;
+    [BoxGroup("Stats"), LabelWidth(80), Range(0, 10)]
+    public float Attack = 0f;
+    [BoxGroup("Stats"), LabelWidth(80), Range(0, 10)]
+    public float Speed  = 0f;
+
     [Button("Roll Name"), GUIColor(0.5f, 0.85f, 1f)]
     private void RollName()
     {

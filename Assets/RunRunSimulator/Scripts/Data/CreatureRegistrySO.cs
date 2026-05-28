@@ -1,16 +1,14 @@
 using System.Collections.Generic;
+using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
 
-// Visual read-only registry of all registered MoriMonchis.
-// JSON (creature_database.json) is the sole source of truth — this SO is populated at runtime.
-// Fields are [ReadOnly] so the inspector shows data but users cannot edit it accidentally.
 [CreateAssetMenu(menuName = "RunRunSimulator/Creature Registry")]
 public class CreatureRegistrySO : SerializedScriptableObject
 {
-    [InfoBox("Read-only — populated at runtime from creature_database.json. Do not edit manually.")]
-    [OdinSerialize, ReadOnly]
+    [InfoBox("Reflejo visual del JSON — no editar manualmente. Usar Sync para recargar desde creature_database.json.", InfoMessageType.Warning)]
+    [OdinSerialize]
     [DictionaryDrawerSettings(KeyLabel = "UniqueID", ValueLabel = "DNA",
         DisplayMode = DictionaryDisplayOptions.CollapsedFoldout)]
     private Dictionary<string, CreatureDNA> _creatures = new Dictionary<string, CreatureDNA>();
@@ -52,4 +50,32 @@ public class CreatureRegistrySO : SerializedScriptableObject
         UnityEditor.EditorUtility.SetDirty(this);
 #endif
     }
+
+#if UNITY_EDITOR
+    // ── Copy IDs ──────────────────────────────────────────────────
+
+    [System.Serializable]
+    private class IDEntry
+    {
+        [DisplayAsString, HideLabel, HorizontalGroup]
+        public string id;
+
+        [HorizontalGroup(Width = 55), Button("Copy"), GUIColor(0.6f, 0.9f, 1f)]
+        private void CopyToClipboard() => GUIUtility.systemCopyBuffer = id;
+    }
+
+    [Title("Registered IDs")]
+    [ShowInInspector]
+    [ListDrawerSettings(HideAddButton = true, HideRemoveButton = true, DraggableItems = false)]
+    private List<IDEntry> IDEntries
+    {
+        get => _creatures.Keys.Select(k => new IDEntry { id = k }).ToList();
+        set { }
+    }
+
+    // ── Sync ──────────────────────────────────────────────────────
+
+    [Button("Sync from JSON", ButtonSizes.Large), GUIColor(0.5f, 0.85f, 1f)]
+    private void SyncFromJson() => SaveSystem.LoadInto(this);
+#endif
 }
