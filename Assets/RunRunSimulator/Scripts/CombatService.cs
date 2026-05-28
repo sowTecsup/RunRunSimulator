@@ -117,20 +117,13 @@ public static class CombatService
         winner.WinCount++;
         loser.FightCount++;
 
-        // ── Evolution (winner) ────────────────────────────────────
+        // ── Evolution (winner) — always triggers, random slot ────────
 
-        if (Random.value < config.EvolutionChance)
-        {
-            result.EvolvedSlot   = TryEvolveRandomSlot(winner);
-            result.WinnerEvolved = result.EvolvedSlot != null;
-            result.Log.Add(result.WinnerEvolved
-                ? $"[EVOLUTION] \"{winner.CustomName}\" — {result.EvolvedSlot} evolved to Tier{GetSlotTier(winner, result.EvolvedSlot)}!"
-                : $"[EVOLUTION] \"{winner.CustomName}\" — all parts already at max Tier.");
-        }
-        else
-        {
-            result.Log.Add($"[EVOLUTION] No evolution this fight ({config.EvolutionChance * 100f:F0}% chance — not triggered).");
-        }
+        result.EvolvedSlot   = TryEvolveRandomSlot(winner);
+        result.WinnerEvolved = result.EvolvedSlot != null;
+        result.Log.Add(result.WinnerEvolved
+            ? $"[EVOLUTION] \"{winner.CustomName}\" — {result.EvolvedSlot} evolved to Tier{GetSlotTier(winner, result.EvolvedSlot)}!"
+            : $"[EVOLUTION] \"{winner.CustomName}\" — all parts already at max Tier.");
 
         // ── Death (loser) ─────────────────────────────────────────
 

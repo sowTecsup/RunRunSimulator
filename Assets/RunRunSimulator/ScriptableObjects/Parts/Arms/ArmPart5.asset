@@ -22,7 +22,11 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   Icon: {fileID: 0}
-  ID: A1
-  Name: Drag
+  ID: A4
+  Name: Grasp
   Rarity: 4
+  Tier: 0
   Set: 2
+  HP: 0
+  Attack: 0
+  Speed: 0

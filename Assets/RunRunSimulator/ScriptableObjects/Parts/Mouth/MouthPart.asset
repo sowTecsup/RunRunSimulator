@@ -23,7 +23,10 @@ MonoBehaviour:
     SerializationNodes: []
   Icon: {fileID: 0}
   ID: M0
-  Name: Sizzle
+  Name: Pop
   Rarity: 0
   Tier: 0
   Set: 10
+  HP: 0
+  Attack: 0
+  Speed: 0

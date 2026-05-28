@@ -23,7 +23,10 @@ MonoBehaviour:
     SerializationNodes: []
   Icon: {fileID: 0}
   ID: E1
-  Name: Blaze
+  Name: Glare
   Rarity: 1
   Tier: 0
   Set: 5
+  HP: 0
+  Attack: 0
+  Speed: 0

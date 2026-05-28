@@ -20,12 +20,13 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 94432935bce200046973b532319539eb, type: 2}
     - {fileID: 11400000, guid: e2306bc3eb55f3f429a5093337c9bf45, type: 2}
     - {fileID: 11400000, guid: 2ed1ff1acb888c143931c0f9b592196d, type: 2}
+    - {fileID: 11400000, guid: 83673b1397130404ab0203a77a0deba4, type: 2}
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes:
-    - Name: _parts
+    - Name: parts
       Entry: 7
       Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[ArmPart,
         Assembly-CSharp]], mscorlib
@@ -38,7 +39,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 4
+      Data: 5
     - Name: 
       Entry: 7
       Data: 
@@ -87,6 +88,30 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: A4
+    - Name: $v
+      Entry: 10
+      Data: 4
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: dropBuffer
+      Entry: 7
+      Data: 2|System.Collections.Generic.List`1[[ArmPart, Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
     - Name: 
       Entry: 13
       Data: 

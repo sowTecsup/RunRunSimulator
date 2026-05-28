@@ -461,17 +461,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 475f1fc76588939468d4c059b89ae098, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  _database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
-  _rarityOddsTable: {fileID: 11400000, guid: a3afe6af2bf139b4e9e397193f27a2e0, type: 2}
-  _inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
-  _combatManager: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
-  _creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
-  _currentDNA:
-    BodyShapeID: 
-    ArmID: 
-    EyeID: 
-    MouthID: 
-    PrimaryColor: {r: 1, g: 1, b: 1, a: 1}
+  database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
+  rarityOddsTable: {fileID: 11400000, guid: a3afe6af2bf139b4e9e397193f27a2e0, type: 2}
+  inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
+  combatManager: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
+  creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
+  currentDNA:
+    BodyShapeID: BS0
+    ArmID: A0
+    EyeID: E0
+    MouthID: M0
+    PrimaryColor: {r: 0.33491263, g: 0.7735713, b: 0.29083246, a: 1}
     Timestamp: 0
     MotherID: 
     FatherID: 
@@ -488,12 +488,12 @@ MonoBehaviour:
     BaseAttack: 0
     BaseSpeed: 0
     IsDead: 0
-  _currentDNAString: ---
-  _breedMotherID: 
-  _breedFatherID: 
-  _combatAID: 
-  _combatBID: 
-  _loadIDInput: 
+  currentDNAString: BS0-A0-E0-M0-55C54A
+  breedMotherID: 
+  breedFatherID: 
+  combatAID: 
+  combatBID: 
+  loadIDInput: 
 --- !u!4 &1046970363
 Transform:
   m_ObjectHideFlags: 0
@@ -538,8 +538,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a578c0007a993294a9d5f8163aefb035, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudSyncService
-  _registry: {fileID: 0}
-  _newNameInput: 
+  registry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
+  newNameInput: 
 --- !u!4 &1443145215
 Transform:
   m_ObjectHideFlags: 0

@@ -27,3 +27,6 @@ MonoBehaviour:
   Rarity: 4
   Tier: 0
   Set: 1
+  HP: 0
+  Attack: 0
+  Speed: 0
