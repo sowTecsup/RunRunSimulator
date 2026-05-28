@@ -19,6 +19,22 @@
 
 ---
 
+## Selección de modelo
+
+Antes de comenzar cualquier tarea, evaluar si el modelo actual (Sonnet) es adecuado. **Avisar al usuario si se recomienda cambiar a Opus** antes de proceder.
+
+Cambiar a Opus cuando la tarea implique:
+- Diseño de sistemas nuevos desde cero con muchas decisiones interconectadas (economía, tienda, meta-game)
+- Arquitectura que afecte múltiples etapas del roadmap simultáneamente
+- Análisis de trade-offs complejos sin respuesta obvia
+
+Sonnet es suficiente para:
+- Implementación de features concretas (scripts, refactoring, bugfixes)
+- Trabajo dentro de sistemas ya diseñados
+- Tareas con requisitos claros y acotados
+
+---
+
 ## Qué es este proyecto
 Simulador de tienda retro 3D ambientado en los años 80s. El jugador es el dueño de una tienda que se sumó a la tendencia "MoriMonchis": criaturas biológicas del tamaño de la palma de la mano (estética Gremlins + Furby + Tamagotchi). En la trastienda opera un club de peleas clandestino asíncrono. Referencia de género: los *Simulator games* del mercado actual (PowerWash Simulator, etc.) pero con genética y muerte permanente.
 
