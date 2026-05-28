@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -22,13 +21,12 @@ public class GameManager : MonoBehaviour
     [FormerlySerializedAs("_inheritanceOddsTable")]
     [SerializeField] private InheritanceOddsTableSO inheritanceOddsTable;
 
-    [AssetsOnly, BoxGroup("Setup")]
-    [FormerlySerializedAs("_combatManager")]
-    [SerializeField] private CombatManagerSO combatManager;
-
     [Required, AssetsOnly, BoxGroup("Setup")]
     [FormerlySerializedAs("_creatureRegistry")]
     [SerializeField] private CreatureRegistrySO creatureRegistry;
+
+    [BoxGroup("Setup")]
+    [SerializeField] private CombatController combatController;
 
     [BoxGroup("Current Creature")]
     [FormerlySerializedAs("_currentDNA")]
@@ -63,25 +61,6 @@ public class GameManager : MonoBehaviour
     [ShowInInspector, ReadOnly, LabelText("Last Child ID"), BoxGroup("Breed")]
     private string lastChildID = "---";
 
-    [BoxGroup("Combat")]
-    [FormerlySerializedAs("_combatAID")]
-    [SerializeField, LabelText("Fighter A — UniqueID")]
-    private string combatAID = "";
-
-    [BoxGroup("Combat")]
-    [FormerlySerializedAs("_combatBID")]
-    [SerializeField, LabelText("Fighter B — UniqueID")]
-    private string combatBID = "";
-
-    [ShowInInspector, ReadOnly, LabelText("Fighter A Info"), BoxGroup("Combat")]
-    private string fighterAInfo = "---";
-
-    [ShowInInspector, ReadOnly, LabelText("Fighter B Info"), BoxGroup("Combat")]
-    private string fighterBInfo = "---";
-
-    [ShowInInspector, ReadOnly, LabelText("Last Result"), BoxGroup("Combat")]
-    private string lastCombatResult = "---";
-
     [Title("Rarity Breakdown")]
     [ShowInInspector, ReadOnly, LabelText("Body Shape"), LabelWidth(80)]
     [BoxGroup("Current Creature/Rarity")]
@@ -107,7 +86,7 @@ public class GameManager : MonoBehaviour
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
-    private void Awake()  => SaveSystem.LoadInto(creatureRegistry);
+    private void Awake()           => SaveSystem.LoadInto(creatureRegistry);
     private void OnApplicationQuit() => SaveSystem.SaveDatabase(creatureRegistry);
 
     // ── Private Methods ───────────────────────────────────────────
@@ -135,8 +114,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        var mother  = females[Random.Range(0, females.Count)];
-        var father  = males[Random.Range(0, males.Count)];
+        var mother = females[Random.Range(0, females.Count)];
+        var father = males[Random.Range(0, males.Count)];
         breedMotherID = mother.UniqueID;
         breedFatherID = father.UniqueID;
         RefreshBreedInfo();
@@ -145,49 +124,6 @@ public class GameManager : MonoBehaviour
 
     [Button("Breed"), GUIColor(1f, 0.7f, 0.85f), BoxGroup("Breed")]
     private void BreedButton() => BreedCreatures(breedMotherID, breedFatherID);
-
-    [Button("Fill Random Fighters"), GUIColor(1f, 0.65f, 0.5f), BoxGroup("Combat")]
-    private void FillRandomFighters()
-    {
-        var config = combatManager ?? CombatManagerSO.Current;
-        if (config == null) { Debug.LogError("[GameManager] No CombatManager assigned."); return; }
-
-        var eligible = creatureRegistry.GetAll().Values
-            .Where(d => !d.IsDead && d.FightCount < config.MaxFightCount)
-            .ToList();
-
-        if (eligible.Count < 2)
-        {
-            Debug.LogError("[GameManager] Not enough valid fighters — need at least 2 alive creatures under the fight limit.");
-            return;
-        }
-
-        int idxA = Random.Range(0, eligible.Count);
-        int idxB;
-        do { idxB = Random.Range(0, eligible.Count); } while (idxB == idxA);
-
-        combatAID = eligible[idxA].UniqueID;
-        combatBID = eligible[idxB].UniqueID;
-        RefreshCombatInfo(config);
-        Debug.Log($"[GameManager] Random fighters — A: {Clip(combatAID)} | B: {Clip(combatBID)}");
-    }
-
-    [Button("Simulate Combat", ButtonSizes.Large), GUIColor(1f, 0.45f, 0.45f), BoxGroup("Combat")]
-    private void SimulateCombatButton()
-    {
-        var config = combatManager ?? CombatManagerSO.Current;
-        if (config == null) { Debug.LogError("[GameManager] No CombatManager assigned."); return; }
-
-        var result = CombatService.Simulate(combatAID, combatBID, creatureRegistry, database, config);
-        if (result == null) return;
-
-        foreach (var line in result.Log)
-            Debug.Log($"[Combat] {line}");
-
-        SaveSystem.SaveDatabase(creatureRegistry);
-        lastCombatResult = result.Summary;
-        RefreshCombatInfo(config);
-    }
 
     [Button("Load from ID"), GUIColor(0.4f, 0.6f, 0.95f), BoxGroup("Load by ID")]
     private void LoadFromID()
@@ -225,33 +161,19 @@ public class GameManager : MonoBehaviour
         fatherBreedInfo = BuildBreedInfo(breedFatherID);
     }
 
-    private void RefreshCombatInfo(CombatManagerSO config)
-    {
-        fighterAInfo = BuildFightInfo(combatAID, config);
-        fighterBInfo = BuildFightInfo(combatBID, config);
-    }
-
     private string BuildBreedInfo(string id)
     {
         if (string.IsNullOrEmpty(id) || !creatureRegistry.TryGet(id, out var dna)) return "---";
         return dna.IsDead
-            ? $"{dna.Gender} | DEAD"
-            : $"{dna.Gender} | Breeds: {dna.BreedCount}/{BreedingService.MaxBreedCount}";
-    }
-
-    private string BuildFightInfo(string id, CombatManagerSO config)
-    {
-        if (string.IsNullOrEmpty(id) || !creatureRegistry.TryGet(id, out var dna)) return "---";
-        if (dna.IsDead) return "DEAD — cannot fight";
-        int remaining = config.MaxFightCount - dna.FightCount;
-        return $"Fights left: {remaining}/{config.MaxFightCount}  (used: {dna.FightCount})";
+            ? $"\"{dna.CustomName}\"  {dna.Gender} | DEAD"
+            : $"\"{dna.CustomName}\"  {dna.Gender} | Breeds: {dna.BreedCount}/{BreedingService.MaxBreedCount}";
     }
 
     private void ValidateDNA(CreatureDNA dna)
     {
         if (database == null) return;
         LogPart("Body",  database.GetBodyShape(dna.BodyShapeID), dna.BodyShapeID);
-        LogPart("Arms",  database.GetArm(dna.ArmID),            dna.ArmID);
+        LogPart("Arms",  database.GetArm(dna.ArmID),             dna.ArmID);
         LogPart("Eyes",  database.GetEye(dna.EyeID),             dna.EyeID);
         LogPart("Mouth", database.GetMouth(dna.MouthID),         dna.MouthID);
     }

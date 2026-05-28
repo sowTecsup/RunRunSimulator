@@ -241,6 +241,23 @@ public class CloudSyncService : MonoBehaviour
         }
     }
 
+    [Button("Sign In Anonymous (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.6f, 0.6f)]
+    [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]
+    public async void SignInAnonButton()
+    {
+        try
+        {
+            status = "Signing in anonymously...";
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            await OnSignedInComplete("Anonymous");
+        }
+        catch (Exception e)
+        {
+            status = $"Anon sign-in error: {e.Message}";
+            Debug.LogError($"[CloudSync] SignInAnonymously failed: {e}");
+        }
+    }
+
     [Button("Sign In with Unity Account", ButtonSizes.Large), GUIColor(0.4f, 0.6f, 1f)]
     [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]
     public async void SignInButton()

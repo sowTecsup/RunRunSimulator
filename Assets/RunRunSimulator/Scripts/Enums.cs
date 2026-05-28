@@ -46,3 +46,12 @@ public enum Tier
     Tier2 = 2,
     Tier3 = 3,
 }
+
+// Tracks WHY a MoriMochi is currently unavailable for new actions.
+// Extend with new reasons (e.g. Breeding) as new timed systems are added.
+public enum BusyReason
+{
+    None              = 0,
+    QueuedForCombat   = 1,  // Waiting for async matchmaking
+    Breeding          = 2,  // Occupied in a timed breeding process (future)
+}

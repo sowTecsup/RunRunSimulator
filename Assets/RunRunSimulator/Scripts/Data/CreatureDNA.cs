@@ -49,6 +49,10 @@ public class CreatureDNA
     // ── Mortality ─────────────────────────────────────────────────
     public bool IsDead = false;
 
+    // ── Busy state ────────────────────────────────────────────────
+    public BusyReason BusyState = BusyReason.None;
+    public bool IsBusy => BusyState != BusyReason.None;
+
     // Unique registry key: two creatures with identical genes are still different entries.
     public string UniqueID => Timestamp > 0 ? $"{ToStringID()}-{Timestamp}" : "";
 
