@@ -465,7 +465,7 @@ MonoBehaviour:
   rarityOddsTable: {fileID: 11400000, guid: a3afe6af2bf139b4e9e397193f27a2e0, type: 2}
   inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
   creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
-  combatController: {fileID: 0}
+  combatController: {fileID: 1813964818}
   currentDNA:
     BodyShapeID: BS0
     ArmID: A0
@@ -587,7 +587,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AsyncCombatService
   registry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
-  combatConfig: {fileID: 0}
+  combatConfig: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
 --- !u!114 &1813964818
 MonoBehaviour:
   m_ObjectHideFlags: 0
