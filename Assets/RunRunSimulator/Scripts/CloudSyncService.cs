@@ -127,6 +127,11 @@ public class CloudSyncService : MonoBehaviour
         status     = $"Signed in ({method})";
         RefreshSecurityDisplay();
         Debug.Log($"[CloudSync] Signed in via '{method}' — ID: {playerID}, Name: {playerName}");
+
+        // Scope local save by player + auto-sync from cloud
+        SaveSystem.SetUserScope(playerID);
+        SaveSystem.LoadInto(registry);
+        await PullAsync();
     }
 
     private async Task<bool> ValidateBeforePush()

@@ -1,0 +1,10 @@
+{
+  "Name": "matchmaking-tick",
+  "EventName": "process-matchmaking",
+  "Type": "recurring",
+  "Schedule": "*/1 * * * *",
+  "ActionType": "cloud-code",
+  "ActionConfig": {
+    "script": "process-matchmaking"
+  }
+}

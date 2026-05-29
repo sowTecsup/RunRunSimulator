@@ -28,6 +28,9 @@ public class GameManager : MonoBehaviour
     [BoxGroup("Setup")]
     [SerializeField] private CombatController combatController;
 
+    [BoxGroup("Setup")]
+    [SerializeField] private CloudSyncService cloudSync;
+
     [BoxGroup("Current Creature")]
     [FormerlySerializedAs("_currentDNA")]
     [SerializeField, ReadOnly, InlineProperty, HideLabel]
@@ -86,7 +89,7 @@ public class GameManager : MonoBehaviour
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
-    private void Awake()           => SaveSystem.LoadInto(creatureRegistry);
+    // Load is triggered by CloudSyncService.OnSignedInComplete (scoped per-player)
     private void OnApplicationQuit() => SaveSystem.SaveDatabase(creatureRegistry);
 
     // ── Private Methods ───────────────────────────────────────────
@@ -186,6 +189,13 @@ public class GameManager : MonoBehaviour
 
     private static string Clip(string id) => id.Length > 14 ? id[..14] + "…" : id;
 
+    // Fire-and-forget cloud push. PushAsync internally checks isSignedIn,
+    // so it's safe to call even before the user has signed in.
+    private void TryPushToCloud()
+    {
+        if (cloudSync != null) _ = cloudSync.PushAsync();
+    }
+
     // ── Public Methods ────────────────────────────────────────────
 
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
@@ -202,6 +212,7 @@ public class GameManager : MonoBehaviour
         if (!creatureRegistry.Register(dna)) return;
 
         SaveSystem.SaveDatabase(creatureRegistry);
+        TryPushToCloud();
         lastMintedID = dna.UniqueID;
         Debug.Log($"[GameManager] Minted: \"{dna.CustomName}\"  {dna.UniqueID}  ({dna.Gender})");
     }
@@ -223,6 +234,7 @@ public class GameManager : MonoBehaviour
         if (creatureRegistry.TryGet(fatherID, out var father)) father.ChildrenIDs.Add(child.UniqueID);
 
         SaveSystem.SaveDatabase(creatureRegistry);
+        TryPushToCloud();
         lastChildID = child.UniqueID;
         RefreshBreedInfo();
         Debug.Log($"[GameManager] Bred child: \"{child.CustomName}\"  {child.UniqueID}  ({child.Gender})");

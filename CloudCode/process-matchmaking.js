@@ -1,5 +1,8 @@
-// Cloud Code Script: run-combat
-// Matchmaking + server-side combat simulation for MoriMonchis async battles.
+// Cloud Code Script: process-matchmaking
+// Scheduled trigger — runs every N minutes via Cloud Code Triggers.
+// Drains the matchmaking pool, pairs creatures, simulates combats, writes
+// results to each player's combat_results. Leftover (odd one out, stale) stays
+// in the pool for the next tick.
 
 const { DataApi } = require("@unity-services/cloud-save-1.4");
 
@@ -7,63 +10,84 @@ const POOL_KEY    = "matchmaking_pool";
 const RESULTS_KEY = "combat_results";
 const POOL_TTL_MS = 86400000;  // 24 h
 
-module.exports = async ({ params, context, logger }) => {
-    const { creatureId, customName, creatureJson } = params;
-
-    if (!creatureId || !customName || !creatureJson)
-        throw new Error("Missing required params: creatureId, customName, creatureJson");
-
+module.exports = async ({ context, logger }) => {
     const api = new DataApi({ accessToken: context.serviceToken });
 
-    // ── Load pool from Custom Data (Game Data tab) ────────────────
-    // Note: pool is wrapped in { entries: [...] } because Custom Data values
-    // are typed as `object` and arrays at the top level get rejected (404).
+    // ── Load pool ─────────────────────────────────────────────────
     let pool = [];
     try {
         const res  = await api.getCustomItems(context.projectId, context.environmentId, [POOL_KEY]);
         const item = res.data?.results?.find(i => i.key === POOL_KEY);
         pool = Array.isArray(item?.value?.entries) ? item.value.entries : [];
     } catch (e) {
-        logger.info("Pool not found, starting empty: " + (e.message || e));
+        logger.info("Pool empty / not found: " + (e.message || e));
+        return JSON.stringify({ matched: 0, remaining: 0, dropped: 0 });
     }
 
-    const now = Date.now();
-    pool = pool.filter(e => now - e.ts < POOL_TTL_MS);
+    const now    = Date.now();
+    const before = pool.length;
+    pool         = pool.filter(e => now - e.ts < POOL_TTL_MS);
+    const dropped = before - pool.length;
 
-    const opponentIdx = pool.findIndex(e => e.playerId !== context.playerId);
-
-    if (opponentIdx === -1) {
-        // No opponent yet — enqueue
-        pool.push({ playerId: context.playerId, creatureId, customName, creatureJson, ts: now });
-        await api.setCustomItem(context.projectId, context.environmentId, {
-            key:   POOL_KEY,
-            value: { entries: pool },
-        });
-        return JSON.stringify({ status: "waiting" });
+    if (pool.length < 2) {
+        await persistPool(api, context, pool);
+        logger.info(`Pool too small to match (${pool.length}). Dropped ${dropped} stale.`);
+        return JSON.stringify({ matched: 0, remaining: pool.length, dropped });
     }
 
-    // ── Match found ───────────────────────────────────────────────
-    const [opponent] = pool.splice(opponentIdx, 1);
-    await api.setCustomItem(context.projectId, context.environmentId, {
-        key:   POOL_KEY,
-        value: { entries: pool },
-    });
+    // ── Shuffle + pair ────────────────────────────────────────────
+    shuffle(pool);
+    const pairs    = [];
+    const leftover = [];
 
-    const dnaA   = JSON.parse(creatureJson);
-    const dnaB   = JSON.parse(opponent.creatureJson);
-    const battle = simulateCombat(dnaA, customName, dnaB, opponent.customName);
+    while (pool.length >= 2) {
+        const a = pool.shift();
+        // Find first entry whose playerId differs from a's. If none, a waits.
+        const partnerIdx = pool.findIndex(e => e.playerId !== a.playerId);
+        if (partnerIdx === -1) {
+            leftover.push(a);
+            continue;
+        }
+        const [b] = pool.splice(partnerIdx, 1);
+        pairs.push([a, b]);
+    }
+    leftover.push(...pool);
 
-    logger.info("Battle complete — winner is A: " + battle.winnerIsA);
+    // ── Simulate each pair, write results to both players ─────────
+    let matched = 0;
+    for (const [a, b] of pairs) {
+        try {
+            const dnaA   = JSON.parse(a.creatureJson);
+            const dnaB   = JSON.parse(b.creatureJson);
+            const battle = simulateCombat(dnaA, a.customName, dnaB, b.customName);
 
-    await appendResult(api, context.projectId, context.playerId,  buildResult(battle, true,  opponent.customName, opponent.playerId));
-    await appendResult(api, context.projectId, opponent.playerId, buildResult(battle, false, customName,         context.playerId));
+            await appendResult(api, context.projectId, a.playerId, buildResult(battle, true,  b));
+            await appendResult(api, context.projectId, b.playerId, buildResult(battle, false, a));
 
-    return JSON.stringify({ status: "matched" });
+            matched++;
+            logger.info(`Matched "${a.customName}" (${a.playerName}) vs "${b.customName}" (${b.playerName}) — winner A: ${battle.winnerIsA}`);
+        } catch (e) {
+            logger.error(`Pair failed: ${e.message || e}`);
+            leftover.push(a, b);
+        }
+    }
+
+    await persistPool(api, context, leftover);
+
+    logger.info(`Tick complete — matched: ${matched}, remaining: ${leftover.length}, dropped: ${dropped}`);
+    return JSON.stringify({ matched, remaining: leftover.length, dropped });
 };
 
 // ─────────────────────────────────────────────────────────────────
 // I/O Helpers
 // ─────────────────────────────────────────────────────────────────
+
+async function persistPool(api, context, pool) {
+    await api.setCustomItem(context.projectId, context.environmentId, {
+        key:   POOL_KEY,
+        value: { entries: pool },
+    });
+}
 
 async function appendResult(api, projectId, playerId, result) {
     let existing = [];
@@ -79,17 +103,18 @@ async function appendResult(api, projectId, playerId, result) {
     });
 }
 
-function buildResult(battle, callerIsA, opponentName, opponentPlayerId) {
+function buildResult(battle, callerIsA, opponent) {
     const won  = callerIsA ? battle.winnerIsA : !battle.winnerIsA;
     const died = !won && battle.loserDied;
     return {
-        CreatureId:       callerIsA ? battle.idA : battle.idB,
-        Won:              won,
-        Died:             died,
-        EvolvedSlot:      won ? battle.evolvedSlot : null,
-        OpponentName:     opponentName,
-        OpponentPlayerId: opponentPlayerId,
-        Log:              battle.log,
+        CreatureId:         callerIsA ? battle.idA : battle.idB,
+        Won:                won,
+        Died:               died,
+        EvolvedSlot:        won ? battle.evolvedSlot : null,
+        OpponentName:       opponent.customName,
+        OpponentPlayerId:   opponent.playerId,
+        OpponentPlayerName: opponent.playerName,
+        Log:                battle.log,
     };
 }
 
@@ -181,4 +206,11 @@ function evolveRandom(dna) {
     const chosen = weighted[Math.floor(Math.random() * weighted.length)];
     dna[chosen + "Tier"] = tierInt(dna[chosen + "Tier"]) + 1;
     return chosen;
+}
+
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
 }

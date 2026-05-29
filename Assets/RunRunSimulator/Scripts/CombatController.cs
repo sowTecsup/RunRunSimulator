@@ -135,15 +135,28 @@ public class CombatController : MonoBehaviour
         RefreshQueueDisplay();
     }
 
-    [Button("Enqueue for Combat", ButtonSizes.Large), GUIColor(1f, 0.55f, 0.2f), BoxGroup("Async Combat")]
-    private void EnqueueButton()
+    [Button("Enqueue for Combat (Instant)", ButtonSizes.Large), GUIColor(1f, 0.55f, 0.2f), BoxGroup("Async Combat")]
+    private void EnqueueInstantButton()
     {
         if (string.IsNullOrEmpty(asyncCreatureID))
         {
             Debug.LogWarning("[CombatController] No creature selected for async queue.");
             return;
         }
-        EnqueueForAsyncCombat(asyncCreatureID);
+        EnqueueForAsyncCombat(asyncCreatureID, scheduled: false);
+        asyncCreatureID   = "";
+        asyncCreatureInfo = "---";
+    }
+
+    [Button("Enqueue for Combat (Timer)", ButtonSizes.Large), GUIColor(0.85f, 0.4f, 1f), BoxGroup("Async Combat")]
+    private void EnqueueScheduledButton()
+    {
+        if (string.IsNullOrEmpty(asyncCreatureID))
+        {
+            Debug.LogWarning("[CombatController] No creature selected for async queue.");
+            return;
+        }
+        EnqueueForAsyncCombat(asyncCreatureID, scheduled: true);
         asyncCreatureID   = "";
         asyncCreatureInfo = "---";
     }
@@ -167,7 +180,7 @@ public class CombatController : MonoBehaviour
 
     // ── Public Methods ────────────────────────────────────────────
 
-    public async void EnqueueForAsyncCombat(string uniqueID)
+    public async void EnqueueForAsyncCombat(string uniqueID, bool scheduled = false)
     {
         if (!creatureRegistry.TryGet(uniqueID, out var dna))
         {
@@ -182,7 +195,8 @@ public class CombatController : MonoBehaviour
         if (asyncCombatService == null) { Debug.LogError("[CombatController] AsyncCombatService not assigned."); return; }
 
         RefreshQueueDisplay();
-        await asyncCombatService.EnqueueAsync(dna);
+        if (scheduled) await asyncCombatService.EnqueueScheduledAsync(dna);
+        else           await asyncCombatService.EnqueueInstantAsync(dna);
         RefreshQueueDisplay();
     }
 }

@@ -34,13 +34,13 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 10
+      Data: 4
     - Name: 
       Entry: 7
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A1-E0-M0-8CFE64-639155257514242375
+      Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: $v
       Entry: 7
       Data: 2|CreatureDNA, Assembly-CSharp
@@ -55,19 +55,19 @@ MonoBehaviour:
       Data: E0
     - Name: MouthID
       Entry: 1
-      Data: M0
+      Data: M3
     - Name: PrimaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.549019635
+      Data: 0.02745098
     - Name: 
       Entry: 4
-      Data: 0.996078432
+      Data: 0.6431373
     - Name: 
       Entry: 4
-      Data: 0.392156869
+      Data: 0.733333349
     - Name: 
       Entry: 4
       Data: 1
@@ -76,16 +76,16 @@ MonoBehaviour:
       Data: 
     - Name: CustomName
       Entry: 1
-      Data: 
+      Data: Wiggly Zap
     - Name: Timestamp
       Entry: 3
-      Data: 639155257514242375
+      Data: 639156193256399807
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250841275941630279
+      Data: 5250842211683787711
     - Name: 
       Entry: 8
       Data: 
@@ -100,16 +100,7 @@ MonoBehaviour:
       Data: 3|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 3
-    - Name: 
-      Entry: 1
-      Data: BS0-A3-E0-M1-792BAE-639155287656601886
-    - Name: 
-      Entry: 1
-      Data: BS0-A1-E4-M2-3532C4-639155287738410567
-    - Name: 
-      Entry: 1
-      Data: BS3-A1-E0-M2-C90602-639155287771217420
+      Data: 0
     - Name: 
       Entry: 13
       Data: 
@@ -118,7 +109,7 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -142,13 +133,13 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: BaseAttack
       Entry: 4
-      Data: 0
+      Data: 2
     - Name: BaseSpeed
       Entry: 4
-      Data: 0
+      Data: 7
     - Name: IsDead
       Entry: 5
       Data: false
@@ -166,34 +157,34 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A1-E0-M2-A11A8F-639155257555826178
+      Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: $v
       Entry: 7
       Data: 4|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS0
+      Data: BS1
     - Name: ArmID
       Entry: 1
-      Data: A1
+      Data: A0
     - Name: EyeID
       Entry: 1
-      Data: E0
+      Data: E2
     - Name: MouthID
       Entry: 1
-      Data: M2
+      Data: M1
     - Name: PrimaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.6313726
+      Data: 0.6156863
     - Name: 
       Entry: 4
-      Data: 0.101960786
+      Data: 0.08235294
     - Name: 
       Entry: 4
-      Data: 0.56078434
+      Data: 0.470588237
     - Name: 
       Entry: 4
       Data: 1
@@ -202,16 +193,16 @@ MonoBehaviour:
       Data: 
     - Name: CustomName
       Entry: 1
-      Data: 
+      Data: Glowy Glob
     - Name: Timestamp
       Entry: 3
-      Data: 639155257555826178
+      Data: 639156193268302489
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250841275983214082
+      Data: 5250842211695690393
     - Name: 
       Entry: 8
       Data: 
@@ -235,7 +226,7 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -259,13 +250,13 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 0
+      Data: 4
     - Name: BaseAttack
       Entry: 4
-      Data: 0
+      Data: 8
     - Name: BaseSpeed
       Entry: 4
-      Data: 0
+      Data: 9
     - Name: IsDead
       Entry: 5
       Data: false
@@ -283,13 +274,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS1-A1-E0-M0-BB1118-639155257561519574
+      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: $v
       Entry: 7
       Data: 6|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS1
+      Data: BS0
     - Name: ArmID
       Entry: 1
       Data: A1
@@ -298,19 +289,19 @@ MonoBehaviour:
       Data: E0
     - Name: MouthID
       Entry: 1
-      Data: M0
+      Data: M1
     - Name: PrimaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.733333349
+      Data: 0.490196079
     - Name: 
       Entry: 4
-      Data: 0.06666667
+      Data: 0.0117647061
     - Name: 
       Entry: 4
-      Data: 0.09411765
+      Data: 0.6862745
     - Name: 
       Entry: 4
       Data: 1
@@ -319,16 +310,16 @@ MonoBehaviour:
       Data: 
     - Name: CustomName
       Entry: 1
-      Data: 
+      Data: Wobbly Chunk
     - Name: Timestamp
       Entry: 3
-      Data: 639155257561519574
+      Data: 639156259112286863
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250841275988907478
+      Data: 5250842277539674767
     - Name: 
       Entry: 8
       Data: 
@@ -352,7 +343,7 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -376,13 +367,13 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 0
+      Data: 6
     - Name: BaseAttack
       Entry: 4
-      Data: 0
+      Data: 6
     - Name: BaseSpeed
       Entry: 4
-      Data: 0
+      Data: 2
     - Name: IsDead
       Entry: 5
       Data: false
@@ -400,13 +391,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS1-A0-E0-M2-20D1C0-639155281656249657
+      Data: BS0-A0-E0-M0-1047BA-639156259122481028
     - Name: $v
       Entry: 7
       Data: 8|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS1
+      Data: BS0
     - Name: ArmID
       Entry: 1
       Data: A0
@@ -415,19 +406,19 @@ MonoBehaviour:
       Data: E0
     - Name: MouthID
       Entry: 1
-      Data: M2
+      Data: M0
     - Name: PrimaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.1254902
+      Data: 0.0627451
     - Name: 
       Entry: 4
-      Data: 0.819607854
+      Data: 0.2784314
     - Name: 
       Entry: 4
-      Data: 0.7529412
+      Data: 0.7294118
     - Name: 
       Entry: 4
       Data: 1
@@ -436,16 +427,16 @@ MonoBehaviour:
       Data: 
     - Name: CustomName
       Entry: 1
-      Data: 
+      Data: Lumpy Munch
     - Name: Timestamp
       Entry: 3
-      Data: 639155281656249657
+      Data: 639156259122481028
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250841300083637561
+      Data: 5250842277549868932
     - Name: 
       Entry: 8
       Data: 
@@ -493,724 +484,13 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 0
+      Data: 9
     - Name: BaseAttack
       Entry: 4
-      Data: 0
+      Data: 7
     - Name: BaseSpeed
       Entry: 4
-      Data: 0
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS1-A0-E0-M0-4787EA-639155281670801861
-    - Name: $v
-      Entry: 7
-      Data: 10|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS1
-    - Name: ArmID
-      Entry: 1
-      Data: A0
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M0
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.2784314
-    - Name: 
-      Entry: 4
-      Data: 0.5294118
-    - Name: 
-      Entry: 4
-      Data: 0.917647064
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: 
-    - Name: Timestamp
-      Entry: 3
-      Data: 639155281670801861
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250841300098189765
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: 
-    - Name: FatherID
-      Entry: 1
-      Data: 
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 11|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 2
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 0
-    - Name: BaseAttack
-      Entry: 4
-      Data: 0
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 0
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS0-A2-E0-M1-D748AF-639155281676400823
-    - Name: $v
-      Entry: 7
-      Data: 12|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS0
-    - Name: ArmID
-      Entry: 1
-      Data: A2
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M1
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.843137264
-    - Name: 
-      Entry: 4
-      Data: 0.282352954
-    - Name: 
-      Entry: 4
-      Data: 0.6862745
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: 
-    - Name: Timestamp
-      Entry: 3
-      Data: 639155281676400823
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250841300103788727
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: 
-    - Name: FatherID
-      Entry: 1
-      Data: 
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 13|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 0
-    - Name: BaseAttack
-      Entry: 4
-      Data: 0
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 0
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS0-A0-E0-M2-46BA1D-639155281680766551
-    - Name: $v
-      Entry: 7
-      Data: 14|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS0
-    - Name: ArmID
-      Entry: 1
-      Data: A0
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M2
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.274509817
-    - Name: 
-      Entry: 4
-      Data: 0.7294118
-    - Name: 
-      Entry: 4
-      Data: 0.113725491
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: 
-    - Name: Timestamp
-      Entry: 3
-      Data: 639155281680766551
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250841300108154455
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: 
-    - Name: FatherID
-      Entry: 1
-      Data: 
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 15|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 3
-    - Name: 
-      Entry: 1
-      Data: BS0-A3-E0-M1-792BAE-639155287656601886
-    - Name: 
-      Entry: 1
-      Data: BS0-A1-E4-M2-3532C4-639155287738410567
-    - Name: 
-      Entry: 1
-      Data: BS3-A1-E0-M2-C90602-639155287771217420
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 0
-    - Name: BaseAttack
-      Entry: 4
-      Data: 0
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 0
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS0-A3-E0-M1-792BAE-639155287656601886
-    - Name: $v
-      Entry: 7
-      Data: 16|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS0
-    - Name: ArmID
-      Entry: 1
-      Data: A3
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M1
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.4745098
-    - Name: 
-      Entry: 4
-      Data: 0.168627456
-    - Name: 
-      Entry: 4
-      Data: 0.68235296
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: 
-    - Name: Timestamp
-      Entry: 3
-      Data: 639155287656601886
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250841306083989790
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: BS0-A1-E0-M0-8CFE64-639155257514242375
-    - Name: FatherID
-      Entry: 1
-      Data: BS0-A0-E0-M2-46BA1D-639155281680766551
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 17|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 0
-    - Name: BaseAttack
-      Entry: 4
-      Data: 0
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 0
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS0-A1-E4-M2-3532C4-639155287738410567
-    - Name: $v
-      Entry: 7
-      Data: 18|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS0
-    - Name: ArmID
-      Entry: 1
-      Data: A1
-    - Name: EyeID
-      Entry: 1
-      Data: E4
-    - Name: MouthID
-      Entry: 1
-      Data: M2
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.20784314
-    - Name: 
-      Entry: 4
-      Data: 0.196078435
-    - Name: 
-      Entry: 4
-      Data: 0.768627465
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: 
-    - Name: Timestamp
-      Entry: 3
-      Data: 639155287738410567
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250841306165798471
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: BS0-A1-E0-M0-8CFE64-639155257514242375
-    - Name: FatherID
-      Entry: 1
-      Data: BS0-A0-E0-M2-46BA1D-639155281680766551
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 19|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 0
-    - Name: BaseAttack
-      Entry: 4
-      Data: 0
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 0
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS3-A1-E0-M2-C90602-639155287771217420
-    - Name: $v
-      Entry: 7
-      Data: 20|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS3
-    - Name: ArmID
-      Entry: 1
-      Data: A1
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M2
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.7882353
-    - Name: 
-      Entry: 4
-      Data: 0.0235294122
-    - Name: 
-      Entry: 4
-      Data: 0.007843138
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: 
-    - Name: Timestamp
-      Entry: 3
-      Data: 639155287771217420
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250841306198605324
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: BS0-A1-E0-M0-8CFE64-639155257514242375
-    - Name: FatherID
-      Entry: 1
-      Data: BS0-A0-E0-M2-46BA1D-639155281680766551
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 21|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 0
-    - Name: BaseAttack
-      Entry: 4
-      Data: 0
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 0
+      Data: 7
     - Name: IsDead
       Entry: 5
       Data: false
