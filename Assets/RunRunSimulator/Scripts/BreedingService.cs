@@ -32,6 +32,11 @@ public static class BreedingService
             Debug.LogError("[BreedingService] Cannot breed: one or both creatures are dead.");
             return null;
         }
+        if (mother.IsBusy || father.IsBusy)
+        {
+            Debug.LogError("[BreedingService] Cannot breed: one or both creatures are busy (queued for async combat).");
+            return null;
+        }
         if (mother.Gender != CreatureGender.Female || father.Gender != CreatureGender.Male)
         {
             Debug.LogError("[BreedingService] Breeding requires one Female (mother) and one Male (father).");

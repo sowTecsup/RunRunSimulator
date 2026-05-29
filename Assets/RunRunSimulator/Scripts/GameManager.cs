@@ -1,10 +1,15 @@
-using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+// Genetics Lab core + single source of truth for the shared assets.
+// Other MonoBehaviours (CombatController, BreedingController, AsyncCombatService,
+// CloudSyncService) resolve their assets via GameManager.Instance in Awake/Start
+// — no serialized cross-references needed.
+[DefaultExecutionOrder(-10)]
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance { get; private set; }
     // ── Private Fields ────────────────────────────────────────────
 
     [Required, AssetsOnly]
@@ -21,12 +26,12 @@ public class GameManager : MonoBehaviour
     [FormerlySerializedAs("_inheritanceOddsTable")]
     [SerializeField] private InheritanceOddsTableSO inheritanceOddsTable;
 
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private CombatManagerSO combatConfig;
+
     [Required, AssetsOnly, BoxGroup("Setup")]
     [FormerlySerializedAs("_creatureRegistry")]
     [SerializeField] private CreatureRegistrySO creatureRegistry;
-
-    [BoxGroup("Setup")]
-    [SerializeField] private CombatController combatController;
 
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
@@ -44,25 +49,6 @@ public class GameManager : MonoBehaviour
     [ShowInInspector, ReadOnly, LabelText("Last Minted ID")]
     [BoxGroup("Mint")]
     private string lastMintedID = "---";
-
-    [BoxGroup("Breed")]
-    [FormerlySerializedAs("_breedMotherID")]
-    [SerializeField, LabelText("Mother ID")]
-    private string breedMotherID = "";
-
-    [BoxGroup("Breed")]
-    [FormerlySerializedAs("_breedFatherID")]
-    [SerializeField, LabelText("Father ID")]
-    private string breedFatherID = "";
-
-    [ShowInInspector, ReadOnly, LabelText("Mother Info"), BoxGroup("Breed")]
-    private string motherBreedInfo = "---";
-
-    [ShowInInspector, ReadOnly, LabelText("Father Info"), BoxGroup("Breed")]
-    private string fatherBreedInfo = "---";
-
-    [ShowInInspector, ReadOnly, LabelText("Last Child ID"), BoxGroup("Breed")]
-    private string lastChildID = "---";
 
     [Title("Rarity Breakdown")]
     [ShowInInspector, ReadOnly, LabelText("Body Shape"), LabelWidth(80)]
@@ -89,6 +75,8 @@ public class GameManager : MonoBehaviour
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
+    private void Awake() => Instance = this;
+
     // Load is triggered by CloudSyncService.OnSignedInComplete (scoped per-player)
     private void OnApplicationQuit() => SaveSystem.SaveDatabase(creatureRegistry);
 
@@ -103,30 +91,6 @@ public class GameManager : MonoBehaviour
         RefreshRarityBreakdown();
         Debug.Log($"[GameManager] Generated (preview): {currentDNAString}");
     }
-
-    [Button("Fill Random Breeders"), GUIColor(0.85f, 0.6f, 1f), BoxGroup("Breed")]
-    private void FillRandomBreeders()
-    {
-        var all     = creatureRegistry.GetAll().Values.ToList();
-        var females = all.Where(d => !d.IsDead && d.Gender == CreatureGender.Female && d.BreedCount < BreedingService.MaxBreedCount).ToList();
-        var males   = all.Where(d => !d.IsDead && d.Gender == CreatureGender.Male   && d.BreedCount < BreedingService.MaxBreedCount).ToList();
-
-        if (females.Count == 0 || males.Count == 0)
-        {
-            Debug.LogError("[GameManager] Not enough valid breeders — need at least one alive Male and one alive Female under the breed limit.");
-            return;
-        }
-
-        var mother = females[Random.Range(0, females.Count)];
-        var father = males[Random.Range(0, males.Count)];
-        breedMotherID = mother.UniqueID;
-        breedFatherID = father.UniqueID;
-        RefreshBreedInfo();
-        Debug.Log($"[GameManager] Random breeders — Mother: {Clip(mother.UniqueID)} | Father: {Clip(father.UniqueID)}");
-    }
-
-    [Button("Breed"), GUIColor(1f, 0.7f, 0.85f), BoxGroup("Breed")]
-    private void BreedButton() => BreedCreatures(breedMotherID, breedFatherID);
 
     [Button("Load from ID"), GUIColor(0.4f, 0.6f, 0.95f), BoxGroup("Load by ID")]
     private void LoadFromID()
@@ -158,20 +122,6 @@ public class GameManager : MonoBehaviour
         rarityScore = $"{(Rarity)Mathf.RoundToInt(avg)}  (avg {avg:F2})";
     }
 
-    private void RefreshBreedInfo()
-    {
-        motherBreedInfo = BuildBreedInfo(breedMotherID);
-        fatherBreedInfo = BuildBreedInfo(breedFatherID);
-    }
-
-    private string BuildBreedInfo(string id)
-    {
-        if (string.IsNullOrEmpty(id) || !creatureRegistry.TryGet(id, out var dna)) return "---";
-        return dna.IsDead
-            ? $"\"{dna.CustomName}\"  {dna.Gender} | DEAD"
-            : $"\"{dna.CustomName}\"  {dna.Gender} | Breeds: {dna.BreedCount}/{BreedingService.MaxBreedCount}";
-    }
-
     private void ValidateDNA(CreatureDNA dna)
     {
         if (database == null) return;
@@ -187,16 +137,14 @@ public class GameManager : MonoBehaviour
         else              Debug.LogWarning($"  [!!] {label,-6} → ID '{id}' not found in database.");
     }
 
-    private static string Clip(string id) => id.Length > 14 ? id[..14] + "…" : id;
+    // ── Public Methods ────────────────────────────────────────────
 
     // Fire-and-forget cloud push. PushAsync internally checks isSignedIn,
     // so it's safe to call even before the user has signed in.
-    private void TryPushToCloud()
+    public void PushToCloud()
     {
         if (cloudSync != null) _ = cloudSync.PushAsync();
     }
-
-    // ── Public Methods ────────────────────────────────────────────
 
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
     public void MintRandomCreature()
@@ -212,35 +160,18 @@ public class GameManager : MonoBehaviour
         if (!creatureRegistry.Register(dna)) return;
 
         SaveSystem.SaveDatabase(creatureRegistry);
-        TryPushToCloud();
+        PushToCloud();
         lastMintedID = dna.UniqueID;
         Debug.Log($"[GameManager] Minted: \"{dna.CustomName}\"  {dna.UniqueID}  ({dna.Gender})");
     }
 
-    [Button("Breed Creatures", ButtonSizes.Large), GUIColor(1f, 0.7f, 0.85f), BoxGroup("Breed")]
-    public void BreedCreatures(string motherID, string fatherID)
-    {
-        var odds = inheritanceOddsTable ?? InheritanceOddsTableSO.Current;
-        if (odds == null) { Debug.LogError("[GameManager] No InheritanceOddsTable assigned."); return; }
+    // ── Public Getters ────────────────────────────────────────────
 
-        var child = BreedingService.Breed(motherID, fatherID, creatureRegistry, database, odds);
-        if (child == null) return;
-
-        child.CustomName = CreatureNameBank.GetRandomName();
-        child.Stamp();
-        if (!creatureRegistry.Register(child)) return;
-
-        if (creatureRegistry.TryGet(motherID, out var mother)) mother.ChildrenIDs.Add(child.UniqueID);
-        if (creatureRegistry.TryGet(fatherID, out var father)) father.ChildrenIDs.Add(child.UniqueID);
-
-        SaveSystem.SaveDatabase(creatureRegistry);
-        TryPushToCloud();
-        lastChildID = child.UniqueID;
-        RefreshBreedInfo();
-        Debug.Log($"[GameManager] Bred child: \"{child.CustomName}\"  {child.UniqueID}  ({child.Gender})");
-    }
-
-    // ── Getters ───────────────────────────────────────────────────
+    public CreatureRegistrySO     Registry             => creatureRegistry;
+    public CreatureDatabaseSO     Database             => database;
+    public RarityOddsTableSO      RarityOddsTable      => rarityOddsTable;
+    public InheritanceOddsTableSO InheritanceOddsTable => inheritanceOddsTable;
+    public CombatManagerSO        CombatConfig         => combatConfig;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures"), BoxGroup("Registry")]
     public int RegistryCount => creatureRegistry?.Count ?? 0;

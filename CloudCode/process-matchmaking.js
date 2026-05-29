@@ -113,7 +113,7 @@ function buildResult(battle, callerIsA, opponent) {
         EvolvedSlot:        won ? battle.evolvedSlot : null,
         OpponentName:       opponent.customName,
         OpponentPlayerId:   opponent.playerId,
-        OpponentPlayerName: opponent.playerName,
+        OpponentPlayerName: opponent.playerName ?? "Anonymous",
         Log:                battle.log,
     };
 }

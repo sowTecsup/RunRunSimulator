@@ -3,19 +3,17 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 // Local combat UI + simulation flow. Attach to the same GameObject as GameManager.
-// Async combat flow will extend this controller in Etapa 2.3.
+// Resolves its assets from GameManager.Instance in Awake — no serialized
+// cross-references needed.
 public class CombatController : MonoBehaviour
 {
+    // ── Cached References ─────────────────────────────────────────
+
+    private CreatureRegistrySO registry;
+    private CreatureDatabaseSO database;
+    private CombatManagerSO    config;
+
     // ── Private Fields ────────────────────────────────────────────
-
-    [Required, AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CreatureRegistrySO creatureRegistry;
-
-    [Required, AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CreatureDatabaseSO database;
-
-    [AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CombatManagerSO combatConfig;
 
     [BoxGroup("Setup")]
     [SerializeField] private AsyncCombatService asyncCombatService;
@@ -37,16 +35,25 @@ public class CombatController : MonoBehaviour
     [ShowInInspector, ReadOnly, LabelText("Last Result"), BoxGroup("Combat")]
     private string lastCombatResult = "---";
 
+    // ── Lifecycle ─────────────────────────────────────────────────
+
+    private void Awake()
+    {
+        var gm = GameManager.Instance;
+        registry = gm.Registry;
+        database = gm.Database;
+        config   = gm.CombatConfig ?? CombatManagerSO.Current;
+    }
+
     // ── Private Methods ───────────────────────────────────────────
 
     [Button("Fill Random Fighters"), GUIColor(1f, 0.65f, 0.5f), BoxGroup("Combat")]
     private void FillRandomFighters()
     {
-        var config = combatConfig ?? CombatManagerSO.Current;
         if (config == null) { Debug.LogError("[CombatController] No CombatManager assigned."); return; }
 
-        var eligible = creatureRegistry.GetAll().Values
-            .Where(d => !d.IsDead && d.FightCount < config.MaxFightCount)
+        var eligible = registry.GetAll().Values
+            .Where(d => !d.IsDead && !d.IsBusy && d.FightCount < config.MaxFightCount)
             .ToList();
 
         if (eligible.Count < 2)
@@ -61,36 +68,35 @@ public class CombatController : MonoBehaviour
 
         combatAID = eligible[idxA].UniqueID;
         combatBID = eligible[idxB].UniqueID;
-        RefreshCombatInfo(config);
+        RefreshCombatInfo();
         Debug.Log($"[CombatController] Random fighters — A: {Clip(combatAID)} | B: {Clip(combatBID)}");
     }
 
     [Button("Simulate Combat", ButtonSizes.Large), GUIColor(1f, 0.45f, 0.45f), BoxGroup("Combat")]
     private void SimulateCombatButton()
     {
-        var config = combatConfig ?? CombatManagerSO.Current;
         if (config == null) { Debug.LogError("[CombatController] No CombatManager assigned."); return; }
 
-        var result = CombatService.Simulate(combatAID, combatBID, creatureRegistry, database, config);
+        var result = CombatService.Simulate(combatAID, combatBID, registry, database, config);
         if (result == null) return;
 
         foreach (var line in result.Log)
             Debug.Log($"[Combat] {line}");
 
-        SaveSystem.SaveDatabase(creatureRegistry);
+        SaveSystem.SaveDatabase(registry);
         lastCombatResult = result.Summary;
-        RefreshCombatInfo(config);
+        RefreshCombatInfo();
     }
 
-    private void RefreshCombatInfo(CombatManagerSO config)
+    private void RefreshCombatInfo()
     {
-        fighterAInfo = BuildFightInfo(combatAID, config);
-        fighterBInfo = BuildFightInfo(combatBID, config);
+        fighterAInfo = BuildFightInfo(combatAID);
+        fighterBInfo = BuildFightInfo(combatBID);
     }
 
-    private string BuildFightInfo(string id, CombatManagerSO config)
+    private string BuildFightInfo(string id)
     {
-        if (string.IsNullOrEmpty(id) || !creatureRegistry.TryGet(id, out var dna)) return "---";
+        if (string.IsNullOrEmpty(id) || !registry.TryGet(id, out var dna)) return "---";
         if (dna.IsDead) return "DEAD — cannot fight";
         int remaining = config.MaxFightCount - dna.FightCount;
         return $"\"{dna.CustomName}\"  Fights left: {remaining}/{config.MaxFightCount}  (used: {dna.FightCount})";
@@ -100,7 +106,6 @@ public class CombatController : MonoBehaviour
 
     // ══════════════════════════════════════════════════════════════
     // ASYNC COMBAT — Etapa 2.3
-    // Requiere: AsyncCombatService + Cloud Code (run_combat.js)
     // ══════════════════════════════════════════════════════════════
 
     [BoxGroup("Async Combat")]
@@ -114,12 +119,13 @@ public class CombatController : MonoBehaviour
     [ShowInInspector, ReadOnly, LabelText("In Queue"), BoxGroup("Async Combat")]
     private string queuedCreaturesInfo = "---";
 
+    [BoxGroup("Async Combat"), SerializeField, LabelText("Dequeue Index")]
+    private int dequeueIndex = 0;
+
     [Button("Pick Random for Queue"), GUIColor(0.9f, 0.75f, 0.3f), BoxGroup("Async Combat")]
     private void PickRandomForQueue()
     {
-        var config = combatConfig ?? CombatManagerSO.Current;
-
-        var eligible = creatureRegistry.GetAll().Values
+        var eligible = registry.GetAll().Values
             .Where(d => !d.IsDead && !d.IsBusy && d.FightCount < (config?.MaxFightCount ?? 5))
             .ToList();
 
@@ -129,8 +135,8 @@ public class CombatController : MonoBehaviour
             return;
         }
 
-        var picked       = eligible[Random.Range(0, eligible.Count)];
-        asyncCreatureID  = picked.UniqueID;
+        var picked        = eligible[Random.Range(0, eligible.Count)];
+        asyncCreatureID   = picked.UniqueID;
         asyncCreatureInfo = $"\"{picked.CustomName}\"  Fights left: {(config?.MaxFightCount ?? 5) - picked.FightCount}";
         RefreshQueueDisplay();
     }
@@ -161,6 +167,55 @@ public class CombatController : MonoBehaviour
         asyncCreatureInfo = "---";
     }
 
+    [Button("Dequeue from Combat", ButtonSizes.Medium), GUIColor(1f, 0.4f, 0.4f), BoxGroup("Async Combat")]
+    private void DequeueButton()
+    {
+        var queued = registry.GetAll().Values
+            .Where(d => d.BusyState == BusyReason.QueuedForCombat)
+            .OrderBy(d => d.UniqueID)
+            .ToList();
+
+        if (queued.Count == 0)
+        {
+            Debug.LogWarning("[CombatController] No MoriMonchis are currently queued.");
+            return;
+        }
+        if (dequeueIndex < 0 || dequeueIndex >= queued.Count)
+        {
+            Debug.LogError($"[CombatController] Index {dequeueIndex} out of range — queue has {queued.Count} creature(s) (0–{queued.Count - 1}). Press 'Show Queued MoriMonchis' to see the list.");
+            return;
+        }
+        if (asyncCombatService == null) { Debug.LogError("[CombatController] AsyncCombatService not assigned."); return; }
+
+        var dna = queued[dequeueIndex];
+        _ = asyncCombatService.DequeueAsync(dna);
+        RefreshQueueDisplay();
+    }
+
+    [Button("Show Queued MoriMonchis"), GUIColor(0.5f, 0.9f, 0.65f), BoxGroup("Async Combat")]
+    private void ShowQueuedButton()
+    {
+        var queued = registry.GetAll().Values
+            .Where(d => d.BusyState == BusyReason.QueuedForCombat)
+            .OrderBy(d => d.UniqueID)
+            .ToList();
+        queuedCreaturesInfo = queued.Count == 0
+            ? "None"
+            : string.Join(", ", queued.Select((d, i) => $"[{i}] \"{d.CustomName}\""));
+
+        if (queued.Count == 0)
+        {
+            Debug.Log("[CombatController] No MoriMonchis are currently queued for combat.");
+            return;
+        }
+        Debug.Log($"[CombatController] {queued.Count} MoriMochi(s) in async queue:");
+        for (int i = 0; i < queued.Count; i++)
+        {
+            var d = queued[i];
+            Debug.Log($"  [{i}] \"{d.CustomName}\"  [{Clip(d.UniqueID)}]  Fights used: {d.FightCount}/{config?.MaxFightCount ?? 5}");
+        }
+    }
+
     [Button("Check Pending Results", ButtonSizes.Medium), GUIColor(0.4f, 0.85f, 1f), BoxGroup("Async Combat")]
     private async void CheckResultsButton()
     {
@@ -171,18 +226,20 @@ public class CombatController : MonoBehaviour
 
     private void RefreshQueueDisplay()
     {
-        var busy = creatureRegistry.GetAll().Values
-            .Where(d => d.BusyState == BusyReason.QueuedForCombat).ToList();
-        queuedCreaturesInfo = busy.Count == 0
+        var queued = registry.GetAll().Values
+            .Where(d => d.BusyState == BusyReason.QueuedForCombat)
+            .OrderBy(d => d.UniqueID)
+            .ToList();
+        queuedCreaturesInfo = queued.Count == 0
             ? "None"
-            : string.Join(", ", busy.Select(d => $"\"{d.CustomName}\""));
+            : string.Join(", ", queued.Select((d, i) => $"[{i}] \"{d.CustomName}\""));
     }
 
     // ── Public Methods ────────────────────────────────────────────
 
     public async void EnqueueForAsyncCombat(string uniqueID, bool scheduled = false)
     {
-        if (!creatureRegistry.TryGet(uniqueID, out var dna))
+        if (!registry.TryGet(uniqueID, out var dna))
         {
             Debug.LogError($"[CombatController] Creature '{uniqueID}' not found.");
             return;

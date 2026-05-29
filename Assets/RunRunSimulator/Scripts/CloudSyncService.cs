@@ -17,11 +17,12 @@ using UnityEngine.Serialization;
 // Attach to same GameObject as GameManager. Assign CreatureRegistrySO in Setup.
 public class CloudSyncService : MonoBehaviour
 {
-    private const string REGISTRY_KEY = "creature_registry";
+    private const string REGISTRY_KEY = "creatureregistry";
     private const string META_KEY     = "sync_meta";
 
-    private static string MetaPath =>
-        Path.Combine(Application.persistentDataPath, "sync_meta.json");
+    private string MetaPath =>
+        Path.Combine(Application.persistentDataPath,
+            string.IsNullOrEmpty(playerID) ? "sync_meta.json" : $"sync_meta_{playerID}.json");
 
     [Serializable]
     private class SyncMeta
@@ -33,9 +34,9 @@ public class CloudSyncService : MonoBehaviour
 
     // ── Private Fields ────────────────────────────────────────────
 
-    [Required, AssetsOnly, BoxGroup("Setup")]
-    [FormerlySerializedAs("_registry")]
-    [SerializeField] private CreatureRegistrySO registry;
+    // ── Cached References ─────────────────────────────────────────
+
+    private CreatureRegistrySO registry;
 
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private string status = "Not initialized";
@@ -65,9 +66,15 @@ public class CloudSyncService : MonoBehaviour
     [ShowInInspector, ReadOnly, BoxGroup("Security"), LabelText("Security Status")]
     private string securityStatus = "---";
 
+    private bool isPushInProgress = false;
+
     // ── Lifecycle ─────────────────────────────────────────────────
 
-    private async void Start() => await InitializeAsync();
+    private async void Start()
+    {
+        registry = GameManager.Instance.Registry;
+        await InitializeAsync();
+    }
 
     private void OnDestroy()
     {
@@ -132,6 +139,7 @@ public class CloudSyncService : MonoBehaviour
         SaveSystem.SetUserScope(playerID);
         SaveSystem.LoadInto(registry);
         await PullAsync();
+        await NotifyPendingCombatResultsAsync();
     }
 
     private async Task<bool> ValidateBeforePush()
@@ -173,14 +181,14 @@ public class CloudSyncService : MonoBehaviour
         return true;
     }
 
-    private static SyncMeta ReadLocalMeta()
+    private SyncMeta ReadLocalMeta()
     {
         if (!File.Exists(MetaPath)) return new SyncMeta();
         try { return JsonConvert.DeserializeObject<SyncMeta>(File.ReadAllText(MetaPath)) ?? new SyncMeta(); }
         catch { return new SyncMeta(); }
     }
 
-    private static void WriteLocalMeta(SyncMeta meta) =>
+    private void WriteLocalMeta(SyncMeta meta) =>
         File.WriteAllText(MetaPath, JsonConvert.SerializeObject(meta, Formatting.Indented));
 
     private void RefreshSecurityDisplay()
@@ -192,6 +200,23 @@ public class CloudSyncService : MonoBehaviour
         lastKnownCloudDisplay = meta.LocalKnownCloudAt > 0
             ? new DateTime(meta.LocalKnownCloudAt, DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm:ss") + " UTC"
             : "Never";
+    }
+
+    private async Task NotifyPendingCombatResultsAsync()
+    {
+        try
+        {
+            var data = await CloudSaveService.Instance.Data.Player.LoadAsync(
+                new HashSet<string> { "combat_results" });
+            if (!data.ContainsKey("combat_results")) return;
+
+            var json    = data["combat_results"].Value.GetAs<string>();
+            var results = JsonConvert.DeserializeObject<List<object>>(json);
+            if (results == null || results.Count == 0) return;
+
+            Debug.Log($"[CloudSync] ¡Bienvenido, {playerName}! Tienes {results.Count} MoriMochi(s) con resultado de combate pendiente. Presiona 'Check Pending Results' para aplicarlos.");
+        }
+        catch { /* silent — non-critical notification */ }
     }
 
     private bool EnsureSignedIn()
@@ -355,13 +380,16 @@ public class CloudSyncService : MonoBehaviour
 
     public async Task PushAsync()
     {
+        if (isPushInProgress) { Debug.Log("[CloudSync] Push already in progress — skipping concurrent request."); return; }
         if (!EnsureSignedIn()) return;
+
+        isPushInProgress = true;
         try
         {
             status = "Validating...";
             if (!await ValidateBeforePush()) return;
 
-            status        = "Pushing...";
+            status    = "Pushing...";
             long pushedAt = DateTime.UtcNow.Ticks;
 
             await CloudSaveService.Instance.Data.Player.SaveAsync(new Dictionary<string, object>
@@ -382,6 +410,10 @@ public class CloudSyncService : MonoBehaviour
         {
             status = $"Push error: {e.Message}";
             Debug.LogError($"[CloudSync] Push failed: {e}");
+        }
+        finally
+        {
+            isPushInProgress = false;
         }
     }
 

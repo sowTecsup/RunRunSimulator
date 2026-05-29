@@ -8,7 +8,7 @@ const RESULTS_KEY = "combat_results";
 const POOL_TTL_MS = 86400000;  // 24 h
 
 module.exports = async ({ params, context, logger }) => {
-    const { creatureId, customName, creatureJson } = params;
+    const { creatureId, customName, creatureJson, playerName } = params;
 
     if (!creatureId || !customName || !creatureJson)
         throw new Error("Missing required params: creatureId, customName, creatureJson");
@@ -34,7 +34,7 @@ module.exports = async ({ params, context, logger }) => {
 
     if (opponentIdx === -1) {
         // No opponent yet — enqueue
-        pool.push({ playerId: context.playerId, creatureId, customName, creatureJson, ts: now });
+        pool.push({ playerId: context.playerId, playerName: playerName ?? "Anonymous", creatureId, customName, creatureJson, ts: now });
         await api.setCustomItem(context.projectId, context.environmentId, {
             key:   POOL_KEY,
             value: { entries: pool },
@@ -55,8 +55,8 @@ module.exports = async ({ params, context, logger }) => {
 
     logger.info("Battle complete — winner is A: " + battle.winnerIsA);
 
-    await appendResult(api, context.projectId, context.playerId,  buildResult(battle, true,  opponent.customName, opponent.playerId));
-    await appendResult(api, context.projectId, opponent.playerId, buildResult(battle, false, customName,         context.playerId));
+    await appendResult(api, context.projectId, context.playerId,  buildResult(battle, true,  opponent.customName, opponent.playerId, opponent.playerName ?? "Anonymous"));
+    await appendResult(api, context.projectId, opponent.playerId, buildResult(battle, false, customName,          context.playerId,  playerName          ?? "Anonymous"));
 
     return JSON.stringify({ status: "matched" });
 };
@@ -79,17 +79,18 @@ async function appendResult(api, projectId, playerId, result) {
     });
 }
 
-function buildResult(battle, callerIsA, opponentName, opponentPlayerId) {
+function buildResult(battle, callerIsA, opponentName, opponentPlayerId, opponentPlayerName) {
     const won  = callerIsA ? battle.winnerIsA : !battle.winnerIsA;
     const died = !won && battle.loserDied;
     return {
-        CreatureId:       callerIsA ? battle.idA : battle.idB,
-        Won:              won,
-        Died:             died,
-        EvolvedSlot:      won ? battle.evolvedSlot : null,
-        OpponentName:     opponentName,
-        OpponentPlayerId: opponentPlayerId,
-        Log:              battle.log,
+        CreatureId:         callerIsA ? battle.idA : battle.idB,
+        Won:                won,
+        Died:               died,
+        EvolvedSlot:        won ? battle.evolvedSlot : null,
+        OpponentName:       opponentName,
+        OpponentPlayerId:   opponentPlayerId,
+        OpponentPlayerName: opponentPlayerName,
+        Log:                battle.log,
     };
 }
 
@@ -182,3 +183,10 @@ function evolveRandom(dna) {
     dna[chosen + "Tier"] = tierInt(dna[chosen + "Tier"]) + 1;
     return chosen;
 }
+
+module.exports.params = {
+    creatureId:   { type: "String", required: true },
+    customName:   { type: "String", required: true },
+    creatureJson: { type: "String", required: true },
+    playerName:   { type: "String", required: false },
+};

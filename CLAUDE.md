@@ -6,16 +6,27 @@
 
 | Recurso | URL |
 |---------|-----|
-| 🟣 **Notion Wiki (GDD + Decisiones)** | https://www.notion.so/36cac10136a781819b74e176ed7c00d9 |
+| 🟣 **Notion Wiki (Hub)** | https://www.notion.so/36cac10136a781819b74e176ed7c00d9 |
 
-**Secciones clave del Notion a revisar según la tarea:**
-- Trabajando en genética/DNA → sección *Sistema Genético* + *Breeding — Detalle Completo*
-- Trabajando en batalla/combate → sección *Sistema de Combate Local — Implementado* + *Sistema de Batalla — Detalle* + *Sistema de Bidding*
-- Trabajando en UGS/cloud → sección *UGS — Cloud Save (Preview Etapa 2.3)*
-- Trabajando en tienda/economía → sección *Tienda y Economía* + *Decoraciones*
-- Dudas de lore → sección *Diseño de Juego (GDD)* + *MoriMonchis Honorarios*
-- Decisiones recientes → sección *Decisiones de Diseño — Etapa 1 (Ronda 4)* y rondas anteriores
-- Preguntas aún abiertas → secciones *Preguntas de Diseño Abiertas (Ronda N)*
+**Estructura del Notion** — el hub se divide en dos pilares + dos páginas transversales. Regla mental: **diseño/mecánicas → Gameplay; cómo está construido → Arquitectura.**
+
+- 🎮 **Gameplay (GDD)** — el QUÉ: Concepto y Pilares · Sistema Genético (Diseño) · Breeding · Combate, Venganza y Bidding · Evolución y Ciclo de Vida · Honorarios / Liga del Cielo · Tienda, Economía y Onboarding
+- 🏗️ **Arquitectura (Dev)** — el CÓMO: Arquitectura General · Genética — Implementación · Identidad y Persistencia · Breeding — Implementación · Combate Local — Implementación · Combate Async + UGS · UGS CLI & Scheduler
+- 📋 **Decisiones de Diseño** — registro consolidado de decisiones cerradas, agrupadas por sistema
+- ❓ **Preguntas Abiertas** — solo lo aún sin resolver
+
+**Qué sub-página abrir según la tarea:**
+- Genética/DNA/partes → *Sistema Genético (Diseño)* (diseño) + *Genética — Implementación* (código)
+- Breeding → *Breeding* (diseño) + *Breeding — Implementación* (código)
+- Batalla/combate → *Combate, Venganza y Bidding* (diseño) + *Combate Local — Implementación* + *Combate Async + UGS* (código)
+- UGS/cloud/scheduler → *Combate Async + UGS* + *UGS CLI & Scheduler*
+- Tienda/economía/onboarding → *Tienda, Economía y Onboarding*
+- Persistencia/save/registry → *Identidad y Persistencia*
+- Lore → *Concepto y Pilares* + *Honorarios / Liga del Cielo*
+- Decisiones ya tomadas → *Decisiones de Diseño*
+- Preguntas aún abiertas → *Preguntas Abiertas*
+
+> Al resolver una pregunta de *Preguntas Abiertas*, moverla a *Decisiones de Diseño*. Al cambiar diseño, actualizar la sub-página de Gameplay correspondiente; al cambiar implementación, la de Arquitectura.
 
 ---
 
@@ -67,14 +78,15 @@ CloudCode/                            # Server-side scripts y schedules (fuera d
 Assets/RunRunSimulator/Scripts/
 ├── Enums.cs                          # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason
 ├── Interfaces.cs
-├── GameManager.cs                    # Lab: Generate / Mint / Breed + auto-push to cloud + inspector Odin
+├── GameManager.cs                    # Lab: Generate / Mint + SOURCE OF TRUTH de los assets compartidos (getters Registry/Database/RarityOddsTable/InheritanceOddsTable/CombatConfig + PushToCloud)
 ├── CreatureGenerator.cs              # static: GenerateRandom(db, oddsTable?)
 ├── BreedingService.cs                # static: Breed() — traversal árbol genealógico
+├── BreedingController.cs             # MonoBehaviour: UI breeding (Fill Random Breeders + Breed). Referencia GameManager. Espejo de CombatController
 ├── CombatService.cs                  # static: Simulate() — combate local por turnos, evolución, muerte
-├── CombatController.cs               # MonoBehaviour: UI local combat + Async Combat (Instant + Timer buttons)
-├── AsyncCombatService.cs             # MonoBehaviour: EnqueueInstantAsync / EnqueueScheduledAsync / PollResultsAsync
+├── CombatController.cs               # MonoBehaviour: UI local combat + Async Combat (Instant + Timer buttons). Referencia GameManager
+├── AsyncCombatService.cs             # MonoBehaviour: EnqueueInstantAsync / EnqueueScheduledAsync / PollResultsAsync. Referencia GameManager
 ├── CloudCodeTester.cs                # MonoBehaviour DEV: TestRandom / TestCustomData / ForceMatchmakingTick
-├── CloudSyncService.cs               # MonoBehaviour: Unity Player Account auth + auto-pull on login + Cloud Save push/pull/reset + SyncMeta
+├── CloudSyncService.cs               # MonoBehaviour: Unity Player Account auth + auto-pull on login + Cloud Save push/pull/reset + SyncMeta. Referencia GameManager
 ├── SaveSystem.cs                     # static: SaveDatabase / LoadInto / Serialize (scoped por playerId, migración automática)
 ├── Data/
 │   ├── CreatureDNA.cs                # Genética + Identidad + Linaje + Progresión + Tier/slot + Stats + IsDead

@@ -464,9 +464,9 @@ MonoBehaviour:
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
   rarityOddsTable: {fileID: 11400000, guid: a3afe6af2bf139b4e9e397193f27a2e0, type: 2}
   inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
+  combatConfig: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
   creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
-  combatController: {fileID: 1813964818}
-  cloudSync: {fileID: 0}
+  cloudSync: {fileID: 1443145214}
   currentDNA:
     BodyShapeID: BS0
     ArmID: A0
@@ -492,8 +492,6 @@ MonoBehaviour:
     IsDead: 0
     BusyState: 0
   currentDNAString: BS0-A0-E0-M0-55C54A
-  breedMotherID: 
-  breedFatherID: 
   loadIDInput: 
 --- !u!4 &1046970363
 Transform:
@@ -505,6 +503,53 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -3.06926, y: -0, z: -4.75851}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1227227758
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1227227760}
+  - component: {fileID: 1227227759}
+  m_Layer: 0
+  m_Name: BreedingController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1227227759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227227758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad2dd2b6a4dee4c4799d2b016e7f9dc9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BreedingController
+  gameManager: {fileID: 1046970362}
+  breedMotherID: 
+  breedFatherID: 
+--- !u!4 &1227227760
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227227758}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -7.40805, y: -0, z: -17.74368}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -540,7 +585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a578c0007a993294a9d5f8163aefb035, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudSyncService
-  registry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
+  gameManager: {fileID: 1046970362}
   newNameInput: 
 --- !u!4 &1443145215
 Transform:
@@ -599,9 +644,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c8b946c8fd07f046ad9fd7e378f5110, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AsyncCombatService
-  registry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
-  database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
-  combatConfig: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
+  gameManager: {fileID: 1046970362}
 --- !u!114 &1813964818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -614,9 +657,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd186e1431f391c499353f16887657d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatController
-  creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
-  database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
-  combatConfig: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
+  gameManager: {fileID: 1046970362}
   asyncCombatService: {fileID: 1813964817}
   combatAID: 
   combatBID: 
@@ -646,3 +687,4 @@ SceneRoots:
   - {fileID: 1046970363}
   - {fileID: 1443145215}
   - {fileID: 1813964819}
+  - {fileID: 1227227760}

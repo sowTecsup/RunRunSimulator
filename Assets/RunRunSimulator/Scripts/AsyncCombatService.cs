@@ -13,6 +13,8 @@ using UnityEngine;
 //   - "enqueue-combat"      → called from here, adds creature to the global pool
 //   - "process-matchmaking" → scheduled trigger in Dashboard, pairs & simulates pool
 // Attach to same GameObject as GameManager and CombatController.
+// Resolves its registry from GameManager.Instance in Awake — no serialized
+// cross-references needed.
 public class AsyncCombatService : MonoBehaviour
 {
     private const string RESULTS_KEY           = "combat_results";
@@ -22,14 +24,15 @@ public class AsyncCombatService : MonoBehaviour
 
     // ── Private Fields ────────────────────────────────────────────
 
-    [Required, AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CreatureRegistrySO registry;
+    // ── Cached References ─────────────────────────────────────────
 
-    [Required, AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CreatureDatabaseSO database;
+    private CreatureRegistrySO registry;
 
-    [AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CombatManagerSO combatConfig;
+    // ── Lifecycle ─────────────────────────────────────────────────
+
+    private void Awake() => registry = GameManager.Instance.Registry;
+
+    // ── Private Fields ────────────────────────────────────────────
 
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private string status = "Idle";
@@ -111,12 +114,16 @@ public class AsyncCombatService : MonoBehaviour
                     Debug.LogWarning($"[AsyncCombat] {status}");
                     break;
             }
+
+            // Persist BusyState to Cloud Save so it survives logout/login
+            GameManager.Instance.PushToCloud();
         }
         catch (Exception e)
         {
             // Rollback busy state so the creature is usable again
             dna.BusyState = BusyReason.None;
             SaveSystem.SaveDatabase(registry);
+            GameManager.Instance.PushToCloud();
 
             status = $"Enqueue error: {e.Message}";
             Debug.LogError($"[AsyncCombat] EnqueueInternal failed: {e}");
@@ -154,9 +161,13 @@ public class AsyncCombatService : MonoBehaviour
                 return;
             }
 
+            string myPlayerName = "Anonymous";
+            try { myPlayerName = await AuthenticationService.Instance.GetPlayerNameAsync() ?? "Anonymous"; }
+            catch { }
+
             int applied = 0;
             foreach (var r in results)
-                if (ApplyResult(r)) applied++;
+                if (ApplyResult(r, myPlayerName)) applied++;
 
             // Clear the results key so they're not applied twice
             await CloudSaveService.Instance.Data.Player.SaveAsync(new Dictionary<string, object>
@@ -165,6 +176,7 @@ public class AsyncCombatService : MonoBehaviour
             });
 
             SaveSystem.SaveDatabase(registry);
+            GameManager.Instance.PushToCloud();
             status = $"Applied {applied} combat result(s).";
             Debug.Log($"[AsyncCombat] Applied {applied} pending result(s).");
         }
@@ -177,7 +189,7 @@ public class AsyncCombatService : MonoBehaviour
 
     // ── Private Methods ───────────────────────────────────────────
 
-    private bool ApplyResult(CloudCombatResult r)
+    private bool ApplyResult(CloudCombatResult r, string myPlayerName)
     {
         if (!registry.TryGet(r.CreatureId, out var dna))
         {
@@ -200,14 +212,15 @@ public class AsyncCombatService : MonoBehaviour
         foreach (var line in r.Log)
             Debug.Log($"[AsyncCombat] {line}");
 
+        string myLabel       = $"{myPlayerName} => \"{dna.CustomName}\"";
         string opponentLabel = string.IsNullOrEmpty(r.OpponentPlayerName)
-            ? $"\"{r.OpponentName}\" [{r.OpponentPlayerId}]"
-            : $"{r.OpponentPlayerName}'s \"{r.OpponentName}\" [{r.OpponentPlayerId}]";
+            ? $"\"{r.OpponentName}\""
+            : $"\"{r.OpponentName}\" <= {r.OpponentPlayerName}";
+        string outcome = r.Won ? "¡Ganaste!" : "¡Perdiste!";
+        string evolved = r.Won && !string.IsNullOrEmpty(r.EvolvedSlot) ? $"  |  Evolved: {r.EvolvedSlot}" : "";
+        string died    = r.Died ? "  |  ¡Tu MoriMochi ha muerto permanentemente!" : "";
 
-        Debug.Log($"[AsyncCombat] \"{dna.CustomName}\" — " +
-                  $"{(r.Won ? "WON" : "LOST")} vs {opponentLabel}" +
-                  $"{(r.Won && r.EvolvedSlot != null ? $" | Evolved: {r.EvolvedSlot}" : "")}" +
-                  $"{(r.Died ? " | DIED" : "")}");
+        Debug.Log($"[AsyncCombat]  {myLabel}  vs  {opponentLabel}  ——  {outcome}{evolved}{died}");
 
         return true;
     }
@@ -223,12 +236,60 @@ public class AsyncCombatService : MonoBehaviour
         }
     }
 
+    // Removes a creature from the matchmaking pool and clears its BusyState.
+    // Safe to call even if the creature was already matched server-side — in that
+    // case the local BusyState is still cleared and PollResultsAsync can be used
+    // to collect the result later.
+    public async Task DequeueAsync(CreatureDNA dna)
+    {
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            Debug.LogError("[AsyncCombat] Not signed in — cannot dequeue.");
+            return;
+        }
+
+        status = $"Dequeueing \"{dna.CustomName}\"...";
+        try
+        {
+            var payload = new Dictionary<string, object> { { "creatureId", dna.UniqueID } };
+            var raw      = await CloudCodeService.Instance.CallEndpointAsync<string>("dequeue-combat", payload);
+            var response = JsonConvert.DeserializeObject<CloudDequeueResponse>(raw);
+
+            dna.BusyState = BusyReason.None;
+            SaveSystem.SaveDatabase(registry);
+            GameManager.Instance.PushToCloud();
+
+            if (response.Status == "dequeued")
+            {
+                status = $"\"{dna.CustomName}\" removed from queue.";
+                Debug.Log($"[AsyncCombat] {status}");
+            }
+            else
+            {
+                status = $"\"{dna.CustomName}\" was not in the pool (may already be matched). Check pending results.";
+                Debug.LogWarning($"[AsyncCombat] {status}");
+            }
+        }
+        catch (Exception e)
+        {
+            status = $"Dequeue error: {e.Message}";
+            Debug.LogError($"[AsyncCombat] DequeueAsync failed: {e}");
+        }
+    }
+
     // ── Cloud Code response contracts ─────────────────────────────
 
     [Serializable]
     private class CloudMatchResponse
     {
         public string Status;    // "queued" | "already_queued"
+        public int    PoolSize;
+    }
+
+    [Serializable]
+    private class CloudDequeueResponse
+    {
+        public string Status;    // "dequeued" | "not_found"
         public int    PoolSize;
     }
 

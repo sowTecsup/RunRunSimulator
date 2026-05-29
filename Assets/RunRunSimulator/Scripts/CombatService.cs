@@ -31,6 +31,11 @@ public static class CombatService
             Debug.LogError("[CombatService] Cannot simulate combat: one or both creatures are dead.");
             return null;
         }
+        if (dnaA.IsBusy || dnaB.IsBusy)
+        {
+            Debug.LogError("[CombatService] Cannot simulate combat: one or both creatures are busy (queued for async combat).");
+            return null;
+        }
         if (dnaA.FightCount >= config.MaxFightCount)
         {
             Debug.LogError($"[CombatService] '{idA}' has no fights remaining ({dnaA.FightCount}/{config.MaxFightCount}).");
