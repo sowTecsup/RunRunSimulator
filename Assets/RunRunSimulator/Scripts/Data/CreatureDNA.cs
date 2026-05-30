@@ -53,6 +53,10 @@ public class CreatureDNA
     public BusyReason BusyState = BusyReason.None;
     public bool IsBusy => BusyState != BusyReason.None;
 
+    // ── Breeding timer (local cache for display; server is authoritative) ─
+    public long   BreedReadyAt   = 0;    // server epoch ms when the egg can hatch; 0 = not breeding
+    public string BreedPartnerID = "";   // the other parent — lets the client rebuild the pair locally
+
     // Unique registry key: two creatures with identical genes are still different entries.
     public string UniqueID => Timestamp > 0 ? $"{ToStringID()}-{Timestamp}" : "";
 

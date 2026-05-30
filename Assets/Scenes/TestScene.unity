@@ -491,6 +491,8 @@ MonoBehaviour:
     BaseSpeed: 0
     IsDead: 0
     BusyState: 0
+    BreedReadyAt: 0
+    BreedPartnerID: 
   currentDNAString: BS0-A0-E0-M0-55C54A
   loadIDInput: 
 --- !u!4 &1046970363
@@ -518,6 +520,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1227227760}
   - component: {fileID: 1227227759}
+  - component: {fileID: 1227227761}
   m_Layer: 0
   m_Name: BreedingController
   m_TagString: Untagged
@@ -537,7 +540,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad2dd2b6a4dee4c4799d2b016e7f9dc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BreedingController
-  gameManager: {fileID: 1046970362}
+  asyncBreedingService: {fileID: 1227227761}
   breedMotherID: 
   breedFatherID: 
 --- !u!4 &1227227760
@@ -555,6 +558,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1227227761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227227758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f732ab86d673ff34b985091321fd1129, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AsyncBreedingService
 --- !u!1 &1443145213
 GameObject:
   m_ObjectHideFlags: 0
@@ -585,7 +600,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a578c0007a993294a9d5f8163aefb035, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CloudSyncService
-  gameManager: {fileID: 1046970362}
   newNameInput: 
 --- !u!4 &1443145215
 Transform:
@@ -644,7 +658,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c8b946c8fd07f046ad9fd7e378f5110, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AsyncCombatService
-  gameManager: {fileID: 1046970362}
 --- !u!114 &1813964818
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -657,11 +670,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd186e1431f391c499353f16887657d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatController
-  gameManager: {fileID: 1046970362}
   asyncCombatService: {fileID: 1813964817}
   combatAID: 
   combatBID: 
   asyncCreatureID: 
+  dequeueIndex: 0
 --- !u!4 &1813964819
 Transform:
   m_ObjectHideFlags: 0

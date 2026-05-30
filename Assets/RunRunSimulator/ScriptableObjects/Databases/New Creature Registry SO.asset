@@ -124,7 +124,7 @@ MonoBehaviour:
       Data: 1
     - Name: FightCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: WinCount
       Entry: 3
       Data: 0
@@ -158,6 +158,12 @@ MonoBehaviour:
     - Name: BusyState
       Entry: 3
       Data: 0
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -274,7 +280,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 1780097064771
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
     - Name: 
       Entry: 8
       Data: 
@@ -358,16 +370,16 @@ MonoBehaviour:
       Data: 1
     - Name: FightCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedCount
       Entry: 3
       Data: 0
     - Name: BodyTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: ArmTier
       Entry: 3
       Data: 1
@@ -391,7 +403,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 1780097045559
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: BS0-A1-E0-M0-B94235-639156644128371992
     - Name: 
       Entry: 8
       Data: 
@@ -521,6 +539,12 @@ MonoBehaviour:
     - Name: BusyState
       Entry: 3
       Data: 0
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -637,7 +661,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 1780097045559
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: 
       Entry: 8
       Data: 
@@ -754,7 +784,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 1780097064771
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: 
       Entry: 8
       Data: 
@@ -872,6 +908,12 @@ MonoBehaviour:
     - Name: BusyState
       Entry: 3
       Data: 0
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -989,6 +1031,12 @@ MonoBehaviour:
     - Name: BusyState
       Entry: 3
       Data: 0
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1072,10 +1120,10 @@ MonoBehaviour:
       Data: 2
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedCount
       Entry: 3
       Data: 0
@@ -1084,7 +1132,7 @@ MonoBehaviour:
       Data: 1
     - Name: ArmTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: EyeTier
       Entry: 3
       Data: 1
@@ -1106,6 +1154,12 @@ MonoBehaviour:
     - Name: BusyState
       Entry: 3
       Data: 0
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
     - Name: 
       Entry: 8
       Data: 
