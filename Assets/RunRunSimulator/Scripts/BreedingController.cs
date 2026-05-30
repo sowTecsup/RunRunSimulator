@@ -187,8 +187,8 @@ public class BreedingController : MonoBehaviour
         if (registry.TryGet(motherID, out var mother)) mother.ChildrenIDs.Add(child.UniqueID);
         if (registry.TryGet(fatherID, out var father)) father.ChildrenIDs.Add(child.UniqueID);
 
-        SaveSystem.SaveDatabase(registry);
-        GameManager.Instance.PushToCloud();
+        GameEvents.BreedingCompleted(mother, father, child);
+        GameEvents.RegistryChanged(registry);
         lastChildID = child.UniqueID;
         RefreshBreedInfo();
         Debug.Log($"[BreedingController] Bred child: \"{child.CustomName}\"  {child.UniqueID}  ({child.Gender})");

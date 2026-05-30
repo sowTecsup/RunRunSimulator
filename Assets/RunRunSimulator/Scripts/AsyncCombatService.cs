@@ -60,7 +60,7 @@ public class AsyncCombatService : MonoBehaviour
         }
 
         dna.BusyState = BusyReason.QueuedForCombat;
-        SaveSystem.SaveDatabase(registry);
+        GameEvents.RegistryChanged(registry);
 
         status = $"\"{dna.CustomName}\" — waiting {MIN_QUEUE_DELAY_SEC}s before matchmaking ({endpoint})...";
         Debug.Log($"[AsyncCombat] {status}");
@@ -116,14 +116,13 @@ public class AsyncCombatService : MonoBehaviour
             }
 
             // Persist BusyState to Cloud Save so it survives logout/login
-            GameManager.Instance.PushToCloud();
+            GameEvents.RegistryChanged(registry);
         }
         catch (Exception e)
         {
             // Rollback busy state so the creature is usable again
             dna.BusyState = BusyReason.None;
-            SaveSystem.SaveDatabase(registry);
-            GameManager.Instance.PushToCloud();
+            GameEvents.RegistryChanged(registry);
 
             status = $"Enqueue error: {e.Message}";
             Debug.LogError($"[AsyncCombat] EnqueueInternal failed: {e}");
@@ -175,8 +174,7 @@ public class AsyncCombatService : MonoBehaviour
                 { RESULTS_KEY, "[]" }
             });
 
-            SaveSystem.SaveDatabase(registry);
-            GameManager.Instance.PushToCloud();
+            GameEvents.RegistryChanged(registry);
             status = $"Applied {applied} combat result(s).";
             Debug.Log($"[AsyncCombat] Applied {applied} pending result(s).");
         }
@@ -256,8 +254,7 @@ public class AsyncCombatService : MonoBehaviour
             var response = JsonConvert.DeserializeObject<CloudDequeueResponse>(raw);
 
             dna.BusyState = BusyReason.None;
-            SaveSystem.SaveDatabase(registry);
-            GameManager.Instance.PushToCloud();
+            GameEvents.RegistryChanged(registry);
 
             if (response.Status == "dequeued")
             {

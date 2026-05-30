@@ -77,6 +77,18 @@ public class GameManager : MonoBehaviour
 
     private void Awake() => Instance = this;
 
+    // GameManager is the single owner of persistence: it's the only gameplay
+    // script that knows SaveSystem and CloudSync. Everyone else just fires
+    // GameEvents.RegistryChanged() and this handler does the save + push.
+    private void OnEnable()  => GameEvents.OnRegistryChanged += Persist;
+    private void OnDisable() => GameEvents.OnRegistryChanged -= Persist;
+
+    private void Persist(CreatureRegistrySO registry)
+    {
+        SaveSystem.SaveDatabase(registry);
+        PushToCloud();
+    }
+
     // Load is triggered by CloudSyncService.OnSignedInComplete (scoped per-player)
     private void OnApplicationQuit() => SaveSystem.SaveDatabase(creatureRegistry);
 
@@ -159,8 +171,8 @@ public class GameManager : MonoBehaviour
 
         if (!creatureRegistry.Register(dna)) return;
 
-        SaveSystem.SaveDatabase(creatureRegistry);
-        PushToCloud();
+        GameEvents.CreatureMinted(dna);
+        GameEvents.RegistryChanged(creatureRegistry);
         lastMintedID = dna.UniqueID;
         Debug.Log($"[GameManager] Minted: \"{dna.CustomName}\"  {dna.UniqueID}  ({dna.Gender})");
     }

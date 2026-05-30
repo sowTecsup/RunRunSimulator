@@ -80,8 +80,7 @@ public class AsyncBreedingService : MonoBehaviour
             mother.BreedPartnerID = fatherID;
             father.BreedPartnerID = motherID;
 
-            SaveSystem.SaveDatabase(registry);
-            GameManager.Instance.PushToCloud();
+            GameEvents.RegistryChanged(registry);
 
             var ready = DateTimeOffset.FromUnixTimeMilliseconds(response.ReadyAt).LocalDateTime;
             status = $"Breeding started — egg ready at {ready:HH:mm:ss}.";
@@ -184,8 +183,7 @@ public class AsyncBreedingService : MonoBehaviour
         if (child == null)
         {
             status = "Hatch failed during local mint — see errors.";
-            SaveSystem.SaveDatabase(registry);
-            GameManager.Instance.PushToCloud();
+            GameEvents.RegistryChanged(registry);   // busy state was already cleared above — persist it
             return;
         }
 
@@ -196,8 +194,8 @@ public class AsyncBreedingService : MonoBehaviour
         if (registry.TryGet(motherID, out var m)) m.ChildrenIDs.Add(child.UniqueID);
         if (registry.TryGet(fatherID, out var f)) f.ChildrenIDs.Add(child.UniqueID);
 
-        SaveSystem.SaveDatabase(registry);
-        GameManager.Instance.PushToCloud();
+        GameEvents.BreedingCompleted(m, f, child);
+        GameEvents.RegistryChanged(registry);
 
         status = $"Egg hatched! \"{child.CustomName}\" ({child.Gender}) was born.";
         Debug.Log($"[AsyncBreeding] {status}  {child.UniqueID}");
@@ -215,8 +213,7 @@ public class AsyncBreedingService : MonoBehaviour
     {
         if (registry.TryGet(motherID, out var mother)) ClearBreedState(mother);
         if (registry.TryGet(fatherID, out var father)) ClearBreedState(father);
-        SaveSystem.SaveDatabase(registry);
-        GameManager.Instance.PushToCloud();
+        GameEvents.RegistryChanged(registry);
     }
 
     // ── Cloud Code response contracts ─────────────────────────────

@@ -359,6 +359,7 @@ public class CloudSyncService : MonoBehaviour
             // Clear local registry and JSON
             registry.LoadFrom(new System.Collections.Generic.Dictionary<string, CreatureDNA>());
             SaveSystem.SaveDatabase(registry);
+            GameEvents.RegistryReloaded(registry);   // UI refresh only — do NOT push, we just cleared the cloud
 
             // Clear local sync meta
             if (File.Exists(MetaPath)) File.Delete(MetaPath);
@@ -440,6 +441,7 @@ public class CloudSyncService : MonoBehaviour
             var data = SaveSystem.Deserialize(result[REGISTRY_KEY].Value.GetAs<string>());
             registry.LoadFrom(data);
             SaveSystem.SaveDatabase(registry);
+            GameEvents.RegistryReloaded(registry);   // UI refresh only — data came from the cloud, no push back
 
             long cloudPushedAt = 0;
             if (result.ContainsKey(META_KEY))

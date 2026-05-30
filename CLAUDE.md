@@ -82,7 +82,9 @@ CloudCode/                            # Server-side scripts y schedules (fuera d
 Assets/RunRunSimulator/Scripts/
 ├── Enums.cs                          # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason
 ├── Interfaces.cs
-├── GameManager.cs                    # Lab: Generate / Mint + SOURCE OF TRUTH de los assets compartidos (getters Registry/Database/RarityOddsTable/InheritanceOddsTable/CombatConfig + PushToCloud)
+├── GameEvents.cs                     # static: bus de eventos. OnRegistryChanged(registry) / OnRegistryReloaded(registry) / OnCreatureMinted / OnCombatCompleted / OnBreedingCompleted. Los eventos transportan la data
+├── GameManager.cs                    # Lab: Generate / Mint + SOURCE OF TRUTH de los assets compartidos (getters Registry/Database/RarityOddsTable/InheritanceOddsTable/CombatConfig). ÚNICO dueño de persistencia: escucha OnRegistryChanged → Persist (save+push)
+├── CreatureGridView.cs               # MonoBehaviour: grilla read-only (Odin TableList) de todo el registro. Se suscribe a OnRegistryChanged/Reloaded → auto-refresh desde el payload (NO referencia GameManager)
 ├── CreatureGenerator.cs              # static: GenerateRandom(db, oddsTable?)
 ├── BreedingService.cs                # static: Breed() — traversal árbol genealógico
 ├── BreedingController.cs             # MonoBehaviour: UI breeding (Fill Random Breeders + Breed local + Breed Timer + Hatch). Referencia GameManager. Espejo de CombatController
@@ -124,7 +126,7 @@ Assets/RunRunSimulator/Scripts/
 | Etapa | Sub-etapa | Estado |
 |-------|-----------|--------|
 | 1 | 1.1 Arquitectura genética + DNA string + Databases de partes | ✅ Completo |
-| 1 | 1.2 Visualizador de criaturas (leer DNA → ensamblar Prefab 3D) | 🔲 Siguiente |
+| 1 | 1.2 Visualizador de criaturas | 🔶 Grilla de inspector ✅ (`CreatureGridView` — nombre, color, género, stats, fights/breeds, padres por nombre, estado, nacimiento). Falta el visualizador 3D (leer DNA → ensamblar Prefab) |
 | 1 | 1.3 Sistema de Breeding (herencia, linaje, registro, persistencia) | 🔶 En progreso |
 | 2 | 2.1 Sistema de Estadísticas (HP, Fuerza, Velocidad desde partes) | 🔶 Iniciado — BaseStats en DNA + stats por pieza en BodyPart SO |
 | 2 | 2.2 Simulador de Batalla local → Battle Log | ✅ — CombatService completo: turnos, empate, límite de peleas, log detallado por turno |
@@ -157,13 +159,45 @@ Assets/RunRunSimulator/Scripts/
 
 ## Reglas de código
 
-1. **Desacoplamiento estricto**: cada sistema (genética, batalla, tienda) es independiente. Comunicación via interfaces o eventos, no referencias directas cruzadas.
-2. **No comentar el QUÉ**: solo comentar el POR QUÉ cuando hay un invariante no obvio.
-3. **Sin features adelantadas**: no implementar UGS ni mecánicas de batalla hasta Etapa 2. La persistencia local JSON es válida desde Etapa 1.3.
-4. **DNA como string ligero**: `CreatureDNA.ToStringID()` / `FromID()` son el contrato de red — no romperlo. El timestamp es metadata de registro, no forma parte del genetic string.
-5. **IDs de partes**: nunca pueden contener el carácter `-` (es el separador del DNA string).
-6. **Odin siempre**: cualquier ScriptableObject con Diccionarios hereda de `SerializedScriptableObject`. Usar `[OdinSerialize]` explícitamente.
-7. **Sin complejidad innecesaria**: no añadir campos, abstracciones ni features que no hayan sido pedidos explícitamente. Tres líneas similares son mejor que una abstracción prematura.
+1. **Desacoplamiento estricto vía eventos**: cada sistema (genética, batalla, tienda) es independiente. La comunicación cross-sistema pasa por `GameEvents` (bus estático), nunca por referencias directas ni llamadas a singletons del otro sistema. **Regla de oro de eventos: el evento transporta la data.** Un suscriptor recibe el `registry` (u otro payload) en el evento y trabaja sobre él — NO vuelve a buscarlo con `GameManager.Instance.Registry`. Si un suscriptor necesita el dato, va en el payload.
+2. **Persistencia solo por evento**: ningún script de gameplay llama `SaveSystem.SaveDatabase` ni `PushToCloud` directamente. Disparan `GameEvents.RegistryChanged(registry)` y `GameManager` (único dueño de persistencia) hace el save+push. Excepción: `CloudSyncService` (es la capa de sync) y el flush final en `GameManager.OnApplicationQuit`. Reload externo (cloud pull/reset) usa `OnRegistryReloaded` → solo UI, sin re-push.
+3. **No comentar el QUÉ**: solo comentar el POR QUÉ cuando hay un invariante no obvio.
+4. **Sin features adelantadas**: no implementar UGS ni mecánicas de batalla hasta Etapa 2. La persistencia local JSON es válida desde Etapa 1.3.
+5. **DNA como string ligero**: `CreatureDNA.ToStringID()` / `FromID()` son el contrato de red — no romperlo. El timestamp es metadata de registro, no forma parte del genetic string.
+6. **IDs de partes**: nunca pueden contener el carácter `-` (es el separador del DNA string).
+7. **Odin siempre**: cualquier ScriptableObject con Diccionarios hereda de `SerializedScriptableObject`. Usar `[OdinSerialize]` explícitamente.
+8. **Sin complejidad innecesaria**: no añadir campos, abstracciones ni features que no hayan sido pedidos explícitamente. Tres líneas similares son mejor que una abstracción prematura.
+9. **Desuscribir siempre**: todo MonoBehaviour que se suscribe a un `GameEvents` lo hace en `OnEnable` y se desuscribe en `OnDisable`. Un `event static` mantiene vivo al suscriptor (leak + excepción al disparar sobre un objeto destruido).
+
+---
+
+## Arquitectura orientada a eventos (GameEvents)
+
+Bus estático central (`GameEvents.cs`, namespace global). Publicadores y suscriptores dependen **solo del bus**, nunca uno del otro. Razón clave: un `event` de C# solo lo puede disparar la clase que lo declara → un bus neutral permite que *cualquiera* dispare y *cualquiera* escuche, y el suscriptor no necesita referenciar al publicador.
+
+**Filosofía: los eventos transportan la data.** El payload lleva lo que el suscriptor necesita (el `registry`, el `CombatResult`, etc.) para que no tenga que volver a buscarlo en un singleton.
+
+| Evento | Payload | Quién dispara | Quién escucha |
+|--------|---------|---------------|---------------|
+| `OnRegistryChanged` | `CreatureRegistrySO` | toda mutación de gameplay (mint, breed, combate, enqueue/dequeue, hatch) | `GameManager.Persist` → save+push · `CreatureGridView` → refresh |
+| `OnRegistryReloaded` | `CreatureRegistrySO` | `CloudSyncService` tras pull/reset | `CreatureGridView` → refresh (**solo UI, sin push** — la data vino del cloud) |
+| `OnCreatureMinted` | `CreatureDNA` | `GameManager.MintRandomCreature` | (hook libre: logging/UI futuro) |
+| `OnCombatCompleted` | `CombatResult` | `CombatController` (combate local) | (hook libre: battle-log UI) |
+| `OnBreedingCompleted` | `mother, father, child` | `BreedingController` + `AsyncBreedingService.HatchLocally` | (hook libre) |
+
+- **Helper estático por evento**: `RegistryChanged(so) => OnRegistryChanged?.Invoke(so)` — call site corto, sin `?.Invoke` repetido.
+- **Un solo evento de mutación con payload** (no dos en paralelo): evita disparar dos veces por mutación.
+- **Desuscribir en `OnDisable`** (ver regla 9).
+- **Cambio de comportamiento**: el combate local ahora también pushea al cloud (antes solo guardaba local), al pasar por `OnRegistryChanged`. El push es no-op si no hay sesión.
+- **Gap conocido**: el path async (`PollResultsAsync` aplica `CloudCombatResult`) NO dispara `OnCombatCompleted`. Un futuro battle-log que escuche ese evento se perdería los combates async — habría que mapear `CloudCombatResult`→`CombatResult` o agregar un evento dedicado.
+
+---
+
+## Sistema de Nombres de Criaturas (CreatureNameBank)
+
+- `CreatureNameBank.cs` — clase estática. Nombre = adjetivo + sustantivo ("Fuzzy Blob"), estética gross/retro (Gremlins/Furby).
+- Pools: **50 adjetivos × 50 sustantivos = 2500 combinaciones**.
+- `GetRandomName()` se usa en Mint y Breed. El `CustomName` resultante es editable por el usuario.
 
 ---
 
@@ -259,8 +293,8 @@ Cada `BodyPart` tiene `Set` que agrupa partes en un tema visual/lore. 10 sets: `
 |---------|-----------|---------|
 | `creature_database.json` | Registro completo de criaturas + árbol genealógico | Newtonsoft.Json |
 
-- `SaveDatabase(registry)` se llama automáticamente en `Mint`, `Breed` y `OnApplicationQuit`.
-- `LoadInto(registry)` se llama en `Awake` del GameManager — popula el SO desde JSON.
+- `SaveDatabase(registry)` ya **no** se llama directo desde gameplay: las mutaciones disparan `GameEvents.RegistryChanged(registry)` y `GameManager.Persist` hace el save+push (ver "Arquitectura orientada a eventos"). El único save directo es el flush de `OnApplicationQuit` y los de `CloudSyncService` (capa de sync).
+- `LoadInto(registry)` se llama en login (`CloudSyncService.OnSignedInComplete`) — popula el SO desde JSON antes del pull.
 - `UnityEngine.Color` → hex string via custom `UnityColorConverter`.
 - **Dependencia**: package `com.unity.nuget.newtonsoft-json` `3.2.1` en Package Manager (namespace `Newtonsoft.Json`, **no** `Unity.Plastic.Newtonsoft.Json`).
 - `CreatureRegistrySO` es el SO asset asignado en GameManager → Setup. JSON es la única fuente de verdad; el SO es vista visual [ReadOnly].

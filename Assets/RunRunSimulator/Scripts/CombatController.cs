@@ -83,7 +83,8 @@ public class CombatController : MonoBehaviour
         foreach (var line in result.Log)
             Debug.Log($"[Combat] {line}");
 
-        SaveSystem.SaveDatabase(registry);
+        GameEvents.CombatCompleted(result);
+        GameEvents.RegistryChanged(registry);
         lastCombatResult = result.Summary;
         RefreshCombatInfo();
     }
