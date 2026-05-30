@@ -80,21 +80,29 @@ CloudCode/                            # Server-side scripts y schedules (fuera d
 └── matchmaking-trigger.tr            # UGS Trigger: escucha el evento del scheduler → invoca el script process-matchmaking
 
 Assets/RunRunSimulator/Scripts/
-├── Enums.cs                          # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason
-├── Interfaces.cs
-├── GameEvents.cs                     # static: bus de eventos. OnRegistryChanged(registry) / OnRegistryReloaded(registry) / OnCreatureMinted / OnCombatCompleted / OnBreedingCompleted. Los eventos transportan la data
-├── GameManager.cs                    # Lab: Generate / Mint + SOURCE OF TRUTH de los assets compartidos (getters Registry/Database/RarityOddsTable/InheritanceOddsTable/CombatConfig). ÚNICO dueño de persistencia: escucha OnRegistryChanged → Persist (save+push)
-├── CreatureGridView.cs               # MonoBehaviour: grilla read-only (Odin TableList) de todo el registro. Se suscribe a OnRegistryChanged/Reloaded → auto-refresh desde el payload (NO referencia GameManager)
-├── CreatureGenerator.cs              # static: GenerateRandom(db, oddsTable?)
-├── BreedingService.cs                # static: Breed() — traversal árbol genealógico
-├── BreedingController.cs             # MonoBehaviour: UI breeding (Fill Random Breeders + Breed local + Breed Timer + Hatch). Referencia GameManager. Espejo de CombatController
-├── AsyncBreedingService.cs           # MonoBehaviour: StartBreedingAsync / HatchAsync (timer server-side). Referencia GameManager. Espejo de AsyncCombatService
-├── CombatService.cs                  # static: Simulate() — combate local por turnos, evolución, muerte
-├── CombatController.cs               # MonoBehaviour: UI local combat + Async Combat (Instant + Timer buttons). Referencia GameManager
-├── AsyncCombatService.cs             # MonoBehaviour: EnqueueInstantAsync / EnqueueScheduledAsync / PollResultsAsync. Referencia GameManager
-├── CloudCodeTester.cs                # MonoBehaviour DEV: TestRandom / TestCustomData / ForceMatchmakingTick
-├── CloudSyncService.cs               # MonoBehaviour: Unity Player Account auth + auto-pull on login + Cloud Save push/pull/reset + SyncMeta. Referencia GameManager
-├── SaveSystem.cs                     # static: SaveDatabase / LoadInto / Serialize (scoped por playerId, migración automática)
+├── Core/                             # Infraestructura transversal: bus, persistencia, generación, tipos base
+│   ├── GameManager.cs                # Lab: Generate / Mint + SOURCE OF TRUTH de los assets compartidos (getters Registry/Database/RarityOddsTable/InheritanceOddsTable/CombatConfig). ÚNICO dueño de persistencia: escucha OnRegistryChanged → Persist (save+push)
+│   ├── GameEvents.cs                 # static: bus de eventos. OnRegistryChanged(registry) / OnRegistryReloaded(registry) / OnCreatureMinted / OnCombatCompleted / OnBreedingCompleted. Los eventos transportan la data
+│   ├── SaveSystem.cs                 # static: SaveDatabase / LoadInto / Serialize (scoped por playerId, migración automática)
+│   ├── CreatureGenerator.cs          # static: GenerateRandom(db, oddsTable?)
+│   ├── Enums.cs                      # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason
+│   └── Interfaces.cs
+├── Systems/                          # Mecánicas por feature (cada una desacoplada vía GameEvents)
+│   ├── Breeding/
+│   │   ├── BreedingService.cs        # static: Breed() — traversal árbol genealógico
+│   │   ├── BreedingController.cs     # MonoBehaviour: UI breeding (Fill Random Breeders + Breed local + Breed Timer + Hatch). Referencia GameManager. Espejo de CombatController
+│   │   └── AsyncBreedingService.cs   # MonoBehaviour: StartBreedingAsync / HatchAsync (timer server-side). Referencia GameManager. Espejo de AsyncCombatService
+│   ├── Combat/
+│   │   ├── CombatService.cs          # static: Simulate() — combate local por turnos, evolución, muerte
+│   │   ├── CombatController.cs       # MonoBehaviour: UI local combat + Async Combat (Instant + Timer buttons). Referencia GameManager
+│   │   └── AsyncCombatService.cs     # MonoBehaviour: EnqueueInstantAsync / EnqueueScheduledAsync / PollResultsAsync. Referencia GameManager
+│   └── Cloud/
+│       ├── CloudSyncService.cs       # MonoBehaviour: Unity Player Account auth + auto-pull on login + Cloud Save push/pull/reset + SyncMeta. Referencia GameManager
+│       └── CloudCodeTester.cs        # MonoBehaviour DEV: TestRandom / TestCustomData / ForceMatchmakingTick
+├── UI/                               # Capa visual (Canvas) + vistas de inspector. Solo display, se nutre del payload de eventos
+│   ├── CreatureGridUI.cs             # MonoBehaviour: grilla in-game (Canvas). Escucha OnRegistryChanged/Reloaded → instancia una CreatureVisualUI por criatura bajo un GridLayoutGroup. NO referencia GameManager
+│   ├── CreatureVisualUI.cs           # MonoBehaviour: card de UN MoriMochi (prefab). Bind(dna) → nombre (TMP) + icono/sprite (Image, por ahora teñido con PrimaryColor) + estado (TMP). Vista pura
+│   └── CreatureGridView.cs           # MonoBehaviour: grilla read-only de inspector (Odin TableList) de todo el registro. Se suscribe a OnRegistryChanged/Reloaded → auto-refresh desde el payload (NO referencia GameManager)
 ├── Data/
 │   ├── CreatureDNA.cs                # Genética + Identidad + Linaje + Progresión + Tier/slot + Stats + IsDead
 │   ├── CreatureRegistrySO.cs         # SO registry: Dictionary<string, CreatureDNA> — InfoBox warning + Sync btn
