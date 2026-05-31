@@ -34,7 +34,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 15
+      Data: 17
     - Name: 
       Entry: 7
       Data: 
@@ -367,7 +367,7 @@ MonoBehaviour:
       Data: 7|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 3
+      Data: 4
     - Name: 
       Entry: 1
       Data: BS1-A1-E4-M0-4EB344-639157099558749392
@@ -377,6 +377,9 @@ MonoBehaviour:
     - Name: 
       Entry: 1
       Data: BS4-A0-E4-M1-E3082B-639157586238054610
+    - Name: 
+      Entry: 1
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
     - Name: 
       Entry: 13
       Data: 
@@ -394,7 +397,7 @@ MonoBehaviour:
       Data: 1
     - Name: BreedCount
       Entry: 3
-      Data: 3
+      Data: 4
     - Name: BodyTier
       Entry: 3
       Data: 2
@@ -421,13 +424,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1780178028438
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS1-A0-E3-M1-E9422E-639157586322083999
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -556,7 +559,7 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
@@ -655,7 +658,7 @@ MonoBehaviour:
       Data: 2
     - Name: FightCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: WinCount
       Entry: 3
       Data: 0
@@ -685,10 +688,10 @@ MonoBehaviour:
       Data: 10
     - Name: IsDead
       Entry: 5
-      Data: false
+      Data: true
     - Name: BusyState
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
@@ -907,10 +910,10 @@ MonoBehaviour:
       Data: 1
     - Name: FightCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: WinCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: BreedCount
       Entry: 3
       Data: 0
@@ -925,7 +928,7 @@ MonoBehaviour:
       Data: 2
     - Name: MouthTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: BaseHP
       Entry: 4
       Data: 9
@@ -1264,10 +1267,13 @@ MonoBehaviour:
       Data: 21|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 2
     - Name: 
       Entry: 1
       Data: BS4-A1-E0-M4-6157EA-639157466028960842
+    - Name: 
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
     - Name: 
       Entry: 13
       Data: 
@@ -1285,7 +1291,7 @@ MonoBehaviour:
       Data: 1
     - Name: BreedCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: BodyTier
       Entry: 3
       Data: 2
@@ -1312,13 +1318,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1780178049794
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS4-A0-E4-M1-E3082B-639157586238054610
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1402,7 +1408,7 @@ MonoBehaviour:
       Data: 2
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: WinCount
       Entry: 3
       Data: 0
@@ -1435,7 +1441,7 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
@@ -1759,7 +1765,10 @@ MonoBehaviour:
       Data: 29|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
     - Name: 
       Entry: 13
       Data: 
@@ -1777,7 +1786,7 @@ MonoBehaviour:
       Data: 0
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -1804,13 +1813,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1780178049794
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS1-A1-E4-M0-4EB344-639157099558749392
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1882,6 +1891,255 @@ MonoBehaviour:
       Data: 31|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 1
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 5
+    - Name: BaseAttack
+      Entry: 4
+      Data: 7
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 7
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
+    - Name: $v
+      Entry: 7
+      Data: 32|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS1
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E2
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: PrimaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.235294119
+    - Name: 
+      Entry: 4
+      Data: 0.623529434
+    - Name: 
+      Entry: 4
+      Data: 0.972549
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: CustomName
+      Entry: 1
+      Data: Pudgy Wart
+    - Name: Timestamp
+      Entry: 3
+      Data: 639157765839713470
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250843784267101374
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS1-A0-E3-M1-E9422E-639157586322083999
+    - Name: FatherID
+      Entry: 1
+      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 33|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 7
+    - Name: BaseAttack
+      Entry: 4
+      Data: 8
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 7
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
+    - Name: $v
+      Entry: 7
+      Data: 34|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS4
+    - Name: ArmID
+      Entry: 1
+      Data: A4
+    - Name: EyeID
+      Entry: 1
+      Data: E4
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: PrimaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.670588255
+    - Name: 
+      Entry: 4
+      Data: 0.407843143
+    - Name: 
+      Entry: 4
+      Data: 0.02745098
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: CustomName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: Timestamp
+      Entry: 3
+      Data: 639157766096457471
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250843784523845375
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS1-A1-E4-M0-4EB344-639157099558749392
+    - Name: FatherID
+      Entry: 1
+      Data: BS4-A0-E4-M1-E3082B-639157586238054610
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 35|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
       Data: 0
     - Name: 
       Entry: 13
@@ -1915,25 +2173,25 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 5
+      Data: 4
     - Name: BaseAttack
       Entry: 4
-      Data: 7
+      Data: 6
     - Name: BaseSpeed
       Entry: 4
-      Data: 7
+      Data: 1
     - Name: IsDead
       Entry: 5
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1780178028438
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
+      Data: 
     - Name: 
       Entry: 8
       Data: 

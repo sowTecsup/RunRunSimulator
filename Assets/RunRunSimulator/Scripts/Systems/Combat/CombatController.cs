@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -194,26 +195,46 @@ public class CombatController : MonoBehaviour
     }
 
     [Button("Show Queued MoriMonchis"), GUIColor(0.5f, 0.9f, 0.65f), BoxGroup("Async Combat")]
-    private void ShowQueuedButton()
+    private async void ShowQueuedButton()
     {
         var queued = registry.GetAll().Values
             .Where(d => d.BusyState == BusyReason.QueuedForCombat)
             .OrderBy(d => d.UniqueID)
             .ToList();
-        queuedCreaturesInfo = queued.Count == 0
-            ? "None"
-            : string.Join(", ", queued.Select((d, i) => $"[{i}] \"{d.CustomName}\""));
 
         if (queued.Count == 0)
         {
+            queuedCreaturesInfo = "None";
             Debug.Log("[CombatController] No MoriMonchis are currently queued for combat.");
             return;
         }
-        Debug.Log($"[CombatController] {queued.Count} MoriMochi(s) in async queue:");
+
+        // One server round-trip to learn each creature's REAL status: actually
+        // in the pool, already has a result waiting, or a ghost (neither).
+        // Two single-key reads, only on this button press — negligible load.
+        HashSet<string> inPool  = null;
+        HashSet<string> pending = new HashSet<string>();
+        if (asyncCombatService != null)
+        {
+            inPool  = await asyncCombatService.FetchQueuedIdsAsync();
+            pending = await asyncCombatService.FetchPendingResultIdsAsync();
+        }
+
+        // null inPool = server unreachable → we can't tell, say so instead of lying.
+        string Status(CreatureDNA d) =>
+            inPool == null               ? "?(offline)"   :
+            inPool.Contains(d.UniqueID)  ? "In Queue"     :
+            pending.Contains(d.UniqueID) ? "Result Ready" :
+                                           "GHOST";
+
+        queuedCreaturesInfo = string.Join(", ",
+            queued.Select((d, i) => $"[{i}] \"{d.CustomName}\" — {Status(d)}"));
+
+        Debug.Log($"[CombatController] {queued.Count} MoriMochi(s) flagged queued (press 'Check Pending Results' to apply results & clear ghosts):");
         for (int i = 0; i < queued.Count; i++)
         {
             var d = queued[i];
-            Debug.Log($"  [{i}] \"{d.CustomName}\"  [{Clip(d.UniqueID)}]  Fights used: {d.FightCount}/{config?.MaxFightCount ?? 5}");
+            Debug.Log($"  [{i}] \"{d.CustomName}\"  [{Clip(d.UniqueID)}]  status: {Status(d)}  Fights used: {d.FightCount}/{config?.MaxFightCount ?? 5}");
         }
     }
 

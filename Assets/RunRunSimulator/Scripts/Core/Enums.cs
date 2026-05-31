@@ -55,3 +55,11 @@ public enum BusyReason
     QueuedForCombat   = 1,  // Waiting for async matchmaking
     Breeding          = 2,  // Occupied in a timed breeding process (future)
 }
+
+// Identifies each Canvas panel the player can open via world interaction.
+// UIManager maps these to the actual scene panel GameObjects. Add one entry
+// per panel as new screens are built.
+public enum UIPanel
+{
+    CreatureGrid = 0,  // The in-game MoriMonchis grid (CreatureGridUI)
+}
