@@ -8,6 +8,6 @@ using System;
 public static class UIEvents
 {
     // A world interactable asked to show/hide a panel.
-    public static event Action<UIPanel> OnPanelToggleRequested;
-    public static void RequestPanelToggle(UIPanel panel) => OnPanelToggleRequested?.Invoke(panel);
+    public static event Action<UIPanelType> OnPanelToggleRequested;
+    public static void RequestPanelToggle(UIPanelType panel) => OnPanelToggleRequested?.Invoke(panel);
 }

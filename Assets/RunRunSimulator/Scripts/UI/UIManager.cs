@@ -15,12 +15,12 @@ public class UIManager : SerializedMonoBehaviour
 {
     [Tooltip("Map each panel type to its scene GameObject. Toggled on/off on interaction.")]
     [OdinSerialize]
-    private Dictionary<UIPanel, GameObject> panels = new Dictionary<UIPanel, GameObject>();
+    private Dictionary<UIPanelType, GameObject> panels = new Dictionary<UIPanelType, GameObject>();
 
     private void OnEnable()  => UIEvents.OnPanelToggleRequested += TogglePanel;
     private void OnDisable() => UIEvents.OnPanelToggleRequested -= TogglePanel;
 
-    private void TogglePanel(UIPanel panel)
+    private void TogglePanel(UIPanelType panel)
     {
         if (!panels.TryGetValue(panel, out var go) || go == null)
         {

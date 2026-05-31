@@ -7,7 +7,7 @@ using UnityEngine;
 public class PanelTrigger : MonoBehaviour, IInteractable
 {
     [Tooltip("Which Canvas panel this object opens/closes.")]
-    [SerializeField] private UIPanel panel;
+    [SerializeField] private UIPanelType panel;
 
     public void Interact()
     {

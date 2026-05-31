@@ -59,7 +59,8 @@ public enum BusyReason
 // Identifies each Canvas panel the player can open via world interaction.
 // UIManager maps these to the actual scene panel GameObjects. Add one entry
 // per panel as new screens are built.
-public enum UIPanel
+public enum UIPanelType
 {
-    CreatureGrid = 0,  // The in-game MoriMonchis grid (CreatureGridUI)
+    None         = 0,  // Unconfigured — toggling it is a no-op
+    CreatureGrid = 1,  // The in-game MoriMonchis grid (CreatureGridUI)
 }

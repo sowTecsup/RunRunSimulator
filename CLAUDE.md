@@ -70,6 +70,7 @@ Simulador de tienda retro 3D ambientado en los años 80s. El jugador es el dueñ
 CloudCode/                            # Server-side scripts y schedules (fuera del build Unity, se suben al Dashboard via CLI o manualmente)
 ├── enqueue-combat.js                 # Cloud Code: append entry a matchmaking_pool. Returns {status,poolSize}
 ├── dequeue-combat.js                 # Cloud Code: remueve una criatura del pool por creatureId+playerId. Returns {status:"dequeued"|"not_found"}
+├── get-queue-status.js               # Cloud Code: devuelve los creatureIds del caller que están realmente en el pool. 1 read, sin params. Para reconciliar "fantasmas" (local Queued pero ausente del pool)
 ├── process-matchmaking.js            # Cloud Code (scheduled): drena pool, empareja, simula, escribe combat_results en cada player
 ├── run-combat.js                     # Cloud Code (legacy modo Instant): enqueue + match + simulate en una sola llamada
 ├── start-breeding.js                 # Cloud Code: appendea huevo con server-time al array breeding_eggs_<playerId>. BREED_DURATION_MS hardcoded. Varias parejas en paralelo
@@ -85,8 +86,9 @@ Assets/RunRunSimulator/Scripts/
 │   ├── GameEvents.cs                 # static: bus de eventos. OnRegistryChanged(registry) / OnRegistryReloaded(registry) / OnCreatureMinted / OnCombatCompleted / OnBreedingCompleted. Los eventos transportan la data
 │   ├── SaveSystem.cs                 # static: SaveDatabase / LoadInto / Serialize (scoped por playerId, migración automática)
 │   ├── CreatureGenerator.cs          # static: GenerateRandom(db, oddsTable?)
-│   ├── Enums.cs                      # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason
-│   └── Interfaces.cs
+│   ├── Enums.cs                      # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason, UIPanelType
+│   ├── Interfaces.cs                 # IThrowable (grab/hold/throw) · IInteractable (tap E para interactuar)
+│   └── UIEvents.cs                   # static: bus de UI (paralelo a GameEvents). OnPanelToggleRequested(UIPanelType) — el evento lleva el enum
 ├── Systems/                          # Mecánicas por feature (cada una desacoplada vía GameEvents)
 │   ├── Breeding/
 │   │   ├── BreedingService.cs        # static: Breed() — traversal árbol genealógico
@@ -100,9 +102,19 @@ Assets/RunRunSimulator/Scripts/
 │       ├── CloudSyncService.cs       # MonoBehaviour: Unity Player Account auth + auto-pull on login + Cloud Save push/pull/reset + SyncMeta. Referencia GameManager
 │       └── CloudCodeTester.cs        # MonoBehaviour DEV: TestRandom / TestCustomData / ForceMatchmakingTick
 ├── UI/                               # Capa visual (Canvas) + vistas de inspector. Solo display, se nutre del payload de eventos
+│   ├── UIManager.cs                  # SerializedMonoBehaviour (Odin): Dictionary<UIPanelType, GameObject> editable. ÚNICO que escucha UIEvents.OnPanelToggleRequested → SetActive toggle. Vive en escena (un SO no puede referenciar objetos de escena)
 │   ├── CreatureGridUI.cs             # MonoBehaviour: grilla in-game (Canvas). Escucha OnRegistryChanged/Reloaded → instancia una CreatureVisualUI por criatura bajo un GridLayoutGroup. NO referencia GameManager
 │   ├── CreatureVisualUI.cs           # MonoBehaviour: card de UN MoriMochi (prefab). Bind(dna) → nombre (TMP) + icono/sprite (Image, por ahora teñido con PrimaryColor) + estado (TMP). Vista pura
 │   └── CreatureGridView.cs           # MonoBehaviour: grilla read-only de inspector (Odin TableList) de todo el registro. Se suscribe a OnRegistryChanged/Reloaded → auto-refresh desde el payload (NO referencia GameManager)
+├── Player/                           # Jugador primera persona — responsabilidades separadas, comunicadas por static events (sin referencias cruzadas)
+│   ├── PlayerInputs.cs               # ÚNICA clase que toca InputSystem_Actions. Dispara static events: MoveChanged / Jumped / InteractPressed / InteractReleased / ThrowPressed
+│   ├── PlayerController.cs           # Solo lógica: move FP (CharacterController) + grab/throw. Lee el forward de la cámara Cinemachine. Tap E = interactuar / Hold E = agarrar / press E cargando = soltar / Click = lanzar. NO referencia PlayerInputs (se suscribe a sus static events)
+│   ├── PlayerAnimator.cs             # Solo animación: se suscribe a los static events. Inerte hasta asignar un Animator
+│   ├── FirstPersonController.cs      # (referencia de proyecto viejo, sin usar)
+│   └── ThirdPersonController.cs      # (referencia de proyecto viejo, sin usar)
+├── Interactables/                    # Objetos del mundo con comportamiento componible (drop-a-script). Requieren Collider para el raycast
+│   ├── ThrowableObject.cs           # IThrowable: Rigidbody que el player sostiene (follow por velocidad) y lanza. RequireComponent(Rigidbody)
+│   └── PanelTrigger.cs              # IInteractable: al hacer tap E dispara UIEvents.RequestPanelToggle(su UIPanelType). No conoce al UIManager
 ├── Data/
 │   ├── CreatureDNA.cs                # Genética + Identidad + Linaje + Progresión + Tier/slot + Stats + IsDead
 │   ├── CreatureRegistrySO.cs         # SO registry: Dictionary<string, CreatureDNA> — InfoBox warning + Sync btn
@@ -413,6 +425,12 @@ El `OpponentPlayerId` ya **no** se imprime en el log (es ruido visual). Se conse
 - `CombatService.Simulate` y `BreedingService.Breed` validan `IsBusy` (además de `IsDead`): una criatura encolada no puede pelear localmente ni criar.
 - `dequeue-combat.js` filtra el pool por `creatureId + playerId` (solo desencola criaturas propias). El cliente limpia `BusyState` local **siempre**, aunque el server responda `not_found` (ya fue matcheada → el resultado llegará por `PollResultsAsync`).
 
+### Reconciliación de fantasmas (Queued local sin estar en el pool)
+
+**Síntoma**: una criatura aparece `QueuedForCombat` en local aunque no está en el pool ni tiene resultado pendiente (dequeue da `not_found`, check results no muestra nada). Causa: el `BusyState=Queued` se setea y pushea **antes** de confirmar el enqueue server-side, y los pushes fire-and-forget pueden llegar fuera de orden (el "Queued" pisa al "None" en el cloud → revive en el próximo `PullAsync`). El caso `default` de `EnqueueInternal` tampoco hace rollback.
+
+**Fix (self-healing, no elimina la causa raíz)**: `PollResultsAsync` ahora hace **apply-then-reconcile** — aplica resultados pendientes y SIEMPRE llama `ReconcileGhostsAsync`, que vía `get-queue-status` (1 read) limpia el `BusyState` de toda criatura Queued que el pool no tiene. Salvaguardas: si el server no responde (`null`) no toca nada; salta las que están `inFlightEnqueues` (en la ventana de 5s del enqueue). `Show Queued MoriMonchis` ahora consulta el pool + resultados y rotula cada una: **In Queue / Result Ready / GHOST / ?(offline)**. → El usuario ya no necesita Dequeue para fantasmas. Costo: 1 Cloud Code call + 1 read por botón, solo on-demand.
+
 ### Scheduler — arquitectura de 3 piezas (CRÍTICO)
 
 El Scheduler de Unity **NO invoca el script de Cloud Code directamente**. Emite un evento al servicio **Triggers**, y un Trigger separado redirige ese evento al script. Faltaba esta pieza → el schedule existía (`ugs sched list` lo mostraba) pero nunca ejecutaba (`progress: 0`, logs vacíos).
@@ -490,8 +508,55 @@ Si el cliente escribiera el timestamp de inicio, podría atrasar el reloj del PC
 - El array se envuelve en `{ entries: [...] }` — Custom Data rechaza arrays top-level (mismo quirk que `matchmaking_pool`).
 - Params de ambos: `motherId`, `fatherId` (camelCase). `hatch-breeding` también los necesita para identificar qué huevo abrir.
 
+## Sistema de Jugador (Player — primera persona)
+
+Responsabilidades separadas en tres scripts que **NO se referencian entre sí**; se comunican por **static events** en `PlayerInputs` (mismo patrón que `GameEvents`: el evento transporta la data, el listener cachea el payload). Suscribir en `OnEnable`, desuscribir en `OnDisable` (regla 9).
+
+- **`PlayerInputs`** — única clase que toca `InputSystem_Actions`. Traduce callbacks crudos a static events: `MoveChanged(Vector2)`, `Jumped`, `InteractPressed` (E key-down), `InteractReleased` (E key-up), `ThrowPressed` (Attack). El `Look` NO está acá — lo maneja Cinemachine.
+- **`PlayerController`** — solo lógica. Move FP con `CharacterController` (relativo a la cámara), jump, y grab/throw vía interfaces. NO referencia `PlayerInputs` (se suscribe a sus static events). NO maneja la cámara: lee el `forward` de la cámara para mover/agarrar/lanzar.
+- **`PlayerAnimator`** — solo animación. Se suscribe a los mismos static events. Inerte hasta asignar un `Animator` (todo guardado por null). Seam para cuando existan clips.
+
+**Cámara**: Cinemachine primera persona (Position Control = *Hard Lock to Target* sobre un `Head`; Rotation Control = *Pan Tilt*; + *Cinemachine Input Axis Controller* leyendo la acción `Look`). `PlayerController.cameraTransform` = la Main Camera (la del Brain); su `forward` es la mirada final.
+
+**Input map** (`InputSystem_Actions`, action map `Player`): `Move` / `Jump` / `Interact` / `Attack`. ⚠️ La acción `Interact` debe tener la interacción **Hold desactivada** (Press) — el hold-vs-tap lo decidimos nosotros con un timer (`grabHoldDuration`).
+
+### Grab / Interact / Throw (semántica de E + Click)
+
+`E` significa distinto según contexto:
+
+| Estado | Input | Acción |
+|--------|-------|--------|
+| Libre | **tap E** (press < `grabHoldDuration`) | Interactuar con un `IInteractable` |
+| Libre | **hold E** (≥ `grabHoldDuration`) | Agarrar un `IThrowable` |
+| Cargando | **press E** | Soltar en el sitio |
+| Cargando | **Click (Attack)** | Lanzar |
+
+- Raycast genérico: `TryFindInView<T>` busca `T` (interface o clase) en el collider O en su `attachedRigidbody`. Lo usan grab (`IThrowable`) e interact (`IInteractable`).
+- **Throw**: la fuerza va **desde la posición del objeto (holdAnchor) hacia un punto de mira sobre el eje de la cámara** (`throwAimDistance`), así converge a donde mirás (el holdAnchor está a un lado, como una mano).
+
+## Sistema de Interacción y UI (IInteractable / IThrowable / UIManager)
+
+**Comportamientos componibles "drop-a-script"** sobre objetos del mundo (requieren **Collider** para el raycast; las primitivas ya lo traen):
+- **`IThrowable`** (en `Interfaces.cs`) — `IsHeld`, `OnGrab(anchor)`, `OnRelease()`, `OnThrow(force)`. Implementación: `ThrowableObject` (RequireComponent Rigidbody; mientras se sostiene sigue al anchor por **velocidad** → choca en vez de clippear). Agarrar = hold E.
+- **`IInteractable`** (en `Interfaces.cs`) — `Interact()`. Implementación: `PanelTrigger`. Interactuar = tap E. Un objeto puede implementar **ambas** (tap interactúa, hold agarra).
+
+**Toggle de paneles del Canvas** (desacoplado por Actions, sin referencias directas):
+
+```
+PanelTrigger (mundo, IInteractable) --Interact()--> UIEvents.RequestPanelToggle(UIPanelType)
+                                                            │  (el evento lleva el enum)
+                                                            ▼
+UIManager (escena) --Dictionary<UIPanelType,GameObject>--> SetActive(!activeSelf)
+```
+
+- **`UIPanelType`** (enum en `Enums.cs`) — tipos de panel. **Convención nueva (de acá en adelante): sufijo `Type` + primer valor `None = 0`.** Arranca con `None`, `CreatureGrid`. (Los enums viejos NO se renombran para no perder referencias serializadas.)
+- **`UIEvents`** (static bus en `Core/`, paralelo a `GameEvents`) — `OnPanelToggleRequested(UIPanelType)` + helper `RequestPanelToggle`.
+- **`UIManager`** (`SerializedMonoBehaviour` de Odin, en escena) — `Dictionary<UIPanelType, GameObject>` editable en inspector. Único suscriptor del evento; togglea el `SetActive`. **Vive en escena, NO es un SO**: un ScriptableObject no puede referenciar GameObjects de escena (un SO solo serviría si los paneles fueran prefabs instanciados en runtime).
+- **`PanelTrigger`** (`IInteractable`, en `Interactables/`) — campo `UIPanelType panel` en inspector; al tap E dispara el evento con su panel. No conoce al `UIManager`.
+
 ## Bugs conocidos (pendientes de fix)
 
+- **Fantasma de cola (causa raíz, mitigado)**: el `BusyState=Queued` se setea/pushea antes de confirmar el enqueue server-side, y los pushes fire-and-forget pueden llegar fuera de orden; el caso `default` de `EnqueueInternal` no hace rollback. Hoy está **auto-curado** por `ReconcileGhostsAsync` (ver sección de combate async), pero la causa raíz sigue: para eliminarla habría que secuenciar los pushes y agregar rollback en `default`.
 - `DeathChance` está hardcoded a 15% en `process-matchmaking.js` y `run-combat.js`. Cambiar el `CombatManagerSO.DeathChance` solo afecta el combate local. Para sincronizar habría que pasar el valor como param o duplicarlo manualmente.
 - `BREED_DURATION_MS` está hardcoded a 30 min en `start-breeding.js`. `InheritanceOddsTableSO.BreedDurationMinutes` solo afecta el display local — misma limitación que `DeathChance`.
 - No hay race-condition handling en el matchmaking pool — dos llamadas simultáneas pueden pisarse. Aceptable en testing; para producción con tráfico real, agregar `writeLock` del SetItemBody.
