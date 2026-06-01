@@ -9,28 +9,25 @@ tags: [memory-bank, active, session]
 ## Sesión actual
 
 **Fecha**: 2026-06-01
-**Foco**: Migración del `CLAUDE.md` monolítico (~70KB) a Memory Bank modular en este vault. Sin cambios de código de gameplay.
+**Foco**: Tuning del lanzamiento (PlayerController) y reacción post-lanzamiento del MoriMochiAgent.
 
 ### Qué se hizo
 
-- Backup `CLAUDE.md` → `ClaudeOld.md` en raíz.
-- Creación de 10 archivos `.md` en `MoriMonchiVault/` (00 Index + 8 temáticos + 09 Active Context).
-- Reescritura de `CLAUDE.md` a un núcleo + índice (~10KB) que apunta a este vault.
+- **`PlayerController.cs`** — Lanzar ahora respeta el pitch de la cámara: `cameraTransform.forward` directo. `throwAimDistance` eliminado; reemplazado por `throwUpwardBias` (default 0.15, rango 0–1 en Inspector).
+- **`MoriMochiAgent.cs`** — Nuevo estado `Recovering`. Flujo post-lanzamiento: física → `Held` → `BeginGetUp()` (warp + desactiva `updateRotation`) → `Recovering` (aturdido `downedDelay` + slerp vertical `getUpDuration`) → `EnterRoaming()`. Dos parámetros nuevos expuestos en Inspector bajo **Recovery (after being thrown)**.
 
 ### Próximos pasos inmediatos
 
-Ninguno técnico. Validar con el usuario:
-1. Que el `CLAUDE.md` nuevo conserva las reglas críticas (las 9 reglas, naming, stack, filosofía de eventos, roadmap).
-2. Que los wikilinks resuelven en Obsidian.
-3. Que la cobertura del vault no pierde detalle técnico vs el original.
+- Entrar a Unity y ajustar en Play `throwUpwardBias`, `downedDelay`, `getUpDuration` hasta que el feel sea correcto.
+- Setup de escena pendiente (Etapa 2.5): NavMesh bake + 3 Areas, prefab cubo, asset PersonalityProfileTable, wiring del spawner.
 
 ## Archivos en juego en la sesión actual
 
 | Archivo | Por qué |
 |---------|---------|
-| `CLAUDE.md` (raíz) | Reescrito como núcleo + índice |
-| `ClaudeOld.md` (raíz) | Backup del original |
-| `MoriMonchiVault/00-09 *.md` | Memory Bank nuevo |
+| `Scripts/Player/PlayerController.cs` | Dirección de lanzamiento |
+| `Scripts/World/MoriMochiAgent.cs` | Estado Recovering + BeginGetUp/TickRecovering |
+| `MoriMonchiVault/06 - Player & World.md` | Documentado |
 
 ## Cómo usar esta nota en sesiones futuras
 
