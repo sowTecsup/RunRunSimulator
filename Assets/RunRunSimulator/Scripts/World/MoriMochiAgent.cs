@@ -19,7 +19,7 @@ using UnityEngine.AI;
 [RequireComponent(typeof(Rigidbody))]
 public class MoriMochiAgent : MonoBehaviour, IThrowable
 {
-    private enum AgentState { Idle, Roaming, Reacting, Held }
+    private enum AgentState { Idle, Roaming, Reacting, Held, Recovering }
 
     [Header("Hold feel (while carried)")]
     [Tooltip("How snappily the body chases the hold anchor while carried.")]
@@ -27,6 +27,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [Tooltip("Below this speed (and grounded) after a throw, the agent re-joins the NavMesh.")]
     [SerializeField] private float settleSpeed = 0.15f;
     [SerializeField] private float settleDelay = 0.4f;
+
+    [Header("Recovery (after being thrown)")]
+    [Tooltip("Seconds it stays down/dazed where it landed before standing up.")]
+    [SerializeField] private float downedDelay = 0.6f;
+    [Tooltip("How long the get-up takes — it rotates from its tumbled pose back upright before the agent resumes.")]
+    [SerializeField] private float getUpDuration = 0.5f;
 
     [Header("NavMesh sampling")]
     [Tooltip("Max distance to snap a desired point onto the NavMesh.")]
@@ -52,6 +58,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private float     idleDuration;
     private float     repathTimer;
     private AgentState stateBeforeReact = AgentState.Roaming;
+
+    // Get-up animation (Recovering): lerp from the tumbled pose back to upright.
+    private float      recoverTimer;
+    private Quaternion getUpFrom;
+    private Quaternion getUpTo;
 
     public bool IsHeld => heldByPlayer;
     public CreatureDNA DNA => dna;
@@ -87,10 +98,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     {
         switch (state)
         {
-            case AgentState.Held:     TickHeld();     break;
-            case AgentState.Idle:     TickIdle();     break;
-            case AgentState.Roaming:  TickRoaming();  break;
-            case AgentState.Reacting: TickReacting(); break;
+            case AgentState.Held:       TickHeld();       break;
+            case AgentState.Idle:       TickIdle();       break;
+            case AgentState.Roaming:    TickRoaming();    break;
+            case AgentState.Reacting:   TickReacting();   break;
+            case AgentState.Recovering: TickRecovering(); break;
         }
     }
 
@@ -164,11 +176,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     {
         if (heldByPlayer) return;   // still in hand — wait for release/throw
 
-        // Thrown/dropped: once it stops moving on the ground, re-join the NavMesh.
+        // Thrown/dropped: once it stops moving on the ground, begin the get-up beat.
         if (rb.linearVelocity.sqrMagnitude < settleSpeed * settleSpeed)
         {
             settleTimer += Time.deltaTime;
-            if (settleTimer >= settleDelay) Recover();
+            if (settleTimer >= settleDelay) BeginGetUp();
         }
         else settleTimer = 0f;
     }
@@ -186,6 +198,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private void EnterRoaming()
     {
         state = AgentState.Roaming;
+        agent.updateRotation = true;        // hand rotation back to the agent (Recovering turns it off)
         Vector3 random = transform.position + Random.insideUnitSphere * profile.RoamRadius;
         SetDestinationSafe(random);
     }
@@ -224,7 +237,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         heldByPlayer  = false;
         rb.useGravity = true;                       // physics owns it until it settles
         settleTimer   = 0f;
-        // stays in Held state → TickHeld watches for it to settle, then Recover()
+        // stays in Held state → TickHeld watches for it to settle, then BeginGetUp()
     }
 
     public void OnThrow(Vector3 force)
@@ -233,8 +246,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         rb.AddForce(force, ForceMode.Impulse);
     }
 
-    // Snaps back onto the NavMesh after being thrown and re-enables steering.
-    private void Recover()
+    // After a throw settles: snap back onto the NavMesh but DON'T steer yet. It
+    // stays where it landed (still tumbled) and enters the get-up beat — TickRecovering
+    // animates it upright before the agent brain takes over.
+    private void BeginGetUp()
     {
         Vector3 point = transform.position;
         if (NavMesh.SamplePosition(point, out var hit, sampleRadius * 2f, agent.areaMask))
@@ -244,11 +259,38 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         rb.useGravity  = false;
 
         agent.enabled = true;
-        if (agent.isOnNavMesh || agent.Warp(point))
-            EnterRoaming();
-        else
-            // Couldn't rejoin (landed far off-mesh) — try again shortly.
+        if (!(agent.isOnNavMesh || agent.Warp(point)))
+        {
+            // Couldn't rejoin (landed far off-mesh) — stay down and retry shortly.
             state = AgentState.Held;
+            return;
+        }
+
+        agent.ResetPath();
+        agent.updateRotation = false;       // we hand-animate the get-up; the agent must not fight it
+
+        // Target pose: keep its current heading (yaw), level out the tumble.
+        Vector3 fwd = transform.forward; fwd.y = 0f;
+        if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
+        getUpFrom    = transform.rotation;
+        getUpTo      = Quaternion.LookRotation(fwd.normalized, Vector3.up);
+        recoverTimer = 0f;
+        state        = AgentState.Recovering;
+    }
+
+    // Dazed-then-stand-up beat after landing. Holds still for downedDelay, then
+    // slerps from the tumbled pose to upright over getUpDuration, then resumes.
+    private void TickRecovering()
+    {
+        recoverTimer += Time.deltaTime;
+
+        float t = getUpDuration <= 0f
+            ? 1f
+            : Mathf.InverseLerp(downedDelay, downedDelay + getUpDuration, recoverTimer);
+        transform.rotation = Quaternion.Slerp(getUpFrom, getUpTo, Mathf.SmoothStep(0f, 1f, t));
+
+        if (recoverTimer >= downedDelay + getUpDuration)
+            EnterRoaming();                 // restores agent.updateRotation
     }
 
     // ── Helpers ───────────────────────────────────────────────────

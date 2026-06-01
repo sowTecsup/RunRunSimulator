@@ -34,8 +34,9 @@ public class PlayerController : MonoBehaviour
 
     [Header("Throw")]
     [SerializeField] private float throwForce = 10f;
-    [Tooltip("Distance of the aim point along the camera. The throw converges from the hand toward it, so it flies to where you look.")]
-    [SerializeField] private float throwAimDistance = 30f;
+    [Tooltip("Extra upward lift blended into the look direction so a level throw still arcs a little. 0 = throw exactly where you look.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float throwUpwardBias = 0.15f;
 
     // ── State ─────────────────────────────────────────────────────
 
@@ -218,15 +219,14 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"[PlayerController] ThrowPressed received. Currently holding: {held != null}");
 
         if (held == null) { Debug.Log("[PlayerController] Nothing held — nothing to throw."); return; }
-        if (cameraTransform == null || holdAnchor == null) { Debug.LogWarning("[PlayerController] camera/holdAnchor not assigned — cannot throw."); return; }
+        if (cameraTransform == null) { Debug.LogWarning("[PlayerController] camera not assigned — cannot throw."); return; }
 
-        // Throw from the object's current spot (the hand/holdAnchor) toward a point on
-        // the camera's aim line, so it converges to where we're looking instead of
-        // flying parallel from the side.
-        Vector3 aimPoint = cameraTransform.position + cameraTransform.forward * throwAimDistance;
-        Vector3 dir      = (aimPoint - holdAnchor.position).normalized;
+        // Throw straight along the look direction so the throw follows the camera
+        // pitch: look up → it flies up. The upward bias just turns a level look into
+        // a gentle arc so things don't fly dead flat.
+        Vector3 dir = (cameraTransform.forward + Vector3.up * throwUpwardBias).normalized;
 
-        Debug.Log($"[PlayerController] Throwing toward aim point {aimPoint} (dir {dir}).");
+        Debug.Log($"[PlayerController] Throwing dir {dir} (look pitch respected).");
         held.OnThrow(dir * throwForce);
         held = null;
     }
