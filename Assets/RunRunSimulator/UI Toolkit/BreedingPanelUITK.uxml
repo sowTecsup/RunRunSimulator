@@ -1,0 +1,71 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="BreedingPanelUITKStyle.uss" />
+    <!-- Full-screen modal backdrop (eats clicks). Window centered inside. -->
+    <ui:VisualElement name="backdrop" class="breed-backdrop">
+        <ui:VisualElement name="window" class="breed-window">
+
+            <ui:VisualElement name="breed-header" class="breed-header">
+                <ui:Label name="title" text="Breeding" class="breed-title" />
+                <ui:Button name="close-button" text="X" class="breed-close" />
+            </ui:VisualElement>
+
+            <!-- 3 columns. Left/right parent lists are ALWAYS present; the tabs sit
+                 in the center column and only swap the center content. -->
+            <ui:VisualElement class="breed-body">
+
+                <!-- LEFT: fathers -->
+                <ui:VisualElement class="breed-col-side">
+                    <ui:Label text="Padres" class="breed-col-title" />
+                    <ui:ScrollView name="father-list" class="breed-list" mode="Vertical" />
+                </ui:VisualElement>
+
+                <!-- CENTER: tabs -->
+                <ui:VisualElement class="breed-col-center">
+                    <ui:TabView name="tabs" class="breed-tabs">
+
+                        <ui:Tab label="Criar" name="tab-criar">
+                            <ui:VisualElement class="criar-content">
+                                <ui:VisualElement class="breed-slots">
+                                    <ui:VisualElement name="father-slot" class="breed-slot">
+                                        <ui:Label text="Padre" class="breed-slot-role" />
+                                        <ui:VisualElement name="father-slot-img" class="breed-slot-img" />
+                                        <ui:Label name="father-slot-name" text="Vacío" class="breed-slot-name" />
+                                    </ui:VisualElement>
+                                    <ui:Label text="💗" class="breed-heart" />
+                                    <ui:VisualElement name="mother-slot" class="breed-slot">
+                                        <ui:Label text="Madre" class="breed-slot-role" />
+                                        <ui:VisualElement name="mother-slot-img" class="breed-slot-img" />
+                                        <ui:Label name="mother-slot-name" text="Vacío" class="breed-slot-name" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+
+                                <ui:VisualElement class="breed-egg">
+                                    <ui:Label text="❓" class="breed-egg-icon" />
+                                    <ui:Label name="time-label" text="" class="breed-time" />
+                                </ui:VisualElement>
+
+                                <ui:Button name="breed-button" text="Breed" class="breed-action" />
+
+                                <!-- Both-parents preview fills the lower space. -->
+                                <ui:VisualElement name="preview" class="breed-preview" />
+                            </ui:VisualElement>
+                        </ui:Tab>
+
+                        <ui:Tab label="Incubando" name="tab-incubando">
+                            <ui:ScrollView name="egg-list" class="egg-list" mode="Vertical" />
+                        </ui:Tab>
+
+                    </ui:TabView>
+                </ui:VisualElement>
+
+                <!-- RIGHT: mothers -->
+                <ui:VisualElement class="breed-col-side">
+                    <ui:Label text="Madres" class="breed-col-title" />
+                    <ui:ScrollView name="mother-list" class="breed-list" mode="Vertical" />
+                </ui:VisualElement>
+
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

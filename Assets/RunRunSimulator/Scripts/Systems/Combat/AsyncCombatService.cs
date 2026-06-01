@@ -307,6 +307,20 @@ public class AsyncCombatService : MonoBehaviour
 
         Debug.Log($"[AsyncCombat]  {myLabel}  vs  {opponentLabel}  ——  {outcome}{evolved}{died}");
 
+        // Surface a viewable log for the combat panel's Results tab (the cloud copy
+        // is cleared right after this), from this creature's perspective.
+        GameEvents.CombatLogged(new CombatLogEntry
+        {
+            CreatureId    = dna.UniqueID,
+            CreatureName  = dna.CustomName,
+            OpponentLabel = string.IsNullOrEmpty(r.OpponentPlayerName)
+                ? r.OpponentName
+                : $"{r.OpponentName} ({r.OpponentPlayerName})",
+            Lines = new List<string>(r.Log),
+            Won   = r.Won,
+            Died  = r.Died,
+        });
+
         return true;
     }
 

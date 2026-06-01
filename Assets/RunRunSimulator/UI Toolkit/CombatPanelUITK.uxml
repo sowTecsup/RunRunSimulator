@@ -1,0 +1,101 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="CombatPanelUITKStyle.uss" />
+    <ui:VisualElement name="backdrop" class="cbt-backdrop">
+        <ui:VisualElement name="window" class="cbt-window">
+
+            <ui:VisualElement class="cbt-header">
+                <ui:Label name="title" text="Combate" class="cbt-title" />
+                <ui:Button name="close-button" text="X" class="cbt-close" />
+            </ui:VisualElement>
+
+            <ui:TabView name="tabs" class="cbt-tabs">
+
+                <!-- ── Tab 1: Batalla Online ── -->
+                <ui:Tab label="Batalla Online" name="tab-online">
+                    <ui:VisualElement class="cbt-body">
+
+                        <ui:VisualElement class="cbt-col-side">
+                            <ui:Label text="Disponibles" class="cbt-col-title" />
+                            <ui:ScrollView name="online-list" class="cbt-list" mode="Vertical" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="cbt-col-center">
+                            <ui:VisualElement name="online-img" class="cbt-portrait" />
+                            <ui:Label name="online-name" text="Selecciona un MoriMochi" class="cbt-name" />
+                            <ui:Label name="online-stats" text="" class="cbt-stats" />
+                            <ui:VisualElement name="online-parts" class="cbt-parts" />
+                            <ui:VisualElement class="cbt-actions">
+                                <ui:Button name="btn-instant" text="Batalla Instantánea" class="cbt-action cbt-action--instant" />
+                                <ui:Button name="btn-timer" text="Encolar (Timer)" class="cbt-action cbt-action--timer" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="cbt-col-side">
+                            <ui:Label text="Equipo" class="cbt-col-title" />
+                            <ui:Label text="Próximamente" class="cbt-placeholder" />
+                        </ui:VisualElement>
+
+                    </ui:VisualElement>
+                </ui:Tab>
+
+                <!-- ── Tab 2: Combate Local ── -->
+                <ui:Tab label="Combate Local" name="tab-local">
+                    <ui:VisualElement class="cbt-body">
+
+                        <ui:VisualElement class="cbt-col-side">
+                            <ui:Label text="Luchador A" class="cbt-col-title" />
+                            <ui:ScrollView name="fa-list" class="cbt-list" mode="Vertical" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="cbt-col-center">
+                            <ui:VisualElement class="cbt-slots">
+                                <ui:VisualElement name="slot-a" class="cbt-slot">
+                                    <ui:Label text="Luchador A" class="cbt-slot-role" />
+                                    <ui:VisualElement name="slot-a-img" class="cbt-slot-img" />
+                                    <ui:Label name="slot-a-name" text="Vacío" class="cbt-slot-name" />
+                                </ui:VisualElement>
+                                <ui:Label text="VS" class="cbt-vs" />
+                                <ui:VisualElement name="slot-b" class="cbt-slot">
+                                    <ui:Label text="Luchador B" class="cbt-slot-role" />
+                                    <ui:VisualElement name="slot-b-img" class="cbt-slot-img" />
+                                    <ui:Label name="slot-b-name" text="Vacío" class="cbt-slot-name" />
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+
+                            <ui:Button name="btn-fight" text="Pelear" class="cbt-action cbt-action--fight" />
+
+                            <ui:ScrollView name="local-log" class="cbt-local-log" mode="Vertical" />
+                            <ui:Label name="local-outcome" text="" class="cbt-outcome" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="cbt-col-side">
+                            <ui:Label text="Luchador B" class="cbt-col-title" />
+                            <ui:ScrollView name="fb-list" class="cbt-list" mode="Vertical" />
+                        </ui:VisualElement>
+
+                    </ui:VisualElement>
+                </ui:Tab>
+
+                <!-- ── Tab 3: Resultados ── -->
+                <ui:Tab label="Resultados" name="tab-results">
+                    <ui:VisualElement class="cbt-body">
+
+                        <ui:VisualElement class="cbt-col-results">
+                            <ui:Button name="btn-refresh" text="Revisar resultados" class="cbt-action cbt-action--refresh" />
+                            <ui:ScrollView name="results-list" class="cbt-list" mode="Vertical" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="cbt-col-log">
+                            <ui:Label name="log-opponent" text="Selecciona un combate" class="cbt-log-opponent" />
+                            <ui:ScrollView name="log-lines" class="cbt-log-lines" mode="Vertical" />
+                            <ui:Label name="log-outcome" text="" class="cbt-log-outcome" />
+                        </ui:VisualElement>
+
+                    </ui:VisualElement>
+                </ui:Tab>
+
+            </ui:TabView>
+
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

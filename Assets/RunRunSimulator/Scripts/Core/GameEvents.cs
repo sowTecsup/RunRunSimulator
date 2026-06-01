@@ -34,6 +34,12 @@ public static class GameEvents
     public static event Action<CombatResult> OnCombatCompleted;
     public static void CombatCompleted(CombatResult result) => OnCombatCompleted?.Invoke(result);
 
+    // A combat finished and produced a viewable log, from ONE creature's POV.
+    // Fired by the async path too (which otherwise consumes the cloud log on apply),
+    // closing the old gap where async combats never surfaced a result. The UI caches it.
+    public static event Action<CombatLogEntry> OnCombatLogged;
+    public static void CombatLogged(CombatLogEntry entry) => OnCombatLogged?.Invoke(entry);
+
     // mother, father, child
     public static event Action<CreatureDNA, CreatureDNA, CreatureDNA> OnBreedingCompleted;
     public static void BreedingCompleted(CreatureDNA mother, CreatureDNA father, CreatureDNA child) =>

@@ -73,6 +73,9 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     // Nothing to confirm on the summary page yet.
     public void OnUISubmit() { }
 
+    // No internal back state — let the UIManager close the panel on ESC.
+    public bool OnUICancel() => false;
+
     // ── Private Methods ───────────────────────────────────────────
 
     private void Wire()

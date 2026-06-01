@@ -115,6 +115,9 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
             UIManager.SelectCreature(dna, currentRegistry);
     }
 
+    // No internal back state — let the UIManager close the grid on ESC.
+    public bool OnUICancel() => false;
+
     // ── Private Methods ───────────────────────────────────────────
 
     // Wipes the container and re-spawns one card per creature straight from the

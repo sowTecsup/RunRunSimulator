@@ -1,0 +1,225 @@
+/* Combat panel (UI Toolkit) — modal, 3 tabs:
+   Batalla Online · Combate Local · Resultados. Mirrors the breeding panel chrome. */
+
+.cbt-backdrop {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+    align-items: center;
+    justify-content: center;
+}
+
+.cbt-window {
+    width: 90%;
+    height: 88%;
+    padding: 14px;
+    border-radius: 12px;
+    background-color: rgb(28, 28, 38);
+}
+
+/* Header */
+.cbt-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cbt-title {
+    flex-grow: 1;
+    height: 52px;
+    -unity-text-generator: advanced;
+    -unity-text-auto-size: best-fit 24px 42px;
+    -unity-font-style: bold;
+    color: rgb(235, 235, 240);
+}
+
+.cbt-close {
+    width: 36px; height: 36px;
+    margin: 0; border-radius: 6px;
+    -unity-font-style: bold; font-size: 18px;
+    color: rgb(235, 235, 240);
+    background-color: rgb(70, 70, 88);
+}
+.cbt-close:hover { background-color: rgb(95, 95, 120); }
+
+/* TabView (centered headers, pills, no scroll arrows) */
+.cbt-tabs { flex-grow: 1; }
+
+.cbt-tabs > .unity-tab-view__header-container {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    background-color: rgb(22, 22, 30);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 10px;
+}
+
+.cbt-tabs .unity-scroller--horizontal,
+.cbt-tabs .unity-tab-view__header-container .unity-scroller { display: none; }
+
+.unity-tab__header {
+    padding-left: 22px; padding-right: 22px;
+    padding-top: 8px; padding-bottom: 8px;
+    margin-right: 6px; border-radius: 6px;
+    background-color: rgb(40, 40, 52);
+}
+.unity-tab__header:hover { background-color: rgb(58, 58, 76); }
+.unity-tab__header:checked { background-color: rgb(150, 80, 80); }
+.unity-tab__header-label { font-size: 18px; -unity-font-style: bold; color: rgb(225, 225, 232); }
+.unity-tab__header-underline { display: none; }
+
+.cbt-tabs .unity-tab-view__content-container,
+.cbt-tabs .unity-tab__content-container { flex-grow: 1; }
+
+/* ── Body / columns ── */
+.cbt-body { flex-direction: row; flex-grow: 1; }
+
+.cbt-col-side {
+    width: 27%;
+    background-color: rgb(24, 24, 32);
+    border-radius: 10px;
+    padding: 8px;
+}
+
+.cbt-col-center {
+    flex-grow: 1;
+    align-items: center;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.cbt-col-title {
+    font-size: 16px; -unity-font-style: bold;
+    color: rgb(170, 170, 185);
+    margin-bottom: 6px;
+    -unity-text-align: middle-center;
+}
+
+.cbt-placeholder {
+    flex-grow: 1;
+    font-size: 16px; color: rgb(120, 120, 135);
+    -unity-text-align: middle-center;
+}
+
+/* ── Lists ── */
+.cbt-list { flex-grow: 1; }
+
+.cbt-candidate {
+    padding: 8px; margin-bottom: 6px; border-radius: 8px;
+    background-color: rgb(40, 40, 52);
+    border-width: 3px; border-color: rgba(0, 0, 0, 0);
+}
+.cbt-candidate:hover { background-color: rgb(54, 54, 70); }
+.cbt-candidate-text { font-size: 14px; color: rgb(228, 228, 234); white-space: normal; }
+
+/* ── Tab 1 center (selected creature) ── */
+.cbt-portrait {
+    width: 150px; height: 150px;
+    border-radius: 10px;
+    background-color: rgb(60, 60, 72);
+    margin-top: 6px; margin-bottom: 8px;
+}
+.cbt-name {
+    width: 100%;
+    font-size: 22px; -unity-font-style: bold; color: rgb(235, 235, 240);
+    -unity-text-align: middle-center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+.cbt-stats { font-size: 16px; -unity-font-style: bold; color: rgb(205, 205, 215); margin-bottom: 8px; }
+
+.cbt-parts { width: 100%; align-items: center; margin-bottom: 10px; }
+.cbt-part-row { flex-direction: row; align-items: center; margin-bottom: 3px; }
+.cbt-swatch { width: 16px; height: 16px; border-radius: 4px; margin-right: 6px; }
+.cbt-part-text { font-size: 13px; color: rgb(220, 220, 228); white-space: normal; }
+
+.cbt-actions { flex-direction: row; margin-top: 6px; }
+
+.cbt-action {
+    padding-top: 10px; padding-bottom: 10px;
+    padding-left: 16px; padding-right: 16px;
+    margin: 4px; border-radius: 8px;
+    font-size: 16px; -unity-font-style: bold;
+    color: rgb(245, 240, 245);
+    border-width: 3px; border-color: rgba(0, 0, 0, 0);
+}
+.cbt-action--instant { background-color: rgb(210, 120, 60); }
+.cbt-action--instant:hover { background-color: rgb(230, 140, 80); }
+.cbt-action--timer { background-color: rgb(150, 90, 190); }
+.cbt-action--timer:hover { background-color: rgb(170, 110, 210); }
+.cbt-action--fight { background-color: rgb(200, 70, 70); min-width: 200px; }
+.cbt-action--fight:hover { background-color: rgb(220, 90, 90); }
+.cbt-action--refresh { background-color: rgb(70, 130, 180); margin-bottom: 8px; }
+.cbt-action--refresh:hover { background-color: rgb(90, 150, 200); }
+
+.cbt-action--busy,
+.cbt-action--busy:hover { background-color: rgb(90, 90, 100); color: rgb(180, 180, 185); }
+
+/* ── Tab 2 local slots ── */
+.cbt-slots { flex-direction: row; align-items: center; justify-content: center; margin-top: 8px; margin-bottom: 10px; }
+
+.cbt-slot {
+    width: 40%; height: 190px;
+    flex-shrink: 0; overflow: hidden;
+    align-items: center; justify-content: flex-start;
+    padding: 10px; border-radius: 10px;
+    background-color: rgb(40, 40, 52);
+    border-width: 3px; border-color: rgba(0, 0, 0, 0);
+}
+.cbt-slot:hover { background-color: rgb(54, 54, 70); }
+.cbt-slot-role { font-size: 14px; color: rgb(170, 170, 185); margin-bottom: 6px; }
+.cbt-slot-img { width: 110px; height: 110px; border-radius: 8px; background-color: rgb(60, 60, 72); margin-bottom: 8px; }
+.cbt-slot-name {
+    width: 100%; font-size: 18px; -unity-font-style: bold; color: rgb(235, 235, 240);
+    -unity-text-align: middle-center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cbt-vs { font-size: 28px; -unity-font-style: bold; color: rgb(220, 120, 120); margin-left: 14px; margin-right: 14px; }
+
+.cbt-local-log {
+    width: 100%; flex-grow: 1; margin-top: 12px;
+    background-color: rgb(20, 20, 28); border-radius: 8px; padding: 8px;
+}
+.cbt-log-line { font-size: 13px; color: rgb(210, 210, 218); white-space: normal; margin-bottom: 2px; }
+.cbt-outcome { font-size: 22px; -unity-font-style: bold; color: rgb(235, 235, 240); -unity-text-align: middle-center; margin-top: 8px; }
+
+/* ── Tab 3 results ── */
+.cbt-col-results {
+    width: 34%;
+    background-color: rgb(24, 24, 32);
+    border-radius: 10px; padding: 8px;
+}
+
+.cbt-result-row {
+    flex-direction: row; justify-content: space-between; align-items: center;
+    padding: 9px; margin-bottom: 6px; border-radius: 8px;
+    background-color: rgb(40, 40, 52);
+    border-width: 3px; border-color: rgba(0, 0, 0, 0);
+}
+.cbt-result-row:hover { background-color: rgb(54, 54, 70); }
+.cbt-result-name { flex-grow: 1; font-size: 15px; -unity-font-style: bold; color: rgb(232, 232, 238); white-space: normal; }
+.cbt-result-status { font-size: 13px; color: rgb(175, 175, 190); margin-left: 8px; }
+
+.cbt-col-log {
+    flex-grow: 1; margin-left: 12px;
+    background-color: rgb(20, 20, 28);
+    border-radius: 10px; padding: 12px;
+}
+.cbt-log-opponent { font-size: 20px; -unity-font-style: bold; color: rgb(225, 225, 235); margin-bottom: 8px; white-space: normal; }
+.cbt-log-lines { flex-grow: 1; }
+.cbt-log-outcome {
+    font-size: 34px; -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    color: rgb(220, 220, 225);
+    margin-top: 10px;
+}
+.cbt-log-outcome--win  { color: rgb(110, 220, 120); }
+.cbt-log-outcome--lose { color: rgb(235, 110, 100); }
+
+/* Focus ring (keyboard/gamepad) */
+.cbt-focus { border-color: rgb(150, 120, 230); }
+.cbt-tabs.tabbar-focused > .unity-tab-view__header-container {
+    border-width: 2px; border-color: rgb(150, 120, 230);
+}

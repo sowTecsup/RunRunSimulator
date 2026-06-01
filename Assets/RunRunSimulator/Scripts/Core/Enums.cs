@@ -64,6 +64,8 @@ public enum UIPanelType
     None             = 0,  // Unconfigured — toggling it is a no-op
     CreatureGrid     = 1,  // The in-game MoriMonchis grid (CreatureGridUI)
     MorimonchiDetail = 2,  // Detailed summary window for one MoriMochi
+    Breeding         = 3,  // Breeding screen: parent selection + incubating eggs
+    Combat           = 4,  // Combat screen: online battle + local combat + results
 }
 
 // What the player is currently doing. Drives input/cursor/camera: while a UI

@@ -173,10 +173,12 @@ public class UIManager : SerializedMonoBehaviour
     private void RouteNavigate(Vector2 dir) { if (TopNavigable(out var nav)) nav.OnUINavigate(dir); }
     private void RouteSubmit() { if (TopNavigable(out var nav)) nav.OnUISubmit(); }
 
-    // ESC = universal back: close whatever panel is on top of the stack.
+    // ESC = back: first let the top panel handle it internally (close a sub-view,
+    // step up a focus level); only if it doesn't consume it do we pop the panel.
     private void RouteCancel()
     {
         if (stack.Count == 0) return;
+        if (TopNavigable(out var nav) && nav.OnUICancel()) return;
         SetPanel(stack[stack.Count - 1], false);
     }
 

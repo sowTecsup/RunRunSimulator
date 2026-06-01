@@ -22,6 +22,12 @@ public interface IUINavigable
 
     // Confirm / activate the current selection (gamepad A / Enter). May be a no-op.
     void OnUISubmit();
+
+    // ESC / gamepad B while focused. Return true if the panel CONSUMED it (e.g. it
+    // stepped back inside itself — closed a sub-list, went up a focus level — and
+    // wants to stay open). Return false to let the UIManager pop this panel off the
+    // stack (the default for simple panels).
+    bool OnUICancel();
 }
 
 // A physics object the player can pick up, hold in front of them, and throw.
