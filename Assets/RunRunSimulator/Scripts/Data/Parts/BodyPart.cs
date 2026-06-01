@@ -46,7 +46,12 @@ public abstract class BodyPart : SerializedScriptableObject
     // Each subclass declares which anatomical slot it occupies.
     public abstract PartRole GetPartRole();
 
-    private Color GetRarityColor() => Rarity switch
+    // Instance wrappers for the Odin [GUIColor] attributes; the actual mapping is
+    // static so UI (e.g. the detail window's part swatches) shares one source of truth.
+    private Color GetRarityColor() => RarityColor(Rarity);
+    private Color GetSetColor()    => SetColor(Set);
+
+    public static Color RarityColor(Rarity rarity) => rarity switch
     {
         Rarity.Common    => Color.white,
         Rarity.Uncommon  => new Color(0.5f, 1f, 0.5f),
@@ -56,7 +61,7 @@ public abstract class BodyPart : SerializedScriptableObject
         _                => Color.white
     };
 
-    private Color GetSetColor() => Set switch
+    public static Color SetColor(PartSet set) => set switch
     {
         PartSet.GooGang        => new Color(0.4f, 0.95f, 0.4f),
         PartSet.BogBrigade     => new Color(0.55f, 0.75f, 0.25f),

@@ -1,0 +1,120 @@
+/* Grid layout for the MoriMonchis panel (UI Toolkit).
+   - 10% inset from every screen edge, always (responsive).
+   - Cards are a wrapping flex row; their size is driven from C# (cardSize).
+   - Vertical scroll kicks in automatically when the cards overflow. */
+
+.grid-root {
+    /* 10% margin on all four edges. left/right resolve against parent width,
+       top/bottom against parent height → an exact, responsive 10% inset that
+       stays 10% on any resolution (PanelSettings = Scale With Screen Size). */
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 10%;
+    bottom: 10%;
+    padding: 12px;
+    background-color: rgba(20, 20, 28, 0.9);
+    border-radius: 10px;
+}
+
+/* Header row: title on the left, close button on the right. */
+.grid-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.grid-title {
+    font-size: 28px;
+    -unity-font-style: bold;
+    color: rgb(235, 235, 240);
+}
+
+/* Close button — sits at the title's height; clicking it toggles the panel shut,
+   same as tapping E. */
+.grid-close {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    border-radius: 6px;
+    -unity-font-style: bold;
+    font-size: 18px;
+    color: rgb(235, 235, 240);
+    background-color: rgb(70, 70, 88);
+}
+
+.grid-close:hover {
+    background-color: rgb(95, 95, 120);
+}
+
+/* ScrollView fills the leftover space below the title. Because grid-root has a
+   bounded height (the 10% inset box), this height is bounded too → the moment the
+   wrapped cards are taller than it, the vertical scrollbar appears. */
+.grid-container {
+    flex-grow: 1;
+}
+
+/* The cards wrap into rows inside the scroll content. */
+.grid-container .unity-scroll-view__content-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+/* One card = one MoriMochi. width/height come from C# (cardSize); the card is a
+   vertical column split 20% / 60% / 20%: name on top, icon in the middle, state
+   at the bottom. The % heights resolve against the card's definite height. */
+.card {
+    margin: 6px;
+    padding: 4px;
+    border-radius: 8px;
+    background-color: rgb(40, 40, 52);
+    align-items: center;
+    /* Always reserve a 3px transparent border so toggling the selection color
+       never reflows the grid. */
+    border-width: 3px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+/* Clickable feedback — cards open the detail window. */
+.card:hover {
+    background-color: rgb(58, 58, 76);
+}
+
+/* Keyboard/gamepad selection highlight (set by CreatureGridUITK). */
+.card--selected {
+    border-color: rgb(150, 120, 230);
+    background-color: rgb(70, 60, 95);
+}
+
+/* Top 20% — name. Auto-sizes to fit its box (needs the advanced text generator). */
+.card__name {
+    height: 20%;
+    width: 100%;
+    -unity-text-generator: advanced;
+    -unity-text-auto-size: best-fit 8px 22px;
+    -unity-font-style: bold;
+    color: rgb(235, 235, 240);
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+/* Middle 60% — icon. Tinted with PrimaryColor from code until real sprites exist. */
+.card__icon {
+    height: 60%;
+    width: 80%;
+    border-radius: 6px;
+    background-color: rgb(120, 120, 120);
+}
+
+/* Bottom 20% — state. Auto-sizes to fit its box (matched to the name's max so
+   short states like "Free" actually fill the footer instead of capping small). */
+.card__state {
+    height: 20%;
+    width: 100%;
+    -unity-text-generator: advanced;
+    -unity-text-auto-size: best-fit 6px 22px;
+    color: rgb(180, 180, 190);
+    -unity-text-align: middle-center;
+}

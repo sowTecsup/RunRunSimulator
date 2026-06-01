@@ -10,6 +10,20 @@ public interface IInteractable
     void Interact();
 }
 
+// A UI panel that can receive routed input while it holds focus. The UIManager
+// (panel-stack router) is the SINGLE subscriber to UIInputs; it dispatches these
+// only to the panel on top of the stack, so panels never compete for input.
+// Cancel (ESC / gamepad B) is handled by the UIManager itself — it pops the top
+// panel — so a panel doesn't implement it here.
+public interface IUINavigable
+{
+    // Stepped directional input (one step per press). Tabs read dir.x.
+    void OnUINavigate(Vector2 dir);
+
+    // Confirm / activate the current selection (gamepad A / Enter). May be a no-op.
+    void OnUISubmit();
+}
+
 // A physics object the player can pick up, hold in front of them, and throw.
 // The player only knows this contract — never the concrete object. Each
 // implementer owns its own "hold feel" (how it follows the anchor, mass, etc.).

@@ -61,6 +61,17 @@ public enum BusyReason
 // per panel as new screens are built.
 public enum UIPanelType
 {
-    None         = 0,  // Unconfigured — toggling it is a no-op
-    CreatureGrid = 1,  // The in-game MoriMonchis grid (CreatureGridUI)
+    None             = 0,  // Unconfigured — toggling it is a no-op
+    CreatureGrid     = 1,  // The in-game MoriMonchis grid (CreatureGridUI)
+    MorimonchiDetail = 2,  // Detailed summary window for one MoriMochi
+}
+
+// What the player is currently doing. Drives input/cursor/camera: while a UI
+// panel is open the player switches to Menu (no movement, cursor free, camera
+// frozen) and back to Exploring when it closes.
+public enum PlayerStateType
+{
+    None      = 0,  // Uninitialized
+    Exploring = 1,  // Normal first-person control
+    Menu      = 2,  // A UI panel is focused — player control suspended
 }

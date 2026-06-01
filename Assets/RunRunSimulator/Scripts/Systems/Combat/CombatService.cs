@@ -153,6 +153,22 @@ public static class CombatService
         public float Speed;
     }
 
+    // Effective stats for display (e.g. the detail window): base (DNA) plus each
+    // part's stat and its +(tier-1) bonus. Same math the combat sim uses.
+    public readonly struct EffectiveStats
+    {
+        public readonly float HP;
+        public readonly float Attack;
+        public readonly float Speed;
+        public EffectiveStats(float hp, float atk, float spd) { HP = hp; Attack = atk; Speed = spd; }
+    }
+
+    public static EffectiveStats GetEffectiveStats(CreatureDNA dna, CreatureDatabaseSO db)
+    {
+        var s = ComputeStats(dna, db);
+        return new EffectiveStats(s.TotalHP, s.Attack, s.Speed);
+    }
+
     private static Stats ComputeStats(CreatureDNA dna, CreatureDatabaseSO db)
     {
         float hp  = dna.BaseHP;

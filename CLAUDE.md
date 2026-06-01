@@ -86,9 +86,9 @@ Assets/RunRunSimulator/Scripts/
 │   ├── GameEvents.cs                 # static: bus de eventos. OnRegistryChanged(registry) / OnRegistryReloaded(registry) / OnCreatureMinted / OnCombatCompleted / OnBreedingCompleted. Los eventos transportan la data
 │   ├── SaveSystem.cs                 # static: SaveDatabase / LoadInto / Serialize (scoped por playerId, migración automática)
 │   ├── CreatureGenerator.cs          # static: GenerateRandom(db, oddsTable?)
-│   ├── Enums.cs                      # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason, UIPanelType
-│   ├── Interfaces.cs                 # IThrowable (grab/hold/throw) · IInteractable (tap E para interactuar)
-│   └── UIEvents.cs                   # static: bus de UI (paralelo a GameEvents). OnPanelToggleRequested(UIPanelType) — el evento lleva el enum
+│   ├── Enums.cs                      # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason, UIPanelType (None/CreatureGrid/MorimonchiDetail), PlayerStateType (None/Exploring/Menu)
+│   └── Interfaces.cs                 # IThrowable (grab/hold/throw) · IInteractable (tap E para interactuar) · IUINavigable (OnUINavigate/OnUISubmit — panel que recibe input ruteado mientras es el tope del stack)
+│                                     # (UIEvents.cs ELIMINADO — sus eventos viven ahora en UIManager)
 ├── Systems/                          # Mecánicas por feature (cada una desacoplada vía GameEvents)
 │   ├── Breeding/
 │   │   ├── BreedingService.cs        # static: Breed() — traversal árbol genealógico
@@ -101,20 +101,23 @@ Assets/RunRunSimulator/Scripts/
 │   └── Cloud/
 │       ├── CloudSyncService.cs       # MonoBehaviour: Unity Player Account auth + auto-pull on login + Cloud Save push/pull/reset + SyncMeta. Referencia GameManager
 │       └── CloudCodeTester.cs        # MonoBehaviour DEV: TestRandom / TestCustomData / ForceMatchmakingTick
-├── UI/                               # Capa visual (Canvas) + vistas de inspector. Solo display, se nutre del payload de eventos
-│   ├── UIManager.cs                  # SerializedMonoBehaviour (Odin): Dictionary<UIPanelType, GameObject> editable. ÚNICO que escucha UIEvents.OnPanelToggleRequested → SetActive toggle. Vive en escena (un SO no puede referenciar objetos de escena)
-│   ├── CreatureGridUI.cs             # MonoBehaviour: grilla in-game (Canvas). Escucha OnRegistryChanged/Reloaded → instancia una CreatureVisualUI por criatura bajo un GridLayoutGroup. NO referencia GameManager
-│   ├── CreatureVisualUI.cs           # MonoBehaviour: card de UN MoriMochi (prefab). Bind(dna) → nombre (TMP) + icono/sprite (Image, por ahora teñido con PrimaryColor) + estado (TMP). Vista pura
+├── UI/                               # Capa visual (Canvas/uGUI + UI Toolkit) + vistas de inspector. Solo display, se nutre del payload de eventos
+│   ├── UIManager.cs                  # SerializedMonoBehaviour (Odin): Dictionary<UIPanelType, GameObject> editable. HUB de eventos UI (static) + único que togglea paneles. Oculta UITK por `display` (no SetActive) para que sigan actualizándose; uGUI por SetActive. Todos arrancan ocultos en Start. Emite OnUIFocusChanged. STACK ordenado de paneles (tope=foco) + ROUTER de input: único suscriptor de UIInputs, despacha Navigate/Submit al tope (IUINavigable) y ESC=pop. RegisterNavigable/UnregisterNavigable. Vive en escena
+│   ├── UIInputs.cs                   # MonoBehaviour: dueño ÚNICO del action map "UI" (espejo de PlayerInputs). Static events NavigatePressed (stepped) / SubmitPressed / CancelPressed. Habilita el mapa UI solo con foco (escucha OnUIFocusChanged). Vive en el objeto del UIManager. Gamepad gratis
+│   ├── CreatureGridUI.cs             # MonoBehaviour (uGUI): grilla in-game (Canvas). Escucha OnRegistryChanged/Reloaded → instancia una CreatureVisualUI por criatura bajo un GridLayoutGroup. NO referencia GameManager
+│   ├── CreatureVisualUI.cs           # MonoBehaviour: card de UN MoriMochi (prefab uGUI). Bind(dna) → nombre (TMP) + icono/sprite (Image, teñido con PrimaryColor) + estado (TMP). Vista pura
+│   ├── CreatureGridUITK.cs           # MonoBehaviour (UI Toolkit) + IUINavigable: gemelo de CreatureGridUI. Vive en el objeto del UIManager (siempre activo), referencia un UIDocument (separado) y un VisualTreeAsset (card). Clona cards, las hace clicables (→ UIManager.SelectCreature) y cablea el botón cerrar. cardSize configurable. Navegación 2D por teclado/mando (columnas medidas del layout) + highlight (.card--selected) + auto-scroll (ScrollTo) + Enter abre el detalle de la card seleccionada
+│   ├── MorimonchiDetailInfoUITK.cs   # MonoBehaviour (UI Toolkit) + IUINavigable: ventana de detalle modal (estilo FireRed). Escucha UIManager.OnCreatureSelected → puebla (stats efectivos vía CombatService.GetEffectiveStats, partes vía CreatureDatabaseSO) → RequestPanelSet(true). sortingOrder alto + backdrop full-screen = modal sobre la grilla. A/D cambia de tab. Siempre abre en Info. Tabs Info/Combate/Breed/Linaje/Equipo (Info activa, resto placeholder)
 │   └── CreatureGridView.cs           # MonoBehaviour: grilla read-only de inspector (Odin TableList) de todo el registro. Se suscribe a OnRegistryChanged/Reloaded → auto-refresh desde el payload (NO referencia GameManager)
 ├── Player/                           # Jugador primera persona — responsabilidades separadas, comunicadas por static events (sin referencias cruzadas)
-│   ├── PlayerInputs.cs               # ÚNICA clase que toca InputSystem_Actions. Dispara static events: MoveChanged / Jumped / InteractPressed / InteractReleased / ThrowPressed
-│   ├── PlayerController.cs           # Solo lógica: move FP (CharacterController) + grab/throw. Lee el forward de la cámara Cinemachine. Tap E = interactuar / Hold E = agarrar / press E cargando = soltar / Click = lanzar. NO referencia PlayerInputs (se suscribe a sus static events)
+│   ├── PlayerInputs.cs               # Dueño del action map "Player" (UIInputs es dueño del "UI"). Dispara static events: MoveChanged / Jumped / InteractPressed / InteractReleased / ThrowPressed. Deshabilita el mapa Player mientras hay foco UI (escucha OnUIFocusChanged) → en menú no llega input de gameplay ni se puede cerrar con E
+│   ├── PlayerController.cs           # Solo lógica: move FP (CharacterController) + grab/throw + state machine (PlayerStateType). Referencia una CinemachineCamera: de ahí saca el transform (forward) y el CinemachineInputAxisController (lo desactiva para congelar la cámara en Menu). Escucha UIManager.OnUIFocusChanged → Menu (cursor libre, sin control) / Exploring. Tap E = interactuar / Hold E = agarrar / press E cargando = soltar / Click = lanzar. NO referencia PlayerInputs
 │   ├── PlayerAnimator.cs             # Solo animación: se suscribe a los static events. Inerte hasta asignar un Animator
 │   ├── FirstPersonController.cs      # (referencia de proyecto viejo, sin usar)
 │   └── ThirdPersonController.cs      # (referencia de proyecto viejo, sin usar)
 ├── Interactables/                    # Objetos del mundo con comportamiento componible (drop-a-script). Requieren Collider para el raycast
 │   ├── ThrowableObject.cs           # IThrowable: Rigidbody que el player sostiene (follow por velocidad) y lanza. RequireComponent(Rigidbody)
-│   └── PanelTrigger.cs              # IInteractable: al hacer tap E dispara UIEvents.RequestPanelToggle(su UIPanelType). No conoce al UIManager
+│   └── PanelTrigger.cs              # IInteractable: al hacer tap E dispara UIManager.RequestPanelToggle(su UIPanelType) (static). No conoce instancia del UIManager
 ├── Data/
 │   ├── CreatureDNA.cs                # Genética + Identidad + Linaje + Progresión + Tier/slot + Stats + IsDead
 │   ├── CreatureRegistrySO.cs         # SO registry: Dictionary<string, CreatureDNA> — InfoBox warning + Sync btn
@@ -513,12 +516,19 @@ Si el cliente escribiera el timestamp de inicio, podría atrasar el reloj del PC
 Responsabilidades separadas en tres scripts que **NO se referencian entre sí**; se comunican por **static events** en `PlayerInputs` (mismo patrón que `GameEvents`: el evento transporta la data, el listener cachea el payload). Suscribir en `OnEnable`, desuscribir en `OnDisable` (regla 9).
 
 - **`PlayerInputs`** — única clase que toca `InputSystem_Actions`. Traduce callbacks crudos a static events: `MoveChanged(Vector2)`, `Jumped`, `InteractPressed` (E key-down), `InteractReleased` (E key-up), `ThrowPressed` (Attack). El `Look` NO está acá — lo maneja Cinemachine.
-- **`PlayerController`** — solo lógica. Move FP con `CharacterController` (relativo a la cámara), jump, y grab/throw vía interfaces. NO referencia `PlayerInputs` (se suscribe a sus static events). NO maneja la cámara: lee el `forward` de la cámara para mover/agarrar/lanzar.
+- **`PlayerController`** — solo lógica. Move FP con `CharacterController` (relativo a la cámara), jump, grab/throw vía interfaces, y **state machine** (`PlayerStateType`). NO referencia `PlayerInputs` (se suscribe a sus static events). NO maneja la cámara: lee el `forward` para mover/agarrar/lanzar.
 - **`PlayerAnimator`** — solo animación. Se suscribe a los mismos static events. Inerte hasta asignar un `Animator` (todo guardado por null). Seam para cuando existan clips.
 
-**Cámara**: Cinemachine primera persona (Position Control = *Hard Lock to Target* sobre un `Head`; Rotation Control = *Pan Tilt*; + *Cinemachine Input Axis Controller* leyendo la acción `Look`). `PlayerController.cameraTransform` = la Main Camera (la del Brain); su `forward` es la mirada final.
+**Cámara**: Cinemachine primera persona (Position Control = *Hard Lock to Target* sobre un `Head`; Rotation Control = *Pan Tilt*; + *Cinemachine Input Axis Controller* leyendo la acción `Look`). `PlayerController` referencia una **`CinemachineCamera`** (no la Main Camera): de ella deriva en `Awake` el `cameraTransform` (su `forward` = mirada) y el `CinemachineInputAxisController` (vía `TryGetComponent`) que **desactiva para congelar la cámara** en estado `Menu`. `using Unity.Cinemachine;` (sin asmdef, `Assembly-CSharp` ya referencia el package).
 
-**Input map** (`InputSystem_Actions`, action map `Player`): `Move` / `Jump` / `Interact` / `Attack`. ⚠️ La acción `Interact` debe tener la interacción **Hold desactivada** (Press) — el hold-vs-tap lo decidimos nosotros con un timer (`grabHoldDuration`).
+### Estado del Player (`PlayerStateType`: None / Exploring / Menu)
+
+El player conmuta de estado escuchando `UIManager.OnUIFocusChanged(bool)` (true cuando hay ≥1 panel abierto):
+- **Exploring** — control normal: cursor bloqueado/oculto, `CinemachineInputAxisController` activo, mapa `Player` habilitado.
+- **Menu** — un panel está abierto: cursor libre/visible, cámara congelada, y se **suspende todo el input de gameplay** porque `PlayerInputs` **deshabilita el mapa `Player`** en `OnUIFocusChanged` (no solo por los guards `if (state != Exploring) return;`, que quedan como red de seguridad). Ya **NO se cierra con E**: en menú el mapa `Player` está apagado → el interact del mundo no puede dispararse (esto además mata el bug del "interact togglea el panel de atrás"). Se cierra con **ESC** (ver router de UI).
+- `SetState` centraliza cursor + freeze de cámara. Estado inicial `Exploring` en `Start`.
+
+**Dos action maps mutuamente excluyentes** (`InputSystem_Actions`): `Player` (`Move`/`Jump`/`Interact`/`Attack`, dueño `PlayerInputs`) y `UI` (`Navigate`/`Submit`/`Cancel`, dueño `UIInputs`). Solo uno está habilitado a la vez, conmutado en el borde `OnUIFocusChanged` (gameplay ↔ menú). ⚠️ La acción `Interact` debe tener la interacción **Hold desactivada** (Press) — el hold-vs-tap lo decidimos nosotros con un timer (`grabHoldDuration`).
 
 ### Grab / Interact / Throw (semántica de E + Click)
 
@@ -540,19 +550,37 @@ Responsabilidades separadas en tres scripts que **NO se referencian entre sí**;
 - **`IThrowable`** (en `Interfaces.cs`) — `IsHeld`, `OnGrab(anchor)`, `OnRelease()`, `OnThrow(force)`. Implementación: `ThrowableObject` (RequireComponent Rigidbody; mientras se sostiene sigue al anchor por **velocidad** → choca en vez de clippear). Agarrar = hold E.
 - **`IInteractable`** (en `Interfaces.cs`) — `Interact()`. Implementación: `PanelTrigger`. Interactuar = tap E. Un objeto puede implementar **ambas** (tap interactúa, hold agarra).
 
-**Toggle de paneles del Canvas** (desacoplado por Actions, sin referencias directas):
+**Paneles del Canvas** (desacoplado por static events, sin referencias directas):
 
 ```
-PanelTrigger (mundo, IInteractable) --Interact()--> UIEvents.RequestPanelToggle(UIPanelType)
+PanelTrigger (mundo, IInteractable) --Interact()--> UIManager.RequestPanelToggle(UIPanelType)
                                                             │  (el evento lleva el enum)
                                                             ▼
-UIManager (escena) --Dictionary<UIPanelType,GameObject>--> SetActive(!activeSelf)
+UIManager (escena) --Dictionary<UIPanelType,GameObject>--> muestra/oculta el panel
 ```
 
-- **`UIPanelType`** (enum en `Enums.cs`) — tipos de panel. **Convención nueva (de acá en adelante): sufijo `Type` + primer valor `None = 0`.** Arranca con `None`, `CreatureGrid`. (Los enums viejos NO se renombran para no perder referencias serializadas.)
-- **`UIEvents`** (static bus en `Core/`, paralelo a `GameEvents`) — `OnPanelToggleRequested(UIPanelType)` + helper `RequestPanelToggle`.
-- **`UIManager`** (`SerializedMonoBehaviour` de Odin, en escena) — `Dictionary<UIPanelType, GameObject>` editable en inspector. Único suscriptor del evento; togglea el `SetActive`. **Vive en escena, NO es un SO**: un ScriptableObject no puede referenciar GameObjects de escena (un SO solo serviría si los paneles fueran prefabs instanciados en runtime).
-- **`PanelTrigger`** (`IInteractable`, en `Interactables/`) — campo `UIPanelType panel` en inspector; al tap E dispara el evento con su panel. No conoce al `UIManager`.
+- **`UIManager` = hub de eventos UI + gestor de paneles** (`SerializedMonoBehaviour` de Odin, en escena). Los eventos UI viven **acá como `static event Action`** (NO en `GameEvents`, que queda solo para gameplay; NO en un `UIEvents` aparte — eliminado). Patrón idéntico a los static events de `PlayerInputs`. Eventos:
+  - `OnPanelToggleRequested(UIPanelType)` / `RequestPanelToggle` — toggle (lo usa la E).
+  - `OnPanelSetRequested(UIPanelType, bool)` / `RequestPanelSet` — show/hide explícito (idempotente), para acciones que no son flip (p. ej. abrir el detalle aunque ya esté abierto).
+  - `OnCreatureSelected(CreatureDNA, CreatureRegistrySO)` / `SelectCreature` — una card fue clicada; el evento lleva la criatura **y** el registry (para resolver padres).
+  - `OnUIFocusChanged(bool)` — true al abrirse el primer panel, false al cerrarse el último. Se dispara solo en el borde 0↔1 (cuenta el `stack`). Lo escuchan el **player** (suspende control), `PlayerInputs` (deshabilita el mapa `Player`) y `UIInputs` (habilita el mapa `UI`).
+  - `OnNavigableRegistered(UIPanelType, IUINavigable)` / `RegisterNavigable` + `OnNavigableUnregistered(UIPanelType)` / `UnregisterNavigable` — cada panel focusable registra su handler de input ruteado (lo llaman en `Start`/`OnDestroy`).
+- **STACK + router de teclado/mando** (resuelve el viejo "sistema de prioridad de UI"): los paneles abiertos viven en una **lista ordenada** (`stack`, el último = tope con foco). El `UIManager` es el **único suscriptor** de `UIInputs` y **despacha solo al tope**: `Navigate`/`Submit` → `IUINavigable` del tope; `Cancel` (ESC) → **pop del tope** (atrás universal, cierra en orden LIFO: detalle → grilla → gameplay). Un panel no implementa Cancel: lo maneja el manager. `Push` mueve un panel al tope (re-abrir lo re-enfoca).
+- **`UIInputs`** (en el objeto del UIManager) — dueño único del action map `UI`, espejo de `PlayerInputs`. Static events `NavigatePressed` (stepped: 1 paso por pulsación, con debounce de tecla/stick sostenido), `SubmitPressed`, `CancelPressed`. Habilita el mapa `UI` solo con foco. **Gamepad gratis** (Navigate=stick/dpad, Cancel=B, Submit=A). El detalle clickeable sigue por los punteros del UITK (no por este mapa).
+- **Dos estrategias de ocultar** (para que los paneles sigan actualizándose ocultos):
+  - **UI Toolkit** (el GameObject tiene `UIDocument`) → togglea `rootVisualElement.style.display`, dejando el `UIDocument` **ACTIVO**. ⚠️ NUNCA `SetActive(false)` un `UIDocument`: sin objeto activo no hay `rootVisualElement` y deja de poblarse.
+  - **uGUI** → `SetActive` normal.
+- **Todos los paneles arrancan ocultos** en `UIManager.Start` (por `display` los UITK, por `SetActive` los uGUI).
+- **`UIPanelType`** (enum en `Enums.cs`) — `None / CreatureGrid / MorimonchiDetail`. Convención: sufijo `Type` + `None = 0` (los enums viejos NO se renombran).
+- **`PanelTrigger`** (`IInteractable`, en `Interactables/`) — campo `UIPanelType panel`; al tap E dispara `UIManager.RequestPanelToggle(panel)` (static). No conoce instancia del `UIManager`.
+
+## Capa UI Toolkit (UXML/USS) — grilla + detalle
+
+Assets UXML/USS/PanelSettings viven en `Assets/RunRunSimulator/UI Toolkit/` (carpeta normal, **NO Resources** — se referencian por inspector, no por ruta). Unity 6.3; `TabView`/`Tab` y el autosize de texto (`-unity-text-generator: advanced; -unity-text-auto-size: best-fit <min> <max>`, requiere activar **Project Settings → UI Toolkit → Advanced Text Generator**) son nativos.
+
+- **`CreatureGridUITK`** (gemelo UITK de `CreatureGridUI`, **implementa `IUINavigable`**) — vive en el **objeto del UIManager** (siempre activo) y referencia un `UIDocument` separado (`CreatureGridUITK.uxml`) + un `VisualTreeAsset` (`CreatureCardUITK.uxml`). Por estar en un objeto activo, sigue suscrito a `OnRegistryChanged/Reloaded` y **repuebla la grilla aunque el panel esté oculto** (resuelve el gap de `OnDisable`). Clona una card por criatura (saca la card del `TemplateContainer` para no romper el wrap, guarda el `CreatureDNA` en `card.userData`), las hace clicables (`ClickEvent → Select(idx) + UIManager.SelectCreature`), y cablea el botón cerrar (`Start`) → `RequestPanelToggle`. Grilla = flexbox `flex-wrap` + `ScrollView`; margen 10% en los 4 bordes (`position:absolute` con `left/right/top/bottom:10%`); cards 20%/60%/20% (nombre/icono/estado) con `cardSize` configurable.
+  - **Navegación teclado/mando**: ←/→ mueven 1 card, ↑/↓ saltan una fila completa (el nº de columnas se **mide del layout real** — cuenta las cards que comparten la `y` de la primera fila). Highlight `.card--selected` (la `.card` lleva un borde transparente de 3px fijo → al seleccionar **no hay reflow**). **Auto-scroll** vía `ScrollView.ScrollTo` (la barra sigue a la selección). **Enter/A** (`OnUISubmit`) → abre el detalle de la card seleccionada. Mouse y teclado quedan sincronizados (el clic también fija el índice).
+- **`MorimonchiDetailInfoUITK`** (`MorimonchiDetailInfoUITK.uxml/.uss`, **implementa `IUINavigable`**) — ventana de detalle **modal**, estilo resumen de Pokémon FireRed. Vive en el objeto del UIManager, referencia su `UIDocument` + la `CreatureDatabaseSO`. Escucha `OnCreatureSelected` → `Populate(dna)` → `selectedTabIndex = 0` (**siempre abre en Info**) → `RequestPanelSet(true)`. **Modalidad**: `document.sortingOrder` alto (encima de la grilla, misma `PanelSettings`) + backdrop full-screen que captura los clicks → no se puede tocar la grilla detrás hasta cerrar con la **X** o **ESC**. **A/D** (`OnUINavigate`) cambia de tab (clamp). `TabView` con **Info** activa (retrato cuadrado teñido con PrimaryColor + nombre grande autosize + stats coloreados `FINAL (base + bonus)` vía `CombatService.GetEffectiveStats` · identidad · partes con swatch del color del set `Nombre · Set · Rareza · TierN` vía `BodyPart.SetColor/RarityColor` públicos · progresión) + tabs **Combate** (historial) / **Breed** (hijos) / **Linaje** (árbol genealógico) / **Equipo**, todas placeholder. El **linaje se movió a su propia tab** (ya no en Info). Las **flechas de scroll del header de tabs se ocultan** vía `.unity-scroller--horizontal { display:none }` dentro de `.detail-tabs` (no afecta la barra vertical del panel Info).
 
 ## Bugs conocidos (pendientes de fix)
 
@@ -560,6 +588,7 @@ UIManager (escena) --Dictionary<UIPanelType,GameObject>--> SetActive(!activeSelf
 - `DeathChance` está hardcoded a 15% en `process-matchmaking.js` y `run-combat.js`. Cambiar el `CombatManagerSO.DeathChance` solo afecta el combate local. Para sincronizar habría que pasar el valor como param o duplicarlo manualmente.
 - `BREED_DURATION_MS` está hardcoded a 30 min en `start-breeding.js`. `InheritanceOddsTableSO.BreedDurationMinutes` solo afecta el display local — misma limitación que `DeathChance`.
 - No hay race-condition handling en el matchmaking pool — dos llamadas simultáneas pueden pisarse. Aceptable en testing; para producción con tráfico real, agregar `writeLock` del SetItemBody.
+- **Sistema de prioridad de UI (RESUELTO)**: ahora el `UIManager` mantiene un **stack ordenado** de paneles (tope = foco) y rutea el input solo al tope; ESC hace pop en orden LIFO. Además los action maps `Player`/`UI` son mutuamente excluyentes, así que en menú el interact del mundo (E) no puede dispararse → el edge del "tap E togglea la grilla de atrás" desaparece. (Ver "STACK + router" en la sección de UI.) Pendiente menor: la grilla navega 1 paso por pulsación, sin **auto-repetición** al mantener la dirección (cómodo de añadir con un timer si una grilla grande lo pide).
 
 ## Checkpoints de diseño — Breeding Async (pendientes para etapas futuras)
 

@@ -1189,13 +1189,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: BreedReadyAt
       Entry: 3
-      Data: 0
+      Data: 1780250273505
     - Name: BreedPartnerID
       Entry: 1
-      Data: 
+      Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: 
       Entry: 8
       Data: 
@@ -1687,7 +1687,7 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
@@ -1813,13 +1813,13 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: BreedReadyAt
       Entry: 3
-      Data: 0
+      Data: 1780250273505
     - Name: BreedPartnerID
       Entry: 1
-      Data: 
+      Data: BS4-A3-E2-M3-50D134-639156644332473630
     - Name: 
       Entry: 8
       Data: 

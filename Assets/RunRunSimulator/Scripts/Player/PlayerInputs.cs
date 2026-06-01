@@ -13,6 +13,11 @@ using UnityEngine.InputSystem;
 // Look/aim is NOT here: Cinemachine (Pan Tilt + Input Axis Controller) reads the
 // Look action directly, so the camera is fully owned by Cinemachine.
 //
+// Map switching: this enables ONLY the "Player" map (UIInputs owns "UI"). While a
+// panel is focused the Player map is disabled — gameplay input stops, and the world
+// interact (E) can't fire, so it can't toggle the panel behind a menu. Driven by
+// UIManager.OnUIFocusChanged, the mirror of UIInputs' own gating.
+//
 // Input map (Assets/InputSystem_Actions, "Player" map):
 //   Move → MoveChanged | Jump → Jumped | Interact → GrabReleaseToggled | Attack → ThrowPressed
 public class PlayerInputs : MonoBehaviour
@@ -34,7 +39,7 @@ public class PlayerInputs : MonoBehaviour
 
     private void OnEnable()
     {
-        actions.Enable();
+        actions.Player.Enable();   // only the Player map; UIInputs owns the UI map
 
         actions.Player.Move.performed += OnMove;
         actions.Player.Move.canceled  += OnMove;
@@ -43,6 +48,8 @@ public class PlayerInputs : MonoBehaviour
         actions.Player.Interact.performed += OnInteractPerformed;  // key down (disable the action's Hold interaction so this fires on press)
         actions.Player.Interact.canceled  += OnInteractCanceled;   // key up
         actions.Player.Attack.performed   += OnAttack;
+
+        UIManager.OnUIFocusChanged += OnUIFocusChanged;
     }
 
     private void OnDisable()
@@ -55,10 +62,18 @@ public class PlayerInputs : MonoBehaviour
         actions.Player.Interact.canceled  -= OnInteractCanceled;
         actions.Player.Attack.performed   -= OnAttack;
 
-        actions.Disable();
+        UIManager.OnUIFocusChanged -= OnUIFocusChanged;
+        actions.Player.Disable();
     }
 
     private void OnDestroy() => actions?.Dispose();
+
+    // Suspend gameplay input while a panel is focused; resume when it closes.
+    private void OnUIFocusChanged(bool uiFocused)
+    {
+        if (uiFocused) actions.Player.Disable();
+        else           actions.Player.Enable();
+    }
 
     // ── Raw Input System → static events ──────────────────────────
 

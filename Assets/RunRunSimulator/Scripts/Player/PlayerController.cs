@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using UnityEngine;
 
 // First-person player LOGIC: movement, jump, and grab/throw orchestration.
@@ -12,8 +13,8 @@ public class PlayerController : MonoBehaviour
     // ── References ────────────────────────────────────────────────
 
     [Header("References")]
-    [Tooltip("The Cinemachine first-person camera's transform — its forward is the look direction.")]
-    [SerializeField] private Transform cameraTransform;
+    [Tooltip("The first-person CinemachineCamera. We read its transform (forward = look dir) and its Input Axis Controller (disabled to freeze the camera in menus).")]
+    [SerializeField] private CinemachineCamera cinemachineCamera;
     [Tooltip("Where a grabbed object floats. Make it a child of the camera so it tracks the look.")]
     [SerializeField] private Transform holdAnchor;
 
@@ -47,14 +48,29 @@ public class PlayerController : MonoBehaviour
     private bool  grabbing;
     private float grabTimer;
 
+    // What the player is doing. Menu suspends movement/camera so the player can
+    // operate an open UI panel with a free cursor.
+    private PlayerStateType state = PlayerStateType.Exploring;
+
+    // Derived from cinemachineCamera in Awake: the transform we read for look
+    // direction, and the look input we disable to freeze the camera in menus.
+    private Transform cameraTransform;
+    private CinemachineInputAxisController lookAxis;
+
     // ── Lifecycle ─────────────────────────────────────────────────
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible   = false;
+
+        if (cinemachineCamera != null)
+        {
+            cameraTransform = cinemachineCamera.transform;
+            cinemachineCamera.TryGetComponent(out lookAxis);
+        }
     }
+
+    private void Start() => SetState(PlayerStateType.Exploring);
 
     private void OnEnable()
     {
@@ -63,6 +79,7 @@ public class PlayerController : MonoBehaviour
         PlayerInputs.InteractPressed   += OnInteractPressed;
         PlayerInputs.InteractReleased  += OnInteractReleased;
         PlayerInputs.ThrowPressed      += OnThrow;
+        UIManager.OnUIFocusChanged     += OnUIFocusChanged;
     }
 
     private void OnDisable()
@@ -72,9 +89,28 @@ public class PlayerController : MonoBehaviour
         PlayerInputs.InteractPressed   -= OnInteractPressed;
         PlayerInputs.InteractReleased  -= OnInteractReleased;
         PlayerInputs.ThrowPressed      -= OnThrow;
+        UIManager.OnUIFocusChanged     -= OnUIFocusChanged;
     }
 
     private void OnMoveChanged(Vector2 move) => moveInput = move;
+
+    // ── State ─────────────────────────────────────────────────────
+    // A panel opening puts us in Menu; closing the last one returns to Exploring.
+    private void OnUIFocusChanged(bool uiFocused) =>
+        SetState(uiFocused ? PlayerStateType.Menu : PlayerStateType.Exploring);
+
+    private void SetState(PlayerStateType next)
+    {
+        state = next;
+        bool exploring = state == PlayerStateType.Exploring;
+
+        // Free the cursor for UI; relock it for first-person play.
+        Cursor.lockState = exploring ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible   = !exploring;
+
+        // Freeze the camera while a panel is open (stop feeding look input).
+        if (lookAxis != null) lookAxis.enabled = exploring;
+    }
 
     private void Update()
     {
@@ -86,6 +122,7 @@ public class PlayerController : MonoBehaviour
     // Camera-relative movement; the body yaw follows the camera (first-person).
     private void Move()
     {
+        if (state != PlayerStateType.Exploring) return;   // suspended while a panel is open
         if (cameraTransform == null) return;
 
         Vector3 camForward = cameraTransform.forward; camForward.y = 0f; camForward.Normalize();
@@ -106,6 +143,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnJump()
     {
+        if (state != PlayerStateType.Exploring) return;
         if (controller.isGrounded) verticalVelocity = jumpForce;
     }
 
@@ -145,6 +183,10 @@ public class PlayerController : MonoBehaviour
     // Counts how long E has been held while free; grabs once it passes the threshold.
     private void UpdateGrabHold()
     {
+        // Safety net: in a menu the Player input map is disabled (PlayerInputs gates
+        // it on UI focus), so no grab/interact reaches us anyway. Panels are closed
+        // with ESC now (UIInputs → UIManager pops the stack), not with E.
+        if (state != PlayerStateType.Exploring) return;
         if (!grabbing || held != null) return;
 
         grabTimer += Time.deltaTime;
@@ -172,6 +214,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnThrow()
     {
+        if (state != PlayerStateType.Exploring) return;
         Debug.Log($"[PlayerController] ThrowPressed received. Currently holding: {held != null}");
 
         if (held == null) { Debug.Log("[PlayerController] Nothing held — nothing to throw."); return; }
