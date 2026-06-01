@@ -30,6 +30,10 @@ public class CreatureDNA
     // ── Social ────────────────────────────────────────────────────
     public CreatureGender Gender = CreatureGender.Unknown;
 
+    // Behavioral archetype — random at mint/hatch, NOT inherited, NOT in the
+    // genetic string. Drives world movement (see MoriMochiAgent / PersonalityProfileSO).
+    public Personality Personality = Personality.Curious;
+
     // ── Progression ───────────────────────────────────────────────
     public int FightCount = 0;
     public int WinCount   = 0;
@@ -45,6 +49,12 @@ public class CreatureDNA
     public float BaseHP     = 0f;
     public float BaseAttack = 0f;
     public float BaseSpeed  = 0f;
+
+    // ── Combat history ────────────────────────────────────────────
+    // One CombatRecord per finished fight (local + async), turn-by-turn for the
+    // future Combat Visualizer. Persisted with the DNA (local + cloud), unbounded
+    // — MaxFightCount can change, so we don't cap it here.
+    public List<CombatRecord> CombatHistory = new List<CombatRecord>();
 
     // ── Mortality ─────────────────────────────────────────────────
     public bool IsDead = false;

@@ -294,6 +294,20 @@ public class AsyncCombatService : MonoBehaviour
 
         if (r.Died) dna.IsDead = true;
 
+        // Persistent, replayable record (server is authoritative — we only store).
+        dna.CombatHistory ??= new List<CombatRecord>();
+        dna.CombatHistory.Add(new CombatRecord
+        {
+            OpponentName       = r.OpponentName,
+            OpponentPlayerName = r.OpponentPlayerName ?? "",
+            Date               = DateTime.UtcNow,
+            Outcome            = r.Won ? CombatOutcome.Won : CombatOutcome.Lost,
+            Died               = r.Died,
+            EvolvedSlot        = r.Won ? r.EvolvedSlot : null,
+            SelfWasA           = r.SelfWasA,
+            Turns              = r.Turns ?? new List<CombatTurn>(),
+        });
+
         foreach (var line in r.Log)
             Debug.Log($"[AsyncCombat] {line}");
 
@@ -400,13 +414,15 @@ public class AsyncCombatService : MonoBehaviour
     [Serializable]
     private class CloudCombatResult
     {
-        public string       CreatureId;
-        public bool         Won;
-        public bool         Died;
-        public string       EvolvedSlot;
-        public string       OpponentName;
-        public string       OpponentPlayerId;
-        public string       OpponentPlayerName;
-        public List<string> Log = new List<string>();
+        public string           CreatureId;
+        public bool             Won;
+        public bool             Died;
+        public string           EvolvedSlot;
+        public string           OpponentName;
+        public string           OpponentPlayerId;
+        public string           OpponentPlayerName;
+        public bool             SelfWasA;                        // which side our creature was (for the replay)
+        public List<string>     Log   = new List<string>();
+        public List<CombatTurn> Turns = new List<CombatTurn>(); // structured replay from the server
     }
 }

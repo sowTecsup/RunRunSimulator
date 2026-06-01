@@ -29,6 +29,9 @@ public class GameManager : MonoBehaviour
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private CombatManagerSO combatConfig;
 
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private PersonalityProfileSO personalityProfiles;
+
     [Required, AssetsOnly, BoxGroup("Setup")]
     [FormerlySerializedAs("_creatureRegistry")]
     [SerializeField] private CreatureRegistrySO creatureRegistry;
@@ -163,6 +166,7 @@ public class GameManager : MonoBehaviour
     {
         var dna        = CreatureGenerator.GenerateRandom(database, rarityOddsTable);
         dna.Gender     = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
+        dna.Personality = CreatureGenerator.RandomPersonality();
         dna.BaseHP     = Random.Range(1, 11);
         dna.BaseAttack = Random.Range(1, 11);
         dna.BaseSpeed  = Random.Range(1, 11);
@@ -184,6 +188,7 @@ public class GameManager : MonoBehaviour
     public RarityOddsTableSO      RarityOddsTable      => rarityOddsTable;
     public InheritanceOddsTableSO InheritanceOddsTable => inheritanceOddsTable;
     public CombatManagerSO        CombatConfig         => combatConfig;
+    public PersonalityProfileSO   PersonalityProfiles  => personalityProfiles;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures"), BoxGroup("Registry")]
     public int RegistryCount => creatureRegistry?.Count ?? 0;

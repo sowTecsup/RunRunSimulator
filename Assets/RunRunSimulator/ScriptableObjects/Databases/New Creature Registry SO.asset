@@ -122,6 +122,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 2
@@ -152,6 +155,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 4|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -178,7 +194,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: $v
       Entry: 7
-      Data: 4|CreatureDNA, Assembly-CSharp
+      Data: 5|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -232,7 +248,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 5|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 6|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 4
@@ -257,6 +273,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -287,6 +306,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 9
+    - Name: CombatHistory
+      Entry: 7
+      Data: 7|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -313,7 +345,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: $v
       Entry: 7
-      Data: 6|CreatureDNA, Assembly-CSharp
+      Data: 8|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -367,7 +399,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 7|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 9|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 4
@@ -392,6 +424,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 2
@@ -422,6 +457,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 2
+    - Name: CombatHistory
+      Entry: 7
+      Data: 10|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -448,7 +496,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M0-1047BA-639156259122481028
     - Name: $v
       Entry: 7
-      Data: 8|CreatureDNA, Assembly-CSharp
+      Data: 11|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -502,7 +550,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 9|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 12|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 4
@@ -527,6 +575,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 2
@@ -557,6 +608,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 13|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -583,7 +647,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M0-B94235-639156644128371992
     - Name: $v
       Entry: 7
-      Data: 10|CreatureDNA, Assembly-CSharp
+      Data: 14|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -637,7 +701,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 11|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 15|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 3
@@ -659,6 +723,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 2
@@ -689,6 +756,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 10
+    - Name: CombatHistory
+      Entry: 7
+      Data: 16|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: true
@@ -715,7 +795,7 @@ MonoBehaviour:
       Data: BS4-A2-E0-M3-DA55B3-639156644193406137
     - Name: $v
       Entry: 7
-      Data: 12|CreatureDNA, Assembly-CSharp
+      Data: 17|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -769,7 +849,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 13|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 18|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
@@ -788,6 +868,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -818,6 +901,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 19|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -844,7 +940,7 @@ MonoBehaviour:
       Data: BS3-A3-E1-M2-0695E0-639156644212742145
     - Name: $v
       Entry: 7
-      Data: 14|CreatureDNA, Assembly-CSharp
+      Data: 20|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS3
@@ -898,7 +994,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 15|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 21|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -911,6 +1007,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 2
@@ -941,6 +1040,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 8
+    - Name: CombatHistory
+      Entry: 7
+      Data: 22|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -967,7 +1079,7 @@ MonoBehaviour:
       Data: BS0-A1-E1-M0-C146BA-639156644302977936
     - Name: $v
       Entry: 7
-      Data: 16|CreatureDNA, Assembly-CSharp
+      Data: 23|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1021,7 +1133,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 17|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 24|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1034,6 +1146,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -1064,6 +1179,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 25|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -1090,7 +1218,7 @@ MonoBehaviour:
       Data: BS4-A3-E2-M3-50D134-639156644332473630
     - Name: $v
       Entry: 7
-      Data: 18|CreatureDNA, Assembly-CSharp
+      Data: 26|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -1144,7 +1272,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 19|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 27|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -1160,6 +1288,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -1190,6 +1321,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 28|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -1216,7 +1360,7 @@ MonoBehaviour:
       Data: BS1-A1-E4-M0-4EB344-639157099558749392
     - Name: $v
       Entry: 7
-      Data: 20|CreatureDNA, Assembly-CSharp
+      Data: 29|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -1270,7 +1414,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 21|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 30|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
@@ -1289,6 +1433,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -1319,6 +1466,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 11
+    - Name: CombatHistory
+      Entry: 7
+      Data: 31|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -1345,7 +1505,7 @@ MonoBehaviour:
       Data: BS4-A0-E2-M1-E5CB4A-639157099758374241
     - Name: $v
       Entry: 7
-      Data: 22|CreatureDNA, Assembly-CSharp
+      Data: 32|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -1399,7 +1559,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 23|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 33|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1412,6 +1572,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -1442,6 +1605,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 8
+    - Name: CombatHistory
+      Entry: 7
+      Data: 34|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -1468,7 +1644,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-1A60CF-639157465862957193
     - Name: $v
       Entry: 7
-      Data: 24|CreatureDNA, Assembly-CSharp
+      Data: 35|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1522,7 +1698,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 25|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 36|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1535,6 +1711,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -1565,6 +1744,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 10
+    - Name: CombatHistory
+      Entry: 7
+      Data: 37|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -1591,7 +1783,7 @@ MonoBehaviour:
       Data: BS4-A1-E0-M4-6157EA-639157466028960842
     - Name: $v
       Entry: 7
-      Data: 26|CreatureDNA, Assembly-CSharp
+      Data: 38|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -1645,7 +1837,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 27|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 39|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1658,6 +1850,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -1688,6 +1883,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 2
+    - Name: CombatHistory
+      Entry: 7
+      Data: 40|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -1714,7 +1922,7 @@ MonoBehaviour:
       Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: $v
       Entry: 7
-      Data: 28|CreatureDNA, Assembly-CSharp
+      Data: 41|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -1768,7 +1976,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 29|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 42|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
@@ -1787,6 +1995,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -1817,6 +2028,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 1
+    - Name: CombatHistory
+      Entry: 7
+      Data: 43|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: true
@@ -1843,7 +2067,7 @@ MonoBehaviour:
       Data: BS1-A0-E3-M1-E9422E-639157586322083999
     - Name: $v
       Entry: 7
-      Data: 30|CreatureDNA, Assembly-CSharp
+      Data: 44|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -1897,7 +2121,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 31|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 45|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -1913,6 +2137,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -1943,6 +2170,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 46|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -1969,7 +2209,7 @@ MonoBehaviour:
       Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
     - Name: $v
       Entry: 7
-      Data: 32|CreatureDNA, Assembly-CSharp
+      Data: 47|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -2023,7 +2263,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 33|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 48|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -2036,6 +2276,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -2066,6 +2309,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 49|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -2092,7 +2348,7 @@ MonoBehaviour:
       Data: BS4-A4-E4-M1-AB6807-639157766096457471
     - Name: $v
       Entry: 7
-      Data: 34|CreatureDNA, Assembly-CSharp
+      Data: 50|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -2146,7 +2402,7 @@ MonoBehaviour:
       Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: ChildrenIDs
       Entry: 7
-      Data: 35|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 51|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -2162,6 +2418,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 1
@@ -2192,6 +2451,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 1
+    - Name: CombatHistory
+      Entry: 7
+      Data: 52|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -2218,7 +2490,7 @@ MonoBehaviour:
       Data: BS4-A1-E1-M1-72EF17-639158759894039650
     - Name: $v
       Entry: 7
-      Data: 36|CreatureDNA, Assembly-CSharp
+      Data: 53|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -2272,7 +2544,7 @@ MonoBehaviour:
       Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: ChildrenIDs
       Entry: 7
-      Data: 37|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 54|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -2285,6 +2557,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -2315,6 +2590,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 1
+    - Name: CombatHistory
+      Entry: 7
+      Data: 55|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false
@@ -2341,7 +2629,7 @@ MonoBehaviour:
       Data: BS1-A4-E0-M1-B1B03C-639158780052655723
     - Name: $v
       Entry: 7
-      Data: 38|CreatureDNA, Assembly-CSharp
+      Data: 56|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -2395,7 +2683,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 39|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 57|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -2408,6 +2696,9 @@ MonoBehaviour:
     - Name: Gender
       Entry: 3
       Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -2438,6 +2729,19 @@ MonoBehaviour:
     - Name: BaseSpeed
       Entry: 4
       Data: 8
+    - Name: CombatHistory
+      Entry: 7
+      Data: 58|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: IsDead
       Entry: 5
       Data: false

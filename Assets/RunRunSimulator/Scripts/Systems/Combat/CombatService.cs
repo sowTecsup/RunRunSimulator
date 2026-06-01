@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 // Stateless turn-based combat simulator.
@@ -7,6 +7,11 @@ using UnityEngine;
 // Critical hit: CritChance probability → damage × CritMultiplier.
 // Post-combat: winner may evolve a random part (Tier1/2 only); loser may die.
 // Draw: if neither creature reaches 0 HP before MaxRounds → no consequences, FightCount++ for both.
+//
+// Besides the string Log (for inline display), it builds a structured list of
+// CombatTurn (A = dnaA) and writes a CombatRecord onto BOTH fighters' DNA history
+// (CreatureDNA.CombatHistory) — the persistent, replayable record the future
+// Combat Visualizer reads. The async server motors emit the same shape.
 public static class CombatService
 {
     public static CombatResult Simulate(
@@ -64,28 +69,24 @@ public static class CombatService
         for (int round = 1; round <= config.MaxRounds; round++)
         {
             bool aFirst = statsA.Speed > statsB.Speed ||
-                          (Mathf.Approximately(statsA.Speed, statsB.Speed) && Random.value < 0.5f);
+                          (Mathf.Approximately(statsA.Speed, statsB.Speed) && UnityEngine.Random.value < 0.5f);
 
             result.Log.Add($"--- Round {round} (first: {(aFirst ? "A" : "B")}) ---");
 
             if (aFirst)
             {
-                float dmg = Strike("A→B", statsA.Attack, hpB, config, result.Log, round);
-                hpB -= dmg;
+                hpB -= Strike(dnaA.CustomName, dnaB.CustomName, true,  statsA.Attack, hpB, config, result, round);
                 if (hpB <= 0f) { someoneKO = true; break; }
 
-                dmg  = Strike("B→A", statsB.Attack, hpA, config, result.Log, round);
-                hpA -= dmg;
+                hpA -= Strike(dnaB.CustomName, dnaA.CustomName, false, statsB.Attack, hpA, config, result, round);
                 if (hpA <= 0f) { someoneKO = true; break; }
             }
             else
             {
-                float dmg = Strike("B→A", statsB.Attack, hpA, config, result.Log, round);
-                hpA -= dmg;
+                hpA -= Strike(dnaB.CustomName, dnaA.CustomName, false, statsB.Attack, hpA, config, result, round);
                 if (hpA <= 0f) { someoneKO = true; break; }
 
-                dmg  = Strike("A→B", statsA.Attack, hpB, config, result.Log, round);
-                hpB -= dmg;
+                hpB -= Strike(dnaA.CustomName, dnaB.CustomName, true,  statsA.Attack, hpB, config, result, round);
                 if (hpB <= 0f) { someoneKO = true; break; }
             }
         }
@@ -100,6 +101,9 @@ public static class CombatService
             result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. A:{hpA:F1}HP  B:{hpB:F1}HP ===");
             result.Log.Add("[DRAW] No consequences for either fighter.");
             result.Log.Add($"=== COMBAT END === DRAW");
+
+            RecordHistory(dnaA, dnaB, CombatOutcome.Draw, died: false, evolvedSlot: null, selfIsA: true,  result.Turns);
+            RecordHistory(dnaB, dnaA, CombatOutcome.Draw, died: false, evolvedSlot: null, selfIsA: false, result.Turns);
             return result;
         }
 
@@ -132,7 +136,7 @@ public static class CombatService
 
         // ── Death (loser) ─────────────────────────────────────────
 
-        if (Random.value < config.DeathChance)
+        if (UnityEngine.Random.value < config.DeathChance)
         {
             loser.IsDead    = true;
             result.LoserDied = true;
@@ -141,6 +145,16 @@ public static class CombatService
 
         string evolvedLine = result.WinnerEvolved ? $" | Evolved: {result.EvolvedSlot} → Tier{GetSlotTier(winner, result.EvolvedSlot)}" : "";
         result.Log.Add($"=== COMBAT END === Winner: \"{winner.CustomName}\"  {winner.UniqueID}{evolvedLine}");
+
+        // ── Persistent per-creature history (replayable) ──────────
+
+        RecordHistory(
+            winner, loser, CombatOutcome.Won,
+            died: false, evolvedSlot: result.EvolvedSlot, selfIsA: aWins, result.Turns);
+        RecordHistory(
+            loser, winner, CombatOutcome.Lost,
+            died: result.LoserDied, evolvedSlot: null, selfIsA: !aWins, result.Turns);
+
         return result;
     }
 
@@ -192,17 +206,53 @@ public static class CombatService
         spd += part.Speed  + bonus;
     }
 
-    // Executes one attack. defenderHP is HP before the hit (used only for logging).
-    // Returns damage dealt.
+    // Executes one attack. defenderHP is HP before the hit. Logs a line AND appends
+    // a structured CombatTurn (attackerIsA = the striker is combatant A). Returns
+    // damage dealt.
     private static float Strike(
-        string dir, float attack, float defenderHP,
-        CombatManagerSO config, List<string> log, int round)
+        string attackerName, string defenderName, bool attackerIsA,
+        float attack, float defenderHP,
+        CombatManagerSO config, CombatResult result, int round)
     {
-        bool  isCrit  = Random.value < config.CritChance;
+        bool  isCrit  = UnityEngine.Random.value < config.CritChance;
         float damage  = attack * (isCrit ? config.CritMultiplier : 1f);
         float hpAfter = Mathf.Max(0f, defenderHP - damage);
-        log.Add($"  [{dir}]{(isCrit ? " CRIT!" : "")} dmg:{damage:F1}  defender HP after:{hpAfter:F1}");
+
+        string dir = attackerIsA ? "A→B" : "B→A";
+        result.Log.Add($"  [{dir}]{(isCrit ? " CRIT!" : "")} dmg:{damage:F1}  defender HP after:{hpAfter:F1}");
+
+        result.Turns.Add(new CombatTurn
+        {
+            TurnNumber      = round,
+            AttackerName    = attackerName,
+            DefenderName    = defenderName,
+            AttackerIsA     = attackerIsA,
+            Damage          = damage,
+            WasCrit         = isCrit,
+            DefenderHpAfter = hpAfter,
+        });
         return damage;
+    }
+
+    // Appends one finished-combat record to a creature's persistent history (POV of
+    // 'self'). The Turns list is shared with the opponent's record (the replay is
+    // symmetric); selfIsA tells the visualizer which side "self" was.
+    private static void RecordHistory(
+        CreatureDNA self, CreatureDNA opponent, CombatOutcome outcome,
+        bool died, string evolvedSlot, bool selfIsA, List<CombatTurn> turns)
+    {
+        self.CombatHistory ??= new List<CombatRecord>();
+        self.CombatHistory.Add(new CombatRecord
+        {
+            OpponentName       = opponent.CustomName,
+            OpponentPlayerName = "",                       // local combat — same player
+            Date               = DateTime.UtcNow,
+            Outcome            = outcome,
+            Died               = died,
+            EvolvedSlot        = outcome == CombatOutcome.Won ? evolvedSlot : null,
+            SelfWasA           = selfIsA,
+            Turns              = turns,
+        });
     }
 
     // Picks a random slot not already at Tier3 and advances it by one.
@@ -217,7 +267,7 @@ public static class CombatService
 
         if (eligible.Count == 0) return null;
 
-        string slot = eligible[Random.Range(0, eligible.Count)];
+        string slot = eligible[UnityEngine.Random.Range(0, eligible.Count)];
         switch (slot)
         {
             case "Body":  dna.BodyTier  = (Tier)((int)dna.BodyTier  + 1); break;

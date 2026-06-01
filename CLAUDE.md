@@ -82,11 +82,11 @@ CloudCode/                            # Server-side scripts y schedules (fuera d
 
 Assets/RunRunSimulator/Scripts/
 ├── Core/                             # Infraestructura transversal: bus, persistencia, generación, tipos base
-│   ├── GameManager.cs                # Lab: Generate / Mint + SOURCE OF TRUTH de los assets compartidos (getters Registry/Database/RarityOddsTable/InheritanceOddsTable/CombatConfig). ÚNICO dueño de persistencia: escucha OnRegistryChanged → Persist (save+push)
+│   ├── GameManager.cs                # Lab: Generate / Mint (asigna Personality random) + SOURCE OF TRUTH de los assets compartidos (getters Registry/Database/RarityOddsTable/InheritanceOddsTable/CombatConfig/PersonalityProfiles). ÚNICO dueño de persistencia: escucha OnRegistryChanged → Persist (save+push)
 │   ├── GameEvents.cs                 # static: bus de eventos. OnRegistryChanged(registry) / OnRegistryReloaded(registry) / OnCreatureMinted / OnCombatCompleted / OnCombatLogged(CombatLogEntry) / OnBreedingCompleted. Los eventos transportan la data
 │   ├── SaveSystem.cs                 # static: SaveDatabase / LoadInto / Serialize (scoped por playerId, migración automática)
 │   ├── CreatureGenerator.cs          # static: GenerateRandom(db, oddsTable?)
-│   ├── Enums.cs                      # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason, UIPanelType (None/CreatureGrid/MorimonchiDetail/Breeding/Combat), PlayerStateType (None/Exploring/Menu)
+│   ├── Enums.cs                      # Rarity, PartSet, CreatureGender, PartRole, Tier, BusyReason, UIPanelType (None/CreatureGrid/MorimonchiDetail/Breeding/Combat), PlayerStateType (None/Exploring/Menu), Personality (Skittish/Aggressive/Lazy/Curious/Social/Grumpy), ProximityReaction (Ignore/Flee/Approach/Follow/Retreat), WorldArea (ShopFrontDesk/ShopBackroom/Storage), CombatOutcome (Won/Lost/Draw)
 │   └── Interfaces.cs                 # IThrowable (grab/hold/throw) · IInteractable (tap E para interactuar) · IUINavigable (OnUINavigate/OnUISubmit/OnUICancel — panel que recibe input ruteado mientras es el tope del stack; OnUICancel=true consume el ESC internamente, false deja que el UIManager cierre)
 │                                     # (UIEvents.cs ELIMINADO — sus eventos viven ahora en UIManager)
 ├── Systems/                          # Mecánicas por feature (cada una desacoplada vía GameEvents)
@@ -95,9 +95,9 @@ Assets/RunRunSimulator/Scripts/
 │   │   ├── BreedingController.cs     # MonoBehaviour: UI breeding (Fill Random Breeders + Breed local + Breed Timer + Hatch). Referencia GameManager. Espejo de CombatController
 │   │   └── AsyncBreedingService.cs   # MonoBehaviour: StartBreedingAsync / HatchAsync (timer server-side). Referencia GameManager. Espejo de AsyncCombatService
 │   ├── Combat/
-│   │   ├── CombatService.cs          # static: Simulate() — combate local por turnos, evolución, muerte
+│   │   ├── CombatService.cs          # static: Simulate() — combate local por turnos, evolución, muerte. Emite CombatTurn estructurado (result.Turns) y escribe un CombatRecord en CombatHistory de AMBOS peleadores (replay persistente)
 │   │   ├── CombatController.cs       # MonoBehaviour: UI local combat + Async Combat (Instant + Timer buttons). Referencia GameManager
-│   │   └── AsyncCombatService.cs     # MonoBehaviour: EnqueueInstantAsync / EnqueueScheduledAsync / PollResultsAsync / FetchQueuedIdsAsync / FetchPendingResultIdsAsync / DequeueAsync. Referencia GameManager. ApplyResult dispara GameEvents.OnCombatLogged (surfacea el log async para la UI, cierra el gap)
+│   │   └── AsyncCombatService.cs     # MonoBehaviour: EnqueueInstantAsync / EnqueueScheduledAsync / PollResultsAsync / FetchQueuedIdsAsync / FetchPendingResultIdsAsync / DequeueAsync. Referencia GameManager. ApplyResult dispara GameEvents.OnCombatLogged + almacena CombatRecord (con Turns del server) en la criatura
 │   └── Cloud/
 │       ├── CloudSyncService.cs       # MonoBehaviour: Unity Player Account auth + auto-pull on login + Cloud Save push/pull/reset + SyncMeta. Referencia GameManager
 │       └── CloudCodeTester.cs        # MonoBehaviour DEV: TestRandom / TestCustomData / ForceMatchmakingTick
@@ -118,10 +118,14 @@ Assets/RunRunSimulator/Scripts/
 │   ├── FirstPersonController.cs      # (referencia de proyecto viejo, sin usar)
 │   └── ThirdPersonController.cs      # (referencia de proyecto viejo, sin usar)
 ├── Interactables/                    # Objetos del mundo con comportamiento componible (drop-a-script). Requieren Collider para el raycast
-│   ├── ThrowableObject.cs           # IThrowable: Rigidbody que el player sostiene (follow por velocidad) y lanza. RequireComponent(Rigidbody)
+│   ├── ThrowableObject.cs           # IThrowable: Rigidbody que el player sostiene (follow por velocidad) y lanza. RequireComponent(Rigidbody). Para props NO-criatura (la criatura usa MoriMochiAgent, que ya implementa IThrowable)
 │   └── PanelTrigger.cs              # IInteractable: al hacer tap E dispara UIManager.RequestPanelToggle(su UIPanelType) (static). No conoce instancia del UIManager
+├── World/                            # Presencia en escena — los MoriMonchis "vivos" (NavMesh + personalidad + name tag)
+│   ├── MoriMochiSpawner.cs          # MonoBehaviour: puente DATA→ESCENA. Escucha OnRegistryChanged (incremental) / OnRegistryReloaded (rebuild). Spawnea un prefab por criatura viva nueva, despawnea muertas/removidas. Coloca en NavMesh (área preferida si confinada). Resuelve assets de GameManager.Instance. Botón Respawn All (DEV)
+│   ├── MoriMochiAgent.cs            # MonoBehaviour + IThrowable: el "cerebro" del cubo. NavMeshAgent + state machine (Idle/Roaming/Reacting/Held) sesgada por PersonalityProfile (data-driven, sin switch por Personality). Handoff NavMesh⇄Rigidbody al agarrar/lanzar (agent off + rb dinámico → al asentarse NavMesh.SamplePosition+Warp → reanuda). Reacción por proximidad al player (Flee/Approach/Follow/Retreat) según personalidad, vuelve a su estado al alejarse. areaMask confina por WorldArea. Initialize(dna,table,player) lo cablea el spawner
+│   └── NameTag.cs                   # MonoBehaviour: label 3D flotante (TMP) — nombre + línea de estado (En cola/Incubando/Muerto). Billboard a la cámara, visible solo por proximidad (showDistance). Bind(dna). Vista pura
 ├── Data/
-│   ├── CreatureDNA.cs                # Genética + Identidad + Linaje + Progresión + Tier/slot + Stats + IsDead
+│   ├── CreatureDNA.cs                # Genética + Identidad + Linaje + Progresión + Tier/slot + Stats + IsDead + Personality (random, no hereda, no en genetic string) + CombatHistory (List<CombatRecord>, replay persistente)
 │   ├── CreatureRegistrySO.cs         # SO registry: Dictionary<string, CreatureDNA> — InfoBox warning + Sync btn
 │   ├── CreatureDatabaseSO.cs         # SO orquestador: refs sub-DBs + validación de IDs
 │   ├── CreaturePartData.cs
@@ -129,7 +133,9 @@ Assets/RunRunSimulator/Scripts/
 │   ├── RarityOddsTableSO.cs          # SO: pesos por Rarity → Roll() independiente por slot
 │   ├── InheritanceOddsTableSO.cs     # SO singleton: odds breeding — pesos configurables en inspector (sin JSON)
 │   ├── CombatManagerSO.cs            # SO singleton: EvolutionChance, DeathChance, CritChance, MaxRounds, MaxFightCount(5)
-│   ├── CombatResult.cs               # Data class (combate local): WinnerID, LoserID, Log, LoserDied, WinnerEvolved, IsDraw
+│   ├── PersonalityProfileSO.cs       # SO singleton (Current): Dictionary<Personality, PersonalityProfile> [OdinSerialize] — tuning por personalidad (velocidad, idle, roam, proximidad, reacción, área). GetProfile(p) + botón Populate Defaults. El "endpoint" data-driven para que la personalidad importe a futuro
+│   ├── CombatResult.cs               # Data class (combate local): WinnerID, LoserID, Log, LoserDied, WinnerEvolved, IsDraw + Turns (List<CombatTurn>)
+│   ├── CombatRecord.cs               # Data: CombatRecord (historial persistente POV de UNA criatura: OpponentName, Date, Outcome, Died, EvolvedSlot, SelfWasA, Turns) + CombatTurn (TurnNumber, AttackerName/DefenderName, AttackerIsA, Damage, WasCrit, DefenderHpAfter). Replayable. Lo emiten local (CombatService) y server (JS) en el MISMO formato
 │   ├── CombatLogEntry.cs             # Data class (display, POV de UNA criatura): CreatureId/Name, OpponentLabel, Lines, Won, Died. Lo dispara OnCombatLogged (local + async) para la tab Resultados
 │   ├── Parts/
 │   │   ├── BodyPart.cs               # abstract SO: ID[ReadOnly], Name, Rarity, Tier, Set + HP/Attack/Speed
@@ -158,6 +164,7 @@ Assets/RunRunSimulator/Scripts/
 | 2 | 2.2 Simulador de Batalla local → Battle Log | ✅ — CombatService completo: turnos, empate, límite de peleas, log detallado por turno |
 | 2 | 2.3 Integración Unity Services (async battles) | ✅ — Auth + Cloud Save (push/pull/auto-sync) + Cloud Code (enqueue/dequeue/process-matchmaking) + Scheduler+Trigger (cron 1h funcionando) + modo Instant + Busy persistente |
 | 2 | 2.4 Breeding Async (timer server-side) | ✅ — start-breeding/hatch-breeding (Game Data) + AsyncBreedingService + Breed Timer/Hatch en BreedingController. Cría minteada local (checkpoint) |
+| 2 | 2.5 Vida en Escena (MoriMonchis vivos: NavMesh + personalidad + name tag + historial replayable) | 🔶 Código ✅ (World/: MoriMochiSpawner, MoriMochiAgent, NameTag · Personality enum + PersonalityProfileSO · CombatRecord/CombatTurn en DNA, JS sincronizado). Falta setup de escena en Unity (NavMesh bake + 3 Areas, prefab del cubo, asset Personality Profile Table, wiring del spawner) |
 | 3 | 3.1 Tienda Local (NPCs, inventario, vitrinas) | 🔲 Pendiente |
 | 3 | 3.2 Mercado Online (P2P via Unity Services) | 🔲 Pendiente |
 
@@ -258,6 +265,8 @@ Stamp()      → setea Timestamp + BirthDate de forma atómica antes de registra
 - `CustomName` — nombre editable, auto-asignado en Mint y Breed via `CreatureNameBank.GetRandomName()`. Formato: adjetivo + sustantivo ("Fuzzy Blob"). Editable por el usuario.
 - `MotherID`, `FatherID`, `ChildrenIDs` — referencias por `UniqueID` (no genetic strings)
 - `Gender` — `Unknown` hasta mintearse. Se asigna 50/50 en `Mint` y en `Breed`.
+- `Personality` — archetype de comportamiento (6 valores). Random al mint/hatch (`CreatureGenerator.RandomPersonality()`), **NO se hereda**, **NO va en el genetic string** (metadata como Gender). Default `Curious`. La consume `MoriMochiAgent` vía `PersonalityProfileSO`.
+- `CombatHistory` — `List<CombatRecord>`, un registro replayable por pelea (local + async). Persiste con el DNA (local + cloud). No acotado (MaxFightCount puede cambiar).
 - `FightCount`, `WinCount`, `BreedCount` — progresión, escritos por CombatService y BreedingService
 - `BodyTier`, `ArmTier`, `EyeTier`, `MouthTier` — Tier por slot, independiente por instancia (Tier1 al nacer)
 - `BaseHP`, `BaseAttack`, `BaseSpeed` — stats base aleatorios 1–10, asignados en Mint
@@ -352,6 +361,7 @@ RunRunSimulator/Creature Registry
 RunRunSimulator/Rarity Odds Table
 RunRunSimulator/Inheritance Odds Table
 RunRunSimulator/Combat Manager
+RunRunSimulator/Personality Profile Table
 ```
 
 ---
@@ -589,6 +599,46 @@ Assets UXML/USS/PanelSettings viven en `Assets/RunRunSimulator/UI Toolkit/` (car
 - **`MorimonchiDetailInfoUITK`** (`MorimonchiDetailInfoUITK.uxml/.uss`, **implementa `IUINavigable`**) — ventana de detalle **modal**, estilo resumen de Pokémon FireRed. Vive en el objeto del UIManager, referencia su `UIDocument` + la `CreatureDatabaseSO`. Escucha `OnCreatureSelected` → `Populate(dna)` → `selectedTabIndex = 0` (**siempre abre en Info**) → `RequestPanelSet(true)`. **Modalidad**: `document.sortingOrder` alto (encima de la grilla, misma `PanelSettings`) + backdrop full-screen que captura los clicks → no se puede tocar la grilla detrás hasta cerrar con la **X** o **ESC**. **A/D** (`OnUINavigate`) cambia de tab (clamp). `TabView` con **Info** activa (retrato cuadrado teñido con PrimaryColor + nombre grande autosize + stats coloreados `FINAL (base + bonus)` vía `CombatService.GetEffectiveStats` · identidad · partes con swatch del color del set `Nombre · Set · Rareza · TierN` vía `BodyPart.SetColor/RarityColor` públicos · progresión) + tabs **Combate** (historial) / **Breed** (hijos) / **Linaje** (árbol genealógico) / **Equipo**, todas placeholder. El **linaje se movió a su propia tab** (ya no en Info). Las **flechas de scroll del header de tabs se ocultan** vía `.unity-scroller--horizontal { display:none }` dentro de `.detail-tabs` (no afecta la barra vertical del panel Info).
 - **`BreedingPanelUITK`** (`BreedingPanelUITK.uxml/.uss`) — panel de breeding **modal**. Layout de 3 columnas: **Padres** (izq) y **Madres** (der) **siempre presentes** (listas de elegibles: vivos, no Busy, hembra/macho, `BreedCount<4`), con el **TabView al centro** (headers centrados). Tabs: **Criar** (slots Padre/Madre con imagen tintada `PrimaryColor` + nombre en 1 línea con elipsis a tamaño fijo · preview de ambos con stats coloreados + partes con swatch · ❓ + tiempo estimado `≈ {BreedDurationMinutes} min` · botón **Breed** → `AsyncBreedingService.StartBreedingAsync`; al pulsarlo: gris **"Breeding..."** + `breedBusy` congela toda la navegación hasta la respuesta async, luego limpia slots y salta a Incubando) y **Incubando** (una carta por huevo `Madre 💗 Padre` con countdown server-side `BreedReadyAt` refrescado cada 1s en `Update`; al llegar a 0 aparece **Hatch** → `HatchAsync`, que al pulsarse queda **gris "Hatching..."** y deshabilitado hasta el server — `btn.panel != null` distingue éxito (huevo eclosionado, fila reconstruida) de `not_ready`). Las listas siempre visibles → "abrir" un slot solo mueve el foco a la lista.
 - **`CombatPanelUITK`** (`CombatPanelUITK.uxml/.uss`) — panel de combate **modal**, **3 tabs**. **Batalla Online** (izq: disponibles · centro: seleccionado con retrato `PrimaryColor` + stats + partes + **2 botones Instant/Timer** → `EnqueueInstantAsync`/`EnqueueScheduledAsync` fire-and-forget, la criatura cae a Resultados · der: **Equipo** placeholder) · **Combate Local** (igual a Breeding: 2 listas + slots A/B + **Pelear** → `CombatService.Simulate` → **log inline** turno por turno + outcome) · **Resultados** (solo async: botón **Revisar resultados** → `PollResultsAsync`; lista En cola/Ganó/Perdió/Murió; panel derecho = log didáctico **vs quién** arriba · **turnos** scroll · **Ganaste/Perdiste** grande verde/rojo abajo). Cachea los logs async vía `OnCombatLogged` (`Dictionary<creatureId, CombatLogEntry>`). Referencia `CreatureDatabaseSO` + `AsyncCombatService`; `registry`/`config` desde `GameManager.Instance`.
+
+## Sistema de Vida en Escena (World) — MoriMonchis vivos
+
+Convierte criaturas del registro (data) en cubos vivos en la escena. Tres scripts en `Scripts/World/`, comunicados por eventos (sin referencias cruzadas), fieles a la filosofía componente + bus.
+
+### Bridge data→escena — `MoriMochiSpawner`
+
+- Escucha `GameEvents.OnRegistryChanged` (incremental: las mismas instancias de DNA se mutan in-place → los agents vivos siguen válidos) y `OnRegistryReloaded` (cloud pull/reset reemplaza los objetos DNA → rebuild completo).
+- **Por ahora spawnea TODA criatura viva**; despawnea las muertas o removidas. (Futuro: zonas por estado — cola de combate, incubadora física.)
+- Coloca cada cubo en el NavMesh cerca de un `spawnArea`; si la personalidad confina a un área, samplea dentro de esa `areaMask`.
+- Resuelve prefab + assets de `GameManager.Instance` (registry, `PersonalityProfiles`). `Initialize(dna, table, player)` cablea cada agent. Botón **Respawn All** (DEV).
+
+### El cerebro — `MoriMochiAgent` (implementa `IThrowable`)
+
+- `NavMeshAgent` + **state machine** `Idle / Roaming / Reacting / Held`, **sesgada por la personalidad** (lee el `PersonalityProfile` resuelto — NUNCA hace `switch` por `Personality`).
+- **Roaming**: samplea un punto aleatorio en `RoamRadius`, camina, a veces idlea (`IdleChance`). **Confinamiento real** por `NavMeshAgent.areaMask` (la criatura solo pisa polígonos de su `WorldArea` si `ConfineToArea`).
+- **Reacción por proximidad**: si el player entra en `ProximityRadius`, interrumpe su comportamiento y reacciona según personalidad (`Flee`/`Approach`/`Follow`/`Retreat`; `Ignore` no reacciona). Al alejarse (con histéresis ×1.25) vuelve a su estado anterior. El "follow" emerge de la personalidad, no es un comando.
+- **Handoff NavMesh⇄Throwable** (la tensión técnica real): normalmente `NavMeshAgent` activo + `Rigidbody` kinematic. Al agarrar (`OnGrab`): agent off, rb dinámico, sigue el anchor por velocidad (igual feel que `ThrowableObject`). Al lanzar (`OnThrow`): impulso físico. Al asentarse (velocidad < `settleSpeed` por `settleDelay`): `NavMesh.SamplePosition` → `agent.Warp` → reanuda Roaming. **El cubo de la criatura usa `MoriMochiAgent`, NO `ThrowableObject`** (el agent ya implementa `IThrowable`; el player lo agarra/lanza por el mismo contrato).
+
+### Tuning data-driven — `PersonalityProfileSO`
+
+- SO singleton (`Current`), `Dictionary<Personality, PersonalityProfile>` `[OdinSerialize]`. Botón **Populate Defaults** llena las 6.
+- `PersonalityProfile`: `MoveSpeed`, `IdleChance`, `IdleMin/Max`, `RoamRadius`, `ProximityRadius`, `Reaction`, `FollowDistance`, `PreferredArea` (`WorldArea`), `ConfineToArea`.
+- Mapeo por defecto: **Social/Curious/Aggressive → ShopFrontDesk** (movido), **Lazy → ShopBackroom** (neutral), **Skittish/Grumpy → Storage** (alejarse). Reacciones: Skittish=Flee, Aggressive/Curious=Approach, Social=Follow, Grumpy=Retreat, Lazy=Ignore.
+- Es el **endpoint reservado** para que la personalidad importe a futuro (combate, breeding) sin tocar el enum ni esparcir switches.
+
+### NameTag — `NameTag`
+
+- Label 3D (TMP) flotante: nombre + línea de estado (En cola / Incubando / Muerto, leídos de `BusyState`/`IsDead` cada frame). **Billboard** a la cámara, **visible solo por proximidad** (`showDistance`). `Bind(dna)`. Vista pura.
+
+### NavMesh — 3 Areas (setup de escena)
+
+- Crear en **Navigation → Areas** tres áreas con nombre EXACTO: `ShopFrontDesk`, `ShopBackroom`, `Storage` (sin espacios — `WorldArea.ToString()` debe matchear; `NavMesh.GetAreaFromName`).
+- Requiere el package **AI Navigation** (`NavMeshSurface` para hornear). El runtime solo usa `UnityEngine.AI` (core).
+
+### Historial de combate replayable (transversal combate ↔ world)
+
+- Cada pelea (local **y** async) escribe un `CombatRecord` con `Turns` estructurados en `CreatureDNA.CombatHistory`. **El server manda**: `process-matchmaking.js`/`run-combat.js` emiten los turnos en el mismo formato PascalCase que el `CombatTurn` de C#; el cliente solo lee y almacena (`AsyncCombatService.ApplyResult`). El combate local lo arma `CombatService.Simulate` (ambos peleadores).
+- `SelfWasA` en cada record + `AttackerIsA` en cada turno desambiguan quién es "yo" en el replay simétrico.
+- **El Combat Visualizer (futuro, solo local)** se alimentará puramente de esta data almacenada. La tab Combate del detalle será su hogar.
 
 ## Bugs conocidos (pendientes de fix)
 

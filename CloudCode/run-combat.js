@@ -90,7 +90,9 @@ function buildResult(battle, callerIsA, opponentName, opponentPlayerId, opponent
         OpponentName:       opponentName,
         OpponentPlayerId:   opponentPlayerId,
         OpponentPlayerName: opponentPlayerName,
+        SelfWasA:           callerIsA,        // which side this player's creature was (for the replay)
         Log:                battle.log,
+        Turns:              battle.turns,     // structured turn-by-turn replay
     };
 }
 
@@ -119,6 +121,7 @@ function simulateCombat(dnaA, nameA, dnaB, nameB) {
     const sB = computeStats(dnaB);
     let hpA = sA.hp, hpB = sB.hp;
     const log = [];
+    const turns = [];   // structured replay (A = dnaA), mirrors C# CombatTurn
 
     log.push(`COMBAT — "${nameA}" HP:${hpA} ATK:${sA.atk} SPD:${sA.spd} vs "${nameB}" HP:${hpB} ATK:${sB.atk} SPD:${sB.spd}`);
 
@@ -126,13 +129,13 @@ function simulateCombat(dnaA, nameA, dnaB, nameB) {
         const aFirst = sA.spd !== sB.spd ? sA.spd > sB.spd : Math.random() < 0.5;
 
         if (aFirst) {
-            hpB -= strike(sA.atk, nameA, nameB, log);
+            hpB -= strike(sA.atk, nameA, nameB, true,  hpB, round, log, turns);
             if (hpB <= 0) break;
-            hpA -= strike(sB.atk, nameB, nameA, log);
+            hpA -= strike(sB.atk, nameB, nameA, false, hpA, round, log, turns);
         } else {
-            hpA -= strike(sB.atk, nameB, nameA, log);
+            hpA -= strike(sB.atk, nameB, nameA, false, hpA, round, log, turns);
             if (hpA <= 0) break;
-            hpB -= strike(sA.atk, nameA, nameB, log);
+            hpB -= strike(sA.atk, nameA, nameB, true,  hpB, round, log, turns);
         }
 
         if (hpA <= 0 || hpB <= 0) break;
@@ -151,13 +154,25 @@ function simulateCombat(dnaA, nameA, dnaB, nameB) {
         loserDied,
         evolvedSlot,
         log,
+        turns,
     };
 }
 
-function strike(atk, attacker, defender, log) {
-    const crit = Math.random() < 0.2;
-    const dmg  = crit ? atk * 3 : atk;
-    log.push(`${attacker} → ${defender}: ${dmg}${crit ? " [CRIT]" : ""}`);
+// Field names (PascalCase) MUST match C# CombatTurn so it deserializes with no remap.
+function strike(atk, attackerName, defenderName, attackerIsA, defenderHp, round, log, turns) {
+    const crit    = Math.random() < 0.2;
+    const dmg     = crit ? atk * 3 : atk;
+    const hpAfter = Math.max(0, defenderHp - dmg);
+    log.push(`${attackerName} → ${defenderName}: ${dmg}${crit ? " [CRIT]" : ""}`);
+    turns.push({
+        TurnNumber:      round,
+        AttackerName:    attackerName,
+        DefenderName:    defenderName,
+        AttackerIsA:     attackerIsA,
+        Damage:          dmg,
+        WasCrit:         crit,
+        DefenderHpAfter: hpAfter,
+    });
     return dmg;
 }
 

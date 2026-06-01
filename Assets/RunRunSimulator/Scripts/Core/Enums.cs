@@ -77,3 +77,51 @@ public enum PlayerStateType
     Exploring = 1,  // Normal first-person control
     Menu      = 2,  // A UI panel is focused — player control suspended
 }
+
+// Behavioral archetype of a MoriMochi. Assigned RANDOMLY at mint/hatch (NOT
+// inherited, NOT part of the genetic string — it's metadata like Gender) and
+// stored in CreatureDNA. Drives world movement and how it reacts to the player.
+// A PersonalityProfileSO maps each value to concrete tuning. Reserved hook for
+// future relevance (combat bias, breeding affinity) — read the profile, don't
+// scatter switch statements.
+public enum Personality
+{
+    Skittish   = 0,  // Asustadizo — fast nervous bursts, flees, hides in Storage
+    Aggressive = 1,  // Agresivo  — territorial, approaches, lives in the Front Desk bustle
+    Lazy       = 2,  // Perezoso  — barely moves, idles a lot, neutral Backroom
+    Curious    = 3,  // Curioso   — wanders wide, approaches the player and objects
+    Social     = 4,  // Sociable  — seeks company, follows the player, Front Desk
+    Grumpy     = 5,  // Gruñón    — solitary, keeps its distance, retreats to Storage
+}
+
+// How a MoriMochi reacts when the player enters its proximity radius. The reaction
+// interrupts its default behavior and it returns to it once the player leaves.
+public enum ProximityReaction
+{
+    Ignore   = 0,  // Keeps doing its thing
+    Flee     = 1,  // Runs to a point away from the player
+    Approach = 2,  // Walks toward the player and stops at a distance (investigates)
+    Follow   = 3,  // Keeps following the player while in range
+    Retreat  = 4,  // Backs off a short distance, then resumes
+}
+
+// Logical sectors of the shop, mapped to baked NavMesh Areas of the same name.
+// An agent confined to an area only walks on polygons of that area type, so the
+// confinement is real (pathfinding never leaves it), not a soft collider check.
+// The names below MUST match the NavMesh Area names configured in Unity's
+// Navigation window: "ShopFrontDesk", "ShopBackroom", "Storage".
+public enum WorldArea
+{
+    ShopFrontDesk = 0,  // High-traffic counter — Social / Curious / Aggressive
+    ShopBackroom  = 1,  // Neutral middle ground — Lazy
+    Storage       = 2,  // Out-of-the-way corner — Skittish / Grumpy
+}
+
+// Result of a single combat from ONE creature's point of view. Stored per fight
+// in CreatureDNA.CombatHistory.
+public enum CombatOutcome
+{
+    Won  = 0,
+    Lost = 1,
+    Draw = 2,
+}

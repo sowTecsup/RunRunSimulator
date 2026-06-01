@@ -28,6 +28,15 @@ public static class CreatureGenerator
         };
     }
 
+    // Personality is assigned randomly at mint/hatch — never inherited, never part
+    // of the genetic string (metadata like Gender). Single source so Mint and Breed
+    // agree on the roll.
+    public static Personality RandomPersonality()
+    {
+        var values = System.Enum.GetValues(typeof(Personality));
+        return (Personality)values.GetValue(Random.Range(0, values.Length));
+    }
+
     // Each slot rolls its own rarity independently.
     // Falls back to any random part if no parts match the rolled rarity.
     private static T Pick<T>(PartDatabaseSO<T> db, RarityOddsTableSO odds) where T : BodyPart

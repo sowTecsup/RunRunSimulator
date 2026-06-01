@@ -61,6 +61,7 @@ public static class BreedingService
             MouthID      = ResolveSlot(PartRole.Mouth, motherID, fatherID, registry, partDb, odds),
             PrimaryColor = Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.6f, 1f),
             Gender       = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female,
+            Personality  = CreatureGenerator.RandomPersonality(),   // random, not inherited
             MotherID     = motherID,
             FatherID     = fatherID,
             BaseHP       = InheritStat(mother.BaseHP,     father.BaseHP),

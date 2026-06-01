@@ -1,0 +1,319 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43845feeb2ebb09459d94d78230d8554, type: 3}
+  m_Name: PersonalityProfileTable
+  m_EditorClassIdentifier: Assembly-CSharp::PersonalityProfileSO
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: profiles
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[Personality, Assembly-CSharp],[PersonalityProfile,
+        Assembly-CSharp]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[Personality, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 6
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 0
+    - Name: $v
+      Entry: 7
+      Data: 2|PersonalityProfile, Assembly-CSharp
+    - Name: MoveSpeed
+      Entry: 4
+      Data: 2.5
+    - Name: IdleChance
+      Entry: 4
+      Data: 0.3
+    - Name: IdleMin
+      Entry: 4
+      Data: 0.5
+    - Name: IdleMax
+      Entry: 4
+      Data: 1.5
+    - Name: RoamRadius
+      Entry: 4
+      Data: 4
+    - Name: ProximityRadius
+      Entry: 4
+      Data: 6
+    - Name: Reaction
+      Entry: 3
+      Data: 0
+    - Name: FollowDistance
+      Entry: 4
+      Data: 2
+    - Name: PreferredArea
+      Entry: 3
+      Data: 1
+    - Name: ConfineToArea
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 7
+      Data: 3|PersonalityProfile, Assembly-CSharp
+    - Name: MoveSpeed
+      Entry: 4
+      Data: 2.5
+    - Name: IdleChance
+      Entry: 4
+      Data: 0.3
+    - Name: IdleMin
+      Entry: 4
+      Data: 0.5
+    - Name: IdleMax
+      Entry: 4
+      Data: 1.5
+    - Name: RoamRadius
+      Entry: 4
+      Data: 4
+    - Name: ProximityRadius
+      Entry: 4
+      Data: 6
+    - Name: Reaction
+      Entry: 3
+      Data: 0
+    - Name: FollowDistance
+      Entry: 4
+      Data: 2
+    - Name: PreferredArea
+      Entry: 3
+      Data: 1
+    - Name: ConfineToArea
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 7
+      Data: 4|PersonalityProfile, Assembly-CSharp
+    - Name: MoveSpeed
+      Entry: 4
+      Data: 2.5
+    - Name: IdleChance
+      Entry: 4
+      Data: 0.3
+    - Name: IdleMin
+      Entry: 4
+      Data: 0.5
+    - Name: IdleMax
+      Entry: 4
+      Data: 1.5
+    - Name: RoamRadius
+      Entry: 4
+      Data: 4
+    - Name: ProximityRadius
+      Entry: 4
+      Data: 6
+    - Name: Reaction
+      Entry: 3
+      Data: 0
+    - Name: FollowDistance
+      Entry: 4
+      Data: 2
+    - Name: PreferredArea
+      Entry: 3
+      Data: 1
+    - Name: ConfineToArea
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 3
+    - Name: $v
+      Entry: 7
+      Data: 5|PersonalityProfile, Assembly-CSharp
+    - Name: MoveSpeed
+      Entry: 4
+      Data: 2.5
+    - Name: IdleChance
+      Entry: 4
+      Data: 0.3
+    - Name: IdleMin
+      Entry: 4
+      Data: 0.5
+    - Name: IdleMax
+      Entry: 4
+      Data: 1.5
+    - Name: RoamRadius
+      Entry: 4
+      Data: 4
+    - Name: ProximityRadius
+      Entry: 4
+      Data: 6
+    - Name: Reaction
+      Entry: 3
+      Data: 0
+    - Name: FollowDistance
+      Entry: 4
+      Data: 2
+    - Name: PreferredArea
+      Entry: 3
+      Data: 1
+    - Name: ConfineToArea
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 4
+    - Name: $v
+      Entry: 7
+      Data: 6|PersonalityProfile, Assembly-CSharp
+    - Name: MoveSpeed
+      Entry: 4
+      Data: 2.5
+    - Name: IdleChance
+      Entry: 4
+      Data: 0.3
+    - Name: IdleMin
+      Entry: 4
+      Data: 0.5
+    - Name: IdleMax
+      Entry: 4
+      Data: 1.5
+    - Name: RoamRadius
+      Entry: 4
+      Data: 4
+    - Name: ProximityRadius
+      Entry: 4
+      Data: 6
+    - Name: Reaction
+      Entry: 3
+      Data: 0
+    - Name: FollowDistance
+      Entry: 4
+      Data: 2
+    - Name: PreferredArea
+      Entry: 3
+      Data: 1
+    - Name: ConfineToArea
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 5
+    - Name: $v
+      Entry: 7
+      Data: 7|PersonalityProfile, Assembly-CSharp
+    - Name: MoveSpeed
+      Entry: 4
+      Data: 2.5
+    - Name: IdleChance
+      Entry: 4
+      Data: 0.3
+    - Name: IdleMin
+      Entry: 4
+      Data: 0.5
+    - Name: IdleMax
+      Entry: 4
+      Data: 1.5
+    - Name: RoamRadius
+      Entry: 4
+      Data: 4
+    - Name: ProximityRadius
+      Entry: 4
+      Data: 6
+    - Name: Reaction
+      Entry: 3
+      Data: 0
+    - Name: FollowDistance
+      Entry: 4
+      Data: 2
+    - Name: PreferredArea
+      Entry: 3
+      Data: 1
+    - Name: ConfineToArea
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
