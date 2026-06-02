@@ -655,7 +655,7 @@ Transform:
   m_GameObject: {fileID: 112951041}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -6.86, y: 0, z: -7.72}
+  m_LocalPosition: {x: -6.86, y: 0, z: -9.9}
   m_LocalScale: {x: 0.1591703, y: 0.28582, z: 0.13805106}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7632,7 +7632,7 @@ Transform:
   m_GameObject: {fileID: 1601004955}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 7.53, y: 0, z: -7.72}
+  m_LocalPosition: {x: 7.53, y: 0, z: -9.719999}
   m_LocalScale: {x: 0.1591703, y: 0.28582, z: 0.13805106}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -7830,7 +7830,7 @@ MonoBehaviour:
   aimTransform: {fileID: 907401861}
   groundMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 1
   aimDistance: 30
   ghostMaterial: {fileID: 2100000, guid: 3f355eb1d5e7f1a4e81211520ef97e09, type: 2}
   validColor: {r: 0.3, g: 1, b: 0.4, a: 0.5}
@@ -9322,7 +9322,7 @@ PrefabInstance:
       objectReference: {fileID: 754225306}
     - target: {fileID: 8086171501897624409, guid: 9e2fc18e7fc66304ebbf007744f270fe, type: 3}
       propertyPath: m_VersionIndex
-      value: 1174
+      value: 1177
       objectReference: {fileID: 0}
     - target: {fileID: 8843014871908602996, guid: 9e2fc18e7fc66304ebbf007744f270fe, type: 3}
       propertyPath: m_LocalPosition.x
@@ -9491,7 +9491,7 @@ PrefabInstance:
       objectReference: {fileID: 235910823}
     - target: {fileID: 7968161247754548305, guid: e4858b73810120949b4af7f2b1ed1c21, type: 3}
       propertyPath: m_VersionIndex
-      value: 1225
+      value: 1228
       objectReference: {fileID: 0}
     - target: {fileID: 8217165355221248845, guid: e4858b73810120949b4af7f2b1ed1c21, type: 3}
       propertyPath: m_Mesh
@@ -9648,7 +9648,7 @@ PrefabInstance:
       objectReference: {fileID: 391593050}
     - target: {fileID: 6384415798082063900, guid: 55ad4d6bb390b474ba8db756f53cd3bf, type: 3}
       propertyPath: m_VersionIndex
-      value: 1213
+      value: 1216
       objectReference: {fileID: 0}
     - target: {fileID: 9083004885798712214, guid: 55ad4d6bb390b474ba8db756f53cd3bf, type: 3}
       propertyPath: m_Mesh
