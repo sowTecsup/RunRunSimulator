@@ -55,6 +55,8 @@ public class FurnitureSpawner : MonoBehaviour
         }
         if (grid == null) { Debug.LogError("[FurnitureSpawner] No grid assigned."); return; }
 
+        // The prefab's ROOT pivot must sit at the footprint center-base (bake it once with the
+        // FurniturePivotAligner editor helper); we just place that pivot and rotate around it.
         Vector3 pos = grid.FootprintCenter(new Vector2Int(f.CellX, f.CellY), def.Footprint, f.Rotation);
         var go = Instantiate(def.Prefab, pos, Quaternion.Euler(0f, f.Rotation, 0f), transform);
         go.name = $"{def.Id}@{key}";

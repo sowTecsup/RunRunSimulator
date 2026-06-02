@@ -84,6 +84,7 @@ public class PlayerController : MonoBehaviour
         PlayerInputs.InteractReleased  += OnInteractReleased;
         PlayerInputs.ThrowPressed      += OnThrow;
         UIManager.OnUIFocusChanged     += OnUIFocusChanged;
+        BuildModeController.OnBuildModeChanged += OnBuildModeChanged;
     }
 
     private void OnDisable()
@@ -94,6 +95,7 @@ public class PlayerController : MonoBehaviour
         PlayerInputs.InteractReleased  -= OnInteractReleased;
         PlayerInputs.ThrowPressed      -= OnThrow;
         UIManager.OnUIFocusChanged     -= OnUIFocusChanged;
+        BuildModeController.OnBuildModeChanged -= OnBuildModeChanged;
     }
 
     private void OnMoveChanged(Vector2 move) => moveInput = move;
@@ -103,17 +105,23 @@ public class PlayerController : MonoBehaviour
     private void OnUIFocusChanged(bool uiFocused) =>
         SetState(uiFocused ? PlayerStateType.Menu : PlayerStateType.Exploring);
 
+    // Build mode is the player's third state: movement and the camera stay live (you
+    // aim the placement ghost by looking), but grab/throw/jump are suspended below.
+    // BuildModeController owns the ghost and placement; we only flip our own state.
+    private void OnBuildModeChanged(bool building) =>
+        SetState(building ? PlayerStateType.Building : PlayerStateType.Exploring);
+
     private void SetState(PlayerStateType next)
     {
         state = next;
-        bool exploring = state == PlayerStateType.Exploring;
+        // Exploring and Building both play first-person (cursor locked, camera live);
+        // only Menu frees the cursor and freezes the camera for UI.
+        bool firstPerson = state == PlayerStateType.Exploring || state == PlayerStateType.Building;
 
-        // Free the cursor for UI; relock it for first-person play.
-        Cursor.lockState = exploring ? CursorLockMode.Locked : CursorLockMode.None;
-        Cursor.visible   = !exploring;
+        Cursor.lockState = firstPerson ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible   = !firstPerson;
 
-        // Freeze the camera while a panel is open (stop feeding look input).
-        if (lookAxis != null) lookAxis.enabled = exploring;
+        if (lookAxis != null) lookAxis.enabled = firstPerson;
     }
 
     private void Update()
@@ -126,7 +134,8 @@ public class PlayerController : MonoBehaviour
     // Camera-relative movement; the body yaw follows the camera (first-person).
     private void Move()
     {
-        if (state != PlayerStateType.Exploring) return;   // suspended while a panel is open
+        // Walk in Exploring and Building (reposition while placing); suspended in Menu.
+        if (state != PlayerStateType.Exploring && state != PlayerStateType.Building) return;
         if (cameraTransform == null) return;
 
         Vector3 camForward = cameraTransform.forward; camForward.y = 0f; camForward.Normalize();
@@ -159,6 +168,8 @@ public class PlayerController : MonoBehaviour
     //   • carrying + Click (Attack)          → throw it
     private void OnInteractPressed()
     {
+        if (state != PlayerStateType.Exploring) return;   // no grab/interact while building or in a menu
+
         if (held != null)
         {
             Debug.Log("[PlayerController] Carrying + E pressed → dropping in place.");
@@ -173,6 +184,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnInteractReleased()
     {
+        if (state != PlayerStateType.Exploring) { grabbing = false; return; }
         if (!grabbing) return;   // the hold already resolved into a grab — ignore this release
         grabbing = false;
 

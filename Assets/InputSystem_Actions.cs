@@ -172,6 +172,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Build"",
+                    ""type"": ""Button"",
+                    ""id"": ""a1b2c3d4-0001-4a01-9001-000000000001"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -557,6 +566,28 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""Crouch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a1b2c3d4-0001-4a01-9001-000000000002"",
+                    ""path"": ""<Keyboard>/b"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Build"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a1b2c3d4-0001-4a01-9001-000000000003"",
+                    ""path"": ""<Gamepad>/select"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Build"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1077,6 +1108,280 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Building"",
+            ""id"": ""b2c3d4e5-0002-4b02-9002-000000000000"",
+            ""actions"": [
+                {
+                    ""name"": ""Confirm"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000001"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cancel"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000004"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Rotate"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000003"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Pin"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000005"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Edit"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000006"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Delete"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000002"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Slot1"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000007"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Slot2"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000008"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Slot3"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000009"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Slot4"",
+                    ""type"": ""Button"",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-00000000000a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000011"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Confirm"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000013"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Confirm"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000041"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Cancel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000042"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Cancel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000031"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Rotate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000032"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Rotate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000051"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Pin"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000061"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Edit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000062"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Edit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000021"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Delete"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000022"",
+                    ""path"": ""<Keyboard>/x"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Delete"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000023"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Delete"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000071"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000081"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-000000000091"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b2c3d4e5-0002-4b02-9002-0000000000a1"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Slot4"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -1153,6 +1458,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Previous = m_Player.FindAction("Previous", throwIfNotFound: true);
         m_Player_Next = m_Player.FindAction("Next", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
+        m_Player_Build = m_Player.FindAction("Build", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1165,12 +1471,25 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_UI_ScrollWheel = m_UI.FindAction("ScrollWheel", throwIfNotFound: true);
         m_UI_TrackedDevicePosition = m_UI.FindAction("TrackedDevicePosition", throwIfNotFound: true);
         m_UI_TrackedDeviceOrientation = m_UI.FindAction("TrackedDeviceOrientation", throwIfNotFound: true);
+        // Building
+        m_Building = asset.FindActionMap("Building", throwIfNotFound: true);
+        m_Building_Confirm = m_Building.FindAction("Confirm", throwIfNotFound: true);
+        m_Building_Cancel = m_Building.FindAction("Cancel", throwIfNotFound: true);
+        m_Building_Rotate = m_Building.FindAction("Rotate", throwIfNotFound: true);
+        m_Building_Pin = m_Building.FindAction("Pin", throwIfNotFound: true);
+        m_Building_Edit = m_Building.FindAction("Edit", throwIfNotFound: true);
+        m_Building_Delete = m_Building.FindAction("Delete", throwIfNotFound: true);
+        m_Building_Slot1 = m_Building.FindAction("Slot1", throwIfNotFound: true);
+        m_Building_Slot2 = m_Building.FindAction("Slot2", throwIfNotFound: true);
+        m_Building_Slot3 = m_Building.FindAction("Slot3", throwIfNotFound: true);
+        m_Building_Slot4 = m_Building.FindAction("Slot4", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
     {
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, InputSystem_Actions.Player.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_UI.enabled, "This will cause a leak and performance issues, InputSystem_Actions.UI.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Building.enabled, "This will cause a leak and performance issues, InputSystem_Actions.Building.Disable() has not been called.");
     }
 
     /// <summary>
@@ -1255,6 +1574,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Previous;
     private readonly InputAction m_Player_Next;
     private readonly InputAction m_Player_Sprint;
+    private readonly InputAction m_Player_Build;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1302,6 +1622,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Sprint".
         /// </summary>
         public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Build".
+        /// </summary>
+        public InputAction @Build => m_Wrapper.m_Player_Build;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1355,6 +1679,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Sprint.started += instance.OnSprint;
             @Sprint.performed += instance.OnSprint;
             @Sprint.canceled += instance.OnSprint;
+            @Build.started += instance.OnBuild;
+            @Build.performed += instance.OnBuild;
+            @Build.canceled += instance.OnBuild;
         }
 
         /// <summary>
@@ -1393,6 +1720,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Sprint.started -= instance.OnSprint;
             @Sprint.performed -= instance.OnSprint;
             @Sprint.canceled -= instance.OnSprint;
+            @Build.started -= instance.OnBuild;
+            @Build.performed -= instance.OnBuild;
+            @Build.canceled -= instance.OnBuild;
         }
 
         /// <summary>
@@ -1621,6 +1951,201 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="UIActions" /> instance referencing this action map.
     /// </summary>
     public UIActions @UI => new UIActions(this);
+
+    // Building
+    private readonly InputActionMap m_Building;
+    private List<IBuildingActions> m_BuildingActionsCallbackInterfaces = new List<IBuildingActions>();
+    private readonly InputAction m_Building_Confirm;
+    private readonly InputAction m_Building_Cancel;
+    private readonly InputAction m_Building_Rotate;
+    private readonly InputAction m_Building_Pin;
+    private readonly InputAction m_Building_Edit;
+    private readonly InputAction m_Building_Delete;
+    private readonly InputAction m_Building_Slot1;
+    private readonly InputAction m_Building_Slot2;
+    private readonly InputAction m_Building_Slot3;
+    private readonly InputAction m_Building_Slot4;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Building".
+    /// </summary>
+    public struct BuildingActions
+    {
+        private @InputSystem_Actions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public BuildingActions(@InputSystem_Actions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Confirm".
+        /// </summary>
+        public InputAction @Confirm => m_Wrapper.m_Building_Confirm;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Cancel".
+        /// </summary>
+        public InputAction @Cancel => m_Wrapper.m_Building_Cancel;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Rotate".
+        /// </summary>
+        public InputAction @Rotate => m_Wrapper.m_Building_Rotate;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Pin".
+        /// </summary>
+        public InputAction @Pin => m_Wrapper.m_Building_Pin;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Edit".
+        /// </summary>
+        public InputAction @Edit => m_Wrapper.m_Building_Edit;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Delete".
+        /// </summary>
+        public InputAction @Delete => m_Wrapper.m_Building_Delete;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Slot1".
+        /// </summary>
+        public InputAction @Slot1 => m_Wrapper.m_Building_Slot1;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Slot2".
+        /// </summary>
+        public InputAction @Slot2 => m_Wrapper.m_Building_Slot2;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Slot3".
+        /// </summary>
+        public InputAction @Slot3 => m_Wrapper.m_Building_Slot3;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/Slot4".
+        /// </summary>
+        public InputAction @Slot4 => m_Wrapper.m_Building_Slot4;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_Building; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="BuildingActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(BuildingActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="BuildingActions" />
+        public void AddCallbacks(IBuildingActions instance)
+        {
+            if (instance == null || m_Wrapper.m_BuildingActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_BuildingActionsCallbackInterfaces.Add(instance);
+            @Confirm.started += instance.OnConfirm;
+            @Confirm.performed += instance.OnConfirm;
+            @Confirm.canceled += instance.OnConfirm;
+            @Cancel.started += instance.OnCancel;
+            @Cancel.performed += instance.OnCancel;
+            @Cancel.canceled += instance.OnCancel;
+            @Rotate.started += instance.OnRotate;
+            @Rotate.performed += instance.OnRotate;
+            @Rotate.canceled += instance.OnRotate;
+            @Pin.started += instance.OnPin;
+            @Pin.performed += instance.OnPin;
+            @Pin.canceled += instance.OnPin;
+            @Edit.started += instance.OnEdit;
+            @Edit.performed += instance.OnEdit;
+            @Edit.canceled += instance.OnEdit;
+            @Delete.started += instance.OnDelete;
+            @Delete.performed += instance.OnDelete;
+            @Delete.canceled += instance.OnDelete;
+            @Slot1.started += instance.OnSlot1;
+            @Slot1.performed += instance.OnSlot1;
+            @Slot1.canceled += instance.OnSlot1;
+            @Slot2.started += instance.OnSlot2;
+            @Slot2.performed += instance.OnSlot2;
+            @Slot2.canceled += instance.OnSlot2;
+            @Slot3.started += instance.OnSlot3;
+            @Slot3.performed += instance.OnSlot3;
+            @Slot3.canceled += instance.OnSlot3;
+            @Slot4.started += instance.OnSlot4;
+            @Slot4.performed += instance.OnSlot4;
+            @Slot4.canceled += instance.OnSlot4;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="BuildingActions" />
+        private void UnregisterCallbacks(IBuildingActions instance)
+        {
+            @Confirm.started -= instance.OnConfirm;
+            @Confirm.performed -= instance.OnConfirm;
+            @Confirm.canceled -= instance.OnConfirm;
+            @Cancel.started -= instance.OnCancel;
+            @Cancel.performed -= instance.OnCancel;
+            @Cancel.canceled -= instance.OnCancel;
+            @Rotate.started -= instance.OnRotate;
+            @Rotate.performed -= instance.OnRotate;
+            @Rotate.canceled -= instance.OnRotate;
+            @Pin.started -= instance.OnPin;
+            @Pin.performed -= instance.OnPin;
+            @Pin.canceled -= instance.OnPin;
+            @Edit.started -= instance.OnEdit;
+            @Edit.performed -= instance.OnEdit;
+            @Edit.canceled -= instance.OnEdit;
+            @Delete.started -= instance.OnDelete;
+            @Delete.performed -= instance.OnDelete;
+            @Delete.canceled -= instance.OnDelete;
+            @Slot1.started -= instance.OnSlot1;
+            @Slot1.performed -= instance.OnSlot1;
+            @Slot1.canceled -= instance.OnSlot1;
+            @Slot2.started -= instance.OnSlot2;
+            @Slot2.performed -= instance.OnSlot2;
+            @Slot2.canceled -= instance.OnSlot2;
+            @Slot3.started -= instance.OnSlot3;
+            @Slot3.performed -= instance.OnSlot3;
+            @Slot3.canceled -= instance.OnSlot3;
+            @Slot4.started -= instance.OnSlot4;
+            @Slot4.performed -= instance.OnSlot4;
+            @Slot4.canceled -= instance.OnSlot4;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="BuildingActions.UnregisterCallbacks(IBuildingActions)" />.
+        /// </summary>
+        /// <seealso cref="BuildingActions.UnregisterCallbacks(IBuildingActions)" />
+        public void RemoveCallbacks(IBuildingActions instance)
+        {
+            if (m_Wrapper.m_BuildingActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="BuildingActions.AddCallbacks(IBuildingActions)" />
+        /// <seealso cref="BuildingActions.RemoveCallbacks(IBuildingActions)" />
+        /// <seealso cref="BuildingActions.UnregisterCallbacks(IBuildingActions)" />
+        public void SetCallbacks(IBuildingActions instance)
+        {
+            foreach (var item in m_Wrapper.m_BuildingActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_BuildingActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="BuildingActions" /> instance referencing this action map.
+    /// </summary>
+    public BuildingActions @Building => new BuildingActions(this);
     private int m_KeyboardMouseSchemeIndex = -1;
     /// <summary>
     /// Provides access to the input control scheme.
@@ -1756,6 +2281,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSprint(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Build" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBuild(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
@@ -1834,5 +2366,83 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTrackedDeviceOrientation(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Building" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="BuildingActions.AddCallbacks(IBuildingActions)" />
+    /// <seealso cref="BuildingActions.RemoveCallbacks(IBuildingActions)" />
+    public interface IBuildingActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "Confirm" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnConfirm(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Cancel" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCancel(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Rotate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRotate(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Pin" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPin(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Edit" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnEdit(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Delete" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDelete(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Slot1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSlot1(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Slot2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSlot2(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Slot3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSlot3(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Slot4" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSlot4(InputAction.CallbackContext context);
     }
 }

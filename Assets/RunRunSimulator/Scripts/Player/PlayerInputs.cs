@@ -19,7 +19,7 @@ using UnityEngine.InputSystem;
 // UIManager.OnUIFocusChanged, the mirror of UIInputs' own gating.
 //
 // Input map (Assets/InputSystem_Actions, "Player" map):
-//   Move → MoveChanged | Jump → Jumped | Interact → GrabReleaseToggled | Attack → ThrowPressed
+//   Move → MoveChanged | Jump → Jumped | Interact → GrabReleaseToggled | Attack → ThrowPressed | Build → BuildToggled
 public class PlayerInputs : MonoBehaviour
 {
     // Continuous — fired on every change (carries the value).
@@ -30,6 +30,7 @@ public class PlayerInputs : MonoBehaviour
     public static event Action InteractPressed;   // Interact key DOWN (raw — hold/tap meaning is decided in PlayerController)
     public static event Action InteractReleased;  // Interact key UP
     public static event Action ThrowPressed;      // Attack — throw the held object
+    public static event Action BuildToggled;      // Build — enter/exit construction mode (BuildModeController owns it)
 
     private InputSystem_Actions actions;
 
@@ -48,6 +49,7 @@ public class PlayerInputs : MonoBehaviour
         actions.Player.Interact.performed += OnInteractPerformed;  // key down (disable the action's Hold interaction so this fires on press)
         actions.Player.Interact.canceled  += OnInteractCanceled;   // key up
         actions.Player.Attack.performed   += OnAttack;
+        actions.Player.Build.performed    += OnBuild;
 
         UIManager.OnUIFocusChanged += OnUIFocusChanged;
     }
@@ -61,6 +63,7 @@ public class PlayerInputs : MonoBehaviour
         actions.Player.Interact.performed -= OnInteractPerformed;
         actions.Player.Interact.canceled  -= OnInteractCanceled;
         actions.Player.Attack.performed   -= OnAttack;
+        actions.Player.Build.performed    -= OnBuild;
 
         UIManager.OnUIFocusChanged -= OnUIFocusChanged;
         actions.Player.Disable();
@@ -98,4 +101,6 @@ public class PlayerInputs : MonoBehaviour
         Debug.Log($"[PlayerInputs] Attack fired → invoking ThrowPressed ({subs} listener(s)).");
         ThrowPressed?.Invoke();
     }
+
+    private void OnBuild(InputAction.CallbackContext c) => BuildToggled?.Invoke();
 }

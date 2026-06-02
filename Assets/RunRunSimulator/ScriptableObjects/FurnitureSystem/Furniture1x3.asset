@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a515f4ede91769d4990d45d7f30d5880, type: 3}
-  m_Name: FurnitureDef
+  m_Name: Furniture1x3
   m_EditorClassIdentifier: Assembly-CSharp::FurnitureDefinitionSO
   serializationData:
     SerializedFormat: 2
@@ -21,9 +21,9 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  Id: F0
+  Id: F2
   DisplayName: SimpleBox
-  Prefab: {fileID: 6209729693658913973, guid: 3de1b9e7ca6c6694aaaa30f4a237867e, type: 3}
-  Footprint: {x: 1, y: 1}
+  Prefab: {fileID: 134225982626044259, guid: e4858b73810120949b4af7f2b1ed1c21, type: 3}
+  Footprint: {x: 2, y: 2}
   Price: 0
   Category: 0

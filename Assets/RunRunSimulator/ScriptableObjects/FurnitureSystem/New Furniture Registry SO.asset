@@ -34,22 +34,22 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 5
+      Data: 2
     - Name: 
       Entry: 7
       Data: 
     - Name: $k
       Entry: 1
-      Data: 0_0
+      Data: 6_0
     - Name: $v
       Entry: 7
       Data: 2|PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
-      Data: F0
+      Data: F1
     - Name: CellX
       Entry: 3
-      Data: 0
+      Data: 6
     - Name: CellY
       Entry: 3
       Data: 0
@@ -67,103 +67,22 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: 1_0
+      Data: 1_1
     - Name: $v
       Entry: 7
       Data: 3|PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
-      Data: F0
+      Data: F2
     - Name: CellX
       Entry: 3
       Data: 1
     - Name: CellY
       Entry: 3
-      Data: 0
-    - Name: Rotation
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: 2_0
-    - Name: $v
-      Entry: 7
-      Data: 4|PlacedFurniture, Assembly-CSharp
-    - Name: DefId
-      Entry: 1
-      Data: F0
-    - Name: CellX
-      Entry: 3
-      Data: 2
-    - Name: CellY
-      Entry: 3
-      Data: 0
-    - Name: Rotation
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: 2_1
-    - Name: $v
-      Entry: 7
-      Data: 5|PlacedFurniture, Assembly-CSharp
-    - Name: DefId
-      Entry: 1
-      Data: F0
-    - Name: CellX
-      Entry: 3
-      Data: 2
-    - Name: CellY
-      Entry: 3
       Data: 1
     - Name: Rotation
       Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: 2_2
-    - Name: $v
-      Entry: 7
-      Data: 6|PlacedFurniture, Assembly-CSharp
-    - Name: DefId
-      Entry: 1
-      Data: F0
-    - Name: CellX
-      Entry: 3
-      Data: 2
-    - Name: CellY
-      Entry: 3
-      Data: 2
-    - Name: Rotation
-      Entry: 3
-      Data: 0
+      Data: 90
     - Name: 
       Entry: 8
       Data: 

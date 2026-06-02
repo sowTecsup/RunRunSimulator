@@ -13,7 +13,10 @@ tags: [memory-bank, furniture, building, shop, stage-3]
 | **Fase 1 — Data + grid + API** | SOs, registry, `PlacementGrid`, `FurnitureSpawner`, `FurnitureService` con `TryPlace`/`TryRemove` + botones Odin de test | ✅ **implementada y commiteada** |
 | **Fase 2 — Building mode** | Action map `Building`, `PlayerStateType.Building`, ghost preview, flujo click→F→Esc, borrado con click derecho | 🔲 próxima |
 | **Fase 3 — Economía + tienda** | `Wallet` (moneda persistente), `ShopService`, panel UITK con catálogo + precio → entra a placement | 🔲 |
+| **Fase futura — superficies libres** | Muebles grandes como base que exponen superficies sobre las que acomodar props chicos (free placement local a la superficie), eventualmente con UI | 🔲 **solo diseño** (etapa posterior, ver Notion) |
 | **Persistencia** (transversal) | JSON propio para `FurnitureRegistrySO` vía `GameManager.Persist` + `SaveSystem`, cloud después | 🔲 **deliberadamente pendiente** (se confirma placement primero) |
+
+> **Modelo de colocación — decisión confirmada (2026-06-02):** **grilla como base**, no posicionamiento libre. Razones: NavMesh determinista (las criaturas roam, la grilla evita huecos donde quedan atrapadas), persistencia cloud ligera/determinista (`DefId`+celda+rotación vs transform flotante que deriva), y foco de ingeniería en las criaturas (el canvas expresivo) y no en los muebles. El placement libre sobrevive solo como la "Fase futura" de arriba: **acotado a superficies de muebles grandes**, no global.
 
 ---
 
@@ -75,7 +78,18 @@ FurnitureService  ──TryPlace/TryRemove──►  FurnitureRegistrySO  (verda
 - Suscribe `OnFurnitureChanged` / `OnFurnitureReloaded` en `OnEnable`, desuscribe en `OnDisable` (regla #9).
 - `Sync` incremental: instancia keys nuevas, destruye las que ya no están (diff contra `spawned`).
 - `OnReloaded` = `ClearAll` + `Sync` (para pull/reset, sin re-push — patrón `OnRegistryReloaded`).
-- Posiciona con `grid.FootprintCenter`, rota `Quaternion.Euler(0, Rotation, 0)`.
+- Posiciona el **pivote raíz** del prefab en `grid.FootprintCenter` y rota con `Quaternion.Euler(0, Rotation, 0)`. Runtime "tonto": el control de alineación vive en el prefab (no se auto-centra en runtime — se probó y le saca control al artista).
+
+### Prefab: pivote y `FurniturePivotAligner`
+El runtime coloca el **pivote raíz** del prefab en el centro del footprint y **rota alrededor de ese pivote**. Por lo tanto:
+
+> **El pivote raíz del prefab debe quedar en el centro del footprint (XZ) y en la base (Y).** Pivote en esquina = la pieza se sale de sus celdas al rotar (la rotación es alrededor del pivote).
+
+- **Estructura recomendada**: Root vacío (= el pivote) → Model (mesh) como hijo → Collider. El runtime mueve el Root.
+- **`FurniturePivotAligner`** (helper de EDITOR, `Scripts/Systems/Furniture/`): se agrega al Root; botón **Center pivot** mueve los hijos para que el Root quede en el centro-base del mesh. Gizmo del footprint para verificar el calce. **Es removible**: el offset queda horneado en las posiciones locales de los hijos y borrás el componente. Mantenés control total (nudge a mano, `restOnFloor` on/off, re-correr).
+- Requiere el mesh en un **hijo** (no se puede mover la raíz respecto a sí misma). Para un primitivo (Cube) envolvelo en un Root vacío.
+- `Rotated()` intercambia 1×2 ↔ 2×1 para que la ocupación siga la rotación.
+- **Footprint no rectangular (L)**: por ahora declarar el **rectángulo contenedor** (sobre-ocupa la celda vacía de la esquina); máscara de celdas = futuro.
 
 ---
 
