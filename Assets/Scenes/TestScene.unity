@@ -7828,9 +7828,12 @@ MonoBehaviour:
   service: {fileID: 1750792026}
   grid: {fileID: 1419263766}
   aimTransform: {fileID: 907401861}
-  groundMask:
+  floorMask:
     serializedVersion: 2
     m_Bits: 1
+  furnitureMask:
+    serializedVersion: 2
+    m_Bits: 64
   aimDistance: 30
   ghostMaterial: {fileID: 2100000, guid: 3f355eb1d5e7f1a4e81211520ef97e09, type: 2}
   validColor: {r: 0.3, g: 1, b: 0.4, a: 0.5}

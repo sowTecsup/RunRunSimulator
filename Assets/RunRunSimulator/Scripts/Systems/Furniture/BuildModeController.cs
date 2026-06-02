@@ -35,8 +35,10 @@ public class BuildModeController : MonoBehaviour
     [SerializeField] private Transform aimTransform;
 
     [Header("Aim")]
-    [Tooltip("Layers the aim ray hits to find the ground cell under the crosshair.")]
-    [SerializeField] private LayerMask groundMask = ~0;
+    [Tooltip("FLOOR layers the placement ray hits to find the cell under the crosshair (Placing). Set this to your floor layer so the ray passes through furniture.")]
+    [SerializeField] private LayerMask floorMask = ~0;
+    [Tooltip("FURNITURE layers the selection ray hits to pick a placed piece (Edit / Delete).")]
+    [SerializeField] private LayerMask furnitureMask;
     [SerializeField] private float aimDistance = 30f;
 
     [Header("Ghost")]
@@ -143,11 +145,12 @@ public class BuildModeController : MonoBehaviour
     {
         if (!active) return;
 
-        // Browsing and Placing need the cell under the crosshair.
-        if (state == BuildState.Browsing || state == BuildState.Placing)
+        // Only Placing follows the floor under the crosshair. Editing/Deleting are fixed at the
+        // selected cell, and selection (Edit/Delete) does its own furniture raycast on demand.
+        if (state == BuildState.Placing)
         {
             aimValid = Physics.Raycast(aimTransform.position, aimTransform.forward,
-                                       out RaycastHit hit, aimDistance, groundMask, QueryTriggerInteraction.Ignore);
+                                       out RaycastHit hit, aimDistance, floorMask, QueryTriggerInteraction.Ignore);
             if (aimValid) currentCell = grid.WorldToCell(hit.point);
         }
 
@@ -185,40 +188,52 @@ public class BuildModeController : MonoBehaviour
         state = BuildState.Placing;
     }
 
-    // E: select the aimed placed piece for editing (lift it off the grid).
+    // E: select the placed piece UNDER THE CROSSHAIR for editing (aim at the mesh, lift it).
     private void OnEdit()
     {
-        if (!active || state != BuildState.Browsing || !aimValid) return;
-        if (!service.TryLift(currentCell, out var def, out var rot) || def == null)
-        {
-            Debug.Log("[BuildModeController] Nothing to edit at the aimed cell.");
-            return;
-        }
-        BeginLiftedSelection(def, rot, BuildState.Editing);
+        if (!active || state != BuildState.Browsing) return;
+        if (!TryPickFurnitureCell(out var cell)) { Debug.Log("[BuildModeController] No furniture under the crosshair to edit."); return; }
+        if (!service.TryLift(cell, out var def, out var rot) || def == null) return;
+
+        BeginLiftedSelection(def, rot, cell, BuildState.Editing);
         lastValidRotation = rot;            // it was valid where it sat
     }
 
-    // Right-click: target the aimed placed piece for deletion (lift it; F confirms).
+    // Right-click: target the placed piece UNDER THE CROSSHAIR for deletion (lift it; F confirms).
     private void OnDelete()
     {
-        if (!active || state != BuildState.Browsing || !aimValid) return;
-        if (!service.TryLift(currentCell, out var def, out var rot) || def == null)
-        {
-            Debug.Log("[BuildModeController] Nothing to delete at the aimed cell.");
-            return;
-        }
-        BeginLiftedSelection(def, rot, BuildState.Deleting);
+        if (!active || state != BuildState.Browsing) return;
+        if (!TryPickFurnitureCell(out var cell)) { Debug.Log("[BuildModeController] No furniture under the crosshair to delete."); return; }
+        if (!service.TryLift(cell, out var def, out var rot) || def == null) return;
+
+        BeginLiftedSelection(def, rot, cell, BuildState.Deleting);
     }
 
-    private void BeginLiftedSelection(FurnitureDefinitionSO def, int rot, BuildState next)
+    private void BeginLiftedSelection(FurnitureDefinitionSO def, int rot, Vector2Int cell, BuildState next)
     {
         heldDef          = def;
         isExistingLift   = true;
-        originalCell     = currentCell;
+        originalCell     = cell;
         originalRotation = rot;
         rotation         = rot;
+        currentCell      = cell;            // ghost sits here (frozen while Editing/Deleting)
         BuildGhost(def.Prefab);
         state = next;
+    }
+
+    // Raycasts the FURNITURE layers; if it hits a placed piece, returns its anchor cell (from
+    // the PlacedFurnitureMarker the spawner stamps). Lets you select by pointing at the mesh.
+    private bool TryPickFurnitureCell(out Vector2Int cell)
+    {
+        cell = default;
+        if (!Physics.Raycast(aimTransform.position, aimTransform.forward,
+                             out RaycastHit hit, aimDistance, furnitureMask, QueryTriggerInteraction.Ignore))
+            return false;
+
+        var marker = hit.collider.GetComponentInParent<PlacedFurnitureMarker>();
+        if (marker == null) return false;
+        cell = marker.AnchorCell;
+        return true;
     }
 
     // Left-click: pin a NEW piece at the aimed cell (Placing → Editing). Only on a free cell.
