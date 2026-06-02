@@ -9,39 +9,39 @@ tags: [memory-bank, active, session]
 ## Sesión actual
 
 **Fecha**: 2026-06-02
-**Foco**: Consolidación de docs permanentes antes de la siguiente etapa — **Furniture** → [[10 - Furniture & Building]] y **trabajo 3D de MoriMonchis** → [[06 - Player & World]]. Próximo: arrancar Furniture Fase 2 (Building mode). Sesión previa (2026-06-01): pulido 3D de MoriMonchis + Furniture Fase 1.
+**Foco**: **Furniture Fase 2 — Building mode** (implementado en código) + refactor de la DB de furniture + fix del CreatureGrid UITK. Detalle permanente en [[10 - Furniture & Building]]. Sesión previa: consolidación de docs (Furniture Fase 1 + 3D MoriMonchis).
 
-### Qué se hizo
+### Qué se hizo (esta sesión) → todo consolidado en [[10 - Furniture & Building]]
 
-**MoriMonchis (3D: rebote/knock/throw/tint/recovery)** → ✅ consolidado en [[06 - Player & World]]
-- Hecho: rebote tipo peluche + knock en cadena (`IThrowable.Knock`) + settle robusto (`IsGrounded`+`maxThrownTime`) + levantarse escalado por `RecoverySpeed`, todo 100% por código (sin PhysicMaterials). Throw que converge a la mira (`throwAimDistance` 30 m). Tint por personalidad (`MaterialPropertyBlock`). `ConfineToArea` → `AreaPreference`. Feel-ready (5 `UnityEvent`).
-- **Detalle completo (mecánicas, tunables, estructura del prefab, mapeo de personalidades) → [[06 - Player & World]]** (doc permanente; ya no se mantiene acá).
-
-**Furniture — Fase 1 (data), Etapa 3.1** → ✅ consolidado en [[10 - Furniture & Building]]
-- Hecho: 4 archivos de data (`FurnitureDefinitionSO`/`FurnitureDatabaseSO`/`PlacedFurniture`/`FurnitureRegistrySO`) + `PlacementGrid` + `FurnitureSpawner` + `FurnitureService` (`TryPlace`/`TryRemove` + botones Odin de test). `Enums.cs` (+`Building`, +`FurnitureCategory`) y `GameEvents.cs` (+`OnFurnitureChanged`/`OnFurnitureReloaded`).
-- **Detalle completo, contratos, setup en Unity y plan de Fase 2/3 → [[10 - Furniture & Building]]** (doc permanente; ya no se mantiene acá).
+- **Fix CreatureGrid UITK**: `CloudSyncService.OnSignedInComplete` dispara `GameEvents.RegistryReloaded` tras el load local (antes solo lo disparaba el cloud-pull → grilla vacía para jugador local/anon/offline/post-reset).
+- **Refactor DB furniture**: `FurnitureDatabaseSO` → dict `[OdinSerialize]` (la key = id) con inline editor; `FurnitureDefinitionSO.Id` `[ReadOnly]` dictado por la DB; **Validate & Sync IDs** + **Populate from Buffer** (calca `PartDatabaseSO`).
+- **Decisión de modelo**: grilla como base confirmada (libre sobre muebles grandes = fase futura). Memoria: `project_furniture_placement`.
+- **Fase 2 Building mode (código ✅)**: action map `Building` (aditivo), `BuildingInputs` + `BuildModeController` (máquina Browsing/Placing/Editing/Deleting), hotbar 1-4, lift vía `TryLift`, dos máscaras (`floorMask`/`furnitureMask`) + `PlacedFurnitureMarker`, ghost verde/rojo. Edit = **E**.
+- **`FurniturePivotAligner`** (helper de editor removible): bakea el pivote raíz al centro-base; runtime posiciona simple (sin auto-resolver — se probó y se descartó).
 
 ## Próximos pasos (retomar acá la próxima sesión)
 
-**Furniture — siguiente: Fase 2 (Building mode)** → plan completo en [[10 - Furniture & Building]]
-- Resumen: action map `Building` + `PlayerStateType.Building`, ghost preview (verde/rojo según `grid.CanPlace`), flujo click→F→Esc y borrado con click derecho, todo sobre `TryPlace`/`TryRemove`. Después: Fase 3 (economía/tienda) y persistencia (JSON+cloud). Detalle, contratos e invariantes en el doc permanente.
+**Furniture — siguiente:**
+- **Setup de escena del Build mode** (tuyo): layers Floor/Furniture, asignar `floorMask`/`furnitureMask`, `ghostMaterial` transparente, lista Active Pieces, bakear pivotes con `FurniturePivotAligner`. Pasos en [[10 - Furniture & Building]].
+- Probar place/edit/delete y afinar números (aimDistance, colores).
+- Después: **Fase 3 (economía/tienda)** + **persistencia** (JSON+cloud del `FurnitureRegistrySO`).
+- Pendiente conocido: selección por celda ancla (multi-celda apunta a la esquina); footprint no rectangular (L) = rectángulo contenedor por ahora.
 
-**MoriMonchis**
-- Acordarse de pulsar **Populate Defaults** en `PersonalityProfileTable` (los campos `ConfineToArea` viejos en el .asset se reemplazan por `AreaPreference`).
-- Setup de escena Etapa 2.5 sigue pendiente (NavMesh bake + 3 Areas + prefab + wiring spawner).
-- Probar en Unity y ajustar números de rebote/knock/throw.
+**MoriMonchis** (de sesiones previas, sin avance esta sesión)
+- Setup de escena Etapa 2.5 pendiente (NavMesh bake + 3 Areas + prefab + wiring spawner). Pulsar **Populate Defaults** en `PersonalityProfileTable`.
 
 ## Archivos en juego en la sesión actual
 
 | Archivo | Por qué |
 |---------|---------|
-| `Scripts/World/MoriMochiAgent.cs` | Rebote, knock, settle, tint, preferencia, gizmos, Feel hooks |
-| `Scripts/Player/PlayerController.cs` | Throw hacia la mira |
-| `Scripts/Core/Interfaces.cs` · `Interactables/ThrowableObject.cs` | `IThrowable.Knock` |
-| `Scripts/Data/PersonalityProfileSO.cs` | AreaPreference, RecoverySpeed, Tint |
-| `Scripts/World/MoriMochiSpawner.cs` | Spawn sesgado a área preferida |
-| `Scripts/Data/Furniture*.cs` · `Systems/Furniture/*.cs` | Sistema de muebles Fase 1 |
-| `Scripts/Core/Enums.cs` · `GameEvents.cs` | Building state, FurnitureCategory, eventos furniture |
+| `Systems/Furniture/BuildModeController.cs` · `Player/BuildingInputs.cs` | Build mode: máquina de estados + input map |
+| `Systems/Furniture/FurnitureService.cs` | Hotbar (`activePieces`/`SelectPiece`) + `TryLift` + `TryPlace(def,…)` |
+| `Systems/Furniture/FurnitureSpawner.cs` · `PlacedFurnitureMarker.cs` | Spawn + marker de celda ancla para selección |
+| `Systems/Furniture/FurniturePivotAligner.cs` | Helper de editor de pivote (removible) |
+| `Data/FurnitureDatabaseSO.cs` · `FurnitureDefinitionSO.cs` | DB dict-keyed + Id `[ReadOnly]` dictado por la DB |
+| `Player/PlayerInputs.cs` · `PlayerController.cs` | `BuildToggled` (B) + estado `Building` |
+| `Systems/Cloud/CloudSyncService.cs` | Fix: `RegistryReloaded` tras el load local |
+| `InputSystem_Actions.inputactions` | Acción Build + action map `Building` |
 
 ## Cómo usar esta nota en sesiones futuras
 
