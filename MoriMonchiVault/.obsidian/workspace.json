@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "09 - Active Context.md",
+                "file": "10 - Furniture & Building.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "09 - Active Context"
+              "title": "10 - Furniture & Building"
             }
           }
         ]
@@ -44,7 +44,7 @@
                 "autoReveal": false
               },
               "icon": "lucide-folder-closed",
-              "title": "Files"
+              "title": "Explorador de archivos"
             }
           },
           {
@@ -160,37 +160,38 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Open quick switcher": false,
-      "graph:Open graph view": false,
-      "canvas:Create new canvas": false,
-      "daily-notes:Open today's daily note": false,
-      "templates:Insert template": false,
-      "command-palette:Open command palette": false
+      "switcher:Abrir selector rápido": false,
+      "graph:Abrir vista gráfica": false,
+      "canvas:Crear nuevo lienzo": false,
+      "daily-notes:Abrir la nota de hoy": false,
+      "templates:Insertar plantilla": false,
+      "command-palette:Abrir paleta de comandos": false,
+      "bases:Crear nueva base": false
     }
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
-    "09 - Active Context.md.tmp.38552.3ac0e1b80a3d",
-    "06 - Player & World.md.tmp.38552.ff886d0498c3",
-    "06 - Player & World.md.tmp.38552.a1922efa527d",
-    "06 - Player & World.md.tmp.38552.3ae543990e7d",
-    "Welcome.md",
-    "09 - Active Context.md",
-    "08 - Known Bugs & Checkpoints.md",
     "07 - Persistence & Identity.md",
+    "10 - Furniture & Building.md",
+    "09 - Active Context.md.tmp.8532.82b22290eb26",
+    "09 - Active Context.md.tmp.8532.d35b6ba53928",
+    "06 - Player & World.md.tmp.8532.f800186cca73",
+    "06 - Player & World.md.tmp.8532.8d9ffaf72bd8",
+    "09 - Active Context.md.tmp.8532.2b861af9015c",
+    "09 - Active Context.md.tmp.8532.47a846f439e3",
+    "09 - Active Context.md.tmp.8532.3367962391d7",
+    "09 - Active Context.md.tmp.8532.cea6fcc2b5b1",
     "06 - Player & World.md",
     "05 - UI System.md",
+    "09 - Active Context.md",
+    "09 - Active Context.md.tmp.38552.3ac0e1b80a3d",
+    "06 - Player & World.md.tmp.38552.ff886d0498c3",
+    "Welcome.md",
+    "08 - Known Bugs & Checkpoints.md",
     "04 - UGS & Cloud.md",
     "03 - Combat.md",
     "02 - Genetics & Breeding.md",
     "01 - GDD Core.md",
-    "00 - Index.md",
-    "09 - Active Context.md.tmp.14092.997404eb6773",
-    "08 - Known Bugs & Checkpoints.md.tmp.14092.c188fc128678",
-    "07 - Persistence & Identity.md.tmp.14092.45db01ecacef",
-    "06 - Player & World.md.tmp.14092.a5166a67fa1c",
-    "05 - UI System.md.tmp.14092.2cc6431c53ef",
-    "04 - UGS & Cloud.md.tmp.14092.7de3ec58400a",
-    "03 - Combat.md.tmp.14092.76b99d57068a"
+    "00 - Index.md"
   ]
 }

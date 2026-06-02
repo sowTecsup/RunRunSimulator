@@ -18,6 +18,7 @@ tags: [memory-bank, index]
 | Player FP, cámara, grab/throw | [[06 - Player & World]] | [[05 - UI System]] |
 | MoriMonchis vivos, NavMesh, personalidad | [[06 - Player & World]] | [[02 - Genetics & Breeding]] |
 | Save system, registry, identidad | [[07 - Persistence & Identity]] | — |
+| Furniture, building mode, placement, tienda | [[10 - Furniture & Building]] | [[07 - Persistence & Identity]] |
 | Bug conocido o checkpoint futuro | [[08 - Known Bugs & Checkpoints]] | (el sistema afectado) |
 | Visión, lore, core loop | [[01 - GDD Core]] | (Notion) |
 | Qué estoy haciendo ahora | [[09 - Active Context]] | — |

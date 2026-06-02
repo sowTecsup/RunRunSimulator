@@ -5,11 +5,14 @@ using UnityEngine;
 // analogue of a BodyPart in the creature DB. The shop lists these; placement reads
 // the footprint; the spawner instantiates the prefab.
 [CreateAssetMenu(fileName = "FurnitureDef", menuName = "RunRunSimulator/Furniture Definition")]
-public class FurnitureDefinitionSO : ScriptableObject
+[InlineEditor]
+public class FurnitureDefinitionSO : SerializedScriptableObject
 {
     [Title("Identity")]
-    [Tooltip("Stable id used in saves/network. Must NOT contain '-'.")]
-    public string Id = "";
+    // The id is dictated by the database SLOT this def lives in (its dictionary key),
+    // never authored here — FurnitureDatabaseSO.SyncIds() stamps it. ReadOnly so it
+    // can't drift from the key by hand (mirror of BodyPart.ID).
+    [ReadOnly] public string Id;
     public string DisplayName = "";
     [Required, AssetsOnly] public GameObject Prefab;
 

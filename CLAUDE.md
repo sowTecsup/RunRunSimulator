@@ -68,6 +68,8 @@ Helper estático por evento (`RegistryChanged(so) => OnRegistryChanged?.Invoke(s
 | `OnCombatCompleted` | combate local |
 | `OnCombatLogged` | `AsyncCombatService.ApplyResult` |
 | `OnBreedingCompleted` | breeding local + async |
+| `OnFurnitureChanged` | toda mutación de furniture (`FurnitureService`) |
+| `OnFurnitureReloaded` | reload de furniture (clear+resync; UI/spawner-only, sin push) |
 
 Eventos UI viven en `UIManager` como `static event Action` (separados de `GameEvents`). Acción maps `Player`/`UI` mutuamente excluyentes, conmutados en `OnUIFocusChanged`. Detalle en [[MoriMonchiVault/05 - UI System|05 - UI System]] y [[MoriMonchiVault/07 - Persistence & Identity|07 - Persistence & Identity]].
 
@@ -78,7 +80,7 @@ Eventos UI viven en `UIManager` como `static event Action` (separados de `GameEv
 ```
 Assets/RunRunSimulator/Scripts/
 ├── Core/          # Bus, persistencia, generación, tipos base, GameManager
-├── Systems/       # Breeding · Combat · Cloud (cada uno desacoplado vía GameEvents)
+├── Systems/       # Breeding · Combat · Cloud · Furniture (cada uno desacoplado vía GameEvents)
 ├── UI/            # UIManager + paneles uGUI/UITK + IUINavigable
 ├── Player/        # PlayerInputs · PlayerController · PlayerAnimator (FP)
 ├── Interactables/ # IInteractable · IThrowable (drop-a-script)
@@ -105,7 +107,7 @@ Mapeo detallado de cada script → vault.
 | 2.3 Integración UGS (async battles) | ✅ |
 | 2.4 Breeding Async (timer server-side) | ✅ |
 | 2.5 Vida en Escena (NavMesh + personalidad) | 🔶 Código ✅, falta setup escena |
-| 3.1 Tienda Local | 🔲 |
+| 3.1 Tienda Local (furniture + economía) | 🔶 Furniture Fase 1 (data + grid + placement API) ✅, falta building mode + economía + persistencia |
 | 3.2 Mercado Online | 🔲 |
 
 Detalle por feature en [[MoriMonchiVault/02 - Genetics & Breeding|02]], [[MoriMonchiVault/03 - Combat|03]], [[MoriMonchiVault/06 - Player & World|06]]. Pendientes en [[MoriMonchiVault/08 - Known Bugs & Checkpoints|08]].
@@ -128,6 +130,7 @@ Detalle por feature en [[MoriMonchiVault/02 - Genetics & Breeding|02]], [[MoriMo
 | [[MoriMonchiVault/07 - Persistence & Identity\|07 - Persistence & Identity]] | SaveSystem, registry, scoped saves, GameEvents detallado |
 | [[MoriMonchiVault/08 - Known Bugs & Checkpoints\|08 - Known Bugs & Checkpoints]] | Bugs activos + checkpoints futuros |
 | [[MoriMonchiVault/09 - Active Context\|09 - Active Context]] | **Qué se está tocando AHORA** (actualizar cada sesión) |
+| [[MoriMonchiVault/10 - Furniture & Building\|10 - Furniture & Building]] | Grid de placement, FurnitureService/Spawner, building mode, economía/tienda |
 
 > **Convención**: cuando empieces una sesión nueva, lee primero `09 - Active Context` para ver el estado y luego los archivos relevantes a la tarea. Actualiza `09 - Active Context` al cerrar.
 

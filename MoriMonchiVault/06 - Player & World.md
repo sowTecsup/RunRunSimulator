@@ -71,7 +71,7 @@ Conmuta de estado escuchando `UIManager.OnUIFocusChanged(bool)` (true cuando hay
 | Cargando | **Click (Attack)** | Lanzar |
 
 - Raycast genérico: `TryFindInView<T>` busca `T` (interface o clase) en el collider O en su `attachedRigidbody`. Lo usan grab (`IThrowable`) e interact (`IInteractable`).
-- **Throw**: la fuerza va **directo sobre `cameraTransform.forward`** (respeta el pitch siempre — mirar arriba lanza arriba). Un `throwUpwardBias` (0–1, default 0.15) agrega un leve arco para que un tiro horizontal no salga completamente plano. `throwAimDistance` fue eliminado.
+- **Throw — converge a la mira**: el objeto flota en el `holdAnchor` (que está al costado), así que lanzar sobre `cameraTransform.forward` desde ahí saldría paralelo y nunca llegaría a la mira. En su lugar se lanza **desde el `holdAnchor` HACIA el punto que mira la cámara**: un raycast `throwAimDistance` (default 30 m) al centro de pantalla → ese hit (o el punto a 30 m si no pega nada) es el `aimPoint`; el objeto sostenido se ignora vía `IsChildOf`. `throwUpwardBias` (0–1, default 0.15) mezcla un leve arco. (Esta iteración **reintrodujo** `throwAimDistance`.)
 
 ## Mundo — MoriMonchis vivos
 
@@ -79,45 +79,65 @@ Convierte criaturas del registro (data) en cubos vivos en la escena. Tres script
 
 ### MoriMochiSpawner — bridge data→escena
 
-- Escucha `GameEvents.OnRegistryChanged` (incremental: las mismas instancias de DNA se mutan in-place → los agents vivos siguen válidos) y `OnRegistryReloaded` (cloud pull/reset reemplaza los objetos DNA → rebuild completo).
+- Escucha `GameEvents.OnRegistryChanged` (incremental: las mismas instancias de DNA se mutan in-place → los agents vivos siguen válidos) y `OnRegistryReloaded` (cloud pull/reset reemplaza los objetos DNA → rebuild completo). Suscribe/desuscribe en `OnEnable`/`OnDisable`.
 - **Por ahora spawnea TODA criatura viva**; despawnea las muertas o removidas. (Futuro: zonas por estado — cola de combate, incubadora física.)
-- Coloca cada cubo en el NavMesh cerca de un `spawnArea`; si la personalidad confina a un área, samplea dentro de esa `areaMask`.
+- **Spawn sesgado a "casa"**: `ResolveSpawnPosition` samplea un punto cerca del `spawnArea` con `areaMask = 1<<PreferredArea` → la criatura **arranca** en su área preferida. Fallback a `AllAreas` si esa área no es alcanzable. El sesgo es solo en el spawn; después se mueve libre (ver agent), no es una jaula.
 - Resuelve prefab + assets de `GameManager.Instance` (registry, `PersonalityProfiles`). `Initialize(dna, table, player)` cablea cada agent.
-- Botón **Respawn All** (DEV).
+- Botón **Respawn All** (DEV, solo Play).
 
 ### MoriMochiAgent (implementa `IThrowable`) — el cerebro
 
 - `NavMeshAgent` + **state machine** `Idle / Roaming / Reacting / Held / Recovering`, **sesgada por la personalidad** (lee el `PersonalityProfile` resuelto — NUNCA hace `switch` por `Personality`).
-- **Roaming**: samplea un punto aleatorio en `RoamRadius`, camina, a veces idlea (`IdleChance`). **Confinamiento real** por `NavMeshAgent.areaMask` (la criatura solo pisa polígonos de su `WorldArea` si `ConfineToArea`).
-- **Reacción por proximidad**: si el player entra en `ProximityRadius`, interrumpe su comportamiento y reacciona según personalidad (`Flee`/`Approach`/`Follow`/`Retreat`; `Ignore` no reacciona). Al alejarse (con histéresis ×1.25) vuelve a su estado anterior. El "follow" emerge de la personalidad, no es un comando.
+- **Movimiento libre, preferencia ≠ confinamiento**: `agent.areaMask = NavMesh.AllAreas` siempre. En `EnterRoaming`, con probabilidad `AreaPreference` el punto de roam apunta al `PreferredArea` (`TryGetPreferredPoint`), si no, a un punto random en `RoamRadius`. **`ConfineToArea` fue ELIMINADO** — ya no hay jaula por `areaMask`.
+- **Reacción por proximidad**: si el player entra en `ProximityRadius`, interrumpe y reacciona según personalidad (`Flee`/`Approach`/`Follow`/`Retreat`; `Ignore` no reacciona). Al alejarse (histéresis ×1.25) vuelve al estado anterior. El "follow" emerge de la personalidad, no es un comando.
+- **Tint por personalidad**: `ApplyTint(profile.Tint)` en `Initialize` vía `MaterialPropertyBlock` (setea `_BaseColor` URP + `_Color` built-in) → **sin clonar material, sin fuga**. El mesh vive en el hijo `Model` (el root NO tiene mesh): `bodyRenderer` serializado, fallback a `transform.Find("Model")`.
+- **Gizmos** (solo Play, ya inicializado el profile): `DrawWireSphere` de ProximityRadius/RoamRadius/FollowDistance + esfera con el Tint + línea al destino. Sin `Handles` → compila en build.
 
-### Handoff NavMesh⇄Throwable (la tensión técnica real)
+### Vuelo: bounce + knock + settle (100% por código)
+
+> Decisión firme: **NADA de PhysicMaterials**. Todo el rebote/frenado se calcula en el script.
+
+- **Rebote tipo peluche** (`OnCollisionEnter`, solo en vuelo): `lastVelocity` se captura cada `FixedUpdate` mientras vuela (la `rb.velocity` post-impacto ya viene alterada por la respuesta de contacto). En el choque refleja `Vector3.Reflect(lastVelocity, normal) * bounciness`, hasta `maxBounces` veces, + torque random (`bounceSpin`) para que lea como peluche. Impactos < `minBounceSpeed` no cuentan (evita micro-rebotes infinitos). El frenado lo dan `thrownLinear/AngularDamping` del Rigidbody.
+- **Knock / ragdoll en cadena**: `IThrowable.Knock(Vector3)` se agregó al contrato. Un MoriMochi en vuelo que choca a OTRO `IThrowable` lo manda a volar (handoff NavMesh→física + impulso `knockTransfer`, con `knockUpBias` de pop vertical) → reacción en cadena. Un objeto en mano ignora el Knock.
+- **Settle robusto** (`TickHeld`): solo asienta cuando está lento **Y** `IsGrounded()` (raycast hacia abajo ignorando su propio collider) — velocidad baja en pleno rebote o resbalando por un borde no cuenta. Red de seguridad: `maxThrownTime` (default 6 s) lo recupera sí o sí aunque siga deslizando.
+
+### Handoff NavMesh⇄Throwable + levantarse
 
 Normalmente `NavMeshAgent` activo + `Rigidbody` kinematic.
 
-- Al agarrar (`OnGrab`): agent off, rb dinámico, sigue el anchor por velocidad (igual feel que `ThrowableObject`).
-- Al lanzar (`OnThrow`): impulso físico.
-- Al asentarse (velocidad < `settleSpeed` por `settleDelay`): entra en **`Recovering`** (no reanuda inmediatamente).
-  - `BeginGetUp()`: hace `NavMesh.SamplePosition` → `agent.Warp`, apaga `agent.updateRotation`, calcula la rotación objetivo (yaw conservado, pitch a 0) y entra en `Recovering`.
-  - `TickRecovering()`: espera `downedDelay` (aturdido inmóvil, default 0.6 s), luego `Slerp` suave a vertical durante `getUpDuration` (default 0.5 s). Al terminar: `EnterRoaming()` restaura `agent.updateRotation = true`.
+- **Grab** (`OnGrab`): agent off, rb dinámico (sin gravedad), persigue el `holdAnchor` por velocidad (`followSpeed`) en `FixedUpdate`.
+- **Throw/Release** (`OnThrow`/`OnRelease`): rb con gravedad + damping, impulso, resetea `bounceCount`/timers. Queda en `Held` hasta asentar.
+- **Knock**: igual que un throw pero disparado por otro throwable (ver arriba).
+- **Levantarse natural** (`BeginGetUp` → `Recovering`): al asentar, `NavMesh.SamplePosition` → `agent.Warp` (si no puede reengancharse, sigue caído y reintenta), apaga `agent.updateRotation`. `downedDelay`/`getUpDuration` se **escalan por `RecoverySpeed`** (lazy = groggy, skittish = salta) **+ `getUpJitter`** random (mismos arquetipos no se levantan en sync). `TickRecovering` espera el daze y luego `Slerp` a vertical (yaw conservado, pitch a 0). Al terminar → `EnterRoaming` (restaura `updateRotation`).
 
-⚠️ **El cubo de la criatura usa `MoriMochiAgent`, NO `ThrowableObject`** (el agent ya implementa `IThrowable`; el player lo agarra/lanza por el mismo contrato).
+⚠️ **El cubo de la criatura usa `MoriMochiAgent`, NO `ThrowableObject`** (el agent ya implementa `IThrowable`; el player lo agarra/lanza/knockea por el mismo contrato).
+
+### Feel-ready (juice sin acoplar código)
+
+- 5 `UnityEvent` en el agent: `onGrab` / `onThrow` / `onBounce` / `onLand` / `onGetUp`. Disparan ya (compila sin Feel instalado).
+- Feel **ya está instalado** (`Assets/Feel`). Plantilla: poner un `MMF_Player` en el prefab y cablear su `PlayFeedbacks()` al `UnityEvent` correspondiente **en el inspector** — cero acoplamiento de código. Es el patrón que todo script con "juice visual" futuro debe seguir.
+- **Estructura del prefab**: root `MoriMochi Agent` (sin mesh; NavMeshAgent+Rigidbody+Collider+MoriMochiAgent+NameTag) → hijos `Model` (mesh, lo tiñe `bodyRenderer`) y `Feedbacks` (los `MMF_Player`).
 
 ### PersonalityProfileSO — tuning data-driven
 
 SO singleton (`Current`), `Dictionary<Personality, PersonalityProfile>` `[OdinSerialize]`. Botón **Populate Defaults** llena las 6.
 
-**Campos de `PersonalityProfile`**: `MoveSpeed`, `IdleChance`, `IdleMin/Max`, `RoamRadius`, `ProximityRadius`, `Reaction`, `FollowDistance`, `PreferredArea` (`WorldArea`), `ConfineToArea`.
+**Campos de `PersonalityProfile`**: `MoveSpeed`, `IdleChance`, `IdleMin/Max`, `RoamRadius`, `ProximityRadius`, `Reaction`, `FollowDistance`, `PreferredArea` (`WorldArea`), **`AreaPreference`** (0–1: prob. de que el roam apunte a la preferida; reemplaza a `ConfineToArea`), **`RecoverySpeed`** (ritmo de levantarse: >1 más rápido), **`Tint`** (color del cuerpo por personalidad).
 
 **Mapeo por defecto:**
 
-| Personality | Área | Reaction |
-|-------------|------|----------|
-| Social / Curious / Aggressive | ShopFrontDesk | Follow / Approach / Approach |
-| Lazy | ShopBackroom | Ignore |
-| Skittish / Grumpy | Storage | Flee / Retreat |
+| Personality | Área preferida | Reaction | AreaPref |
+|-------------|----------------|----------|----------|
+| Skittish | Storage | Flee | 0.80 |
+| Aggressive | ShopFrontDesk | Approach | 0.60 |
+| Lazy | ShopBackroom | Ignore | 0.70 |
+| Curious | ShopBackroom | Approach | 0.20 |
+| Social | ShopFrontDesk | Follow | 0.50 |
+| Grumpy | Storage | Retreat | 0.75 |
 
 Es el **endpoint reservado** para que la personalidad importe a futuro (combate, breeding) sin tocar el enum ni esparcir switches.
+
+> ⚠️ El `.asset` de `PersonalityProfileTable` que ya exista en disco tiene campos `ConfineToArea` viejos → **re-pulsar Populate Defaults** para migrarlo a `AreaPreference`/`RecoverySpeed`/`Tint`.
 
 ### NameTag
 

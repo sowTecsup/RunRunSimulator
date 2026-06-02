@@ -1,0 +1,178 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5a871ab223a60e4ab48a06f40d5c3ba, type: 3}
+  m_Name: New Furniture Registry SO
+  m_EditorClassIdentifier: Assembly-CSharp::FurnitureRegistrySO
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: placed
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[PlacedFurniture,
+        Assembly-CSharp]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.GenericEqualityComparer`1[[System.String,
+        mscorlib]], mscorlib
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 5
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 0_0
+    - Name: $v
+      Entry: 7
+      Data: 2|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F0
+    - Name: CellX
+      Entry: 3
+      Data: 0
+    - Name: CellY
+      Entry: 3
+      Data: 0
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 1_0
+    - Name: $v
+      Entry: 7
+      Data: 3|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F0
+    - Name: CellX
+      Entry: 3
+      Data: 1
+    - Name: CellY
+      Entry: 3
+      Data: 0
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 2_0
+    - Name: $v
+      Entry: 7
+      Data: 4|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F0
+    - Name: CellX
+      Entry: 3
+      Data: 2
+    - Name: CellY
+      Entry: 3
+      Data: 0
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 2_1
+    - Name: $v
+      Entry: 7
+      Data: 5|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F0
+    - Name: CellX
+      Entry: 3
+      Data: 2
+    - Name: CellY
+      Entry: 3
+      Data: 1
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 2_2
+    - Name: $v
+      Entry: 7
+      Data: 6|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F0
+    - Name: CellX
+      Entry: 3
+      Data: 2
+    - Name: CellY
+      Entry: 3
+      Data: 2
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
