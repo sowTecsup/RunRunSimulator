@@ -38,6 +38,33 @@ public class CreatureRegistrySO : SerializedScriptableObject
 
     [Button("Sync from JSON", ButtonSizes.Large), GUIColor(0.5f, 0.85f, 1f)]
     private void SyncFromJson() => SaveSystem.LoadInto(this);
+
+    // Reasigna una Personality aleatoria a cada MoriMochi del registro y guarda el JSON
+    // local. NO sube a la nube: dispara RegistryReloaded (UI-only, sin push) para refrescar
+    // la escena, y deja la subida en tus manos → pulsá "Push to Cloud" en CloudSyncService.
+    [Button("Randomize Personalities (current)", ButtonSizes.Large), GUIColor(1f, 0.8f, 0.4f)]
+    [PropertyTooltip("Personality aleatoria para cada criatura. Guarda JSON local + refresca escena. Subí con 'Push to Cloud' (CloudSyncService).")]
+    private void RandomizePersonalities()
+    {
+        if (creatures.Count == 0)
+        {
+            Debug.LogWarning("[CreatureRegistrySO] No hay criaturas para randomizar.");
+            return;
+        }
+
+        var values = (Personality[])System.Enum.GetValues(typeof(Personality));
+        foreach (var dna in creatures.Values)
+            dna.Personality = values[UnityEngine.Random.Range(0, values.Length)];
+
+        MarkDirty();
+        SaveSystem.SaveDatabase(this);                 // persiste local (scoped al usuario logueado en Play)
+
+        if (Application.isPlaying)
+            GameEvents.RegistryReloaded(this);         // re-spawnea con nuevos colores/rangos, SIN push
+
+        Debug.Log($"[CreatureRegistrySO] {creatures.Count} personalidades randomizadas. " +
+                  "Pulsá 'Push to Cloud' en CloudSyncService para subir a Cloud Save.");
+    }
 #endif
 
     // ── Public Methods ────────────────────────────────────────────

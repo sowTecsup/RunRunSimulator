@@ -52,34 +52,55 @@ MonoBehaviour:
       Data: 2|PersonalityProfile, Assembly-CSharp
     - Name: MoveSpeed
       Entry: 4
-      Data: 2.5
+      Data: 3.6
     - Name: IdleChance
       Entry: 4
-      Data: 0.3
+      Data: 0.35
     - Name: IdleMin
       Entry: 4
-      Data: 0.5
+      Data: 0.4
     - Name: IdleMax
       Entry: 4
-      Data: 1.5
+      Data: 1.4
     - Name: RoamRadius
       Entry: 4
-      Data: 4
+      Data: 6
     - Name: ProximityRadius
       Entry: 4
-      Data: 6
+      Data: 9
     - Name: Reaction
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: FollowDistance
       Entry: 4
-      Data: 2
+      Data: 5
     - Name: PreferredArea
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: ConfineToArea
       Entry: 5
-      Data: false
+      Data: true
+    - Name: RecoverySpeed
+      Entry: 4
+      Data: 1.8
+    - Name: Tint
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.55
+    - Name: 
+      Entry: 4
+      Data: 0.85
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -97,34 +118,55 @@ MonoBehaviour:
       Data: 3|PersonalityProfile, Assembly-CSharp
     - Name: MoveSpeed
       Entry: 4
-      Data: 2.5
+      Data: 2.6
     - Name: IdleChance
       Entry: 4
-      Data: 0.3
+      Data: 0.25
     - Name: IdleMin
       Entry: 4
-      Data: 0.5
+      Data: 0.6
     - Name: IdleMax
       Entry: 4
-      Data: 1.5
+      Data: 1.6
     - Name: RoamRadius
       Entry: 4
       Data: 4
     - Name: ProximityRadius
       Entry: 4
-      Data: 6
+      Data: 7
     - Name: Reaction
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: FollowDistance
       Entry: 4
-      Data: 2
+      Data: 1.5
     - Name: PreferredArea
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: ConfineToArea
       Entry: 5
-      Data: false
+      Data: true
+    - Name: RecoverySpeed
+      Entry: 4
+      Data: 1.4
+    - Name: Tint
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 0.3
+    - Name: 
+      Entry: 4
+      Data: 0.25
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -142,34 +184,55 @@ MonoBehaviour:
       Data: 4|PersonalityProfile, Assembly-CSharp
     - Name: MoveSpeed
       Entry: 4
-      Data: 2.5
+      Data: 1.1
     - Name: IdleChance
       Entry: 4
-      Data: 0.3
+      Data: 0.8
     - Name: IdleMin
       Entry: 4
-      Data: 0.5
+      Data: 2
     - Name: IdleMax
       Entry: 4
-      Data: 1.5
+      Data: 3
     - Name: RoamRadius
       Entry: 4
-      Data: 4
+      Data: 5
     - Name: ProximityRadius
       Entry: 4
-      Data: 6
+      Data: 4
     - Name: Reaction
       Entry: 3
       Data: 0
     - Name: FollowDistance
       Entry: 4
-      Data: 2
+      Data: 3
     - Name: PreferredArea
       Entry: 3
       Data: 1
     - Name: ConfineToArea
       Entry: 5
-      Data: false
+      Data: true
+    - Name: RecoverySpeed
+      Entry: 4
+      Data: 0.5
+    - Name: Tint
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.8
+    - Name: 
+      Entry: 4
+      Data: 0.75
+    - Name: 
+      Entry: 4
+      Data: 0.3
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -187,25 +250,25 @@ MonoBehaviour:
       Data: 5|PersonalityProfile, Assembly-CSharp
     - Name: MoveSpeed
       Entry: 4
-      Data: 2.5
+      Data: 2.4
     - Name: IdleChance
       Entry: 4
-      Data: 0.3
+      Data: 0.2
     - Name: IdleMin
       Entry: 4
-      Data: 0.5
+      Data: 0.8
     - Name: IdleMax
       Entry: 4
-      Data: 1.5
+      Data: 1.8
     - Name: RoamRadius
       Entry: 4
-      Data: 4
+      Data: 8
     - Name: ProximityRadius
       Entry: 4
-      Data: 6
+      Data: 9
     - Name: Reaction
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: FollowDistance
       Entry: 4
       Data: 2
@@ -215,6 +278,27 @@ MonoBehaviour:
     - Name: ConfineToArea
       Entry: 5
       Data: false
+    - Name: RecoverySpeed
+      Entry: 4
+      Data: 1.2
+    - Name: Tint
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 0.9
+    - Name: 
+      Entry: 4
+      Data: 0.5
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -232,34 +316,55 @@ MonoBehaviour:
       Data: 6|PersonalityProfile, Assembly-CSharp
     - Name: MoveSpeed
       Entry: 4
-      Data: 2.5
+      Data: 2.8
     - Name: IdleChance
       Entry: 4
-      Data: 0.3
+      Data: 0.25
     - Name: IdleMin
       Entry: 4
-      Data: 0.5
+      Data: 0.7
     - Name: IdleMax
       Entry: 4
-      Data: 1.5
+      Data: 1.7
     - Name: RoamRadius
       Entry: 4
       Data: 4
     - Name: ProximityRadius
       Entry: 4
-      Data: 6
+      Data: 9
     - Name: Reaction
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: FollowDistance
       Entry: 4
-      Data: 2
+      Data: 2.2
     - Name: PreferredArea
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: ConfineToArea
       Entry: 5
-      Data: false
+      Data: true
+    - Name: RecoverySpeed
+      Entry: 4
+      Data: 1.3
+    - Name: Tint
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 0.5
+    - Name: 
+      Entry: 4
+      Data: 0.85
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -277,34 +382,55 @@ MonoBehaviour:
       Data: 7|PersonalityProfile, Assembly-CSharp
     - Name: MoveSpeed
       Entry: 4
-      Data: 2.5
+      Data: 1.8
     - Name: IdleChance
       Entry: 4
-      Data: 0.3
+      Data: 0.55
     - Name: IdleMin
       Entry: 4
-      Data: 0.5
+      Data: 1.5
     - Name: IdleMax
       Entry: 4
-      Data: 1.5
+      Data: 2.5
     - Name: RoamRadius
       Entry: 4
-      Data: 4
+      Data: 3
     - Name: ProximityRadius
       Entry: 4
       Data: 6
     - Name: Reaction
       Entry: 3
-      Data: 0
+      Data: 4
     - Name: FollowDistance
       Entry: 4
-      Data: 2
+      Data: 4
     - Name: PreferredArea
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: ConfineToArea
       Entry: 5
-      Data: false
+      Data: true
+    - Name: RecoverySpeed
+      Entry: 4
+      Data: 0.8
+    - Name: Tint
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.55
+    - Name: 
+      Entry: 4
+      Data: 0.45
+    - Name: 
+      Entry: 4
+      Data: 0.7
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 

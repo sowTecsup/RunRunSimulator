@@ -76,6 +76,15 @@ public enum PlayerStateType
     None      = 0,  // Uninitialized
     Exploring = 1,  // Normal first-person control
     Menu      = 2,  // A UI panel is focused — player control suspended
+    Building  = 3,  // Construction mode — places/removes furniture (Building action map)
+}
+
+// Groups furniture in the shop catalog. Extend as new kinds are added.
+public enum FurnitureCategory
+{
+    Decoration = 0,
+    Display    = 1,
+    Functional = 2,
 }
 
 // Behavioral archetype of a MoriMochi. Assigned RANDOMLY at mint/hatch (NOT

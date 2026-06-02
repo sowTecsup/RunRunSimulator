@@ -46,4 +46,9 @@ public interface IThrowable
 
     // Player threw it: hands physics back and applies an impulse.
     void OnThrow(Vector3 force);
+
+    // Hit by ANOTHER throwable (not the player): go dynamic if needed and fly with
+    // the given impulse. Lets thrown objects knock each other ragdoll-style. A held
+    // object ignores this (it's in the player's hand).
+    void Knock(Vector3 force);
 }

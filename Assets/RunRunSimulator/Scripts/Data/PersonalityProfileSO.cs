@@ -32,12 +32,12 @@ public class PersonalityProfileSO : SerializedScriptableObject
     {
         profiles = new Dictionary<Personality, PersonalityProfile>
         {
-            { Personality.Skittish,   Make(3.6f, 0.35f, 0.4f, 6f, 9f, ProximityReaction.Flee,     5.0f, WorldArea.Storage,       true)  },
-            { Personality.Aggressive, Make(2.6f, 0.25f, 0.6f, 4f, 7f, ProximityReaction.Approach, 1.5f, WorldArea.ShopFrontDesk, true)  },
-            { Personality.Lazy,       Make(1.1f, 0.80f, 2.0f, 5f, 4f, ProximityReaction.Ignore,   3.0f, WorldArea.ShopBackroom,  true)  },
-            { Personality.Curious,    Make(2.4f, 0.20f, 0.8f, 8f, 9f, ProximityReaction.Approach, 2.0f, WorldArea.ShopBackroom,  false) },
-            { Personality.Social,     Make(2.8f, 0.25f, 0.7f, 4f, 9f, ProximityReaction.Follow,   2.2f, WorldArea.ShopFrontDesk, true)  },
-            { Personality.Grumpy,     Make(1.8f, 0.55f, 1.5f, 3f, 6f, ProximityReaction.Retreat,  4.0f, WorldArea.Storage,       true)  },
+            { Personality.Skittish,   Make(3.6f, 0.35f, 0.4f, 6f, 9f, ProximityReaction.Flee,     5.0f, WorldArea.Storage,       0.80f, 1.8f, new Color(0.55f, 0.85f, 1.00f)) },
+            { Personality.Aggressive, Make(2.6f, 0.25f, 0.6f, 4f, 7f, ProximityReaction.Approach, 1.5f, WorldArea.ShopFrontDesk, 0.60f, 1.4f, new Color(1.00f, 0.30f, 0.25f)) },
+            { Personality.Lazy,       Make(1.1f, 0.80f, 2.0f, 5f, 4f, ProximityReaction.Ignore,   3.0f, WorldArea.ShopBackroom,  0.70f, 0.5f, new Color(0.80f, 0.75f, 0.30f)) },
+            { Personality.Curious,    Make(2.4f, 0.20f, 0.8f, 8f, 9f, ProximityReaction.Approach, 2.0f, WorldArea.ShopBackroom,  0.20f, 1.2f, new Color(0.40f, 0.90f, 0.50f)) },
+            { Personality.Social,     Make(2.8f, 0.25f, 0.7f, 4f, 9f, ProximityReaction.Follow,   2.2f, WorldArea.ShopFrontDesk, 0.50f, 1.3f, new Color(1.00f, 0.50f, 0.85f)) },
+            { Personality.Grumpy,     Make(1.8f, 0.55f, 1.5f, 3f, 6f, ProximityReaction.Retreat,  4.0f, WorldArea.Storage,       0.75f, 0.8f, new Color(0.55f, 0.45f, 0.70f)) },
         };
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
@@ -47,7 +47,7 @@ public class PersonalityProfileSO : SerializedScriptableObject
     private static PersonalityProfile Make(
         float moveSpeed, float idleChance, float idleSeconds, float roamRadius,
         float proximityRadius, ProximityReaction reaction, float followDistance,
-        WorldArea area, bool confine) => new PersonalityProfile
+        WorldArea area, float areaPreference, float recoverySpeed, Color tint) => new PersonalityProfile
     {
         MoveSpeed       = moveSpeed,
         IdleChance      = idleChance,
@@ -58,7 +58,9 @@ public class PersonalityProfileSO : SerializedScriptableObject
         Reaction        = reaction,
         FollowDistance  = followDistance,
         PreferredArea   = area,
-        ConfineToArea   = confine,
+        AreaPreference  = areaPreference,
+        RecoverySpeed   = recoverySpeed,
+        Tint            = tint,
     };
 }
 
@@ -76,7 +78,10 @@ public class PersonalityProfile
     [LabelWidth(150)] public ProximityReaction Reaction        = ProximityReaction.Ignore;
     [LabelWidth(150)] public float             FollowDistance  = 2f;     // stop distance for Approach/Follow
     [LabelWidth(150)] public WorldArea         PreferredArea   = WorldArea.ShopBackroom;
-    [LabelWidth(150)] public bool              ConfineToArea   = false;  // restrict NavMesh areaMask to PreferredArea
+    [LabelWidth(150)] [Range(0f, 1f)]
+    public float                               AreaPreference  = 0.5f;   // odds a roam point heads to PreferredArea (0 = ignores it, fully free; 1 = always homes)
+    [LabelWidth(150)] public float             RecoverySpeed   = 1f;     // get-up pace after a throw (>1 faster, <1 groggier)
+    [LabelWidth(150)] public Color             Tint            = Color.white;  // debug/visible body color per personality
 
     public static PersonalityProfile Neutral() => new PersonalityProfile();
 }

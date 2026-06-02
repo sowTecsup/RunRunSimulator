@@ -118,8 +118,8 @@ public class MoriMochiSpawner : MonoBehaviour
 
     // ── Helpers ───────────────────────────────────────────────────
 
-    // Samples a NavMesh point near the spawn area. If the creature is confined to a
-    // preferred area, sample within that area's mask so it lands on its turf.
+    // Samples a NavMesh point near the spawn area, biased toward the creature's
+    // preferred area so it starts "home" — but it's free to wander off afterwards.
     private Vector3 ResolveSpawnPosition(PersonalityProfileSO table, Personality personality)
     {
         Vector3 origin  = spawnArea != null ? spawnArea.position : transform.position;
@@ -129,12 +129,8 @@ public class MoriMochiSpawner : MonoBehaviour
         int mask = NavMesh.AllAreas;
         if (table != null)
         {
-            var prof = table.GetProfile(personality);
-            if (prof.ConfineToArea)
-            {
-                int idx = NavMesh.GetAreaFromName(prof.PreferredArea.ToString());
-                if (idx >= 0) mask = 1 << idx;
-            }
+            int idx = NavMesh.GetAreaFromName(table.GetProfile(personality).PreferredArea.ToString());
+            if (idx >= 0) mask = 1 << idx;
         }
 
         if (NavMesh.SamplePosition(desired, out var hit, spawnRadius * 3f, mask))

@@ -4483,7 +4483,8 @@ MonoBehaviour:
   grabMask:
     serializedVersion: 2
     m_Bits: 55
-  throwForce: 10
+  throwForce: 20
+  throwUpwardBias: 0.15
   throwAimDistance: 30
 --- !u!43 &1468513530
 Mesh:

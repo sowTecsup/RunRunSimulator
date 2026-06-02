@@ -44,4 +44,15 @@ public static class GameEvents
     public static event Action<CreatureDNA, CreatureDNA, CreatureDNA> OnBreedingCompleted;
     public static void BreedingCompleted(CreatureDNA mother, CreatureDNA father, CreatureDNA child) =>
         OnBreedingCompleted?.Invoke(mother, father, child);
+
+    // ── Furniture ─────────────────────────────────────────────────
+    // Same contract as the creature registry: Changed = gameplay mutation (persist +
+    // UI + world), Reloaded = wholesale replace from an external source (UI/world only,
+    // no persist). The spawner rebuilds meshes from these.
+
+    public static event Action<FurnitureRegistrySO> OnFurnitureChanged;
+    public static void FurnitureChanged(FurnitureRegistrySO registry) => OnFurnitureChanged?.Invoke(registry);
+
+    public static event Action<FurnitureRegistrySO> OnFurnitureReloaded;
+    public static void FurnitureReloaded(FurnitureRegistrySO registry) => OnFurnitureReloaded?.Invoke(registry);
 }

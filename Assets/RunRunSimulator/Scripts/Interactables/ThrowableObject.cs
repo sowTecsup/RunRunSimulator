@@ -41,6 +41,15 @@ public class ThrowableObject : MonoBehaviour, IThrowable
         rb.AddForce(force, ForceMode.Impulse);
     }
 
+    // Knocked by another thrown object. Ignore while held; otherwise it's already a
+    // free dynamic body, so just shove it.
+    public void Knock(Vector3 force)
+    {
+        if (IsHeld) return;
+        rb.useGravity = true;
+        rb.AddForce(force, ForceMode.Impulse);
+    }
+
     private void FixedUpdate()
     {
         if (holdAnchor == null) return;

@@ -34,9 +34,11 @@ public class PlayerController : MonoBehaviour
 
     [Header("Throw")]
     [SerializeField] private float throwForce = 10f;
-    [Tooltip("Extra upward lift blended into the look direction so a level throw still arcs a little. 0 = throw exactly where you look.")]
+    [Tooltip("Extra upward lift blended into the aim direction so a level throw still arcs a little. 0 = throw exactly where you aim.")]
     [Range(0f, 1f)]
     [SerializeField] private float throwUpwardBias = 0.15f;
+    [Tooltip("How far down the camera's look ray we search for the aim point the throw converges on. Hitting geometry closer than this aims there instead.")]
+    [SerializeField] private float throwAimDistance = 30f;
 
     // ── State ─────────────────────────────────────────────────────
 
@@ -44,6 +46,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 moveInput;        // cached from MoveChanged — event carries the data
     private float verticalVelocity;
     private IThrowable held;          // currently grabbed object, or null
+    private Transform  heldTransform; // its transform, so the throw-aim ray can ignore it
 
     // Hold-to-grab tracking (only while free and E is held down).
     private bool  grabbing;
@@ -198,7 +201,8 @@ public class PlayerController : MonoBehaviour
         {
             Debug.Log("[PlayerController] Hold complete + throwable found → grabbing.");
             throwable.OnGrab(holdAnchor);
-            held = throwable;
+            held          = throwable;
+            heldTransform = (throwable as Component)?.transform;
         }
         else
         {
@@ -210,25 +214,37 @@ public class PlayerController : MonoBehaviour
     {
         if (held == null) return;
         held.OnRelease();
-        held = null;
+        held          = null;
+        heldTransform = null;
     }
 
     private void OnThrow()
     {
         if (state != PlayerStateType.Exploring) return;
-        Debug.Log($"[PlayerController] ThrowPressed received. Currently holding: {held != null}");
-
         if (held == null) { Debug.Log("[PlayerController] Nothing held — nothing to throw."); return; }
         if (cameraTransform == null) { Debug.LogWarning("[PlayerController] camera not assigned — cannot throw."); return; }
 
-        // Throw straight along the look direction so the throw follows the camera
-        // pitch: look up → it flies up. The upward bias just turns a level look into
-        // a gentle arc so things don't fly dead flat.
-        Vector3 dir = (cameraTransform.forward + Vector3.up * throwUpwardBias).normalized;
+        // The object floats at the hold anchor, which sits a bit off-center. Throwing
+        // along camera.forward from there flies parallel and never reaches the aim.
+        // Instead aim from the anchor TOWARD where the camera looks, so it converges
+        // on the screen center / whatever the crosshair is over.
+        Vector3 aimPoint = cameraTransform.position + cameraTransform.forward * throwAimDistance;
+        var hits = Physics.RaycastAll(cameraTransform.position, cameraTransform.forward,
+                                      throwAimDistance, grabMask, QueryTriggerInteraction.Ignore);
+        float nearest = float.MaxValue;
+        foreach (var h in hits)
+        {
+            if (heldTransform != null && h.collider.transform.IsChildOf(heldTransform)) continue; // skip the held object
+            if (h.distance < nearest) { nearest = h.distance; aimPoint = h.point; }
+        }
 
-        Debug.Log($"[PlayerController] Throwing dir {dir} (look pitch respected).");
+        Vector3 origin = holdAnchor != null ? holdAnchor.position : cameraTransform.position;
+        Vector3 dir    = ((aimPoint - origin).normalized + Vector3.up * throwUpwardBias).normalized;
+
+        Debug.Log($"[PlayerController] Throwing toward aim {aimPoint} dir {dir}.");
         held.OnThrow(dir * throwForce);
-        held = null;
+        held          = null;
+        heldTransform = null;
     }
 
     // Raycasts from the camera for a component of type T (interface or class).
