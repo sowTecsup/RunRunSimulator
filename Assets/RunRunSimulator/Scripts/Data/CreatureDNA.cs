@@ -59,6 +59,12 @@ public class CreatureDNA
     // ── Mortality ─────────────────────────────────────────────────
     public bool IsDead = false;
 
+    // ── Runtime needs (World) ─────────────────────────────────────
+    // Mutable wellbeing (health/energy/affect) the MoriMochiAgent ticks while spawned. Lives here
+    // because CreatureDNA is already the persisted save record (like CombatHistory/BusyState) — so
+    // it rides the local + Cloud Save with zero extra plumbing. NOT part of the genetic string.
+    public NeedsState Needs = new NeedsState();
+
     // ── Busy state ────────────────────────────────────────────────
     public BusyReason BusyState = BusyReason.None;
     public bool IsBusy => BusyState != BusyReason.None;

@@ -23,8 +23,8 @@ using UnityEngine.Events;
 public class MoriMochiAgent : MonoBehaviour, IThrowable
 {
     // Carried = in the player's hand; Thrown = ragdoll in flight after a release/throw/knock.
-    // (These two used to be a single "Held" disambiguated by bools — splitting them is the refactor.)
-    private enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering }
+    // SeekingNeed = pathing to a NeedStation; UsingStation = stopped, consuming it.
+    private enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation }
 
     // ── Tuning (Odin tabs) ────────────────────────────────────────
     // Grouped to mirror the two concerns this component juggles — the NavMesh "brain"
@@ -42,6 +42,41 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [Tooltip("NavMesh Area that breeding pens paint their floor with. Free agents EXCLUDE it (so they route around every pen); a penned creature is RESTRICTED to it. Pick the exact Area from Navigation → Areas.")]
     [ValueDropdown(nameof(EditorNavMeshAreaNames))]
     [SerializeField] private string breedingAreaName = "BreedingRoom";
+
+    // ── Needs (decay + thresholds) ──
+    [TabGroup("Tuning", "Needs"), Title("Decay per second (only while spawned)")]
+    [Tooltip("Health lost per second — passive hunger.")]
+    [SerializeField, Min(0f)] private float healthDecayPerSecond = 0.5f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Energy lost per second WHILE MOVING (active life).")]
+    [SerializeField, Min(0f)] private float energyDecayPerSecond = 1f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Affect lost per second — drifts toward stress (negative) when neglected.")]
+    [SerializeField, Min(0f)] private float affectDecayPerSecond = 0.5f;
+
+    [TabGroup("Tuning", "Needs"), Title("Critical thresholds (seek a station, else degrade)")]
+    [Tooltip("Health at/below this → seek a Feeder.")]
+    [SerializeField, Range(0f, 100f)] private float criticalHealth = 25f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Energy at/below this → seek a RestZone (and walk slower if none exists).")]
+    [SerializeField, Range(0f, 100f)] private float criticalEnergy = 25f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Affect AT OR BELOW this → stressed: seek a PlayZone (and flee the player if none).")]
+    [SerializeField, Range(-100f, 100f)] private float criticalAffect = -75f;
+
+    [TabGroup("Tuning", "Needs"), Title("Stress events (affect penalties)")]
+    [Tooltip("Affect lost each time the player throws or knocks it.")]
+    [SerializeField, Min(0f)] private float affectOnThrow = 8f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Affect lost on a hard collision (impact speed ≥ threshold).")]
+    [SerializeField, Min(0f)] private float affectOnHardCollision = 5f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Impact speed (m/s) at/above which a collision counts as 'hard' for stress.")]
+    [SerializeField, Min(0f)] private float hardImpactThreshold = 4f;
+
+    [TabGroup("Tuning", "Needs"), Title("Degraded behavior (no station available)")]
+    [Tooltip("Speed multiplier while energy is critical.")]
+    [SerializeField, Range(0.1f, 1f)] private float degradedSpeedMultiplier = 0.5f;
 
     // ── Physics (throwable layer) ──
     [TabGroup("Tuning", "Physics"), Title("Hold feel (while carried)")]
@@ -148,6 +183,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private int freeAreaMask;       // AllAreas minus BreedingRoom — the normal roaming mask
     private int confinedAreaMask;   // only BreedingRoom — applied while penned
 
+    // Need-seeking: the station reserved while SeekingNeed/UsingStation (released on arrival-full,
+    // grab, or any transition out). activeReaction = the reaction in play this Reacting beat (lets
+    // stress force a Flee over the personality's default).
+    private NeedStation       reservedStation;
+    private ProximityReaction activeReaction;
+
     // Get-up animation (Recovering): lerp from the tumbled pose back to upright.
     // Effective timings are per-throw (personality scale + jitter), cached at BeginGetUp.
     private float      recoverTimer;
@@ -213,13 +254,16 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
     private void Update()
     {
+        TickNeeds(Time.deltaTime);
         switch (state)
         {
-            case AgentState.Idle:       TickIdle();       break;
-            case AgentState.Roaming:    TickRoaming();    break;
-            case AgentState.Reacting:   TickReacting();   break;
-            case AgentState.Thrown:     TickThrown();     break;
-            case AgentState.Recovering: TickRecovering(); break;
+            case AgentState.Idle:         TickIdle();         break;
+            case AgentState.Roaming:      TickRoaming();      break;
+            case AgentState.Reacting:     TickReacting();     break;
+            case AgentState.Thrown:       TickThrown();       break;
+            case AgentState.Recovering:   TickRecovering();   break;
+            case AgentState.SeekingNeed:  TickSeekingNeed();  break;
+            case AgentState.UsingStation: TickUsingStation(); break;
             // Carried: nothing to tick — the carry-follow runs in FixedUpdate.
         }
     }
@@ -244,6 +288,9 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
         float impact = lastVelocity.magnitude;
         if (impact < minBounceSpeed) return;
+
+        // A hard knock is stressful.
+        if (impact >= hardImpactThreshold) dna?.Needs.AddAffect(-affectOnHardCollision);
 
         // Hit another throwable → knock it flying away from us, with an upward pop.
         var other = collision.collider.GetComponentInParent<IThrowable>();
@@ -276,11 +323,13 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         if (state == AgentState.Carried) return;   // in the player's hand — don't yank it out
         if (currentContainer != null) return;      // penned: tackle-proof — only the player can take it out
 
+        ReleaseStation();           // interrupt any need-seeking/using cleanly
         DetachToPhysics();
         ApplyThrownPhysics();
         holdAnchor = null;
         state      = AgentState.Thrown;
 
+        dna?.Needs.AddAffect(-affectOnThrow);   // being slammed around is stressful
         rb.AddForce(force, ForceMode.Impulse);
         onThrow?.Invoke();          // reuse the throw juice for the knock
     }
@@ -289,6 +338,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
     private void TickIdle()
     {
+        if (TryEnterNeedSeeking()) return;
         if (ReactIfPlayerNear()) return;
 
         idleTimer += Time.deltaTime;
@@ -297,6 +347,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
     private void TickRoaming()
     {
+        if (TryEnterNeedSeeking()) return;
         if (ReactIfPlayerNear()) return;
 
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.1f)
@@ -327,7 +378,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         Vector3 toPlayer = (player.position - self); toPlayer.y = 0f;
         Vector3 dirAway  = (-toPlayer).normalized;
 
-        switch (profile.Reaction)
+        switch (activeReaction)
         {
             case ProximityReaction.Flee:
                 SetDestinationSafe(self + dirAway * profile.RoamRadius * 1.5f);
@@ -342,6 +393,94 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
                 SetDestinationSafe(stop);
                 break;
         }
+    }
+
+    // ── Needs (decay + seeking) ───────────────────────────────────
+
+    // Per-frame need decay. Runs only here → non-spawned creatures (registry only) don't decay.
+    // Pure in-memory mutation of the shared DNA object: NO GameEvents, so it never pushes to Cloud
+    // Save per frame (anti-saturation — see NeedsState/GameManager). Energy drains only while moving.
+    private void TickNeeds(float dt)
+    {
+        if (profile == null || dna == null) return;
+
+        dna.Needs.AddHealth(-healthDecayPerSecond * dt);
+        dna.Needs.AddAffect(-affectDecayPerSecond * dt);
+        if (IsMoving) dna.Needs.AddEnergy(-energyDecayPerSecond * dt);
+
+        ApplyDegradedSpeed();   // crawl when out of energy (degraded behavior if no RestZone)
+    }
+
+    private bool IsMoving =>
+        agent != null && agent.enabled && agent.isOnNavMesh && !agent.isStopped &&
+        agent.velocity.sqrMagnitude > 0.01f;
+
+    // If a need is critical, reserve the closest available station and head there (SeekingNeed).
+    // Returns true if it took over this frame. No station free → returns false and the agent keeps
+    // roaming DEGRADED (slower / fleeing — handled in TickNeeds + ReactIfPlayerNear).
+    private bool TryEnterNeedSeeking()
+    {
+        if (currentContainer != null) return false;        // penned creatures can't wander to stations
+        if (!TryGetCriticalNeed(out var need)) return false;
+
+        var station = NeedStationRegistry.GetClosest(transform.position, need);
+        if (station == null || !station.TryReserve(this)) return false;
+
+        reservedStation      = station;
+        state                = AgentState.SeekingNeed;
+        agent.updateRotation = true;
+        SetStopped(false);
+        SetDestinationSafe(station.UsePosition);
+        return true;
+    }
+
+    // Most urgent unmet need (priority Health > Energy > Affect). False if all are fine.
+    private bool TryGetCriticalNeed(out NeedType need)
+    {
+        if (dna.Needs.Health <= criticalHealth) { need = NeedType.Health; return true; }
+        if (dna.Needs.Energy <= criticalEnergy) { need = NeedType.Energy; return true; }
+        if (dna.Needs.Affect <= criticalAffect) { need = NeedType.Affect; return true; }
+        need = NeedType.Health;
+        return false;
+    }
+
+    private void TickSeekingNeed()
+    {
+        if (reservedStation == null) { EnterRoaming(); return; }   // station vanished / stolen → re-plan
+
+        if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.2f)
+        {
+            SetStopped(true);                 // arrived → hold position and start consuming
+            state = AgentState.UsingStation;
+        }
+    }
+
+    private void TickUsingStation()
+    {
+        if (reservedStation == null) { EnterRoaming(); return; }
+
+        if (reservedStation.Refill(dna.Needs, Time.deltaTime))
+            EnterRoaming();                   // full → EnterRoaming releases the station + unstops
+    }
+
+    // Drops the reserved station (if any). Called on every transition out of seeking/using.
+    private void ReleaseStation()
+    {
+        if (reservedStation == null) return;
+        reservedStation.Release(this);
+        reservedStation = null;
+    }
+
+    // isStopped throws if the agent isn't on a NavMesh — guard it.
+    private void SetStopped(bool stopped)
+    {
+        if (agent.enabled && agent.isOnNavMesh) agent.isStopped = stopped;
+    }
+
+    // Degraded movement: crawl when energy is critical (no RestZone pulled it into SeekingNeed).
+    private void ApplyDegradedSpeed()
+    {
+        agent.speed = profile.MoveSpeed * (dna.Needs.Energy <= criticalEnergy ? degradedSpeedMultiplier : 1f);
     }
 
     private void TickThrown()
@@ -382,8 +521,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
     private void EnterRoaming()
     {
+        ReleaseStation();                   // leaving any need-seeking/using cleanly
         state = AgentState.Roaming;
         agent.updateRotation = true;        // hand rotation back to the agent (Recovering turns it off)
+        SetStopped(false);
         SetDestinationSafe(NextRoamDestination());
     }
 
@@ -421,9 +562,15 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     // cares. Returns true if it took over this frame.
     private bool ReactIfPlayerNear()
     {
-        if (profile.Reaction == ProximityReaction.Ignore || player == null) return false;
+        if (player == null) return false;
+
+        // Stressed (no PlayZone got it out of here) → flee the player regardless of personality.
+        bool stressed = dna != null && dna.Needs.Affect <= criticalAffect;
+        var reaction  = stressed ? ProximityReaction.Flee : profile.Reaction;
+        if (reaction == ProximityReaction.Ignore) return false;
         if (PlanarDistanceToPlayer() > profile.ProximityRadius) return false;
 
+        activeReaction   = reaction;
         stateBeforeReact = state == AgentState.Idle ? AgentState.Idle : AgentState.Roaming;
         state            = AgentState.Reacting;
         repathTimer      = 0f;
@@ -434,6 +581,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
     public void OnGrab(Transform anchor)
     {
+        ReleaseStation();   // grabbing mid-need interrupts SeekingNeed/UsingStation cleanly
+
         // Lifting a penned creature is the only way out: drop it from the pen's census and hand
         // its areaMask back to free, so wherever it's next thrown it roams normally again.
         if (currentContainer != null)
@@ -467,6 +616,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     {
         OnRelease();
         rb.AddForce(force, ForceMode.Impulse);
+        dna?.Needs.AddAffect(-affectOnThrow);   // being thrown around is stressful
         onThrow?.Invoke();
     }
 

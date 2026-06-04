@@ -87,6 +87,15 @@ public enum FurnitureCategory
     Functional = 2,
 }
 
+// The three needs a MoriMochi satisfies at world NeedStations (Feeder / RestZone / PlayZone),
+// mapped 1:1 to the fields in NeedsState.
+public enum NeedType
+{
+    Health = 0,  // hunger / wellbeing — Feeder
+    Energy = 1,  // rest               — RestZone
+    Affect = 2,  // affection / anti-stress — PlayZone
+}
+
 // Behavioral archetype of a MoriMochi. Assigned RANDOMLY at mint/hatch (NOT
 // inherited, NOT part of the genetic string — it's metadata like Gender) and
 // stored in CreatureDNA. Drives world movement and how it reacts to the player.

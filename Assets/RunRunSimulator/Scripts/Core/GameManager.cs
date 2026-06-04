@@ -93,7 +93,15 @@ public class GameManager : MonoBehaviour
     }
 
     // Load is triggered by CloudSyncService.OnSignedInComplete (scoped per-player)
-    private void OnApplicationQuit() => SaveSystem.SaveDatabase(creatureRegistry);
+    private void OnApplicationQuit() => FlushToCloud();
+
+    // Minimize / send-to-background — the reliable "I'm leaving" signal on mobile. We flush here
+    // (and on quit/logout/explicit save) instead of on every stat change, so runtime needs don't
+    // saturate Cloud Save with per-frame micro-updates.
+    private void OnApplicationPause(bool paused)
+    {
+        if (paused) FlushToCloud();
+    }
 
     // ── Private Methods ───────────────────────────────────────────
 
@@ -159,6 +167,14 @@ public class GameManager : MonoBehaviour
     public void PushToCloud()
     {
         if (cloudSync != null) _ = cloudSync.PushAsync();
+    }
+
+    // Local save + best-effort cloud push. The single place to call on quit / pause / logout / an
+    // explicit "save game". Runtime needs ride this flush rather than firing RegistryChanged per tick.
+    public void FlushToCloud()
+    {
+        SaveSystem.SaveDatabase(creatureRegistry);
+        PushToCloud();
     }
 
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]

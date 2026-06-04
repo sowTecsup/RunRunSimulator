@@ -27,6 +27,9 @@ public class AsyncBreedingService : MonoBehaviour
     private CreatureDatabaseSO     database;
     private InheritanceOddsTableSO inheritanceOdds;
 
+    [Tooltip("Energy each parent spends when breeding starts (NeedsState).")]
+    [SerializeField, Min(0f)] private float energyCostPerParent = 20f;
+
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private string status = "Idle";
 
@@ -75,6 +78,8 @@ public class AsyncBreedingService : MonoBehaviour
             // Mark both parents busy + cache readyAt locally for display.
             mother.BusyState    = BusyReason.Breeding;
             father.BusyState    = BusyReason.Breeding;
+            mother.Needs.SpendEnergy(energyCostPerParent);   // breeding tires both parents
+            father.Needs.SpendEnergy(energyCostPerParent);
             mother.BreedReadyAt = response.ReadyAt;
             father.BreedReadyAt = response.ReadyAt;
             mother.BreedPartnerID = fatherID;

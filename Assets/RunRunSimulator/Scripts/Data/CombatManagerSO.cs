@@ -20,4 +20,8 @@ public class CombatManagerSO : SerializedScriptableObject
     [Title("Safety")]
     [LabelWidth(160)] public int MaxRounds    = 50;
     [LabelWidth(160)] public int MaxFightCount = 5;
+
+    [Title("Needs")]
+    [InfoBox("Energía que gasta un MoriMochi al encolarse para combate (NeedsState).")]
+    [LabelWidth(160)] public float EnergyCostToQueue = 15f;
 }

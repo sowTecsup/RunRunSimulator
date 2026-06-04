@@ -66,6 +66,8 @@ public class AsyncCombatService : MonoBehaviour
         }
 
         dna.BusyState = BusyReason.QueuedForCombat;
+        if (CombatManagerSO.Current != null)
+            dna.Needs.SpendEnergy(CombatManagerSO.Current.EnergyCostToQueue);   // queueing tires it
         inFlightEnqueues.Add(dna.UniqueID);
         GameEvents.RegistryChanged(registry);
 
