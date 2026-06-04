@@ -74,6 +74,7 @@ FurnitureService  ──TryPlace/TryRemove──►  FurnitureRegistrySO  (verda
 - `TryLift(cell, out def, out rot)`: "levanta" la pieza (remove + devuelve def/rot) para que el build mode la re-coloque tras editar o la descarte al borrar. Simétrico con `TryPlace` (dispara `FurnitureChanged` → el mesh despawnea).
 - `Snap90(deg)` normaliza ángulos a 90° en [0,270]. Botones Odin de test: **Place / Remove / Clear All** (usan la pieza seleccionada).
 - **`TryPlace`/`TryRemove`/`TryLift` son LA API que maneja el Building mode**; el shop (Fase 3) se construye encima.
+- **Rebake de NavMesh** (`navSurface` `NavMeshSurface`): botón Odin **Rebake NavMesh** + **auto-rebake** tras la carga inicial (`Start`) y tras `OnFurnitureReloaded`, **diferido a fin de frame** (`WaitForEndOfFrame` + flag de coalesce) para esperar a que el `FurnitureSpawner` termine de instanciar las mallas (ambos reaccionan al mismo evento; el orden entre suscriptores no está garantizado). Necesario para que el piso pintado de un **corral** (`BreedingRoom`, ver [[06 - Player & World]]) entre al NavMesh. Colocar en build mode dispara `OnFurnitureChanged` (no Reloaded) → **no** rebakea solo: tras poner un corral, usar el botón.
 
 ### `FurnitureSpawner` — meshes (event-driven)
 - Suscribe `OnFurnitureChanged` / `OnFurnitureReloaded` en `OnEnable`, desuscribe en `OnDisable` (regla #9).
@@ -112,7 +113,7 @@ El runtime coloca el **pivote raíz** del prefab en el centro del footprint y **
 1. Prefab del mueble: Root vacío (= pivote) → Model (mesh, layer **Furniture**, con Collider). Bakeá el pivote con `FurniturePivotAligner` (centro-base) y borrá el helper.
 2. Assets: **Furniture Definition** (footprint, prefab) → **Furniture Database**: arrastrá las defs al **Bulk Add** → **Populate from Buffer** (o **Validate & Sync IDs**); **Furniture Registry**.
 3. GameObject con `PlacementGrid` (sobre el piso; el piso en layer **Floor** con collider).
-4. GameObject con `FurnitureSpawner` + `FurnitureService` (asignar grid/database/registry + la lista **Active Pieces** del hotbar).
+4. GameObject con `FurnitureSpawner` + `FurnitureService` (asignar grid/database/registry + la lista **Active Pieces** del hotbar + **`navSurface`** = la `NavMeshSurface` principal, para el rebake de corrales).
 
 **Build mode:**
 5. GameObject con `BuildingInputs` + `BuildModeController`. Asignar: `service`, `grid`, `aimTransform` (cámara FP), **`floorMask` = Floor**, **`furnitureMask` = Furniture**, `ghostMaterial` (URP/Lit Transparent).

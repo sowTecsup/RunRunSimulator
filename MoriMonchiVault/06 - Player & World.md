@@ -87,11 +87,12 @@ Convierte criaturas del registro (data) en cubos vivos en la escena. Tres script
 
 ### MoriMochiAgent (implementa `IThrowable`) — el cerebro
 
-- `NavMeshAgent` + **state machine** `Idle / Roaming / Reacting / Held / Recovering`, **sesgada por la personalidad** (lee el `PersonalityProfile` resuelto — NUNCA hace `switch` por `Personality`).
-- **Movimiento libre, preferencia ≠ confinamiento**: `agent.areaMask = NavMesh.AllAreas` siempre. En `EnterRoaming`, con probabilidad `AreaPreference` el punto de roam apunta al `PreferredArea` (`TryGetPreferredPoint`), si no, a un punto random en `RoamRadius`. **`ConfineToArea` fue ELIMINADO** — ya no hay jaula por `areaMask`.
+- `NavMeshAgent` + **state machine** `Idle / Roaming / Reacting / Carried / Thrown / Recovering`, **sesgada por la personalidad** (lee el `PersonalityProfile` resuelto — NUNCA hace `switch` por `Personality`). **`Carried`** = en la mano del player; **`Thrown`** = ragdoll en vuelo (antes ambos eran un solo `Held` desambiguado con bools — el refactor los separó: `IsAirborne => state==Thrown`, `IsHeld => state==Carried`).
+- **Movimiento libre, preferencia ≠ confinamiento**: por defecto `agent.areaMask = AllAreas & ~(1<<BreedingRoom)` (los libres rodean los corrales; ver Corral abajo). En `EnterRoaming` el destino lo decide **`NextRoamDestination()`**: confinado → punto dentro de los bounds del corral; libre → con prob. `AreaPreference` apunta al `PreferredArea` (`TryGetPreferredPoint`), si no, random en `RoamRadius`. **`ConfineToArea` (la vieja jaula por personalidad) sigue ELIMINADO** — el único confinamiento por `areaMask` es el del corral.
 - **Reacción por proximidad**: si el player entra en `ProximityRadius`, interrumpe y reacciona según personalidad (`Flee`/`Approach`/`Follow`/`Retreat`; `Ignore` no reacciona). Al alejarse (histéresis ×1.25) vuelve al estado anterior. El "follow" emerge de la personalidad, no es un comando.
 - **Tint por personalidad**: `ApplyTint(profile.Tint)` en `Initialize` vía `MaterialPropertyBlock` (setea `_BaseColor` URP + `_Color` built-in) → **sin clonar material, sin fuga**. El mesh vive en el hijo `Model` (el root NO tiene mesh): `bodyRenderer` serializado, fallback a `transform.Find("Model")`.
 - **Gizmos** (solo Play, ya inicializado el profile): `DrawWireSphere` de ProximityRadius/RoamRadius/FollowDistance + esfera con el Tint + línea al destino. Sin `Handles` → compila en build.
+- **Inspector (Odin)**: tuning agrupado en tabs `Movement` (NavMesh) / `Physics` (throwable) / `Presentation` (visuals + Feedbacks), vía `[TabGroup]` + `[Title]`.
 
 ### Vuelo: bounce + knock + settle (100% por código)
 
@@ -99,16 +100,16 @@ Convierte criaturas del registro (data) en cubos vivos en la escena. Tres script
 
 - **Rebote tipo peluche** (`OnCollisionEnter`, solo en vuelo): `lastVelocity` se captura cada `FixedUpdate` mientras vuela (la `rb.velocity` post-impacto ya viene alterada por la respuesta de contacto). En el choque refleja `Vector3.Reflect(lastVelocity, normal) * bounciness`, hasta `maxBounces` veces, + torque random (`bounceSpin`) para que lea como peluche. Impactos < `minBounceSpeed` no cuentan (evita micro-rebotes infinitos). El frenado lo dan `thrownLinear/AngularDamping` del Rigidbody.
 - **Knock / ragdoll en cadena**: `IThrowable.Knock(Vector3)` se agregó al contrato. Un MoriMochi en vuelo que choca a OTRO `IThrowable` lo manda a volar (handoff NavMesh→física + impulso `knockTransfer`, con `knockUpBias` de pop vertical) → reacción en cadena. Un objeto en mano ignora el Knock.
-- **Settle robusto** (`TickHeld`): solo asienta cuando está lento **Y** `IsGrounded()` (raycast hacia abajo ignorando su propio collider) — velocidad baja en pleno rebote o resbalando por un borde no cuenta. Red de seguridad: `maxThrownTime` (default 6 s) lo recupera sí o sí aunque siga deslizando.
+- **Settle robusto** (`TickThrown`): solo asienta cuando está lento **Y** `IsGrounded()` (raycast hacia abajo ignorando su propio collider) — velocidad baja en pleno rebote o resbalando por un borde no cuenta. Red de seguridad: `maxThrownTime` (default 6 s) lo recupera sí o sí aunque siga deslizando.
 
 ### Handoff NavMesh⇄Throwable + levantarse
 
-Normalmente `NavMeshAgent` activo + `Rigidbody` kinematic.
+Normalmente `NavMeshAgent` activo + `Rigidbody` kinematic. El toggle se centraliza en 3 helpers (refactor): **`DetachToPhysics()`** (agent off + rb dinámico), **`ApplyThrownPhysics()`** (gravedad + damping + reset de `bounceCount`/timers) y **`RejoinNavMesh(desired, mask)`** (kinematic + agent on + `SamplePosition`+`Warp`+`ResetPath`, devuelve bool de éxito).
 
-- **Grab** (`OnGrab`): agent off, rb dinámico (sin gravedad), persigue el `holdAnchor` por velocidad (`followSpeed`) en `FixedUpdate`.
-- **Throw/Release** (`OnThrow`/`OnRelease`): rb con gravedad + damping, impulso, resetea `bounceCount`/timers. Queda en `Held` hasta asentar.
-- **Knock**: igual que un throw pero disparado por otro throwable (ver arriba).
-- **Levantarse natural** (`BeginGetUp` → `Recovering`): al asentar, `NavMesh.SamplePosition` → `agent.Warp` (si no puede reengancharse, sigue caído y reintenta), apaga `agent.updateRotation`. `downedDelay`/`getUpDuration` se **escalan por `RecoverySpeed`** (lazy = groggy, skittish = salta) **+ `getUpJitter`** random (mismos arquetipos no se levantan en sync). `TickRecovering` espera el daze y luego `Slerp` a vertical (yaw conservado, pitch a 0). Al terminar → `EnterRoaming` (restaura `updateRotation`).
+- **Grab** (`OnGrab` → `Carried`): `DetachToPhysics()` + sin gravedad, persigue el `holdAnchor` por velocidad (`followSpeed`) en `FixedUpdate`.
+- **Throw/Release** (`OnThrow`/`OnRelease` → `Thrown`): `ApplyThrownPhysics()` + impulso. Queda en `Thrown` hasta asentar.
+- **Knock** (`Thrown`): `DetachToPhysics()` + `ApplyThrownPhysics()` + impulso, disparado por otro throwable. Ignorado si está `Carried` o confinado en un corral.
+- **Levantarse natural** (`BeginGetUp` → `Recovering`): usa `RejoinNavMesh(posición actual, areaMask)`; si no puede reengancharse vuelve a `Thrown` y reintenta. Apaga `agent.updateRotation`. `downedDelay`/`getUpDuration` se **escalan por `RecoverySpeed`** (lazy = groggy, skittish = salta) **+ `getUpJitter`** random. `TickRecovering` espera el daze y `Slerp` a vertical (yaw conservado) → al terminar `EnterRoaming` (restaura `updateRotation`).
 
 ⚠️ **El cubo de la criatura usa `MoriMochiAgent`, NO `ThrowableObject`** (el agent ya implementa `IThrowable`; el player lo agarra/lanza/knockea por el mismo contrato).
 
@@ -149,55 +150,42 @@ Es el **endpoint reservado** para que la personalidad importe a futuro (combate,
 
 - Crear en **Navigation → Areas** tres áreas con nombre EXACTO: `ShopFrontDesk`, `ShopBackroom`, `Storage` (sin espacios — `WorldArea.ToString()` debe matchear; `NavMesh.GetAreaFromName`).
 - Requiere el package **AI Navigation** (`NavMeshSurface` para hornear). El runtime solo usa `UnityEngine.AI` (core).
+- **`BreedingRoom`**: Area type adicional para los corrales (ver Corral abajo). Los agentes libres lo **excluyen** de su `areaMask`; los confinados quedan **restringidos** a él. No va en el enum `WorldArea` (se resuelve por el campo `breedingAreaName` del agente).
 
-### Corral de confinamiento (DISEÑO — sin implementar)
+### Corral de confinamiento (breeding pen) — IMPLEMENTADO ✅
 
-> Base para el **corral de breeding** futuro. Por ahora **solo confinamiento**: un mueble donde tiro hasta N MoriMonchis y quedan caminando confinados; salen solo si yo los sujeto. La lógica de breeding (juntar 2 → cría) llega después y recién ahí se enganchará a `GameEvents`.
+> Base para el **breeding pen** futuro. Hoy: un mueble donde tiro hasta `capacity` MoriMonchis y quedan caminando confinados; salen **solo si yo los sujeto**. La lógica de breeding (juntar 2 → cría) llega después y recién ahí se enganchará a `GameEvents`. Archivos: `MoriMochiContainer.cs` (World/) + cambios en `MoriMochiAgent`.
 
-**Es furniture, reúso total.** El corral es un `FurnitureDefinitionSO` con `Footprint = 2x2` y su `Price`, comprado/colocado por el sistema de furniture existente. El **prefab** lleva el componente `MoriMochiContainer` + un `BoxCollider` **trigger**. **`FurnitureService` / `FurnitureSpawner` / grid / `FurnitureRegistry` NO se tocan** — un corral es solo un prefab de furniture con componentes extra.
+**Es furniture, reúso total.** El corral es un `FurnitureDefinitionSO` (`Footprint = 2x2`) cuyo **prefab** lleva `MoriMochiContainer` + un `BoxCollider` **trigger** + un `NavMeshModifier` que pinta su piso con el Area type `BreedingRoom`. `FurnitureService`/`FurnitureSpawner`/grid/`FurnitureRegistry` **no cambian** por el corral (es solo un prefab con componentes extra).
 
-**Flujo confirmado (independiente de A/B de abajo):**
+#### Mecanismo: área pintada + `areaMask` (una sola superficie)
 
-- **Entrada = solo lanzado.** El `BoxCollider` trigger del corral → `OnTriggerEnter` dispara para cualquier MoriMochi (el `Rigidbody` kinemático del agent igual genera trigger events). Ramas:
-  - es ocupante mío → ignorar (es el de adentro, no un intruso).
-  - `agent.IsAirborne` (lanzado, en ragdoll) → intento de entrada: con cupo → **admitir** (guardo ref + lo paso a modo confinado); lleno → `agent.Knock(arriba+afuera)` → **rebote del aforo** (reusa el `Knock`/bounce que ya existe).
-  - caminando (kinemático, no ocupante) → **intruso** → `agent.AvoidArea(bounds)` ("el evento adentro del morimonchi" que lo hace re-rutear lejos).
-- **Aforo configurable**: `[MinValue(1)] capacity` en el inspector (default 2).
-- **Censo**: lista `occupants` (cada agent expone `DNA` → el corral sabe *quiénes*, no solo cuántos).
-- **Salida = solo el jugador al sujetarlo**: `OnGrab` → si confinado, `pen.Release(this)` (sale del censo, vuelve a libre). Al tirarlo a otro lado, `BeginGetUp` lo re-engancha al NavMesh global normal.
+Se descartaron las propuestas A/B y el volume/carve. **Una superficie continua**: el `NavMeshModifier` del corral pinta su footprint como `BreedingRoom`; al colocar el mueble se **rebakea** (puntual; botón + auto-rebake en `FurnitureService`, ver [[10 - Furniture & Building]]). La exclusión y el confinamiento son por **`areaMask` por agente** (NO por costo: `SamplePosition` ignora el costo → no fencea):
+- **Libres**: `agent.areaMask = AllAreas & ~(1<<BreedingRoom)` (en `Initialize`) → el piso del corral es intransitable, ni se samplea ahí → rodean **todos** los corrales.
+- **Confinados**: `areaMask = 1<<BreedingRoom` → no salen caminando. **Múltiples corrales** coexisten con **un solo** Area type: el mask los mantiene fuera del piso normal y el roam-por-bounds los ata a SU corral (aunque dos pisos de breeding se toquen).
 
-**Requiere exponer en `MoriMochiAgent`**: `IsAirborne` (= `state==Held && !heldByPlayer && !rb.isKinematic`) — única forma limpia de distinguir "lo tiraron" de "se metió caminando".
+`breedingAreaName` es un **campo serializado** en `MoriMochiAgent` (dropdown Odin `[ValueDropdown]` con los nombres reales de Navigation → Areas). Se resuelve con `NavMesh.GetAreaFromName`; si da -1 (área sin crear) degrada a `AllAreas`. **No** hace falta sumarlo al enum `WorldArea`.
 
-#### DECISIÓN (2026-06-03): área `BreedingRoom` pintada + `areaMask` por agente (rebake al colocar)
+#### `MoriMochiContainer` (World/)
 
-Se descartan A y B previas (y el volume/carve). **Una sola superficie continua**: el corral lleva un **`NavMeshModifier` que pinta su footprint como el Area type `BreedingRoom`** (set area, NO remove) + un **`BoxCollider`** trigger. Al colocarse/mover el corral → **rebake** (puntual, asumible) para que el piso quede pintado. La exclusión y el confinamiento se hacen con **`areaMask` por agente**, no con costo ni con paredes.
+- **Aforo**: `[Min(1)] capacity` (default 2). **Censo**: `occupants`; expone `Occupants`, `IsFull`, `Center`, `InteriorBounds`, y `OccupantDNAs` (`[ShowInInspector, ReadOnly]` → se ven en runtime; para breeding/UI futuro).
+- **Entrada por trigger**: `OnTriggerEnter` admite solo si `agent.IsAirborne` (lanzado, ragdoll). Con cupo → `Admit`; lleno → `BounceOut` (`agent.Knock` arriba+afuera). `OnTriggerStay` atrapa el caso de **soltar adentro** (ya estaba dentro → no hay Enter); en Stay nunca rebota.
+- `Admit` registra al ocupante **solo si `agent.EnterConfinement(this)` devuelve true** (evita ocupante fantasma si el piso no está bakeado).
+- **Salida**: solo el jugador → el `OnGrab` del agente llama `pen.Release(this)`.
 
-**Flujo:**
-- **Entrada** (lanzado, `IsAirborne`, en el trigger): con cupo → **teleport al centro del área** (`agent.Warp(center)`) + se corta el ragdoll + se pone confinado.
-- **Confinado**: el agent **sigue siendo NavMeshAgent** con **`areaMask = 1<<BreedingRoom`** (solo puede pisar breeding → no sale caminando). Los puntos de roam se samplean **dentro de los bounds del `BoxCollider`** (`NavMesh.SamplePosition`) para que se quede en SU corral. El `PreferredArea` de personalidad queda override-eado mientras esté confinado.
-- **Lleno**: `agent.Knock(...)` → expulsión **hacia arriba o reflejando la dirección del lanzamiento**.
-- **Salida**: solo el jugador al sujetarlo (`OnGrab` → `pen.Release(this)` → `areaMask` vuelve a libre).
+#### Lado `MoriMochiAgent`
 
-> ⚠️ **Costo NO fencea — el gate es `areaMask`.** El costo de área es preferencia blanda: el pathfinding solo evita un área cara si hay alternativa, nunca la vuelve intransitable, y **`SamplePosition` ignora el costo**. Como el roam elige un punto random y lo samplea, un libre con destino dentro del BreedingRoom **entraría igual**. La solución dura:
-> - **Libres**: `agent.areaMask = AllAreas & ~(1<<BreedingRoom)` (reemplaza el `AllAreas` actual en `Initialize`) → para ellos el piso del corral es intransitable, ni se samplea ahí, lo rodean solos.
-> - **Confinados**: `areaMask = 1<<BreedingRoom` → no pueden salir.
-> `SetAreaCost` opcional solo como pulido (que los que pasan cerca rodeen más prolijo), no como gate.
+- `IsAirborne => state == Thrown` (distingue "lo tiraron" de "se metió caminando" — un libre ni puede entrar por el mask).
+- `EnterConfinement(pen)` → `bool`: `RejoinNavMesh(pen.Center, confinedAreaMask)` (teleport al centro + corta ragdoll). Si el piso no está pintado+bakeado, **no confina** (warning, vuelve a físicas) → no se registra ocupante (ni se llama `ResetPath` off-mesh).
+- Roam confinado: `NextRoamDestination()` samplea dentro de `pen.InteriorBounds`.
+- `OnGrab`: si confinado, `Release` + `areaMask = freeAreaMask` (al tirarlo a otro lado `BeginGetUp` lo re-engancha normal).
+- **Inmune a tackle**: `Knock` hace early-out si `currentContainer != null` → un confinado (kinematic) no es empujado por otros lanzados; actúa como obstáculo sólido. Solo el player lo saca.
 
-> Detalle abierto menor: si `BreedingRoom` será un valor de `WorldArea` (enum, ya que el confinado usa el Area type para el mask) o un Area type aparte. Probablemente convenga sumarlo al enum/Areas. Decidir al implementar.
+**Desacople**: agent ↔ corral = mismo dominio World → refs directas (como `IThrowable`), sin `GameEvents`. **Sin persistencia de ocupantes** (runtime; la colocación del corral ya la persiste `FurnitureRegistry`).
 
-**Código nuevo (acotado):**
+**Setup de escena**: crear Area `BreedingRoom` (Navigation → Areas); prefab del corral con `BoxCollider` (isTrigger ✓) + `MoriMochiContainer` + `NavMeshModifier` (set area = BreedingRoom); rebakear tras colocar. En el prefab del MoriMochi, elegir el área en el dropdown `breedingAreaName`.
 
-| Pieza | Qué |
-|------|-----|
-| `MoriMochiContainer.cs` (NEW, World/) | `BoxCollider` trigger + `NavMeshModifier` (área BreedingRoom), `[MinValue(1)] capacity`, censo `occupants`, `OnTriggerEnter` (admite/rebota), `Release` |
-| `MoriMochiAgent.cs` | + `IsAirborne` (público); `areaMask` libre = `AllAreas & ~(1<<BreedingRoom)` en `Initialize`; `EnterConfinement(pen)` (Warp al centro + corta ragdoll + `areaMask=1<<BreedingRoom`); sampling confinado en `EnterRoaming` (dentro de bounds); hook en `OnGrab` (restaura mask) |
-| `FurnitureSpawner.cs` (?) | disparar el **rebake** de la superficie al spawnear/mover un corral (para que el `NavMeshModifier` pinte el footprint) |
-
-Opcional: `ICreatureReceiver` (drop-a-script estilo `IThrowable`) para que el agent no dependa del concreto.
-
-**Desacople**: agent ↔ corral son **mismo dominio World** → refs directas / interface (como `IThrowable`), no es lookup a singleton de otro sistema. **Sin `GameEvents` ni persistencia de ocupantes todavía** (breeding y compra = futuro; la colocación del corral ya la persiste `FurnitureRegistry`). Edge a resolver al implementar: **levantar/mover un corral ocupado en build mode** → lo más limpio es **bloquear `TryLift` si tiene ocupantes**.
-
-**PARA RETOMAR**: decisión tomada (rebake + `NavMeshSurface`). Falta: setup de escena (carve-out de la superficie principal + surface del corral) y escribir el código de la tabla.
+**Pendiente conocido**: levantar/mover un corral **ocupado** en build mode → bloquear `TryLift` si tiene ocupantes (no implementado).
 
 ### Estado del roadmap
 

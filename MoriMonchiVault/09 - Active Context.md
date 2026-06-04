@@ -8,46 +8,37 @@ tags: [memory-bank, active, session]
 
 ## Sesión actual
 
-**Fecha**: 2026-06-03
-**Foco**: **Diseño del corral de confinamiento** (base del breeding pen futuro). Solo teoría esta sesión — quedaron **dos propuestas (A vs B) documentadas en [[06 - Player & World]]** (sección "Corral de confinamiento — DISEÑO sin implementar"). Nada de código todavía. Sesión previa: Furniture Fase 2 — Building mode (código) + refactor DB furniture + fix CreatureGrid UITK ([[10 - Furniture & Building]]).
+**Fecha**: 2026-06-04
+**Foco**: **Corral de confinamiento IMPLEMENTADO** (base del breeding pen) + **refactor de `MoriMochiAgent`** + **rebake de NavMesh en `FurnitureService`**. Todo consolidado en [[06 - Player & World]] (corral + agente) y [[10 - Furniture & Building]] (rebake). Sesión previa: diseño del corral (propuestas A/B → decisión rebake/areaMask).
 
-### Corral — qué quedó decidido y qué falta decidir
+### Qué se hizo (esta sesión)
 
-- **DECIDIDO (el approach)**: **área `BreedingRoom` pintada + `areaMask` por agente**, una sola superficie + rebake al colocar. El corral lleva `NavMeshModifier` (pinta footprint = Area type BreedingRoom) + `BoxCollider`. Libres: `areaMask = AllAreas & ~(1<<BreedingRoom)` → lo rodean. Confinado: `areaMask = 1<<BreedingRoom` + roam sampleado en bounds → no sale. Entrada lanzado → Warp al centro; lleno → `Knock`; salida solo al sujetarlo.
-- **Corrección clave anotada**: el **costo NO fencea** (`SamplePosition` lo ignora; el roam elige punto random → entrarían igual). El gate es **`areaMask`**. Detalle en [[06 - Player & World]].
-- **FALTA**: setup de escena (Area type BreedingRoom + `NavMeshModifier` en el corral + rebake al colocar) y escribir el código (`MoriMochiContainer` + cambios en `MoriMochiAgent` + hook de rebake en `FurnitureSpawner`).
-
-### Qué se hizo (esta sesión) → todo consolidado en [[10 - Furniture & Building]]
-
-- **Fix CreatureGrid UITK**: `CloudSyncService.OnSignedInComplete` dispara `GameEvents.RegistryReloaded` tras el load local (antes solo lo disparaba el cloud-pull → grilla vacía para jugador local/anon/offline/post-reset).
-- **Refactor DB furniture**: `FurnitureDatabaseSO` → dict `[OdinSerialize]` (la key = id) con inline editor; `FurnitureDefinitionSO.Id` `[ReadOnly]` dictado por la DB; **Validate & Sync IDs** + **Populate from Buffer** (calca `PartDatabaseSO`).
-- **Decisión de modelo**: grilla como base confirmada (libre sobre muebles grandes = fase futura). Memoria: `project_furniture_placement`.
-- **Fase 2 Building mode (código ✅)**: action map `Building` (aditivo), `BuildingInputs` + `BuildModeController` (máquina Browsing/Placing/Editing/Deleting), hotbar 1-4, lift vía `TryLift`, dos máscaras (`floorMask`/`furnitureMask`) + `PlacedFurnitureMarker`, ghost verde/rojo. Edit = **E**.
-- **`FurniturePivotAligner`** (helper de editor removible): bakea el pivote raíz al centro-base; runtime posiciona simple (sin auto-resolver — se probó y se descartó).
+- **Corral (`MoriMochiContainer.cs`, World/)** ✅: mueble furniture 2x2 con `BoxCollider` trigger + `NavMeshModifier` (pinta piso = Area `BreedingRoom`). Aforo `[Min(1)] capacity`, censo `occupants` + `OccupantDNAs` (`[ShowInInspector]`). `OnTriggerEnter` (admite si `IsAirborne` / `BounceOut` con `Knock` si lleno) + `OnTriggerStay` (atrapa al soltar adentro). Solo se sale al sujetar (`Release`).
+- **Confinamiento por `areaMask`** (no por costo — `SamplePosition` lo ignora): libres `AllAreas & ~(1<<BreedingRoom)` (rodean), confinados `1<<BreedingRoom` + roam en bounds. `breedingAreaName` = campo serializado con dropdown Odin de áreas. Varios corrales con un solo Area type.
+- **Inmunidad al tackle**: un confinado ignora `Knock` → no lo empujan otros lanzados.
+- **Refactor `MoriMochiAgent`** (in-place, sin State pattern GoF): `Held` → **`Carried`/`Thrown`** (elimina `heldByPlayer`); 3 helpers de handoff (`DetachToPhysics`/`ApplyThrownPhysics`/`RejoinNavMesh`) que deduplican; `NextRoamDestination`. Comportamiento idéntico. Inspector agrupado en tabs Odin (Movement/Physics/Presentation).
+- **Rebake NavMesh (`FurnitureService`)**: botón Odin + auto-rebake en `Start`/`OnFurnitureReloaded`, diferido a fin de frame. Campo `navSurface`.
 
 ## Próximos pasos (retomar acá la próxima sesión)
 
-**Furniture — siguiente:**
-- **Setup de escena del Build mode** (tuyo): layers Floor/Furniture, asignar `floorMask`/`furnitureMask`, `ghostMaterial` transparente, lista Active Pieces, bakear pivotes con `FurniturePivotAligner`. Pasos en [[10 - Furniture & Building]].
-- Probar place/edit/delete y afinar números (aimDistance, colores).
-- Después: **Fase 3 (economía/tienda)** + **persistencia** (JSON+cloud del `FurnitureRegistrySO`).
-- Pendiente conocido: selección por celda ancla (multi-celda apunta a la esquina); footprint no rectangular (L) = rectángulo contenedor por ahora.
+**Corral / breeding pen:**
+- **Setup de escena** (tuyo): Area `BreedingRoom` en Navigation → Areas; prefab corral (trigger + `MoriMochiContainer` + `NavMeshModifier`); asignar `navSurface` en `FurnitureService`; elegir `breedingAreaName` en el prefab del MoriMochi; rebakear tras colocar. Pasos en [[06 - Player & World]] / [[10 - Furniture & Building]].
+- Pendiente conocido: **bloquear `TryLift` de un corral ocupado** (build mode).
+- Futuro: enganchar **breeding** (juntar 2 → cría, usando `OccupantDNAs`) + persistencia de ocupantes.
 
-**MoriMonchis** (de sesiones previas, sin avance esta sesión)
-- Setup de escena Etapa 2.5 pendiente (NavMesh bake + 3 Areas + prefab + wiring spawner). Pulsar **Populate Defaults** en `PersonalityProfileTable`.
+**Furniture — siguiente:**
+- Setup de escena del Build mode (layers Floor/Furniture, máscaras, ghost, Active Pieces, pivotes). Después: **Fase 3 (economía/tienda)** + persistencia del `FurnitureRegistrySO`.
+
+**MoriMonchis** (sesiones previas)
+- Setup de escena Etapa 2.5 pendiente (NavMesh bake + Areas + prefab + wiring). Pulsar **Populate Defaults** en `PersonalityProfileTable`.
 
 ## Archivos en juego en la sesión actual
 
 | Archivo | Por qué |
 |---------|---------|
-| `Systems/Furniture/BuildModeController.cs` · `Player/BuildingInputs.cs` | Build mode: máquina de estados + input map |
-| `Systems/Furniture/FurnitureService.cs` | Hotbar (`activePieces`/`SelectPiece`) + `TryLift` + `TryPlace(def,…)` |
-| `Systems/Furniture/FurnitureSpawner.cs` · `PlacedFurnitureMarker.cs` | Spawn + marker de celda ancla para selección |
-| `Systems/Furniture/FurniturePivotAligner.cs` | Helper de editor de pivote (removible) |
-| `Data/FurnitureDatabaseSO.cs` · `FurnitureDefinitionSO.cs` | DB dict-keyed + Id `[ReadOnly]` dictado por la DB |
-| `Player/PlayerInputs.cs` · `PlayerController.cs` | `BuildToggled` (B) + estado `Building` |
-| `Systems/Cloud/CloudSyncService.cs` | Fix: `RegistryReloaded` tras el load local |
-| `InputSystem_Actions.inputactions` | Acción Build + action map `Building` |
+| `World/MoriMochiContainer.cs` (NEW) | Corral: trigger, aforo, censo, admit/bounce, `OccupantDNAs` |
+| `World/MoriMochiAgent.cs` | Refactor (Carried/Thrown + helpers) + confinamiento (`EnterConfinement`, `IsAirborne`, `breedingAreaName`, tackle-immune, tabs Odin) |
+| `Systems/Furniture/FurnitureService.cs` | Rebake NavMesh (botón + auto, `navSurface`) |
 
 ## Cómo usar esta nota en sesiones futuras
 

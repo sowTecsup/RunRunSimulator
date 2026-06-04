@@ -22,77 +22,101 @@ using UnityEngine.Events;
 [RequireComponent(typeof(Rigidbody))]
 public class MoriMochiAgent : MonoBehaviour, IThrowable
 {
-    private enum AgentState { Idle, Roaming, Reacting, Held, Recovering }
+    // Carried = in the player's hand; Thrown = ragdoll in flight after a release/throw/knock.
+    // (These two used to be a single "Held" disambiguated by bools — splitting them is the refactor.)
+    private enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering }
 
-    [Header("Visuals")]
-    [Tooltip("Renderer to tint by personality. The root has no mesh — this is the renderer under the 'Model' child. Auto-found if left empty.")]
-    [SerializeField] private Renderer bodyRenderer;
+    // ── Tuning (Odin tabs) ────────────────────────────────────────
+    // Grouped to mirror the two concerns this component juggles — the NavMesh "brain"
+    // (Movement) and the physics/throwable layer (Physics) — plus Presentation.
 
-    [Header("Hold feel (while carried)")]
-    [Tooltip("How snappily the body chases the hold anchor while carried.")]
-    [SerializeField] private float followSpeed = 15f;
-    [Tooltip("Below this speed (and grounded) after a throw, the agent re-joins the NavMesh.")]
-    [SerializeField] private float settleSpeed = 0.15f;
-    [SerializeField] private float settleDelay = 0.4f;
-
-    [Header("Throw physics (after release)")]
-    [Tooltip("Linear drag applied while airborne/sliding after a throw, so it slows to a stop instead of gliding forever.")]
-    [SerializeField] private float thrownLinearDamping = 1.2f;
-    [Tooltip("Angular drag applied after a throw so it stops spinning.")]
-    [SerializeField] private float thrownAngularDamping = 2f;
-    [Tooltip("Extra ray length below the body used to confirm it's resting on the floor before it settles.")]
-    [SerializeField] private float groundCheckDistance = 0.2f;
-    [Tooltip("Safety net: it recovers no matter what this many seconds after a throw, even if still sliding.")]
-    [SerializeField] private float maxThrownTime = 6f;
-
-    [Header("Bounce (plushie throw)")]
-    [Tooltip("Fraction of speed kept on each bounce (0 = dead drop, 1 = no energy loss). Lower settles sooner.")]
-    [Range(0f, 1f)]
-    [SerializeField] private float bounciness = 0.55f;
-    [Tooltip("How many reflections it gets before it's allowed to stop bouncing and settle.")]
-    [SerializeField] private int maxBounces = 3;
-    [Tooltip("Impacts slower than this don't count as a bounce — it just settles (avoids endless micro-bounces).")]
-    [SerializeField] private float minBounceSpeed = 1.5f;
-    [Tooltip("Random tumble added on each bounce so it reads as a soft plushie, not a billiard ball. 0 = none.")]
-    [SerializeField] private float bounceSpin = 4f;
-
-    [Header("Knock (throwable vs throwable)")]
-    [Tooltip("Fraction of impact speed transferred to a creature you slam into. ~1 = full, higher = explosive ragdoll.")]
-    [SerializeField] private float knockTransfer = 1.2f;
-    [Tooltip("Upward pop blended into the knock so the creature you hit launches a bit instead of just sliding.")]
-    [Range(0f, 1f)]
-    [SerializeField] private float knockUpBias = 0.35f;
-
-    [Header("Recovery (after being thrown)")]
-    [Tooltip("Seconds it stays down/dazed where it landed before standing up. Scaled per-personality by RecoverySpeed.")]
-    [SerializeField] private float downedDelay = 0.6f;
-    [Tooltip("How long the get-up takes — it rotates from its tumbled pose back upright before the agent resumes. Scaled per-personality by RecoverySpeed.")]
-    [SerializeField] private float getUpDuration = 0.5f;
-    [Tooltip("Random ±jitter (fraction) on the get-up timing so even same-personality creatures don't rise in lockstep.")]
-    [Range(0f, 0.5f)]
-    [SerializeField] private float getUpJitter = 0.15f;
-
-    [Header("NavMesh sampling")]
+    // ── Movement (NavMesh brain) ──
+    [TabGroup("Tuning", "Movement"), Title("NavMesh sampling")]
     [Tooltip("Max distance to snap a desired point onto the NavMesh.")]
     [SerializeField] private float sampleRadius = 4f;
+    [TabGroup("Tuning", "Movement")]
     [Tooltip("How often (s) Reacting/Roaming recomputes its destination.")]
     [SerializeField] private float repathInterval = 0.35f;
 
-    [Header("Breeding pen confinement")]
+    [TabGroup("Tuning", "Movement"), Title("Breeding pen confinement")]
     [Tooltip("NavMesh Area that breeding pens paint their floor with. Free agents EXCLUDE it (so they route around every pen); a penned creature is RESTRICTED to it. Pick the exact Area from Navigation → Areas.")]
     [ValueDropdown(nameof(EditorNavMeshAreaNames))]
     [SerializeField] private string breedingAreaName = "BreedingRoom";
 
-    // ── Feedbacks (Feel-ready) ────────────────────────────────────
+    // ── Physics (throwable layer) ──
+    [TabGroup("Tuning", "Physics"), Title("Hold feel (while carried)")]
+    [Tooltip("How snappily the body chases the hold anchor while carried.")]
+    [SerializeField] private float followSpeed = 15f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Below this speed (and grounded) after a throw, the agent re-joins the NavMesh.")]
+    [SerializeField] private float settleSpeed = 0.15f;
+    [TabGroup("Tuning", "Physics")]
+    [SerializeField] private float settleDelay = 0.4f;
+
+    [TabGroup("Tuning", "Physics"), Title("Throw physics (after release)")]
+    [Tooltip("Linear drag applied while airborne/sliding after a throw, so it slows to a stop instead of gliding forever.")]
+    [SerializeField] private float thrownLinearDamping = 1.2f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Angular drag applied after a throw so it stops spinning.")]
+    [SerializeField] private float thrownAngularDamping = 2f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Extra ray length below the body used to confirm it's resting on the floor before it settles.")]
+    [SerializeField] private float groundCheckDistance = 0.2f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Safety net: it recovers no matter what this many seconds after a throw, even if still sliding.")]
+    [SerializeField] private float maxThrownTime = 6f;
+
+    [TabGroup("Tuning", "Physics"), Title("Bounce (plushie throw)")]
+    [Tooltip("Fraction of speed kept on each bounce (0 = dead drop, 1 = no energy loss). Lower settles sooner.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float bounciness = 0.55f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("How many reflections it gets before it's allowed to stop bouncing and settle.")]
+    [SerializeField] private int maxBounces = 3;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Impacts slower than this don't count as a bounce — it just settles (avoids endless micro-bounces).")]
+    [SerializeField] private float minBounceSpeed = 1.5f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Random tumble added on each bounce so it reads as a soft plushie, not a billiard ball. 0 = none.")]
+    [SerializeField] private float bounceSpin = 4f;
+
+    [TabGroup("Tuning", "Physics"), Title("Knock (throwable vs throwable)")]
+    [Tooltip("Fraction of impact speed transferred to a creature you slam into. ~1 = full, higher = explosive ragdoll.")]
+    [SerializeField] private float knockTransfer = 1.2f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Upward pop blended into the knock so the creature you hit launches a bit instead of just sliding.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float knockUpBias = 0.35f;
+
+    [TabGroup("Tuning", "Physics"), Title("Recovery (after being thrown)")]
+    [Tooltip("Seconds it stays down/dazed where it landed before standing up. Scaled per-personality by RecoverySpeed.")]
+    [SerializeField] private float downedDelay = 0.6f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("How long the get-up takes — it rotates from its tumbled pose back upright before the agent resumes. Scaled per-personality by RecoverySpeed.")]
+    [SerializeField] private float getUpDuration = 0.5f;
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Random ±jitter (fraction) on the get-up timing so even same-personality creatures don't rise in lockstep.")]
+    [Range(0f, 0.5f)]
+    [SerializeField] private float getUpJitter = 0.15f;
+
+    // ── Presentation (visuals + juice) ──
+    [TabGroup("Tuning", "Presentation"), Title("Visuals")]
+    [Tooltip("Renderer to tint by personality. The root has no mesh — this is the renderer under the 'Model' child. Auto-found if left empty.")]
+    [SerializeField] private Renderer bodyRenderer;
+
     // Juice hook points. They fire UnityEvents now (compiles without Feel installed).
     // When Feel lands: drop an MMF_Player on the prefab and wire its PlayFeedbacks()
     // into the matching event in the inspector — zero code coupling. These are the
     // template every future "has visual juice" script should follow.
-    [Header("Feedbacks (Feel-ready — wire MMF_Player.PlayFeedbacks here)")]
+    [TabGroup("Tuning", "Presentation"), Title("Feedbacks (Feel-ready — wire MMF_Player.PlayFeedbacks here)")]
     [SerializeField] private UnityEvent onGrab;     // player picked it up
+    [TabGroup("Tuning", "Presentation")]
     [SerializeField] private UnityEvent onThrow;    // player threw it
+    [TabGroup("Tuning", "Presentation")]
     [SerializeField] private UnityEvent onBounce;   // each reflection off a surface mid-flight
+    [TabGroup("Tuning", "Presentation")]
     [SerializeField] private UnityEvent onLand;     // settled on the ground (before the get-up beat)
+    [TabGroup("Tuning", "Presentation")]
     [SerializeField] private UnityEvent onGetUp;    // finished standing up, resumes roaming
 
     // ── Injected ──────────────────────────────────────────────────
@@ -107,8 +131,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private Collider     col;
     private AgentState   state = AgentState.Idle;
 
-    private Transform holdAnchor;     // non-null only while carried
-    private bool      heldByPlayer;
+    private Transform holdAnchor;     // non-null only while carried (state == Carried)
     private float     settleTimer;
     private float     thrownTimer;    // time since the last release/throw (drives the safety timeout)
     private Vector3   lastVelocity;   // velocity captured each FixedUpdate while airborne, reflected on impact
@@ -137,10 +160,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     private static readonly int ColorId     = Shader.PropertyToID("_Color");
 
-    public bool IsHeld => heldByPlayer;
+    public bool IsHeld => state == AgentState.Carried;
     // True only while ragdolling after a throw — not while carried, not while NavMesh-driven.
     // A container admits only creatures for which this is true (thrown in), never walk-ins.
-    public bool IsAirborne => state == AgentState.Held && !heldByPlayer && !rb.isKinematic;
+    public bool IsAirborne => state == AgentState.Thrown;
     public CreatureDNA DNA => dna;
 
     // ── Lifecycle ─────────────────────────────────────────────────
@@ -192,22 +215,23 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     {
         switch (state)
         {
-            case AgentState.Held:       TickHeld();       break;
             case AgentState.Idle:       TickIdle();       break;
             case AgentState.Roaming:    TickRoaming();    break;
             case AgentState.Reacting:   TickReacting();   break;
+            case AgentState.Thrown:     TickThrown();     break;
             case AgentState.Recovering: TickRecovering(); break;
+            // Carried: nothing to tick — the carry-follow runs in FixedUpdate.
         }
     }
 
     private void FixedUpdate()
     {
         // Carried: chase the anchor by velocity so it stays a solid physics body.
-        if (heldByPlayer && holdAnchor != null)
+        if (state == AgentState.Carried && holdAnchor != null)
             rb.linearVelocity = (holdAnchor.position - rb.position) * followSpeed;
         // In flight after a throw: remember the pre-impact velocity so OnCollisionEnter
         // can reflect it (rb.velocity there is already mangled by the contact response).
-        else if (state == AgentState.Held && !rb.isKinematic)
+        else if (state == AgentState.Thrown)
             lastVelocity = rb.linearVelocity;
     }
 
@@ -216,7 +240,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     // gameplay collisions (kinematic roaming, held) are ignored.
     private void OnCollisionEnter(Collision collision)
     {
-        if (state != AgentState.Held || heldByPlayer || rb.isKinematic) return;
+        if (state != AgentState.Thrown) return;
 
         float impact = lastVelocity.magnitude;
         if (impact < minBounceSpeed) return;
@@ -249,22 +273,13 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     // ragdolls away and can bounce / chain into others.
     public void Knock(Vector3 force)
     {
-        if (heldByPlayer) return;          // in the player's hand — don't yank it out
-        if (currentContainer != null) return;   // penned: tackle-proof — only the player can take it out
+        if (state == AgentState.Carried) return;   // in the player's hand — don't yank it out
+        if (currentContainer != null) return;      // penned: tackle-proof — only the player can take it out
 
-        if (rb.isKinematic)
-        {
-            if (agent.enabled) agent.enabled = false;
-            rb.isKinematic = false;
-        }
-        rb.useGravity     = true;
-        rb.linearDamping  = thrownLinearDamping;
-        rb.angularDamping = thrownAngularDamping;
-        holdAnchor        = null;
-        state             = AgentState.Held;
-        settleTimer       = 0f;
-        thrownTimer       = 0f;
-        bounceCount       = 0;
+        DetachToPhysics();
+        ApplyThrownPhysics();
+        holdAnchor = null;
+        state      = AgentState.Thrown;
 
         rb.AddForce(force, ForceMode.Impulse);
         onThrow?.Invoke();          // reuse the throw juice for the knock
@@ -329,10 +344,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         }
     }
 
-    private void TickHeld()
+    private void TickThrown()
     {
-        if (heldByPlayer) return;   // still in hand — wait for release/throw
-
         thrownTimer += Time.deltaTime;
 
         // Settle only when it's actually slow AND resting on the floor — a low velocity
@@ -371,18 +384,20 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     {
         state = AgentState.Roaming;
         agent.updateRotation = true;        // hand rotation back to the agent (Recovering turns it off)
+        SetDestinationSafe(NextRoamDestination());
+    }
 
-        // Penned: wander only inside the container's bounds (the breeding-only areaMask keeps it
-        // from pathing out; the bounds keep it in THIS pen even if two pens' floors touch).
-        // Otherwise: mostly wander nearby; with AreaPreference odds, pull toward the preferred area.
-        Vector3 dest;
+    // Where to wander next. Penned: a point inside the pen's bounds (the breeding-only areaMask
+    // keeps it from pathing out; the bounds keep it in THIS pen even if two pens' floors touch).
+    // Free: mostly nearby, but with AreaPreference odds pull toward the preferred area.
+    private Vector3 NextRoamDestination()
+    {
         if (currentContainer != null)
-            dest = RandomPointInBounds(currentContainer.InteriorBounds);
-        else
-            dest = (Random.value < profile.AreaPreference && TryGetPreferredPoint(out var pref))
-                ? pref
-                : transform.position + Random.insideUnitSphere * profile.RoamRadius;
-        SetDestinationSafe(dest);
+            return RandomPointInBounds(currentContainer.InteriorBounds);
+
+        return (Random.value < profile.AreaPreference && TryGetPreferredPoint(out var pref))
+            ? pref
+            : transform.position + Random.insideUnitSphere * profile.RoamRadius;
     }
 
     // Samples a point on the creature's preferred NavMesh area. Fails gracefully if the
@@ -428,32 +443,24 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
             agent.areaMask   = freeAreaMask;
         }
 
-        holdAnchor   = anchor;
-        heldByPlayer = true;
-        state        = AgentState.Held;
-        settleTimer  = 0f;
+        holdAnchor  = anchor;
+        state       = AgentState.Carried;
+        settleTimer = 0f;
 
-        if (agent.enabled) agent.enabled = false;   // stop steering
-        rb.isKinematic       = false;
-        rb.useGravity        = false;               // floats to the hand while held
-        rb.angularVelocity   = Vector3.zero;
-        rb.linearDamping     = 0f;                  // crisp follow while carried
-        rb.angularDamping    = 0.05f;
+        DetachToPhysics();
+        rb.useGravity      = false;          // floats to the hand while held
+        rb.angularVelocity = Vector3.zero;
+        rb.linearDamping   = 0f;             // crisp follow while carried
+        rb.angularDamping  = 0.05f;
 
         onGrab?.Invoke();
     }
 
     public void OnRelease()
     {
-        holdAnchor        = null;
-        heldByPlayer      = false;
-        rb.useGravity     = true;                   // physics owns it until it settles
-        rb.linearDamping  = thrownLinearDamping;    // bleed off momentum so it can't glide forever
-        rb.angularDamping = thrownAngularDamping;
-        settleTimer       = 0f;
-        thrownTimer       = 0f;
-        bounceCount       = 0;
-        // stays in Held state → TickHeld watches for it to settle, then BeginGetUp()
+        holdAnchor = null;
+        state      = AgentState.Thrown;   // TickThrown watches for it to settle, then BeginGetUp()
+        ApplyThrownPhysics();
     }
 
     public void OnThrow(Vector3 force)
@@ -463,6 +470,45 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         onThrow?.Invoke();
     }
 
+    // ── Physics handoff (NavMeshAgent ⇄ Rigidbody) ────────────────
+
+    // Stop NavMesh steering and let physics own the body (carry/throw/knock). Idempotent — safe to
+    // call when already detached. Callers set the gravity/damping for their specific case after.
+    private void DetachToPhysics()
+    {
+        if (agent.enabled) agent.enabled = false;
+        rb.isKinematic = false;
+    }
+
+    // Free-fall physics + reset the flight counters. Shared by throw / release / knock (they differ
+    // only in the impulse applied afterwards).
+    private void ApplyThrownPhysics()
+    {
+        rb.useGravity     = true;
+        rb.linearDamping  = thrownLinearDamping;
+        rb.angularDamping = thrownAngularDamping;
+        settleTimer       = 0f;
+        thrownTimer       = 0f;
+        bounceCount       = 0;
+    }
+
+    // Hand the body back to the NavMeshAgent at 'desired' (snapped onto 'mask'). Returns false if it
+    // couldn't be placed on the mesh — the caller decides how to recover (body stays in physics).
+    private bool RejoinNavMesh(Vector3 desired, int mask)
+    {
+        rb.isKinematic = true;
+        rb.useGravity  = false;
+        if (!agent.enabled) agent.enabled = true;
+
+        Vector3 point = desired;
+        if (NavMesh.SamplePosition(desired, out var hit, sampleRadius * 2f, mask))
+            point = hit.position;
+
+        if (!agent.Warp(point) || !agent.isOnNavMesh) return false;
+        agent.ResetPath();
+        return true;
+    }
+
     // Called by a MoriMochiContainer when a creature lands in a pen with room. Cuts the ragdoll,
     // snaps onto the breeding-area floor at the pen center, and restricts the areaMask so from now
     // on it can only walk inside breeding floor (released when the player grabs it). Returns false
@@ -470,22 +516,14 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     // register an occupant it never actually caught, and we never call ResetPath off-mesh.
     public bool EnterConfinement(MoriMochiContainer pen)
     {
-        rb.isKinematic = true;          // hand control back to the NavMeshAgent
-        rb.useGravity  = false;
-        if (!agent.enabled) agent.enabled = true;
         agent.areaMask = confinedAreaMask;
-
-        Vector3 center = pen.Center;
-        if (NavMesh.SamplePosition(center, out var hit, sampleRadius * 2f, confinedAreaMask))
-            center = hit.position;
 
         // Warp/ResetPath throw on an agent not placed on a NavMesh — bail (back to physics) if the
         // pen floor isn't painted+baked as the breeding area, or the area name doesn't match.
-        if (!agent.Warp(center) || !agent.isOnNavMesh)
+        if (!RejoinNavMesh(pen.Center, confinedAreaMask))
         {
             Debug.LogWarning($"[MoriMochiAgent] '{name}' couldn't enter the pen — is its floor painted '{breedingAreaName}' and baked?");
-            agent.enabled  = false;
-            rb.isKinematic = false;
+            DetachToPhysics();
             rb.useGravity  = true;
             agent.areaMask = freeAreaMask;
             return false;
@@ -493,8 +531,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
         currentContainer = pen;
         holdAnchor       = null;
-        heldByPlayer     = false;
-        agent.ResetPath();
         EnterRoaming();
         return true;
     }
@@ -504,22 +540,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     // animates it upright before the agent brain takes over.
     private void BeginGetUp()
     {
-        Vector3 point = transform.position;
-        if (NavMesh.SamplePosition(point, out var hit, sampleRadius * 2f, agent.areaMask))
-            point = hit.position;
-
-        rb.isKinematic = true;
-        rb.useGravity  = false;
-
-        agent.enabled = true;
-        if (!(agent.isOnNavMesh || agent.Warp(point)))
+        if (!RejoinNavMesh(transform.position, agent.areaMask))
         {
-            // Couldn't rejoin (landed far off-mesh) — stay down and retry shortly.
-            state = AgentState.Held;
+            state = AgentState.Thrown;      // couldn't rejoin (landed far off-mesh) — stay down, retry
             return;
         }
 
-        agent.ResetPath();
         agent.updateRotation = false;       // we hand-animate the get-up; the agent must not fight it
 
         // Personality sets the pace (lazy = groggy/slow, skittish = springs up), plus a
