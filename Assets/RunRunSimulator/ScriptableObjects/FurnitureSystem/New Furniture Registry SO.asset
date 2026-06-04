@@ -34,7 +34,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 5
+      Data: 6
     - Name: 
       Entry: 7
       Data: 
@@ -158,6 +158,33 @@ MonoBehaviour:
     - Name: CellX
       Entry: 3
       Data: 7
+    - Name: CellY
+      Entry: 3
+      Data: 1
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 17_1
+    - Name: $v
+      Entry: 7
+      Data: 7|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F3
+    - Name: CellX
+      Entry: 3
+      Data: 17
     - Name: CellY
       Entry: 3
       Data: 1

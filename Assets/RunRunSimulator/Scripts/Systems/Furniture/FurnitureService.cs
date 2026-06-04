@@ -1,5 +1,7 @@
+using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
+using Unity.AI.Navigation;
 using UnityEngine;
 
 // Orchestrates furniture placement: validates against the grid, mutates the registry,
@@ -13,6 +15,10 @@ public class FurnitureService : MonoBehaviour
     [Required, SerializeField] private FurnitureRegistrySO registry;
     [Required, SerializeField] private FurnitureDatabaseSO database;
 
+    [Title("NavMesh")]
+    [Tooltip("Scene NavMesh surface, rebaked after furniture loads / on demand. Needed so breeding-room floors get their painted area baked in. Leave empty if this scene has no pens.")]
+    [SerializeField] private NavMeshSurface navSurface;
+
     [Title("Hotbar")]
     [Tooltip("Pieces the build mode selects with keys 1-4 (index 0 = key 1). Hardcoded here for now.")]
     [SerializeField] private List<FurnitureDefinitionSO> activePieces = new List<FurnitureDefinitionSO>();
@@ -25,6 +31,64 @@ public class FurnitureService : MonoBehaviour
 
     // Which hotbar entry is selected (set by SelectPiece in build mode; test buttons use it too).
     private int selectedIndex;
+
+    private bool rebakePending;
+
+    private void OnEnable()  => GameEvents.OnFurnitureReloaded += OnFurnitureReloaded;
+    private void OnDisable() => GameEvents.OnFurnitureReloaded -= OnFurnitureReloaded;
+
+    // After the initial furniture load (the spawner repopulates on its own Start), rebake once so
+    // any breeding-room floors that loaded in get their painted area into the NavMesh.
+    private void Start() => ScheduleRebake();
+
+    // A bulk (re)load just repopulated the scene → rebake so newly-loaded pens are navigable.
+    private void OnFurnitureReloaded(FurnitureRegistrySO r) => ScheduleRebake();
+
+    // Defers the rebake to end of frame so the FurnitureSpawner has finished (re)building the
+    // meshes first (both react to the same event; instantiation order between them isn't
+    // guaranteed). Coalesces multiple requests in the same frame into a single bake.
+    private void ScheduleRebake()
+    {
+        if (rebakePending || !isActiveAndEnabled || navSurface == null) return;
+        rebakePending = true;
+        StartCoroutine(RebakeEndOfFrame());
+    }
+
+    private IEnumerator RebakeEndOfFrame()
+    {
+        yield return new WaitForEndOfFrame();
+        rebakePending = false;
+        RebakeNavMesh();
+    }
+
+    // ── NavMesh rebake ────────────────────────────────────────────
+
+    // Rebuilds the scene NavMesh from current geometry — call after placing/loading a breeding
+    // room so its painted floor area gets baked in. Occasional by design (placement is a
+    // decorate-time action), so the rebake cost is acceptable.
+    [Button("Rebake NavMesh", ButtonSizes.Large), GUIColor(0.6f, 0.8f, 1f)]
+    public void RebakeNavMesh()
+    {
+       
+       if (navSurface != null && navSurface.navMeshData != null)
+        {
+            StartCoroutine(UpdateNavMeshAsyncRoutine());
+        }
+       else
+        {
+            navSurface.BuildNavMesh();
+        }
+    }
+    private System.Collections.IEnumerator UpdateNavMeshAsyncRoutine()
+    {
+        // UpdateNavMesh calcula solo las áreas que cambiaron usando los datos existentes
+        AsyncOperation op = navSurface.UpdateNavMesh(navSurface.navMeshData);
+
+        // Esperamos a que termine en segundo plano
+        yield return op;
+
+        Debug.Log("¡NavMesh actualizado con éxito (Asíncrono)!");
+    }
 
     // ── Odin test buttons ─────────────────────────────────────────
 

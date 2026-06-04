@@ -13,8 +13,9 @@ tags: [memory-bank, active, session]
 
 ### Corral — qué quedó decidido y qué falta decidir
 
-- **Decidido**: es un mueble furniture 2x2 (reúso total del sistema de furniture); entrada solo lanzándolo (trigger + ramas por `IsAirborne`/ocupante/intruso); aforo `capacity` configurable + rebote vía `Knock` cuando está lleno; salida solo al sujetarlo. Sin `GameEvents`/persistencia de ocupantes aún.
-- **FALTA DECIDIR para retomar**: **Propuesta A** (todo NavMesh, sampling en bounds, evitación reactiva — confinamiento blando) **vs Propuesta B** (NavMeshObstacle carve + steering interno sin NavMesh — confinamiento duro, evitación proactiva). Detalle y tensión carve↔NavMesh-interior en [[06 - Player & World]].
+- **DECIDIDO (el approach)**: **área `BreedingRoom` pintada + `areaMask` por agente**, una sola superficie + rebake al colocar. El corral lleva `NavMeshModifier` (pinta footprint = Area type BreedingRoom) + `BoxCollider`. Libres: `areaMask = AllAreas & ~(1<<BreedingRoom)` → lo rodean. Confinado: `areaMask = 1<<BreedingRoom` + roam sampleado en bounds → no sale. Entrada lanzado → Warp al centro; lleno → `Knock`; salida solo al sujetarlo.
+- **Corrección clave anotada**: el **costo NO fencea** (`SamplePosition` lo ignora; el roam elige punto random → entrarían igual). El gate es **`areaMask`**. Detalle en [[06 - Player & World]].
+- **FALTA**: setup de escena (Area type BreedingRoom + `NavMeshModifier` en el corral + rebake al colocar) y escribir el código (`MoriMochiContainer` + cambios en `MoriMochiAgent` + hook de rebake en `FurnitureSpawner`).
 
 ### Qué se hizo (esta sesión) → todo consolidado en [[10 - Furniture & Building]]
 

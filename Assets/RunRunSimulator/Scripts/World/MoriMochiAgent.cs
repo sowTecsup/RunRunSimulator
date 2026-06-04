@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
@@ -76,6 +78,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [Tooltip("How often (s) Reacting/Roaming recomputes its destination.")]
     [SerializeField] private float repathInterval = 0.35f;
 
+    [Header("Breeding pen confinement")]
+    [Tooltip("NavMesh Area that breeding pens paint their floor with. Free agents EXCLUDE it (so they route around every pen); a penned creature is RESTRICTED to it. Pick the exact Area from Navigation → Areas.")]
+    [ValueDropdown(nameof(EditorNavMeshAreaNames))]
+    [SerializeField] private string breedingAreaName = "BreedingRoom";
+
     // ── Feedbacks (Feel-ready) ────────────────────────────────────
     // Juice hook points. They fire UnityEvents now (compiles without Feel installed).
     // When Feel lands: drop an MMF_Player on the prefab and wire its PlayFeedbacks()
@@ -111,6 +118,13 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private float     repathTimer;
     private AgentState stateBeforeReact = AgentState.Roaming;
 
+    // Confinement (breeding pen): non-null only while penned. While confined the areaMask is
+    // restricted to the BreedingRoom area (can't path onto normal floor) and roam destinations
+    // are sampled inside the pen's bounds. Set by EnterConfinement, cleared on grab.
+    private MoriMochiContainer currentContainer;
+    private int freeAreaMask;       // AllAreas minus BreedingRoom — the normal roaming mask
+    private int confinedAreaMask;   // only BreedingRoom — applied while penned
+
     // Get-up animation (Recovering): lerp from the tumbled pose back to upright.
     // Effective timings are per-throw (personality scale + jitter), cached at BeginGetUp.
     private float      recoverTimer;
@@ -124,6 +138,9 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private static readonly int ColorId     = Shader.PropertyToID("_Color");
 
     public bool IsHeld => heldByPlayer;
+    // True only while ragdolling after a throw — not while carried, not while NavMesh-driven.
+    // A container admits only creatures for which this is true (thrown in), never walk-ins.
+    public bool IsAirborne => state == AgentState.Held && !heldByPlayer && !rb.isKinematic;
     public CreatureDNA DNA => dna;
 
     // ── Lifecycle ─────────────────────────────────────────────────
@@ -156,8 +173,15 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         nameTag = GetComponent<NameTag>();
         if (nameTag != null) nameTag.Bind(creature);
 
-        agent.speed    = profile.MoveSpeed;
-        agent.areaMask = NavMesh.AllAreas;   // free movement — personality is a preference, never a fence
+        agent.speed = profile.MoveSpeed;
+
+        // Penned creatures are gated to the BreedingRoom area; free ones get everything EXCEPT it,
+        // so they route around every pen (cost wouldn't fence — only the mask does). If the Area
+        // isn't set up yet (-1), fall back to AllAreas so behavior degrades gracefully.
+        int breeding     = NavMesh.GetAreaFromName(breedingAreaName);
+        confinedAreaMask = breeding >= 0 ? 1 << breeding : NavMesh.AllAreas;
+        freeAreaMask     = breeding >= 0 ? NavMesh.AllAreas & ~(1 << breeding) : NavMesh.AllAreas;
+        agent.areaMask   = freeAreaMask;     // free movement — personality is a preference, never a fence
 
         ApplyTint(profile.Tint);
 
@@ -225,7 +249,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     // ragdolls away and can bounce / chain into others.
     public void Knock(Vector3 force)
     {
-        if (heldByPlayer) return;   // in the player's hand — don't yank it out
+        if (heldByPlayer) return;          // in the player's hand — don't yank it out
+        if (currentContainer != null) return;   // penned: tackle-proof — only the player can take it out
 
         if (rb.isKinematic)
         {
@@ -347,11 +372,16 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         state = AgentState.Roaming;
         agent.updateRotation = true;        // hand rotation back to the agent (Recovering turns it off)
 
-        // Most of the time wander nearby; with AreaPreference odds, head toward the
-        // preferred area instead — a soft pull home, not a fence.
-        Vector3 dest = (Random.value < profile.AreaPreference && TryGetPreferredPoint(out var pref))
-            ? pref
-            : transform.position + Random.insideUnitSphere * profile.RoamRadius;
+        // Penned: wander only inside the container's bounds (the breeding-only areaMask keeps it
+        // from pathing out; the bounds keep it in THIS pen even if two pens' floors touch).
+        // Otherwise: mostly wander nearby; with AreaPreference odds, pull toward the preferred area.
+        Vector3 dest;
+        if (currentContainer != null)
+            dest = RandomPointInBounds(currentContainer.InteriorBounds);
+        else
+            dest = (Random.value < profile.AreaPreference && TryGetPreferredPoint(out var pref))
+                ? pref
+                : transform.position + Random.insideUnitSphere * profile.RoamRadius;
         SetDestinationSafe(dest);
     }
 
@@ -389,6 +419,15 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
     public void OnGrab(Transform anchor)
     {
+        // Lifting a penned creature is the only way out: drop it from the pen's census and hand
+        // its areaMask back to free, so wherever it's next thrown it roams normally again.
+        if (currentContainer != null)
+        {
+            currentContainer.Release(this);
+            currentContainer = null;
+            agent.areaMask   = freeAreaMask;
+        }
+
         holdAnchor   = anchor;
         heldByPlayer = true;
         state        = AgentState.Held;
@@ -422,6 +461,42 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         OnRelease();
         rb.AddForce(force, ForceMode.Impulse);
         onThrow?.Invoke();
+    }
+
+    // Called by a MoriMochiContainer when a creature lands in a pen with room. Cuts the ragdoll,
+    // snaps onto the breeding-area floor at the pen center, and restricts the areaMask so from now
+    // on it can only walk inside breeding floor (released when the player grabs it). Returns false
+    // (without confining) if the pen floor isn't on the breeding NavMesh — so the pen doesn't
+    // register an occupant it never actually caught, and we never call ResetPath off-mesh.
+    public bool EnterConfinement(MoriMochiContainer pen)
+    {
+        rb.isKinematic = true;          // hand control back to the NavMeshAgent
+        rb.useGravity  = false;
+        if (!agent.enabled) agent.enabled = true;
+        agent.areaMask = confinedAreaMask;
+
+        Vector3 center = pen.Center;
+        if (NavMesh.SamplePosition(center, out var hit, sampleRadius * 2f, confinedAreaMask))
+            center = hit.position;
+
+        // Warp/ResetPath throw on an agent not placed on a NavMesh — bail (back to physics) if the
+        // pen floor isn't painted+baked as the breeding area, or the area name doesn't match.
+        if (!agent.Warp(center) || !agent.isOnNavMesh)
+        {
+            Debug.LogWarning($"[MoriMochiAgent] '{name}' couldn't enter the pen — is its floor painted '{breedingAreaName}' and baked?");
+            agent.enabled  = false;
+            rb.isKinematic = false;
+            rb.useGravity  = true;
+            agent.areaMask = freeAreaMask;
+            return false;
+        }
+
+        currentContainer = pen;
+        holdAnchor       = null;
+        heldByPlayer     = false;
+        agent.ResetPath();
+        EnterRoaming();
+        return true;
     }
 
     // After a throw settles: snap back onto the NavMesh but DON'T steer yet. It
@@ -489,6 +564,21 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         if (!agent.enabled || !agent.isOnNavMesh) return;
         if (NavMesh.SamplePosition(desired, out var hit, sampleRadius, agent.areaMask))
             agent.SetDestination(hit.position);
+    }
+
+    // A random point on a bounds' floor plane (y at center) — the confined roam target source.
+    private static Vector3 RandomPointInBounds(Bounds b) => new Vector3(
+        Random.Range(b.min.x, b.max.x), b.center.y, Random.Range(b.min.z, b.max.z));
+
+    // Feeds the breedingAreaName dropdown with the project's real NavMesh Area names. Body is
+    // editor-only, but the method itself stays compiled so nameof(...) resolves in builds.
+    private static IEnumerable<string> EditorNavMeshAreaNames()
+    {
+#if UNITY_EDITOR
+        return NavMesh.GetAreaNames();
+#else
+        return System.Array.Empty<string>();
+#endif
     }
 
     // Test/debug: paint the body its personality color via a property block (no per-instance

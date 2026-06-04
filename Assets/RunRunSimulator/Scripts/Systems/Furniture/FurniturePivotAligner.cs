@@ -77,7 +77,7 @@ public class FurniturePivotAligner : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.matrix = transform.localToWorldMatrix;
-        Gizmos.color = new Color(0.4f, 0.9f, 1f, 0.9f);
+        Gizmos.color = Color.red;
         Gizmos.DrawWireCube(Vector3.zero, new Vector3(footprint.x * cellSize, 0.02f, footprint.y * cellSize));
     }
 #endif

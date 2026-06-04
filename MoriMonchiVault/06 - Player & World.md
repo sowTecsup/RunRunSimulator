@@ -168,33 +168,36 @@ Es el **endpoint reservado** para que la personalidad importe a futuro (combate,
 
 **Requiere exponer en `MoriMochiAgent`**: `IsAirborne` (= `state==Held && !heldByPlayer && !rb.isKinematic`) — única forma limpia de distinguir "lo tiraron" de "se metió caminando".
 
-#### Disyuntiva abierta — cómo se mueve adentro + cómo lo evitan los de afuera
+#### DECISIÓN (2026-06-03): área `BreedingRoom` pintada + `areaMask` por agente (rebake al colocar)
 
-La tensión clave: **carve y NavMesh-adentro NO coexisten en el mismo 2x2**. Si carveás el footprint para que los de afuera lo esquiven, borrás el NavMesh interior y el confinado ya no puede recorrer con NavMesh.
+Se descartan A y B previas (y el volume/carve). **Una sola superficie continua**: el corral lleva un **`NavMeshModifier` que pinta su footprint como el Area type `BreedingRoom`** (set area, NO remove) + un **`BoxCollider`** trigger. Al colocarse/mover el corral → **rebake** (puntual, asumible) para que el piso quede pintado. La exclusión y el confinamiento se hacen con **`areaMask` por agente**, no con costo ni con paredes.
 
-> Aclaración importante (corrige un miedo): lo que reposiciona raro a todos los agents es un **rebake completo** (`NavMeshSurface.BuildNavMesh()`). Un **`NavMeshObstacle` con Carve** NO hace eso — recorta un hueco **local** y los demás simplemente rodean, sin re-hornear todo ni reposicionarse.
+**Flujo:**
+- **Entrada** (lanzado, `IsAirborne`, en el trigger): con cupo → **teleport al centro del área** (`agent.Warp(center)`) + se corta el ragdoll + se pone confinado.
+- **Confinado**: el agent **sigue siendo NavMeshAgent** con **`areaMask = 1<<BreedingRoom`** (solo puede pisar breeding → no sale caminando). Los puntos de roam se samplean **dentro de los bounds del `BoxCollider`** (`NavMesh.SamplePosition`) para que se quede en SU corral. El `PreferredArea` de personalidad queda override-eado mientras esté confinado.
+- **Lleno**: `agent.Knock(...)` → expulsión **hacia arriba o reflejando la dirección del lanzamiento**.
+- **Salida**: solo el jugador al sujetarlo (`OnGrab` → `pen.Release(this)` → `areaMask` vuelve a libre).
 
-- **Propuesta A (todo NavMesh, confinamiento blando)** — *la que el usuario eligió inicialmente*:
-  - Adentro: el agent **sigue siendo NavMeshAgent**; el destino se samplea **dentro de `boxCollider.bounds`** + `NavMesh.SamplePosition` para validar. No se escapa porque solo le damos destinos de adentro. Sin isla, sin bake.
-  - Afuera: evitación **reactiva** — en el `OnTriggerEnter` del intruso, `AvoidArea` le da un destino alejándose del centro.
-  - **Caveat**: la evitación es reactiva → los de afuera caminan HASTA el corral, "chocan", y recién ahí rodean (se ve el bumpeo). Confinamiento "blando" (depende de que solo sampleemos adentro).
+> ⚠️ **Costo NO fencea — el gate es `areaMask`.** El costo de área es preferencia blanda: el pathfinding solo evita un área cara si hay alternativa, nunca la vuelve intransitable, y **`SamplePosition` ignora el costo**. Como el roam elige un punto random y lo samplea, un libre con destino dentro del BreedingRoom **entraría igual**. La solución dura:
+> - **Libres**: `agent.areaMask = AllAreas & ~(1<<BreedingRoom)` (reemplaza el `AllAreas` actual en `Initialize`) → para ellos el piso del corral es intransitable, ni se samplea ahí, lo rodean solos.
+> - **Confinados**: `areaMask = 1<<BreedingRoom` → no pueden salir.
+> `SetAreaCost` opcional solo como pulido (que los que pasan cerca rodeen más prolijo), no como gate.
 
-- **Propuesta B (carve + steering interno sin NavMesh)** — *recomendada por Claude para que se vea pulido*:
-  - El corral lleva un `NavMeshObstacle` (carve) → los de afuera lo **esquivan de lejos**, limpio y proactivo.
-  - Adentro: como el footprint quedó carveado (sin NavMesh), el confinado se mueve con **steering simple acotado a bounds** (no NavMesh) → agrega un modo de movimiento no-NavMesh al agent. Confinamiento "duro" (clamp a bounds).
+> Detalle abierto menor: si `BreedingRoom` será un valor de `WorldArea` (enum, ya que el confinado usa el Area type para el mask) o un Area type aparte. Probablemente convenga sumarlo al enum/Areas. Decidir al implementar.
 
-**Código nuevo (acotado, ambas propuestas):**
+**Código nuevo (acotado):**
 
 | Pieza | Qué |
 |------|-----|
-| `MoriMochiContainer.cs` (NEW, World/) | `BoxCollider` trigger, `[MinValue(1)] capacity`, censo `occupants`, `OnTriggerEnter` (admite/rebota/repele), `Release` |
-| `MoriMochiAgent.cs` | + `IsAirborne` (público), `EnterConfinement(pen)`, `AvoidArea(...)`, hook en `OnGrab`; + sampling confinado en `EnterRoaming` (A) **o** estado de steering no-NavMesh (B) |
+| `MoriMochiContainer.cs` (NEW, World/) | `BoxCollider` trigger + `NavMeshModifier` (área BreedingRoom), `[MinValue(1)] capacity`, censo `occupants`, `OnTriggerEnter` (admite/rebota), `Release` |
+| `MoriMochiAgent.cs` | + `IsAirborne` (público); `areaMask` libre = `AllAreas & ~(1<<BreedingRoom)` en `Initialize`; `EnterConfinement(pen)` (Warp al centro + corta ragdoll + `areaMask=1<<BreedingRoom`); sampling confinado en `EnterRoaming` (dentro de bounds); hook en `OnGrab` (restaura mask) |
+| `FurnitureSpawner.cs` (?) | disparar el **rebake** de la superficie al spawnear/mover un corral (para que el `NavMeshModifier` pinte el footprint) |
 
 Opcional: `ICreatureReceiver` (drop-a-script estilo `IThrowable`) para que el agent no dependa del concreto.
 
 **Desacople**: agent ↔ corral son **mismo dominio World** → refs directas / interface (como `IThrowable`), no es lookup a singleton de otro sistema. **Sin `GameEvents` ni persistencia de ocupantes todavía** (breeding y compra = futuro; la colocación del corral ya la persiste `FurnitureRegistry`). Edge a resolver al implementar: **levantar/mover un corral ocupado en build mode** → lo más limpio es **bloquear `TryLift` si tiene ocupantes**.
 
-**PARA RETOMAR**: decidir **A vs B**. Con eso confirmado se implementa directo.
+**PARA RETOMAR**: decisión tomada (rebake + `NavMeshSurface`). Falta: setup de escena (carve-out de la superficie principal + surface del corral) y escribir el código de la tabla.
 
 ### Estado del roadmap
 

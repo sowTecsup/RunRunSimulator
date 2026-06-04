@@ -63,7 +63,7 @@ public class PlacementGrid : MonoBehaviour
                 yield return new Vector2Int(anchor.x + i, anchor.y + j);
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         Vector3 o = transform.position;
 
