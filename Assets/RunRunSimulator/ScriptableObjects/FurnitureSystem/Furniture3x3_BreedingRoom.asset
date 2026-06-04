@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a515f4ede91769d4990d45d7f30d5880, type: 3}
+  m_Name: Furniture3x3_BreedingRoom
+  m_EditorClassIdentifier: Assembly-CSharp::FurnitureDefinitionSO
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes: []
+  Id: F3
+  DisplayName: BreedingRoom
+  Prefab: {fileID: 13855412886183546, guid: 41c33e8d7746f6e48ac30747cd9f8b24, type: 3}
+  Footprint: {x: 3, y: 3}
+  Price: 0
+  Category: 0

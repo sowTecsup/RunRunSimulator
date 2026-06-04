@@ -4996,6 +4996,10 @@ MonoBehaviour:
     BaseSpeed: 0
     CombatHistory: []
     IsDead: 0
+    Needs:
+      Health: 100
+      Energy: 100
+      Affect: 0
     BusyState: 0
     BreedReadyAt: 0
     BreedPartnerID: 
@@ -6035,6 +6039,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f732ab86d673ff34b985091321fd1129, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AsyncBreedingService
+  energyCostPerParent: 20
 --- !u!43 &1235844564
 Mesh:
   m_ObjectHideFlags: 0
@@ -6925,7 +6930,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlacementGrid
   cellSize: 1
-  dimensions: {x: 20, y: 20}
+  dimensions: {x: 30, y: 30}
 --- !u!4 &1419263767
 Transform:
   m_ObjectHideFlags: 0
@@ -6935,7 +6940,7 @@ Transform:
   m_GameObject: {fileID: 1419263765}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -11, y: 0, z: -13}
+  m_LocalPosition: {x: -14, y: 0, z: -13}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8112,6 +8117,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: BreedingFurniture (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 13855412886183546, guid: 41c33e8d7746f6e48ac30747cd9f8b24, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 57480978113578816, guid: 41c33e8d7746f6e48ac30747cd9f8b24, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -8232,9 +8241,9 @@ MonoBehaviour:
   database: {fileID: 11400000, guid: 74e53561afa20ca40990d4e013cfb99b, type: 2}
   navSurface: {fileID: 1347452322}
   activePieces:
-  - {fileID: 11400000, guid: bad16601457de164fbb50e6991176d49, type: 2}
-  - {fileID: 11400000, guid: ba68d698d77df2f4c973fdf26d61635f, type: 2}
-  - {fileID: 11400000, guid: 41ef5d1e02e544b46b035885f14b69c0, type: 2}
+  - {fileID: 11400000, guid: 37aa5aba470a7d34b8accb4a6b47f0dd, type: 2}
+  - {fileID: 11400000, guid: 9909d1becec5d104399d8c1f73d7e22f, type: 2}
+  - {fileID: 11400000, guid: 80f4b68885003194fa09dafad1fd2e30, type: 2}
   - {fileID: 11400000, guid: b2db5f511fc3c0c409bfd64e2d93f89a, type: 2}
   cellX: 0
   cellY: 0

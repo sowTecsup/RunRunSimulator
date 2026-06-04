@@ -153,6 +153,50 @@ Seleccionar una pieza existente (E / click der.) llama `TryLift` → la quita de
 ### Ghost
 Instancia `ActivePiece.Prefab` (o la def levantada), desactiva colliders, aplica `ghostMaterial` y lo tiñe verde/rojo por frame con `MaterialPropertyBlock`. Posiciona con `FootprintCenter` + `Euler(0,rot,0)` — igual que el spawner, así **preview == resultado**.
 
+## UI de selección de piezas — Inventario (Hotbar + Browser)
+
+> **Decisión confirmada (2026-06-04):** modelo **Hotbar + Browser temporal**. Diseñado para ser console-first (D-pad) y compatible con PC.
+
+### Problema
+
+El hotbar (slots 1-4) ya está implementado y es el mecanismo correcto para consola. Lo que falta es cómo el jugador **carga** esos slots desde su inventario completo.
+
+### Opciones descartadas
+
+| Opción | Por qué se descartó |
+|--------|---------------------|
+| **Sidebar fijo** | En FP tapa ~30% de pantalla durante el ghost; molesto en consola |
+| **Rueda/radial** | Escala mal: con >8 piezas necesitás "páginas" en una rueda, lo que es horrible de navegar |
+
+### Diseño elegido: Hotbar + Browser temporal
+
+El hotbar es acceso rápido (slots 1-4, ya implementado). El **browser** solo se abre cuando el jugador quiere **reasignar un slot**:
+
+```
+Browsing → Hold Tab (PC) / Select (consola)
+  → Panel abre (tiempo no pausado, sigue en Build mode)
+    → D-pad ↑↓  navega categorías (Decoration / Display / Functional)
+    → D-pad ←→  navega piezas dentro de la categoría
+    → A / Enter  asigna la pieza al slot activo → cierra el panel
+  → Vuelve a Browsing con la nueva pieza en el slot
+```
+
+**Rationale:**
+- Cero visual clutter durante placement — el browser solo aparece on-demand.
+- Escala a cualquier cantidad de piezas (paginación por categoría, sin límite).
+- D-pad es el control estándar de grids en consola (Animal Crossing, Planet Zoo, The Sims).
+- Una vez configurados los 4 slots favoritos, el loop de placement es fluido y sin fricciones.
+- Fase 3 (Shop) se integra naturalmente: comprar una pieza la manda al inventario → aparece en el browser.
+
+### Implicaciones en código (sobre lo ya implementado)
+
+- `FurnitureService.activePieces` (`List<FurnitureDefinitionSO>`) ya es mutable → el browser simplemente escribe ahí.
+- `FurnitureCategory` (enum) ya existe en los SOs → tabs de categoría gratis.
+- Action map `Building` ya tiene `SlotSelected` → agregar acción `BrowseOpen` (Tab / Select button).
+- Nuevo panel UITK que lee `FurnitureDatabaseSO` por categoría. Sin tocar el core de placement ni la FSM del build mode.
+
+---
+
 ## Fase 3 — Economía + tienda
 
 - `Wallet`: moneda del jugador, **persiste**.

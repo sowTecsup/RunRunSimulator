@@ -159,6 +159,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 5|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 77.70804
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 1
@@ -182,7 +197,7 @@ MonoBehaviour:
       Data: BS2-A0-E1-M1-9EB322-639155849165650913
     - Name: $v
       Entry: 7
-      Data: 5|CreatureDNA, Assembly-CSharp
+      Data: 6|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS2
@@ -236,7 +251,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 6|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 7|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -284,7 +299,7 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 7|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 8|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -298,6 +313,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 9|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 78.64007
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -321,7 +351,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M0-4D2CAF-639155849170961103
     - Name: $v
       Entry: 7
-      Data: 8|CreatureDNA, Assembly-CSharp
+      Data: 10|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -375,7 +405,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 9|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 11|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -423,7 +453,7 @@ MonoBehaviour:
       Data: 3
     - Name: CombatHistory
       Entry: 7
-      Data: 10|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 12|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -437,6 +467,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 13|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 81.15294
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 1
@@ -460,7 +505,7 @@ MonoBehaviour:
       Data: BS2-A0-E0-M0-09D8AD-639155849172588286
     - Name: $v
       Entry: 7
-      Data: 11|CreatureDNA, Assembly-CSharp
+      Data: 14|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS2
@@ -514,7 +559,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 12|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 15|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -562,7 +607,7 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 13|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 16|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -576,6 +621,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 17|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 77.31059
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -599,7 +659,7 @@ MonoBehaviour:
       Data: BS0-A1-E1-M1-0E7E99-639155849174107031
     - Name: $v
       Entry: 7
-      Data: 14|CreatureDNA, Assembly-CSharp
+      Data: 18|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -653,7 +713,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 15|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 19|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -701,7 +761,7 @@ MonoBehaviour:
       Data: 4
     - Name: CombatHistory
       Entry: 7
-      Data: 16|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 20|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -715,6 +775,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 21|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 77.79419
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 1
@@ -738,7 +813,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M1-3A769E-639161837224508566
     - Name: $v
       Entry: 7
-      Data: 17|CreatureDNA, Assembly-CSharp
+      Data: 22|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -756,13 +831,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.225535423
+      Data: 0.227450982
     - Name: 
       Entry: 4
-      Data: 0.463081867
+      Data: 0.4627451
     - Name: 
       Entry: 4
-      Data: 0.618058443
+      Data: 0.619607866
     - Name: 
       Entry: 4
       Data: 1
@@ -792,7 +867,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 18|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 23|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -840,7 +915,7 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 19|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 24|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -854,6 +929,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 25|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 77.09709
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -877,7 +967,7 @@ MonoBehaviour:
       Data: BS1-A0-E1-M3-559B23-639161837261534827
     - Name: $v
       Entry: 7
-      Data: 20|CreatureDNA, Assembly-CSharp
+      Data: 26|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -895,13 +985,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.334056
+      Data: 0.333333343
     - Name: 
       Entry: 4
-      Data: 0.608632743
+      Data: 0.607843161
     - Name: 
       Entry: 4
-      Data: 0.137921616
+      Data: 0.137254909
     - Name: 
       Entry: 4
       Data: 1
@@ -931,7 +1021,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 21|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 27|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -979,7 +1069,7 @@ MonoBehaviour:
       Data: 10
     - Name: CombatHistory
       Entry: 7
-      Data: 22|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 28|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -993,6 +1083,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 29|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 76.95308
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -1016,7 +1121,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M1-7E15C7-639161837268218806
     - Name: $v
       Entry: 7
-      Data: 23|CreatureDNA, Assembly-CSharp
+      Data: 30|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1034,13 +1139,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.494621634
+      Data: 0.494117647
     - Name: 
       Entry: 4
-      Data: 0.0829087645
+      Data: 0.08235294
     - Name: 
       Entry: 4
-      Data: 0.7800216
+      Data: 0.78039217
     - Name: 
       Entry: 4
       Data: 1
@@ -1070,7 +1175,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 24|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 31|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1118,7 +1223,7 @@ MonoBehaviour:
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 25|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 32|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1132,6 +1237,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 33|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 78.32544
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -1155,7 +1275,7 @@ MonoBehaviour:
       Data: BS0-A0-E1-M0-7232CC-639161837274982365
     - Name: $v
       Entry: 7
-      Data: 26|CreatureDNA, Assembly-CSharp
+      Data: 34|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1173,13 +1293,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.446242034
+      Data: 0.447058827
     - Name: 
       Entry: 4
-      Data: 0.198010862
+      Data: 0.196078435
     - Name: 
       Entry: 4
-      Data: 0.799272
+      Data: 0.8
     - Name: 
       Entry: 4
       Data: 1
@@ -1209,7 +1329,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 27|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 35|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1257,7 +1377,7 @@ MonoBehaviour:
       Data: 4
     - Name: CombatHistory
       Entry: 7
-      Data: 28|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 36|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1271,6 +1391,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 37|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 79.112114
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -1294,7 +1429,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M0-27DD78-639161837280275709
     - Name: $v
       Entry: 7
-      Data: 29|CreatureDNA, Assembly-CSharp
+      Data: 38|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1312,13 +1447,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.151983216
+      Data: 0.152941182
     - Name: 
       Entry: 4
-      Data: 0.865822852
+      Data: 0.8666667
     - Name: 
       Entry: 4
-      Data: 0.47157535
+      Data: 0.470588237
     - Name: 
       Entry: 4
       Data: 1
@@ -1348,7 +1483,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 30|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 39|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1396,7 +1531,7 @@ MonoBehaviour:
       Data: 10
     - Name: CombatHistory
       Entry: 7
-      Data: 31|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 40|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1410,6 +1545,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 41|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 78.370575
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -1433,7 +1583,7 @@ MonoBehaviour:
       Data: BS1-A1-E0-M0-1D96C5-639161837284557231
     - Name: $v
       Entry: 7
-      Data: 32|CreatureDNA, Assembly-CSharp
+      Data: 42|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -1451,13 +1601,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.11476963
+      Data: 0.113725491
     - Name: 
       Entry: 4
-      Data: 0.587221
+      Data: 0.5882353
     - Name: 
       Entry: 4
-      Data: 0.773947537
+      Data: 0.772549033
     - Name: 
       Entry: 4
       Data: 1
@@ -1487,7 +1637,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 33|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 43|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1535,7 +1685,7 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 34|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 44|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1549,6 +1699,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 45|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 81.0142746
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -1572,7 +1737,7 @@ MonoBehaviour:
       Data: BS2-A0-E0-M0-2597BD-639161837291933740
     - Name: $v
       Entry: 7
-      Data: 35|CreatureDNA, Assembly-CSharp
+      Data: 46|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS2
@@ -1590,13 +1755,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.145820454
+      Data: 0.145098045
     - Name: 
       Entry: 4
-      Data: 0.5928042
+      Data: 0.5921569
     - Name: 
       Entry: 4
-      Data: 0.7424041
+      Data: 0.7411765
     - Name: 
       Entry: 4
       Data: 1
@@ -1626,7 +1791,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 36|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 47|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1674,7 +1839,7 @@ MonoBehaviour:
       Data: 2
     - Name: CombatHistory
       Entry: 7
-      Data: 37|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 48|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1688,6 +1853,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 49|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 82.55708
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -1711,7 +1891,7 @@ MonoBehaviour:
       Data: BS0-A1-E1-M1-E53A2C-639161837294797393
     - Name: $v
       Entry: 7
-      Data: 38|CreatureDNA, Assembly-CSharp
+      Data: 50|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1729,13 +1909,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.896348834
+      Data: 0.8980392
     - Name: 
       Entry: 4
-      Data: 0.228996366
+      Data: 0.227450982
     - Name: 
       Entry: 4
-      Data: 0.172603726
+      Data: 0.172549024
     - Name: 
       Entry: 4
       Data: 1
@@ -1765,7 +1945,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 39|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 51|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1813,7 +1993,7 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 40|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 52|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1827,6 +2007,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 53|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 77.1036758
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
@@ -1850,7 +2045,7 @@ MonoBehaviour:
       Data: BS0-A1-E2-M1-17C8B6-639161837296429581
     - Name: $v
       Entry: 7
-      Data: 41|CreatureDNA, Assembly-CSharp
+      Data: 54|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1868,13 +2063,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.09146472
+      Data: 0.09019608
     - Name: 
       Entry: 4
-      Data: 0.7848518
+      Data: 0.784313738
     - Name: 
       Entry: 4
-      Data: 0.712088764
+      Data: 0.7137255
     - Name: 
       Entry: 4
       Data: 1
@@ -1904,7 +2099,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 42|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 55|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1952,7 +2147,7 @@ MonoBehaviour:
       Data: 1
     - Name: CombatHistory
       Entry: 7
-      Data: 43|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 56|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1966,6 +2161,21 @@ MonoBehaviour:
     - Name: IsDead
       Entry: 5
       Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 57|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 88.2988358
+    - Name: Energy
+      Entry: 4
+      Data: 77.96405
+    - Name: Affect
+      Entry: 4
+      Data: -11.7011738
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BusyState
       Entry: 3
       Data: 0
