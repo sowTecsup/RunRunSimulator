@@ -9,36 +9,40 @@ tags: [memory-bank, active, session]
 ## Sesión actual
 
 **Fecha**: 2026-06-04
-**Foco**: **Corral de confinamiento IMPLEMENTADO** (base del breeding pen) + **refactor de `MoriMochiAgent`** + **rebake de NavMesh en `FurnitureService`**. Todo consolidado en [[06 - Player & World]] (corral + agente) y [[10 - Furniture & Building]] (rebake). Sesión previa: diseño del corral (propuestas A/B → decisión rebake/areaMask).
+**Foco**: **Sistema de Necesidades (Needs) IMPLEMENTADO** — 3 stats (Health/Energy/Affect) en `CreatureDNA.Needs`, estaciones de mundo (Feeder/RestZone/PlayZone), registry, FSM del agente (SeekingNeed/UsingStation + degradado) y persistencia diferida anti-saturación. Detalle en [[06 - Player & World]] (sistema) y [[07 - Persistence & Identity]] (flush). Sesión previa: corral de confinamiento + refactor del agente + rebake.
 
 ### Qué se hizo (esta sesión)
 
-- **Corral (`MoriMochiContainer.cs`, World/)** ✅: mueble furniture 2x2 con `BoxCollider` trigger + `NavMeshModifier` (pinta piso = Area `BreedingRoom`). Aforo `[Min(1)] capacity`, censo `occupants` + `OccupantDNAs` (`[ShowInInspector]`). `OnTriggerEnter` (admite si `IsAirborne` / `BounceOut` con `Knock` si lleno) + `OnTriggerStay` (atrapa al soltar adentro). Solo se sale al sujetar (`Release`).
-- **Confinamiento por `areaMask`** (no por costo — `SamplePosition` lo ignora): libres `AllAreas & ~(1<<BreedingRoom)` (rodean), confinados `1<<BreedingRoom` + roam en bounds. `breedingAreaName` = campo serializado con dropdown Odin de áreas. Varios corrales con un solo Area type.
-- **Inmunidad al tackle**: un confinado ignora `Knock` → no lo empujan otros lanzados.
-- **Refactor `MoriMochiAgent`** (in-place, sin State pattern GoF): `Held` → **`Carried`/`Thrown`** (elimina `heldByPlayer`); 3 helpers de handoff (`DetachToPhysics`/`ApplyThrownPhysics`/`RejoinNavMesh`) que deduplican; `NextRoamDestination`. Comportamiento idéntico. Inspector agrupado en tabs Odin (Movement/Physics/Presentation).
-- **Rebake NavMesh (`FurnitureService`)**: botón Odin + auto-rebake en `Start`/`OnFurnitureReloaded`, diferido a fin de frame. Campo `navSurface`.
+- **`NeedsState`** anidado en `CreatureDNA.Needs` (Opción A — DNA ya es el record persistido → cero plomería). Mutadores clampeados + `SpendEnergy`/`Restore`/`Get`.
+- **Estaciones**: `NeedStation` (abstracta) + `Feeder`/`RestZone`/`PlayZone` (auto-registro, `usePoint`, recarga hasta 100, lock de un usuario). **`NeedStationRegistry`** estático (`GetClosest`).
+- **`MoriMochiAgent`**: tab Odin **Needs** (decay, umbrales configurables, penalizaciones de afecto, degradado); `TickNeeds` en memoria sin eventos; estados `SeekingNeed`/`UsingStation`; degradado (lento sin energía / huye estresado); interrupción por grab (`ReleaseStation`); hooks de afecto en throw/knock/colisión.
+- **Persistencia diferida**: `GameManager.FlushToCloud()` (público) + `OnApplicationPause(true)` + quit. Los needs **NO** disparan `OnRegistryChanged` (anti-saturación). Viajan en el flush porque viven en `CreatureDNA`.
+- **Endpoints de energía**: `CombatManagerSO.EnergyCostToQueue` (gastado en `AsyncCombatService`) + `AsyncBreedingService.energyCostPerParent`.
 
 ## Próximos pasos (retomar acá la próxima sesión)
 
-**Corral / breeding pen:**
-- **Setup de escena** (tuyo): Area `BreedingRoom` en Navigation → Areas; prefab corral (trigger + `MoriMochiContainer` + `NavMeshModifier`); asignar `navSurface` en `FurnitureService`; elegir `breedingAreaName` en el prefab del MoriMochi; rebakear tras colocar. Pasos en [[06 - Player & World]] / [[10 - Furniture & Building]].
-- Pendiente conocido: **bloquear `TryLift` de un corral ocupado** (build mode).
-- Futuro: enganchar **breeding** (juntar 2 → cría, usando `OccupantDNAs`) + persistencia de ocupantes.
+**Needs — siguiente:**
+- **Setup de escena** (tuyo): `Feeder`/`RestZone`/`PlayZone` en prefabs de furniture (hijo `usePoint`, sobre NavMesh); tunear tab Needs del agente + `EnergyCostToQueue` + `energyCostPerParent`.
+- **Cablear `FlushToCloud()` en el logout** de `CloudSyncService` (quedó público, sin enganchar).
+- Futuro: petting directo (E sobre la criatura); recursos consumibles en estaciones; muerte por inanición; decay offline (timestamp al cargar).
 
-**Furniture — siguiente:**
-- Setup de escena del Build mode (layers Floor/Furniture, máscaras, ghost, Active Pieces, pivotes). Después: **Fase 3 (economía/tienda)** + persistencia del `FurnitureRegistrySO`.
+**Corral / breeding pen** (sesión previa, sin avance):
+- Setup de escena (Area `BreedingRoom` + prefab corral + `navSurface` + `breedingAreaName` + rebake). Pendiente: bloquear `TryLift` de corral ocupado. Futuro: breeding con `OccupantDNAs` + persistencia de ocupantes.
 
-**MoriMonchis** (sesiones previas)
-- Setup de escena Etapa 2.5 pendiente (NavMesh bake + Areas + prefab + wiring). Pulsar **Populate Defaults** en `PersonalityProfileTable`.
+**Furniture / MoriMonchis** (previos): setup Build mode + Fase 3 economía; setup escena Etapa 2.5 (NavMesh + Areas + prefab + Populate Defaults).
 
 ## Archivos en juego en la sesión actual
 
 | Archivo | Por qué |
 |---------|---------|
-| `World/MoriMochiContainer.cs` (NEW) | Corral: trigger, aforo, censo, admit/bounce, `OccupantDNAs` |
-| `World/MoriMochiAgent.cs` | Refactor (Carried/Thrown + helpers) + confinamiento (`EnterConfinement`, `IsAirborne`, `breedingAreaName`, tackle-immune, tabs Odin) |
-| `Systems/Furniture/FurnitureService.cs` | Rebake NavMesh (botón + auto, `navSurface`) |
+| `Data/NeedsState.cs` (NEW) | 3 stats clampeados + endpoints |
+| `World/NeedStation.cs` (NEW) + `Feeder`/`RestZone`/`PlayZone` (NEW) | Estaciones de recarga (furniture) |
+| `World/NeedStationRegistry.cs` (NEW) | Índice estático `GetClosest` |
+| `World/MoriMochiAgent.cs` | Tab Needs + decay + SeekingNeed/UsingStation + degradado + hooks + grab interrupt |
+| `Data/CreatureDNA.cs` · `Core/Enums.cs` | Campo `Needs` · enum `NeedType` |
+| `Core/GameManager.cs` | `FlushToCloud` + `OnApplicationPause` |
+| `Data/CombatManagerSO.cs` · `Systems/Combat/AsyncCombatService.cs` | Costo de energía al encolar |
+| `Systems/Breeding/AsyncBreedingService.cs` | Costo de energía por padre |
 
 ## Cómo usar esta nota en sesiones futuras
 

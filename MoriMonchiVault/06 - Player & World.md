@@ -187,9 +187,46 @@ Se descartaron las propuestas A/B y el volume/carve. **Una superficie continua**
 
 **Pendiente conocido**: levantar/mover un corral **ocupado** en build mode → bloquear `TryLift` si tiene ocupantes (no implementado).
 
+### Sistema de Necesidades (Needs) — IMPLEMENTADO ✅
+
+> 3 stats mutables que el agente desgasta mientras está spawneado; el MoriMochi busca **estaciones** (muebles) para recargarlas, y degrada su comportamiento si no hay. Persisten dentro del save SIN saturar la nube.
+
+**Las 3 stats — `NeedsState` (Data/), anidado en `CreatureDNA.Needs`:**
+- `Health` [0,100] — hambre/bienestar, decae pasivo.
+- `Energy` [0,100] — decae **al moverse**; gasto puntual en breeding/combate.
+- `Affect` [-100,100] — +100 feliz ↔ -100 estresado; **deriva hacia negativo** con el tiempo, baja con throw/colisión brusca, sube en `PlayZone`.
+- Mutadores clampeados (`AddHealth/Energy/Affect`), `SpendEnergy` (endpoint), `Restore`/`Get` por `NeedType`.
+- **Vive en `CreatureDNA`** (no en un wrapper) porque DNA ya ES el record persistido (como `CombatHistory`/`BusyState`) → cero plomería en SaveSystem/Cloud. No es parte del genetic string. Detalle de persistencia en [[07 - Persistence & Identity]].
+
+**Estaciones — `NeedStation` (abstracta, World/) + `Feeder`/`RestZone`/`PlayZone`:**
+- Cada una satisface un `NeedType` (Health/Energy/Affect). Van en un **prefab de furniture**.
+- `usePoint` (dónde se para el agente), `fillPerSecond` (recarga continua hasta 100), lock de un usuario (`TryReserve`/`Release`), `Refill(needs, dt)` (true al llegar a 100).
+- Auto-registro en `OnEnable`/`OnDisable` → no tocan `FurnitureService`.
+- *(Futuro: estaciones con recursos consumibles que el jugador repone; hoy recargan a 100.)*
+
+**Manager — `NeedStationRegistry` (estático, World/):** auto-registro, `GetClosest(pos, type, onlyAvailable)`. Dedicado (no en FurnitureService) por separación de responsabilidades; mismo dominio World que el agente (como el corral) → query directa OK.
+
+**FSM del agente (estados nuevos `SeekingNeed`/`UsingStation`):**
+- Tab Odin **Needs**: rates de decay, **umbrales críticos configurables** (`criticalHealth`/`criticalEnergy`/`criticalAffect`), penalizaciones de afecto (`affectOnThrow`/`affectOnHardCollision`/`hardImpactThreshold`), `degradedSpeedMultiplier`.
+- `TickNeeds(dt)` (cada Update, antes del switch): decae en memoria **sin disparar eventos**; Energy solo si `IsMoving`; aplica velocidad degradada.
+- En Idle/Roaming → `TryEnterNeedSeeking()`: si hay need crítico (prioridad Health > Energy > Affect) pide `GetClosest`, reserva y va a `SeekingNeed` → al llegar `UsingStation` (`isStopped=true`, recarga hasta 100) → `EnterRoaming` (libera).
+- **Sin estación libre → degradado**: lento sin energía (`degradedSpeedMultiplier`), sigue perdiendo salud sin comida, **huye del player si está estresado** (`ReactIfPlayerNear` fuerza `Flee` vía `activeReaction`).
+- **Interrupción por grab**: `OnGrab` llama `ReleaseStation()` → corta seeking/using limpio → `Carried`. Confinados (corral) no buscan estaciones.
+
+**Endpoints de energía (breeding/combate)** — el monto lo configura cada manager:
+- `CombatManagerSO.EnergyCostToQueue` → `AsyncCombatService` lo gasta al encolar.
+- `AsyncBreedingService.energyCostPerParent` → lo gasta a ambos padres al iniciar.
+
+**Setup en Unity (pendiente del usuario):** poner `Feeder`/`RestZone`/`PlayZone` en prefabs de furniture (con hijo `usePoint` si el punto de parado difiere), sobre/junto al NavMesh; tunear la tab Needs del agente, `EnergyCostToQueue` y `energyCostPerParent`.
+
+**Próximos pasos / pendientes:**
+- Cablear el **flush en logout** (`GameManager.FlushToCloud()` desde `CloudSyncService` al cerrar sesión) — quedó público pero sin enganchar.
+- *(Opcional)* petting directo del jugador (E sobre la criatura) además de la `PlayZone`.
+- *(Futuro)* recursos consumibles en estaciones; muerte por inanición (hoy Health solo decae, no mata); decay offline (catch-up por timestamp al cargar — hoy solo decae spawneado).
+
 ### Estado del roadmap
 
-**Etapa 2.5 — Vida en Escena** 🔶 Código ✅ (World/: MoriMochiSpawner, MoriMochiAgent, NameTag · Personality enum + PersonalityProfileSO · CombatRecord/CombatTurn en DNA, JS sincronizado).
+**Etapa 2.5 — Vida en Escena** 🔶 Código ✅ (World/: MoriMochiSpawner, MoriMochiAgent, NameTag · Personality enum + PersonalityProfileSO · CombatRecord/CombatTurn en DNA, JS sincronizado · **Needs system: NeedsState + NeedStation/Registry + FSM**).
 
 Falta setup de escena en Unity (NavMesh bake + 3 Areas, prefab del cubo, asset Personality Profile Table, wiring del spawner).
 

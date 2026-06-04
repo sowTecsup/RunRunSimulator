@@ -89,6 +89,15 @@ Package `com.unity.nuget.newtonsoft-json` `3.2.1` en Package Manager (namespace 
 - Source of truth de los assets compartidos (getters Registry/Database/RarityOddsTable/InheritanceOddsTable/CombatConfig/PersonalityProfiles).
 - Lab: Generate / Mint (asigna Personality random) + Fill Random Breeders / Fighters.
 
+### Needs (stats runtime) — persistencia diferida, anti-saturación
+
+`CreatureDNA.Needs` (`NeedsState`: Health/Energy/Affect) son stats que el `MoriMochiAgent` muta **cada frame en memoria** (decay, recarga en estaciones, gasto en breeding/combate). Para NO saturar Cloud Save con micro-updates por frame:
+
+- Los cambios de needs **NUNCA disparan `OnRegistryChanged`** (eso pushea en cada mutación). Mutan el objeto `CreatureDNA` directo (el agente comparte la referencia del registro).
+- Viajan en el flush normal: `GameManager.FlushToCloud()` (= `SaveDatabase` + `PushToCloud`), llamado en **`OnApplicationQuit`** y **`OnApplicationPause(true)`** (minimizar/background — señal confiable en mobile).
+- `FlushToCloud()` es **público** para que lo llamen el logout y un "guardar partida" explícito. ⚠️ **Pendiente**: cablearlo en el logout de `CloudSyncService` (hoy no está enganchado).
+- Como `NeedsState` vive dentro de `CreatureDNA`, se serializa con el registro **sin tocar `SaveSystem`/`CloudSync`**. Detalle del sistema en [[06 - Player & World]].
+
 ## Archivos clave
 
 ```
