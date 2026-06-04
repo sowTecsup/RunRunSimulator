@@ -8,8 +8,13 @@ tags: [memory-bank, active, session]
 
 ## Sesión actual
 
-**Fecha**: 2026-06-02
-**Foco**: **Furniture Fase 2 — Building mode** (implementado en código) + refactor de la DB de furniture + fix del CreatureGrid UITK. Detalle permanente en [[10 - Furniture & Building]]. Sesión previa: consolidación de docs (Furniture Fase 1 + 3D MoriMonchis).
+**Fecha**: 2026-06-03
+**Foco**: **Diseño del corral de confinamiento** (base del breeding pen futuro). Solo teoría esta sesión — quedaron **dos propuestas (A vs B) documentadas en [[06 - Player & World]]** (sección "Corral de confinamiento — DISEÑO sin implementar"). Nada de código todavía. Sesión previa: Furniture Fase 2 — Building mode (código) + refactor DB furniture + fix CreatureGrid UITK ([[10 - Furniture & Building]]).
+
+### Corral — qué quedó decidido y qué falta decidir
+
+- **Decidido**: es un mueble furniture 2x2 (reúso total del sistema de furniture); entrada solo lanzándolo (trigger + ramas por `IsAirborne`/ocupante/intruso); aforo `capacity` configurable + rebote vía `Knock` cuando está lleno; salida solo al sujetarlo. Sin `GameEvents`/persistencia de ocupantes aún.
+- **FALTA DECIDIR para retomar**: **Propuesta A** (todo NavMesh, sampling en bounds, evitación reactiva — confinamiento blando) **vs Propuesta B** (NavMeshObstacle carve + steering interno sin NavMesh — confinamiento duro, evitación proactiva). Detalle y tensión carve↔NavMesh-interior en [[06 - Player & World]].
 
 ### Qué se hizo (esta sesión) → todo consolidado en [[10 - Furniture & Building]]
 

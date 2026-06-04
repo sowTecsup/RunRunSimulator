@@ -107,7 +107,7 @@ Mapeo detallado de cada script → vault.
 | 2.3 Integración UGS (async battles) | ✅ |
 | 2.4 Breeding Async (timer server-side) | ✅ |
 | 2.5 Vida en Escena (NavMesh + personalidad) | 🔶 Código ✅, falta setup escena |
-| 3.1 Tienda Local (furniture + economía) | 🔶 Furniture Fase 1 (data + grid + placement API) ✅, falta building mode + economía + persistencia |
+| 3.1 Tienda Local (furniture + economía) | 🔶 Furniture Fase 1 + Fase 2 (building mode, código) ✅, falta setup escena + economía + persistencia |
 | 3.2 Mercado Online | 🔲 |
 
 Detalle por feature en [[MoriMonchiVault/02 - Genetics & Breeding|02]], [[MoriMonchiVault/03 - Combat|03]], [[MoriMonchiVault/06 - Player & World|06]]. Pendientes en [[MoriMonchiVault/08 - Known Bugs & Checkpoints|08]].

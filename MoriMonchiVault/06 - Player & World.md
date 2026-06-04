@@ -150,6 +150,52 @@ Es el **endpoint reservado** para que la personalidad importe a futuro (combate,
 - Crear en **Navigation → Areas** tres áreas con nombre EXACTO: `ShopFrontDesk`, `ShopBackroom`, `Storage` (sin espacios — `WorldArea.ToString()` debe matchear; `NavMesh.GetAreaFromName`).
 - Requiere el package **AI Navigation** (`NavMeshSurface` para hornear). El runtime solo usa `UnityEngine.AI` (core).
 
+### Corral de confinamiento (DISEÑO — sin implementar)
+
+> Base para el **corral de breeding** futuro. Por ahora **solo confinamiento**: un mueble donde tiro hasta N MoriMonchis y quedan caminando confinados; salen solo si yo los sujeto. La lógica de breeding (juntar 2 → cría) llega después y recién ahí se enganchará a `GameEvents`.
+
+**Es furniture, reúso total.** El corral es un `FurnitureDefinitionSO` con `Footprint = 2x2` y su `Price`, comprado/colocado por el sistema de furniture existente. El **prefab** lleva el componente `MoriMochiContainer` + un `BoxCollider` **trigger**. **`FurnitureService` / `FurnitureSpawner` / grid / `FurnitureRegistry` NO se tocan** — un corral es solo un prefab de furniture con componentes extra.
+
+**Flujo confirmado (independiente de A/B de abajo):**
+
+- **Entrada = solo lanzado.** El `BoxCollider` trigger del corral → `OnTriggerEnter` dispara para cualquier MoriMochi (el `Rigidbody` kinemático del agent igual genera trigger events). Ramas:
+  - es ocupante mío → ignorar (es el de adentro, no un intruso).
+  - `agent.IsAirborne` (lanzado, en ragdoll) → intento de entrada: con cupo → **admitir** (guardo ref + lo paso a modo confinado); lleno → `agent.Knock(arriba+afuera)` → **rebote del aforo** (reusa el `Knock`/bounce que ya existe).
+  - caminando (kinemático, no ocupante) → **intruso** → `agent.AvoidArea(bounds)` ("el evento adentro del morimonchi" que lo hace re-rutear lejos).
+- **Aforo configurable**: `[MinValue(1)] capacity` en el inspector (default 2).
+- **Censo**: lista `occupants` (cada agent expone `DNA` → el corral sabe *quiénes*, no solo cuántos).
+- **Salida = solo el jugador al sujetarlo**: `OnGrab` → si confinado, `pen.Release(this)` (sale del censo, vuelve a libre). Al tirarlo a otro lado, `BeginGetUp` lo re-engancha al NavMesh global normal.
+
+**Requiere exponer en `MoriMochiAgent`**: `IsAirborne` (= `state==Held && !heldByPlayer && !rb.isKinematic`) — única forma limpia de distinguir "lo tiraron" de "se metió caminando".
+
+#### Disyuntiva abierta — cómo se mueve adentro + cómo lo evitan los de afuera
+
+La tensión clave: **carve y NavMesh-adentro NO coexisten en el mismo 2x2**. Si carveás el footprint para que los de afuera lo esquiven, borrás el NavMesh interior y el confinado ya no puede recorrer con NavMesh.
+
+> Aclaración importante (corrige un miedo): lo que reposiciona raro a todos los agents es un **rebake completo** (`NavMeshSurface.BuildNavMesh()`). Un **`NavMeshObstacle` con Carve** NO hace eso — recorta un hueco **local** y los demás simplemente rodean, sin re-hornear todo ni reposicionarse.
+
+- **Propuesta A (todo NavMesh, confinamiento blando)** — *la que el usuario eligió inicialmente*:
+  - Adentro: el agent **sigue siendo NavMeshAgent**; el destino se samplea **dentro de `boxCollider.bounds`** + `NavMesh.SamplePosition` para validar. No se escapa porque solo le damos destinos de adentro. Sin isla, sin bake.
+  - Afuera: evitación **reactiva** — en el `OnTriggerEnter` del intruso, `AvoidArea` le da un destino alejándose del centro.
+  - **Caveat**: la evitación es reactiva → los de afuera caminan HASTA el corral, "chocan", y recién ahí rodean (se ve el bumpeo). Confinamiento "blando" (depende de que solo sampleemos adentro).
+
+- **Propuesta B (carve + steering interno sin NavMesh)** — *recomendada por Claude para que se vea pulido*:
+  - El corral lleva un `NavMeshObstacle` (carve) → los de afuera lo **esquivan de lejos**, limpio y proactivo.
+  - Adentro: como el footprint quedó carveado (sin NavMesh), el confinado se mueve con **steering simple acotado a bounds** (no NavMesh) → agrega un modo de movimiento no-NavMesh al agent. Confinamiento "duro" (clamp a bounds).
+
+**Código nuevo (acotado, ambas propuestas):**
+
+| Pieza | Qué |
+|------|-----|
+| `MoriMochiContainer.cs` (NEW, World/) | `BoxCollider` trigger, `[MinValue(1)] capacity`, censo `occupants`, `OnTriggerEnter` (admite/rebota/repele), `Release` |
+| `MoriMochiAgent.cs` | + `IsAirborne` (público), `EnterConfinement(pen)`, `AvoidArea(...)`, hook en `OnGrab`; + sampling confinado en `EnterRoaming` (A) **o** estado de steering no-NavMesh (B) |
+
+Opcional: `ICreatureReceiver` (drop-a-script estilo `IThrowable`) para que el agent no dependa del concreto.
+
+**Desacople**: agent ↔ corral son **mismo dominio World** → refs directas / interface (como `IThrowable`), no es lookup a singleton de otro sistema. **Sin `GameEvents` ni persistencia de ocupantes todavía** (breeding y compra = futuro; la colocación del corral ya la persiste `FurnitureRegistry`). Edge a resolver al implementar: **levantar/mover un corral ocupado en build mode** → lo más limpio es **bloquear `TryLift` si tiene ocupantes**.
+
+**PARA RETOMAR**: decidir **A vs B**. Con eso confirmado se implementa directo.
+
 ### Estado del roadmap
 
 **Etapa 2.5 — Vida en Escena** 🔶 Código ✅ (World/: MoriMochiSpawner, MoriMochiAgent, NameTag · Personality enum + PersonalityProfileSO · CombatRecord/CombatTurn en DNA, JS sincronizado).

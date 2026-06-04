@@ -161,7 +161,7 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
@@ -439,7 +439,7 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
@@ -717,7 +717,7 @@ MonoBehaviour:
       Data: false
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
