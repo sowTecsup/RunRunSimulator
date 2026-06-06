@@ -62,10 +62,13 @@ FurnitureService  ──TryPlace/TryRemove──►  FurnitureRegistrySO  (verda
 ### `PlacementGrid` — math/ocupación
 - `cellSize` + `dimensions` (Vector2Int). Origen = `transform.position` (esquina min), plano XZ.
 - `WorldToCell(world)` → celda ancla que contiene el punto.
-- `FootprintCenter(anchor, footprint, rotation)` → centro world de la huella (lo usa el spawner para posicionar).
+- `FootprintCenter(anchor, footprint, rotation)` → centro world de la huella en el plano lógico del grid (XZ). La Y real del suelo **no** viene de aquí sino de `TrySampleFloor`.
 - `CanPlace` / `Occupy` / `Free` / `Clear` sobre un `HashSet<Vector2Int>` de celdas ocupadas (estado runtime, derivado del registry).
 - Una rotación 90°/270° **intercambia X/Y** de la huella (`Rotated`).
-- Gizmos: grid azul (`OnDrawGizmosSelected`) + cubos rojos en celdas ocupadas. Solo `Gizmos.*`, compila en build.
+- Gizmos: grid azul + cubos rojos en celdas ocupadas. Solo `Gizmos.*`, compila en build.
+- **`TrySampleFloor(anchor, fp, rot, out y, out flat)`** *(nuevo)*: raycast vertical desde `transform.position + floorProbeHeight` hacia abajo, contra `floorMask`. Devuelve la Y real del suelo bajo el centro del footprint y si la normal es plana (`Vector3.Angle(normal, up) ≤ maxSlopeAngle`). Fuente única de Y para el ghost y el spawner — mantiene preview == colocado incluso en terreno irregular.
+  - Campos nuevos: `floorMask` (layer del suelo/terreno), `maxSlopeAngle` (default 5°), `floorProbeHeight` (alcance del rayo).
+  - **Setup**: poner el transform del grid ligeramente **por encima** del piso más alto de la escena; el rayo baja hasta encontrar el suelo real. `floorMask` = layer Floor (NUNCA incluir muebles).
 
 ### `FurnitureService` — flujo + API pública
 - **Hotbar**: `activePieces` (`List<FurnitureDefinitionSO>`) + `SelectPiece(index)` (1-4) + `ActivePiece` (la seleccionada). Fuente única de "qué coloco".
@@ -80,7 +83,8 @@ FurnitureService  ──TryPlace/TryRemove──►  FurnitureRegistrySO  (verda
 - Suscribe `OnFurnitureChanged` / `OnFurnitureReloaded` en `OnEnable`, desuscribe en `OnDisable` (regla #9).
 - `Sync` incremental: instancia keys nuevas, destruye las que ya no están (diff contra `spawned`).
 - `OnReloaded` = `ClearAll` + `Sync` (para pull/reset, sin re-push — patrón `OnRegistryReloaded`).
-- Posiciona el **pivote raíz** del prefab en `grid.FootprintCenter` y rota con `Quaternion.Euler(0, Rotation, 0)`. Runtime "tonto": el control de alineación vive en el prefab (no se auto-centra en runtime — se probó y le saca control al artista).
+- Posiciona el **pivote raíz** del prefab en `grid.FootprintCenter` y rota con `Quaternion.Euler(0, Rotation, 0)`. Runtime "tonto": el control de alineación vive en el prefab.
+- **Snap al piso real** *(nuevo)*: tras calcular la posición XZ con `FootprintCenter`, llama `grid.TrySampleFloor` y reemplaza la Y con la del suelo real → muebles se asientan en terreno irregular. La Y no se guarda en `PlacedFurniture` (Opción B): el terreno es la fuente de verdad, si cambia la geometría la pieza se re-asienta al cargar.
 
 ### Prefab: pivote y `FurniturePivotAligner`
 El runtime coloca el **pivote raíz** del prefab en el centro del footprint y **rota alrededor de ese pivote**. Por lo tanto:
@@ -143,9 +147,13 @@ El runtime coloca el **pivote raíz** del prefab en el centro del footprint y **
 
 **Esc anidado:** en un sub-estado cancela la selección (restaura si había pieza levantada) → Browsing; en Browsing sale del modo. **B** sale siempre. Tras confirmar (F) una colocación válida → vuelve a **Browsing** (decisión del usuario).
 
-### Selección por raycast — dos máscaras
-- **`floorMask`** (layer Floor): SOLO el ghost de *Placing*. El rayo atraviesa muebles → celda del piso bajo la mira.
-- **`furnitureMask`** (layer Furniture): *Edit* y *Delete*. El rayo pega en el mueble apuntado; `PlacedFurnitureMarker` (lo estampa el spawner con la celda ancla) devuelve la celda exacta → `TryLift`. Sin segundo raycast ni parseo de nombres; correcto para multi-celda.
+### Selección por raycast — tres máscaras
+- **`floorMask`** (layer Floor): el rayo de cámara al suelo durante *Placing* → celda XZ bajo la mira. También la usa `PlacementGrid.TrySampleFloor` (vertical, independiente).
+- **`furnitureMask`** (layer Furniture): *Edit* y *Delete*. El rayo pega en el mueble apuntado; `PlacedFurnitureMarker` devuelve la celda ancla → `TryLift`. Sin segundo raycast ni parseo de nombres; correcto para multi-celda.
+- **`obstacleMask`** *(nuevo)* (layers de muros/escenografía fija): `OverlapsObstacle()` hace `Physics.CheckBox` orientado al footprint contra esta layer. El ghost gira rojo si colisiona. **No incluir Floor aquí** (siempre daría rojo).
+
+### Validez unificada — `PlacementValid()`
+`CanPlace` (celdas libres + dentro de bounds) **+** `floorFlat` (pendiente ≤ `maxSlopeAngle`) **+** `!OverlapsObstacle` (sin colisión física). Única fuente de verdad para tint, `OnPin` y `OnConfirm` → ghost y confirmación siempre coinciden. Pendiente inclinado = siempre inválido (no hay muebles en rampas).
 
 ### Mecánica de "levantar" (lift)
 Seleccionar una pieza existente (E / click der.) llama `TryLift` → la quita del registry (su mesh despawnea) y la sostiene como ghost. Confirmar la re-coloca (`TryPlace`) en su nuevo estado; cancelar/salir la restaura en su celda/rotación original. Así rota sin chocar consigo misma y todo pasa por la API event-driven.

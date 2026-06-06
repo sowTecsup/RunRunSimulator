@@ -14,15 +14,38 @@ using UnityEngine.AI;
 // Each spawned cube gets its CreatureDNA + personality wired via MoriMochiAgent.
 public class MoriMochiSpawner : MonoBehaviour
 {
+    // Placed: dropped straight onto the NavMesh near the area. Launched: popped out of a
+    // GameObject as a ragdoll in a random direction, then it bounces, settles and roams home.
+    private enum SpawnMode { Placed, Launched }
+
     [Header("Prefab")]
     [Tooltip("Cube prefab with MoriMochiAgent + NavMeshAgent + Rigidbody + Collider and a NameTag child.")]
     [Required, SerializeField] private MoriMochiAgent creaturePrefab;
 
-    [Header("Spawn placement")]
+    [Title("Spawn mode")]
+    [EnumToggleButtons, HideLabel]
+    [SerializeField] private SpawnMode spawnMode = SpawnMode.Placed;
+
+    // ── Placed (drop onto the NavMesh) ──
+    [TabGroup("Spawn", "Placed (drop)")]
     [Tooltip("Where creatures appear. If null, this object's position is used.")]
     [SerializeField] private Transform spawnArea;
+    [TabGroup("Spawn", "Placed (drop)")]
     [Tooltip("Creatures are dropped within this radius of the spawn area, snapped to the NavMesh.")]
     [SerializeField] private float spawnRadius = 4f;
+
+    // ── Launched (shoot out of a GameObject) ──
+    [TabGroup("Spawn", "Launched (shoot out)")]
+    [Tooltip("GameObject the creatures pop out of. If null, this object's position is used. Place it slightly above the floor so they arc down onto the NavMesh.")]
+    [SerializeField] private Transform launchPoint;
+    [TabGroup("Spawn", "Launched (shoot out)")]
+    [Tooltip("Impulse magnitude of the pop-out — a random value in [min, max] each spawn.")]
+    [MinMaxSlider(1f, 40f, true)]
+    [SerializeField] private Vector2 launchForce = new Vector2(8f, 14f);
+    [TabGroup("Spawn", "Launched (shoot out)")]
+    [Tooltip("Upward bias blended into the random horizontal direction (0 = flat shot, 1 = mostly up). Higher = a taller arc.")]
+    [Range(0f, 1f)]
+    [SerializeField] private float launchUpBias = 0.5f;
 
     // ── State ─────────────────────────────────────────────────────
     private readonly Dictionary<string, MoriMochiAgent> spawned = new Dictionary<string, MoriMochiAgent>();
@@ -93,13 +116,30 @@ public class MoriMochiSpawner : MonoBehaviour
         }
 
         var table = GameManager.Instance != null ? GameManager.Instance.PersonalityProfiles : null;
-        Vector3 pos = ResolveSpawnPosition(table, dna.Personality);
+
+        // Launched starts at the launch point (off the NavMesh, in the air); Placed snaps onto it.
+        Vector3 pos = spawnMode == SpawnMode.Launched
+            ? (launchPoint != null ? launchPoint.position : transform.position)
+            : ResolveSpawnPosition(table, dna.Personality);
 
         var agent = Instantiate(creaturePrefab, pos, Quaternion.identity);
         agent.name = $"MoriMochi_{dna.CustomName}";
         agent.Initialize(dna, table, player);
 
+        // Pop it out in a random direction; the agent's bounce/settle/get-up pipeline lands it near
+        // here, then it roams to its preferred area like any landed throw.
+        if (spawnMode == SpawnMode.Launched)
+            agent.Launch(RandomLaunchImpulse());
+
         spawned[dna.UniqueID] = agent;
+    }
+
+    // A random horizontal direction with an upward bias, scaled by a random force in launchForce.
+    private Vector3 RandomLaunchImpulse()
+    {
+        Vector2 flat = Random.insideUnitCircle.normalized;
+        Vector3 dir  = (new Vector3(flat.x, 0f, flat.y) + Vector3.up * launchUpBias).normalized;
+        return dir * Random.Range(launchForce.x, launchForce.y);
     }
 
     private void Despawn(string id)

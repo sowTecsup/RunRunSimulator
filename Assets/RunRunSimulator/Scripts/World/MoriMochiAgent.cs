@@ -44,6 +44,33 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [SerializeField] private string breedingAreaName = "BreedingRoom";
 
     // ── Needs (decay + thresholds) ──
+    // Live readout of this creature's current needs (the values in dna.Needs, mutated each frame).
+    // Editor-only window into runtime state — drives nothing.
+    [TabGroup("Tuning", "Needs"), Title("Live values (play mode)")]
+    [ShowInInspector, ProgressBar(0f, 100f, 0.3f, 0.9f, 0.4f)]
+    private float Health => dna != null ? dna.Needs.Health : 0f;
+    [TabGroup("Tuning", "Needs")]
+    [ShowInInspector, ProgressBar(0f, 100f, 0.3f, 0.6f, 1f)]
+    private float Energy => dna != null ? dna.Needs.Energy : 0f;
+    [TabGroup("Tuning", "Needs")]
+    [ShowInInspector, ProgressBar(-100f, 100f, 1f, 0.5f, 0.7f)]
+    private float Affect => dna != null ? dna.Needs.Affect : 0f;
+
+    // Overall wellbeing, DERIVED from the needs against the critical thresholds below (never stored —
+    // always in sync). Sick = Health critical (survival emergency); InNeed = Energy/Affect critical;
+    // Healthy = none. Gates whether it can afford to react to the player (see ReactIfPlayerNear).
+    [TabGroup("Tuning", "Needs"), ShowInInspector, EnumToggleButtons, ReadOnly]
+    public CreatureCondition Condition
+    {
+        get
+        {
+            if (dna == null) return CreatureCondition.Healthy;
+            if (dna.Needs.Health <= criticalHealth) return CreatureCondition.Sick;
+            if (dna.Needs.Energy <= criticalEnergy || dna.Needs.Affect <= criticalAffect) return CreatureCondition.InNeed;
+            return CreatureCondition.Healthy;
+        }
+    }
+
     [TabGroup("Tuning", "Needs"), Title("Decay per second (only while spawned)")]
     [Tooltip("Health lost per second — passive hunger.")]
     [SerializeField, Min(0f)] private float healthDecayPerSecond = 0.5f;
@@ -58,7 +85,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [Tooltip("Health at/below this → seek a Feeder.")]
     [SerializeField, Range(0f, 100f)] private float criticalHealth = 25f;
     [TabGroup("Tuning", "Needs")]
-    [Tooltip("Energy at/below this → seek a RestZone (and walk slower if none exists).")]
+    [Tooltip("Energy at/below this → seek a RestZone.")]
     [SerializeField, Range(0f, 100f)] private float criticalEnergy = 25f;
     [TabGroup("Tuning", "Needs")]
     [Tooltip("Affect AT OR BELOW this → stressed: seek a PlayZone (and flee the player if none).")]
@@ -73,10 +100,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [TabGroup("Tuning", "Needs")]
     [Tooltip("Impact speed (m/s) at/above which a collision counts as 'hard' for stress.")]
     [SerializeField, Min(0f)] private float hardImpactThreshold = 4f;
-
-    [TabGroup("Tuning", "Needs"), Title("Degraded behavior (no station available)")]
-    [Tooltip("Speed multiplier while energy is critical.")]
-    [SerializeField, Range(0.1f, 1f)] private float degradedSpeedMultiplier = 0.5f;
 
     // ── Physics (throwable layer) ──
     [TabGroup("Tuning", "Physics"), Title("Hold feel (while carried)")]
@@ -334,6 +357,19 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         onThrow?.Invoke();          // reuse the throw juice for the knock
     }
 
+    // Spawn pop-out: launches the creature as a ragdoll in some direction, reusing the throw
+    // pipeline (bounce → settle → get-up → roam to its preferred area). Unlike Knock this carries
+    // NO affect penalty — being born isn't stressful — and ignores confinement (it's never penned
+    // at spawn). The spawner calls this right after Initialize().
+    public void Launch(Vector3 impulse)
+    {
+        DetachToPhysics();
+        ApplyThrownPhysics();
+        holdAnchor = null;
+        state      = AgentState.Thrown;
+        rb.AddForce(impulse, ForceMode.Impulse);
+    }
+
     // ── States ────────────────────────────────────────────────────
 
     private void TickIdle()
@@ -407,8 +443,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         dna.Needs.AddHealth(-healthDecayPerSecond * dt);
         dna.Needs.AddAffect(-affectDecayPerSecond * dt);
         if (IsMoving) dna.Needs.AddEnergy(-energyDecayPerSecond * dt);
-
-        ApplyDegradedSpeed();   // crawl when out of energy (degraded behavior if no RestZone)
     }
 
     private bool IsMoving =>
@@ -417,20 +451,23 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
     // If a need is critical, reserve the closest available station and head there (SeekingNeed).
     // Returns true if it took over this frame. No station free → returns false and the agent keeps
-    // roaming DEGRADED (slower / fleeing — handled in TickNeeds + ReactIfPlayerNear).
+    // roaming with the need unmet (it just won't react to the player — see ReactIfPlayerNear).
     private bool TryEnterNeedSeeking()
     {
         if (currentContainer != null) return false;        // penned creatures can't wander to stations
         if (!TryGetCriticalNeed(out var need)) return false;
 
         var station = NeedStationRegistry.GetClosest(transform.position, need);
-        if (station == null || !station.TryReserve(this)) return false;
+        if (station == null) return false;
+        // Reserve the closest free, reachable slot (one per use point — handles unknown furniture
+        // orientation). Fails if the station is full or no free slot snaps onto our area → stay degraded.
+        if (!station.TryReserve(this, transform.position, agent.areaMask, sampleRadius, out var usePos)) return false;
 
         reservedStation      = station;
         state                = AgentState.SeekingNeed;
         agent.updateRotation = true;
         SetStopped(false);
-        SetDestinationSafe(station.UsePosition);
+        SetDestinationSafe(usePos);   // the reserved slot — held until full / interrupted
         return true;
     }
 
@@ -475,12 +512,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private void SetStopped(bool stopped)
     {
         if (agent.enabled && agent.isOnNavMesh) agent.isStopped = stopped;
-    }
-
-    // Degraded movement: crawl when energy is critical (no RestZone pulled it into SeekingNeed).
-    private void ApplyDegradedSpeed()
-    {
-        agent.speed = profile.MoveSpeed * (dna.Needs.Energy <= criticalEnergy ? degradedSpeedMultiplier : 1f);
     }
 
     private void TickThrown()
@@ -563,13 +594,22 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private bool ReactIfPlayerNear()
     {
         if (player == null) return false;
-
-        // Stressed (no PlayZone got it out of here) → flee the player regardless of personality.
-        bool stressed = dna != null && dna.Needs.Affect <= criticalAffect;
-        var reaction  = stressed ? ProximityReaction.Flee : profile.Reaction;
-        if (reaction == ProximityReaction.Ignore) return false;
         if (PlanarDistanceToPlayer() > profile.ProximityRadius) return false;
 
+        // Stress (Affect emergency, no PlayZone freed it) → flee the player. This IS the need response,
+        // not "following" the player, so it stays even though the creature isn't Healthy.
+        if (dna != null && dna.Needs.Affect <= criticalAffect)
+            return BeginReaction(ProximityReaction.Flee);
+
+        // Friendly reactions (follow / approach / retreat) only when nothing is critical — a creature
+        // with an emergency keeps prioritizing its need and ignores the player.
+        if (Condition != CreatureCondition.Healthy) return false;
+        if (profile.Reaction == ProximityReaction.Ignore) return false;
+        return BeginReaction(profile.Reaction);
+    }
+
+    private bool BeginReaction(ProximityReaction reaction)
+    {
         activeReaction   = reaction;
         stateBeforeReact = state == AgentState.Idle ? AgentState.Idle : AgentState.Roaming;
         state            = AgentState.Reacting;

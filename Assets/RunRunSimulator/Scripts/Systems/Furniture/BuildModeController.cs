@@ -39,6 +39,8 @@ public class BuildModeController : MonoBehaviour
     [SerializeField] private LayerMask floorMask = ~0;
     [Tooltip("FURNITURE layers the selection ray hits to pick a placed piece (Edit / Delete).")]
     [SerializeField] private LayerMask furnitureMask;
+    [Tooltip("OBSTACLE layers that block placement by PHYSICAL overlap (walls, fixed scenery, props not on the grid). The ghost turns red if its footprint box overlaps any collider here. Do NOT include the floor layer.")]
+    [SerializeField] private LayerMask obstacleMask;
     [SerializeField] private float aimDistance = 30f;
 
     [Header("Ghost")]
@@ -62,6 +64,9 @@ public class BuildModeController : MonoBehaviour
 
     private Vector2Int currentCell;          // ghost cell — follows aim in Placing, frozen once pinned
     private bool aimValid;
+    private float currentY;                  // floor Y under currentCell — follows aim, frozen once pinned
+    private bool floorFlat;                  // is the floor under currentCell flat enough to build on
+    private float ghostHalfHeight = 0.5f;    // half-height of the ghost mesh, for the obstacle box
 
     private GameObject ghost;
     private readonly List<Renderer> ghostRenderers = new List<Renderer>();
@@ -149,9 +154,15 @@ public class BuildModeController : MonoBehaviour
         // selected cell, and selection (Edit/Delete) does its own furniture raycast on demand.
         if (state == BuildState.Placing)
         {
+            // The camera ray picks the cell (XZ); the floor Y + slope come from a vertical probe
+            // at that cell, so the preview sits exactly where the spawner will re-seat it.
             aimValid = Physics.Raycast(aimTransform.position, aimTransform.forward,
                                        out RaycastHit hit, aimDistance, floorMask, QueryTriggerInteraction.Ignore);
-            if (aimValid) currentCell = grid.WorldToCell(hit.point);
+            if (aimValid)
+            {
+                currentCell = grid.WorldToCell(hit.point);
+                aimValid = grid.TrySampleFloor(currentCell, heldDef.Footprint, rotation, out currentY, out floorFlat);
+            }
         }
 
         if (ghost == null) return;          // Browsing carries no ghost
@@ -164,12 +175,12 @@ public class BuildModeController : MonoBehaviour
         if (!ghost.activeSelf) ghost.SetActive(true);
 
         Vector2Int fp = heldDef.Footprint;
-        bool valid = state != BuildState.Deleting && grid.CanPlace(currentCell, fp, rotation);
+        bool valid = state != BuildState.Deleting && PlacementValid();
         if (valid && state == BuildState.Editing) lastValidRotation = rotation;
 
-        ghost.transform.SetPositionAndRotation(
-            grid.FootprintCenter(currentCell, fp, rotation),
-            Quaternion.Euler(0f, rotation, 0f));
+        Vector3 pos = grid.FootprintCenter(currentCell, fp, rotation);
+        pos.y = currentY;                   // snap base to the real floor (irregular terrain)
+        ghost.transform.SetPositionAndRotation(pos, Quaternion.Euler(0f, rotation, 0f));
         Tint(valid ? validColor : invalidColor);
     }
 
@@ -217,6 +228,7 @@ public class BuildModeController : MonoBehaviour
         originalRotation = rot;
         rotation         = rot;
         currentCell      = cell;            // ghost sits here (frozen while Editing/Deleting)
+        grid.TrySampleFloor(cell, def.Footprint, rot, out currentY, out floorFlat);
         BuildGhost(def.Prefab);
         state = next;
     }
@@ -240,9 +252,9 @@ public class BuildModeController : MonoBehaviour
     private void OnPin()
     {
         if (!active || state != BuildState.Placing || !aimValid) return;
-        if (!grid.CanPlace(currentCell, heldDef.Footprint, rotation))
+        if (!PlacementValid())
         {
-            Debug.Log("[BuildModeController] Can't pin here — cell blocked.");
+            Debug.Log("[BuildModeController] Can't pin here — cell blocked, sloped, or overlapping an obstacle.");
             return;
         }
         lastValidRotation = rotation;
@@ -268,7 +280,7 @@ public class BuildModeController : MonoBehaviour
                 break;
 
             case BuildState.Editing:
-                if (grid.CanPlace(currentCell, heldDef.Footprint, rotation))
+                if (PlacementValid())
                 {
                     service.TryPlace(heldDef, currentCell, rotation);
                     GoBrowsing();           // per design: back to Browsing after a confirm
@@ -300,6 +312,32 @@ public class BuildModeController : MonoBehaviour
 
     // ── Helpers ───────────────────────────────────────────────────
 
+    // Single source of "can the held piece sit at currentCell": free cells + flat floor +
+    // no physical overlap with an obstacle. Used by the tint, OnPin and OnConfirm so they agree.
+    private bool PlacementValid()
+    {
+        if (heldDef == null) return false;
+        Vector2Int fp = heldDef.Footprint;
+        return grid.CanPlace(currentCell, fp, rotation)
+            && floorFlat
+            && !OverlapsObstacle(currentCell, fp, rotation);
+    }
+
+    // Physical overlap test: an oriented box over the footprint (XZ from the grid, height from the
+    // ghost mesh) against obstacleMask. The ghost's own colliders are disabled, and a lifted piece
+    // is already despawned, so neither self-triggers. A small inset avoids catching flush neighbours.
+    private bool OverlapsObstacle(Vector2Int cell, Vector2Int fp, int rot)
+    {
+        if (obstacleMask == 0) return false;
+        Vector2Int r = (Mathf.Abs(rot % 180) == 0) ? fp : new Vector2Int(fp.y, fp.x);
+        Vector3 half = new Vector3(r.x * grid.CellSize * 0.5f - 0.02f, ghostHalfHeight,
+                                   r.y * grid.CellSize * 0.5f - 0.02f);
+        Vector3 center = grid.FootprintCenter(cell, fp, rot);
+        center.y = currentY + ghostHalfHeight;
+        return Physics.CheckBox(center, half, Quaternion.Euler(0f, rot, 0f), obstacleMask,
+                                QueryTriggerInteraction.Ignore);
+    }
+
     // Re-places an existing piece that was lifted for edit/delete but not committed.
     private void RestoreLiftedIfAny()
     {
@@ -329,6 +367,14 @@ public class BuildModeController : MonoBehaviour
         ghostRenderers.AddRange(ghost.GetComponentsInChildren<Renderer>());
         if (ghostMaterial != null)
             foreach (var r in ghostRenderers) r.sharedMaterial = ghostMaterial;
+
+        // Mesh half-height drives the obstacle overlap box (footprint gives XZ, this gives Y).
+        if (ghostRenderers.Count > 0)
+        {
+            Bounds b = ghostRenderers[0].bounds;
+            for (int i = 1; i < ghostRenderers.Count; i++) b.Encapsulate(ghostRenderers[i].bounds);
+            ghostHalfHeight = Mathf.Max(0.05f, b.extents.y);
+        }
 
         if (mpb == null) mpb = new MaterialPropertyBlock();
     }

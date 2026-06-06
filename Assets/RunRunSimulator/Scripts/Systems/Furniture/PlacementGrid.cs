@@ -10,6 +10,14 @@ public class PlacementGrid : MonoBehaviour
     [SerializeField] private float cellSize = 1f;
     [SerializeField] private Vector2Int dimensions = new Vector2Int(20, 20);
 
+    [Header("Floor snapping")]
+    [Tooltip("FLOOR layers the vertical probe hits to find the ground Y under a cell. The grid stays a flat LOGICAL plane (XZ); placement Y is read from the real floor below, so it works over irregular terrain. Keep the grid transform slightly above the highest floor.")]
+    [SerializeField] private LayerMask floorMask = ~0;
+    [Tooltip("Max angle (deg) between the floor normal and up for a cell to count as flat. Steeper than this → the cell is an invalid placement (no tilted furniture).")]
+    [SerializeField] private float maxSlopeAngle = 5f;
+    [Tooltip("How far above/below the grid plane the vertical floor probe reaches.")]
+    [SerializeField] private float floorProbeHeight = 50f;
+
     // Runtime occupancy (derived from the registry). Cleared on a full reload.
     private readonly HashSet<Vector2Int> occupied = new HashSet<Vector2Int>();
 
@@ -27,6 +35,25 @@ public class PlacementGrid : MonoBehaviour
     {
         Vector2Int fp = Rotated(footprint, rotation);
         return transform.position + new Vector3((anchor.x + fp.x * 0.5f) * cellSize, 0f, (anchor.y + fp.y * 0.5f) * cellSize);
+    }
+
+    // Vertical probe at the footprint center to read the real floor under a cell. Returns the
+    // ground Y and whether that ground is flat enough to build on (normal within maxSlopeAngle
+    // of up). Shared by the build-mode ghost and the spawner so preview == placed (Option B:
+    // Y is recomputed from the terrain, never stored on the lightweight record).
+    public bool TrySampleFloor(Vector2Int anchor, Vector2Int footprint, int rotation, out float y, out bool flat)
+    {
+        Vector3 c = FootprintCenter(anchor, footprint, rotation);
+        Vector3 origin = new Vector3(c.x, transform.position.y + floorProbeHeight, c.z);
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, floorProbeHeight * 2f, floorMask, QueryTriggerInteraction.Ignore))
+        {
+            y = hit.point.y;
+            flat = Vector3.Angle(hit.normal, Vector3.up) <= maxSlopeAngle;
+            return true;
+        }
+        y = transform.position.y;
+        flat = false;
+        return false;
     }
 
     public bool CanPlace(Vector2Int anchor, Vector2Int footprint, int rotation)

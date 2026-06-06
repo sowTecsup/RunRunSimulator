@@ -8,41 +8,67 @@ tags: [memory-bank, active, session]
 
 ## Sesión actual
 
-**Fecha**: 2026-06-04
-**Foco**: **Sistema de Necesidades (Needs) IMPLEMENTADO** — 3 stats (Health/Energy/Affect) en `CreatureDNA.Needs`, estaciones de mundo (Feeder/RestZone/PlayZone), registry, FSM del agente (SeekingNeed/UsingStation + degradado) y persistencia diferida anti-saturación. Detalle en [[06 - Player & World]] (sistema) y [[07 - Persistence & Identity]] (flush). Sesión previa: corral de confinamiento + refactor del agente + rebake.
+**Fecha**: 2026-06-06
+**Foco**: Refinamientos del Build Mode (validez física + snap al piso) + spawn de MoriMonchis en modo "lanzados" + mejoras de Needs (multi-slot en estaciones, `CreatureCondition`, needs priorizan sobre reacción al jugador, eliminación del speed degradado).
 
 ### Qué se hizo (esta sesión)
 
-- **`NeedsState`** anidado en `CreatureDNA.Needs` (Opción A — DNA ya es el record persistido → cero plomería). Mutadores clampeados + `SpendEnergy`/`Restore`/`Get`.
-- **Estaciones**: `NeedStation` (abstracta) + `Feeder`/`RestZone`/`PlayZone` (auto-registro, `usePoint`, recarga hasta 100, lock de un usuario). **`NeedStationRegistry`** estático (`GetClosest`).
-- **`MoriMochiAgent`**: tab Odin **Needs** (decay, umbrales configurables, penalizaciones de afecto, degradado); `TickNeeds` en memoria sin eventos; estados `SeekingNeed`/`UsingStation`; degradado (lento sin energía / huye estresado); interrupción por grab (`ReleaseStation`); hooks de afecto en throw/knock/colisión.
-- **Persistencia diferida**: `GameManager.FlushToCloud()` (público) + `OnApplicationPause(true)` + quit. Los needs **NO** disparan `OnRegistryChanged` (anti-saturación). Viajan en el flush porque viven en `CreatureDNA`.
-- **Endpoints de energía**: `CombatManagerSO.EnergyCostToQueue` (gastado en `AsyncCombatService`) + `AsyncBreedingService.energyCostPerParent`.
+**Build Mode — dos reglas nuevas de validez de colocación:**
+- **`PlacementGrid.TrySampleFloor(anchor, fp, rot, out y, out flat)`**: raycast vertical al piso real bajo el footprint; devuelve la Y del suelo y si la normal es plana (< `maxSlopeAngle`). Nuevos campos: `floorMask`, `maxSlopeAngle` (deg), `floorProbeHeight`. El grid sigue siendo un plano lógico XZ; la Y del spawn/preview viene del terreno real → funciona en terreno irregular.
+- **`BuildModeController.obstacleMask`**: nuevo campo. `OverlapsObstacle()` hace un `Physics.CheckBox` orientado al footprint (XZ del grid + altura del mesh del ghost) contra esa layer → rojo si choca con muros/escenografía no registrada en el grid. El ghost ya tiene colliders apagados y la pieza levantada está despawneada, sin auto-detección.
+- **`PlacementValid()`**: fuente única de verdad = `CanPlace` + `floorFlat` + `!OverlapsObstacle`. La usa el tint, `OnPin` y `OnConfirm` (verde/rojo, fijado y guardado siempre coinciden). Pendiente inclinado → siempre inválido.
+- **`FurnitureSpawner`**: llama `TrySampleFloor` al respawnear → la Y se re-lee del terreno real (Opción B: no se guarda, el terreno es la fuente de verdad).
+
+**MoriMochiSpawner — modo "Launched":**
+- Enum `SpawnMode { Placed, Launched }` con `[EnumToggleButtons]`.
+- Tab Odin **"Placed (drop)"**: `spawnArea` + `spawnRadius` (comportamiento previo intacto).
+- Tab Odin **"Launched (shoot out)"**: `launchPoint` (GameObject de origen), `launchForce` (rango min/max, `[MinMaxSlider]`), `launchUpBias` (arco vertical).
+- En modo `Launched`: instancia en `launchPoint` y llama `agent.Launch(RandomLaunchImpulse())`.
+
+**MoriMochiAgent — método `Launch(impulse)`:**
+- Reutiliza el pipeline de física de `Knock` (DetachToPhysics + ApplyThrownPhysics + estado `Thrown` → bounce → settle → get-up → EnterRoaming al área preferida). **Sin penalización de affect** (nacer no es estresante). Sin chequeo de confinamiento (nunca está enjaulado al spawnear).
+
+**NeedStation — capacidad multi-slot:**
+- `usePoint` (singular) → `List<Transform> usePoints`. Capacidad = cantidad de puntos (sin puntos → 1 slot implícito en el transform).
+- `TryReserve(agent, from, areaMask, sampleRadius, out usePos)`: reserva el slot libre más cercano y alcanzable (snap al NavMesh en el areaMask del agente); re-entrante (si ya tenía slot, lo conserva). Devuelve la posición donde pararse. `false` si lleno o ningún slot snaps.
+- Gizmos: esfera+línea por slot, coloreados por need (verde/azul/rosa). En Play: slot ocupado → **rojo**.
+- El agente llama `TryReserve` en `TryEnterNeedSeeking` (la reserva y la elección de punto son la misma operación atómica).
+
+**`CreatureCondition` (nuevo enum en `Enums.cs`):**
+- `Healthy` / `InNeed` (Energy o Affect crítica) / `Sick` (Health crítica — emergencia de supervivencia).
+- Propiedad **calculada** en `MoriMochiAgent.Condition` (derivada de los thresholds, nunca guardada → siempre en sync). Visible en la tab Needs con `[EnumToggleButtons, ReadOnly]`.
+
+**Needs priorizan sobre reacción al jugador:**
+- `ReactIfPlayerNear` refactorizado: flee por estrés (Affect crítico) siempre activo. Reacciones amistosas (follow/approach/retreat) **solo si `Condition == Healthy`**. Un MoriMochi hambriento/cansado ignora al jugador.
+- `BeginReaction(reaction)` extraído como helper.
+
+**Eliminación del speed degradado:**
+- `degradedSpeedMultiplier` + `ApplyDegradedSpeed()` eliminados. Un MoriMochi con need crítica se mueve a velocidad normal y puede alcanzar su estación. La "penalización" por no tener estación es solo la need sin satisfacer + ignorar al jugador.
 
 ## Próximos pasos (retomar acá la próxima sesión)
 
-**Needs — siguiente:**
-- **Setup de escena** (tuyo): `Feeder`/`RestZone`/`PlayZone` en prefabs de furniture (hijo `usePoint`, sobre NavMesh); tunear tab Needs del agente + `EnergyCostToQueue` + `energyCostPerParent`.
-- **Cablear `FlushToCloud()` en el logout** de `CloudSyncService` (quedó público, sin enganchar).
-- Futuro: petting directo (E sobre la criatura); recursos consumibles en estaciones; muerte por inanición; decay offline (timestamp al cargar).
+**Setup de escena (tuyo — código listo):**
+- `Feeder`/`RestZone`/`PlayZone`: agregar hijos vacíos como use points en los prefabs (uno por lado); los gizmos de color muestran slots y ocupación en Play.
+- `PlacementGrid`: asignar `Floor Mask` (layer del piso/terreno) + subir el transform del grid por encima del piso más alto + ajustar `Max Slope Angle`.
+- `BuildModeController`: asignar `Obstacle Mask` (layers de muros/escenografía fija que bloquean por colisión física).
+- `MoriMochiSpawner`: si usás `Launched`, asignar `launchPoint` (ligeramente sobre el piso).
 
-**Corral / breeding pen** (sesión previa, sin avance):
-- Setup de escena (Area `BreedingRoom` + prefab corral + `navSurface` + `breedingAreaName` + rebake). Pendiente: bloquear `TryLift` de corral ocupado. Futuro: breeding con `OccupantDNAs` + persistencia de ocupantes.
-
-**Furniture / MoriMonchis** (previos): setup Build mode + Fase 3 economía; setup escena Etapa 2.5 (NavMesh + Areas + prefab + Populate Defaults).
+**Pendientes anteriores:**
+- Bloquear `TryLift` de un corral ocupado (en `BuildModeController`/`FurnitureService`).
+- Cablear `FlushToCloud()` en el logout de `CloudSyncService`.
+- Futuro: petting directo (E sobre criatura); recursos consumibles en estaciones; muerte por inanición (Health → 0); decay offline por timestamp.
 
 ## Archivos en juego en la sesión actual
 
 | Archivo | Por qué |
 |---------|---------|
-| `Data/NeedsState.cs` (NEW) | 3 stats clampeados + endpoints |
-| `World/NeedStation.cs` (NEW) + `Feeder`/`RestZone`/`PlayZone` (NEW) | Estaciones de recarga (furniture) |
-| `World/NeedStationRegistry.cs` (NEW) | Índice estático `GetClosest` |
-| `World/MoriMochiAgent.cs` | Tab Needs + decay + SeekingNeed/UsingStation + degradado + hooks + grab interrupt |
-| `Data/CreatureDNA.cs` · `Core/Enums.cs` | Campo `Needs` · enum `NeedType` |
-| `Core/GameManager.cs` | `FlushToCloud` + `OnApplicationPause` |
-| `Data/CombatManagerSO.cs` · `Systems/Combat/AsyncCombatService.cs` | Costo de energía al encolar |
-| `Systems/Breeding/AsyncBreedingService.cs` | Costo de energía por padre |
+| `Systems/Furniture/PlacementGrid.cs` | `TrySampleFloor` + `floorMask`/`maxSlopeAngle`/`floorProbeHeight` |
+| `Systems/Furniture/BuildModeController.cs` | `obstacleMask` + `OverlapsObstacle` + `PlacementValid` + snap Y |
+| `Systems/Furniture/FurnitureSpawner.cs` | Snap Y con `TrySampleFloor` en `SpawnOne` |
+| `World/MoriMochiSpawner.cs` | SpawnMode enum + tabs Placed/Launched + `RandomLaunchImpulse` |
+| `World/MoriMochiAgent.cs` | `Launch()` + readout de needs + `Condition` + `ReactIfPlayerNear` refactorizado + eliminación de degradado |
+| `World/NeedStation.cs` | Multi-slot (`usePoints` list + `occupants[]`) + gizmos con ocupación |
+| `Core/Enums.cs` | Nuevo enum `CreatureCondition` |
 
 ## Cómo usar esta nota en sesiones futuras
 

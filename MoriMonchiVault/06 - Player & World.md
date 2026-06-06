@@ -79,20 +79,24 @@ Convierte criaturas del registro (data) en cubos vivos en la escena. Tres script
 
 ### MoriMochiSpawner — bridge data→escena
 
-- Escucha `GameEvents.OnRegistryChanged` (incremental: las mismas instancias de DNA se mutan in-place → los agents vivos siguen válidos) y `OnRegistryReloaded` (cloud pull/reset reemplaza los objetos DNA → rebuild completo). Suscribe/desuscribe en `OnEnable`/`OnDisable`.
-- **Por ahora spawnea TODA criatura viva**; despawnea las muertas o removidas. (Futuro: zonas por estado — cola de combate, incubadora física.)
-- **Spawn sesgado a "casa"**: `ResolveSpawnPosition` samplea un punto cerca del `spawnArea` con `areaMask = 1<<PreferredArea` → la criatura **arranca** en su área preferida. Fallback a `AllAreas` si esa área no es alcanzable. El sesgo es solo en el spawn; después se mueve libre (ver agent), no es una jaula.
-- Resuelve prefab + assets de `GameManager.Instance` (registry, `PersonalityProfiles`). `Initialize(dna, table, player)` cablea cada agent.
+- Escucha `GameEvents.OnRegistryChanged` (incremental) y `OnRegistryReloaded` (rebuild completo). Suscribe/desuscribe en `OnEnable`/`OnDisable`.
+- **Por ahora spawnea TODA criatura viva**; despawnea las muertas o removidas.
+- **Dos modos de spawn** (`SpawnMode`, `[EnumToggleButtons]` en inspector):
+  - **Placed (drop)**: `ResolveSpawnPosition` samplea un punto cerca del `spawnArea` con `areaMask = 1<<PreferredArea` → la criatura aparece en el NavMesh, en su área preferida. Fallback a `AllAreas`.
+  - **Launched (shoot out)**: instancia en `launchPoint` (sobre el suelo, fuera del NavMesh) y llama `agent.Launch(RandomLaunchImpulse())`. El agente sale disparado en dirección aleatoria, rebota (`bounciness`/`maxBounces`), asienta y reanuda normal. Tab **"Launched"** en inspector: `launchPoint`, `launchForce` (rango min/max, `[MinMaxSlider]`), `launchUpBias` (arco vertical, 0–1).
+- Resuelve prefab + assets de `GameManager.Instance`. `Initialize(dna, table, player)` cablea cada agent.
 - Botón **Respawn All** (DEV, solo Play).
 
 ### MoriMochiAgent (implementa `IThrowable`) — el cerebro
 
-- `NavMeshAgent` + **state machine** `Idle / Roaming / Reacting / Carried / Thrown / Recovering`, **sesgada por la personalidad** (lee el `PersonalityProfile` resuelto — NUNCA hace `switch` por `Personality`). **`Carried`** = en la mano del player; **`Thrown`** = ragdoll en vuelo (antes ambos eran un solo `Held` desambiguado con bools — el refactor los separó: `IsAirborne => state==Thrown`, `IsHeld => state==Carried`).
-- **Movimiento libre, preferencia ≠ confinamiento**: por defecto `agent.areaMask = AllAreas & ~(1<<BreedingRoom)` (los libres rodean los corrales; ver Corral abajo). En `EnterRoaming` el destino lo decide **`NextRoamDestination()`**: confinado → punto dentro de los bounds del corral; libre → con prob. `AreaPreference` apunta al `PreferredArea` (`TryGetPreferredPoint`), si no, random en `RoamRadius`. **`ConfineToArea` (la vieja jaula por personalidad) sigue ELIMINADO** — el único confinamiento por `areaMask` es el del corral.
-- **Reacción por proximidad**: si el player entra en `ProximityRadius`, interrumpe y reacciona según personalidad (`Flee`/`Approach`/`Follow`/`Retreat`; `Ignore` no reacciona). Al alejarse (histéresis ×1.25) vuelve al estado anterior. El "follow" emerge de la personalidad, no es un comando.
-- **Tint por personalidad**: `ApplyTint(profile.Tint)` en `Initialize` vía `MaterialPropertyBlock` (setea `_BaseColor` URP + `_Color` built-in) → **sin clonar material, sin fuga**. El mesh vive en el hijo `Model` (el root NO tiene mesh): `bodyRenderer` serializado, fallback a `transform.Find("Model")`.
-- **Gizmos** (solo Play, ya inicializado el profile): `DrawWireSphere` de ProximityRadius/RoamRadius/FollowDistance + esfera con el Tint + línea al destino. Sin `Handles` → compila en build.
-- **Inspector (Odin)**: tuning agrupado en tabs `Movement` (NavMesh) / `Physics` (throwable) / `Presentation` (visuals + Feedbacks), vía `[TabGroup]` + `[Title]`.
+- `NavMeshAgent` + **state machine** `Idle / Roaming / Reacting / Carried / Thrown / Recovering / SeekingNeed / UsingStation`, **sesgada por la personalidad** (lee el `PersonalityProfile` resuelto — NUNCA hace `switch` por `Personality`). **`Carried`** = en la mano del player; **`Thrown`** = ragdoll en vuelo.
+- **Movimiento libre, preferencia ≠ confinamiento**: por defecto `agent.areaMask = AllAreas & ~(1<<BreedingRoom)`. En `EnterRoaming` el destino lo decide **`NextRoamDestination()`**: confinado → bounds del corral; libre → con prob. `AreaPreference` apunta al `PreferredArea`, si no, random en `RoamRadius`.
+- **`Condition` (propiedad calculada, `CreatureCondition`)**: derivada de los thresholds en tiempo real, nunca guardada. `Sick` (Health crítica) / `InNeed` (Energy o Affect crítica) / `Healthy` (nada crítico). Visible en la tab Needs con `[EnumToggleButtons, ReadOnly]` junto a las barras de Health/Energy/Affect en vivo (`[ProgressBar]`, `[ShowInInspector]`).
+- **Reacción al jugador — gated por `Condition`**: flee por estrés (Affect crítico) siempre activo (es la respuesta a la emergencia, no "seguir"). Reacciones amistosas (`Follow`/`Approach`/`Retreat`) **solo si `Condition == Healthy`** — un MoriMochi con need crítica ignora al jugador hasta satisfacerla.
+- **`Launch(impulse)`** *(nuevo)*: pop-out de spawn que reutiliza el pipeline de física (`DetachToPhysics` + `ApplyThrownPhysics` + estado `Thrown` → bounce → settle → get-up → roam). Sin penalización de affect (nacer no es estresante). Lo llama `MoriMochiSpawner` en modo `Launched`.
+- Sin `degradedSpeedMultiplier`: un MoriMochi con need crítica se mueve a **velocidad normal** para poder alcanzar su estación. La penalización es solo comportamental (ignora al jugador, prioriza la need).
+- **Tint por personalidad** y **Gizmos** igual que antes.
+- **Inspector (Odin)**: tabs `Movement` / `Needs` / `Physics` / `Presentation`. Tab Needs ahora incluye las barras de stats en vivo y `Condition`.
 
 ### Vuelo: bounce + knock + settle (100% por código)
 
@@ -200,18 +204,23 @@ Se descartaron las propuestas A/B y el volume/carve. **Una superficie continua**
 
 **Estaciones — `NeedStation` (abstracta, World/) + `Feeder`/`RestZone`/`PlayZone`:**
 - Cada una satisface un `NeedType` (Health/Energy/Affect). Van en un **prefab de furniture**.
-- `usePoint` (dónde se para el agente), `fillPerSecond` (recarga continua hasta 100), lock de un usuario (`TryReserve`/`Release`), `Refill(needs, dt)` (true al llegar a 100).
-- Auto-registro en `OnEnable`/`OnDisable` → no tocan `FurnitureService`.
-- *(Futuro: estaciones con recursos consumibles que el jugador repone; hoy recargan a 100.)*
+- **Multi-slot**: `List<Transform> usePoints` — capacidad = número de puntos (sin puntos → 1 slot implícito). Cada slot tiene un `occupants[]` entry; mientras un agente usa ese slot lo mantiene ocupado hasta terminar.
+- `TryReserve(agent, from, areaMask, sampleRadius, out usePos)`: reserva el slot libre más cercano y alcanzable (snap al NavMesh respetando el areaMask del agente); re-entrante. Devuelve la posición concreta donde pararse. `false` si está llena o ningún slot alcanzable. El agente llama esto en `TryEnterNeedSeeking` — reservar y elegir punto son la misma operación atómica.
+- `IsAvailable` = al menos un slot libre (el registry sigue usando esto para rankear).
+- `Refill(needs, dt)` → true al llegar a 100. `Release(agent)` libera el slot.
+- Auto-registro en `OnEnable`/`OnDisable`.
+- **Gizmos**: esfera+línea por slot, coloreados por need (verde Health, azul Energy, rosa Affect). En **Play**: slot ocupado → **rojo**.
+- **Setup**: crear hijos vacíos como use points alrededor del mueble (uno por lado) y arrastrarlos a la lista. Los gizmos muestran capacity y ocupación en tiempo real.
+- *(Futuro: recursos consumibles; hoy recargan a 100.)*
 
 **Manager — `NeedStationRegistry` (estático, World/):** auto-registro, `GetClosest(pos, type, onlyAvailable)`. Dedicado (no en FurnitureService) por separación de responsabilidades; mismo dominio World que el agente (como el corral) → query directa OK.
 
-**FSM del agente (estados nuevos `SeekingNeed`/`UsingStation`):**
-- Tab Odin **Needs**: rates de decay, **umbrales críticos configurables** (`criticalHealth`/`criticalEnergy`/`criticalAffect`), penalizaciones de afecto (`affectOnThrow`/`affectOnHardCollision`/`hardImpactThreshold`), `degradedSpeedMultiplier`.
-- `TickNeeds(dt)` (cada Update, antes del switch): decae en memoria **sin disparar eventos**; Energy solo si `IsMoving`; aplica velocidad degradada.
-- En Idle/Roaming → `TryEnterNeedSeeking()`: si hay need crítico (prioridad Health > Energy > Affect) pide `GetClosest`, reserva y va a `SeekingNeed` → al llegar `UsingStation` (`isStopped=true`, recarga hasta 100) → `EnterRoaming` (libera).
-- **Sin estación libre → degradado**: lento sin energía (`degradedSpeedMultiplier`), sigue perdiendo salud sin comida, **huye del player si está estresado** (`ReactIfPlayerNear` fuerza `Flee` vía `activeReaction`).
-- **Interrupción por grab**: `OnGrab` llama `ReleaseStation()` → corta seeking/using limpio → `Carried`. Confinados (corral) no buscan estaciones.
+**FSM del agente (estados `SeekingNeed`/`UsingStation`):**
+- Tab Odin **Needs**: barras en vivo (Health/Energy/Affect, `[ProgressBar, ShowInInspector]`) + `Condition` (`[EnumToggleButtons, ReadOnly]`) + rates de decay + **umbrales críticos** (`criticalHealth`/`criticalEnergy`/`criticalAffect`) + penalizaciones de afecto (`affectOnThrow`/`affectOnHardCollision`/`hardImpactThreshold`).
+- `TickNeeds(dt)` (cada Update): decae en memoria **sin disparar eventos**; Energy solo si `IsMoving`.
+- En Idle/Roaming → `TryEnterNeedSeeking()`: si hay need crítico (prioridad Health > Energy > Affect) pide `GetClosest` al registry, llama `station.TryReserve(...)` (slot libre alcanzable) → `SeekingNeed` → al llegar `UsingStation` (`isStopped=true`, recarga hasta 100) → `EnterRoaming` (libera el slot).
+- **Sin estación libre**: el agente sigue roameando a **velocidad normal** con la need sin satisfacer e ignora al jugador (`Condition != Healthy`). El flee por estrés sigue activo (es la respuesta, no "seguir").
+- **Interrupción por grab**: `OnGrab` → `ReleaseStation()` → `Carried`. Confinados no buscan estaciones.
 
 **Endpoints de energía (breeding/combate)** — el monto lo configura cada manager:
 - `CombatManagerSO.EnergyCostToQueue` → `AsyncCombatService` lo gasta al encolar.
@@ -249,5 +258,5 @@ Assets/RunRunSimulator/Scripts/Data/
 └── PersonalityProfileSO.cs           # SO singleton (Current): Dictionary<Personality, PersonalityProfile>
 
 Assets/RunRunSimulator/Scripts/Core/
-└── Enums.cs                          # ... + PlayerStateType, Personality, ProximityReaction, WorldArea
+└── Enums.cs                          # ... + PlayerStateType, Personality, ProximityReaction, WorldArea, CreatureCondition
 ```

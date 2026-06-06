@@ -59,6 +59,9 @@ public class FurnitureSpawner : MonoBehaviour
         // FurniturePivotAligner editor helper); we just place that pivot and rotate around it.
         var anchor = new Vector2Int(f.CellX, f.CellY);
         Vector3 pos = grid.FootprintCenter(anchor, def.Footprint, f.Rotation);
+        // Option B: snap the base to the real floor under the cell (irregular terrain). Y is never
+        // stored — the terrain is the source of truth, so a piece re-seats if the ground changes.
+        if (grid.TrySampleFloor(anchor, def.Footprint, f.Rotation, out float floorY, out _)) pos.y = floorY;
         var go = Instantiate(def.Prefab, pos, Quaternion.Euler(0f, f.Rotation, 0f), transform);
         go.name = $"{def.Id}@{key}";
         go.AddComponent<PlacedFurnitureMarker>().AnchorCell = anchor;   // build mode picks pieces by this

@@ -310,19 +310,19 @@ NavMeshAgent:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3990977039202299874}
   m_Enabled: 1
-  m_AgentTypeID: 0
+  m_AgentTypeID: -1372625422
   m_Radius: 0.5
-  m_Speed: 3.5
+  m_Speed: 10
   m_Acceleration: 8
   avoidancePriority: 50
-  m_AngularSpeed: 120
+  m_AngularSpeed: 1200
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
   m_BaseOffset: 1
-  m_WalkableMask: 4294967295
+  m_WalkableMask: 56
   m_ObstacleAvoidanceType: 4
 --- !u!54 &6941703199582355247
 Rigidbody:
@@ -363,7 +363,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f869f32eb84fd4945806bb53a3baf52e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMochiAgent
-  bodyRenderer: {fileID: 5823270579327690085}
+  sampleRadius: 4
+  repathInterval: 0.35
+  breedingAreaName: BreedingRoom
+  healthDecayPerSecond: 0.5
+  energyDecayPerSecond: 1
+  affectDecayPerSecond: 0.5
+  criticalHealth: 25
+  criticalEnergy: 25
+  criticalAffect: -75
+  affectOnThrow: 8
+  affectOnHardCollision: 5
+  hardImpactThreshold: 4
+  degradedSpeedMultiplier: 0.5
   followSpeed: 15
   settleSpeed: 0.15
   settleDelay: 0.4
@@ -380,9 +392,7 @@ MonoBehaviour:
   downedDelay: 0.6
   getUpDuration: 0.5
   getUpJitter: 0.15
-  sampleRadius: 4
-  repathInterval: 0.35
-  breedingAreaName: BreedingRoom
+  bodyRenderer: {fileID: 5823270579327690085}
   onGrab:
     m_PersistentCalls:
       m_Calls: []

@@ -96,6 +96,17 @@ public enum NeedType
     Affect = 2,  // affection / anti-stress — PlayZone
 }
 
+// Overall wellbeing of a MoriMochi, DERIVED from its needs (never stored — see
+// MoriMochiAgent.Condition). Orthogonal to AgentState (what it's DOING): this is HOW IT IS.
+// Drives whether it can afford to react to the player and is a clean hook for UI/icons.
+// Severity order: a creature prioritizes its needs over everything once it leaves Healthy.
+public enum CreatureCondition
+{
+    Healthy = 0,  // No need is critical — free to roam and react to the player
+    InNeed  = 1,  // Energy or Affect critical — busy meeting that need, ignores the player
+    Sick    = 2,  // Health critical — the survival emergency (permadeath precursor)
+}
+
 // Behavioral archetype of a MoriMochi. Assigned RANDOMLY at mint/hatch (NOT
 // inherited, NOT part of the genetic string — it's metadata like Gender) and
 // stored in CreatureDNA. Drives world movement and how it reacts to the player.
