@@ -76,19 +76,36 @@
                     </ui:VisualElement>
                 </ui:Tab>
 
-                <!-- ── Tab 3: Resultados ── -->
+                <!-- ── Tab 3: Resultados (en cola + reloj al próximo tick) ── -->
                 <ui:Tab label="Resultados" name="tab-results">
+                    <ui:VisualElement class="cbt-body cbt-results-body">
+
+                        <ui:VisualElement class="cbt-results-center">
+                            <ui:Label text="Próximo combate en" class="cbt-clock-caption" />
+                            <ui:Label name="queue-clock" text="--:--" class="cbt-clock" />
+                            <ui:Button name="btn-refresh" text="Revisar resultados" class="cbt-action cbt-action--refresh" />
+                            <ui:ScrollView name="results-list" class="cbt-list cbt-queue-list" mode="Vertical" />
+                            <ui:Label name="queue-empty" text="No hay MoriMonchis en cola." class="cbt-placeholder" />
+                        </ui:VisualElement>
+
+                    </ui:VisualElement>
+                </ui:Tab>
+
+                <!-- ── Tab 4: Historial (todos los combates pasados) ── -->
+                <ui:Tab label="Historial" name="tab-history">
                     <ui:VisualElement class="cbt-body">
 
                         <ui:VisualElement class="cbt-col-results">
-                            <ui:Button name="btn-refresh" text="Revisar resultados" class="cbt-action cbt-action--refresh" />
-                            <ui:ScrollView name="results-list" class="cbt-list" mode="Vertical" />
+                            <ui:DropdownField name="history-filter" class="cbt-filter" />
+                            <ui:ScrollView name="history-list" class="cbt-list" mode="Vertical" />
+                            <ui:Label name="history-empty" text="Aún no hay combates registrados." class="cbt-placeholder" />
                         </ui:VisualElement>
 
                         <ui:VisualElement class="cbt-col-log">
-                            <ui:Label name="log-opponent" text="Selecciona un combate" class="cbt-log-opponent" />
-                            <ui:ScrollView name="log-lines" class="cbt-log-lines" mode="Vertical" />
-                            <ui:Label name="log-outcome" text="" class="cbt-log-outcome" />
+                            <ui:Label name="hist-opponent" text="Selecciona un combate" class="cbt-log-opponent" />
+                            <ui:Label name="hist-date" text="" class="cbt-hist-date" />
+                            <ui:ScrollView name="hist-lines" class="cbt-log-lines" mode="Vertical" />
+                            <ui:Label name="hist-outcome" text="" class="cbt-log-outcome" />
                         </ui:VisualElement>
 
                     </ui:VisualElement>

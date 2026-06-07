@@ -27,7 +27,7 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private CreatureDatabaseSO database;
     [SerializeField] private AsyncCombatService asyncCombatService;
 
-    private enum Region { TabBar, T1List, T1Actions, T2Center, T2ListA, T2ListB, T3List }
+    private enum Region { TabBar, T1List, T1Actions, T2Center, T2ListA, T2ListB, T3List, T4List }
     private Region region = Region.TabBar;
 
     private const string Focus = "cbt-focus";
@@ -45,10 +45,14 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
     private VisualElement slotA, slotB, slotAImg, slotBImg;
     private Label slotAName, slotBName, localOutcome;
     private Button btnFight;
-    // Tab 3
+    // Tab 3 (Resultados: cola + reloj al próximo tick)
     private Button btnRefresh;
-    private ScrollView resultsList, logLines;
-    private Label logOpponent, logOutcome;
+    private ScrollView resultsList;
+    private Label queueClock, queueEmpty;
+    // Tab 4 (Historial)
+    private DropdownField historyFilter;
+    private ScrollView historyList, histLines;
+    private Label historyEmpty, histOpponent, histDate, histOutcome;
 
     // ── State ──
     private CreatureRegistrySO registry;
@@ -61,12 +65,22 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
     private readonly List<VisualElement> faCards = new List<VisualElement>();
     private readonly List<VisualElement> fbCards = new List<VisualElement>();
     private readonly List<VisualElement> resultCards = new List<VisualElement>();
+    private readonly List<Label> resultTimeLabels = new List<Label>();          // per-row countdown
     private readonly List<VisualElement> t3Cards = new List<VisualElement>();   // refresh + entries
-    private int onlineIndex, faIndex, fbIndex, t1ActionIndex, t2Index, t3Index;
+    private readonly List<VisualElement> historyCards = new List<VisualElement>();
+    private readonly List<HistItem> historyRendered = new List<HistItem>();   // parallel to historyCards
+    private int onlineIndex, faIndex, fbIndex, t1ActionIndex, t2Index, t3Index, t4Index;
 
-    private readonly Dictionary<string, CombatLogEntry> logs = new Dictionary<string, CombatLogEntry>();
+    // Flattened, date-sorted view of every creature's CombatHistory (newest first).
+    private readonly List<HistItem> historyItems = new List<HistItem>();
+    private string historyFilterId = "";   // "" = all creatures
+    private readonly List<string> filterIds = new List<string>();   // parallel to dropdown choices
+
     private bool refreshBusy;
     private bool wired;
+    private int lastClockSecond = -1;
+
+    private struct HistItem { public CreatureDNA Self; public CombatRecord Rec; }
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
@@ -100,6 +114,12 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
     {
         Wire();
         UIManager.RegisterNavigable(panel, this);
+    }
+
+    // Tick the queue countdown only while the Resultados tab is visible.
+    private void Update()
+    {
+        if (wired && tabs != null && tabs.selectedTabIndex == 2) UpdateClock();
     }
 
     private void OnDestroy()
@@ -145,9 +165,19 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
 
         btnRefresh  = root.Q<Button>("btn-refresh");
         resultsList = root.Q<ScrollView>("results-list");
-        logLines    = root.Q<ScrollView>("log-lines");
-        logOpponent = root.Q<Label>("log-opponent");
-        logOutcome  = root.Q<Label>("log-outcome");
+        queueClock  = root.Q<Label>("queue-clock");
+        queueEmpty  = root.Q<Label>("queue-empty");
+
+        historyFilter = root.Q<DropdownField>("history-filter");
+        historyList   = root.Q<ScrollView>("history-list");
+        historyEmpty  = root.Q<Label>("history-empty");
+        histOpponent  = root.Q<Label>("hist-opponent");
+        histDate      = root.Q<Label>("hist-date");
+        histLines     = root.Q<ScrollView>("hist-lines");
+        histOutcome   = root.Q<Label>("hist-outcome");
+
+        if (historyFilter != null)
+            historyFilter.RegisterValueChangedCallback(_ => OnHistoryFilterChanged());
 
         if (closeButton != null) closeButton.clicked += OnClose;
         if (btnInstant  != null) btnInstant.clicked  += OnInstant;
@@ -175,11 +205,13 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         RebuildAll();
     }
 
+    // A finished combat already landed in the creatures' CombatHistory by the time
+    // this fires; just refresh the queue (it left the pool) and the history list.
     private void OnCombatLogged(CombatLogEntry entry)
     {
-        if (entry == null) return;
-        logs[entry.CreatureId] = entry;
-        if (wired) RebuildResults();
+        if (!wired) return;
+        RebuildResults();
+        RebuildHistory();
     }
 
     private void OnPanelToggle(UIPanelType p) { if (p == panel) ResetFocus(); }
@@ -190,6 +222,7 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         RebuildOnlineList();
         RebuildFighterLists();
         RebuildResults();
+        RebuildHistory();
         SetCenter();
         RefreshSlots();
     }
@@ -376,77 +409,217 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         RebuildResults();
     }
 
+    // Resultados now shows ONLY what's still in the queue (name + the shared
+    // countdown to the next server tick). Finished fights move to Historial.
     private void RebuildResults()
     {
         if (resultsList == null) return;
-        resultsList.Clear(); resultCards.Clear();
+        resultsList.Clear(); resultCards.Clear(); resultTimeLabels.Clear();
 
-        var shown = new HashSet<string>();
-        foreach (var e in logs.Values)
-        {
-            AddResultRow(e.CreatureName, e.CreatureId, e.Won ? "Ganó" : (e.Died ? "Murió" : "Perdió"));
-            shown.Add(e.CreatureId);
-        }
+        int queued = 0;
         if (registry != null)
             foreach (var d in registry.GetAll().Values
                          .Where(x => x.BusyState == BusyReason.QueuedForCombat)
                          .OrderBy(x => x.CustomName))
-                if (!shown.Contains(d.UniqueID))
-                    AddResultRow(d.CustomName, d.UniqueID, "En cola");
+            {
+                AddQueueRow(d.CustomName, d.UniqueID, d.QueuedAt);
+                queued++;
+            }
+
+        if (queueEmpty != null) queueEmpty.style.display = queued == 0 ? DisplayStyle.Flex : DisplayStyle.None;
 
         // t3 focus order: refresh button first, then the rows.
         t3Cards.Clear();
         if (btnRefresh != null) t3Cards.Add(btnRefresh);
         t3Cards.AddRange(resultCards);
+
+        lastClockSecond = -1;   // force the clock to repaint next Update
+        UpdateClock();
     }
 
-    private void AddResultRow(string name, string id, string status)
+    private void AddQueueRow(string name, string id, DateTime queuedAt)
     {
         var row = new VisualElement();
         row.AddToClassList("cbt-result-row");
         row.userData = id;
 
         var n = new Label(name); n.AddToClassList("cbt-result-name");
-        var s = new Label(status); s.AddToClassList("cbt-result-status");
-        row.Add(n); row.Add(s);
+        var q = new Label(queuedAt == default ? "" : $"encolado {queuedAt.ToLocalTime():HH:mm}");
+        q.AddToClassList("cbt-result-queued");
+        var t = new Label("--:--"); t.AddToClassList("cbt-result-time");
+        row.Add(n); row.Add(q); row.Add(t);
 
-        row.RegisterCallback<ClickEvent>(_ => ShowLog(id));
         resultsList.Add(row);
         resultCards.Add(row);
+        resultTimeLabels.Add(t);
     }
 
-    private void ShowLog(string id)
+    // The server cron runs at minute :00 of every UTC hour. Both the big clock and
+    // each queue row count down to that boundary; throttled to once per second.
+    private void UpdateClock()
     {
-        if (logLines == null) return;
-        logLines.Clear();
+        if (queueClock == null) return;
 
-        if (logs.TryGetValue(id, out var e))
+        var now  = DateTime.UtcNow;
+        if (now.Second == lastClockSecond) return;
+        lastClockSecond = now.Second;
+
+        var next = now.Date.AddHours(now.Hour + 1);
+        var span = next - now;
+        string text = $"{span.Minutes:00}:{span.Seconds:00}";
+
+        queueClock.text = text;
+        foreach (var lbl in resultTimeLabels) lbl.text = text;
+    }
+
+    // ── Tab 4: history (replayable, all creatures) ────────────────
+
+    private void RebuildHistory()
+    {
+        historyItems.Clear();
+        if (registry != null)
+            foreach (var dna in registry.GetAll().Values)
+            {
+                if (dna.CombatHistory == null) continue;
+                foreach (var rec in dna.CombatHistory)
+                    historyItems.Add(new HistItem { Self = dna, Rec = rec });
+            }
+        historyItems.Sort((a, b) => b.Rec.Date.CompareTo(a.Rec.Date));
+
+        RebuildHistoryFilter();
+        RebuildHistoryList();
+    }
+
+    // Dropdown choices: "Todos" + every creature that actually has history. The
+    // parallel filterIds list maps the selected index back to a UniqueID.
+    private void RebuildHistoryFilter()
+    {
+        if (historyFilter == null) return;
+
+        var choices = new List<string> { "Todos" };
+        filterIds.Clear();
+        filterIds.Add("");
+
+        var seen = new HashSet<string>();
+        foreach (var it in historyItems)
+            if (seen.Add(it.Self.UniqueID))
+            {
+                choices.Add(it.Self.CustomName);
+                filterIds.Add(it.Self.UniqueID);
+            }
+
+        historyFilter.choices = choices;
+        int idx = filterIds.IndexOf(historyFilterId);
+        if (idx < 0) { idx = 0; historyFilterId = ""; }
+        historyFilter.SetValueWithoutNotify(choices[idx]);
+    }
+
+    private void OnHistoryFilterChanged()
+    {
+        int idx = historyFilter != null ? historyFilter.index : 0;
+        historyFilterId = (idx >= 0 && idx < filterIds.Count) ? filterIds[idx] : "";
+        RebuildHistoryList();
+    }
+
+    private void RebuildHistoryList()
+    {
+        if (historyList == null) return;
+        historyList.Clear(); historyCards.Clear(); historyRendered.Clear();
+
+        int shown = 0;
+        foreach (var it in historyItems)
         {
-            if (logOpponent != null) logOpponent.text = $"vs {e.OpponentLabel}";
-            foreach (var line in e.Lines)
-            {
-                var l = new Label(line); l.AddToClassList("cbt-log-line"); logLines.Add(l);
-            }
-            if (logOutcome != null)
-            {
-                logOutcome.text = e.Died ? $"{e.Outcome}  ·  murió" : e.Outcome;
-                logOutcome.EnableInClassList("cbt-log-outcome--win", e.Won);
-                logOutcome.EnableInClassList("cbt-log-outcome--lose", !e.Won);
-            }
+            if (!string.IsNullOrEmpty(historyFilterId) && it.Self.UniqueID != historyFilterId) continue;
+            AddHistoryRow(it);
+            shown++;
         }
-        else
-        {
-            string name = registry != null && registry.TryGet(id, out var d) ? d.CustomName : "?";
-            if (logOpponent != null) logOpponent.text = $"{name} — En cola";
-            var l = new Label("Esperando combate... pulsa Revisar resultados."); l.AddToClassList("cbt-log-line"); logLines.Add(l);
-            if (logOutcome != null)
+
+        if (historyEmpty != null) historyEmpty.style.display = shown == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+    }
+
+    private void AddHistoryRow(HistItem it)
+    {
+        var rec = it.Rec;
+        var row = new VisualElement();
+        row.AddToClassList("cbt-result-row");
+        row.userData = historyCards.Count;   // index into the filtered render order
+
+        var n = new Label($"{it.Self.CustomName}  vs  {rec.OpponentName}");
+        n.AddToClassList("cbt-result-name");
+
+        var s = new Label(OutcomeShort(rec.Outcome, rec.Died));
+        s.AddToClassList("cbt-result-status");
+        s.AddToClassList(OutcomeClass(rec.Outcome));
+
+        var meta = new Label(rec.Date.ToLocalTime().ToString("dd/MM HH:mm"));
+        meta.AddToClassList("cbt-hist-meta");
+
+        row.Add(n); row.Add(s); row.Add(meta);
+
+        var captured = it;
+        row.RegisterCallback<ClickEvent>(_ => ShowHistory(captured));
+        historyList.Add(row);
+        historyCards.Add(row);
+        historyRendered.Add(it);
+    }
+
+    private void ShowHistoryByRenderIndex(int i)
+    {
+        if (i >= 0 && i < historyRendered.Count) ShowHistory(historyRendered[i]);
+    }
+
+    private void ShowHistory(HistItem it)
+    {
+        if (histLines == null) return;
+        histLines.Clear();
+
+        var rec = it.Rec;
+        string opp = string.IsNullOrEmpty(rec.OpponentPlayerName)
+            ? rec.OpponentName
+            : $"{rec.OpponentName} ({rec.OpponentPlayerName})";
+        if (histOpponent != null) histOpponent.text = $"{it.Self.CustomName}  vs  {opp}";
+        if (histDate != null) histDate.text = rec.Date.ToLocalTime().ToString("dddd dd/MM/yyyy · HH:mm");
+
+        if (rec.Turns != null)
+            foreach (var t in rec.Turns)
             {
-                logOutcome.text = "";
-                logOutcome.RemoveFromClassList("cbt-log-outcome--win");
-                logOutcome.RemoveFromClassList("cbt-log-outcome--lose");
+                var l = new Label(
+                    $"R{t.TurnNumber}  {t.AttackerName} → {t.DefenderName}  ·  {t.Damage:0} daño{(t.WasCrit ? " ¡CRIT!" : "")}  ·  HP {t.DefenderHpAfter:0}");
+                l.AddToClassList("cbt-log-line");
+                histLines.Add(l);
             }
+
+        if (histOutcome != null)
+        {
+            string evolved = rec.Outcome == CombatOutcome.Won && !string.IsNullOrEmpty(rec.EvolvedSlot)
+                ? $"  ·  evolucionó {rec.EvolvedSlot}" : "";
+            string died = rec.Died ? "  ·  murió" : "";
+            histOutcome.text = OutcomeLong(rec.Outcome) + evolved + died;
+            histOutcome.EnableInClassList("cbt-log-outcome--win",  rec.Outcome == CombatOutcome.Won);
+            histOutcome.EnableInClassList("cbt-log-outcome--lose", rec.Outcome == CombatOutcome.Lost);
         }
     }
+
+    private static string OutcomeShort(CombatOutcome o, bool died) => o switch
+    {
+        CombatOutcome.Won  => "Ganó",
+        CombatOutcome.Lost => died ? "Murió" : "Perdió",
+        _                  => "Empate",
+    };
+
+    private static string OutcomeLong(CombatOutcome o) => o switch
+    {
+        CombatOutcome.Won  => "¡Victoria!",
+        CombatOutcome.Lost => "Derrota",
+        _                  => "Empate",
+    };
+
+    private static string OutcomeClass(CombatOutcome o) => o switch
+    {
+        CombatOutcome.Won  => "cbt-result-status--win",
+        CombatOutcome.Lost => "cbt-result-status--lose",
+        _                  => "cbt-result-status--draw",
+    };
 
     // ── IUINavigable ──────────────────────────────────────────────
 
@@ -459,7 +632,7 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         switch (region)
         {
             case Region.TabBar:
-                if (h != 0 && tabs != null) tabs.selectedTabIndex = Mathf.Clamp(tabs.selectedTabIndex + h, 0, 2);
+                if (h != 0 && tabs != null) tabs.selectedTabIndex = Mathf.Clamp(tabs.selectedTabIndex + h, 0, 3);
                 else if (v > 0) EnterContent();
                 break;
 
@@ -476,6 +649,7 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
             case Region.T2ListA:  MoveCards(faCards, ref faIndex, h + v, faList, null); break;
             case Region.T2ListB:  MoveCards(fbCards, ref fbIndex, h + v, fbList, null); break;
             case Region.T3List:   MoveT3(h + v); break;
+            case Region.T4List:   MoveT4(h + v); break;
         }
     }
 
@@ -507,7 +681,11 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
 
             case Region.T3List:
                 if (t3Index == 0) DoRefresh();
-                else if (t3Cards[t3Index].userData is string id) ShowLog(id);
+                break;
+
+            case Region.T4List:
+                if (t4Index >= 0 && t4Index < historyCards.Count && historyCards[t4Index].userData is int hi)
+                    ShowHistoryByRenderIndex(hi);
                 break;
         }
     }
@@ -522,6 +700,7 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
             case Region.T1List:
             case Region.T2Center:
             case Region.T3List:
+            case Region.T4List:
                 ClearAllFocus(); region = Region.TabBar; SetTabBarFocus(true); return true;
             default: return false;
         }
@@ -544,9 +723,14 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         {
             region = Region.T2Center; t2Index = 0; ApplyT2CenterFocus();
         }
-        else
+        else if (t == 2)
         {
             region = Region.T3List; t3Index = 0; HighlightT3();
+        }
+        else
+        {
+            region = Region.T4List; t4Index = 0; HighlightT4();
+            if (historyCards.Count > 0) historyList.ScrollTo(historyCards[0]);
         }
     }
 
@@ -576,7 +760,7 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         t3Index = Mathf.Clamp(next, 0, t3Cards.Count - 1);
         HighlightT3();
         var el = t3Cards[t3Index];
-        if (t3Index > 0 && el.userData is string id) { resultsList?.ScrollTo(el); ShowLog(id); }
+        if (t3Index > 0) resultsList?.ScrollTo(el);
     }
 
     private void OpenFighterList(bool isA)
@@ -626,12 +810,29 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
     }
     private void ClearT3Focus() { foreach (var c in t3Cards) c.RemoveFromClassList(Focus); }
 
+    private void MoveT4(int delta)
+    {
+        if (historyCards.Count == 0) { if (delta < 0) { region = Region.TabBar; SetTabBarFocus(true); } return; }
+        int next = t4Index + delta;
+        if (next < 0) { ClearT4Focus(); region = Region.TabBar; SetTabBarFocus(true); return; }
+        t4Index = Mathf.Clamp(next, 0, historyCards.Count - 1);
+        HighlightT4();
+        historyList?.ScrollTo(historyCards[t4Index]);
+        ShowHistoryByRenderIndex(t4Index);
+    }
+
+    private void HighlightT4()
+    {
+        for (int i = 0; i < historyCards.Count; i++) historyCards[i].EnableInClassList(Focus, i == t4Index);
+    }
+    private void ClearT4Focus() { foreach (var c in historyCards) c.RemoveFromClassList(Focus); }
+
     private void SetTabBarFocus(bool on) { tabs?.EnableInClassList("tabbar-focused", on); }
 
     private void ClearAllFocus()
     {
         ClearFocus(onlineCards); ClearFocus(faCards); ClearFocus(fbCards);
-        ClearT1ActionsFocus(); ClearT2CenterFocus(); ClearT3Focus();
+        ClearT1ActionsFocus(); ClearT2CenterFocus(); ClearT3Focus(); ClearT4Focus();
         SetTabBarFocus(false);
     }
 

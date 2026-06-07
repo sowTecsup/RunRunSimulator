@@ -215,6 +215,58 @@
     white-space: normal;
 }
 
+/* ── Combat tab: one foldout per finished fight ────────────────── */
+.combat-body { flex-grow: 1; padding-top: 8px; }
+.combat-history { flex-grow: 1; }
+
+.combat-fold { margin-bottom: 6px; }
+.combat-fold > .unity-foldout__toggle { margin-left: 0; }
+.combat-fold .unity-foldout__text {
+    font-size: 16px; -unity-font-style: bold; color: rgb(225, 225, 232);
+}
+.combat-fold--win  .unity-foldout__text { color: rgb(120, 220, 130); }
+.combat-fold--lose .unity-foldout__text { color: rgb(235, 120, 110); }
+
+.combat-meta { font-size: 13px; color: rgb(160, 160, 175); margin-left: 18px; margin-bottom: 4px; }
+.combat-turn { font-size: 13px; color: rgb(210, 210, 218); white-space: normal; margin-left: 18px; margin-bottom: 1px; }
+
+/* ── Lineage tab: ancestor tree (self + parents + grandparents) ─── */
+.lineage-body { flex-grow: 1; }
+.lineage-tree { align-items: center; padding: 12px; }
+
+/* A generation block stacks: [ancestors row] → [connector] → [this chip]. */
+.tree-block { align-items: center; }
+.tree-parents { flex-direction: row; justify-content: center; align-items: flex-end; }
+/* Downward direction (Breed tab): children hang below their parent. */
+.tree-children { flex-direction: row; justify-content: center; align-items: flex-start; }
+.tree-branch { align-items: center; margin-left: 10px; margin-right: 10px; }
+.tree-partner { align-items: center; margin-left: 14px; margin-right: 14px; }
+.tree-chip--partner { border-color: rgb(230, 150, 200); }
+
+/* One creature chip: color swatch header + name. */
+.tree-chip {
+    width: 104px;
+    align-items: center;
+    padding: 6px;
+    border-radius: 8px;
+    background-color: rgb(40, 40, 52);
+    border-width: 2px; border-color: rgb(60, 60, 76);
+}
+.tree-chip--self    { border-color: rgb(150, 120, 230); }
+.tree-chip--unknown { background-color: rgb(30, 30, 38); border-color: rgb(50, 50, 60); }
+.tree-swatch { width: 56px; height: 56px; border-radius: 6px; background-color: rgb(90, 90, 100); margin-bottom: 4px; }
+.tree-name {
+    width: 100%; font-size: 12px; -unity-font-style: bold; color: rgb(228, 228, 234);
+    -unity-text-align: middle-center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tree-role { font-size: 10px; color: rgb(150, 150, 165); -unity-text-align: middle-center; }
+.tree-dead .tree-name { color: rgb(200, 110, 100); }
+
+/* Simple connectors between generations. */
+.tree-connector-v { width: 2px; height: 14px; background-color: rgb(110, 110, 130); }
+.tree-connector-h { height: 2px; background-color: rgb(110, 110, 130); }
+
 /* Placeholder for the not-yet-built tabs. */
 .placeholder {
     flex-grow: 1;

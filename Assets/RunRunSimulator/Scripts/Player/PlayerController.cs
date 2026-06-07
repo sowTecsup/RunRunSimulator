@@ -262,6 +262,12 @@ public class PlayerController : MonoBehaviour
     // Raycasts from the camera for a component of type T (interface or class).
     // Full forward, so you can reach things above/below eye level too. T may sit
     // on the hit collider or on its Rigidbody root.
+    //
+    // Hits triggers too (QueryTriggerInteraction.Collide): MoriMonchis carry a TRIGGER
+    // collider while NavMesh-driven (the throwable handoff makes it solid only in flight),
+    // so an Ignore raycast would never find a roaming one to grab. We walk the hits nearest
+    // -first: the first one that resolves to T wins; a SOLID collider that isn't T blocks the
+    // ray (no grabbing through walls); a non-T trigger is seen through (panels, station zones).
     private bool TryFindInView<T>(out T component) where T : class
     {
         component = null;
@@ -275,20 +281,30 @@ public class PlayerController : MonoBehaviour
         // Visualize the reach ray in Scene view for 1s.
         Debug.DrawRay(cameraTransform.position, cameraTransform.forward * grabRange, Color.green, 1f);
 
-        if (!Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit, grabRange, grabMask, QueryTriggerInteraction.Ignore))
+        var hits = Physics.RaycastAll(cameraTransform.position, cameraTransform.forward, grabRange, grabMask, QueryTriggerInteraction.Collide);
+        if (hits.Length == 0)
         {
             Debug.Log($"[PlayerController] Raycast hit NOTHING (range={grabRange}, mask={grabMask.value}).");
             return false;
         }
 
-        Debug.Log($"[PlayerController] Raycast hit '{hit.collider.name}' (layer {hit.collider.gameObject.layer}) at {hit.distance:0.00}m.");
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        foreach (var hit in hits)
+        {
+            if (hit.collider.TryGetComponent(out component)) return true;
 
-        if (hit.collider.TryGetComponent(out component)) return true;
+            var rb = hit.collider.attachedRigidbody;
+            if (rb != null && rb.TryGetComponent(out component)) return true;
 
-        var rb = hit.collider.attachedRigidbody;
-        if (rb != null && rb.TryGetComponent(out component)) return true;
+            // A solid collider that isn't the target blocks the reach; triggers are transparent.
+            if (!hit.collider.isTrigger)
+            {
+                Debug.Log($"[PlayerController] Reach blocked by solid '{hit.collider.name}' — no {typeof(T).Name}.");
+                return false;
+            }
+        }
 
-        Debug.Log($"[PlayerController] '{hit.collider.name}' has no {typeof(T).Name}.");
+        component = null;
         return false;
     }
 }

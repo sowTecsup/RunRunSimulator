@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8843014871908602996}
   - component: {fileID: 4590976086428779595}
   - component: {fileID: 495888218307605487}
+  - component: {fileID: 2098748378607757534}
   m_Layer: 6
   m_Name: PlayStation
   m_TagString: Untagged
@@ -68,6 +69,22 @@ MonoBehaviour:
   - {fileID: 2117446269486059287}
   - {fileID: 2301313041936774923}
   fillPerSecond: 25
+--- !u!208 &2098748378607757534
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2269708120462870123}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.4, y: 0.4, z: 0.4}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0.4, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1 &6331827755925906897
 GameObject:
   m_ObjectHideFlags: 0

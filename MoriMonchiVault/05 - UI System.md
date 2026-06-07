@@ -137,10 +137,16 @@ Requiere activar **Project Settings → UI Toolkit → Advanced Text Generator**
 - Escucha `OnCreatureSelected` → `Populate(dna)` → `selectedTabIndex = 0` (**siempre abre en Info**) → `RequestPanelSet(true)`.
 - **Modalidad**: `document.sortingOrder` alto (encima de la grilla, misma `PanelSettings`) + backdrop full-screen que captura los clicks → no se puede tocar la grilla detrás hasta cerrar con la **X** o **ESC**.
 - **A/D** (`OnUINavigate`) cambia de tab (clamp).
-- `TabView` con **Info** activa: retrato cuadrado teñido con `PrimaryColor` + nombre grande autosize + stats coloreados `FINAL (base + bonus)` vía `CombatService.GetEffectiveStats` · identidad · partes con swatch del color del set `Nombre · Set · Rareza · TierN` vía `BodyPart.SetColor/RarityColor` públicos · progresión.
-- Tabs **Combate** (historial) / **Breed** (hijos) / **Linaje** (árbol genealógico) / **Equipo**, todas placeholder.
-- El **linaje se movió a su propia tab** (ya no en Info).
-- Las **flechas de scroll del header de tabs se ocultan** vía `.unity-scroller--horizontal { display:none }` dentro de `.detail-tabs` (no afecta la barra vertical del panel Info).
+
+**Tabs implementadas:**
+
+- **Info**: retrato teñido `PrimaryColor` + stats coloreados `FINAL (base + bonus)` vía `CombatService.GetEffectiveStats` · identidad · **Personalidad** (nombre + descripción en español, switch sobre `Personality` enum) · partes con swatch · progresión.
+- **Combate**: `ScrollView` (`combat-history`). Un `Foldout` por pelea más reciente primero. Color del toggle: verde=Won / rojo=Lose. Dentro: meta (`combat-meta`= fecha + oponente) + turno a turno (`combat-turn` labels). Vacío: label `combat-empty`.
+- **Breed**: árbol **descendente** — yo (arriba) → parejas (fila) → crías por pareja (fila por debajo). Escanea el registry buscando criaturas cuyo `MotherID`/`FatherID` == selfId (robusto, no depende de `ChildrenIDs`). Grupos por el otro progenitor (partner). Chip con swatch + nombre + rol. Vacío: `breed-empty`.
+- **Linaje**: árbol **ascendente** — abuelos → padres → yo. Recurse hasta depth 2 o sin padres. Criaturas muertas/ausentes resueltas desde `ParseGenetics(uniqueId)` (strip timestamp → `CreatureDNA.FromID()`). Chip con swatch + nombre + rol; `tree-dead` si ausente. Vacío: `lineage-empty`.
+- **Equipo**: placeholder "Próximamente".
+
+Chips de árbol: clase `tree-chip` (104px, fondo oscuro) + `tree-chip--self` (borde morado) / `tree-chip--unknown` (fondo más oscuro) / `tree-chip--partner` (borde rosa). Conectores: `tree-connector-v` (vertical 14px) / `tree-connector-h` (horizontal, flex-grow). Las **flechas de scroll del header de tabs se ocultan** vía `.unity-scroller--horizontal { display:none }` dentro de `.detail-tabs`.
 
 #### BreedingPanelUITK (modal)
 
@@ -150,13 +156,13 @@ Requiere activar **Project Settings → UI Toolkit → Advanced Text Generator**
 - Las listas siempre visibles → "abrir" un slot solo mueve el foco a la lista.
 - Navegación jerárquica (TabBar⇄contenido⇄lista, ESC=atrás vía `OnUICancel`).
 
-#### CombatPanelUITK (modal, 3 tabs)
+#### CombatPanelUITK (modal, 4 tabs)
 
-- Panel de combate **modal**, **3 tabs**.
-- **Batalla Online**: izq disponibles · centro seleccionado con retrato `PrimaryColor` + stats + partes + **2 botones Instant/Timer** → `EnqueueInstantAsync`/`EnqueueScheduledAsync` fire-and-forget, la criatura cae a Resultados · der **Equipo** placeholder.
-- **Combate Local**: igual a Breeding: 2 listas + slots A/B + **Pelear** → `CombatService.Simulate` → **log inline** turno por turno + outcome.
-- **Resultados** (solo async): botón **Revisar resultados** → `PollResultsAsync`; lista En cola/Ganó/Perdió/Murió; panel derecho = log didáctico **vs quién** arriba · **turnos** scroll · **Ganaste/Perdiste** grande verde/rojo abajo.
-- Cachea los logs async vía `OnCombatLogged` (`Dictionary<creatureId, CombatLogEntry>`).
+- Panel de combate **modal**, **4 tabs**.
+- **Batalla Online** (Tab 1): izq disponibles · centro seleccionado con retrato `PrimaryColor` + stats + partes + **2 botones Instant/Timer** → `EnqueueInstantAsync`/`EnqueueScheduledAsync` fire-and-forget, la criatura cae a Resultados · der **Equipo** placeholder.
+- **Combate Local** (Tab 2): igual a Breeding: 2 listas + slots A/B + **Pelear** → `CombatService.Simulate` → **log inline** turno por turno + outcome.
+- **Resultados** (Tab 3, solo async): cola de criaturas encoladas + countdown al próximo :00 UTC (reloj grande `cbt-clock`, se actualiza 1×/seg). Cada fila muestra nombre + "encolado HH:mm" (hora local de `QueuedAt`). Botón **Revisar resultados** → `PollResultsAsync`. Sin panel de log (movido a Historial). Las criaturas con modo Instant deberían mostrar "Instantánea" en lugar del countdown — **pendiente**.
+- **Historial** (Tab 4): lista global de todos los combates pasados. `DropdownField` para filtrar por criatura (o "Todas"). Seleccionar una fila muestra log turno a turno + resultado en el panel derecho. Reconstruido vía `OnCombatLogged` y al abrir el panel.
 - Referencia `CreatureDatabaseSO` + `AsyncCombatService`; `registry`/`config` desde `GameManager.Instance`.
 
 ## Archivos clave

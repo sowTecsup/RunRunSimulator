@@ -111,6 +111,7 @@ function buildResult(battle, callerIsA, opponent) {
         Won:                won,
         Died:               died,
         EvolvedSlot:        won ? battle.evolvedSlot : null,
+        Date:               new Date().toISOString(),   // when the fight actually ran (UTC)
         OpponentName:       opponent.customName,
         OpponentPlayerId:   opponent.playerId,
         OpponentPlayerName: opponent.playerName ?? "Anonymous",
@@ -133,8 +134,9 @@ const tierInt = t => {
 
 function computeStats(dna) {
     const b = t => tierInt(t) - 1;
+    // Base HP scaled ×5 entering combat (mirrors C# CombatService.BaseHpCombatMultiplier).
     return {
-        hp:  (dna.BaseHP     || 5) + b(dna.BodyTier)  + b(dna.ArmTier),
+        hp:  (dna.BaseHP     || 5) * 5 + b(dna.BodyTier)  + b(dna.ArmTier),
         atk: (dna.BaseAttack || 5) + b(dna.ArmTier)   + b(dna.MouthTier),
         spd: (dna.BaseSpeed  || 5) + b(dna.EyeTier)   + b(dna.MouthTier),
     };

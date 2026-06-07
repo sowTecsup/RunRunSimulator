@@ -8,67 +8,87 @@ tags: [memory-bank, active, session]
 
 ## Sesión actual
 
-**Fecha**: 2026-06-06
-**Foco**: Refinamientos del Build Mode (validez física + snap al piso) + spawn de MoriMonchis en modo "lanzados" + mejoras de Needs (multi-slot en estaciones, `CreatureCondition`, needs priorizan sobre reacción al jugador, eliminación del speed degradado).
+**Fecha**: 2026-06-06  
+**Foco**: Sistema de Combate — refactor UI CombatPanel + fixes cloud + detalle de criatura extendido.
 
 ### Qué se hizo (esta sesión)
 
-**Build Mode — dos reglas nuevas de validez de colocación:**
-- **`PlacementGrid.TrySampleFloor(anchor, fp, rot, out y, out flat)`**: raycast vertical al piso real bajo el footprint; devuelve la Y del suelo y si la normal es plana (< `maxSlopeAngle`). Nuevos campos: `floorMask`, `maxSlopeAngle` (deg), `floorProbeHeight`. El grid sigue siendo un plano lógico XZ; la Y del spawn/preview viene del terreno real → funciona en terreno irregular.
-- **`BuildModeController.obstacleMask`**: nuevo campo. `OverlapsObstacle()` hace un `Physics.CheckBox` orientado al footprint (XZ del grid + altura del mesh del ghost) contra esa layer → rojo si choca con muros/escenografía no registrada en el grid. El ghost ya tiene colliders apagados y la pieza levantada está despawneada, sin auto-detección.
-- **`PlacementValid()`**: fuente única de verdad = `CanPlace` + `floorFlat` + `!OverlapsObstacle`. La usa el tint, `OnPin` y `OnConfirm` (verde/rojo, fijado y guardado siempre coinciden). Pendiente inclinado → siempre inválido.
-- **`FurnitureSpawner`**: llama `TrySampleFloor` al respawnear → la Y se re-lee del terreno real (Opción B: no se guarda, el terreno es la fuente de verdad).
+**HP × 5 en combate:**
+- `CombatService.cs`: `private const float BaseHpCombatMultiplier = 5f;` aplicado en `ComputeStats`. Solo en runtime, no almacenado.
+- `process-matchmaking.js` y `run-combat.js`: misma lógica `hp: (dna.BaseHP || 5) * 5 + bonuses`.
 
-**MoriMochiSpawner — modo "Launched":**
-- Enum `SpawnMode { Placed, Launched }` con `[EnumToggleButtons]`.
-- Tab Odin **"Placed (drop)"**: `spawnArea` + `spawnRadius` (comportamiento previo intacto).
-- Tab Odin **"Launched (shoot out)"**: `launchPoint` (GameObject de origen), `launchForce` (rango min/max, `[MinMaxSlider]`), `launchUpBias` (arco vertical).
-- En modo `Launched`: instancia en `launchPoint` y llama `agent.Launch(RandomLaunchImpulse())`.
+**Pool isolation — instant vs timer:**
+- `run-combat.js` usa `instant_pool` (Custom Data key). `enqueue-combat.js` + `process-matchmaking.js` usan `matchmaking_pool`. Pools 100% separadas → un instante no interfiere con el queue de timer.
+- `get-queue-status.js` y `dequeue-combat.js` cubren **ambas** keys.
 
-**MoriMochiAgent — método `Launch(impulse)`:**
-- Reutiliza el pipeline de física de `Knock` (DetachToPhysics + ApplyThrownPhysics + estado `Thrown` → bounce → settle → get-up → EnterRoaming al área preferida). **Sin penalización de affect** (nacer no es estresante). Sin chequeo de confinamiento (nunca está enjaulado al spawnear).
+**Fix: timer-queued creatures wrongly dequeued (bug raíz: multi-key getCustomItems):**
+- `get-queue-status.js` reescrito: lee cada pool con su propio `getCustomItems([key])` en un loop. Devuelve `ok: false` si alguna lectura falla.
+- `AsyncCombatService.FetchQueuedIdsAsync`: devuelve `null` si `resp == null || !resp.Ok` → `ReconcileGhostsAsync` se salta si la vista es parcial.
+- `SemaphoreSlim(1,1) enqueueGate` en `AsyncCombatService` para serializar llamadas cloud concurrentes.
 
-**NeedStation — capacidad multi-slot:**
-- `usePoint` (singular) → `List<Transform> usePoints`. Capacidad = cantidad de puntos (sin puntos → 1 slot implícito en el transform).
-- `TryReserve(agent, from, areaMask, sampleRadius, out usePos)`: reserva el slot libre más cercano y alcanzable (snap al NavMesh en el areaMask del agente); re-entrante (si ya tenía slot, lo conserva). Devuelve la posición donde pararse. `false` si lleno o ningún slot snaps.
-- Gizmos: esfera+línea por slot, coloreados por need (verde/azul/rosa). En Play: slot ocupado → **rojo**.
-- El agente llama `TryReserve` en `TryEnterNeedSeeking` (la reserva y la elección de punto son la misma operación atómica).
+**Server manda timestamp real:**
+- JS scripts envían `Date: new Date().toISOString()` en `buildResult`.
+- `AsyncCombatService.ApplyResult` usa `ParseUtcOrNow(r.Date)` para `CombatRecord.Date`.
 
-**`CreatureCondition` (nuevo enum en `Enums.cs`):**
-- `Healthy` / `InNeed` (Energy o Affect crítica) / `Sick` (Health crítica — emergencia de supervivencia).
-- Propiedad **calculada** en `MoriMochiAgent.Condition` (derivada de los thresholds, nunca guardada → siempre en sync). Visible en la tab Needs con `[EnumToggleButtons, ReadOnly]`.
+**CreatureDNA.QueuedAt:**
+- Campo `public DateTime QueuedAt` (metadata display-only, no entra al DNA string). Se setea en `EnqueueInternal`.
 
-**Needs priorizan sobre reacción al jugador:**
-- `ReactIfPlayerNear` refactorizado: flee por estrés (Affect crítico) siempre activo. Reacciones amistosas (follow/approach/retreat) **solo si `Condition == Healthy`**. Un MoriMochi hambriento/cansado ignora al jugador.
-- `BeginReaction(reaction)` extraído como helper.
+**CombatPanelUITK — reestructuración (ahora 4 tabs):**
+- Tab 3 "Resultados": solo muestra criaturas en cola + countdown al próximo :00 UTC + hora de encolado ("encolado HH:mm") por fila.
+- Tab 4 "Historial": lista global de combates pasados, filtro por criatura (DropdownField), panel derecho con log turno a turno replayable.
 
-**Eliminación del speed degradado:**
-- `degradedSpeedMultiplier` + `ApplyDegradedSpeed()` eliminados. Un MoriMochi con need crítica se mueve a velocidad normal y puede alcanzar su estación. La "penalización" por no tener estación es solo la need sin satisfacer + ignorar al jugador.
+**MorimonchiDetailInfoUITK — tabs implementadas:**
+- **Combate**: foldout por pelea (más reciente primero), coloreado Win/Lose, turno a turno.
+- **Linaje**: árbol hacia arriba (yo → padres → abuelos), chips con swatch de color, criaturas muertas/ausentes resueltas desde su UniqueID.
+- **Breed**: árbol hacia abajo (yo → parejas → crías por pareja), escanea el registry por `MotherID`/`FatherID`.
+- **Info**: sección Personalidad agregada (nombre + descripción en español).
+
+**Redeploy requerido (pendiente):**
+```
+ugs deploy CloudCode/run-combat.js
+ugs deploy CloudCode/process-matchmaking.js
+ugs deploy CloudCode/get-queue-status.js
+ugs deploy CloudCode/dequeue-combat.js
+```
 
 ## Próximos pasos (retomar acá la próxima sesión)
 
+**Pendientes de código — combate:**
+- Batalla instantánea: mostrar `"Instantánea"` en lugar del countdown (la criatura instant no espera ningún cron).
+- Ordenar lista de Resultados (Tab 3) de más antiguo a más nuevo por `QueuedAt`.
+- Mejorar el sistema de renderizado de árboles de descendencia/ascendencia (scroll + nodos grandes → layout más compacto o canvas scrollable).
+- **Prewarm de pool de MoriMonchis** (`MoriMochiSpawner`): instanciar X agentes vacíos al inicio para que el primer spawn no haga `Instantiate` en caliente.
+- Redeploy cloud: `run-combat.js`, `process-matchmaking.js`, `get-queue-status.js`, `dequeue-combat.js`.
+
 **Setup de escena (tuyo — código listo):**
-- `Feeder`/`RestZone`/`PlayZone`: agregar hijos vacíos como use points en los prefabs (uno por lado); los gizmos de color muestran slots y ocupación en Play.
-- `PlacementGrid`: asignar `Floor Mask` (layer del piso/terreno) + subir el transform del grid por encima del piso más alto + ajustar `Max Slope Angle`.
-- `BuildModeController`: asignar `Obstacle Mask` (layers de muros/escenografía fija que bloquean por colisión física).
-- `MoriMochiSpawner`: si usás `Launched`, asignar `launchPoint` (ligeramente sobre el piso).
+- **NameTag**: crear objeto hijo en prefab de criatura; agregar `UIDocument` (WorldUIPanelSettings + `NameTagUITK.uxml`); posicionar ~1.2u arriba; cablearlo en `MoriMochiAgent.nameTag`.
+- **Estaciones** (`Feeder`/`RestZone`/`PlayZone`): agregar hijos vacíos como use points en los prefabs.
+- `PlacementGrid`: asignar `Floor Mask` + ajustar `Max Slope Angle`.
+- `BuildModeController`: asignar `Obstacle Mask`.
+- `MoriMochiSpawner`: asignar `launchPoint`; tunear `launchAngle`, `launchForce`, `spawnInterval`, `startDelay`, `spawnPerTick`.
 
-**Pendientes anteriores:**
-- Bloquear `TryLift` de un corral ocupado (en `BuildModeController`/`FurnitureService`).
+**Pendientes de código — world:**
+- Bloquear `TryLift` de un corral ocupado en `BuildModeController`/`FurnitureService`.
 - Cablear `FlushToCloud()` en el logout de `CloudSyncService`.
-- Futuro: petting directo (E sobre criatura); recursos consumibles en estaciones; muerte por inanición (Health → 0); decay offline por timestamp.
+- Futuro: petting directo (E sobre criatura); recursos consumibles en estaciones; muerte por inanición; decay offline.
 
-## Archivos en juego en la sesión actual
+## Archivos tocados esta sesión
 
 | Archivo | Por qué |
 |---------|---------|
-| `Systems/Furniture/PlacementGrid.cs` | `TrySampleFloor` + `floorMask`/`maxSlopeAngle`/`floorProbeHeight` |
-| `Systems/Furniture/BuildModeController.cs` | `obstacleMask` + `OverlapsObstacle` + `PlacementValid` + snap Y |
-| `Systems/Furniture/FurnitureSpawner.cs` | Snap Y con `TrySampleFloor` en `SpawnOne` |
-| `World/MoriMochiSpawner.cs` | SpawnMode enum + tabs Placed/Launched + `RandomLaunchImpulse` |
-| `World/MoriMochiAgent.cs` | `Launch()` + readout de needs + `Condition` + `ReactIfPlayerNear` refactorizado + eliminación de degradado |
-| `World/NeedStation.cs` | Multi-slot (`usePoints` list + `occupants[]`) + gizmos con ocupación |
-| `Core/Enums.cs` | Nuevo enum `CreatureCondition` |
+| `Systems/Combat/CombatService.cs` | `BaseHpCombatMultiplier = 5f` en `ComputeStats` |
+| `Systems/Combat/AsyncCombatService.cs` | `SemaphoreSlim` gate + `ok` flag + `QueuedAt` + `ParseUtcOrNow` |
+| `Data/CreatureDNA.cs` | Campo `QueuedAt` (DateTime, display-only) |
+| `UI/CombatPanelUITK.cs` | Tabs 3 (queue + clock) y 4 (historial) completas |
+| `UI/MorimonchiDetailInfoUITK.cs` | Tabs Combate / Linaje / Breed / Personalidad implementadas |
+| `UI Toolkit/CombatPanelUITK.uxml` | Tab 3 reestructurada + Tab 4 agregada |
+| `UI Toolkit/CombatPanelUITKStyle.uss` | Estilos clock + queue + historial |
+| `UI Toolkit/MorimonchiDetailInfoUITK.uxml` | Tabs combat-history / lineage-tree / breed-tree |
+| `UI Toolkit/MorimonchiDetailInfoUITKStyle.uss` | Estilos foldout combat + tree chips |
+| `CloudCode/run-combat.js` | `instant_pool` key + HP×5 + `Date` field |
+| `CloudCode/process-matchmaking.js` | HP×5 + `Date` field |
+| `CloudCode/get-queue-status.js` | Single-key per pool loop + `ok` flag |
+| `CloudCode/dequeue-combat.js` | Cubre `instant_pool` + `matchmaking_pool` |
 
 ## Cómo usar esta nota en sesiones futuras
 

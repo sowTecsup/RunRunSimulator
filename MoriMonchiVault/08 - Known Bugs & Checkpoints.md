@@ -38,6 +38,30 @@ tags: [memory-bank, bugs, checkpoints, future]
 
 ## Bugs ya resueltos (para referencia)
 
+### MoriMochi atascado en Reacting cuando needs críticos (RESUELTO)
+
+- **Síntoma**: una criatura que el jugador seguía de cerca (estado `Reacting`) quedaba atascada en "Se acerca" aunque todas sus needs cayeran a crítico.
+- **Causa raíz**: `TickReacting` no tenía salida por need. Una vez en `Reacting`, las needs críticas no interrumpían.
+- **Fix**: al inicio de `TickReacting` se llama `TryEnterNeedSeeking()`; si la need es crítica, vuelve a `Idle`/`Roaming` y la lógica de needs toma el control.
+
+### E-key grab roto tras cambio de collider a trigger (RESUELTO)
+
+- **Síntoma**: mantener E sobre un MoriMochi roameando no lo agarraba, aunque funcionaba antes.
+- **Causa raíz**: `TryFindInView` usaba `QueryTriggerInteraction.Ignore`. Al volverse trigger el collider del MoriMochi en modo NavMesh, el raycast lo ignoraba por completo.
+- **Fix**: `TryFindInView` reescrito con `RaycastAll` + `QueryTriggerInteraction.Collide`, hits ordenados por distancia; solid-non-T bloquea, trigger-non-T es transparente.
+
+### NameTag no actualizaba tras reuso de pool (RESUELTO)
+
+- **Síntoma**: un MoriMochi reactivado del pool mostraba el nombre de la vida anterior o ningún texto.
+- **Causa raíz**: `ResolveElements()` verificaba `nameLabel != null`, pero `SetActive(false→true)` hace que `UIDocument` reconstruya su `rootVisualElement`. Las `Label` cacheadas apuntaban al árbol viejo (ya fuera de pantalla).
+- **Fix**: `ResolveElements()` compara `docRoot == root` (identidad del árbol actual). Si cambia, re-query y re-cachea.
+
+### Criatura aparecía y desaparecía en el primer spawn (RESUELTO)
+
+- **Síntoma**: el primer MoriMochi spawneado aparecía en escena, luego desaparecía ~2s después, y volvía a aparecer en el siguiente intervalo del pump.
+- **Causa raíz**: `CloudSyncService` dispara `OnRegistryReloaded` tras el pull inicial (~2s después del start). El handler de reload llamaba `ClearAll()`, lo que deactivaba la criatura recién spawneada y la devolvía al pool.
+- **Fix**: `OnRegistryReloaded` ya no llama `ClearAll()`. Reconcilia: despawnea solo los muertos/removidos, rebindea en-place los vivos, encola solo los nuevos.
+
 ### Sistema de prioridad de UI (RESUELTO)
 
 - **Antes**: no había stack ni router, el ESC cerraba todo y el tap E del mundo togglaba el panel de atrás.
@@ -73,6 +97,28 @@ tags: [memory-bank, bugs, checkpoints, future]
 
 - Riesgo bajo de perder el breed (el huevo ya se borró server-side).
 - Mitigar con borrado en dos fases más adelante.
+
+## Pendientes de código — combate y UI
+
+### Countdown en Resultados: "Instantánea" vs timer
+
+- **Síntoma/Deseo**: en la tab Resultados, las criaturas encoladas vía modo Instant muestran el mismo countdown al :00 UTC que las de timer, lo cual no tiene sentido (su combate no depende del cron).
+- **Fix pendiente**: al agregar la fila en `AddQueueRow`, detectar si la criatura está en `instant_pool` (puede ser un flag en `QueuedAt` o un campo separado `IsInstantQueue`). Si es instant, mostrar label `"Instantánea"` en lugar del countdown.
+
+### Ordenar cola de Resultados de más antiguo a más nuevo
+
+- **Síntoma/Deseo**: las criaturas en cola deberían listarse por hora de encolado ascendente (la más antigua arriba).
+- **Fix pendiente**: `RebuildResults` ordena las criaturas `QueuedForCombat` por `QueuedAt` ascendente antes de `AddQueueRow`.
+
+### Árbol de ascendencia/descendencia — renderizado mejorado
+
+- **Síntoma/Deseo**: el árbol actual puede quedar grande para generaciones profundas o muchos hijos; el scroll horizontal/vertical no es cómodo para árboles amplios.
+- **Fix pendiente**: evaluar un layout más compacto (chips más pequeños, nodos colapsables o paginados por generación) o un canvas con zoom/pan.
+
+### Prewarm de pool de MoriMonchis (`MoriMochiSpawner`)
+
+- **Síntoma/Deseo**: el primer spawn hace `Instantiate` en caliente. Para scenes con muchas criaturas, el primer tick del pump puede causar frame drop.
+- **Fix pendiente**: agregar `prewarmCount` (inspector) en `MoriMochiSpawner`. En `Awake`/`Start`, instanciar X agentes vacíos con `SetActive(false)` y encolarlos en el pool. `GetAgent` los saca del pool antes de hacer `Instantiate`.
 
 ## Pendientes del roadmap (resumen)
 

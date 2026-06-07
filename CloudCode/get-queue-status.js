@@ -7,25 +7,36 @@
 
 const { DataApi } = require("@unity-services/cloud-save-1.4");
 
-const POOL_KEY = "matchmaking_pool";
+// Both pools must be consulted: a creature waiting in the instant (debug) pool is
+// still legitimately QueuedForCombat locally, so omitting it here would make the
+// client's ghost-reconciliation wrongly clear it.
+//
+// IMPORTANT: read each pool with its OWN single-key getCustomItems call. A single
+// multi-key call proved unreliable (returned incomplete results), which dropped
+// timer-queued creatures from inPool and made the client wrongly dequeue them.
+const POOL_KEYS = ["matchmaking_pool", "instant_pool"];
 
 module.exports = async ({ context, logger }) => {
     const api = new DataApi({ accessToken: context.serviceToken });
 
-    let pool = [];
-    try {
-        const res  = await api.getCustomItems(context.projectId, context.environmentId, [POOL_KEY]);
-        const item = res.data?.results?.find(i => i.key === POOL_KEY);
-        pool = Array.isArray(item?.value?.entries) ? item.value.entries : [];
-    } catch (e) {
-        logger.info("Pool not found: " + (e.message || e));
-        return JSON.stringify({ inPool: [] });
+    const entries = [];
+    let   ok = true;   // false if ANY pool read threw → client must NOT reconcile on a partial view
+
+    for (const key of POOL_KEYS) {
+        try {
+            const res  = await api.getCustomItems(context.projectId, context.environmentId, [key]);
+            const item = res.data?.results?.find(i => i.key === key);
+            if (Array.isArray(item?.value?.entries)) entries.push(...item.value.entries);
+        } catch (e) {
+            ok = false;
+            logger.info(`Pool ${key} read failed: ` + (e.message || e));
+        }
     }
 
     // Only the caller's own creatures — never leak other players' queue.
-    const inPool = pool
+    const inPool = entries
         .filter(e => e.playerId === context.playerId)
         .map(e => e.creatureId);
 
-    return JSON.stringify({ inPool });
+    return JSON.stringify({ inPool, ok });
 };

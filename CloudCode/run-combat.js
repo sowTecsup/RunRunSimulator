@@ -3,7 +3,10 @@
 
 const { DataApi } = require("@unity-services/cloud-save-1.4");
 
-const POOL_KEY    = "matchmaking_pool";
+// Instant mode is a DEBUG path (skip the hourly wait): only ever one creature A and
+// one creature B meet here, so it gets its OWN pool, fully isolated from the
+// scheduled matchmaking_pool. No cross-contamination with timer-queued creatures.
+const POOL_KEY    = "instant_pool";
 const RESULTS_KEY = "combat_results";
 const POOL_TTL_MS = 86400000;  // 24 h
 
@@ -87,6 +90,7 @@ function buildResult(battle, callerIsA, opponentName, opponentPlayerId, opponent
         Won:                won,
         Died:               died,
         EvolvedSlot:        won ? battle.evolvedSlot : null,
+        Date:               new Date().toISOString(),   // when the fight actually ran (UTC)
         OpponentName:       opponentName,
         OpponentPlayerId:   opponentPlayerId,
         OpponentPlayerName: opponentPlayerName,
@@ -109,8 +113,9 @@ const tierInt = t => {
 
 function computeStats(dna) {
     const b = t => tierInt(t) - 1;
+    // Base HP scaled ×5 entering combat (mirrors C# CombatService.BaseHpCombatMultiplier).
     return {
-        hp:  (dna.BaseHP     || 5) + b(dna.BodyTier)  + b(dna.ArmTier),
+        hp:  (dna.BaseHP     || 5) * 5 + b(dna.BodyTier)  + b(dna.ArmTier),
         atk: (dna.BaseAttack || 5) + b(dna.ArmTier)   + b(dna.MouthTier),
         spd: (dna.BaseSpeed  || 5) + b(dna.EyeTier)   + b(dna.MouthTier),
     };

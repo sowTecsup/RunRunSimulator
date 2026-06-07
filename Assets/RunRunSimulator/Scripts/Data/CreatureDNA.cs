@@ -69,6 +69,11 @@ public class CreatureDNA
     public BusyReason BusyState = BusyReason.None;
     public bool IsBusy => BusyState != BusyReason.None;
 
+    // When this creature was enqueued for async combat (UTC). Display-only metadata
+    // for the Resultados tab ("encolado a las HH:mm"); set on enqueue, not part of
+    // the genetic string. default = never queued.
+    public DateTime QueuedAt;
+
     // ── Breeding timer (local cache for display; server is authoritative) ─
     public long   BreedReadyAt   = 0;    // server epoch ms when the egg can hatch; 0 = not breeding
     public string BreedPartnerID = "";   // the other parent — lets the client rebuild the pair locally

@@ -8,6 +8,7 @@ tags: [memory-bank, combat, async, scheduler]
 
 ## Combate Local (`CombatService`)
 
+- **HP en combate** = `dna.BaseHP * 5 + bonuses`. Constante `BaseHpCombatMultiplier = 5f` en `CombatService`. Solo en runtime, **no almacenada** en el DNA. ATK y SPD no se multiplican. El mismo ×5 está en `process-matchmaking.js` y `run-combat.js`.
 - **Stats efectivos** = `BaseStat (DNA) + Σ(part.Stat + (tier-1))` por slot. Calculados en runtime, no almacenados.
 - Orden por `Speed`; empates aleatorios. **20% crit = ×3 daño**. Safety cap: `MaxRounds = 50`.
 - **Límite de peleas**: `MaxFightCount = 5` (en `CombatManagerSO`). `CombatService.Simulate()` valida `FightCount < MaxFightCount` antes de simular.
@@ -21,22 +22,26 @@ tags: [memory-bank, combat, async, scheduler]
 
 ## Combate Async — arquitectura dual
 
-Dos modos coexistentes que comparten el mismo pool en Cloud Save Custom Data.
+Dos modos con **pools separadas** en Cloud Save Custom Data.
 
-### Modo Instant — `run-combat.js`
+### Modo Instant — `run-combat.js` / `instant_pool`
 
 Botón naranja "Enqueue for Combat (Instant)". El cliente llama `run-combat`, que en un mismo request:
-1. Lee el pool. Si hay opponent → simula y escribe resultados a ambos players. Returns `{status: "matched"}` y el cliente hace `PollResultsAsync()` inmediato.
-2. Si no hay opponent → enqueue y returns `{status: "waiting"}`.
+1. Lee `instant_pool`. Si hay opponent → simula y escribe resultados a ambos players. Returns `{status: "matched"}` y el cliente hace `PollResultsAsync()` inmediato.
+2. Si no hay opponent → enqueue en `instant_pool` y returns `{status: "waiting"}`.
 
-**Use case**: testing rápido entre dos cuentas activas.
+**Use case**: testing rápido entre dos cuentas activas. La pool `instant_pool` es exclusiva de este modo — no interfiere con el queue de timer.
 
-### Modo Timer/Scheduled — `enqueue-combat.js` + `process-matchmaking.js`
+> `SemaphoreSlim(1,1) enqueueGate` en `AsyncCombatService` serializa las llamadas cloud: si dos enqueues salen casi al mismo tiempo, el gate garantiza que solo uno llama al cloud a la vez. El delay de 5s (BusyState aceptado por UI) queda **fuera** del gate.
+
+### Modo Timer/Scheduled — `enqueue-combat.js` + `process-matchmaking.js` / `matchmaking_pool`
 
 Botón morado "Enqueue for Combat (Timer)". Flow:
-1. Cliente llama `enqueue-combat` → solo agrega al pool, returns `{status: "queued"}` inmediato. Cliente puede cerrar el juego.
-2. Unity Scheduler dispara `process-matchmaking` cada hora UTC (cron `0 * * * *`). El script drena el pool, hace shuffle, empareja evitando self-match, simula cada par y escribe `combat_results` en el Player Data de cada jugador. Leftover odd-one-out vuelve al pool.
+1. Cliente llama `enqueue-combat` → agrega a `matchmaking_pool`, returns `{status: "queued"}` inmediato. Cliente puede cerrar el juego.
+2. Unity Scheduler dispara `process-matchmaking` **cada :00 UTC** (cron `0 * * * *`). El script drena `matchmaking_pool`, hace shuffle, empareja evitando self-match, simula cada par y escribe `combat_results` en el Player Data de cada jugador. Leftover odd-one-out vuelve al pool.
 3. Cliente vuelve al juego, presiona "Check Pending Results" → `PollResultsAsync()` aplica los resultados localmente.
+
+**Enqueue time local**: `CreatureDNA.QueuedAt` (DateTime UTC, metadata display-only, no entra al DNA string). Se setea al encolar, se muestra en UI como "encolado HH:mm" local.
 
 ### Custom Data — quirks descubiertos
 
@@ -44,6 +49,7 @@ Botón morado "Enqueue for Combat (Timer)". Flow:
 - `value` **NO acepta arrays top-level** — siempre envolver en `{ entries: [...] }`. Empírico, la doc no lo dice.
 - El método se llama `getCustomItems` (plural con array de keys), NO `getCustomItem` singular.
 - Auth via `accessToken: context.serviceToken` en el constructor del `DataApi`.
+- ⚠️ **`getCustomItems([k1,k2])` multi-key es UNRELIABLE** — puede devolver solo algunos resultados. **Siempre** leer cada key con su propia llamada individual `getCustomItems([key])` en un loop, y usar un flag `ok = false` si alguna falla. El cliente trata `ok=false` como vista parcial y **no reconcilia**.
 
 ### Identificación de oponentes en logs
 
@@ -135,7 +141,9 @@ NO confundirlas — son cosas distintas.
 
 - Cada pelea (local **y** async) escribe un `CombatRecord` con `Turns` estructurados en `CreatureDNA.CombatHistory`. **El server manda**: `process-matchmaking.js`/`run-combat.js` emiten los turnos en el mismo formato PascalCase que el `CombatTurn` de C#; el cliente solo lee y almacena (`AsyncCombatService.ApplyResult`). El combate local lo arma `CombatService.Simulate` (ambos peleadores).
 - `SelfWasA` en cada record + `AttackerIsA` en cada turno desambiguan quién es "yo" en el replay simétrico.
-- **El Combat Visualizer (futuro, solo local)** se alimentará puramente de esta data almacenada. La tab Combate del detalle será su hogar.
+- **`CombatRecord.Date`**: JS scripts incluyen `Date: new Date().toISOString()` en el resultado. `AsyncCombatService.ParseUtcOrNow(iso)` lo parsea con flag UTC; fallback `DateTime.UtcNow` para records viejos.
+- **La tab Combate del detalle** (`MorimonchiDetailInfoUITK`) muestra un foldout por pelea (más reciente primero), coloreado Win/Lose, con turno a turno expandible.
+- **El Combat Visualizer (futuro, solo local)** se alimentará puramente de esta data almacenada.
 
 ## Archivos clave
 

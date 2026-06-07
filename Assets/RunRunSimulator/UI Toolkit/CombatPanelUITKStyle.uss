@@ -218,6 +218,43 @@
 .cbt-log-outcome--win  { color: rgb(110, 220, 120); }
 .cbt-log-outcome--lose { color: rgb(235, 110, 100); }
 
+/* ── Tab 3 results: queue + local clock ── */
+.cbt-results-body { justify-content: center; }
+
+.cbt-results-center {
+    width: 50%;
+    flex-grow: 0;
+    align-self: center;
+    align-items: center;
+    background-color: rgb(24, 24, 32);
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.cbt-clock-caption { font-size: 15px; color: rgb(170, 170, 185); margin-top: 4px; }
+.cbt-clock {
+    font-size: 56px; -unity-font-style: bold;
+    color: rgb(230, 200, 120);
+    -unity-text-align: middle-center;
+    margin-bottom: 10px;
+}
+
+.cbt-queue-list { width: 100%; }
+
+.cbt-result-queued { font-size: 12px; color: rgb(150, 150, 165); margin-left: 8px; }
+.cbt-result-time { font-size: 14px; -unity-font-style: bold; color: rgb(230, 200, 120); margin-left: 8px; }
+
+/* ── Tab 4 history ── */
+.cbt-filter { margin-bottom: 8px; }
+
+.cbt-hist-date { font-size: 14px; color: rgb(160, 160, 175); margin-bottom: 8px; }
+
+.cbt-hist-meta { font-size: 12px; color: rgb(160, 160, 175); margin-left: 8px; }
+
+.cbt-result-status--win  { color: rgb(110, 220, 120); }
+.cbt-result-status--lose { color: rgb(235, 110, 100); }
+.cbt-result-status--draw { color: rgb(200, 200, 130); }
+
 /* Focus ring (keyboard/gamepad) */
 .cbt-focus { border-color: rgb(150, 120, 230); }
 .cbt-tabs.tabbar-focused > .unity-tab-view__header-container {

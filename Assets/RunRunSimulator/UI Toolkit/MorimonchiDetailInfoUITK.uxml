@@ -30,6 +30,8 @@
                         <ui:ScrollView name="info-right" class="info-right" mode="Vertical">
                             <ui:Label text="Identidad" class="section-title" />
                             <ui:Label name="identity" class="info-block" />
+                            <ui:Label text="Personalidad" class="section-title" />
+                            <ui:Label name="personality" class="info-block" />
                             <ui:Label text="Partes" class="section-title" />
                             <ui:VisualElement name="parts" class="parts" />
                             <ui:Label text="Progresión" class="section-title" />
@@ -39,19 +41,28 @@
                     </ui:VisualElement>
                 </ui:Tab>
 
-                <!-- Combat history. -->
+                <!-- Combat history (one foldout per finished fight, newest first). -->
                 <ui:Tab label="Combate" name="tab-combat">
-                    <ui:Label text="Próximamente" class="placeholder" />
+                    <ui:VisualElement class="combat-body">
+                        <ui:ScrollView name="combat-history" class="combat-history" mode="Vertical" />
+                        <ui:Label name="combat-empty" text="Sin combates registrados." class="placeholder" />
+                    </ui:VisualElement>
                 </ui:Tab>
 
-                <!-- Children born from this MoriMochi. -->
+                <!-- Partners this MoriMochi bred with + the children from each. -->
                 <ui:Tab label="Breed" name="tab-breed">
-                    <ui:Label text="Próximamente" class="placeholder" />
+                    <ui:ScrollView class="lineage-body" mode="VerticalAndHorizontal">
+                        <ui:VisualElement name="breed-tree" class="lineage-tree" />
+                        <ui:Label name="breed-empty" text="Sin descendencia registrada." class="placeholder" />
+                    </ui:ScrollView>
                 </ui:Tab>
 
-                <!-- Family tree (ancestors). -->
+                <!-- Family tree: ancestors (self + parents + grandparents). -->
                 <ui:Tab label="Linaje" name="tab-lineage">
-                    <ui:Label text="Próximamente" class="placeholder" />
+                    <ui:ScrollView class="lineage-body" mode="VerticalAndHorizontal">
+                        <ui:VisualElement name="lineage-tree" class="lineage-tree" />
+                        <ui:Label name="lineage-empty" text="Sin ascendencia registrada (linaje silvestre)." class="placeholder" />
+                    </ui:ScrollView>
                 </ui:Tab>
 
                 <ui:Tab label="Equipo" name="tab-team">

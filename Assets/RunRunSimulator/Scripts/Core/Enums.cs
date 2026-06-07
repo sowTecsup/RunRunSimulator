@@ -123,6 +123,29 @@ public enum Personality
     Grumpy     = 5,  // Gruñón    — solitary, keeps its distance, retreats to Storage
 }
 
+// Player-facing read of what a MoriMochi is trying to do RIGHT NOW — the verb the
+// NameTag verbalizes above its head. Derived from the agent's internal AgentState
+// (+ its active proximity reaction and the need it's covering), NOT a stored field.
+// Distinct from AgentState (which carries physics phases the player doesn't care
+// about) and from CreatureCondition (how it IS, not what it's DOING).
+public enum CreatureIntent
+{
+    Idle        = 0,   // momentary pause between wanders
+    Wandering   = 1,   // roaming with no special goal
+    Following   = 2,   // following the player (reaction)
+    Approaching = 3,   // walking up to investigate the player
+    Fleeing     = 4,   // running away from the player
+    Retreating  = 5,   // backing off a short distance
+    SeekingFood = 6,   // heading to a Feeder (Health critical)
+    SeekingRest = 7,   // heading to a RestZone (Energy critical)
+    SeekingPlay = 8,   // heading to a PlayZone (Affect critical)
+    Eating      = 9,   // using a Feeder
+    Resting     = 10,  // using a RestZone
+    Playing     = 11,  // using a PlayZone
+    Held        = 12,  // in the player's hand
+    Tumbling    = 13,  // thrown / recovering after a landing
+}
+
 // How a MoriMochi reacts when the player enters its proximity radius. The reaction
 // interrupts its default behavior and it returns to it once the player leaves.
 public enum ProximityReaction

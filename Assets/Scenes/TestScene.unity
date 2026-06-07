@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 110849485}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.37, z: 0.383}
+  m_LocalPosition: {x: 0, y: 1.613, z: 0.383}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -874,7 +874,7 @@ Transform:
   m_GameObject: {fileID: 243958907}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.534, y: 0.716, z: -0.86}
+  m_LocalPosition: {x: -31.36, y: 0.716, z: 4.37}
   m_LocalScale: {x: 0.4131, y: 0.4131, z: 0.4131}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1198,11 +1198,11 @@ MeshCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 1275048083}
 --- !u!33 &276339536
@@ -1220,7 +1220,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 276339534}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1622,7 +1622,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -29.98, y: 2.37, z: 10.943001}
+  m_LocalPosition: {x: -29.98, y: 2.613, z: 10.943001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -17207,7 +17207,7 @@ Transform:
   m_GameObject: {fileID: 907401856}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -29.98, y: 2.37, z: 10.943001}
+  m_LocalPosition: {x: -29.98, y: 2.613, z: 10.943001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -17848,6 +17848,61 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1218711423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1126007361
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1126007362}
+  - component: {fileID: 1126007363}
+  m_Layer: 0
+  m_Name: MoriMonchiDetailUITK
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1126007362
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126007361}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.01, y: 3.53, z: -1.15}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1218711423}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1126007363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1126007361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: f7750a822f2d4c043984a713566595f9, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 9b609b2e08bf37745a7fc41ccca833a2, type: 3}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 0
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
 --- !u!43 &1178503981
 Mesh:
   m_ObjectHideFlags: 0
@@ -18065,6 +18120,7 @@ Transform:
   - {fileID: 937280822}
   - {fileID: 1507172387}
   - {fileID: 1051803675}
+  - {fileID: 1126007362}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1218711424
@@ -19602,7 +19658,7 @@ Transform:
   m_GameObject: {fileID: 1390625403}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.75, y: 0.716, z: -0.86}
+  m_LocalPosition: {x: -29.14, y: 0.716, z: 4.37}
   m_LocalScale: {x: 0.4131, y: 0.4131, z: 0.4131}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -19840,7 +19896,7 @@ MonoBehaviour:
   grabMask:
     serializedVersion: 2
     m_Bits: 55
-  throwForce: 20
+  throwForce: 40
   throwUpwardBias: 0.15
   throwAimDistance: 30
 --- !u!43 &1468513530
@@ -20839,7 +20895,7 @@ Transform:
   m_GameObject: {fileID: 1984452806}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.77, y: 0.716, z: -0.86}
+  m_LocalPosition: {x: -30.119999, y: 0.716, z: 4.37}
   m_LocalScale: {x: 0.4131, y: 0.4131, z: 0.4131}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -20892,10 +20948,13 @@ MonoBehaviour:
   creaturePrefab: {fileID: 992515727134330810, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
   spawnMode: 1
   spawnArea: {fileID: 1999386638}
-  spawnRadius: 4
+  spawnRadius: 15
   launchPoint: {fileID: 276339540}
-  launchForce: {x: 8, y: 14}
-  launchUpBias: 0.5
+  launchForce: {x: 35, y: 40}
+  launchAngle: {x: 45, y: 70}
+  startDelay: 2
+  spawnInterval: 0.5
+  spawnPerTick: 3
 --- !u!1 &2019303550
 GameObject:
   m_ObjectHideFlags: 0
@@ -21603,6 +21662,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 992515727134330810, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+      propertyPath: criticalAffect
+      value: -20
+      objectReference: {fileID: 0}
     - target: {fileID: 1685240067436616514, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
       propertyPath: m_AgentTypeID
       value: -1372625422

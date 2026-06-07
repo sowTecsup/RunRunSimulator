@@ -14,6 +14,11 @@ using UnityEngine;
 // Combat Visualizer reads. The async server motors emit the same shape.
 public static class CombatService
 {
+    // Combat HP is intentionally swingier than the raw stat: base HP is scaled ×5
+    // entering a fight so battles last several rounds. Attack/Speed are untouched.
+    // The cloud motors (process-matchmaking.js / run-combat.js) apply the same ×5.
+    private const float BaseHpCombatMultiplier = 5f;
+
     public static CombatResult Simulate(
         string             idA,
         string             idB,
@@ -185,7 +190,7 @@ public static class CombatService
 
     private static Stats ComputeStats(CreatureDNA dna, CreatureDatabaseSO db)
     {
-        float hp  = dna.BaseHP;
+        float hp  = dna.BaseHP * BaseHpCombatMultiplier;
         float atk = dna.BaseAttack;
         float spd = dna.BaseSpeed;
 

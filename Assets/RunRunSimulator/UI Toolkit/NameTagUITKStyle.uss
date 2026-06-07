@@ -1,0 +1,38 @@
+/* Floating world-space name tag above a MoriMochi (UI Toolkit, world-space panel).
+   Sizes are in panel px; WorldUIPanelSettings maps 100 px = 1 world unit, so a 30px
+   font ≈ 0.3 world units tall. Tune the font sizes here if the tag reads too big/small. */
+
+/* The card hugs its content (no fixed width) so short names don't get a huge box.
+   align-self keeps it centered even though the panel root centers it too. */
+.tag {
+    align-items: center;
+    align-self: center;
+    padding: 6px 12px;
+    background-color: rgba(20, 20, 28, 0.82);
+    border-radius: 10px;
+}
+
+.tag__name {
+    font-size: 30px;
+    -unity-font-style: bold;
+    color: rgb(235, 235, 240);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+/* Color is set from code per status (busy/dead); empty text hides the line. */
+.tag__status {
+    font-size: 20px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+/* What the MoriMochi wants to do right now — soft blue accent so it reads as a
+   separate "thought" line under the name/status. */
+.tag__intent {
+    font-size: 20px;
+    color: rgb(150, 200, 235);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}

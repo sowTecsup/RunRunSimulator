@@ -30,6 +30,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     // Grouped to mirror the two concerns this component juggles — the NavMesh "brain"
     // (Movement) and the physics/throwable layer (Physics) — plus Presentation.
 
+    [TabGroup("Tuning", "References"), Title("References")]
+    [SerializeField] private NameTag nameTag;
     // ── Movement (NavMesh brain) ──
     [TabGroup("Tuning", "Movement"), Title("NavMesh sampling")]
     [Tooltip("Max distance to snap a desired point onto the NavMesh.")]
@@ -181,7 +183,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private CreatureDNA        dna;
     private PersonalityProfile profile;
     private Transform          player;
-    private NameTag            nameTag;
+   
 
     // ── Components / state ────────────────────────────────────────
     private NavMeshAgent agent;
@@ -230,6 +232,45 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     public bool IsAirborne => state == AgentState.Thrown;
     public CreatureDNA DNA => dna;
 
+    // What this creature is trying to do RIGHT NOW, for the NameTag. Maps the internal
+    // AgentState (+ active reaction / reserved need) to the player-facing CreatureIntent;
+    // the tag turns it into words. Need-driven intents read reservedStation.Need so the
+    // verb matches the station kind it's heading to / using.
+    public CreatureIntent Intent => state switch
+    {
+        AgentState.Carried      => CreatureIntent.Held,
+        AgentState.Thrown       => CreatureIntent.Tumbling,
+        AgentState.Recovering   => CreatureIntent.Tumbling,
+        AgentState.SeekingNeed  => SeekIntent(),
+        AgentState.UsingStation => UseIntent(),
+        AgentState.Reacting     => ReactIntent(),
+        AgentState.Idle         => CreatureIntent.Idle,
+        _                       => CreatureIntent.Wandering,   // Roaming
+    };
+
+    private CreatureIntent SeekIntent() => reservedStation == null ? CreatureIntent.Wandering : reservedStation.Need switch
+    {
+        NeedType.Health => CreatureIntent.SeekingFood,
+        NeedType.Energy => CreatureIntent.SeekingRest,
+        _               => CreatureIntent.SeekingPlay,
+    };
+
+    private CreatureIntent UseIntent() => reservedStation == null ? CreatureIntent.Wandering : reservedStation.Need switch
+    {
+        NeedType.Health => CreatureIntent.Eating,
+        NeedType.Energy => CreatureIntent.Resting,
+        _               => CreatureIntent.Playing,
+    };
+
+    private CreatureIntent ReactIntent() => activeReaction switch
+    {
+        ProximityReaction.Follow   => CreatureIntent.Following,
+        ProximityReaction.Approach => CreatureIntent.Approaching,
+        ProximityReaction.Flee     => CreatureIntent.Fleeing,
+        ProximityReaction.Retreat  => CreatureIntent.Retreating,
+        _                          => CreatureIntent.Wandering,
+    };
+
     // ── Lifecycle ─────────────────────────────────────────────────
 
     private void Awake()
@@ -247,6 +288,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
         rb.isKinematic = true;          // NavMeshAgent drives until we get thrown
         rb.useGravity  = false;
+
+        // NavMesh-driven by default → the collider is a trigger so the kinematic body
+        // doesn't push/collide while roaming (cheaper, no contact solving). It flips to a
+        // solid collider only while physics owns it (carried/thrown), so bounces register.
+        SetColliderTrigger(true);
     }
 
     // Wired by the spawner. profileTable + player may be resolved here as a fallback.
@@ -257,10 +303,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
                   ?? PersonalityProfile.Neutral();
         player  = playerTransform;
 
-        nameTag = GetComponent<NameTag>();
-        if (nameTag != null) nameTag.Bind(creature);
+        RestoreNavMeshControl();   // pooling: an instance reused from the pool keeps last life's state — reset it
 
-        agent.speed = profile.MoveSpeed;
+        if (nameTag != null) nameTag.Bind(creature, this);
+
+       // agent.speed = profile.MoveSpeed;(la velocidad del morimonchi no debe depender de su adn)
 
         // Penned creatures are gated to the BreedingRoom area; free ones get everything EXCEPT it,
         // so they route around every pen (cost wouldn't fence — only the mask does). If the Area
@@ -396,6 +443,19 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
     private void TickReacting()
     {
+        // A need takes priority over any reaction, same as Idle/Roaming. If a station is
+        // free, go use it. Otherwise, a friendly reaction (approach/follow/retreat) must
+        // NOT keep it glued to the player once it's no longer Healthy — drop back to the
+        // base behavior so the need-degrade path runs and ReactIfPlayerNear won't re-arm a
+        // friendly reaction while it's critical. Flee stays: that IS the stress response.
+        if (TryEnterNeedSeeking()) return;
+        if (activeReaction != ProximityReaction.Flee && Condition != CreatureCondition.Healthy)
+        {
+            state = stateBeforeReact;
+            if (state == AgentState.Idle) EnterIdle(); else EnterRoaming();
+            return;
+        }
+
         float dist = PlanarDistanceToPlayer();
 
         // Player left (with hysteresis) → resume previous behavior.
@@ -660,6 +720,45 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         onThrow?.Invoke();
     }
 
+    // ── Pooling (reuse) ───────────────────────────────────────────
+
+    // Reset to a clean NavMesh-driven body. Awake runs once per instance, NOT on pool
+    // reactivation, so a creature reused from the pool would otherwise resume last life's
+    // state (mid-throw velocity, disabled agent, a still-reserved station). Called at the
+    // top of Initialize; idempotent for fresh (non-pooled) instances.
+    private void RestoreNavMeshControl()
+    {
+        ReleaseStation();
+        if (currentContainer != null) { currentContainer.Release(this); currentContainer = null; }
+
+        if (!rb.isKinematic)            // only clear on a dynamic body — setting velocity on a kinematic one warns
+        {
+            rb.linearVelocity  = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+        rb.isKinematic = true;
+        rb.useGravity  = false;
+
+        if (!agent.enabled) agent.enabled = true;
+        agent.updateRotation = true;
+        SetColliderTrigger(true);
+
+        holdAnchor  = null;
+        settleTimer = thrownTimer = idleTimer = recoverTimer = repathTimer = 0f;
+        bounceCount = 0;
+        state       = AgentState.Idle;
+    }
+
+    // Called by the spawner before this instance goes back to the pool (deactivated): free any
+    // held station/pen so it doesn't hog them while inert, and stop steering. Reuse re-inits via
+    // Initialize → RestoreNavMeshControl.
+    public void PrepareForPool()
+    {
+        ReleaseStation();
+        if (currentContainer != null) { currentContainer.Release(this); currentContainer = null; }
+        if (agent.enabled && agent.isOnNavMesh) agent.ResetPath();
+    }
+
     // ── Physics handoff (NavMeshAgent ⇄ Rigidbody) ────────────────
 
     // Stop NavMesh steering and let physics own the body (carry/throw/knock). Idempotent — safe to
@@ -668,6 +767,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     {
         if (agent.enabled) agent.enabled = false;
         rb.isKinematic = false;
+        SetColliderTrigger(false);      // physics owns it now → solid, so it collides/bounces
     }
 
     // Free-fall physics + reset the flight counters. Shared by throw / release / knock (they differ
@@ -696,7 +796,15 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
 
         if (!agent.Warp(point) || !agent.isOnNavMesh) return false;
         agent.ResetPath();
+        SetColliderTrigger(true);       // back on the mesh → trigger again (caller kept it solid on failure)
         return true;
+    }
+
+    // Trigger while NavMesh-driven, solid while physics-driven. Null-guarded — Collider
+    // isn't RequireComponent'd, so a prefab without one degrades gracefully.
+    private void SetColliderTrigger(bool isTrigger)
+    {
+        if (col != null) col.isTrigger = isTrigger;
     }
 
     // Called by a MoriMochiContainer when a creature lands in a pen with room. Cuts the ragdoll,

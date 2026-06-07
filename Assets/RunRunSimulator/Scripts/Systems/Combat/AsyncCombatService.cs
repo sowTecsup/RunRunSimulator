@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Sirenix.OdinInspector;
@@ -29,6 +30,13 @@ public class AsyncCombatService : MonoBehaviour
     // lands them in the pool). They are QueuedForCombat locally but legitimately
     // absent from the server pool, so ghost-reconciliation must skip them.
     private readonly HashSet<string> inFlightEnqueues = new HashSet<string>();
+
+    // Serializes the cloud-mutating section of every enqueue. Both the matchmaking
+    // pool and each player's combat_results are read-modify-write on Cloud Save with
+    // no atomicity, so two enqueues firing at once (e.g. two Instant battles back to
+    // back) would double-match the same opponent and lose-update one result. The
+    // gate forces this client's enqueues through one at a time → one combat at a time.
+    private readonly SemaphoreSlim enqueueGate = new SemaphoreSlim(1, 1);
 
     // ── Cached References ─────────────────────────────────────────
 
@@ -66,6 +74,7 @@ public class AsyncCombatService : MonoBehaviour
         }
 
         dna.BusyState = BusyReason.QueuedForCombat;
+        dna.QueuedAt  = DateTime.UtcNow;
         if (CombatManagerSO.Current != null)
             dna.Needs.SpendEnergy(CombatManagerSO.Current.EnergyCostToQueue);   // queueing tires it
         inFlightEnqueues.Add(dna.UniqueID);
@@ -76,6 +85,9 @@ public class AsyncCombatService : MonoBehaviour
 
         await Task.Delay(TimeSpan.FromSeconds(MIN_QUEUE_DELAY_SEC));
 
+        // One cloud op at a time: a second enqueue waits here until this one has
+        // matched, written both players' results, and (Instant) polled them back.
+        await enqueueGate.WaitAsync();
         try
         {
             status = $"\"{dna.CustomName}\" — calling {endpoint}...";
@@ -139,6 +151,7 @@ public class AsyncCombatService : MonoBehaviour
         finally
         {
             inFlightEnqueues.Remove(dna.UniqueID);
+            enqueueGate.Release();
         }
     }
 
@@ -185,7 +198,12 @@ public class AsyncCombatService : MonoBehaviour
             var raw  = await CloudCodeService.Instance.CallEndpointAsync<string>(
                 CLOUD_CODE_QUEUE_STATUS, new Dictionary<string, object>());
             var resp = JsonConvert.DeserializeObject<CloudQueueStatusResponse>(raw);
-            return new HashSet<string>(resp?.InPool ?? new List<string>());
+
+            // ok=false means a pool read failed server-side → we only have a partial
+            // view. Treat exactly like unreachable (null) so reconcile is skipped and
+            // legitimately-queued creatures aren't wrongly cleared.
+            if (resp == null || !resp.Ok) return null;
+            return new HashSet<string>(resp.InPool ?? new List<string>());
         }
         catch (Exception e)
         {
@@ -302,7 +320,7 @@ public class AsyncCombatService : MonoBehaviour
         {
             OpponentName       = r.OpponentName,
             OpponentPlayerName = r.OpponentPlayerName ?? "",
-            Date               = DateTime.UtcNow,
+            Date               = ParseUtcOrNow(r.Date),
             Outcome            = r.Won ? CombatOutcome.Won : CombatOutcome.Lost,
             Died               = r.Died,
             EvolvedSlot        = r.Won ? r.EvolvedSlot : null,
@@ -338,6 +356,18 @@ public class AsyncCombatService : MonoBehaviour
         });
 
         return true;
+    }
+
+    // Server sends the fight time as ISO-8601 UTC; fall back to now for older
+    // results (or a malformed string) so the record always has a usable date.
+    private static DateTime ParseUtcOrNow(string iso)
+    {
+        if (!string.IsNullOrEmpty(iso) &&
+            DateTime.TryParse(iso, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.AdjustToUniversal |
+                System.Globalization.DateTimeStyles.AssumeUniversal, out var dt))
+            return dt;
+        return DateTime.UtcNow;
     }
 
     private static void AdvanceTier(CreatureDNA dna, string slot)
@@ -411,6 +441,7 @@ public class AsyncCombatService : MonoBehaviour
     private class CloudQueueStatusResponse
     {
         public List<string> InPool = new List<string>();
+        public bool         Ok     = true;   // false → server had a partial read; don't reconcile
     }
 
     [Serializable]
@@ -420,6 +451,7 @@ public class AsyncCombatService : MonoBehaviour
         public bool             Won;
         public bool             Died;
         public string           EvolvedSlot;
+        public string           Date;                            // ISO-8601 UTC of when the fight ran
         public string           OpponentName;
         public string           OpponentPlayerId;
         public string           OpponentPlayerName;

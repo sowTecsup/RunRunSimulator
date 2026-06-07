@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="NameTagUITKStyle.uss" />
+    <!-- Floating world-space tag above one MoriMochi. NameTag.cs (a UIDocument on a
+         child of the creature) fills these three labels by name each frame: the name
+         is stable, status (busy/dead) and intent (what it wants to do) update live.
+         The panel root is centered + made non-pickable from code. -->
+    <ui:VisualElement name="tag-root" class="tag">
+        <ui:Label name="name-label"   text="Name"  class="tag__name" />
+        <ui:Label name="status-label" text=""      class="tag__status" />
+        <ui:Label name="intent-label" text=""      class="tag__intent" />
+    </ui:VisualElement>
+</ui:UXML>

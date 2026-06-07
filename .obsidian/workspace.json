@@ -1,24 +1,20 @@
 {
   "main": {
-    "id": "1ca9cfe22be40373",
+    "id": "cc755e499274dc38",
     "type": "split",
     "children": [
       {
-        "id": "db7479d861e723ea",
+        "id": "e0e6acf29e8fbb42",
         "type": "tabs",
         "children": [
           {
-            "id": "904556343679102e",
+            "id": "5b376be877f8b8d4",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "10 - Furniture & Building.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "10 - Furniture & Building"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
             }
           }
         ]
@@ -27,15 +23,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "fda4ea310868c930",
+    "id": "5143bd2f5ddb3ab7",
     "type": "split",
     "children": [
       {
-        "id": "f7feccb0d5b706fe",
+        "id": "9646d666a0e7f7e2",
         "type": "tabs",
         "children": [
           {
-            "id": "b5d7629a56bcfd1f",
+            "id": "c6a3e637223168af",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -48,7 +44,7 @@
             }
           },
           {
-            "id": "bb540a745de0ac0b",
+            "id": "1149bb8ebabe9f1b",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -61,17 +57,17 @@
                 "sortOrder": "alphabetical"
               },
               "icon": "lucide-search",
-              "title": "Search"
+              "title": "Buscar"
             }
           },
           {
-            "id": "89cfe1deb26530af",
+            "id": "135f9b56578f364e",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
               "state": {},
               "icon": "lucide-bookmark",
-              "title": "Bookmarks"
+              "title": "Marcadores"
             }
           }
         ]
@@ -81,20 +77,19 @@
     "width": 300
   },
   "right": {
-    "id": "549d91d0a25ce724",
+    "id": "3d7a7cb8b42d099f",
     "type": "split",
     "children": [
       {
-        "id": "be78d6e6ccb04c62",
+        "id": "f3dd9d047844bf1e",
         "type": "tabs",
         "children": [
           {
-            "id": "909dab57af9c1f97",
+            "id": "8b7c269fda51360c",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "09 - Active Context.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,25 +99,24 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for 09 - Active Context"
+              "title": "Enlaces entrantes"
             }
           },
           {
-            "id": "cd75c742cf3c5272",
+            "id": "18324acf48cf098a",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "09 - Active Context.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from 09 - Active Context"
+              "title": "Enlaces salientes"
             }
           },
           {
-            "id": "2154f099a56fb3d9",
+            "id": "67632781d0f4ed74",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -133,22 +127,35 @@
                 "searchQuery": ""
               },
               "icon": "lucide-tags",
-              "title": "Tags"
+              "title": "Etiquetas"
             }
           },
           {
-            "id": "06bcf02ae7f61e6c",
+            "id": "d2c2b09935d0a7a6",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "Todas las propiedades"
+            }
+          },
+          {
+            "id": "29b291eb17d9f7e2",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "09 - Active Context.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of 09 - Active Context"
+              "title": "Esquema"
             }
           }
         ]
@@ -169,29 +176,13 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "904556343679102e",
+  "active": "5b376be877f8b8d4",
   "lastOpenFiles": [
-    "09 - Active Context.md",
-    "08 - Known Bugs & Checkpoints.md",
-    "10 - Furniture & Building.md",
-    "00 - Index.md",
-    "09 - Active Context.md.tmp.8532.1368a52a6752",
-    "09 - Active Context.md.tmp.8532.61b7a0efc140",
-    "09 - Active Context.md.tmp.8532.383740b7edd8",
-    "10 - Furniture & Building.md.tmp.8532.90bc026fe891",
-    "10 - Furniture & Building.md.tmp.8532.ed989c5d19c5",
-    "10 - Furniture & Building.md.tmp.8532.f3002edd16bb",
-    "10 - Furniture & Building.md.tmp.8532.c940a511c887",
-    "10 - Furniture & Building.md.tmp.8532.4263242980d3",
-    "10 - Furniture & Building.md.tmp.8532.217e074f1172",
-    "10 - Furniture & Building.md.tmp.8532.23d8f23bf8cf",
-    "07 - Persistence & Identity.md",
-    "06 - Player & World.md",
-    "05 - UI System.md",
-    "Welcome.md",
-    "04 - UGS & Cloud.md",
-    "03 - Combat.md",
-    "02 - Genetics & Breeding.md",
-    "01 - GDD Core.md"
+    "Library/PackageCache/com.unity.ugui@bb329a87fcdc/Documentation~/TableOfContents.md",
+    "MoriMonchiVault/09 - Active Context.md",
+    "MoriMonchiVault/02 - Genetics & Breeding.md",
+    "MoriMonchiVault/01 - GDD Core.md",
+    "MoriMonchiVault/00 - Index.md",
+    "Library/PackageCache/com.unity.shadergraph@f80b792d4861/Documentation~/Input-Nodes.md"
   ]
 }

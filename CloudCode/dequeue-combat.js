@@ -5,7 +5,9 @@
 
 const { DataApi } = require("@unity-services/cloud-save-1.4");
 
-const POOL_KEY = "matchmaking_pool";
+// A creature can be sitting in either pool (scheduled or the instant debug pool),
+// so we look in both and remove wherever it is.
+const POOL_KEYS = ["matchmaking_pool", "instant_pool"];
 
 module.exports = async ({ params, context, logger }) => {
     const { creatureId } = params;
@@ -15,35 +17,44 @@ module.exports = async ({ params, context, logger }) => {
 
     const api = new DataApi({ accessToken: context.serviceToken });
 
-    // ── Load pool ─────────────────────────────────────────────────
-    let pool = [];
-    try {
-        const res  = await api.getCustomItems(context.projectId, context.environmentId, [POOL_KEY]);
-        const item = res.data?.results?.find(i => i.key === POOL_KEY);
-        pool = Array.isArray(item?.value?.entries) ? item.value.entries : [];
-    } catch (e) {
-        logger.info("Pool not found: " + (e.message || e));
-        return JSON.stringify({ status: "not_found", poolSize: 0 });
-    }
+    let removed   = 0;
+    let totalLeft = 0;
 
-    // ── Remove matching entry (only own creatures — enforced by playerId) ──
-    const before = pool.length;
-    pool = pool.filter(e => !(e.creatureId === creatureId && e.playerId === context.playerId));
-    const removed = before - pool.length;
+    for (const poolKey of POOL_KEYS) {
+        // ── Load pool ─────────────────────────────────────────────
+        let pool = [];
+        try {
+            const res  = await api.getCustomItems(context.projectId, context.environmentId, [poolKey]);
+            const item = res.data?.results?.find(i => i.key === poolKey);
+            pool = Array.isArray(item?.value?.entries) ? item.value.entries : [];
+        } catch (e) {
+            logger.info(`Pool ${poolKey} not found: ` + (e.message || e));
+            continue;
+        }
+
+        // ── Remove matching entry (only own creatures — enforced by playerId) ──
+        const before = pool.length;
+        pool = pool.filter(e => !(e.creatureId === creatureId && e.playerId === context.playerId));
+        const poolRemoved = before - pool.length;
+        removed   += poolRemoved;
+        totalLeft += pool.length;
+
+        // Only rewrite a pool we actually changed.
+        if (poolRemoved > 0) {
+            await api.setCustomItem(context.projectId, context.environmentId, {
+                key:   poolKey,
+                value: { entries: pool },
+            });
+            logger.info(`Dequeued "${creatureId}" from ${poolKey} for player ${context.playerId}. Pool size: ${pool.length}`);
+        }
+    }
 
     if (removed === 0) {
-        logger.info(`Dequeue: "${creatureId}" not found in pool for player ${context.playerId}`);
-        return JSON.stringify({ status: "not_found", poolSize: pool.length });
+        logger.info(`Dequeue: "${creatureId}" not found in any pool for player ${context.playerId}`);
+        return JSON.stringify({ status: "not_found", poolSize: totalLeft });
     }
 
-    // ── Persist updated pool ──────────────────────────────────────
-    await api.setCustomItem(context.projectId, context.environmentId, {
-        key:   POOL_KEY,
-        value: { entries: pool },
-    });
-
-    logger.info(`Dequeued "${creatureId}" for player ${context.playerId}. Pool size: ${pool.length}`);
-    return JSON.stringify({ status: "dequeued", poolSize: pool.length });
+    return JSON.stringify({ status: "dequeued", poolSize: totalLeft });
 };
 
 module.exports.params = {

@@ -70,7 +70,7 @@ Conmuta de estado escuchando `UIManager.OnUIFocusChanged(bool)` (true cuando hay
 | Cargando | **press E** | Soltar en el sitio |
 | Cargando | **Click (Attack)** | Lanzar |
 
-- Raycast genérico: `TryFindInView<T>` busca `T` (interface o clase) en el collider O en su `attachedRigidbody`. Lo usan grab (`IThrowable`) e interact (`IInteractable`).
+- Raycast genérico: `TryFindInView<T>` busca `T` (interface o clase) en el collider O en su `attachedRigidbody`. Lo usan grab (`IThrowable`) e interact (`IInteractable`). Usa `RaycastAll` + `QueryTriggerInteraction.Collide` (hits nearest-first): un solid-non-T bloquea el alcance; un trigger-non-T es transparente. Necesario porque los MoriMonchis usan collider trigger mientras roamean por NavMesh.
 - **Throw — converge a la mira**: el objeto flota en el `holdAnchor` (que está al costado), así que lanzar sobre `cameraTransform.forward` desde ahí saldría paralelo y nunca llegaría a la mira. En su lugar se lanza **desde el `holdAnchor` HACIA el punto que mira la cámara**: un raycast `throwAimDistance` (default 30 m) al centro de pantalla → ese hit (o el punto a 30 m si no pega nada) es el `aimPoint`; el objeto sostenido se ignora vía `IsChildOf`. `throwUpwardBias` (0–1, default 0.15) mezcla un leve arco. (Esta iteración **reintrodujo** `throwAimDistance`.)
 
 ## Mundo — MoriMonchis vivos
@@ -79,12 +79,14 @@ Convierte criaturas del registro (data) en cubos vivos en la escena. Tres script
 
 ### MoriMochiSpawner — bridge data→escena
 
-- Escucha `GameEvents.OnRegistryChanged` (incremental) y `OnRegistryReloaded` (rebuild completo). Suscribe/desuscribe en `OnEnable`/`OnDisable`.
+- Escucha `GameEvents.OnRegistryChanged` (incremental) y `OnRegistryReloaded` (reload de cloud). Suscribe/desuscribe en `OnEnable`/`OnDisable`.
 - **Por ahora spawnea TODA criatura viva**; despawnea las muertas o removidas.
+- **Pooled + staggered**: en lugar de `Instantiate` en batch (spike de FPS y colisiones en cadena al aire), usa un `Queue<MoriMochiAgent> pool`. El **pump** (`SpawnPump` coroutine) drena la cola de backlog a `spawnPerTick` criaturas por tick con `spawnInterval` segundos entre ticks, con `startDelay` inicial. Inspector tab **"Pooling"**: los tres parámetros + BoxGroup `Status` (SpawnedCount/PooledCount/QueuedCount, ReadOnly).
+- **`OnRegistryReloaded` — reconcile, no ClearAll**: no deactiva las criaturas vivas. Despawnea solo las genuinamente-muertas/removidas; rebindea en-place las que siguen (`agent.Initialize` sin `SetActive`); encola solo las genuinamente-nuevas. Evita el bug "aparece y desaparece" causado por el pull inicial de `CloudSyncService` (~2s después del start).
 - **Dos modos de spawn** (`SpawnMode`, `[EnumToggleButtons]` en inspector):
   - **Placed (drop)**: `ResolveSpawnPosition` samplea un punto cerca del `spawnArea` con `areaMask = 1<<PreferredArea` → la criatura aparece en el NavMesh, en su área preferida. Fallback a `AllAreas`.
-  - **Launched (shoot out)**: instancia en `launchPoint` (sobre el suelo, fuera del NavMesh) y llama `agent.Launch(RandomLaunchImpulse())`. El agente sale disparado en dirección aleatoria, rebota (`bounciness`/`maxBounces`), asienta y reanuda normal. Tab **"Launched"** en inspector: `launchPoint`, `launchForce` (rango min/max, `[MinMaxSlider]`), `launchUpBias` (arco vertical, 0–1).
-- Resuelve prefab + assets de `GameManager.Instance`. `Initialize(dna, table, player)` cablea cada agent.
+  - **Launched (shoot out)**: instancia en `launchPoint` (sobre el suelo, fuera del NavMesh) y llama `agent.Launch(RandomLaunchImpulse())`. Tab **"Launched"** en inspector: `launchPoint`, `launchForce` (rango min/max `[MinMaxSlider]`, max=60), `launchAngle` (elevación en grados, `[MinMaxSlider(0,90)]`, default 45–70). El ángulo se construye con trigonometría exacta → alcanza 0–90° sin el cap a 45° del viejo blend.
+- Resuelve prefab + assets de `GameManager.Instance`. `Initialize(dna, table, player)` cablea cada agent (también llama a `RestoreNavMeshControl` para limpiar estado de vida previa del pool).
 - Botón **Respawn All** (DEV, solo Play).
 
 ### MoriMochiAgent (implementa `IThrowable`) — el cerebro
@@ -105,6 +107,17 @@ Convierte criaturas del registro (data) en cubos vivos en la escena. Tres script
 - **Rebote tipo peluche** (`OnCollisionEnter`, solo en vuelo): `lastVelocity` se captura cada `FixedUpdate` mientras vuela (la `rb.velocity` post-impacto ya viene alterada por la respuesta de contacto). En el choque refleja `Vector3.Reflect(lastVelocity, normal) * bounciness`, hasta `maxBounces` veces, + torque random (`bounceSpin`) para que lea como peluche. Impactos < `minBounceSpeed` no cuentan (evita micro-rebotes infinitos). El frenado lo dan `thrownLinear/AngularDamping` del Rigidbody.
 - **Knock / ragdoll en cadena**: `IThrowable.Knock(Vector3)` se agregó al contrato. Un MoriMochi en vuelo que choca a OTRO `IThrowable` lo manda a volar (handoff NavMesh→física + impulso `knockTransfer`, con `knockUpBias` de pop vertical) → reacción en cadena. Un objeto en mano ignora el Knock.
 - **Settle robusto** (`TickThrown`): solo asienta cuando está lento **Y** `IsGrounded()` (raycast hacia abajo ignorando su propio collider) — velocidad baja en pleno rebote o resbalando por un borde no cuenta. Red de seguridad: `maxThrownTime` (default 6 s) lo recupera sí o sí aunque siga deslizando.
+
+### Collider trigger/solid contract
+
+El `CapsuleCollider` del MoriMochi conmuta automáticamente:
+
+| Estado | `isTrigger` | Por qué |
+|--------|-------------|---------|
+| NavMesh activo (Idle/Roaming/Reacting/SeekingNeed/UsingStation) | `true` | El grab raycast usa `Collide`; el trigger no afecta física normal |
+| Ragdoll/lanzado (`Thrown`/`Recovering`/`Carried`) | `false` | Colisiones físicas reales (rebote, knock, knock de otros) |
+
+`SetColliderTrigger(bool)` helper privado. Se llama en `Awake`, `RejoinNavMesh`, `RestoreNavMeshControl` (→ true) y `DetachToPhysics` (→ false).
 
 ### Handoff NavMesh⇄Throwable + levantarse
 
@@ -146,9 +159,14 @@ Es el **endpoint reservado** para que la personalidad importe a futuro (combate,
 
 ### NameTag
 
-- Label 3D (TMP) flotante: nombre + línea de estado (En cola / Incubando / Muerto, leídos de `BusyState`/`IsDead` cada frame).
-- **Billboard** a la cámara, **visible solo por proximidad** (`showDistance`).
-- `Bind(dna)`. Vista pura.
+Panel flotante world-space con **UI Toolkit** (no TMP). `[RequireComponent(typeof(UIDocument))]`.
+
+- **3 renglones**: nombre, estado de ocupación (En cola / Incubando / Muerto — color-coded), y **`CreatureIntent`** — lo que quiere hacer el MoriMochi ahora mismo ("Te sigue", "Busca comida", "Durmiendo", "¡Por los aires!", etc.). El renglón de intent se oculta si muerto.
+- **`Bind(CreatureDNA, MoriMochiAgent)`**: recibe el agente explícitamente (no `GetComponentInParent`; el NameTag está en un hijo, no en el root). `ResolveElements()` cachea las Labels contra la identidad del `rootVisualElement` actual — si `UIDocument` reconstruyó el árbol al reactivar del pool, invalida y re-queryea.
+- **Billboard** en `LateUpdate`, **visible solo por proximidad** (`showDistance`). Vista pura — nunca muta nada.
+- Fuente de truth: `Core/Enums.cs → CreatureIntent` (14 valores). `MoriMochiAgent.Intent` es una propiedad calculada (switch sobre `AgentState`), nunca persistida.
+- **Assets**: `UI Toolkit/NameTagUITK.uxml` (3 labels) + `UI Toolkit/NameTagUITKStyle.uss` (card semitransparente, nombre 30px bold blanco, status color-desde-código, intent azul claro 20px).
+- **Setup de escena**: el NameTag debe ir en un **objeto hijo** del prefab de criatura (NO el root — billboard lo rotaría todo el mesh). Agregar `UIDocument` con `PanelSettings` tipo World Space + `NameTagUITK.uxml`. Posicionar ~1.2u arriba del cubo. Cablearlo como `nameTag` (SerializeField) en `MoriMochiAgent`.
 
 ### NavMesh — setup de escena (3 Areas)
 
@@ -235,7 +253,7 @@ Se descartaron las propuestas A/B y el volume/carve. **Una superficie continua**
 
 ### Estado del roadmap
 
-**Etapa 2.5 — Vida en Escena** 🔶 Código ✅ (World/: MoriMochiSpawner, MoriMochiAgent, NameTag · Personality enum + PersonalityProfileSO · CombatRecord/CombatTurn en DNA, JS sincronizado · **Needs system: NeedsState + NeedStation/Registry + FSM**).
+**Etapa 2.5 — Vida en Escena** 🔶 Código ✅ (World/: MoriMochiSpawner, MoriMochiAgent, NameTag UITK + CreatureIntent · Personality enum + PersonalityProfileSO · CombatRecord/CombatTurn en DNA, JS sincronizado · **Needs system: NeedsState + NeedStation/Registry + FSM** · pool + staggered cannon · collider trigger/solid).
 
 Falta setup de escena en Unity (NavMesh bake + 3 Areas, prefab del cubo, asset Personality Profile Table, wiring del spawner).
 
@@ -252,11 +270,11 @@ Assets/RunRunSimulator/Scripts/Player/
 Assets/RunRunSimulator/Scripts/World/
 ├── MoriMochiSpawner.cs               # Bridge data→escena. Escucha OnRegistryChanged/Reloaded
 ├── MoriMochiAgent.cs                 # NavMeshAgent + state machine + IThrowable
-└── NameTag.cs                        # Label 3D flotante (TMP)
+└── NameTag.cs                        # Panel world-space UITK: nombre + estado + CreatureIntent
 
 Assets/RunRunSimulator/Scripts/Data/
 └── PersonalityProfileSO.cs           # SO singleton (Current): Dictionary<Personality, PersonalityProfile>
 
 Assets/RunRunSimulator/Scripts/Core/
-└── Enums.cs                          # ... + PlayerStateType, Personality, ProximityReaction, WorldArea, CreatureCondition
+└── Enums.cs                          # ... + PlayerStateType, Personality, ProximityReaction, WorldArea, CreatureCondition, CreatureIntent
 ```
