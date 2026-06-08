@@ -172,9 +172,17 @@
   "active": "904556343679102e",
   "lastOpenFiles": [
     "10 - Furniture & Building.md",
+    "11 - Propuestas.md",
+    "00 - Index.md",
+    "01 - GDD Core.md",
+    "02 - Genetics & Breeding.md",
+    "04 - UGS & Cloud.md",
+    "05 - UI System.md",
     "09 - Active Context.md",
     "08 - Known Bugs & Checkpoints.md",
-    "00 - Index.md",
+    "07 - Persistence & Identity.md",
+    "06 - Player & World.md",
+    "03 - Combat.md",
     "09 - Active Context.md.tmp.8532.1368a52a6752",
     "09 - Active Context.md.tmp.8532.61b7a0efc140",
     "09 - Active Context.md.tmp.8532.383740b7edd8",
@@ -185,13 +193,6 @@
     "10 - Furniture & Building.md.tmp.8532.4263242980d3",
     "10 - Furniture & Building.md.tmp.8532.217e074f1172",
     "10 - Furniture & Building.md.tmp.8532.23d8f23bf8cf",
-    "07 - Persistence & Identity.md",
-    "06 - Player & World.md",
-    "05 - UI System.md",
-    "Welcome.md",
-    "04 - UGS & Cloud.md",
-    "03 - Combat.md",
-    "02 - Genetics & Breeding.md",
-    "01 - GDD Core.md"
+    "Welcome.md"
   ]
 }
