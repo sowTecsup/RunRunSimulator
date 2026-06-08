@@ -102,3 +102,18 @@ Si el `Active Context` queda desactualizado (no se ha tocado en muchos días), t
 ## Notas / pendientes que el usuario quiere recordar
 
 - Furniture: retomar en **Fase 2 (Building mode)** — plan e implementación consolidados en [[10 - Furniture & Building]].
+
+## Sesión de diseño 2026-06-08
+
+- Se leyeron las 15 preguntas abiertas de diseño en Notion.
+- Se cerraron 13/15 con decisiones concretas registradas en **📋 Decisiones de Diseño** y en las páginas GDD correspondientes (Evolución, Combate/Venganza, Tienda/Economía, Concepto, Vida/Personalidad, Sistema Genético).
+- Quedan abiertas: estética de trastienda + nombre de la liga de combate.
+- Se generó una **Ronda 2** de preguntas (18 nuevas) en ❓ Preguntas Abiertas, organizadas en 7 categorías con su razón/motivo de desarrollo:
+  - ⚔️ Skills y Combate (3)
+  - 🧬 Breeding y Decoraciones (3)
+  - 💰 Economía de Tienda (3)
+  - 🎮 Onboarding y Modo Historia (3)
+  - 🎨 Visualizador 3D y Animación (2)
+  - ♻️ Endgame y Ciclo de Vida (3)
+  - 🏪 Mercado Online Parodia (2)
+- Pendiente para próxima sesión: contestar la Ronda 2 y actualizar páginas GDD.
