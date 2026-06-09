@@ -8,6 +8,19 @@ tags: [memory-bank, bugs, checkpoints, future]
 
 ## Bugs activos / mitigados (causa raíz no resuelta)
 
+### Muebles se elevan después del spawn (activo)
+
+- **Síntoma**: al entrar en Play los muebles spawneados por `FurnitureSpawner` aparecen en la Y correcta (el snap `TrySampleFloor` funciona), pero poco después **suben solos** desde su posición.
+- **Causa raíz probable**: algún componente del prefab de furniture aplica física/movimiento post-spawn. Candidatos en orden de probabilidad:
+  1. El prefab tiene un **`Rigidbody`** sin `isKinematic = true` — tras el spawn el motor de física lo recalcula y lo empuja.
+  2. Un **`Collider`** del mueble se solapa con el collider del suelo o del `CharacterController` del player y el solver lo resuelve alejándolo.
+  3. `FurniturePivotAligner` dejó un offset en `localPosition` del hijo que no es evidente hasta que el objeto hace su primer physics tick.
+- **Código descartado**: `FurnitureSpawner.SpawnOne` y `PlacementGrid.TrySampleFloor` son correctos — la Y se lee bien en el frame del spawn. El problema ocurre **después** del spawn, no durante.
+- **Fix pendiente**: en Unity, con uno de los prefabs afectados:
+  1. Inspeccionar la jerarquía — si tiene `Rigidbody`, ponerlo en `isKinematic = true` (los muebles son estáticos, no necesitan física dinámica).
+  2. Si no tiene `Rigidbody`, comparar la Y del objeto en el frame 0 y en el frame 1 para aislar el responsable.
+  3. Si la causa es el overlap con el suelo, agregar `Physics.IgnoreLayerCollision(furnitureLayer, floorLayer)` o usar trigger en lugar de collider sólido en la base del mueble.
+
 ### Fantasma de cola (causa raíz, mitigado)
 
 - **Síntoma**: una criatura aparece `QueuedForCombat` en local aunque no está en el pool ni tiene resultado pendiente.
