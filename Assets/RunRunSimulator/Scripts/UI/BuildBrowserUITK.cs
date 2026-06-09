@@ -44,9 +44,6 @@ public class BuildBrowserUITK : MonoBehaviour
     private int selectedPiece = -1;
     private bool open;
 
-    private PlayerInventorySO Inventory =>
-        GameManager.Instance != null ? GameManager.Instance.Inventory : null;
-
     // ── Lifecycle ─────────────────────────────────────────────────
 
     private void OnEnable()
@@ -138,7 +135,8 @@ public class BuildBrowserUITK : MonoBehaviour
             tabEls[i].EnableInClassList(TabActiveClass, i == activeCategory);
     }
 
-    // Owned pieces in the active category, resolved from the furniture DB.
+    // Pieces in the active category. For testing this lists the FULL furniture catalog;
+    // once economy/ownership exists it will filter by PlayerInventorySO.furnitureOwned.
     private void RefreshPieces()
     {
         if (piecesContainer == null) return;
@@ -146,13 +144,11 @@ public class BuildBrowserUITK : MonoBehaviour
         pieceEls.Clear();
         pieces.Clear();
 
-        var inv = Inventory;
         var cat = Categories[activeCategory];
-        if (inv != null && database != null)
+        if (database != null)
         {
-            foreach (var id in inv.FurnitureOwned)
+            foreach (var def in database.All)
             {
-                var def = database.GetById(id);
                 if (def == null || def.Category != cat) continue;
                 pieces.Add(def);
             }

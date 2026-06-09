@@ -16,6 +16,7 @@ using UnityEngine.InputSystem;
 // Lives on the same GameObject as BuildModeController. Input map ("Building"):
 //   Confirm → ConfirmPressed | Cancel → CancelPressed | Rotate → RotatePressed
 //   Pin → PinPressed | Edit → EditPressed | Delete → DeletePressed | Slot1-4 → SlotSelected(0-3)
+//   FurnitureCatalog → BrowseToggled
 public class BuildingInputs : MonoBehaviour
 {
     public static event Action ConfirmPressed;     // F — confirm / save
@@ -25,12 +26,9 @@ public class BuildingInputs : MonoBehaviour
     public static event Action EditPressed;        // E — select aimed placed piece to edit
     public static event Action DeletePressed;      // right-click — target aimed placed piece to delete
     public static event Action<int> SlotSelected;  // 1-4 — pick hotbar piece (0-based)
-    public static event Action BrowseToggled;      // Tab — open/close the furniture browser
+    public static event Action BrowseToggled;      // FurnitureCatalog (Tab) — open/close the furniture browser
 
     private InputSystem_Actions actions;
-
-    // True only while build mode is active — gates the Tab read in Update.
-    private bool building;
 
     private void Awake() => actions = new InputSystem_Actions();
 
@@ -46,6 +44,7 @@ public class BuildingInputs : MonoBehaviour
         actions.Building.Slot2.performed   += OnSlot2;
         actions.Building.Slot3.performed   += OnSlot3;
         actions.Building.Slot4.performed   += OnSlot4;
+        actions.Building.FurnitureCatalog.performed += OnFurnitureCatalog;
 
         BuildModeController.OnBuildModeChanged += OnBuildModeChanged;
         // The map starts disabled; the first build-mode edge enables it.
@@ -63,6 +62,7 @@ public class BuildingInputs : MonoBehaviour
         actions.Building.Slot2.performed   -= OnSlot2;
         actions.Building.Slot3.performed   -= OnSlot3;
         actions.Building.Slot4.performed   -= OnSlot4;
+        actions.Building.FurnitureCatalog.performed -= OnFurnitureCatalog;
 
         BuildModeController.OnBuildModeChanged -= OnBuildModeChanged;
         actions.Building.Disable();
@@ -72,20 +72,8 @@ public class BuildingInputs : MonoBehaviour
 
     private void OnBuildModeChanged(bool isBuilding)
     {
-        building = isBuilding;
         if (isBuilding) actions.Building.Enable();
         else            actions.Building.Disable();
-    }
-
-    // Tab → toggle the furniture browser. Read directly from the device (still Input
-    // System, still only this input owner) so no .inputactions regen is needed; the
-    // Building map has no spare binding for it. Only while build mode is active.
-    private void Update()
-    {
-        if (!building) return;
-        var keyboard = Keyboard.current;
-        if (keyboard != null && keyboard.tabKey.wasPressedThisFrame)
-            BrowseToggled?.Invoke();
     }
 
     private void OnConfirm(InputAction.CallbackContext c) => ConfirmPressed?.Invoke();
@@ -98,4 +86,5 @@ public class BuildingInputs : MonoBehaviour
     private void OnSlot2(InputAction.CallbackContext c)   => SlotSelected?.Invoke(1);
     private void OnSlot3(InputAction.CallbackContext c)   => SlotSelected?.Invoke(2);
     private void OnSlot4(InputAction.CallbackContext c)   => SlotSelected?.Invoke(3);
+    private void OnFurnitureCatalog(InputAction.CallbackContext c) => BrowseToggled?.Invoke();
 }

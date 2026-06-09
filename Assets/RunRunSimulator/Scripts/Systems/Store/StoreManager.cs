@@ -23,7 +23,7 @@ public class StoreManager : MonoBehaviour
     [SerializeField] private List<StoreEntry> catalog = new List<StoreEntry>();
 
     [Title("Delivery")]
-    [Required, AssetsOnly] [SerializeField] private GameObject deliveryBoxPrefab;
+    [Required, AssetsOnly] [SerializeField] private DeliveryBox deliveryBoxPrefab;
     [Required]             [SerializeField] private Transform deliverySpawnPoint;
 
     // Enter an index, press Buy → Quantity DeliveryBoxes drop at the spawn point.

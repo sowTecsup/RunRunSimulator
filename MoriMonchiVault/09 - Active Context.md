@@ -8,8 +8,8 @@ tags: [memory-bank, active, session]
 
 ## Sesión actual
 
-**Fecha**: 2026-06-09  
-**Foco**: Sistema de Inventario completo — adquisición (tienda → caja), hotbar en play-mode, almacén de mundo, y browser de muebles en build-mode.
+**Fecha**: 2026-06-09 (actualizado misma sesión)  
+**Foco**: Sistema de Inventario completo + correcciones de primer testeo.
 
 ### Qué se hizo (esta sesión)
 
@@ -58,6 +58,11 @@ Sistema de inventario end-to-end diseñado con Opus y luego implementado paso a 
 | `Core/GameManager.cs` | Campos `furnitureRegistry` + `inventory`; suscripciones Furniture/Inventory; `CollectLooseWorldProps` en quit/pause |
 | `Systems/Cloud/CloudSyncService.cs` | En sign-in: carga furniture + inventory, dispara Reloaded |
 | `Systems/Furniture/FurnitureService.cs` | `runtimeActivePiece`, `SetActivePiece`, fallback en `ActivePiece` getter |
+| `Systems/Furniture/FurnitureDatabaseSO.cs` | Agregado `public IEnumerable<FurnitureDefinitionSO> All` para que el browser itere el catálogo completo |
+| `Player/BuildingInputs.cs` | `BrowseToggled` ya no hardcodea `Keyboard.tabKey` — usa `Building.FurnitureCatalog.performed`; eliminado `Update()` y flag `building` |
+| `UI/HotbarHUDUITK.cs` | Suscrito a `BuildModeController.OnBuildModeChanged`; se oculta (`DisplayStyle.None`) durante build mode |
+| `UI/BuildBrowserUITK.cs` | Browser muestra catálogo completo (`database.All`) en vez de `furnitureOwned`; eliminada dependencia de `PlayerInventorySO` en esta clase |
+| `Interactables/ThrowableObject.cs` | `OnThrow` ya no usa `AddForce` — setea `linearVelocity` directamente para evitar el bug de kinematic→dynamic en el mismo frame |
 | `Systems/Furniture/BuildModeController.cs` | `StartPlacing` helper extraído; `SelectPieceFromBrowser(def)` público |
 | `Player/PlayerController.cs` | `UpdateGrabHold` solo MoriMonchi física; click → `UseActive` si hotbar tiene item; `ComputeThrowImpulse` extraído |
 | `Player/PlayerInputs.cs` | `HotbarScrolled` (wheel) + `DropPressed` (Q) en Update; `playerActive` flag |
@@ -119,6 +124,9 @@ StoreManager inspector → BuyItem(i)
 ---
 
 ## Próximos pasos (retomar acá la próxima sesión)
+
+**Bug activo — spawner elevation (ver [[08 - Known Bugs & Checkpoints]]):**
+- Los muebles aparecen en la Y correcta al hacer Play pero luego **suben solos**. `TrySampleFloor` funciona bien en el momento del spawn; la causa probable es un collider/Rigidbody en el prefab que empuja al objeto hacia arriba después. Investigar si los prefabs de furniture tienen `Rigidbody` o si el `CharacterController` del player está interfiriendo con el collider de la pieza. Ver el archivo de bugs para el diagnóstico completo.
 
 **Pendientes de código no solicitados aún:**
 - Play-mode use effects por `WorldPropCategory` (Food/Medicine aplicados a MoriMonchis vía `OnItemUsed`).

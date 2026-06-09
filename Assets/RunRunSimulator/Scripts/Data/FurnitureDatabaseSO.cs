@@ -35,6 +35,10 @@ public class FurnitureDatabaseSO : SerializedScriptableObject
         return def;
     }
 
+    // Every registered definition. Used by the build browser to list the full catalog
+    // (until ownership filtering via PlayerInventorySO.furnitureOwned is wired in).
+    public IEnumerable<FurnitureDefinitionSO> All => items.Values;
+
     [ShowInInspector, ReadOnly, LabelText("Total")]
     public int Count => items?.Count ?? 0;
 

@@ -29,14 +29,16 @@ public class HotbarHUDUITK : MonoBehaviour
 
     private void OnEnable()
     {
-        HotbarController.OnHotbarChanged += Refresh;
-        GameEvents.OnInventoryReloaded   += OnInventoryReloaded;
+        HotbarController.OnHotbarChanged       += Refresh;
+        GameEvents.OnInventoryReloaded         += OnInventoryReloaded;
+        BuildModeController.OnBuildModeChanged += OnBuildModeChanged;
     }
 
     private void OnDisable()
     {
-        HotbarController.OnHotbarChanged -= Refresh;
-        GameEvents.OnInventoryReloaded   -= OnInventoryReloaded;
+        HotbarController.OnHotbarChanged       -= Refresh;
+        GameEvents.OnInventoryReloaded         -= OnInventoryReloaded;
+        BuildModeController.OnBuildModeChanged -= OnBuildModeChanged;
     }
 
     private void Start()
@@ -46,6 +48,14 @@ public class HotbarHUDUITK : MonoBehaviour
     }
 
     private void OnInventoryReloaded(PlayerInventorySO inv) => Refresh();
+
+    // The hotbar only has meaning in play (carry/use props). Build mode uses the
+    // furniture browser instead, so hide the bar while building.
+    private void OnBuildModeChanged(bool building)
+    {
+        var root = document != null ? document.rootVisualElement : null;
+        if (root != null) root.style.display = building ? DisplayStyle.None : DisplayStyle.Flex;
+    }
 
     // ── Build / refresh ───────────────────────────────────────────
 

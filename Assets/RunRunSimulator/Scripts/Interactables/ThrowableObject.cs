@@ -38,7 +38,13 @@ public class ThrowableObject : MonoBehaviour, IThrowable
     {
         Debug.Log($"[ThrowableObject] OnThrow '{name}' — force={force} (mag {force.magnitude:0.0}).");
         OnRelease();
-        rb.AddForce(force, ForceMode.Impulse);
+        // Hotbar items are held KINEMATIC; AddForce on the same frame the body turns
+        // dynamic gets swallowed (solver isn't ready yet), so the throw became a drop.
+        // Set the velocity directly instead — same result as ForceMode.Impulse
+        // (Δv = force/mass) but immune to that timing.
+        rb.isKinematic    = false;
+        rb.angularVelocity = Vector3.zero;
+        rb.linearVelocity  = force / Mathf.Max(rb.mass, 0.0001f);
     }
 
     // Knocked by another thrown object. Ignore while held; otherwise it's already a

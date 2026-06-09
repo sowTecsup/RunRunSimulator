@@ -1116,6 +1116,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "FurnitureCatalog",
+                    "type": "Button",
+                    "id": "4420c340-70b5-4f34-b9d6-b8db005627d0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1292,6 +1301,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "Slot4",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dfad806d-da2c-41a9-97b6-75514c04a613",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "FurnitureCatalog",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

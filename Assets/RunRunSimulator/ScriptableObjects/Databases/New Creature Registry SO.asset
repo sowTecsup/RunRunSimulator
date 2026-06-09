@@ -34,7 +34,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 14
+      Data: 15
     - Name: 
       Entry: 7
       Data: 
@@ -164,13 +164,13 @@ MonoBehaviour:
       Data: 5|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 23.7777386
+      Data: 45.80426
     - Name: Energy
       Entry: 4
-      Data: 69.52472
+      Data: 38.50322
     - Name: Affect
       Entry: 4
-      Data: 78.72643
+      Data: 69.55702
     - Name: 
       Entry: 8
       Data: 
@@ -327,13 +327,13 @@ MonoBehaviour:
       Data: 9|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 81.02042
+      Data: 27.6607876
     - Name: Energy
       Entry: 4
-      Data: 31.46489
+      Data: 99.87791
     - Name: Affect
       Entry: 4
-      Data: 75.31203
+      Data: 56.82339
     - Name: 
       Entry: 8
       Data: 
@@ -490,13 +490,13 @@ MonoBehaviour:
       Data: 13|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 29.8521061
+      Data: 48.4213448
     - Name: Energy
       Entry: 4
-      Data: 58.4730568
+      Data: 77.38556
     - Name: Affect
       Entry: 4
-      Data: 83.20957
+      Data: 63.9544868
     - Name: 
       Entry: 8
       Data: 
@@ -653,19 +653,19 @@ MonoBehaviour:
       Data: 17|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 32.4714546
+      Data: 50.97122
     - Name: Energy
       Entry: 4
-      Data: 73.7744141
+      Data: 42.1422577
     - Name: Affect
       Entry: 4
-      Data: 81.71834
+      Data: -3.20592666
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -677,10 +677,10 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 0
+      Data: 1780953832696
     - Name: BreedPartnerID
       Entry: 1
-      Data: 
+      Data: BS0-A0-E0-M1-7E15C7-639161837268218806
     - Name: 
       Entry: 8
       Data: 
@@ -816,25 +816,25 @@ MonoBehaviour:
       Data: 21|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 80.1695251
+      Data: 32.497303
     - Name: Energy
       Entry: 4
-      Data: 21.2133331
+      Data: 29.8946667
     - Name: Affect
       Entry: 4
-      Data: 54.46723
+      Data: 13.822341
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 0
+      Data: 5250851506466557784
     - Name: 
       Entry: 8
       Data: 
@@ -915,7 +915,10 @@ MonoBehaviour:
       Data: 23|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: BS2-A0-E0-M1-F449FD-639165488352966261
     - Name: 
       Entry: 13
       Data: 
@@ -936,7 +939,7 @@ MonoBehaviour:
       Data: 0
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -979,19 +982,19 @@ MonoBehaviour:
       Data: 25|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 67.3819
+      Data: 78.30359
     - Name: Energy
       Entry: 4
-      Data: 30.5100021
+      Data: 38.53736
     - Name: Affect
       Entry: 4
-      Data: 75.03801
+      Data: 66.0129242
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -1003,10 +1006,10 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1780924192625
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS2-A0-E0-M0-2597BD-639161837291933740
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1142,13 +1145,13 @@ MonoBehaviour:
       Data: 29|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 62.3164749
+      Data: 76.92766
     - Name: Energy
       Entry: 4
-      Data: 49.71013
+      Data: 26.0995255
     - Name: Affect
       Entry: 4
-      Data: 83.9420853
+      Data: -8.458417
     - Name: 
       Entry: 8
       Data: 
@@ -1305,19 +1308,19 @@ MonoBehaviour:
       Data: 33|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 27.78011
+      Data: 52.8627853
     - Name: Energy
       Entry: 4
-      Data: 67.07495
+      Data: 77.19013
     - Name: Affect
       Entry: 4
-      Data: 44.93596
+      Data: -27.341526
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -1329,10 +1332,10 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 0
+      Data: 1780953832696
     - Name: BreedPartnerID
       Entry: 1
-      Data: 
+      Data: BS2-A0-E0-M0-09D8AD-639155849172588286
     - Name: 
       Entry: 8
       Data: 
@@ -1468,13 +1471,13 @@ MonoBehaviour:
       Data: 37|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 29.0019226
+      Data: 48.6621742
     - Name: Energy
       Entry: 4
-      Data: 81.01969
+      Data: 34.12226
     - Name: Affect
       Entry: 4
-      Data: 56.5846062
+      Data: -7.44832945
     - Name: 
       Entry: 8
       Data: 
@@ -1631,13 +1634,13 @@ MonoBehaviour:
       Data: 41|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 31.5304146
+      Data: 57.2720947
     - Name: Energy
       Entry: 4
-      Data: 41.80261
+      Data: 43.2493362
     - Name: Affect
       Entry: 4
-      Data: 83.95183
+      Data: 59.04394
     - Name: 
       Entry: 8
       Data: 
@@ -1794,13 +1797,13 @@ MonoBehaviour:
       Data: 45|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 31.18025
+      Data: 51.6381531
     - Name: Energy
       Entry: 4
-      Data: 65.6960754
+      Data: 44.81133
     - Name: Affect
       Entry: 4
-      Data: 79.94906
+      Data: 12.9078417
     - Name: 
       Entry: 8
       Data: 
@@ -1893,7 +1896,10 @@ MonoBehaviour:
       Data: 47|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: BS2-A0-E0-M1-F449FD-639165488352966261
     - Name: 
       Entry: 13
       Data: 
@@ -1914,7 +1920,7 @@ MonoBehaviour:
       Data: 0
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -1957,19 +1963,19 @@ MonoBehaviour:
       Data: 49|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 30.1890469
+      Data: 53.861927
     - Name: Energy
       Entry: 4
-      Data: 97.9192
+      Data: 33.0298576
     - Name: Affect
       Entry: 4
-      Data: 76.45944
+      Data: 45.3466034
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -1981,10 +1987,10 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1780924192625
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS0-A0-E0-M1-3A769E-639161837224508566
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2120,13 +2126,13 @@ MonoBehaviour:
       Data: 53|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 38.62176
+      Data: 36.8300858
     - Name: Energy
       Entry: 4
-      Data: 98.02096
+      Data: 32.2584839
     - Name: Affect
       Entry: 4
-      Data: 83.48618
+      Data: 61.392292
     - Name: 
       Entry: 8
       Data: 
@@ -2283,13 +2289,13 @@ MonoBehaviour:
       Data: 57|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 26.6192837
+      Data: 54.9985046
     - Name: Energy
       Entry: 4
-      Data: 44.568264
+      Data: 20.6005459
     - Name: Affect
       Entry: 4
-      Data: 34.67861
+      Data: -6.00967
     - Name: 
       Entry: 8
       Data: 
@@ -2302,6 +2308,169 @@ MonoBehaviour:
     - Name: 
       Entry: 3
       Data: 5250851210145944785
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS2-A0-E0-M1-F449FD-639165488352966261
+    - Name: $v
+      Entry: 7
+      Data: 58|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS2
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: PrimaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.956862748
+    - Name: 
+      Entry: 4
+      Data: 0.286274523
+    - Name: 
+      Entry: 4
+      Data: 0.992156863
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: CustomName
+      Entry: 1
+      Data: Crusty Gremlin
+    - Name: Timestamp
+      Entry: 3
+      Data: 639165488352966261
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250851506780354165
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS0-A0-E0-M1-3A769E-639161837224508566
+    - Name: FatherID
+      Entry: 1
+      Data: BS2-A0-E0-M0-2597BD-639161837291933740
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 59|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 1
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 7
+    - Name: BaseAttack
+      Entry: 4
+      Data: 9
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 5
+    - Name: CombatHistory
+      Entry: 7
+      Data: 60|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 61|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 30.798645
+    - Name: Energy
+      Entry: 4
+      Data: 47.5302
+    - Name: Affect
+      Entry: 4
+      Data: 36.7494659
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
     - Name: 
       Entry: 8
       Data: 

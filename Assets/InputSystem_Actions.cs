@@ -1202,6 +1202,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""FurnitureCatalog"",
+                    ""type"": ""Button"",
+                    ""id"": ""4420c340-70b5-4f34-b9d6-b8db005627d0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -1380,6 +1389,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""Slot4"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dfad806d-da2c-41a9-97b6-75514c04a613"",
+                    ""path"": ""<Keyboard>/tab"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FurnitureCatalog"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -1483,6 +1503,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Building_Slot2 = m_Building.FindAction("Slot2", throwIfNotFound: true);
         m_Building_Slot3 = m_Building.FindAction("Slot3", throwIfNotFound: true);
         m_Building_Slot4 = m_Building.FindAction("Slot4", throwIfNotFound: true);
+        m_Building_FurnitureCatalog = m_Building.FindAction("FurnitureCatalog", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
@@ -1965,6 +1986,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Building_Slot2;
     private readonly InputAction m_Building_Slot3;
     private readonly InputAction m_Building_Slot4;
+    private readonly InputAction m_Building_FurnitureCatalog;
     /// <summary>
     /// Provides access to input actions defined in input action map "Building".
     /// </summary>
@@ -2016,6 +2038,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Building/Slot4".
         /// </summary>
         public InputAction @Slot4 => m_Wrapper.m_Building_Slot4;
+        /// <summary>
+        /// Provides access to the underlying input action "Building/FurnitureCatalog".
+        /// </summary>
+        public InputAction @FurnitureCatalog => m_Wrapper.m_Building_FurnitureCatalog;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -2072,6 +2098,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Slot4.started += instance.OnSlot4;
             @Slot4.performed += instance.OnSlot4;
             @Slot4.canceled += instance.OnSlot4;
+            @FurnitureCatalog.started += instance.OnFurnitureCatalog;
+            @FurnitureCatalog.performed += instance.OnFurnitureCatalog;
+            @FurnitureCatalog.canceled += instance.OnFurnitureCatalog;
         }
 
         /// <summary>
@@ -2113,6 +2142,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Slot4.started -= instance.OnSlot4;
             @Slot4.performed -= instance.OnSlot4;
             @Slot4.canceled -= instance.OnSlot4;
+            @FurnitureCatalog.started -= instance.OnFurnitureCatalog;
+            @FurnitureCatalog.performed -= instance.OnFurnitureCatalog;
+            @FurnitureCatalog.canceled -= instance.OnFurnitureCatalog;
         }
 
         /// <summary>
@@ -2444,5 +2476,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSlot4(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "FurnitureCatalog" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnFurnitureCatalog(InputAction.CallbackContext context);
     }
 }
