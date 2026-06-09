@@ -8,87 +8,133 @@ tags: [memory-bank, active, session]
 
 ## Sesión actual
 
-**Fecha**: 2026-06-06  
-**Foco**: Sistema de Combate — refactor UI CombatPanel + fixes cloud + detalle de criatura extendido.
+**Fecha**: 2026-06-09  
+**Foco**: Sistema de Inventario completo — adquisición (tienda → caja), hotbar en play-mode, almacén de mundo, y browser de muebles en build-mode.
 
 ### Qué se hizo (esta sesión)
 
-**HP × 5 en combate:**
-- `CombatService.cs`: `private const float BaseHpCombatMultiplier = 5f;` aplicado en `ComputeStats`. Solo en runtime, no almacenado.
-- `process-matchmaking.js` y `run-combat.js`: misma lógica `hp: (dna.BaseHP || 5) * 5 + bonuses`.
+Sistema de inventario end-to-end diseñado con Opus y luego implementado paso a paso:
 
-**Pool isolation — instant vs timer:**
-- `run-combat.js` usa `instant_pool` (Custom Data key). `enqueue-combat.js` + `process-matchmaking.js` usan `matchmaking_pool`. Pools 100% separadas → un instante no interfiere con el queue de timer.
-- `get-queue-status.js` y `dequeue-combat.js` cubren **ambas** keys.
+- **Capa de datos**: `ItemDefinitionSO`, `ItemDatabaseSO`, `PlayerInventorySO` (furnitureOwned F# + worldPropsStored I# + hotbarSlots[6]).
+- **Persistencia**: `SaveSystem` ahora persiste también `FurnitureRegistrySO` (estaba faltando) y `PlayerInventorySO`. `CloudSyncService` los carga en sign-in.
+- **Adquisición**: `DeliveryBox` (IInteractable, bifurca Furniture/WorldProp) + `StoreManager` (Odin TableList, bot ón Buy — sin economía, para testing).
+- **Hotbar runtime**: `HotbarController` (singleton, pickup/use/throw/drop + scroll); `WorldPropInstance` (marker, IInteractable); `StorageContainer` (IInteractable + trigger auto-collect + Eject).
+- **Interacción unificada**: tap E = pickup a hotbar; hold E = lanzar; Q = soltar; click = usar. MoriMonchiAgent mantiene grab físico propio (excepción explícita).
+- **Input**: `PlayerInputs` agregó `HotbarScrolled` (wheel) + `DropPressed` (Q) leídos en Update. `BuildingInputs` agregó `BrowseToggled` (Tab).
+- **Build browser**: `BuildBrowserUITK` standalone (NO UIManager — evita ExitBuildMode). `BuildModeController` agregó `SelectPieceFromBrowser`. `FurnitureService` agregó `SetActivePiece` + `runtimeActivePiece`.
+- **UITK (3 paneles)**: `HotbarHUDUITK` (always-on), `StoragePanelUITK` (UIManager panel Storage=5), `BuildBrowserUITK` (standalone).
 
-**Fix: timer-queued creatures wrongly dequeued (bug raíz: multi-key getCustomItems):**
-- `get-queue-status.js` reescrito: lee cada pool con su propio `getCustomItems([key])` en un loop. Devuelve `ok: false` si alguna lectura falla.
-- `AsyncCombatService.FetchQueuedIdsAsync`: devuelve `null` si `resp == null || !resp.Ok` → `ReconcileGhostsAsync` se salta si la vista es parcial.
-- `SemaphoreSlim(1,1) enqueueGate` en `AsyncCombatService` para serializar llamadas cloud concurrentes.
+---
 
-**Server manda timestamp real:**
-- JS scripts envían `Date: new Date().toISOString()` en `buildResult`.
-- `AsyncCombatService.ApplyResult` usa `ParseUtcOrNow(r.Date)` para `CombatRecord.Date`.
+## Archivos nuevos creados en esta sesión
 
-**CreatureDNA.QueuedAt:**
-- Campo `public DateTime QueuedAt` (metadata display-only, no entra al DNA string). Se setea en `EnqueueInternal`.
+| Archivo | Tipo | Para qué |
+|---------|------|----------|
+| `Scripts/Data/ItemDefinitionSO.cs` | SO | Entrada de catálogo; Id I#, ItemType, WorldPropCategory, Prefab o FurnitureDef |
+| `Scripts/Data/ItemDatabaseSO.cs` | SO | Dict I# → ItemDefinitionSO; Populate + Validate & Sync IDs |
+| `Scripts/Data/PlayerInventorySO.cs` | SO | furnitureOwned (F#), worldPropsStored (I#), hotbarSlots[6] + InventoryData DTO |
+| `Scripts/World/WorldPropInstance.cs` | MonoBehaviour | Marker en objetos world prop; ItemId + IsHeld; IInteractable → HotbarController.PickUp |
+| `Scripts/World/HotbarController.cs` | MonoBehaviour | Singleton; gestiona 6 slots, PickUp/Use/Throw/Drop/Scroll, spawn visual en mano |
+| `Scripts/Systems/Store/DeliveryBox.cs` | MonoBehaviour | IInteractable; Configure(ItemDefinitionSO); bifurca Furniture→furnitureOwned / WorldProp→spawn |
+| `Scripts/Systems/Store/StoreManager.cs` | MonoBehaviour | TableList Odin de StoreEntry; Button BuyItem(index) → spawn DeliveryBox en deliverySpawnPoint |
+| `Scripts/Systems/Store/StorageContainer.cs` | MonoBehaviour | Singleton; IInteractable → abre Storage UI; OnTriggerEnter captura WorldPropInstance; Eject(id) |
+| `Scripts/UI/HotbarHUDUITK.cs` | MonoBehaviour | Always-on HUD; 6 slots procedurales; actualiza en OnHotbarChanged + OnInventoryReloaded |
+| `Scripts/UI/StoragePanelUITK.cs` | MonoBehaviour | UIManager panel (Storage=5); lista worldPropsStored agrupada; IUINavigable ↑↓ + Submit ejecta |
+| `Scripts/UI/BuildBrowserUITK.cs` | MonoBehaviour | Standalone overlay; Tab toggle; tabs por FurnitureCategory; ←→ piezas; Enter → SelectPieceFromBrowser |
+| `UI Toolkit/HotbarHUDUITK.uxml` | UXML | Hotbar HUD (6 slots, picking-mode Ignore, bottom-center absolute) |
+| `UI Toolkit/HotbarHUDUITKStyle.uss` | USS | .hotbar-slot 64×64 + .hotbar-slot--active (borde amarillo, scale 1.08) |
+| `UI Toolkit/StoragePanelUITK.uxml` | UXML | Modal overlay; header + ScrollView "list" + empty label + close button |
+| `UI Toolkit/StoragePanelUITKStyle.uss` | USS | .storage-row (flex-row) + .storage-row--selected (borde amarillo) |
+| `UI Toolkit/BuildBrowserUITK.uxml` | UXML | Browser panel; "tabs" VisualElement + "pieces" ScrollView horizontal + "empty" Label |
+| `UI Toolkit/BuildBrowserUITKStyle.uss` | USS | .browser-tab/--active + .browser-piece/--selected (96×96 cards) |
 
-**CombatPanelUITK — reestructuración (ahora 4 tabs):**
-- Tab 3 "Resultados": solo muestra criaturas en cola + countdown al próximo :00 UTC + hora de encolado ("encolado HH:mm") por fila.
-- Tab 4 "Historial": lista global de combates pasados, filtro por criatura (DropdownField), panel derecho con log turno a turno replayable.
+## Archivos modificados en esta sesión
 
-**MorimonchiDetailInfoUITK — tabs implementadas:**
-- **Combate**: foldout por pelea (más reciente primero), coloreado Win/Lose, turno a turno.
-- **Linaje**: árbol hacia arriba (yo → padres → abuelos), chips con swatch de color, criaturas muertas/ausentes resueltas desde su UniqueID.
-- **Breed**: árbol hacia abajo (yo → parejas → crías por pareja), escanea el registry por `MotherID`/`FatherID`.
-- **Info**: sección Personalidad agregada (nombre + descripción en español).
+| Archivo | Qué cambió |
+|---------|-----------|
+| `Core/Enums.cs` | `ItemType`, `WorldPropCategory`, `UIPanelType.Storage = 5` |
+| `Core/GameEvents.cs` | `OnInventoryChanged` + `OnInventoryReloaded` + helpers |
+| `Core/SaveSystem.cs` | `ScopedPath`, `SaveFurniture/LoadFurniture`, `SaveInventory/LoadInventory` |
+| `Core/GameManager.cs` | Campos `furnitureRegistry` + `inventory`; suscripciones Furniture/Inventory; `CollectLooseWorldProps` en quit/pause |
+| `Systems/Cloud/CloudSyncService.cs` | En sign-in: carga furniture + inventory, dispara Reloaded |
+| `Systems/Furniture/FurnitureService.cs` | `runtimeActivePiece`, `SetActivePiece`, fallback en `ActivePiece` getter |
+| `Systems/Furniture/BuildModeController.cs` | `StartPlacing` helper extraído; `SelectPieceFromBrowser(def)` público |
+| `Player/PlayerController.cs` | `UpdateGrabHold` solo MoriMonchi física; click → `UseActive` si hotbar tiene item; `ComputeThrowImpulse` extraído |
+| `Player/PlayerInputs.cs` | `HotbarScrolled` (wheel) + `DropPressed` (Q) en Update; `playerActive` flag |
+| `Player/BuildingInputs.cs` | `BrowseToggled` (Tab) en Update; `building` flag |
 
-**Redeploy requerido (pendiente):**
+---
+
+## Setup pendiente en Unity (código ✅ — solo editor)
+
+### 1 · Assets (crear en Project)
+
+| Asset | Pasos |
+|-------|-------|
+| `ItemDatabase` SO | Clic der → Create → RunRunSimulator → Item Database |
+| `ItemDefinition` × N | Uno por producto vendible. Furniture: asignar `FurnitureDef` (bridge F#). WorldProp: asignar `Prefab` + `Category`. |
+| `PlayerInventory` SO | Create → RunRunSimulator → Player Inventory |
+| **Validate & Sync IDs** | Abrir `ItemDatabase`, arrastrar defs al buffer → botón **Populate from Buffer** → **Validate & Sync IDs** |
+
+### 2 · Prefabs (crear/modificar)
+
+| Prefab | Componentes requeridos |
+|--------|----------------------|
+| **WorldProp** | Rigidbody + `ThrowableObject` + `WorldPropInstance` · layer del `grabMask` |
+| **DeliveryBox** | Malla + collider sólido (grabMask) + `DeliveryBox` |
+| **Furniture** | (ya existentes) — sin cambios |
+
+### 3 · Objetos de escena
+
+| GameObject | Componentes / asignaciones nuevas |
+|-----------|----------------------------------|
+| **GameManager** | Asignar campo `furnitureRegistry` (FurnitureRegistrySO) + `inventory` (PlayerInventorySO) |
+| **StoreManager** *(nuevo)* | `StoreManager` + lista de `StoreEntry` (item + quantity) + `deliveryBoxPrefab` + `deliverySpawnPoint` |
+| **StorageContainer** *(nuevo)* | Collider sólido (grabMask) + collider trigger (zona captura) + `StorageContainer` → `database` + `ejectPoint` |
+| **HotbarController** *(nuevo)* | `HotbarController` → `database` (ItemDatabaseSO) + `handAnchor` (mismo que holdAnchor) |
+
+### 4 · UI (UIDocuments + controllers)
+
+| Panel | UIDocument | Standalone/UIManager | Asignaciones del controller |
+|-------|-----------|---------------------|----------------------------|
+| **Hotbar HUD** | Siempre activo, `StandartPanelSettings` | Standalone (no mapear) | `database` (ItemDatabaseSO) |
+| **Storage** | Puede ser inactivo | UIManager → `UIPanelType.Storage` | `document`, `database` |
+| **Build Browser** | Puede ser inactivo | Standalone (no mapear) | `document`, `database` (FurnitureDatabaseSO), `buildMode` |
+
+> ⚠️ El `BuildBrowserUITK` **NO** debe registrarse en el dict de UIManager — hacerlo activaría `OnUIFocusChanged` → `ExitBuildMode`.
+
+### 5 · Flujo de prueba
+
 ```
-ugs deploy CloudCode/run-combat.js
-ugs deploy CloudCode/process-matchmaking.js
-ugs deploy CloudCode/get-queue-status.js
-ugs deploy CloudCode/dequeue-combat.js
+StoreManager inspector → BuyItem(i)
+  → DeliveryBox aparece en deliverySpawnPoint
+    → tap E → [Furniture] entra a furnitureOwned F# ó [WorldProp] spawna en escena
+      → tap E sobre WorldProp → va al hotbar (slot activo o primer libre)
+        → wheel navega slots · hold E lanza · Q suelta · click usa
+          → lanzar hacia StorageContainer → auto-captura
+            → tap E sobre StorageContainer → abre Storage UI
+              → botón Sacar (Q) → ejecta a escena
 ```
+
+---
 
 ## Próximos pasos (retomar acá la próxima sesión)
 
-**Pendientes de código — combate:**
-- Batalla instantánea: mostrar `"Instantánea"` en lugar del countdown (la criatura instant no espera ningún cron).
+**Pendientes de código no solicitados aún:**
+- Play-mode use effects por `WorldPropCategory` (Food/Medicine aplicados a MoriMonchis vía `OnItemUsed`).
+- Economía: `Wallet` + restricción de compra en `StoreManager` (Fase 3 real).
+- Cloud sync de inventory + furniture (mismo patrón que criaturas en `CloudSyncService`).
+
+**Pendientes previos (combate / world — siguen vigentes):**
+- Batalla instantánea: mostrar `"Instantánea"` en lugar del countdown en la Tab 3 del CombatPanel.
 - Ordenar lista de Resultados (Tab 3) de más antiguo a más nuevo por `QueuedAt`.
-- Mejorar el sistema de renderizado de árboles de descendencia/ascendencia (scroll + nodos grandes → layout más compacto o canvas scrollable).
-- **Prewarm de pool de MoriMonchis** (`MoriMochiSpawner`): instanciar X agentes vacíos al inicio para que el primer spawn no haga `Instantiate` en caliente.
 - Redeploy cloud: `run-combat.js`, `process-matchmaking.js`, `get-queue-status.js`, `dequeue-combat.js`.
-
-**Setup de escena (tuyo — código listo):**
-- **NameTag**: crear objeto hijo en prefab de criatura; agregar `UIDocument` (WorldUIPanelSettings + `NameTagUITK.uxml`); posicionar ~1.2u arriba; cablearlo en `MoriMochiAgent.nameTag`.
-- **Estaciones** (`Feeder`/`RestZone`/`PlayZone`): agregar hijos vacíos como use points en los prefabs.
-- `PlacementGrid`: asignar `Floor Mask` + ajustar `Max Slope Angle`.
-- `BuildModeController`: asignar `Obstacle Mask`.
-- `MoriMochiSpawner`: asignar `launchPoint`; tunear `launchAngle`, `launchForce`, `spawnInterval`, `startDelay`, `spawnPerTick`.
-
-**Pendientes de código — world:**
 - Bloquear `TryLift` de un corral ocupado en `BuildModeController`/`FurnitureService`.
 - Cablear `FlushToCloud()` en el logout de `CloudSyncService`.
-- Futuro: petting directo (E sobre criatura); recursos consumibles en estaciones; muerte por inanición; decay offline.
+- **NameTag**: UIDocument en hijo del prefab de criatura (`NameTagUITK.uxml`, WorldUIPanelSettings).
+- **Estaciones** (`Feeder`/`RestZone`/`PlayZone`): hijos vacíos como use points en prefabs.
 
-## Archivos tocados esta sesión
-
-| Archivo | Por qué |
-|---------|---------|
-| `Systems/Combat/CombatService.cs` | `BaseHpCombatMultiplier = 5f` en `ComputeStats` |
-| `Systems/Combat/AsyncCombatService.cs` | `SemaphoreSlim` gate + `ok` flag + `QueuedAt` + `ParseUtcOrNow` |
-| `Data/CreatureDNA.cs` | Campo `QueuedAt` (DateTime, display-only) |
-| `UI/CombatPanelUITK.cs` | Tabs 3 (queue + clock) y 4 (historial) completas |
-| `UI/MorimonchiDetailInfoUITK.cs` | Tabs Combate / Linaje / Breed / Personalidad implementadas |
-| `UI Toolkit/CombatPanelUITK.uxml` | Tab 3 reestructurada + Tab 4 agregada |
-| `UI Toolkit/CombatPanelUITKStyle.uss` | Estilos clock + queue + historial |
-| `UI Toolkit/MorimonchiDetailInfoUITK.uxml` | Tabs combat-history / lineage-tree / breed-tree |
-| `UI Toolkit/MorimonchiDetailInfoUITKStyle.uss` | Estilos foldout combat + tree chips |
-| `CloudCode/run-combat.js` | `instant_pool` key + HP×5 + `Date` field |
-| `CloudCode/process-matchmaking.js` | HP×5 + `Date` field |
-| `CloudCode/get-queue-status.js` | Single-key per pool loop + `ok` flag |
-| `CloudCode/dequeue-combat.js` | Cubre `instant_pool` + `matchmaking_pool` |
+---
 
 ## Cómo usar esta nota en sesiones futuras
 
@@ -98,22 +144,3 @@ Cuando arranque una sesión nueva:
 3. Listo los 2-4 archivos del vault relevantes para esta sesión (no los leo todos).
 
 Si el `Active Context` queda desactualizado (no se ha tocado en muchos días), tratarlo como **stale** — el código y los archivos del vault son autoritativos.
-
-## Notas / pendientes que el usuario quiere recordar
-
-- Furniture: retomar en **Fase 2 (Building mode)** — plan e implementación consolidados en [[10 - Furniture & Building]].
-
-## Sesión de diseño 2026-06-08
-
-- Se leyeron las 15 preguntas abiertas de diseño en Notion.
-- Se cerraron 13/15 con decisiones concretas registradas en **📋 Decisiones de Diseño** y en las páginas GDD correspondientes (Evolución, Combate/Venganza, Tienda/Economía, Concepto, Vida/Personalidad, Sistema Genético).
-- Quedan abiertas: estética de trastienda + nombre de la liga de combate.
-- Se generó una **Ronda 2** de preguntas (18 nuevas) en ❓ Preguntas Abiertas, organizadas en 7 categorías con su razón/motivo de desarrollo:
-  - ⚔️ Skills y Combate (3)
-  - 🧬 Breeding y Decoraciones (3)
-  - 💰 Economía de Tienda (3)
-  - 🎮 Onboarding y Modo Historia (3)
-  - 🎨 Visualizador 3D y Animación (2)
-  - ♻️ Endgame y Ciclo de Vida (3)
-  - 🏪 Mercado Online Parodia (2)
-- Pendiente para próxima sesión: contestar la Ronda 2 y actualizar páginas GDD.

@@ -8,7 +8,14 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
 
     // ── Singleton ─────────────────────────────────────────────────
     public static InheritanceOddsTableSO Current { get; private set; }
-    private void OnEnable() => Current = this;
+    private void OnEnable()
+    {
+#if UNITY_EDITOR
+        if (Current != null && Current != this)
+            Debug.LogWarning($"[InheritanceOddsTableSO] Duplicate instance: '{Current.name}' already registered, overwriting with '{this.name}'. Check for duplicated assets.", this);
+#endif
+        Current = this;
+    }
 
     // ── Weights ───────────────────────────────────────────────────
     [InfoBox("Relative weights — normalized internally.")]

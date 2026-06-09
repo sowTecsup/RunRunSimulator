@@ -66,6 +66,7 @@ public enum UIPanelType
     MorimonchiDetail = 2,  // Detailed summary window for one MoriMochi
     Breeding         = 3,  // Breeding screen: parent selection + incubating eggs
     Combat           = 4,  // Combat screen: online battle + local combat + results
+    Storage          = 5,  // Storage box: list of stored world props + eject
 }
 
 // What the player is currently doing. Drives input/cursor/camera: while a UI
@@ -85,6 +86,25 @@ public enum FurnitureCategory
     Decoration = 0,
     Display    = 1,
     Functional = 2,
+}
+
+// Splits an inventory item into the two worlds it can live in: furniture is placed
+// only in build mode (grid-bound), a world prop is a tangible object the player holds,
+// uses and drops around the shop. Drives how DeliveryBox resolves a purchase and how
+// the player inventory stores it (furnitureOwned vs worldPropsStored).
+public enum ItemType
+{
+    Furniture = 0,
+    WorldProp = 1,
+}
+
+// Groups world props in the inventory / storage UI — the WorldProp analogue of
+// FurnitureCategory. Extend as new tangible objects are added.
+public enum WorldPropCategory
+{
+    Tool     = 0,  // escoba, regadera, bate — utilitarios / lanzables
+    Food     = 1,  // alimentos que se aplican a los MoriMonchis
+    Medicine = 2,  // curas / remedios
 }
 
 // The three needs a MoriMochi satisfies at world NeedStations (Feeder / RestZone / PlayZone),

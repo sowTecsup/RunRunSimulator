@@ -32,6 +32,10 @@ public class FurnitureService : MonoBehaviour
     // Which hotbar entry is selected (set by SelectPiece in build mode; test buttons use it too).
     private int selectedIndex;
 
+    // Set by the build browser (SetActivePiece): overrides the indexed hotbar slot so the
+    // browser can drive placement directly without mutating the serialized activePieces list.
+    private FurnitureDefinitionSO runtimeActivePiece;
+
     private bool rebakePending;
 
     private void OnEnable()  => GameEvents.OnFurnitureReloaded += OnFurnitureReloaded;
@@ -118,17 +122,32 @@ public class FurnitureService : MonoBehaviour
     // ── Hotbar selection ──────────────────────────────────────────
 
     // The piece currently selected for placement — BuildModeController reads it for both
-    // the ghost mesh and TryPlace's def. Single source of "what am I placing".
+    // the ghost mesh and TryPlace's def. Single source of "what am I placing". The browser's
+    // runtime pick wins; otherwise fall back to the serialized hotbar slot (1-4 test path).
     public FurnitureDefinitionSO ActivePiece =>
-        (activePieces != null && selectedIndex >= 0 && selectedIndex < activePieces.Count)
-            ? activePieces[selectedIndex] : null;
+        runtimeActivePiece != null
+            ? runtimeActivePiece
+            : (activePieces != null && selectedIndex >= 0 && selectedIndex < activePieces.Count)
+                ? activePieces[selectedIndex] : null;
 
     // Selects hotbar slot 'index' (0-based). Returns false if empty / out of range.
+    // Clears any browser override so the indexed slot takes effect.
     public bool SelectPiece(int index)
     {
         if (activePieces == null || index < 0 || index >= activePieces.Count || activePieces[index] == null)
             return false;
+        runtimeActivePiece = null;
         selectedIndex = index;
+        return true;
+    }
+
+    // The build browser's pick: drive placement with an arbitrary owned piece without
+    // touching the serialized activePieces list (mutating a serialized List at runtime
+    // is fragile). Returns false for a null def.
+    public bool SetActivePiece(FurnitureDefinitionSO def)
+    {
+        if (def == null) return false;
+        runtimeActivePiece = def;
         return true;
     }
 

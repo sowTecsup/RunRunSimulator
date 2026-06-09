@@ -55,4 +55,15 @@ public static class GameEvents
 
     public static event Action<FurnitureRegistrySO> OnFurnitureReloaded;
     public static void FurnitureReloaded(FurnitureRegistrySO registry) => OnFurnitureReloaded?.Invoke(registry);
+
+    // ── Inventory ─────────────────────────────────────────────────
+    // Same contract as the registries: Changed = gameplay mutation (buy / pickup /
+    // store / eject / hotbar edit) → persist + UI; Reloaded = wholesale replace from
+    // an external source (load / reset) → UI only, no persist.
+
+    public static event Action<PlayerInventorySO> OnInventoryChanged;
+    public static void InventoryChanged(PlayerInventorySO inventory) => OnInventoryChanged?.Invoke(inventory);
+
+    public static event Action<PlayerInventorySO> OnInventoryReloaded;
+    public static void InventoryReloaded(PlayerInventorySO inventory) => OnInventoryReloaded?.Invoke(inventory);
 }

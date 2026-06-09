@@ -5,7 +5,14 @@ using UnityEngine;
 public class CombatManagerSO : SerializedScriptableObject
 {
     public static CombatManagerSO Current { get; private set; }
-    private void OnEnable() => Current = this;
+    private void OnEnable()
+    {
+#if UNITY_EDITOR
+        if (Current != null && Current != this)
+            Debug.LogWarning($"[CombatManagerSO] Duplicate instance: '{Current.name}' already registered, overwriting with '{this.name}'. Check for duplicated assets.", this);
+#endif
+        Current = this;
+    }
 
     [Title("Combat Settings")]
     [InfoBox("EvolutionChance y DeathChance son valores 0–1 (ej: 0.3 = 30%).")]

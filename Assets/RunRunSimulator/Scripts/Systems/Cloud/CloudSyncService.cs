@@ -142,6 +142,22 @@ public class CloudSyncService : MonoBehaviour
         // own reload only when the cloud actually has data, so a local-only player
         // (fresh/anon/offline, or after a reset) would otherwise see an empty grid.
         GameEvents.RegistryReloaded(registry);
+
+        // Furniture + inventory persist locally only for now (no cloud sync yet), but
+        // they must load under the same player scope set above. Reload (not Changed)
+        // so the spawner/UI rebuild without re-saving.
+        var furnitureRegistry = GameManager.Instance.FurnitureRegistry;
+        var inventory         = GameManager.Instance.Inventory;
+        if (furnitureRegistry != null)
+        {
+            SaveSystem.LoadFurniture(furnitureRegistry);
+            GameEvents.FurnitureReloaded(furnitureRegistry);
+        }
+        if (inventory != null)
+        {
+            SaveSystem.LoadInventory(inventory);
+            GameEvents.InventoryReloaded(inventory);
+        }
         await PullAsync();
         await NotifyPendingCombatResultsAsync();
     }
@@ -277,7 +293,7 @@ public class CloudSyncService : MonoBehaviour
 
     [Button("Sign In Anonymous (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.6f, 0.6f)]
     [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]
-    public async void SignInAnonButton()
+    private async void SignInAnonButton()
     {
         try
         {
@@ -294,7 +310,7 @@ public class CloudSyncService : MonoBehaviour
 
     [Button("Sign In with Unity Account", ButtonSizes.Large), GUIColor(0.4f, 0.6f, 1f)]
     [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]
-    public async void SignInButton()
+    private async void SignInButton()
     {
         try
         {
@@ -311,7 +327,7 @@ public class CloudSyncService : MonoBehaviour
 
     [Button("Sign Out", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.5f)]
     [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
-    public void SignOut()
+    private void SignOut()
     {
         AuthenticationService.Instance.SignOut();
         PlayerAccountService.Instance.SignOut();
@@ -322,7 +338,7 @@ public class CloudSyncService : MonoBehaviour
 
     [Button("Update Name"), GUIColor(0.9f, 0.9f, 0.4f)]
     [BoxGroup("Account"), EnableIf("isSignedIn")]
-    public async void UpdateNameButton()
+    private async void UpdateNameButton()
     {
         if (string.IsNullOrWhiteSpace(newNameInput)) return;
         await UpdatePlayerNameAsync(newNameInput);
@@ -347,7 +363,7 @@ public class CloudSyncService : MonoBehaviour
 
     [Button("Reset All Progress (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.2f, 0.2f)]
     [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
-    public async void ResetProgressButton() => await ResetProgressAsync();
+    private async void ResetProgressButton() => await ResetProgressAsync();
 
     public async Task ResetProgressAsync()
     {
@@ -381,7 +397,7 @@ public class CloudSyncService : MonoBehaviour
 
     [Button("Push to Cloud", ButtonSizes.Large), GUIColor(1f, 0.85f, 0.3f)]
     [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
-    public async void PushButton() => await PushAsync();
+    private async void PushButton() => await PushAsync();
 
     public async Task PushAsync()
     {
@@ -424,7 +440,7 @@ public class CloudSyncService : MonoBehaviour
 
     [Button("Pull from Cloud", ButtonSizes.Large), GUIColor(0.5f, 0.85f, 1f)]
     [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
-    public async void PullButton() => await PullAsync();
+    private async void PullButton() => await PullAsync();
 
     public async Task PullAsync()
     {

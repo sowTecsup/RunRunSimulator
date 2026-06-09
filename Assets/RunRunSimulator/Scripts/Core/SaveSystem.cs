@@ -9,7 +9,9 @@ using UnityEngine;
 // Saves/loads the full CreatureRegistrySO (including genealogy tree) to Application.persistentDataPath.
 public static class SaveSystem
 {
-    private const string DB_FILENAME = "creature_database.json";
+    private const string DB_FILENAME        = "creature_database.json";
+    private const string FURNITURE_FILENAME = "furniture_registry.json";
+    private const string INVENTORY_FILENAME = "player_inventory.json";
 
     private static string _userScope = "";
 
@@ -17,11 +19,18 @@ public static class SaveSystem
     // (e.g. Multiplayer Play Mode clones) don't overwrite each other's data.
     public static void SetUserScope(string playerId) => _userScope = playerId ?? "";
 
-    private static string DbPath => Path.Combine(
-        Application.persistentDataPath,
-        string.IsNullOrEmpty(_userScope)
-            ? DB_FILENAME
-            : $"creature_database_{_userScope}.json");
+    private static string DbPath => ScopedPath(DB_FILENAME);
+
+    // "name.json" → "name_{scope}.json" when a player scope is set (else unscoped).
+    private static string ScopedPath(string filename)
+    {
+        if (string.IsNullOrEmpty(_userScope))
+            return Path.Combine(Application.persistentDataPath, filename);
+
+        string ext  = Path.GetExtension(filename);
+        string stem = Path.GetFileNameWithoutExtension(filename);
+        return Path.Combine(Application.persistentDataPath, $"{stem}_{_userScope}{ext}");
+    }
 
     private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
     {
@@ -71,6 +80,59 @@ public static class SaveSystem
 
         registry.LoadFrom(data);
         Debug.Log($"[SaveSystem] Loaded {registry.Count} creatures from {path}");
+    }
+
+    // ── Furniture registry ────────────────────────────────────────
+    // Placed furniture persists alongside ownership: without this the shop reloads
+    // empty even though the player "owns" the pieces (incoherent). Same scoped-file
+    // pattern as the creature DB. Cloud sync layered on later.
+
+    public static void SaveFurniture(FurnitureRegistrySO registry)
+    {
+        string path = ScopedPath(FURNITURE_FILENAME);
+        File.WriteAllText(path, JsonConvert.SerializeObject(registry.GetAll(), Settings));
+        Debug.Log($"[SaveSystem] Saved {registry.Count} placed furniture → {path}");
+    }
+
+    public static void LoadFurniture(FurnitureRegistrySO registry)
+    {
+        string path = ScopedPath(FURNITURE_FILENAME);
+        if (!File.Exists(path))
+        {
+            Debug.Log("[SaveSystem] No furniture save found — starting fresh.");
+            registry.LoadFrom(null);
+            return;
+        }
+
+        var data = JsonConvert.DeserializeObject<Dictionary<string, PlacedFurniture>>(
+            File.ReadAllText(path), Settings);
+        registry.LoadFrom(data);
+        Debug.Log($"[SaveSystem] Loaded {registry.Count} placed furniture from {path}");
+    }
+
+    // ── Player inventory ──────────────────────────────────────────
+
+    public static void SaveInventory(PlayerInventorySO inventory)
+    {
+        string path = ScopedPath(INVENTORY_FILENAME);
+        File.WriteAllText(path, JsonConvert.SerializeObject(inventory.GetData(), Settings));
+        Debug.Log($"[SaveSystem] Saved inventory → {path}");
+    }
+
+    public static void LoadInventory(PlayerInventorySO inventory)
+    {
+        string path = ScopedPath(INVENTORY_FILENAME);
+        if (!File.Exists(path))
+        {
+            Debug.Log("[SaveSystem] No inventory save found — starting fresh.");
+            inventory.LoadFrom(null);
+            return;
+        }
+
+        var data = JsonConvert.DeserializeObject<PlayerInventorySO.InventoryData>(
+            File.ReadAllText(path), Settings);
+        inventory.LoadFrom(data);
+        Debug.Log($"[SaveSystem] Loaded inventory from {path}");
     }
 
     // Serializes UnityEngine.Color as a 6-character hex string (e.g. "FF00AA").

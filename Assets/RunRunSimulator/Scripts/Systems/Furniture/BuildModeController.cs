@@ -186,13 +186,30 @@ public class BuildModeController : MonoBehaviour
 
     // ── Inputs ────────────────────────────────────────────────────
 
-    // 1-4: pick a hotbar piece → (re)enter Placing with it.
+    // 1-4: pick a hotbar piece → (re)enter Placing with it. (Test/legacy path; the
+    // build browser uses SelectPieceFromBrowser instead.)
     private void OnSlot(int index)
     {
         if (!active || (state != BuildState.Browsing && state != BuildState.Placing)) return;
         if (!service.SelectPiece(index)) { Debug.Log($"[BuildModeController] Hotbar slot {index + 1} is empty."); return; }
+        StartPlacing(service.ActivePiece);
+    }
 
-        heldDef = service.ActivePiece;
+    // The build browser hands us the owned piece the player chose → enter Placing with
+    // it. Public so the browser panel can call it after picking from furnitureOwned.
+    public void SelectPieceFromBrowser(FurnitureDefinitionSO def)
+    {
+        if (!active) return;
+        if (state != BuildState.Browsing && state != BuildState.Placing) return;
+        if (!service.SetActivePiece(def)) return;
+        StartPlacing(def);
+    }
+
+    // Shared by OnSlot and the browser: (re)build the ghost and enter Placing.
+    private void StartPlacing(FurnitureDefinitionSO def)
+    {
+        if (def == null) return;
+        heldDef = def;
         isExistingLift = false;
         rotation = 0;
         BuildGhost(heldDef.Prefab);

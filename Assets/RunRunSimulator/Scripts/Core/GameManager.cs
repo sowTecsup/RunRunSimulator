@@ -36,6 +36,12 @@ public class GameManager : MonoBehaviour
     [FormerlySerializedAs("_creatureRegistry")]
     [SerializeField] private CreatureRegistrySO creatureRegistry;
 
+    [Required, AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private FurnitureRegistrySO furnitureRegistry;
+
+    [Required, AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private PlayerInventorySO inventory;
+
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
 
@@ -82,9 +88,21 @@ public class GameManager : MonoBehaviour
 
     // GameManager is the single owner of persistence: it's the only gameplay
     // script that knows SaveSystem and CloudSync. Everyone else just fires
-    // GameEvents.RegistryChanged() and this handler does the save + push.
-    private void OnEnable()  => GameEvents.OnRegistryChanged += Persist;
-    private void OnDisable() => GameEvents.OnRegistryChanged -= Persist;
+    // GameEvents.RegistryChanged() / FurnitureChanged() / InventoryChanged() and
+    // these handlers do the save (+ cloud push for creatures).
+    private void OnEnable()
+    {
+        GameEvents.OnRegistryChanged  += Persist;
+        GameEvents.OnFurnitureChanged += PersistFurniture;
+        GameEvents.OnInventoryChanged += PersistInventory;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnRegistryChanged  -= Persist;
+        GameEvents.OnFurnitureChanged -= PersistFurniture;
+        GameEvents.OnInventoryChanged -= PersistInventory;
+    }
 
     private void Persist(CreatureRegistrySO registry)
     {
@@ -92,15 +110,46 @@ public class GameManager : MonoBehaviour
         PushToCloud();
     }
 
+    // Furniture + inventory persist LOCALLY only for now (cloud sync layered on
+    // later, same pattern as CloudSyncService). The event carries the asset.
+    private void PersistFurniture(FurnitureRegistrySO registry) => SaveSystem.SaveFurniture(registry);
+    private void PersistInventory(PlayerInventorySO inv)        => SaveSystem.SaveInventory(inv);
+
     // Load is triggered by CloudSyncService.OnSignedInComplete (scoped per-player)
-    private void OnApplicationQuit() => FlushToCloud();
+    private void OnApplicationQuit()
+    {
+        CollectLooseWorldProps();
+        FlushToCloud();
+    }
 
     // Minimize / send-to-background — the reliable "I'm leaving" signal on mobile. We flush here
     // (and on quit/logout/explicit save) instead of on every stat change, so runtime needs don't
     // saturate Cloud Save with per-frame micro-updates.
     private void OnApplicationPause(bool paused)
     {
-        if (paused) FlushToCloud();
+        if (!paused) return;
+        CollectLooseWorldProps();
+        FlushToCloud();
+    }
+
+    // Persistence-simplification rule (decided with the user): any world prop loose
+    // in the scene at shutdown is swept back into the inventory, so on reload we only
+    // ever rebuild from inventory data — no per-object transforms to persist. The
+    // active hotbar item is the single documented exception (re-spawned on load).
+    // Implemented in the WorldProp gameplay batch — see WorldPropInstance.
+    private void CollectLooseWorldProps()
+    {
+        if (inventory == null) return;
+        bool changed = false;
+        foreach (var prop in FindObjectsByType<WorldPropInstance>(FindObjectsSortMode.None))
+        {
+            // Skip the active hotbar item: its id already persists in the hotbar slot,
+            // so sweeping it too would double-count it on reload.
+            if (prop == null || prop.IsHeld || string.IsNullOrEmpty(prop.ItemId)) continue;
+            inventory.AddWorldProp(prop.ItemId);
+            changed = true;
+        }
+        if (changed) SaveSystem.SaveInventory(inventory);
     }
 
     // ── Private Methods ───────────────────────────────────────────
@@ -200,6 +249,8 @@ public class GameManager : MonoBehaviour
     // ── Public Getters ────────────────────────────────────────────
 
     public CreatureRegistrySO     Registry             => creatureRegistry;
+    public FurnitureRegistrySO    FurnitureRegistry    => furnitureRegistry;
+    public PlayerInventorySO      Inventory            => inventory;
     public CreatureDatabaseSO     Database             => database;
     public RarityOddsTableSO      RarityOddsTable      => rarityOddsTable;
     public InheritanceOddsTableSO InheritanceOddsTable => inheritanceOddsTable;

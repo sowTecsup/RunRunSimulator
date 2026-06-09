@@ -14,7 +14,14 @@ using UnityEngine;
 public class PersonalityProfileSO : SerializedScriptableObject
 {
     public static PersonalityProfileSO Current { get; private set; }
-    private void OnEnable() => Current = this;
+    private void OnEnable()
+    {
+#if UNITY_EDITOR
+        if (Current != null && Current != this)
+            Debug.LogWarning($"[PersonalityProfileSO] Duplicate instance: '{Current.name}' already registered, overwriting with '{this.name}'. Check for duplicated assets.", this);
+#endif
+        Current = this;
+    }
 
     [Title("Per-Personality Profiles")]
     [InfoBox("Una entrada por Personality. Si falta alguna, GetProfile devuelve un perfil neutral seguro.")]

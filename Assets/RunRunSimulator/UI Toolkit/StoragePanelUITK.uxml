@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="StoragePanelUITKStyle.uss" />
+    <!-- Storage box panel. The controller (StoragePanelUITK) fills "list" with one
+         row per distinct stored prop (id + count + Eject). Opened by StorageContainer
+         via UIManager (UIPanelType.Storage). -->
+    <ui:VisualElement name="root" class="storage-root">
+        <ui:VisualElement name="panel" class="storage-panel">
+            <ui:VisualElement name="header" class="storage-header">
+                <ui:Label text="Almacén" class="storage-title" />
+                <ui:Button name="close-button" text="X" class="storage-close" />
+            </ui:VisualElement>
+            <ui:ScrollView name="list" class="storage-list" mode="Vertical" />
+            <ui:Label name="empty" text="Vacío — tira objetos aquí para guardarlos." class="storage-empty" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

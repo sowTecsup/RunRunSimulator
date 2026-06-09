@@ -11,10 +11,11 @@ tags: [memory-bank, furniture, building, shop, stage-3]
 | Fase | Qué incluye | Estado |
 |------|-------------|--------|
 | **Fase 1 — Data + grid + API** | SOs, registry, `PlacementGrid`, `FurnitureSpawner`, `FurnitureService` con `TryPlace`/`TryRemove` + botones Odin de test | ✅ **implementada y commiteada** |
-| **Fase 2 — Building mode** | Action map `Building` (aditivo) + máquina de estados (Browsing/Placing/Editing/Deleting), ghost, hotbar 1-4, edición/borrado por raycast a muebles | 🔶 **código ✅**, falta setup de escena + persistencia |
+| **Fase 2 — Building mode** | Action map `Building` (aditivo) + máquina de estados (Browsing/Placing/Editing/Deleting), ghost, hotbar 1-4, edición/borrado por raycast a muebles | 🔶 **código ✅**, falta setup de escena |
+| **Fase 2.5 — Inventario + Hotbar + Browser** | `PlayerInventorySO`, `ItemDefinitionSO/DB`, hotbar play-mode (6 slots), browser build-mode (Tab), adquisición vía `DeliveryBox`, `StorageContainer`, `StoreManager` test | 🔶 **código ✅**, falta setup de escena + assets |
 | **Fase 3 — Economía + tienda** | `Wallet` (moneda persistente), `ShopService`, panel UITK con catálogo + precio → entra a placement | 🔲 |
 | **Fase futura — superficies libres** | Muebles grandes como base que exponen superficies sobre las que acomodar props chicos (free placement local a la superficie), eventualmente con UI | 🔲 **solo diseño** (etapa posterior, ver Notion) |
-| **Persistencia** (transversal) | JSON propio para `FurnitureRegistrySO` vía `GameManager.Persist` + `SaveSystem`, cloud después | 🔲 **deliberadamente pendiente** (se confirma placement primero) |
+| **Persistencia** (transversal) | JSON propio para `FurnitureRegistrySO` + `PlayerInventorySO` vía `GameManager` + `SaveSystem`, cloud vía `CloudSyncService` en sign-in | ✅ **implementada** (2026-06-09) |
 
 > **Modelo de colocación — decisión confirmada (2026-06-02):** **grilla como base**, no posicionamiento libre. Razones: NavMesh determinista (las criaturas roam, la grilla evita huecos donde quedan atrapadas), persistencia cloud ligera/determinista (`DefId`+celda+rotación vs transform flotante que deriva), y foco de ingeniería en las criaturas (el canvas expresivo) y no en los muebles. El placement libre sobrevive solo como la "Fase futura" de arriba: **acotado a superficies de muebles grandes**, no global.
 
@@ -161,6 +162,62 @@ Seleccionar una pieza existente (E / click der.) llama `TryLift` → la quita de
 ### Ghost
 Instancia `ActivePiece.Prefab` (o la def levantada), desactiva colliders, aplica `ghostMaterial` y lo tiñe verde/rojo por frame con `MaterialPropertyBlock`. Posiciona con `FootprintCenter` + `Euler(0,rot,0)` — igual que el spawner, así **preview == resultado**.
 
+## Sistema de Inventario (Fase 2.5 — implementado 2026-06-09)
+
+El inventario conecta la tienda con el build-mode y el play-mode. Hay dos tipos de item; el ID de namespacing los distingue:
+
+| Tipo | ID | Qué hace al comprarse | Dónde persiste |
+|------|----|-----------------------|----------------|
+| **Furniture** | `F#` (de `FurnitureDatabaseSO`) | Entra a `furnitureOwned` (set, sin dupes — la propiedad permite colocaciones ilimitadas) | `PlayerInventorySO.furnitureOwned` |
+| **WorldProp** | `I#` (de `ItemDatabaseSO`) | Spawna como objeto físico en escena | `PlayerInventorySO.worldPropsStored` (cuando entra al almacén) |
+
+### Capa de datos nueva
+
+| Archivo | Análogo | Contrato |
+|---------|---------|----------|
+| `ItemDefinitionSO` | `FurnitureDefinitionSO` | `Id` (I#, ReadOnly), `ItemType`, `WorldPropCategory`, `Prefab` (WorldProp) ó `FurnitureDef` (Furniture, bridge a F#) |
+| `ItemDatabaseSO` | `FurnitureDatabaseSO` | Dict I# → ItemDefinitionSO; Populate + Validate & Sync IDs |
+| `PlayerInventorySO` | `FurnitureRegistrySO` | `furnitureOwned` (List F#) · `worldPropsStored` (List I#) · `hotbarSlots[6]` (strings I# o null) · `InventoryData` DTO JSON |
+
+### Flujo de adquisición
+
+```
+StoreManager.BuyItem(i)
+  → Instantiate(deliveryBoxPrefab) → box.Configure(item)
+    → jugador tap E → DeliveryBox.Interact()
+      → [Furniture] inventory.AddFurniture(item.FurnitureDef.Id)   // F#
+      → [WorldProp] Instantiate(item.Prefab) + marker.Configure(item.Id)
+      → InventoryChanged → GameManager guarda JSON
+      → Destroy(box)
+```
+
+### Hotbar play-mode
+
+- **6 slots**, persisten entre sesiones (`hotbarSlots[]` en `PlayerInventorySO`).
+- `HotbarController` (singleton): `PickUp(WorldPropInstance)` → llena slot libre, spawna visual en `handAnchor`, marca `IsHeld=true`.
+- Scroll rueda → cambia `activeSlot` → swap visual en mano.
+- Hold E → `ThrowActive` · Q → `DropActive` · click → `UseActive` (dispara `OnItemUsed` para efectos por `WorldPropCategory`).
+- `IsHeld` bloquea el sweep de `GameManager.CollectLooseWorldProps` (quit/pause) y el trigger de `StorageContainer`.
+
+### Almacén en mundo (`StorageContainer`)
+
+- Collider sólido = IInteractable (tap E → abre `StoragePanelUITK` vía UIManager).
+- Collider trigger = auto-captura cualquier `WorldPropInstance` con `IsHeld=false` que entre.
+- `Eject(id)` → remove + Instantiate + Configure + InventoryChanged.
+
+### Eventos nuevos
+
+| Evento | Quién dispara | Quién escucha |
+|--------|--------------|--------------|
+| `GameEvents.OnInventoryChanged` | `DeliveryBox`, `HotbarController`, `StorageContainer`, `GameManager.CollectLooseWorldProps` | `GameManager` (guarda JSON), `HotbarHUDUITK`, `StoragePanelUITK` |
+| `GameEvents.OnInventoryReloaded` | `CloudSyncService.OnSignedInComplete` | HUD + Storage panel (sin re-push) |
+
+### Persistencia de furniture (fix aplicado)
+
+`FurnitureRegistrySO` **no se persistía antes** — fix: `SaveSystem.SaveFurniture/LoadFurniture` + `GameManager` suscrito a `OnFurnitureChanged` + `CloudSyncService` lo carga en sign-in junto al inventory.
+
+---
+
 ## UI de selección de piezas — Inventario (Hotbar + Browser)
 
 > **Decisión confirmada (2026-06-04):** modelo **Hotbar + Browser temporal**. Diseñado para ser console-first (D-pad) y compatible con PC.
@@ -211,12 +268,16 @@ Browsing → Hold Tab (PC) / Select (consola)
 - `ShopService` + panel UITK que lista `FurnitureDefinitionSO` con precio → comprar entra a placement (Fase 2).
 - Diseño de precios/categorías/economía → **Notion** (capa de diseño, dueño = usuario).
 
-## Persistencia (pendiente transversal)
+## Persistencia (implementada 2026-06-09)
 
-Aún **no** se persiste furniture (ni JSON ni cloud) — decisión deliberada para confirmar el placement primero. Falta:
-- Wirear `GameManager.Persist` + `SaveSystem` con un archivo JSON propio para el `FurnitureRegistrySO` (ver [[07 - Persistence & Identity]]).
-- Cloud después (mismo patrón que `CloudSyncService`).
-- Recordar: ningún script de gameplay llama a `SaveSystem`/`PushToCloud` directo — dispara el evento, `GameManager` persiste (regla #2).
+`FurnitureRegistrySO` y `PlayerInventorySO` persisten en JSON bajo el scope del player (sufijo `_playerId`):
+
+| Archivo | Key SaveSystem | Quién carga |
+|---------|---------------|------------|
+| `furniture_registry_<id>.json` | `FURNITURE_FILENAME` | `CloudSyncService.OnSignedInComplete` → `FurnitureReloaded` |
+| `player_inventory_<id>.json` | `INVENTORY_FILENAME` | `CloudSyncService.OnSignedInComplete` → `InventoryReloaded` |
+
+Regla #2 respetada: `GameManager` es el único dueño de persistencia; suscrito a `OnFurnitureChanged` + `OnInventoryChanged`. Cloud sync pendiente (mismo patrón que criaturas).
 
 ---
 

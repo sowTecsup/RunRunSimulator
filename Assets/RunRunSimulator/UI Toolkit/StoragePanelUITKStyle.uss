@@ -1,0 +1,73 @@
+.storage-root {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.storage-panel {
+    width: 420px;
+    max-height: 70%;
+    background-color: rgba(26, 26, 32, 0.97);
+    border-width: 2px;
+    border-color: rgb(120, 120, 130);
+    border-radius: 10px;
+    padding: 12px;
+}
+
+.storage-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.storage-title {
+    font-size: 20px;
+    color: rgb(255, 214, 92);
+    -unity-font-style: bold;
+}
+
+.storage-close {
+    width: 28px;
+    height: 28px;
+}
+
+.storage-list {
+    flex-grow: 1;
+}
+
+.storage-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    background-color: rgba(40, 40, 48, 0.9);
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.storage-row--selected {
+    border-color: rgb(255, 214, 92);
+    background-color: rgba(55, 50, 24, 0.95);
+}
+
+.storage-row__name {
+    font-size: 14px;
+    color: rgb(235, 235, 240);
+}
+
+.storage-row__eject {
+    height: 26px;
+    min-width: 70px;
+}
+
+.storage-empty {
+    color: rgba(200, 200, 210, 0.7);
+    font-size: 13px;
+    -unity-text-align: middle-center;
+    padding: 16px;
+}

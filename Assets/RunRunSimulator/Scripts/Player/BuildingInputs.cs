@@ -25,8 +25,12 @@ public class BuildingInputs : MonoBehaviour
     public static event Action EditPressed;        // E — select aimed placed piece to edit
     public static event Action DeletePressed;      // right-click — target aimed placed piece to delete
     public static event Action<int> SlotSelected;  // 1-4 — pick hotbar piece (0-based)
+    public static event Action BrowseToggled;      // Tab — open/close the furniture browser
 
     private InputSystem_Actions actions;
+
+    // True only while build mode is active — gates the Tab read in Update.
+    private bool building;
 
     private void Awake() => actions = new InputSystem_Actions();
 
@@ -66,10 +70,22 @@ public class BuildingInputs : MonoBehaviour
 
     private void OnDestroy() => actions?.Dispose();
 
-    private void OnBuildModeChanged(bool building)
+    private void OnBuildModeChanged(bool isBuilding)
     {
-        if (building) actions.Building.Enable();
-        else          actions.Building.Disable();
+        building = isBuilding;
+        if (isBuilding) actions.Building.Enable();
+        else            actions.Building.Disable();
+    }
+
+    // Tab → toggle the furniture browser. Read directly from the device (still Input
+    // System, still only this input owner) so no .inputactions regen is needed; the
+    // Building map has no spare binding for it. Only while build mode is active.
+    private void Update()
+    {
+        if (!building) return;
+        var keyboard = Keyboard.current;
+        if (keyboard != null && keyboard.tabKey.wasPressedThisFrame)
+            BrowseToggled?.Invoke();
     }
 
     private void OnConfirm(InputAction.CallbackContext c) => ConfirmPressed?.Invoke();

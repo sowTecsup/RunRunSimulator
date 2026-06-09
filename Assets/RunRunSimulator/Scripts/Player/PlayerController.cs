@@ -196,7 +196,9 @@ public class PlayerController : MonoBehaviour
             Debug.Log("[PlayerController] Nothing interactable in front of the camera.");
     }
 
-    // Counts how long E has been held while free; grabs once it passes the threshold.
+    // Counts how long E has been held while free; resolves once it passes the threshold.
+    // MoriMonchi agents keep the physical grab; for everything else hold E THROWS the
+    // active hotbar item (props live in the hotbar now, not in a physical grab).
     private void UpdateGrabHold()
     {
         // Safety net: in a menu the Player input map is disabled (PlayerInputs gates
@@ -209,16 +211,22 @@ public class PlayerController : MonoBehaviour
         if (grabTimer < grabHoldDuration) return;
 
         grabbing = false;   // consume the hold (so the release doesn't also interact)
-        if (TryFindInView<IThrowable>(out var throwable))
+
+        // A MoriMonchi under the crosshair → grab it physically (its existing flow).
+        if (TryFindInView<MoriMochiAgent>(out var agent))
         {
-            Debug.Log("[PlayerController] Hold complete + throwable found → grabbing.");
-            throwable.OnGrab(holdAnchor);
-            held          = throwable;
-            heldTransform = (throwable as Component)?.transform;
+            Debug.Log("[PlayerController] Hold complete + MoriMonchi found → grabbing.");
+            agent.OnGrab(holdAnchor);
+            held          = agent;
+            heldTransform = agent.transform;
+            return;
         }
-        else
+
+        // Otherwise → throw the active hotbar item, if any.
+        if (cameraTransform != null && HotbarController.Instance != null && HotbarController.Instance.HasActiveItem)
         {
-            Debug.Log("[PlayerController] Hold complete but no throwable in front of the camera.");
+            Debug.Log("[PlayerController] Hold complete → throwing active hotbar item.");
+            HotbarController.Instance.ThrowActive(ComputeThrowImpulse(null));
         }
     }
 
@@ -230,33 +238,47 @@ public class PlayerController : MonoBehaviour
         heldTransform = null;
     }
 
+    // Click (Attack): throw a carried MoriMonchi (its existing flow) OR, when not
+    // carrying one, USE the active hotbar item.
     private void OnThrow()
     {
         if (state != PlayerStateType.Exploring) return;
-        if (held == null) { Debug.Log("[PlayerController] Nothing held — nothing to throw."); return; }
-        if (cameraTransform == null) { Debug.LogWarning("[PlayerController] camera not assigned — cannot throw."); return; }
 
-        // The object floats at the hold anchor, which sits a bit off-center. Throwing
-        // along camera.forward from there flies parallel and never reaches the aim.
-        // Instead aim from the anchor TOWARD where the camera looks, so it converges
-        // on the screen center / whatever the crosshair is over.
+        if (held != null)
+        {
+            if (cameraTransform == null) { Debug.LogWarning("[PlayerController] camera not assigned — cannot throw."); return; }
+            held.OnThrow(ComputeThrowImpulse(heldTransform));
+            held          = null;
+            heldTransform = null;
+            return;
+        }
+
+        if (HotbarController.Instance != null && HotbarController.Instance.HasActiveItem)
+            HotbarController.Instance.UseActive();
+        else
+            Debug.Log("[PlayerController] Nothing held and no active hotbar item — click does nothing.");
+    }
+
+    // Impulse for a throw aimed at the crosshair. The object floats at the hold anchor,
+    // which sits a bit off-center; throwing along camera.forward from there flies
+    // parallel and never reaches the aim. Instead aim from the anchor TOWARD where the
+    // camera looks, so it converges on the screen center. 'ignore' = a transform whose
+    // colliders the aim ray skips (the held object), or null.
+    private Vector3 ComputeThrowImpulse(Transform ignore)
+    {
         Vector3 aimPoint = cameraTransform.position + cameraTransform.forward * throwAimDistance;
         var hits = Physics.RaycastAll(cameraTransform.position, cameraTransform.forward,
                                       throwAimDistance, grabMask, QueryTriggerInteraction.Ignore);
         float nearest = float.MaxValue;
         foreach (var h in hits)
         {
-            if (heldTransform != null && h.collider.transform.IsChildOf(heldTransform)) continue; // skip the held object
+            if (ignore != null && h.collider.transform.IsChildOf(ignore)) continue;
             if (h.distance < nearest) { nearest = h.distance; aimPoint = h.point; }
         }
 
         Vector3 origin = holdAnchor != null ? holdAnchor.position : cameraTransform.position;
         Vector3 dir    = ((aimPoint - origin).normalized + Vector3.up * throwUpwardBias).normalized;
-
-        Debug.Log($"[PlayerController] Throwing toward aim {aimPoint} dir {dir}.");
-        held.OnThrow(dir * throwForce);
-        held          = null;
-        heldTransform = null;
+        return dir * throwForce;
     }
 
     // Raycasts from the camera for a component of type T (interface or class).
