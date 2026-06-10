@@ -19,8 +19,9 @@ public class FurnitureService : MonoBehaviour
     [Tooltip("Scene NavMesh surface, rebaked after furniture loads / on demand. Needed so breeding-room floors get their painted area baked in. Leave empty if this scene has no pens.")]
     [SerializeField] private NavMeshSurface navSurface;
 
-    [Title("Hotbar")]
-    [Tooltip("Pieces the build mode selects with keys 1-4 (index 0 = key 1). Hardcoded here for now.")]
+    [Title("Hotbar — DEBUG ONLY (no production)")]
+    [InfoBox("Esta lista es un fallback de testing (teclas 1-4 hardcoded). En producción la pieza activa siempre vendrá del BuildBrowserUITK vía SetActivePiece(). No eliminar: SelectPiece() aún la usa internamente.", InfoMessageType.Warning)]
+    [Tooltip("Debug fallback: build browser overrides this at runtime via SetActivePiece.")]
     [SerializeField] private List<FurnitureDefinitionSO> activePieces = new List<FurnitureDefinitionSO>();
 
     [Title("Test placement (Play mode)")]

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -31,7 +32,18 @@ public class FurnitureSpawner : MonoBehaviour
     }
 
     private void OnChanged(FurnitureRegistrySO r)  => Sync(r);
-    private void OnReloaded(FurnitureRegistrySO r) { ClearAll(); Sync(r); }
+    private void OnReloaded(FurnitureRegistrySO r) => StartCoroutine(ReloadRoutine(r));
+
+    // ClearAll uses Destroy() which is deferred to end-of-frame. Waiting one frame
+    // ensures old colliders are gone from the physics world before TrySampleFloor
+    // raycasts downward — otherwise it hits the top of a still-alive mesh and spawns
+    // every piece elevated by the height of the previous object in that cell.
+    private IEnumerator ReloadRoutine(FurnitureRegistrySO r)
+    {
+        ClearAll();
+        yield return null;
+        Sync(r);
+    }
 
     // Incremental: spawn newly placed keys, despawn removed ones.
     private void Sync(FurnitureRegistrySO r)
@@ -63,6 +75,10 @@ public class FurnitureSpawner : MonoBehaviour
         // stored — the terrain is the source of truth, so a piece re-seats if the ground changes.
         if (grid.TrySampleFloor(anchor, def.Footprint, f.Rotation, out float floorY, out _)) pos.y = floorY;
         var go = Instantiate(def.Prefab, pos, Quaternion.Euler(0f, f.Rotation, 0f), transform);
+        // Placed furniture is static decoration — any Rigidbody left dynamic would let
+        // physics float the piece off the floor (depenetration against the floor collider).
+        foreach (var rb in go.GetComponentsInChildren<Rigidbody>(true))
+            rb.isKinematic = true;
         go.name = $"{def.Id}@{key}";
         go.AddComponent<PlacedFurnitureMarker>().AnchorCell = anchor;   // build mode picks pieces by this
         spawned[key] = go;

@@ -1704,6 +1704,37 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!1 &340961905
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 340961906}
+  m_Layer: 0
+  m_Name: ExitPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &340961906
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 340961905}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -3.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1565874558}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &408389266
 Mesh:
   m_ObjectHideFlags: 0
@@ -17941,6 +17972,7 @@ Transform:
   - {fileID: 1750792024}
   - {fileID: 2004143670}
   - {fileID: 513610713}
+  - {fileID: 1067912612}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1046970364
@@ -18010,6 +18042,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1218711423}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1067912611
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1067912612}
+  m_Layer: 0
+  m_Name: StorageContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1067912612
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1067912611}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1046970363}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1126007361
 GameObject:
@@ -20014,7 +20077,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1458888896}
   - component: {fileID: 1458888898}
-  - component: {fileID: 1458888897}
   - component: {fileID: 1458888900}
   - component: {fileID: 1458888899}
   m_Layer: 0
@@ -20042,30 +20104,6 @@ Transform:
   - {fileID: 2049267306}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1458888897
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1458888892}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d9d4246e5399de643b23da6a78e398c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FirstPersonController
-  controller: {fileID: 0}
-  characterCamera: {fileID: 907401860}
-  moveSpeed: 5
-  rotationSpeed: 10
-  verticalVelocity: 0
-  jumpForce: 10
-  pushForce: 4
-  IsDashing: 0
-  dashForce: 30
-  dashDuration: 0.2
-  dashTimer: 0
-  moveInput: {x: 0, y: 0}
 --- !u!143 &1458888898
 CharacterController:
   m_ObjectHideFlags: 0
@@ -20432,6 +20470,7 @@ GameObject:
   - component: {fileID: 1565874554}
   - component: {fileID: 1565874553}
   - component: {fileID: 1565874552}
+  - component: {fileID: 1565874559}
   m_Layer: 0
   m_Name: PanelUI (3)
   m_TagString: Untagged
@@ -20582,9 +20621,24 @@ Transform:
   m_LocalPosition: {x: -28, y: 0.716, z: 4.37}
   m_LocalScale: {x: 0.4131, y: 0.4131, z: 0.4131}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 340961906}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1565874559
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1565874551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a973d6c01817f054b94d7c29038dc385, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StorageContainer
+  database: {fileID: 11400000, guid: f4d0006d5b12f5446ba103b1e6b8c6ee, type: 2}
+  ejectPoint: {fileID: 340961906}
 --- !u!1 &1601004955
 GameObject:
   m_ObjectHideFlags: 0

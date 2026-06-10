@@ -210,5 +210,16 @@ public class BuildBrowserUITK : MonoBehaviour
         tabsContainer   = root.Q<VisualElement>("tabs");
         piecesContainer = root.Q<ScrollView>("pieces");
         emptyLabel      = root.Q<Label>("empty");
+        SetupPiecesGrid();
+    }
+
+    // USS child-selector flex-wrap isn't always picked up by the runtime — enforce in code.
+    private void SetupPiecesGrid()
+    {
+        if (piecesContainer == null) return;
+        var c = piecesContainer.contentContainer;
+        c.style.flexDirection = FlexDirection.Row;
+        c.style.flexWrap      = Wrap.Wrap;
+        c.style.alignContent  = Align.FlexStart;
     }
 }

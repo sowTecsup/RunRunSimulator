@@ -11,7 +11,7 @@
                 <ui:Label text="↑↓ categoría · ←→ pieza · Enter coloca · Tab cierra" class="browser-hint" />
             </ui:VisualElement>
             <ui:VisualElement name="tabs" class="browser-tabs" />
-            <ui:ScrollView name="pieces" class="browser-pieces" mode="Horizontal" />
+            <ui:ScrollView name="pieces" class="browser-pieces" mode="Vertical" />
             <ui:Label name="empty" text="No tienes muebles en esta categoría." class="browser-empty" />
         </ui:VisualElement>
     </ui:VisualElement>

@@ -135,11 +135,24 @@ public class HotbarController : MonoBehaviour
     // ── Throw (hold E) / Drop (Q) ─────────────────────────────────
 
     // Throws the active item with an impulse toward the aim (force from PlayerController).
+    // WorldPropInstance prefabs don't carry ThrowableObject (IThrowable), so if no
+    // throwable is found we apply the same linearVelocity trick directly — AddForce is
+    // swallowed on the frame isKinematic flips to false (done by ReleaseHeld above).
     public bool ThrowActive(Vector3 force)
     {
         var obj = ReleaseActiveIntoWorld();
         if (obj == null) return false;
-        if (obj.TryGetComponent<IThrowable>(out var throwable)) throwable.OnThrow(force);
+
+        if (obj.TryGetComponent<IThrowable>(out var throwable))
+        {
+            throwable.OnThrow(force);
+        }
+        else if (obj.TryGetComponent<Rigidbody>(out var rb))
+        {
+            rb.isKinematic     = false;
+            rb.angularVelocity = Vector3.zero;
+            rb.linearVelocity  = force / Mathf.Max(rb.mass, 0.0001f);
+        }
         return true;
     }
 

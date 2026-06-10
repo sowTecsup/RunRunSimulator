@@ -12,13 +12,13 @@
 }
 
 .hotbar-slot {
-    width: 64px;
-    height: 64px;
-    margin: 3px;
+    width: 126px;
+    height: 126px;
+    margin: 6px;
     background-color: rgba(20, 20, 24, 0.75);
     border-width: 2px;
     border-color: rgba(120, 120, 130, 0.8);
-    border-radius: 6px;
+    border-radius: 11px;
     align-items: center;
     justify-content: flex-end;
 }
@@ -31,9 +31,9 @@
 
 .hotbar-slot__index {
     position: absolute;
-    top: 2px;
-    left: 4px;
-    font-size: 11px;
+    top: 3px;
+    left: 6px;
+    font-size: 21px;
     color: rgba(200, 200, 210, 0.7);
 }
 
@@ -41,7 +41,7 @@
     width: 100%;
     -unity-text-align: middle-center;
     white-space: normal;
-    font-size: 10px;
+    font-size: 20px;
     color: rgb(235, 235, 240);
-    padding-bottom: 3px;
+    padding-bottom: 5px;
 }

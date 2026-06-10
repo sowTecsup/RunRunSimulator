@@ -8,21 +8,22 @@ tags: [memory-bank, active, session]
 
 ## Sesión actual
 
-**Fecha**: 2026-06-09 (actualizado misma sesión)  
-**Foco**: Sistema de Inventario completo + correcciones de primer testeo.
+**Fecha**: 2026-06-09 (sesión 2)
+**Foco**: UI scaling + bugfixes de inventario/furniture/throwing.
 
 ### Qué se hizo (esta sesión)
 
-Sistema de inventario end-to-end diseñado con Opus y luego implementado paso a paso:
+**UI — escalado:**
+- `HotbarHUDUITKStyle.uss`: slots 64→90→**126px** (+40% dos veces), fuentes proporcionales.
+- `BuildBrowserUITKStyle.uss` + `BuildBrowserUITK.uxml`: browser +40% (piezas 96→**134px**), ScrollView `Horizontal→Vertical`, content-container con `flex-wrap: wrap` → grilla real. `margin-bottom` ajustado al hotbar más grande (175px). `max-height: 55%` para no tapar la cámara.
+- `BuildBrowserUITK.cs`: `SetupPiecesGrid()` fuerza flex-wrap en `contentContainer` desde código (USS child selectors no siempre los recoge el runtime).
+- `FurnitureService.cs`: hotbar `activePieces` marcada `[InfoBox]` DEBUG ONLY.
 
-- **Capa de datos**: `ItemDefinitionSO`, `ItemDatabaseSO`, `PlayerInventorySO` (furnitureOwned F# + worldPropsStored I# + hotbarSlots[6]).
-- **Persistencia**: `SaveSystem` ahora persiste también `FurnitureRegistrySO` (estaba faltando) y `PlayerInventorySO`. `CloudSyncService` los carga en sign-in.
-- **Adquisición**: `DeliveryBox` (IInteractable, bifurca Furniture/WorldProp) + `StoreManager` (Odin TableList, bot ón Buy — sin economía, para testing).
-- **Hotbar runtime**: `HotbarController` (singleton, pickup/use/throw/drop + scroll); `WorldPropInstance` (marker, IInteractable); `StorageContainer` (IInteractable + trigger auto-collect + Eject).
-- **Interacción unificada**: tap E = pickup a hotbar; hold E = lanzar; Q = soltar; click = usar. MoriMonchiAgent mantiene grab físico propio (excepción explícita).
-- **Input**: `PlayerInputs` agregó `HotbarScrolled` (wheel) + `DropPressed` (Q) leídos en Update. `BuildingInputs` agregó `BrowseToggled` (Tab).
-- **Build browser**: `BuildBrowserUITK` standalone (NO UIManager — evita ExitBuildMode). `BuildModeController` agregó `SelectPieceFromBrowser`. `FurnitureService` agregó `SetActivePiece` + `runtimeActivePiece`.
-- **UITK (3 paneles)**: `HotbarHUDUITK` (always-on), `StoragePanelUITK` (UIManager panel Storage=5), `BuildBrowserUITK` (standalone).
+**Bugfixes:**
+- `HotbarController.ThrowActive` — fallback a `Rigidbody.linearVelocity` cuando el objeto no tiene `IThrowable`. Soluciona que WorldPropInstance sin `ThrowableObject` no se podían lanzar.
+- `FurnitureSpawner.OnReloaded` — coroutine con `yield return null` entre `ClearAll` y `Sync`. Causa raíz: `Destroy()` diferido + `floorMask = ~0` hacía que `TrySampleFloor` golpeara meshes viejos → furniture elevada al recargar.
+- `FurnitureSpawner.SpawnOne` — `isKinematic = true` en cualquier `Rigidbody` del prefab instanciado (muebles con Rigidbody no se elevan por física).
+- `StorageContainer.Eject` — `justEjectedId` previene re-captura inmediata cuando `ejectPoint` está dentro de la trigger zone.
 
 ---
 
@@ -125,8 +126,10 @@ StoreManager inspector → BuyItem(i)
 
 ## Próximos pasos (retomar acá la próxima sesión)
 
-**Bug activo — spawner elevation (ver [[08 - Known Bugs & Checkpoints]]):**
-- Los muebles aparecen en la Y correcta al hacer Play pero luego **suben solos**. `TrySampleFloor` funciona bien en el momento del spawn; la causa probable es un collider/Rigidbody en el prefab que empuja al objeto hacia arriba después. Investigar si los prefabs de furniture tienen `Rigidbody` o si el `CharacterController` del player está interfiriendo con el collider de la pieza. Ver el archivo de bugs para el diagnóstico completo.
+**Setup pendiente en Unity (código ✅ — solo editor):**
+- `PlacementGrid` inspector → `floorMask` = **solo layer Floor** (el default `~0` es todos los layers y causa elevación si el coroutine-fix no alcanza en algún caso edge).
+- `StorageContainer` inspector → asignar `ejectPoint` a un Transform **fuera** de la trigger zone (1-2m enfrente del container).
+- Verificar que todos los prefabs de furniture tengan sus model children en el layer `Furniture`, no en `Floor`.
 
 **Pendientes de código no solicitados aún:**
 - Play-mode use effects por `WorldPropCategory` (Food/Medicine aplicados a MoriMonchis vía `OnItemUsed`).

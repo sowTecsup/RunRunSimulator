@@ -69,7 +69,7 @@ FurnitureService  ──TryPlace/TryRemove──►  FurnitureRegistrySO  (verda
 - Gizmos: grid azul + cubos rojos en celdas ocupadas. Solo `Gizmos.*`, compila en build.
 - **`TrySampleFloor(anchor, fp, rot, out y, out flat)`** *(nuevo)*: raycast vertical desde `transform.position + floorProbeHeight` hacia abajo, contra `floorMask`. Devuelve la Y real del suelo bajo el centro del footprint y si la normal es plana (`Vector3.Angle(normal, up) ≤ maxSlopeAngle`). Fuente única de Y para el ghost y el spawner — mantiene preview == colocado incluso en terreno irregular.
   - Campos nuevos: `floorMask` (layer del suelo/terreno), `maxSlopeAngle` (default 5°), `floorProbeHeight` (alcance del rayo).
-  - **Setup**: poner el transform del grid ligeramente **por encima** del piso más alto de la escena; el rayo baja hasta encontrar el suelo real. `floorMask` = layer Floor (NUNCA incluir muebles).
+  - **Setup**: poner el transform del grid ligeramente **por encima** del piso más alto de la escena; el rayo baja hasta encontrar el suelo real. `floorMask` = layer Floor (NUNCA incluir muebles). ⚠️ El default del campo en código es `~0` (todos los layers) — **configurar explícitamente en el inspector** al layer Floor o el raycast golpeará cualquier collider de la escena.
 
 ### `FurnitureService` — flujo + API pública
 - **Hotbar**: `activePieces` (`List<FurnitureDefinitionSO>`) + `SelectPiece(index)` (1-4) + `ActivePiece` (la seleccionada). Fuente única de "qué coloco".
@@ -83,9 +83,10 @@ FurnitureService  ──TryPlace/TryRemove──►  FurnitureRegistrySO  (verda
 ### `FurnitureSpawner` — meshes (event-driven)
 - Suscribe `OnFurnitureChanged` / `OnFurnitureReloaded` en `OnEnable`, desuscribe en `OnDisable` (regla #9).
 - `Sync` incremental: instancia keys nuevas, destruye las que ya no están (diff contra `spawned`).
-- `OnReloaded` = `ClearAll` + `Sync` (para pull/reset, sin re-push — patrón `OnRegistryReloaded`).
+- `OnReloaded` = coroutine `ReloadRoutine`: `ClearAll()` → `yield return null` → `Sync()`. **El frame de espera es crítico**: `Destroy()` es diferido; sin él `TrySampleFloor` golpea los colliders del frame anterior y spawna los muebles elevados. Ver [[08 - Known Bugs & Checkpoints]].
 - Posiciona el **pivote raíz** del prefab en `grid.FootprintCenter` y rota con `Quaternion.Euler(0, Rotation, 0)`. Runtime "tonto": el control de alineación vive en el prefab.
-- **Snap al piso real** *(nuevo)*: tras calcular la posición XZ con `FootprintCenter`, llama `grid.TrySampleFloor` y reemplaza la Y con la del suelo real → muebles se asientan en terreno irregular. La Y no se guarda en `PlacedFurniture` (Opción B): el terreno es la fuente de verdad, si cambia la geometría la pieza se re-asienta al cargar.
+- **Snap al piso real**: tras calcular la posición XZ con `FootprintCenter`, llama `grid.TrySampleFloor` y reemplaza la Y con la del suelo real → muebles se asientan en terreno irregular. La Y no se guarda en `PlacedFurniture` (Opción B): el terreno es la fuente de verdad, si cambia la geometría la pieza se re-asienta al cargar.
+- **Rigidbody de prefabs**: `SpawnOne` fuerza `isKinematic = true` en todo `Rigidbody` del prefab instanciado (incluidos hijos). Los muebles son decoración estática — ninguno debería tener física dinámica.
 
 ### Prefab: pivote y `FurniturePivotAligner`
 El runtime coloca el **pivote raíz** del prefab en el centro del footprint y **rota alrededor de ese pivote**. Por lo tanto:

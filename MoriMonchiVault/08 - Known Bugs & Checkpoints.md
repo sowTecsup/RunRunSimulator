@@ -4,22 +4,9 @@ tags: [memory-bank, bugs, checkpoints, future]
 
 # 08 — Known Bugs & Checkpoints
 
-> Para fixes implementados ver el sistema afectado: [[03 - Combat]], [[02 - Genetics & Breeding]], [[05 - UI System]].
+> Para fixes implementados ver el sistema afectado: [[03 - Combat]], [[02 - Genetics & Breeding]], [[05 - UI System]], [[10 - Furniture & Building]].
 
 ## Bugs activos / mitigados (causa raíz no resuelta)
-
-### Muebles se elevan después del spawn (activo)
-
-- **Síntoma**: al entrar en Play los muebles spawneados por `FurnitureSpawner` aparecen en la Y correcta (el snap `TrySampleFloor` funciona), pero poco después **suben solos** desde su posición.
-- **Causa raíz probable**: algún componente del prefab de furniture aplica física/movimiento post-spawn. Candidatos en orden de probabilidad:
-  1. El prefab tiene un **`Rigidbody`** sin `isKinematic = true` — tras el spawn el motor de física lo recalcula y lo empuja.
-  2. Un **`Collider`** del mueble se solapa con el collider del suelo o del `CharacterController` del player y el solver lo resuelve alejándolo.
-  3. `FurniturePivotAligner` dejó un offset en `localPosition` del hijo que no es evidente hasta que el objeto hace su primer physics tick.
-- **Código descartado**: `FurnitureSpawner.SpawnOne` y `PlacementGrid.TrySampleFloor` son correctos — la Y se lee bien en el frame del spawn. El problema ocurre **después** del spawn, no durante.
-- **Fix pendiente**: en Unity, con uno de los prefabs afectados:
-  1. Inspeccionar la jerarquía — si tiene `Rigidbody`, ponerlo en `isKinematic = true` (los muebles son estáticos, no necesitan física dinámica).
-  2. Si no tiene `Rigidbody`, comparar la Y del objeto en el frame 0 y en el frame 1 para aislar el responsable.
-  3. Si la causa es el overlap con el suelo, agregar `Physics.IgnoreLayerCollision(furnitureLayer, floorLayer)` o usar trigger en lugar de collider sólido en la base del mueble.
 
 ### Fantasma de cola (causa raíz, mitigado)
 
@@ -86,6 +73,25 @@ tags: [memory-bank, bugs, checkpoints, future]
 - **Antes**: combates async no disparaban `OnCombatCompleted` → battle-log UI los perdía.
 - **Ahora**: `AsyncCombatService.ApplyResult` dispara `OnCombatLogged(CombatLogEntry)` → cacheado por `CombatPanelUITK`.
 - Ver [[07 - Persistence & Identity]] tabla de eventos.
+
+### Muebles se elevan después del spawn al recargar (RESUELTO)
+
+- **Síntoma**: al recargar la escena los muebles aparecen en la Y correcta y luego suben levemente. Durante la sesión de placement funcionan perfectamente.
+- **Causa raíz**: `OnFurnitureReloaded` → `FurnitureSpawner.OnReloaded` → `ClearAll()` + `Sync()` en el **mismo frame**. `Destroy()` en Unity es diferido: los colliders viejos siguen vivos en physics ese frame. `PlacementGrid.floorMask` tiene default `~0` (todos los layers), así que `TrySampleFloor` golpeaba el **techo del mueble anterior** → `pos.y` = cima del mueble viejo → spawn elevado.
+- **Fix**: `OnReloaded` ahora usa un coroutine: `ClearAll()` → `yield return null` → `Sync()`. El frame de espera garantiza que los `Destroy()` diferidos terminen antes del raycast. También forzar `isKinematic = true` en cualquier `Rigidbody` de los prefabs de furniture en `SpawnOne`.
+- **Nota de setup**: en el `PlacementGrid` del inspector, `floorMask` debe estar configurado **solo en el layer Floor**. El default `~0` (todos los layers) es la causa de que el raycast golpeara meshes de otros objetos. Ver [[10 - Furniture & Building]].
+
+### Throw no funcionaba en WorldPropInstance sin ThrowableObject (RESUELTO)
+
+- **Síntoma**: los objetos del hotbar de play-mode podían agarrarse y soltarse pero al lanzarlos (hold E) caían sin impulso.
+- **Causa raíz**: `HotbarController.ThrowActive` buscaba `IThrowable` en el objeto. Los prefabs de `WorldPropInstance` no tienen `ThrowableObject` (que implementa `IThrowable`), así que el check fallaba y no se aplicaba ninguna fuerza.
+- **Fix**: `ThrowActive` ahora tiene un fallback: si no encuentra `IThrowable`, busca `Rigidbody` directamente y aplica `linearVelocity = force / mass` — la misma técnica que `ThrowableObject.OnThrow` (inmune al bug kinematic→dynamic del mismo frame).
+
+### StorageContainer — re-captura inmediata al ejectar (RESUELTO)
+
+- **Síntoma**: al sacar un objeto del almacén con "Sacar (Q)" el objeto desaparecía inmediatamente y volvía al inventario. Parecía que "no dejaba sacarlo".
+- **Causa raíz**: `Eject()` instanciaba el prop en `ejectPoint` (o en el transform del container si no estaba asignado). Si esa posición quedaba dentro de la trigger zone del container, el primer frame de physics detectaba el contacto → `OnTriggerEnter` re-almacenaba y destruía el prop.
+- **Fix**: `StorageContainer` guarda `justEjectedId` (instanceID del prop recién eyectado). `OnTriggerEnter` salta ese ID por 2 `FixedUpdate`. **Adicionalmente**: asignar `ejectPoint` en el inspector a un Transform fuera de la trigger zone (idealmente 1-2m enfrente del container).
 
 ## Checkpoints de diseño — Breeding Async (pendientes futuros)
 
