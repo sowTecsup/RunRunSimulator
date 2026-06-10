@@ -1,0 +1,126 @@
+.store-root {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    align-items: center;
+    justify-content: flex-start;  /* top anchor */
+    padding-top: 24px;
+    background-color: rgba(0, 0, 0, 0.45);
+}
+
+.store-panel {
+    width: 728px;          /* 520 × 1.4 */
+    max-height: 80%;
+    background-color: rgba(26, 26, 32, 0.97);
+    border-width: 2px;
+    border-color: rgb(120, 120, 130);
+    border-radius: 14px;   /* 10 × 1.4 */
+    padding: 17px;         /* 12 × 1.4 */
+}
+
+.store-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;   /* 8 × 1.4 */
+}
+
+.store-title {
+    font-size: 30px;       /* 22 × 1.4 */
+    color: rgb(255, 214, 92);
+    -unity-font-style: bold;
+}
+
+.store-close {
+    width: 40px;           /* 28 × 1.4 */
+    height: 40px;
+}
+
+/* Category tabs — centered pills, active one highlighted. */
+.store-tabs {
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 14px;   /* 10 × 1.4 */
+}
+
+.store-tab {
+    padding: 8px 20px;     /* 6×14 × 1.4 */
+    margin: 0 6px;         /* 4 × 1.4 */
+    font-size: 20px;       /* 14 × 1.4 */
+    color: rgb(200, 200, 210);
+    background-color: rgba(40, 40, 48, 0.9);
+    border-radius: 20px;   /* 14 × 1.4 */
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+    -unity-text-align: middle-center;
+}
+
+.store-tab--active {
+    color: rgb(26, 26, 32);
+    background-color: rgb(255, 214, 92);
+    -unity-font-style: bold;
+}
+
+.store-list {
+    flex-grow: 1;
+}
+
+/* One product row: name | price | Buy. */
+.store-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 14px;    /* 8×10 × 1.4 */
+    margin-bottom: 7px;    /* 5 × 1.4 */
+    background-color: rgba(40, 40, 48, 0.9);
+    border-radius: 8px;    /* 6 × 1.4 */
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0);
+}
+
+.store-row--selected {
+    border-color: rgb(255, 214, 92);
+    background-color: rgba(55, 50, 24, 0.95);
+}
+
+.store-row__name {
+    font-size: 21px;       /* 15 × 1.4 */
+    color: rgb(235, 235, 240);
+    flex-grow: 1;
+}
+
+.store-row__price {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 14px;    /* 10 × 1.4 */
+}
+
+.store-price__now {
+    font-size: 21px;       /* 15 × 1.4 */
+    color: rgb(235, 235, 240);
+    -unity-font-style: bold;
+}
+
+.store-price__now--sale {
+    font-size: 21px;       /* 15 × 1.4 */
+    color: rgb(120, 230, 130);
+    -unity-font-style: bold;
+}
+
+/* Original price shown atenuated when a discount is active. */
+.store-price__was {
+    font-size: 17px;       /* 12 × 1.4 */
+    color: rgba(200, 200, 210, 0.6);
+    margin-right: 8px;     /* 6 × 1.4 */
+}
+
+.store-row__buy {
+    height: 40px;          /* 28 × 1.4 */
+    min-width: 126px;      /* 90 × 1.4 */
+}
+
+.store-empty {
+    color: rgba(200, 200, 210, 0.7);
+    font-size: 18px;       /* 13 × 1.4 */
+    -unity-text-align: middle-center;
+    padding: 22px;         /* 16 × 1.4 */
+}

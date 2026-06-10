@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="StorePanelUITKStyle.uss" />
+    <!-- Shop screen. The controller (StorePanelUITK) builds the category tabs into
+         "tabs" and one row per catalog listing into "list" (name + price + Buy).
+         Opened by a PanelTrigger via UIManager (UIPanelType.Store). -->
+    <ui:VisualElement name="root" class="store-root">
+        <ui:VisualElement name="panel" class="store-panel">
+            <ui:VisualElement name="header" class="store-header">
+                <ui:Label text="Tienda" class="store-title" />
+                <ui:Button name="close-button" text="X" class="store-close" />
+            </ui:VisualElement>
+            <ui:VisualElement name="tabs" class="store-tabs" />
+            <ui:ScrollView name="list" class="store-list" mode="Vertical" />
+            <ui:Label name="empty" text="No hay nada a la venta en esta categoría." class="store-empty" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

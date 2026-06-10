@@ -8,22 +8,29 @@ tags: [memory-bank, active, session]
 
 ## Sesión actual
 
-**Fecha**: 2026-06-09 (sesión 2)
-**Foco**: UI scaling + bugfixes de inventario/furniture/throwing.
+**Fecha**: 2026-06-10 (sesión 3)
+**Foco**: Tienda (Store) — parte visual UITK + desacople del modelo de datos comercial. Overlay genérico (fecha + tutorial de inputs).
 
 ### Qué se hizo (esta sesión)
 
-**UI — escalado:**
-- `HotbarHUDUITKStyle.uss`: slots 64→90→**126px** (+40% dos veces), fuentes proporcionales.
-- `BuildBrowserUITKStyle.uss` + `BuildBrowserUITK.uxml`: browser +40% (piezas 96→**134px**), ScrollView `Horizontal→Vertical`, content-container con `flex-wrap: wrap` → grilla real. `margin-bottom` ajustado al hotbar más grande (175px). `max-height: 55%` para no tapar la cámara.
-- `BuildBrowserUITK.cs`: `SetupPiecesGrid()` fuerza flex-wrap en `contentContainer` desde código (USS child selectors no siempre los recoge el runtime).
-- `FurnitureService.cs`: hotbar `activePieces` marcada `[InfoBox]` DEBUG ONLY.
+**Refactor del modelo de datos (desacople item ↔ furniture ↔ comercio):**
+- `ItemDefinitionSO` ahora es **exclusivamente WorldProp** — se le quitó `ItemType Type` y el puente `FurnitureDef`. El item y el furniture funcionan distinto (item: mundo/hotbar/almacén; furniture: catálogo/build mode) y ya no comparten una sola definición.
+- `DeliveryBox` quedó **WorldProp-only** (sin `switch (item.Type)`, sin branch de furniture). Ya no dispara `InventoryChanged` (el prop queda suelto, no muta el inventario).
+- `StoreManager` ya no lleva su lista inline `StoreEntry`; ahora referencia un `ShopCatalogSO` y expone `BuyFurniture(def)` (directo → `inventory.AddFurniture`, F#) y `BuyWorldProp(def)` (spawn `DeliveryBox`). Sin wallet aún: precio es **display-only**, comprar es gratis.
 
-**Bugfixes:**
-- `HotbarController.ThrowActive` — fallback a `Rigidbody.linearVelocity` cuando el objeto no tiene `IThrowable`. Soluciona que WorldPropInstance sin `ThrowableObject` no se podían lanzar.
-- `FurnitureSpawner.OnReloaded` — coroutine con `yield return null` entre `ClearAll` y `Sync`. Causa raíz: `Destroy()` diferido + `floorMask = ~0` hacía que `TrySampleFloor` golpeara meshes viejos → furniture elevada al recargar.
-- `FurnitureSpawner.SpawnOne` — `isKinematic = true` en cualquier `Rigidbody` del prefab instanciado (muebles con Rigidbody no se elevan por física).
-- `StorageContainer.Eject` — `justEjectedId` previene re-captura inmediata cuando `ejectPoint` está dentro de la trigger zone.
+**Estructura comercial nueva (precio fuera de la definición):**
+- `StoreShopData` (struct): `BasePrice`, `DiscountBase` (0–1), `DiscountDays` ([Flags] `DiscountDay`), `DiscountMonths` ([Flags] `DiscountMonth`), `TypeFilter` ([Flags] `StoreItemTypeFilter`), `Tags[]`. Helpers `IsDiscountActive(now)` / `FinalPrice(now)`. Regla: flag None en día/mes = "sin restricción en ese eje"; descuento activo si `DiscountBase>0` y ambos ejes ok.
+- `ShopCatalogSO` (`SerializedScriptableObject`, uno por tienda): dos `[TableList]` tipados — `FurnitureListing` (FurnitureDef + StoreShopData) y `ItemListing` (ItemDef + StoreShopData). El precio vive acá, no en la definición → mismo item vendible en varias tiendas a precios distintos.
+
+**Por qué dos databases (Furniture + Item) + StoreDatabase aparte:** consumers distintos, namespaces de id distintos (`F#`/`I#`), tipos de dato distintos; el ShopCatalog es el punto de composición que referencia ambos sin que se conozcan. Mergerlos sería falsa economía.
+
+**UI nueva:**
+- `StorePanelUITK` (UIManager panel `Store=6`): 3 tabs (Muebles / Objetos / Consumibles), derivados del catálogo (Furniture; Item con `WorldPropCategory.Tool`; Item con Food+Medicine). Cada fila: nombre + precio (tacha base + precio rebajado verde si hay descuento hoy) + botón Comprar. `IUINavigable`: ←→ tab, ↑↓ fila, Submit compra. Rebuild al abrirse (precio depende de la fecha).
+- `InfoOverlayUITK` (HUD standalone, **no** en el dict de UIManager, picking-mode Ignore): fecha actual arriba-derecha (refresh 1×/seg, formateada en español) + leyenda de inputs arriba-izquierda (array `InputHint{Key,Action}` editable en inspector).
+
+### Sesión anterior (2026-06-09, sesión 2) — resumen
+
+UI scaling (hotbar/browser +40%) + bugfixes: `HotbarController.ThrowActive` fallback a `linearVelocity`; `FurnitureSpawner.OnReloaded` coroutine `yield return null`; `SpawnOne` isKinematic; `StorageContainer.Eject` `justEjectedId`. Detalle en git log de esa fecha.
 
 ---
 
@@ -31,23 +38,14 @@ tags: [memory-bank, active, session]
 
 | Archivo | Tipo | Para qué |
 |---------|------|----------|
-| `Scripts/Data/ItemDefinitionSO.cs` | SO | Entrada de catálogo; Id I#, ItemType, WorldPropCategory, Prefab o FurnitureDef |
-| `Scripts/Data/ItemDatabaseSO.cs` | SO | Dict I# → ItemDefinitionSO; Populate + Validate & Sync IDs |
-| `Scripts/Data/PlayerInventorySO.cs` | SO | furnitureOwned (F#), worldPropsStored (I#), hotbarSlots[6] + InventoryData DTO |
-| `Scripts/World/WorldPropInstance.cs` | MonoBehaviour | Marker en objetos world prop; ItemId + IsHeld; IInteractable → HotbarController.PickUp |
-| `Scripts/World/HotbarController.cs` | MonoBehaviour | Singleton; gestiona 6 slots, PickUp/Use/Throw/Drop/Scroll, spawn visual en mano |
-| `Scripts/Systems/Store/DeliveryBox.cs` | MonoBehaviour | IInteractable; Configure(ItemDefinitionSO); bifurca Furniture→furnitureOwned / WorldProp→spawn |
-| `Scripts/Systems/Store/StoreManager.cs` | MonoBehaviour | TableList Odin de StoreEntry; Button BuyItem(index) → spawn DeliveryBox en deliverySpawnPoint |
-| `Scripts/Systems/Store/StorageContainer.cs` | MonoBehaviour | Singleton; IInteractable → abre Storage UI; OnTriggerEnter captura WorldPropInstance; Eject(id) |
-| `Scripts/UI/HotbarHUDUITK.cs` | MonoBehaviour | Always-on HUD; 6 slots procedurales; actualiza en OnHotbarChanged + OnInventoryReloaded |
-| `Scripts/UI/StoragePanelUITK.cs` | MonoBehaviour | UIManager panel (Storage=5); lista worldPropsStored agrupada; IUINavigable ↑↓ + Submit ejecta |
-| `Scripts/UI/BuildBrowserUITK.cs` | MonoBehaviour | Standalone overlay; Tab toggle; tabs por FurnitureCategory; ←→ piezas; Enter → SelectPieceFromBrowser |
-| `UI Toolkit/HotbarHUDUITK.uxml` | UXML | Hotbar HUD (6 slots, picking-mode Ignore, bottom-center absolute) |
-| `UI Toolkit/HotbarHUDUITKStyle.uss` | USS | .hotbar-slot 64×64 + .hotbar-slot--active (borde amarillo, scale 1.08) |
-| `UI Toolkit/StoragePanelUITK.uxml` | UXML | Modal overlay; header + ScrollView "list" + empty label + close button |
-| `UI Toolkit/StoragePanelUITKStyle.uss` | USS | .storage-row (flex-row) + .storage-row--selected (borde amarillo) |
-| `UI Toolkit/BuildBrowserUITK.uxml` | UXML | Browser panel; "tabs" VisualElement + "pieces" ScrollView horizontal + "empty" Label |
-| `UI Toolkit/BuildBrowserUITKStyle.uss` | USS | .browser-tab/--active + .browser-piece/--selected (96×96 cards) |
+| `Scripts/Systems/Store/StoreShopData.cs` | struct | Datos comerciales de un listing: precio, descuento (flags día/mes), TypeFilter, tags. `IsDiscountActive`/`FinalPrice` |
+| `Scripts/Systems/Store/ShopCatalogSO.cs` | SO | Catálogo de UNA tienda: `List<FurnitureListing>` + `List<ItemListing>` (def + StoreShopData). Uno por tienda |
+| `Scripts/UI/StorePanelUITK.cs` | MonoBehaviour | UIManager panel (Store=6); 3 tabs; fila nombre+precio+Comprar; IUINavigable |
+| `Scripts/UI/InfoOverlayUITK.cs` | MonoBehaviour | HUD standalone; fecha (arriba-der) + tutorial inputs (arriba-izq) |
+| `UI Toolkit/StorePanelUITK.uxml` | UXML | header + "tabs" + ScrollView "list" + "empty" |
+| `UI Toolkit/StorePanelUITKStyle.uss` | USS | .store-tab/--active + .store-row/--selected + .store-price__was/now/now--sale |
+| `UI Toolkit/InfoOverlayUITK.uxml` | UXML | "hints" (arriba-izq) + "date" (arriba-der), picking-mode Ignore |
+| `UI Toolkit/InfoOverlayUITKStyle.uss` | USS | .overlay-hints/.hint-row/.hint-key/.hint-action + .overlay-date |
 
 ## Archivos modificados en esta sesión
 
@@ -95,9 +93,13 @@ tags: [memory-bank, active, session]
 | GameObject | Componentes / asignaciones nuevas |
 |-----------|----------------------------------|
 | **GameManager** | Asignar campo `furnitureRegistry` (FurnitureRegistrySO) + `inventory` (PlayerInventorySO) |
-| **StoreManager** *(nuevo)* | `StoreManager` + lista de `StoreEntry` (item + quantity) + `deliveryBoxPrefab` + `deliverySpawnPoint` |
+| **StoreManager** *(cambió)* | `StoreManager` → `catalog` (**ShopCatalogSO**, ya NO lista inline) + `deliveryBoxPrefab` + `deliverySpawnPoint` |
 | **StorageContainer** *(nuevo)* | Collider sólido (grabMask) + collider trigger (zona captura) + `StorageContainer` → `database` + `ejectPoint` |
 | **HotbarController** *(nuevo)* | `HotbarController` → `database` (ItemDatabaseSO) + `handAnchor` (mismo que holdAnchor) |
+| **Trigger de tienda** | Objeto con `PanelTrigger` (`panel = Store`) en el mostrador/computadora → tap E abre el StorePanel |
+
+> ⚠️ **Asset nuevo `ShopCatalogSO`**: Create → RunRunSimulator → Shop Catalog. Llenar **Furniture for sale** (arrastrar FurnitureDef + precio/descuento) y **World props for sale** (arrastrar ItemDef + precio/descuento). Uno por tienda.
+> ⚠️ Las **ItemDefinition** ya NO tienen opción Furniture (son WorldProp puro). El furniture se vende vía el catálogo de la tienda directo desde su `FurnitureDefinitionSO`.
 
 ### 4 · UI (UIDocuments + controllers)
 
@@ -105,21 +107,23 @@ tags: [memory-bank, active, session]
 |-------|-----------|---------------------|----------------------------|
 | **Hotbar HUD** | Siempre activo, `StandartPanelSettings` | Standalone (no mapear) | `database` (ItemDatabaseSO) |
 | **Storage** | Puede ser inactivo | UIManager → `UIPanelType.Storage` | `document`, `database` |
+| **Store** *(nuevo)* | Puede ser inactivo | UIManager → `UIPanelType.Store` (**=6**) | `document`, `store` (StoreManager de escena) |
+| **Info Overlay** *(nuevo)* | Siempre activo, picking-mode Ignore | Standalone (no mapear) | `document`, (opcional) editar `hints[]` |
 | **Build Browser** | Puede ser inactivo | Standalone (no mapear) | `document`, `database` (FurnitureDatabaseSO), `buildMode` |
 
-> ⚠️ El `BuildBrowserUITK` **NO** debe registrarse en el dict de UIManager — hacerlo activaría `OnUIFocusChanged` → `ExitBuildMode`.
+> ⚠️ El `BuildBrowserUITK` y el `InfoOverlayUITK` **NO** se registran en el dict de UIManager (no son panels focusables).
+> El `StorePanelUITK` **SÍ** se mapea en el dict (`Store → su GameObject`), como Storage.
 
 ### 5 · Flujo de prueba
 
 ```
-StoreManager inspector → BuyItem(i)
-  → DeliveryBox aparece en deliverySpawnPoint
-    → tap E → [Furniture] entra a furnitureOwned F# ó [WorldProp] spawna en escena
-      → tap E sobre WorldProp → va al hotbar (slot activo o primer libre)
-        → wheel navega slots · hold E lanza · Q suelta · click usa
-          → lanzar hacia StorageContainer → auto-captura
-            → tap E sobre StorageContainer → abre Storage UI
-              → botón Sacar (Q) → ejecta a escena
+tap E sobre el trigger de tienda → abre StorePanel (UIManager)
+  → ←→ cambia tab (Muebles / Objetos / Consumibles) · ↑↓ fila · Submit/Comprar
+    → [Muebles]  → inventory.AddFurniture(F#) → aparece en el Build Browser
+    → [Objetos / Consumibles] → DeliveryBox cae en deliverySpawnPoint
+       → tap E → spawna el WorldProp en escena
+         → tap E sobre WorldProp → hotbar · wheel navega · hold E lanza · Q suelta · click usa
+           → lanzar hacia StorageContainer → auto-captura → tap E abre Storage → Sacar (Q) ejecta
 ```
 
 ---
@@ -127,14 +131,20 @@ StoreManager inspector → BuyItem(i)
 ## Próximos pasos (retomar acá la próxima sesión)
 
 **Setup pendiente en Unity (código ✅ — solo editor):**
-- `PlacementGrid` inspector → `floorMask` = **solo layer Floor** (el default `~0` es todos los layers y causa elevación si el coroutine-fix no alcanza en algún caso edge).
-- `StorageContainer` inspector → asignar `ejectPoint` a un Transform **fuera** de la trigger zone (1-2m enfrente del container).
-- Verificar que todos los prefabs de furniture tengan sus model children en el layer `Furniture`, no en `Floor`.
+- **ShopCatalogSO**: Create → RunRunSimulator → Shop Catalog. Llenar `Furniture for sale` y `World props for sale` con defs + precios. Asignar al `StoreManager.catalog`.
+- **StorePanel**: crear GameObject con UIDocument (apuntando a `StorePanelUITK.uxml`), agregar `StorePanelUITK`, asignar `store` (el StoreManager de escena). Mapear `Store → ese GameObject` en el dict del UIManager.
+- **InfoOverlay**: crear GameObject con UIDocument (`InfoOverlayUITK.uxml`, picking-mode Ignore en el PanelSettings), agregar `InfoOverlayUITK`. **No** mapear en UIManager.
+- **PanelTrigger de tienda**: añadir a un objeto del mostrador/computadora con `panel = Store`.
+- `PlacementGrid` inspector → `floorMask` = **solo layer Floor**.
+- `StorageContainer` inspector → `ejectPoint` fuera de la trigger zone (1-2m enfrente).
+- Verificar prefabs de furniture: model children en layer `Furniture`, no en `Floor`.
 
-**Pendientes de código no solicitados aún:**
+**Pendientes de código (próxima sesión — tienda + economía):**
+- **Cloud Save `PlayerData`**: push/pull de `PlayerInventorySO` (inventory + hotbar) y `FurnitureRegistrySO` en `CloudSyncService` — mismo patrón que criaturas. `CurrentStock` de `StoreShopData` también va acá.
+- **Wallet**: campo `int Coins` en `PlayerInventorySO` (o `WalletSO` aparte) + restricción de compra en `StoreManager` (`TryConsume()` ya existe en `StoreShopData`).
+- **Stock en UI**: `StorePanelUITK` debe mostrar stock restante y deshabilitar "Comprar" si `!InStock`.
+- **Restock automático**: al abrir el panel (o al sign-in) comparar `DateTime.Now` con `IsRestockDay` y llamar `Restock()` si aplica.
 - Play-mode use effects por `WorldPropCategory` (Food/Medicine aplicados a MoriMonchis vía `OnItemUsed`).
-- Economía: `Wallet` + restricción de compra en `StoreManager` (Fase 3 real).
-- Cloud sync de inventory + furniture (mismo patrón que criaturas en `CloudSyncService`).
 
 **Pendientes previos (combate / world — siguen vigentes):**
 - Batalla instantánea: mostrar `"Instantánea"` en lugar del countdown en la Tab 3 del CombatPanel.

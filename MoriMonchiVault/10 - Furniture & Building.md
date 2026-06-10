@@ -165,31 +165,35 @@ Instancia `ActivePiece.Prefab` (o la def levantada), desactiva colliders, aplica
 
 ## Sistema de Inventario (Fase 2.5 — implementado 2026-06-09)
 
-El inventario conecta la tienda con el build-mode y el play-mode. Hay dos tipos de item; el ID de namespacing los distingue:
+El inventario conecta la tienda con el build-mode y el play-mode. **Dos namespaces de ID, dos flujos distintos:**
 
 | Tipo | ID | Qué hace al comprarse | Dónde persiste |
 |------|----|-----------------------|----------------|
-| **Furniture** | `F#` (de `FurnitureDatabaseSO`) | Entra a `furnitureOwned` (set, sin dupes — la propiedad permite colocaciones ilimitadas) | `PlayerInventorySO.furnitureOwned` |
-| **WorldProp** | `I#` (de `ItemDatabaseSO`) | Spawna como objeto físico en escena | `PlayerInventorySO.worldPropsStored` (cuando entra al almacén) |
+| **Furniture** | `F#` (de `FurnitureDatabaseSO`) | Directo a `furnitureOwned` (set, sin dupes) — sin entrega física | `PlayerInventorySO.furnitureOwned` |
+| **WorldProp** | `I#` (de `ItemDatabaseSO`) | `DeliveryBox` cae en escena → tap E → prop físico suelto | `PlayerInventorySO.worldPropsStored` (cuando entra al almacén) |
 
-### Capa de datos nueva
+> **Invariante**: `ItemDefinitionSO` es **WorldProp puro** — no tiene campo `ItemType` ni puente a `FurnitureDef`. La furniture se vende directo desde su `FurnitureDefinitionSO` vía `ShopCatalogSO`. `DeliveryBox` es WorldProp-only.
+
+### Capa de datos
 
 | Archivo | Análogo | Contrato |
 |---------|---------|----------|
-| `ItemDefinitionSO` | `FurnitureDefinitionSO` | `Id` (I#, ReadOnly), `ItemType`, `WorldPropCategory`, `Prefab` (WorldProp) ó `FurnitureDef` (Furniture, bridge a F#) |
+| `ItemDefinitionSO` | (WorldProp únicamente) | `Id` (I#, ReadOnly), `WorldPropCategory`, `Prefab` 3D |
 | `ItemDatabaseSO` | `FurnitureDatabaseSO` | Dict I# → ItemDefinitionSO; Populate + Validate & Sync IDs |
-| `PlayerInventorySO` | `FurnitureRegistrySO` | `furnitureOwned` (List F#) · `worldPropsStored` (List I#) · `hotbarSlots[6]` (strings I# o null) · `InventoryData` DTO JSON |
+| `PlayerInventorySO` | `FurnitureRegistrySO` | `furnitureOwned` (List F#) · `worldPropsStored` (List I#) · `hotbarSlots[6]` (I# o null) · `InventoryData` DTO JSON |
 
-### Flujo de adquisición
+### Flujos de adquisición (separados por tipo)
 
 ```
-StoreManager.BuyItem(i)
+[Furniture] StoreManager.BuyFurniture(def)
+  → inventory.AddFurniture(def.Id)  // F#, set — ya poseído = no-op
+  → InventoryChanged → GameManager guarda JSON
+
+[WorldProp] StoreManager.BuyWorldProp(def)
   → Instantiate(deliveryBoxPrefab) → box.Configure(item)
-    → jugador tap E → DeliveryBox.Interact()
-      → [Furniture] inventory.AddFurniture(item.FurnitureDef.Id)   // F#
-      → [WorldProp] Instantiate(item.Prefab) + marker.Configure(item.Id)
-      → InventoryChanged → GameManager guarda JSON
-      → Destroy(box)
+    → jugador tap E → Instantiate(item.Prefab) + marker.Configure(item.Id)
+    → prop suelto en escena (inventario sin cambiar — no dispara InventoryChanged)
+    → Destroy(box)
 ```
 
 ### Hotbar play-mode
@@ -206,14 +210,14 @@ StoreManager.BuyItem(i)
 - Collider trigger = auto-captura cualquier `WorldPropInstance` con `IsHeld=false` que entre.
 - `Eject(id)` → remove + Instantiate + Configure + InventoryChanged.
 
-### Eventos nuevos
+### Eventos
 
 | Evento | Quién dispara | Quién escucha |
 |--------|--------------|--------------|
-| `GameEvents.OnInventoryChanged` | `DeliveryBox`, `HotbarController`, `StorageContainer`, `GameManager.CollectLooseWorldProps` | `GameManager` (guarda JSON), `HotbarHUDUITK`, `StoragePanelUITK` |
+| `GameEvents.OnInventoryChanged` | `StoreManager.BuyFurniture`, `HotbarController`, `StorageContainer`, `GameManager.CollectLooseWorldProps` | `GameManager` (guarda JSON), `HotbarHUDUITK`, `StoragePanelUITK` |
 | `GameEvents.OnInventoryReloaded` | `CloudSyncService.OnSignedInComplete` | HUD + Storage panel (sin re-push) |
 
-### Persistencia de furniture (fix aplicado)
+### Persistencia de furniture (fix aplicado 2026-06-09)
 
 `FurnitureRegistrySO` **no se persistía antes** — fix: `SaveSystem.SaveFurniture/LoadFurniture` + `GameManager` suscrito a `OnFurnitureChanged` + `CloudSyncService` lo carga en sign-in junto al inventory.
 
@@ -223,20 +227,7 @@ StoreManager.BuyItem(i)
 
 > **Decisión confirmada (2026-06-04):** modelo **Hotbar + Browser temporal**. Diseñado para ser console-first (D-pad) y compatible con PC.
 
-### Problema
-
-El hotbar (slots 1-4) ya está implementado y es el mecanismo correcto para consola. Lo que falta es cómo el jugador **carga** esos slots desde su inventario completo.
-
-### Opciones descartadas
-
-| Opción | Por qué se descartó |
-|--------|---------------------|
-| **Sidebar fijo** | En FP tapa ~30% de pantalla durante el ghost; molesto en consola |
-| **Rueda/radial** | Escala mal: con >8 piezas necesitás "páginas" en una rueda, lo que es horrible de navegar |
-
-### Diseño elegido: Hotbar + Browser temporal
-
-El hotbar es acceso rápido (slots 1-4, ya implementado). El **browser** solo se abre cuando el jugador quiere **reasignar un slot**:
+El hotbar (slots 1-4) ya está implementado. El **browser** solo se abre cuando el jugador quiere **reasignar un slot**:
 
 ```
 Browsing → Hold Tab (PC) / Select (consola)
@@ -244,30 +235,81 @@ Browsing → Hold Tab (PC) / Select (consola)
     → D-pad ↑↓  navega categorías (Decoration / Display / Functional)
     → D-pad ←→  navega piezas dentro de la categoría
     → A / Enter  asigna la pieza al slot activo → cierra el panel
-  → Vuelve a Browsing con la nueva pieza en el slot
 ```
 
-**Rationale:**
-- Cero visual clutter durante placement — el browser solo aparece on-demand.
-- Escala a cualquier cantidad de piezas (paginación por categoría, sin límite).
-- D-pad es el control estándar de grids en consola (Animal Crossing, Planet Zoo, The Sims).
-- Una vez configurados los 4 slots favoritos, el loop de placement es fluido y sin fricciones.
-- Fase 3 (Shop) se integra naturalmente: comprar una pieza la manda al inventario → aparece en el browser.
-
-### Implicaciones en código (sobre lo ya implementado)
-
-- `FurnitureService.activePieces` (`List<FurnitureDefinitionSO>`) ya es mutable → el browser simplemente escribe ahí.
-- `FurnitureCategory` (enum) ya existe en los SOs → tabs de categoría gratis.
-- Action map `Building` ya tiene `SlotSelected` → agregar acción `BrowseOpen` (Tab / Select button).
-- Nuevo panel UITK que lee `FurnitureDatabaseSO` por categoría. Sin tocar el core de placement ni la FSM del build mode.
+`FurnitureService.activePieces` (`List<FurnitureDefinitionSO>`) ya es mutable → el browser escribe ahí. Comprar una pieza en la tienda la manda a `furnitureOwned` → aparece en el browser automáticamente.
 
 ---
 
-## Fase 3 — Economía + tienda
+## Fase 3 — Tienda (implementada 2026-06-10)
 
-- `Wallet`: moneda del jugador, **persiste**.
-- `ShopService` + panel UITK que lista `FurnitureDefinitionSO` con precio → comprar entra a placement (Fase 2).
-- Diseño de precios/categorías/economía → **Notion** (capa de diseño, dueño = usuario).
+> Diseño de precios/categorías/economía → **Notion** (capa de diseño, dueño = usuario).
+
+### Arquitectura comercial — separación de responsabilidades
+
+El precio y las condiciones de oferta son datos **del negocio de la tienda**, no de la definición del item. Un mismo item puede aparecer en distintas tiendas a distintos precios. Por eso se introdujo una capa comercial separada.
+
+```
+FurnitureDatabaseSO  ←──  FurnitureDefinitionSO (F#, footprint, prefab, categoría)
+ItemDatabaseSO       ←──  ItemDefinitionSO       (I#, WorldPropCategory, prefab)
+
+ShopCatalogSO (uno por tienda)
+  ├── List<FurnitureListing>  { FurnitureDef  + StoreShopData }
+  └── List<ItemListing>       { ItemDef       + StoreShopData }
+
+StoreShopData = { BasePrice, DiscountBase, DiscountDays[Flags], DiscountMonths[Flags],
+                  TypeFilter[Flags], Tags[] }
+```
+
+### `StoreShopData` — struct compartido
+
+- `DiscountDay` `[Flags]`: días de la semana en que aplica el descuento. `None` = sin restricción de día.
+- `DiscountMonth` `[Flags]`: meses en que aplica. `None` = sin restricción de mes.
+- `StoreItemTypeFilter` `[Flags]` (`Furniture | WorldProp`): etiqueta de tipo para filtro en UI.
+- `IsDiscountActive(DateTime)`: descuento activo si `DiscountBase > 0` Y `hoy` cae en ambos ejes (día + mes).
+- `FinalPrice(DateTime)`: precio base con descuento aplicado si está activo.
+
+**Stock:**
+- `CurrentStock` (int, -1 = ilimitado): unidades disponibles en este momento. Se decrementa con `TryConsume()`.
+- `MaxStock` (int, -1 = ilimitado): unidades al reabastecerse. `Restock()` lleva `CurrentStock → MaxStock`.
+- `RestockMonths` (`DiscountMonth [Flags]`): meses en que ocurre el restock. `None` = todos los meses.
+- `RestockPeriod` (enum `EarlyMonth` / `MidMonth` / `EndOfMonth`): cuándo del mes reabastece (días 1-10 / 11-20 / 21+).
+- `IsRestockDay(DateTime)`: true si hoy cae en el mes+periodo del restock.
+
+> **Pendiente**: `CurrentStock` es estado runtime en el SO — necesita persistirse en Cloud Save (`PlayerData`, mismo bucket que inventario + wallet). Hoy se resetea entre sesiones.
+
+### `ShopCatalogSO` — el SO de cada tienda
+
+`SerializedScriptableObject`. Dos `[TableList]` tipados:
+- `FurnitureListing`: `FurnitureDefinitionSO Furniture + StoreShopData Shop`
+- `ItemListing`: `ItemDefinitionSO Item + StoreShopData Shop`
+
+Expone `FurnitureListings` / `ItemListings` (readonly) al panel. Una tienda = un asset.
+
+### `StoreManager` — API de compra
+
+Scene MonoBehaviour, referencia un `ShopCatalogSO`:
+- `BuyFurniture(def)` → `inventory.AddFurniture(F#)` + `InventoryChanged`. No-op si ya poseído.
+- `BuyWorldProp(def)` → spawn `DeliveryBox`. Sin `InventoryChanged` (prop suelto ≠ inventario mutado).
+
+### `StorePanelUITK` — UI (UIPanelType.Store = 6)
+
+3 tabs derivadas del catálogo:
+- **Muebles** → `FurnitureListings`
+- **Objetos** → `ItemListings` con `WorldPropCategory.Tool`
+- **Consumibles** → `ItemListings` con `Food` o `Medicine`
+
+Cada fila: nombre + precio (base tachado + rebajado verde si `IsDiscountActive`) + botón Comprar. `IUINavigable`: ←→ tab, ↑↓ fila, Submit compra. Rebuild al abrirse (precio depende de la fecha real).
+
+**Tamaño y anchor (ajustados 2026-06-10):** panel `728px` de ancho (+40%), anclado arriba-centro (`justify-content: flex-start + padding-top: 24px`).
+
+### `InfoOverlayUITK` — HUD genérico always-on
+
+Standalone (no UIManager panel), `picking-mode: Ignore`.
+- **Top-right**: fecha actual en español (refresh 1×/seg).
+- **Top-left**: leyenda de inputs (array `InputHint[]` editable en inspector).
+
+**Tamaño (ajustado 2026-06-10):** todas las fuentes y espaciados ×1.5.
 
 ## Persistencia (implementada 2026-06-09)
 

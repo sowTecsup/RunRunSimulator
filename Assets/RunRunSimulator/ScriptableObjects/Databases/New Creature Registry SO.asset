@@ -176,13 +176,13 @@ MonoBehaviour:
       Data: 5|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 47.10254
+      Data: 28.6085243
     - Name: Energy
       Entry: 4
-      Data: 43.6382065
+      Data: 22.0621586
     - Name: Affect
       Entry: 4
-      Data: 9.850709
+      Data: 63.98772
     - Name: 
       Entry: 8
       Data: 
@@ -524,13 +524,13 @@ MonoBehaviour:
       Data: 16|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 79.87186
+      Data: 61.37787
     - Name: Energy
       Entry: 4
-      Data: 14.9389763
+      Data: 91.82241
     - Name: Affect
       Entry: 4
-      Data: -88.02411
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -699,13 +699,13 @@ MonoBehaviour:
       Data: 20|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 42.44418
+      Data: 35.1224022
     - Name: Energy
       Entry: 4
-      Data: 27.4584961
+      Data: 96.27463
     - Name: Affect
       Entry: 4
-      Data: -62.89551
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -947,13 +947,13 @@ MonoBehaviour:
       Data: 27|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 74.7254944
+      Data: 56.7338638
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 89.63936
     - Name: Affect
       Entry: 4
-      Data: -61.2300758
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -1291,13 +1291,13 @@ MonoBehaviour:
       Data: 35|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 43.5145226
+      Data: 25.52288
     - Name: Energy
       Entry: 4
-      Data: 79.3620758
+      Data: 57.0516853
     - Name: Affect
       Entry: 4
-      Data: -77.8504257
+      Data: 96.0620346
     - Name: 
       Entry: 8
       Data: 
@@ -1454,13 +1454,13 @@ MonoBehaviour:
       Data: 39|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 53.0015755
+      Data: 35.0099258
     - Name: Energy
       Entry: 4
-      Data: 33.5759
+      Data: 75.30144
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 98.28306
     - Name: 
       Entry: 8
       Data: 
@@ -2079,13 +2079,13 @@ MonoBehaviour:
       Data: 61|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 82.3976059
+      Data: 64.9107361
     - Name: Energy
       Entry: 4
-      Data: 17.9628487
+      Data: 97.5542
     - Name: Affect
       Entry: 4
-      Data: -57.6898842
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -2248,13 +2248,13 @@ MonoBehaviour:
       Data: 65|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 76.05756
+      Data: 58.5706635
     - Name: Energy
       Entry: 4
-      Data: 81.3711
+      Data: 60.8423233
     - Name: Affect
       Entry: 4
-      Data: 20.9727478
+      Data: 98.17975
     - Name: 
       Entry: 8
       Data: 
@@ -2466,13 +2466,13 @@ MonoBehaviour:
       Data: 71|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 15.6358395
+      Data: 95.62058
     - Name: Energy
       Entry: 4
-      Data: 87.42209
+      Data: 71.40791
     - Name: Affect
       Entry: 4
-      Data: -88.94509
+      Data: 25.6497612
     - Name: 
       Entry: 8
       Data: 
@@ -2840,13 +2840,13 @@ MonoBehaviour:
       Data: 83|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 4.507336
+      Data: 92.52018
     - Name: Energy
       Entry: 4
-      Data: 0.07201588
+      Data: 95.89725
     - Name: Affect
       Entry: 4
-      Data: -72.85613
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -3006,10 +3006,10 @@ MonoBehaviour:
       Data: 87|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 76.20816
+      Data: 59.225872
     - Name: Energy
       Entry: 4
-      Data: 31.1845665
+      Data: 14.8496428
     - Name: Affect
       Entry: 4
       Data: -100
@@ -3169,13 +3169,13 @@ MonoBehaviour:
       Data: 91|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 54.501915
+      Data: 37.5196075
     - Name: Energy
       Entry: 4
-      Data: 38.3936844
+      Data: 98.85188
     - Name: Affect
       Entry: 4
-      Data: -11.8857374
+      Data: -61.868042
     - Name: 
       Entry: 8
       Data: 
@@ -3504,13 +3504,13 @@ MonoBehaviour:
       Data: 99|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 47.7324066
+      Data: 31.2513618
     - Name: Energy
       Entry: 4
-      Data: 59.8865623
+      Data: 43.6595421
     - Name: Affect
       Entry: 4
-      Data: -62.0738449
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -3870,13 +3870,13 @@ MonoBehaviour:
       Data: 111|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 78.6608
+      Data: 62.17982
     - Name: Energy
       Entry: 4
-      Data: 14.8757305
+      Data: 94.06145
     - Name: Affect
       Entry: 4
-      Data: -40.6813431
+      Data: -96.1623154
     - Name: 
       Entry: 8
       Data: 
@@ -4452,10 +4452,10 @@ MonoBehaviour:
       Data: 131|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 81.5017242
+      Data: 65.0207748
     - Name: Energy
       Entry: 4
-      Data: 32.2618
+      Data: 98.92325
     - Name: Affect
       Entry: 4
       Data: -100
@@ -4618,13 +4618,13 @@ MonoBehaviour:
       Data: 135|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 25.2623634
+      Data: 94.38075
     - Name: Energy
       Entry: 4
-      Data: 65.36101
+      Data: 43.8759537
     - Name: Affect
       Entry: 4
-      Data: -55.41298
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -4784,13 +4784,13 @@ MonoBehaviour:
       Data: 139|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 78.1136856
+      Data: 61.9368668
     - Name: Energy
       Entry: 4
-      Data: 77.6386642
+      Data: 54.17636
     - Name: Affect
       Entry: 4
-      Data: -43.8461647
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -5428,13 +5428,13 @@ MonoBehaviour:
       Data: 162|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 97.98641
     - Name: Energy
       Entry: 4
-      Data: 60.8324
+      Data: 44.8108826
     - Name: Affect
       Entry: 4
-      Data: -68.25087
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -5591,13 +5591,13 @@ MonoBehaviour:
       Data: 166|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 37.9421959
+      Data: 99.38872
     - Name: Energy
       Entry: 4
-      Data: 21.2711048
+      Data: 94.17482
     - Name: Affect
       Entry: 4
-      Data: -29.9788914
+      Data: -87.9047546
     - Name: 
       Entry: 8
       Data: 
@@ -6351,13 +6351,13 @@ MonoBehaviour:
       Data: 193|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 34.21023
+      Data: 99.9711151
     - Name: Energy
       Entry: 4
-      Data: 6.26856661
+      Data: 97.66223
     - Name: Affect
       Entry: 4
-      Data: -40.9288177
+      Data: -66.85459
     - Name: 
       Entry: 8
       Data: 
@@ -6514,10 +6514,10 @@ MonoBehaviour:
       Data: 197|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 19.4316368
+      Data: 94.8969
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 95.16042
     - Name: Affect
       Entry: 4
       Data: -100

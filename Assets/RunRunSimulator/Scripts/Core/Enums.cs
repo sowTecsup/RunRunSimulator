@@ -67,6 +67,7 @@ public enum UIPanelType
     Breeding         = 3,  // Breeding screen: parent selection + incubating eggs
     Combat           = 4,  // Combat screen: online battle + local combat + results
     Storage          = 5,  // Storage box: list of stored world props + eject
+    Store            = 6,  // Shop screen: catalog of furniture + world props with prices
 }
 
 // What the player is currently doing. Drives input/cursor/camera: while a UI
@@ -88,10 +89,11 @@ public enum FurnitureCategory
     Functional = 2,
 }
 
-// Splits an inventory item into the two worlds it can live in: furniture is placed
-// only in build mode (grid-bound), a world prop is a tangible object the player holds,
-// uses and drops around the shop. Drives how DeliveryBox resolves a purchase and how
-// the player inventory stores it (furnitureOwned vs worldPropsStored).
+// The two worlds an owned thing can live in, mirroring the inventory's split: furniture
+// is placed only in build mode (grid-bound, "F#" ids in furnitureOwned), a world prop is
+// a tangible object the player holds, uses and drops ("I#" ids in worldPropsStored). No
+// single SO carries this anymore — furniture and world props have separate definitions
+// and purchase flows; the enum stays as the canonical name for that namespace split.
 public enum ItemType
 {
     Furniture = 0,
@@ -105,6 +107,67 @@ public enum WorldPropCategory
     Tool     = 0,  // escoba, regadera, bate — utilitarios / lanzables
     Food     = 1,  // alimentos que se aplican a los MoriMonchis
     Medicine = 2,  // curas / remedios
+}
+
+// Days a shop discount applies. Flags so a listing can run an offer on any mix of
+// weekdays (e.g. weekend sale = Saturday | Sunday). None = no day constraint
+// (the discount runs every day, gated only by month + a non-zero DiscountBase).
+[System.Flags]
+public enum DiscountDay
+{
+    None      = 0,
+    Monday    = 1 << 0,
+    Tuesday   = 1 << 1,
+    Wednesday = 1 << 2,
+    Thursday  = 1 << 3,
+    Friday    = 1 << 4,
+    Saturday  = 1 << 5,
+    Sunday    = 1 << 6,
+}
+
+// Months a shop discount applies. Flags so a listing can run a seasonal offer
+// (e.g. holidays = November | December). None = no month constraint (every month).
+[System.Flags]
+public enum DiscountMonth
+{
+    None      = 0,
+    January   = 1 << 0,
+    February  = 1 << 1,
+    March     = 1 << 2,
+    April     = 1 << 3,
+    May       = 1 << 4,
+    June      = 1 << 5,
+    July      = 1 << 6,
+    August    = 1 << 7,
+    September = 1 << 8,
+    October   = 1 << 9,
+    November  = 1 << 10,
+    December  = 1 << 11,
+}
+
+// When during the restock month the stock refills. The day ranges are:
+//   EarlyMonth  = days  1–10
+//   MidMonth    = days 11–20
+//   EndOfMonth  = days 21–end
+// Used together with DiscountMonth (which months) to pin the exact restock window.
+public enum RestockPeriod
+{
+    EarlyMonth = 0,
+    MidMonth   = 1,
+    EndOfMonth = 2,
+}
+
+// Forward-looking filter for the shop UI: a listing tags which kind(s) it counts as,
+// so a future unified "filter by type" view can mask the catalog without re-deriving
+// the type from which typed list the entry lives in. Distinct from ItemType (which
+// classifies the data, not a filter) — this one is [Flags] so a filter can combine
+// kinds. Extend with Consumable etc. as the catalog grows.
+[System.Flags]
+public enum StoreItemTypeFilter
+{
+    None      = 0,
+    Furniture = 1 << 0,
+    WorldProp = 1 << 1,
 }
 
 // The three needs a MoriMochi satisfies at world NeedStations (Feeder / RestZone / PlayZone),
