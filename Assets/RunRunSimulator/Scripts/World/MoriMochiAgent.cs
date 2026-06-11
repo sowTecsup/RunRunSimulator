@@ -184,10 +184,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [SerializeField] private float getUpJitter = 0.15f;
 
     // ── Presentation (visuals + juice) ──
-    [TabGroup("Tuning", "Presentation"), Title("Visuals")]
-    [Tooltip("Renderer to tint by personality. The root has no mesh — this is the renderer under the 'Model' child. Auto-found if left empty.")]
-    [SerializeField] private Renderer bodyRenderer;
-
     // Juice hook points. They fire UnityEvents now (compiles without Feel installed).
     // When Feel lands: drop an MMF_Player on the prefab and wire its PlayFeedbacks()
     // into the matching event in the inspector — zero code coupling. These are the
@@ -230,6 +226,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private float     pettingDisplayTimer; // drives the "Petting…" label on the NameTag; decays to 0 on its own
     private AgentState stateBeforeReact = AgentState.Roaming;
 
+    // True while this creature is dropped to physics (ragdoll) through a furniture-driven NavMesh
+    // rebake. WillRebake hands it to physics so the bake can't snap it; Rebaked clears this and
+    // TickThrown resumes — it settles + gets up onto the fresh mesh, staggered by personality.
+    private bool rebakeInProgress;
+
     // Confinement (breeding pen): non-null only while penned. While confined the areaMask is
     // restricted to the BreedingRoom area (can't path onto normal floor) and roam destinations
     // are sampled inside the pen's bounds. Set by EnterConfinement, cleared on grab.
@@ -250,10 +251,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private float      effGetUpDuration;
     private Quaternion getUpFrom;
     private Quaternion getUpTo;
-
-    // Shader color slots — set both so the tint works on URP (_BaseColor) and built-in (_Color).
-    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-    private static readonly int ColorId     = Shader.PropertyToID("_Color");
 
     public bool IsHeld => state == AgentState.Carried;
     // True only while ragdolling after a throw — not while carried, not while NavMesh-driven.
@@ -316,18 +313,26 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
+    // A furniture rebake snaps every active agent — we react to bracket events so this one
+    // detaches before the bake and re-anchors after. Subscribe/unsubscribe with activation so a
+    // pooled (inactive) instance never reacts (it's off the mesh anyway).
+    private void OnEnable()
+    {
+        GameEvents.OnNavMeshWillRebake += OnNavMeshWillRebake;
+        GameEvents.OnNavMeshRebaked    += OnNavMeshRebaked;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnNavMeshWillRebake -= OnNavMeshWillRebake;
+        GameEvents.OnNavMeshRebaked    -= OnNavMeshRebaked;
+    }
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         rb    = GetComponent<Rigidbody>();
         col   = GetComponent<Collider>();
-
-        // The mesh lives under the "Model" child, not the root. Resolve it if not wired.
-        if (bodyRenderer == null)
-        {
-            var model    = transform.Find("Model");
-            bodyRenderer = model != null ? model.GetComponentInChildren<Renderer>() : null;
-        }
 
         rb.isKinematic = true;          // NavMeshAgent drives until we get thrown
         rb.useGravity  = false;
@@ -359,8 +364,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         confinedAreaMask = breeding >= 0 ? 1 << breeding : NavMesh.AllAreas;
         freeAreaMask     = breeding >= 0 ? NavMesh.AllAreas & ~(1 << breeding) : NavMesh.AllAreas;
         agent.areaMask   = freeAreaMask;     // free movement — personality is a preference, never a fence
-
-        ApplyTint(profile.Tint);
 
         EnterRoaming();
     }
@@ -462,6 +465,23 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         rb.AddForce(impulse, ForceMode.Impulse);
     }
 
+    // Cannon spawn: disables the NavMeshAgent BEFORE teleporting to the muzzle so the agent never
+    // fires OnEnable off-mesh (which would error, snap the transform to the floor, and fight
+    // physics). Initialize() must have been called first on a valid NavMesh point — this just
+    // handles the "pop out of the machine" movement. It then arcs as a ragdoll, lands, and gets up
+    // onto the mesh via the normal throw pipeline (TickThrown → BeginGetUp).
+    public void PrepareForLaunch(Vector3 launchPos, Vector3 launchVelocity)
+    {
+        DetachToPhysics();              // agent.enabled = false before teleporting off-mesh
+        transform.position = launchPos;
+        ApplyThrownPhysics();
+        holdAnchor = null;
+        state      = AgentState.Thrown;
+        // VelocityChange (not Impulse) so the body gets EXACTLY the computed ballistic velocity
+        // regardless of mass — the spawner solved this to land inside the cannon's radius.
+        rb.AddForce(launchVelocity, ForceMode.VelocityChange);
+    }
+
     // ── States ────────────────────────────────────────────────────
 
     private void TickIdle()
@@ -478,6 +498,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         if (TryEnterNeedSeeking()) return;
         if (ReactIfPlayerNear()) return;
 
+        if (!agent.isOnNavMesh) return;
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.1f)
         {
             // Reached the waypoint — maybe pause, depending on personality.
@@ -607,6 +628,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     {
         if (reservedStation == null) { EnterRoaming(); return; }   // station vanished / stolen → re-plan
 
+        if (!agent.isOnNavMesh) return;
         if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance + 0.2f)
         {
             SetStopped(true);                 // arrived → hold position and start consuming
@@ -638,6 +660,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     private void TickThrown()
     {
+        // Held as a ragdoll through a navmesh rebake — don't settle/rejoin until the bake finishes
+        // (Rebaked clears this), so we never try to anchor onto a mesh that's mid-rebuild.
+        if (rebakeInProgress) return;
+
         thrownTimer += Time.deltaTime;
 
         // Settle only when it's actually slow AND resting on the floor — a low velocity
@@ -807,11 +833,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         agent.updateRotation = true;
         SetColliderTrigger(true);
 
-        holdAnchor         = null;
-        settleTimer        = thrownTimer = idleTimer = recoverTimer = repathTimer
-                           = reactingTimer = reactCooldownTimer = pettingDisplayTimer = 0f;
-        bounceCount        = 0;
-        state              = AgentState.Idle;
+        holdAnchor       = null;
+        settleTimer      = thrownTimer = idleTimer = recoverTimer = repathTimer
+                         = reactingTimer = reactCooldownTimer = pettingDisplayTimer = 0f;
+        bounceCount      = 0;
+        rebakeInProgress = false;
+        state            = AgentState.Idle;
     }
 
     // Called by the spawner before this instance goes back to the pool (deactivated): free any
@@ -823,6 +850,38 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         if (currentContainer != null) { currentContainer.Release(this); currentContainer = null; }
         if (agent.enabled && agent.isOnNavMesh) agent.ResetPath();
     }
+
+    // ── NavMesh rebake survival ───────────────────────────────────
+
+    // A furniture-driven rebake is imminent. If we're walking the mesh, drop any reservation and
+    // hand the body to PHYSICS (ragdoll). A dynamic Rigidbody isn't a NavMeshAgent, so the bake
+    // can't teleport it across the room; it just rests where it stood. Physics-driven states
+    // (carried / thrown / recovering) own their own re-entry — leave them.
+    private void OnNavMeshWillRebake()
+    {
+        if (rebakeInProgress || !IsNavMeshControlled()) return;
+        rebakeInProgress = true;
+        ReleaseStation();
+        DetachToPhysics();          // agent off, Rigidbody dynamic + collider solid
+        ApplyThrownPhysics();
+        holdAnchor = null;
+        state      = AgentState.Thrown;   // gated in TickThrown until Rebaked clears the flag
+    }
+
+    // The fresh mesh is live. Release the ragdoll: TickThrown now settles it and BeginGetUp
+    // re-anchors onto the new mesh — staggered per-personality, so the whole crowd doesn't snap
+    // upright in the same frame (the old "tilting" pop). Off-mesh creatures just keep ragdolling
+    // until they settle somewhere valid.
+    private void OnNavMeshRebaked()
+    {
+        if (!rebakeInProgress) return;
+        rebakeInProgress = false;
+    }
+
+    // NavMesh-driven states (vs. physics/animation-driven: carried, thrown, recovering).
+    private bool IsNavMeshControlled() =>
+        state == AgentState.Idle    || state == AgentState.Roaming     || state == AgentState.Reacting ||
+        state == AgentState.SeekingNeed || state == AgentState.UsingStation;
 
     // ── Physics handoff (NavMeshAgent ⇄ Rigidbody) ────────────────
 
@@ -968,18 +1027,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 #else
         return System.Array.Empty<string>();
 #endif
-    }
-
-    // Test/debug: paint the body its personality color via a property block (no per-instance
-    // material clone, so no leak). NameTag and other child renderers are untouched.
-    private void ApplyTint(Color c)
-    {
-        if (bodyRenderer == null) return;
-        var mpb = new MaterialPropertyBlock();
-        bodyRenderer.GetPropertyBlock(mpb);
-        mpb.SetColor(BaseColorId, c);
-        mpb.SetColor(ColorId, c);
-        bodyRenderer.SetPropertyBlock(mpb);
     }
 
     private float PlanarDistanceToPlayer()

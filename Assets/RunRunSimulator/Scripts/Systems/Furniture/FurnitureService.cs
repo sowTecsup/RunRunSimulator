@@ -74,23 +74,33 @@ public class FurnitureService : MonoBehaviour
     [Button("Rebake NavMesh", ButtonSizes.Large), GUIColor(0.6f, 0.8f, 1f)]
     public void RebakeNavMesh()
     {
-       
-       if (navSurface != null && navSurface.navMeshData != null)
+        if (navSurface == null) return;
+
+        if (navSurface.navMeshData != null)
         {
             StartCoroutine(UpdateNavMeshAsyncRoutine());
         }
-       else
+        else
         {
+            // First-ever bake (no data yet) is synchronous — bracket it so agents re-anchor.
+            GameEvents.NavMeshWillRebake();
             navSurface.BuildNavMesh();
+            GameEvents.NavMeshRebaked();
         }
     }
     private System.Collections.IEnumerator UpdateNavMeshAsyncRoutine()
     {
+        // Let live agents detach + freeze so the bake doesn't snap them across the room.
+        GameEvents.NavMeshWillRebake();
+
         // UpdateNavMesh calcula solo las áreas que cambiaron usando los datos existentes
         AsyncOperation op = navSurface.UpdateNavMesh(navSurface.navMeshData);
 
         // Esperamos a que termine en segundo plano
         yield return op;
+
+        // Fresh mesh is live — agents re-anchor to the nearest point under them.
+        GameEvents.NavMeshRebaked();
 
         Debug.Log("¡NavMesh actualizado con éxito (Asíncrono)!");
     }

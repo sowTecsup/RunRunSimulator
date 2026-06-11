@@ -43,6 +43,9 @@ public class GameManager : MonoBehaviour
     [Required, AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private PlayerInventorySO inventory;
 
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private PartVisualBankSO partVisualBank;
+
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
 
@@ -308,6 +311,7 @@ public class GameManager : MonoBehaviour
     public InheritanceOddsTableSO InheritanceOddsTable => inheritanceOddsTable;
     public CombatManagerSO        CombatConfig         => combatConfig;
     public PersonalityProfileSO   PersonalityProfiles  => personalityProfiles;
+    public PartVisualBankSO       PartVisualBank       => partVisualBank;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures"), BoxGroup("Registry")]
     public int RegistryCount => creatureRegistry?.Count ?? 0;

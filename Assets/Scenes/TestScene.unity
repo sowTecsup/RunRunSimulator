@@ -1512,7 +1512,7 @@ Transform:
   m_GameObject: {fileID: 276339534}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -30, y: 1, z: 26}
+  m_LocalPosition: {x: -30, y: 1, z: 31.27}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -17970,6 +17970,7 @@ MonoBehaviour:
   creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
   furnitureRegistry: {fileID: 11400000, guid: 065d7cb988feefa4db35e5ec9e276bd2, type: 2}
   inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
+  partVisualBank: {fileID: 11400000, guid: 0f4abf5f11f4e7a468321e65eea303fe, type: 2}
   cloudSync: {fileID: 1443145214}
   devDabloonsAmount: 500
   currentDNA:
@@ -21774,7 +21775,7 @@ Transform:
   m_GameObject: {fileID: 1999386637}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.94, y: 0, z: 9.15}
+  m_LocalPosition: {x: -24.46, y: 0, z: 46.08}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21792,16 +21793,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e71d9e76c1006084097db51bb17f8063, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMochiSpawner
-  creaturePrefab: {fileID: 992515727134330810, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
-  spawnMode: 1
-  spawnArea: {fileID: 1999386638}
-  spawnRadius: 15
+  creaturePrefab: {fileID: 5081513166221571659, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
   launchPoint: {fileID: 276339540}
-  launchForce: {x: 35, y: 40}
-  launchAngle: {x: 45, y: 70}
-  startDelay: 2
-  spawnInterval: 0.5
-  spawnPerTick: 3
+  spawnArea: {fileID: 276339540}
+  spawnRadius: 5
+  launchAngle: {x: 20, y: 30}
+  startDelay: 4
+  spawnInterval: 10
+  spawnPerTick: 1
+  navMeshWaitTimeout: 10
 --- !u!1 &2004143669
 GameObject:
   m_ObjectHideFlags: 0

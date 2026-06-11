@@ -56,6 +56,18 @@ public static class GameEvents
     public static event Action<FurnitureRegistrySO> OnFurnitureReloaded;
     public static void FurnitureReloaded(FurnitureRegistrySO registry) => OnFurnitureReloaded?.Invoke(registry);
 
+    // ── NavMesh rebake ────────────────────────────────────────────
+    // A furniture-driven rebake snaps every ACTIVE NavMeshAgent to the nearest point on the
+    // new mesh (visible teleport). These bracket the bake so live agents can detach + freeze
+    // in place before it (WillRebake) and re-anchor to the fresh mesh after it (Rebaked),
+    // turning the snap into a no-op. No payload — the listener acts on its own transform.
+
+    public static event Action OnNavMeshWillRebake;
+    public static void NavMeshWillRebake() => OnNavMeshWillRebake?.Invoke();
+
+    public static event Action OnNavMeshRebaked;
+    public static void NavMeshRebaked() => OnNavMeshRebaked?.Invoke();
+
     // ── Inventory ─────────────────────────────────────────────────
     // Same contract as the registries: Changed = gameplay mutation (buy / pickup /
     // store / eject / hotbar edit) → persist + UI; Reloaded = wholesale replace from
