@@ -1,6 +1,10 @@
 ---
 tags: [memory-bank, bugs, checkpoints, future]
 ---
+Bug 11/6
+BUGS TILTING AL MOMENTO DE SPAWNEAR UN MORIMONCHI EN EL ENEMY SPAWNER
+Funciona mejor pero seguirmos teniendo problema del tilting documentemos esto en bugs porque ya no hay tiempo asi como lo avanzando tambien , improtante añade en tu claude md no añadir comentarios a los codigos si yo no te lo pido expresamente ya que tenemos el vault para documentar no es necesario hacer en el docugo el bug del tilting suce porque veo que se llama 3 veces load 15 creatures loaded 3 place furnitures navmsh actualizado asincrono clooud sync y este paquete se repide  3 vceces mientras nuestro pequeño morimonchi esta activo lo que hace que se tiltee y se vea horrible lo investigaremos mas adelante mi teoria es que  , se hace un rebake por cada furniture, deberiamos esperar que todas se ponga antes de hacer un navmesh update almenos la primera vez ,que cargamos las cosas tendria sentido eso , respecto al navmesh antes me gustaria debugear mas adelante estos comportamientos , por lo que en el navmesh controller una booleado que sea ForceRagdoll ,
+
 
 # 08 — Known Bugs & Checkpoints
 
