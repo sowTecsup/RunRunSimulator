@@ -44,7 +44,7 @@ Antes de comenzar cualquier tarea, evaluar si el modelo actual (Sonnet) es adecu
 
 1. **Desacoplamiento estricto vía eventos**: cada sistema (genética, batalla, tienda) es independiente. La comunicación cross-sistema pasa por `GameEvents` (bus estático), nunca por referencias directas ni llamadas a singletons del otro sistema. **Regla de oro: el evento transporta la data.** Un suscriptor recibe el `registry` (u otro payload) en el evento y trabaja sobre él — NO vuelve a buscarlo con `GameManager.Instance.Registry`.
 2. **Persistencia solo por evento**: ningún script de gameplay llama `SaveSystem.SaveDatabase` ni `PushToCloud` directamente. Disparan `GameEvents.RegistryChanged(registry)` y `GameManager` (único dueño de persistencia) hace el save+push. Excepción: `CloudSyncService` (capa de sync) y el flush final en `GameManager.OnApplicationQuit`. Reload externo (cloud pull/reset) usa `OnRegistryReloaded` → solo UI, sin re-push.
-3. **No comentar el QUÉ**: solo comentar el POR QUÉ cuando hay un invariante no obvio.
+3. **Sin comentarios en código**: no añadir ningún comentario (`//` ni `/* */`) a menos que el usuario lo pida explícitamente. La documentación técnica vive en el vault, no en el código. Incluye headers de archivo, docstrings, y bloques explicativos — ninguno sin pedido expreso.
 4. **Sin features adelantadas**: no implementar mecánicas hasta su etapa del roadmap. La persistencia local JSON es válida desde Etapa 1.3.
 5. **DNA como string ligero**: `CreatureDNA.ToStringID()` / `FromID()` son el contrato de red — no romperlo. El timestamp es metadata de registro, no forma parte del genetic string.
 6. **IDs de partes**: nunca pueden contener el carácter `-` (es el separador del DNA string).
