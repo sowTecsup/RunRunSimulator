@@ -9,49 +9,13 @@ tags: [memory-bank, active, session]
 ## Sesión actual
 
 **Fecha**: 2026-06-11 (sesión 5)
-**Foco**: MoriMochiAgent — Petting system (follow cooldown + react cooldown + pet hint en NameTag + petting vía IInteractable sin raycast).
-
-### Qué se hizo (esta sesión)
-
-**Follow cooldown + React cooldown (MoriMochiAgent):**
-- `followDuration` (10s, tab Movement): límite de tiempo en reacción amistosa → `EnterRoaming()` al expirar.
-- `reactCooldown` (15s, tab Movement): tiempo de espera post-reacción. Se activa al expirar timer, al alejarse el jugador (reacción no-Flee), o al acariciar.
-- `reactCooldownTimer` se descuenta en `Update()`; `ReactIfPlayerNear()` hace early-return mientras > 0.
-- `reactingTimer` se resetea en `BeginReaction()` y en `RestoreNavMeshControl()` (pool cleanup).
-
-**Petting (MoriMochiAgent implementa IInteractable):**
-- `IsPlayerFacingMe()`: único check de orientación — `player.forward` (body yaw, ya horizontal) · `(creature − player).normalized` (XZ) `>= cos(petLookAngle)` y distancia `<= petRadius`. Sin cámara, sin forward de la criatura.
-- `IsInFriendlyReaction` (public): estado Reacting con reacción no-Flee. NameTag lo usa para el primer filtro del hint (sin dot, sin flicker).
-- `CanBePetted` (public): `IsInFriendlyReaction && IsPlayerFacingMe()`.
-- `Interact()`: guard `CanBePetted` → `AddAffect(+20)` → `reactCooldownTimer` → `pettingDisplayTimer = 1.5f` → `onPet` UnityEvent → `EnterRoaming()`.
-- `IsBeingPetted` (public): `pettingDisplayTimer > 0`.
-
-**Pet hint en NameTag:**
-- Label `pet-hint-label` añadida a `NameTagUITK.uxml` + estilo `.tag__pet-hint` en USS (amarillo, oculto por defecto).
-- `NameTag.Refresh()`: muestra `"Petting..."` si `IsBeingPetted`; muestra `"[E] Acariciar"` si `IsInFriendlyReaction && IsPlayerFacingMe()`; oculta en cualquier otro caso.
-
-**TryPetNearbyCreature (PlayerController):**
-- `Physics.OverlapSphere(transform.position, grabRange, creatureLayer)` — sin raycast, los UIDocuments world-space del NameTag no pueden bloquear.
-- Se llama primero en `OnInteractReleased()`, antes del raycast de IInteractable general.
-- Campo `creatureLayer` (LayerMask) en el inspector del PlayerController → asignar layer "Creature".
-
-**Inspector (tab Movement del agente):**
-- Nuevos campos: `followDuration`, `reactCooldown`, `petRadius`, `petLookAngle`.
-- Radios de personalidad como `[ShowInInspector, ReadOnly]`: `ProfileProximityRadius`, `ProfileRoamRadius`, `ProfileFollowDistance`.
-
-### Sesión anterior (2026-06-10, sesión 4) — resumen
-
-Tienda: Dabloons wallet, Cloud Save de inventario + furniture, StorePanelUITK (balance + stock + toast), ShopCatalogSO (descuento + restock desacoplados), server time anti-cheat (`get-server-time.js`), Dev Tools en GameManager. Detalle en git log.
-
----
-
-## Archivos modificados esta sesión
+**Foco**: Petting system — follow/react cooldown, hint en NameTag, `IInteractable` en `MoriMochiAgent`, `TryPetNearbyCreature` vía OverlapSphere en `PlayerController`.
 
 | Archivo | Qué cambió |
 |---------|-----------|
-| `World/MoriMochiAgent.cs` | `IInteractable` · `followDuration/reactCooldown/petRadius/petLookAngle` (tab Movement) · `reactingTimer/reactCooldownTimer/pettingDisplayTimer` · `IsInFriendlyReaction/CanBePetted/IsBeingPetted` props públicas · `IsPlayerFacingMe()` (reemplaza IsFacingPlayer + IsPlayerLookingAt) · `Interact()` · cooldown en todos los exit paths de Reacting |
-| `World/NameTag.cs` | `petHintLabel` · `Refresh()` muestra "Petting..." / "[E] Acariciar" / oculta según estado |
-| `Player/PlayerController.cs` | `creatureLayer` (LayerMask) · `TryPetNearbyCreature()` (OverlapSphere, llamado antes del interact general) |
+| `World/MoriMochiAgent.cs` | `IInteractable` · cooldowns · `IsInFriendlyReaction/CanBePetted/IsBeingPetted` · `IsPlayerFacingMe()` · `Interact()` |
+| `World/NameTag.cs` | `petHintLabel` · hints "Petting..." / "[E] Acariciar" |
+| `Player/PlayerController.cs` | `creatureLayer` · `TryPetNearbyCreature()` (OverlapSphere) |
 | `UI Toolkit/NameTagUITK.uxml` | Label `pet-hint-label` |
 | `UI Toolkit/NameTagUITKStyle.uss` | `.tag__pet-hint` (amarillo, oculto por defecto) |
 
@@ -116,16 +80,9 @@ tap E sobre el trigger de tienda → abre StorePanel (UIManager)
 
 ---
 
-## Próximos pasos (retomar acá la próxima sesión)
+## Próximos pasos
 
-### Deploy pendiente (usuario)
-
-```bash
-ugs cloud-code modules deploy
-```
-→ Sube `get-server-time.js`. Sin esto `FetchServerTimeAsync` falla y cae al fallback de reloj local.
-
-### Pendientes de código
+### Deuda técnica (pendientes de código)
 
 - **CurrentStock en Cloud Save**: `StoreShopData.CurrentStock` no se persiste en cloud (volátil por sesión). Evaluar si es necesario antes de release.
 - **Play-mode use effects**: `WorldPropCategory.Food`/`Medicine` → efecto en MoriMochi objetivo vía `OnItemUsed`. Etapa futura.
@@ -137,11 +94,119 @@ ugs cloud-code modules deploy
 
 ---
 
+## Backlog de sesiones — Próximas implementaciones
+
+> Estas sesiones se trabajan en orden. Al completar una, moverla a "Sesión anterior" en este archivo y marcar su etapa en el roadmap de `CLAUDE.md`.
+
+---
+
+### Sesión próxima — Visual Assembler · Etapa 1.2 · **Sonnet**
+
+Implementación concreta con diseño claro — no hay decisiones de arquitectura abiertas.
+
+**Objetivo**: leer un `CreatureDNA` y ensamblar el modelo 3D en runtime usando un banco de prefabs separado de los data SOs.
+
+#### Paso 1 — `PartVisualBankSO` · (`Data/`)
+- `SerializedScriptableObject` (Odin)
+- 4 diccionarios `[OdinSerialize]`: `bodies`, `arms`, `eyes`, `mouths` (key = part ID, value = Prefab)
+- Métodos: `GetBody(id)`, `GetArm(id)`, `GetEye(id)`, `GetMouth(id)` → `null` si no existe (fail-soft)
+- `CreateAssetMenu: "RunRunSimulator/Databases/Part Visual Bank"`
+
+#### Paso 2 — `BodyAnchorConfig` · (componente en el body prefab)
+- Refs de Transform explícitas (más robusto que string lookups):
+  - `Transform[] armAnchors` (2)
+  - `Transform[] eyeAnchors` (2)
+  - `Transform mouthAnchor` (1)
+- Vive en el prefab del body part (hijo `Model` del agente MoriMochi)
+
+#### Paso 3 — `CreatureModelAssembler` · (clase estática, `World/`)
+```
+static void Assemble(CreatureDNA dna, PartVisualBankSO bank, Transform modelRoot)
+  → limpia hijos visuales de modelRoot
+  → instancia body prefab → obtiene BodyAnchorConfig
+  → instancia arm prefab en armAnchors[0] y [1]
+  → instancia eye prefab en eyeAnchors[0] y [1]
+  → instancia mouth prefab en mouthAnchor
+  → aplica PrimaryColor (hex del DNA) al body MeshRenderer via MaterialPropertyBlock
+  → devuelve el body MeshRenderer (para que MoriMochiAgent lo use como bodyRenderer)
+```
+
+#### Paso 4 — Wire en `MoriMochiAgent.Initialize()`
+- `[SerializeField] PartVisualBankSO visualBank` en el inspector del agente
+- Tras bindear el DNA: `CreatureModelAssembler.Assemble(dna, visualBank, modelTransform)`
+- `bodyRenderer` apunta al renderer del body ensamblado (reemplaza el cubo placeholder)
+- El tint de personalidad se aplica como overlay `MaterialPropertyBlock` sobre ese renderer
+
+#### Test de la sesión
+- Crear 2–3 prefabs placeholder por slot (cubos/esferas de colores distintos)
+- Popular el `PartVisualBankSO` con esos placeholders
+- Verificar ensamblaje correcto al spawnear en escena
+
+> ⚠️ **Dependencia de arte**: los prefabs reales (FBX) llegan después. El assembler está diseñado para funcionar con cualquier prefab que tenga `BodyAnchorConfig`. Los placeholder cubos son suficientes para validar el sistema.
+
+---
+
+### Sesión 2 — StoreContainer · Etapa 3.1 extensión · **Sonnet**
+
+No depende del Visual Assembler — puede adelantarse si conviene.
+
+**Objetivo**: contenedor de exhibición donde los MoriMonchis confinados tienen sus needs satisfechas automáticamente. Gancho futuro para que NPCs pidan comprar criaturas expuestas.
+
+```
+StoreContainer : MoriMochiContainer
+  + [SerializeField] float needsRestoreRate   // cada N segundos
+  + [SerializeField] float restoreAmount      // monto por tick (Health/Energy/Affect)
+  → coroutine AutoRestoreNeeds()
+      foreach occupant: dna.Needs.AddHealth/Energy/Affect(restoreAmount)
+  + event Action<CreatureDNA> OnOccupantRequested   // hook para NPC futuro (no implementar el NPC aún)
+```
+
+- Los NameTags existentes muestran needs en tiempo real → no requiere UI nueva.
+- `OccupantDNAs` ya está en la clase base → expuesto para el sistema de compra NPC.
+
+---
+
+### Sesión 3 — BreedingContainer · Etapa 1.3 extensión · **Opus (diseño) → Sonnet (impl)**
+
+Depende del Visual Assembler para el impacto visual completo. Requiere una mini-sesión de diseño antes de codear.
+
+**Preguntas a resolver con Opus antes de implementar:**
+1. `BreedingCompatibilityChartSO`: ¿matriz 6×6 de personalidades con `float probability`? ¿Score continuo o umbral binario? ¿Configurable por par o por personalidad?
+2. ¿El container usa `BreedingService.Breed()` (local, sin anti-cheat) o el sistema async existente? → *Tentativa: local en esta etapa, async queda para Etapa 3.2.*
+3. ¿Qué condición dispara el apareamiento? ¿Solo estar en el container? ¿Timer mínimo de convivencia?
+
+**Estructura tentativa (post-diseño):**
+
+```
+BreedingCompatibilityChartSO
+  + [OdinSerialize] Dictionary<(Personality, Personality), float> compatibilityMatrix
+  + [Button] Populate Defaults
+  + float GetCompatibility(Personality a, Personality b)
+
+BreedingContainer : MoriMochiContainer
+  + [SerializeField] BreedingCompatibilityChartSO chart
+  + [SerializeField] float minCohabitationTime   // segundos antes de evaluar compatibilidad
+  → OnOccupantAdded(): si hay par Male+Female → StartCompatibilityCheck()
+  → CompatibilityCheck(): roll contra chart.GetCompatibility → si pasa → StartBreedingSequence(a, b)
+  → StartBreedingSequence(agentA, agentB):
+      agentes navegan uno hacia el otro (dentro de areaMask)
+      spawn indicador corazón world-space sobre el par
+      timer configurable
+      al completar → BreedingService.Breed() → GameEvents.OnBreedingCompleted
+```
+
+**UI — `BreedingContainerPanelUITK`:**
+- Lista de pares activos con timer countdown
+- Escalable a múltiples pares simultáneos
+- Capacidad inicial de prueba: 2 (1 par posible)
+
+---
+
 ## Cómo usar esta nota en sesiones futuras
 
 Cuando arranque una sesión nueva:
 1. Leo este archivo primero (después del `CLAUDE.md`).
-2. Borro lo de la sesión pasada y escribo qué estoy haciendo ahora.
-3. Listo los 2-4 archivos del vault relevantes para esta sesión (no los leo todos).
+2. Actualizo "Sesión actual" con fecha + foco + tabla de archivos (breve).
+3. Avanzo la primera sesión del backlog y la elimino de la lista al completarla.
 
 Si el `Active Context` queda desactualizado (no se ha tocado en muchos días), tratarlo como **stale** — el código y los archivos del vault son autoritativos.
