@@ -29,6 +29,7 @@ public class NameTag : MonoBehaviour
     private Label         nameLabel;
     private Label         statusLabel;
     private Label         intentLabel;
+    private Label         petHintLabel;
 
     private MoriMochiAgent agent;
     private CreatureDNA    dna;
@@ -70,9 +71,10 @@ public class NameTag : MonoBehaviour
         root.style.justifyContent = Justify.Center;   // …so it floats over the pivot, not the panel's corner
         root.pickingMode          = PickingMode.Ignore;
 
-        nameLabel   = root.Q<Label>("name-label");
-        statusLabel = root.Q<Label>("status-label");
-        intentLabel = root.Q<Label>("intent-label");
+        nameLabel    = root.Q<Label>("name-label");
+        statusLabel  = root.Q<Label>("status-label");
+        intentLabel  = root.Q<Label>("intent-label");
+        petHintLabel = root.Q<Label>("pet-hint-label");
     }
 
     private void LateUpdate()
@@ -124,6 +126,27 @@ public class NameTag : MonoBehaviour
             bool showIntent = !dna.IsDead && agent != null;
             intentLabel.style.display = showIntent ? DisplayStyle.Flex : DisplayStyle.None;
             if (showIntent) intentLabel.text = IntentText(agent.Intent);
+        }
+
+        if (petHintLabel != null)
+        {
+            if (agent != null && agent.IsBeingPetted)
+            {
+                // Debug visual: shows briefly after the player pets this creature.
+                petHintLabel.text          = "Petting...";
+                petHintLabel.style.display = DisplayStyle.Flex;
+            }
+            else
+            {
+                // Show "[E] Acariciar" only when: friendly reaction AND the player is facing
+                // this creature (IsPlayerFacingMe: player.forward · to-creature, XZ, petRadius + petLookAngle).
+                // Only one creature at a time ever shows the hint, even when surrounded.
+                bool showHint = agent != null && !dna.IsDead &&
+                                agent.IsInFriendlyReaction &&
+                                agent.IsPlayerFacingMe();
+                petHintLabel.text          = "[E] Acariciar";
+                petHintLabel.style.display = showHint ? DisplayStyle.Flex : DisplayStyle.None;
+            }
         }
     }
 

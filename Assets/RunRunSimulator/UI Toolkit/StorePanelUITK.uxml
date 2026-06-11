@@ -1,15 +1,17 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="StorePanelUITKStyle.uss" />
-    <!-- Shop screen. The controller (StorePanelUITK) builds the category tabs into
-         "tabs" and one row per catalog listing into "list" (name + price + Buy).
-         Opened by a PanelTrigger via UIManager (UIPanelType.Store). -->
+    <!-- Shop screen. The controller (StorePanelUITK) fills "balance" (Dabloons),
+         builds tabs into "tabs", rows into "list" (name + price + stock + Buy),
+         and shows "notify" as a transient purchase-feedback toast. -->
     <ui:VisualElement name="root" class="store-root">
         <ui:VisualElement name="panel" class="store-panel">
             <ui:VisualElement name="header" class="store-header">
                 <ui:Label text="Tienda" class="store-title" />
                 <ui:Button name="close-button" text="X" class="store-close" />
             </ui:VisualElement>
+            <ui:Label name="balance" text="" class="store-balance" picking-mode="Ignore" />
             <ui:VisualElement name="tabs" class="store-tabs" />
+            <ui:Label name="notify" text="" class="store-notify" style="display: none;" picking-mode="Ignore" />
             <ui:ScrollView name="list" class="store-list" mode="Vertical" />
             <ui:Label name="empty" text="No hay nada a la venta en esta categoría." class="store-empty" />
         </ui:VisualElement>

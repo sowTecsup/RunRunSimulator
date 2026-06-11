@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Sirenix.OdinInspector;
 using Unity.Services.Authentication;
 using Unity.Services.Authentication.PlayerAccounts;
+using Unity.Services.CloudCode;
 using Unity.Services.CloudSave;
 using Unity.Services.Core;
 using UnityEngine;
@@ -17,8 +18,10 @@ using UnityEngine.Serialization;
 // Attach to same GameObject as GameManager. Assign CreatureRegistrySO in Setup.
 public class CloudSyncService : MonoBehaviour
 {
-    private const string REGISTRY_KEY = "creatureregistry";
-    private const string META_KEY     = "sync_meta";
+    private const string REGISTRY_KEY  = "creatureregistry";
+    private const string META_KEY      = "sync_meta";
+    private const string FURNITURE_KEY = "furnitureregistry";
+    private const string INVENTORY_KEY = "playerinventory";
 
     private string MetaPath =>
         Path.Combine(Application.persistentDataPath,
@@ -36,7 +39,9 @@ public class CloudSyncService : MonoBehaviour
 
     // ── Cached References ─────────────────────────────────────────
 
-    private CreatureRegistrySO registry;
+    private CreatureRegistrySO  registry;
+    private FurnitureRegistrySO furnitureRegistry;
+    private PlayerInventorySO   inventory;
 
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private string status = "Not initialized";
@@ -66,13 +71,23 @@ public class CloudSyncService : MonoBehaviour
     [ShowInInspector, ReadOnly, BoxGroup("Security"), LabelText("Security Status")]
     private string securityStatus = "---";
 
+    [ShowInInspector, ReadOnly, BoxGroup("Security"), LabelText("Server Time Offset")]
+    private string serverOffsetDisplay = "---";
+
+    // Difference between server UTC and local UTC, fetched once at login.
+    // Usage: (DateTime.UtcNow + ServerOffset).ToLocalTime() = server-adjusted local time.
+    private TimeSpan _serverOffset = TimeSpan.Zero;
+    public  TimeSpan ServerOffset  => _serverOffset;
+
     private bool isPushInProgress = false;
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
     private async void Start()
     {
-        registry = GameManager.Instance.Registry;
+        registry          = GameManager.Instance.Registry;
+        furnitureRegistry = GameManager.Instance.FurnitureRegistry;
+        inventory         = GameManager.Instance.Inventory;
         await InitializeAsync();
     }
 
@@ -143,11 +158,9 @@ public class CloudSyncService : MonoBehaviour
         // (fresh/anon/offline, or after a reset) would otherwise see an empty grid.
         GameEvents.RegistryReloaded(registry);
 
-        // Furniture + inventory persist locally only for now (no cloud sync yet), but
-        // they must load under the same player scope set above. Reload (not Changed)
-        // so the spawner/UI rebuild without re-saving.
-        var furnitureRegistry = GameManager.Instance.FurnitureRegistry;
-        var inventory         = GameManager.Instance.Inventory;
+        // Pre-warm from local cache so the player sees their data instantly before the
+        // cloud pull completes. PullAsync below will override with the authoritative cloud
+        // copy if it exists. Reload (not Changed) → UI rebuilds, no re-save.
         if (furnitureRegistry != null)
         {
             SaveSystem.LoadFurniture(furnitureRegistry);
@@ -158,6 +171,7 @@ public class CloudSyncService : MonoBehaviour
             SaveSystem.LoadInventory(inventory);
             GameEvents.InventoryReloaded(inventory);
         }
+        await FetchServerTimeAsync();
         await PullAsync();
         await NotifyPendingCombatResultsAsync();
     }
@@ -237,6 +251,33 @@ public class CloudSyncService : MonoBehaviour
             Debug.Log($"[CloudSync] ¡Bienvenido, {playerName}! Tienes {results.Count} MoriMochi(s) con resultado de combate pendiente. Presiona 'Check Pending Results' para aplicarlos.");
         }
         catch { /* silent — non-critical notification */ }
+    }
+
+    // Calls the minimal get-server-time Cloud Code function and caches the offset.
+    // Non-critical: if it fails the game falls back to local time gracefully.
+    private async Task FetchServerTimeAsync()
+    {
+        try
+        {
+            var raw = await CloudCodeService.Instance.CallEndpointAsync<string>(
+                "get-server-time", new Dictionary<string, object>());
+
+            var resp = JsonConvert.DeserializeObject<Dictionary<string, string>>(raw);
+            if (resp != null && resp.TryGetValue("utc", out string utcStr) &&
+                DateTime.TryParse(utcStr, null,
+                    System.Globalization.DateTimeStyles.AdjustToUniversal |
+                    System.Globalization.DateTimeStyles.AssumeUniversal, out DateTime serverUtc))
+            {
+                _serverOffset      = serverUtc - DateTime.UtcNow;
+                serverOffsetDisplay = $"{_serverOffset.TotalSeconds:+0.#;-0.#;0} s";
+                Debug.Log($"[CloudSync] Server time offset: {_serverOffset.TotalSeconds:+0.#;-0.#;0} s");
+            }
+        }
+        catch (Exception e)
+        {
+            serverOffsetDisplay = "fetch failed (using local)";
+            Debug.LogWarning($"[CloudSync] Could not fetch server time: {e.Message}");
+        }
     }
 
     private bool EnsureSignedIn()
@@ -373,13 +414,28 @@ public class CloudSyncService : MonoBehaviour
             status = "Resetting...";
 
             // Clear cloud keys (ignore errors if key doesn't exist)
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY); } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY);     } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY);  } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY);      } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY); } catch { }
 
-            // Clear local registry and JSON
+            // Clear local data and JSON — do NOT push back (we just cleared the cloud)
             registry.LoadFrom(new System.Collections.Generic.Dictionary<string, CreatureDNA>());
             SaveSystem.SaveDatabase(registry);
-            GameEvents.RegistryReloaded(registry);   // UI refresh only — do NOT push, we just cleared the cloud
+            GameEvents.RegistryReloaded(registry);
+
+            if (furnitureRegistry != null)
+            {
+                furnitureRegistry.LoadFrom(null);
+                SaveSystem.SaveFurniture(furnitureRegistry);
+                GameEvents.FurnitureReloaded(furnitureRegistry);
+            }
+            if (inventory != null)
+            {
+                inventory.LoadFrom(null);
+                SaveSystem.SaveInventory(inventory);
+                GameEvents.InventoryReloaded(inventory);
+            }
 
             // Clear local sync meta
             if (File.Exists(MetaPath)) File.Delete(MetaPath);
@@ -413,19 +469,25 @@ public class CloudSyncService : MonoBehaviour
             status    = "Pushing...";
             long pushedAt = DateTime.UtcNow.Ticks;
 
-            await CloudSaveService.Instance.Data.Player.SaveAsync(new Dictionary<string, object>
+            var payload = new Dictionary<string, object>
             {
                 { REGISTRY_KEY, SaveSystem.Serialize(registry.GetAll()) },
                 { META_KEY,     JsonConvert.SerializeObject(new SyncMeta { CloudPushedAt = pushedAt }) },
-            });
+            };
+            if (furnitureRegistry != null)
+                payload[FURNITURE_KEY] = SaveSystem.SerializeFurniture(furnitureRegistry);
+            if (inventory != null)
+                payload[INVENTORY_KEY] = SaveSystem.SerializeInventory(inventory);
+
+            await CloudSaveService.Instance.Data.Player.SaveAsync(payload);
 
             var localMeta               = ReadLocalMeta();
             localMeta.LocalKnownCloudAt = pushedAt;
             WriteLocalMeta(localMeta);
             RefreshSecurityDisplay();
 
-            status = $"Pushed {registry.Count} creatures";
-            Debug.Log($"[CloudSync] Pushed {registry.Count} creatures.");
+            status = $"Pushed {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture";
+            Debug.Log($"[CloudSync] Pushed {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture.");
         }
         catch (Exception e)
         {
@@ -449,7 +511,7 @@ public class CloudSyncService : MonoBehaviour
         {
             status     = "Pulling...";
             var result = await CloudSaveService.Instance.Data.Player.LoadAsync(
-                new HashSet<string> { REGISTRY_KEY, META_KEY });
+                new HashSet<string> { REGISTRY_KEY, META_KEY, FURNITURE_KEY, INVENTORY_KEY });
 
             if (!result.ContainsKey(REGISTRY_KEY))
             {
@@ -461,7 +523,23 @@ public class CloudSyncService : MonoBehaviour
             var data = SaveSystem.Deserialize(result[REGISTRY_KEY].Value.GetAs<string>());
             registry.LoadFrom(data);
             SaveSystem.SaveDatabase(registry);
-            GameEvents.RegistryReloaded(registry);   // UI refresh only — data came from the cloud, no push back
+            GameEvents.RegistryReloaded(registry);
+
+            if (result.ContainsKey(FURNITURE_KEY) && furnitureRegistry != null)
+            {
+                var fData = SaveSystem.DeserializeFurniture(result[FURNITURE_KEY].Value.GetAs<string>());
+                furnitureRegistry.LoadFrom(fData);
+                SaveSystem.SaveFurniture(furnitureRegistry);
+                GameEvents.FurnitureReloaded(furnitureRegistry);
+            }
+
+            if (result.ContainsKey(INVENTORY_KEY) && inventory != null)
+            {
+                var iData = SaveSystem.DeserializeInventory(result[INVENTORY_KEY].Value.GetAs<string>());
+                inventory.LoadFrom(iData);
+                SaveSystem.SaveInventory(inventory);
+                GameEvents.InventoryReloaded(inventory);
+            }
 
             long cloudPushedAt = 0;
             if (result.ContainsKey(META_KEY))
@@ -478,8 +556,8 @@ public class CloudSyncService : MonoBehaviour
             });
             RefreshSecurityDisplay();
 
-            status = $"Pulled {registry.Count} creatures";
-            Debug.Log($"[CloudSync] Pulled {registry.Count} creatures.");
+            status = $"Pulled {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture";
+            Debug.Log($"[CloudSync] Pulled {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture.");
         }
         catch (Exception e)
         {

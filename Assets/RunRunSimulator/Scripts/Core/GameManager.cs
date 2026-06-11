@@ -1,4 +1,5 @@
 using Sirenix.OdinInspector;
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -44,6 +45,50 @@ public class GameManager : MonoBehaviour
 
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
+
+    [Title("Dev Tools")]
+    [BoxGroup("Dev Tools"), SerializeField, LabelText("Dabloons to add")]
+    private int devDabloonsAmount = 500;
+
+    [Button("Add Dabloons (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Dev Tools")]
+    private void DevAddDabloons()
+    {
+        if (inventory == null) { Debug.LogWarning("[GameManager] No inventory assigned."); return; }
+        inventory.AddDabloons(devDabloonsAmount);
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log($"[GameManager] +{devDabloonsAmount} Dabloons → total: {inventory.Dabloons}");
+    }
+
+    [Button("Reset Dabloons (DEV)", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.3f), BoxGroup("Dev Tools")]
+    private void DevResetDabloons()
+    {
+        if (inventory == null) { Debug.LogWarning("[GameManager] No inventory assigned."); return; }
+        inventory.ResetDabloons();
+        SaveSystem.SaveInventory(inventory);
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log("[GameManager] Dabloons reset to 0.");
+    }
+
+    [Button("Clear Furniture Owned (DEV)", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.3f), BoxGroup("Dev Tools")]
+    private void DevClearFurnitureOwned()
+    {
+        if (inventory == null) { Debug.LogWarning("[GameManager] No inventory assigned."); return; }
+        inventory.ClearFurnitureOwned();
+        SaveSystem.SaveInventory(inventory);
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log("[GameManager] Furniture owned list cleared.");
+    }
+
+    [Button("Clear World Props (DEV)", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.3f), BoxGroup("Dev Tools")]
+    private void DevClearWorldProps()
+    {
+        if (inventory == null) { Debug.LogWarning("[GameManager] No inventory assigned."); return; }
+        inventory.ClearWorldPropsStored();
+        inventory.ClearHotbar();
+        SaveSystem.SaveInventory(inventory);
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log("[GameManager] World props and hotbar cleared.");
+    }
 
     [BoxGroup("Current Creature")]
     [FormerlySerializedAs("_currentDNA")]
@@ -230,11 +275,11 @@ public class GameManager : MonoBehaviour
     public void MintRandomCreature()
     {
         var dna        = CreatureGenerator.GenerateRandom(database, rarityOddsTable);
-        dna.Gender     = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
+        dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
         dna.Personality = CreatureGenerator.RandomPersonality();
-        dna.BaseHP     = Random.Range(1, 11);
-        dna.BaseAttack = Random.Range(1, 11);
-        dna.BaseSpeed  = Random.Range(1, 11);
+        dna.BaseHP     = UnityEngine.Random.Range(1, 11);
+        dna.BaseAttack = UnityEngine.Random.Range(1, 11);
+        dna.BaseSpeed  = UnityEngine.Random.Range(1, 11);
         dna.CustomName = CreatureNameBank.GetRandomName();
         dna.Stamp();
 
@@ -247,6 +292,13 @@ public class GameManager : MonoBehaviour
     }
 
     // ── Public Getters ────────────────────────────────────────────
+
+    // Server time in local timezone, offset-corrected at login. Falls back to
+    // DateTime.Now when offline or before the first fetch completes.
+    public DateTime ServerNow =>
+        cloudSync != null
+            ? (DateTime.UtcNow + cloudSync.ServerOffset).ToLocalTime()
+            : DateTime.Now;
 
     public CreatureRegistrySO     Registry             => creatureRegistry;
     public FurnitureRegistrySO    FurnitureRegistry    => furnitureRegistry;

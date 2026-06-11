@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6063265132029860742}
   - component: {fileID: 1685240067436616514}
   - component: {fileID: 6941703199582355247}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: MorimonchiAgent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -52,6 +52,11 @@ MonoBehaviour:
   nameTag: {fileID: 1653583709362797035}
   sampleRadius: 4
   repathInterval: 0.35
+  followDuration: 20
+  reactCooldown: 15
+  petFacingThreshold: 0.5
+  petRadius: 2.5
+  petLookAngle: 20
   breedingAreaName: BreedingRoom
   healthDecayPerSecond: 0.5
   energyDecayPerSecond: 1
@@ -62,6 +67,7 @@ MonoBehaviour:
   affectOnThrow: 8
   affectOnHardCollision: 5
   hardImpactThreshold: 4
+  affectOnPet: 20
   followSpeed: 15
   settleSpeed: 0.15
   settleDelay: 0.4
@@ -94,6 +100,9 @@ MonoBehaviour:
   onGetUp:
     m_PersistentCalls:
       m_Calls: []
+  onPet:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!136 &6063265132029860742
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -113,8 +122,8 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.35
-  m_Height: 1
+  m_Radius: 0.41
+  m_Height: 1.18
   m_Direction: 1
   m_Center: {x: 0, y: 0.49, z: 0}
 --- !u!195 &1685240067436616514
@@ -177,7 +186,7 @@ GameObject:
   - component: {fileID: 2979730703620325569}
   - component: {fileID: 1653583709362797035}
   - component: {fileID: 227817693175286306}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: WorldUITKInfo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -247,7 +256,7 @@ GameObject:
   - component: {fileID: 6544284057006054972}
   - component: {fileID: 8753390986424060466}
   - component: {fileID: 5823270579327690085}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: MorimonchiAgent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -335,7 +344,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9068832504220964469}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}

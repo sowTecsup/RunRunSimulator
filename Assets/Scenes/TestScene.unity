@@ -17971,6 +17971,7 @@ MonoBehaviour:
   furnitureRegistry: {fileID: 11400000, guid: 065d7cb988feefa4db35e5ec9e276bd2, type: 2}
   inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
   cloudSync: {fileID: 1443145214}
+  devDabloonsAmount: 500
   currentDNA:
     BodyShapeID: BS0
     ArmID: A0
@@ -20445,6 +20446,9 @@ MonoBehaviour:
   grabMask:
     serializedVersion: 2
     m_Bits: 55
+  creatureLayer:
+    serializedVersion: 2
+    m_Bits: 256
   throwForce: 40
   throwUpwardBias: 0.15
   throwAimDistance: 30
@@ -22583,6 +22587,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 992515727134330810, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+      propertyPath: petRadius
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 992515727134330810, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
       propertyPath: criticalAffect
       value: -20
       objectReference: {fileID: 0}
@@ -22597,6 +22605,14 @@ PrefabInstance:
     - target: {fileID: 3990977039202299874, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6063265132029860742, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+      propertyPath: m_Height
+      value: 1.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 6063265132029860742, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+      propertyPath: m_Radius
+      value: 0.41
       objectReference: {fileID: 0}
     - target: {fileID: 6731286595536004021, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
       propertyPath: m_TextStyleHashCode

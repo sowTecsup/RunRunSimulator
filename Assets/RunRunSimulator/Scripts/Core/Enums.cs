@@ -109,9 +109,10 @@ public enum WorldPropCategory
     Medicine = 2,  // curas / remedios
 }
 
-// Days a shop discount applies. Flags so a listing can run an offer on any mix of
-// weekdays (e.g. weekend sale = Saturday | Sunday). None = no day constraint
-// (the discount runs every day, gated only by month + a non-zero DiscountBase).
+// Days a shop discount applies. Flags so a catalog can run an offer on any mix of
+// weekdays (e.g. weekend sale = Saturday | Sunday).
+//   None = unconfigured / no constraint (discount active every day).
+//   All  = explicit "every day" (same runtime behaviour as None, but intent is clear).
 [System.Flags]
 public enum DiscountDay
 {
@@ -123,10 +124,13 @@ public enum DiscountDay
     Friday    = 1 << 4,
     Saturday  = 1 << 5,
     Sunday    = 1 << 6,
+    All       = Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday,
 }
 
-// Months a shop discount applies. Flags so a listing can run a seasonal offer
-// (e.g. holidays = November | December). None = no month constraint (every month).
+// Months a shop discount (or restock) applies. Flags so catalogs can pin seasonal
+// windows (e.g. holidays = November | December).
+//   None = unconfigured / no constraint (applies every month).
+//   All  = explicit "every month" (same runtime behaviour as None, intent is clear).
 [System.Flags]
 public enum DiscountMonth
 {
@@ -143,6 +147,8 @@ public enum DiscountMonth
     October   = 1 << 9,
     November  = 1 << 10,
     December  = 1 << 11,
+    All       = January | February | March | April | May | June | July |
+                August  | September | October | November | December,
 }
 
 // When during the restock month the stock refills. The day ranges are:
@@ -155,6 +161,16 @@ public enum RestockPeriod
     EarlyMonth = 0,
     MidMonth   = 1,
     EndOfMonth = 2,
+}
+
+// Result of a purchase attempt. Returned by StoreManager.Buy* so the UI can show
+// the right feedback without knowing the purchase internals.
+public enum BuyResult
+{
+    Success           = 0,
+    OutOfStock        = 1,  // CurrentStock == 0
+    InsufficientFunds = 2,  // not enough Dabloons
+    AlreadyOwned      = 3,  // furniture the player owns already (no-op, no charge)
 }
 
 // Forward-looking filter for the shop UI: a listing tags which kind(s) it counts as,

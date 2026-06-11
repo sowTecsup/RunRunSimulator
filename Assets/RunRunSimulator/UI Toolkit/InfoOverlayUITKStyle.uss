@@ -37,15 +37,29 @@
     color: rgb(225, 225, 232);
 }
 
-/* Current date, top-right. */
-.overlay-date {
+/* Date + currency column, top-right. */
+.overlay-top-right {
     position: absolute;
     top: 24px;             /* 16 × 1.5 */
     right: 24px;           /* 16 × 1.5 */
+    align-items: flex-end;
+}
+
+.overlay-date {
     font-size: 24px;       /* 16 × 1.5 */
     color: rgb(255, 214, 92);
     -unity-font-style: bold;
     background-color: rgba(26, 26, 32, 0.55);
     border-radius: 12px;   /* 8 × 1.5 */
     padding: 9px 18px;     /* 6×12 × 1.5 */
+    margin-bottom: 8px;
+}
+
+.overlay-dabloons {
+    font-size: 21px;       /* 14 × 1.5 */
+    color: rgb(255, 214, 92);
+    -unity-font-style: bold;
+    background-color: rgba(26, 26, 32, 0.55);
+    border-radius: 12px;   /* 8 × 1.5 */
+    padding: 7px 18px;
 }

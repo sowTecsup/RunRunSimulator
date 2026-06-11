@@ -21,7 +21,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;   /* 8 × 1.4 */
+    margin-bottom: 6px;
 }
 
 .store-title {
@@ -35,11 +35,20 @@
     height: 40px;
 }
 
+/* Dabloons balance — right-aligned under the title. */
+.store-balance {
+    font-size: 18px;
+    color: rgb(255, 214, 92);
+    -unity-text-align: middle-right;
+    margin-bottom: 12px;
+    padding: 0 2px;
+}
+
 /* Category tabs — centered pills, active one highlighted. */
 .store-tabs {
     flex-direction: row;
     justify-content: center;
-    margin-bottom: 14px;   /* 10 × 1.4 */
+    margin-bottom: 10px;
 }
 
 .store-tab {
@@ -60,11 +69,24 @@
     -unity-font-style: bold;
 }
 
+/* Transient feedback toast shown on purchase failure. */
+.store-notify {
+    font-size: 18px;
+    color: rgb(255, 130, 110);
+    background-color: rgba(80, 20, 15, 0.90);
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-bottom: 8px;
+    -unity-text-align: middle-center;
+    border-width: 1px;
+    border-color: rgba(255, 130, 110, 0.4);
+}
+
 .store-list {
     flex-grow: 1;
 }
 
-/* One product row: name | price | Buy. */
+/* One product row: name | price | stock | Buy. */
 .store-row {
     flex-direction: row;
     justify-content: space-between;
@@ -91,7 +113,7 @@
 .store-row__price {
     flex-direction: row;
     align-items: center;
-    margin-right: 14px;    /* 10 × 1.4 */
+    margin-right: 12px;
 }
 
 .store-price__now {
@@ -113,9 +135,34 @@
     margin-right: 8px;     /* 6 × 1.4 */
 }
 
+/* Stock count (hidden for unlimited items). */
+.store-row__stock {
+    font-size: 17px;
+    color: rgba(200, 200, 210, 0.75);
+    min-width: 48px;
+    margin-right: 12px;
+    -unity-text-align: middle-right;
+}
+
+.store-row__stock--low {
+    color: rgb(255, 160, 80);   /* orange warning when stock is 1-2 */
+    -unity-font-style: bold;
+}
+
+.store-row__stock--empty {
+    color: rgba(255, 100, 80, 0.85);
+    -unity-font-style: bold;
+}
+
 .store-row__buy {
     height: 40px;          /* 28 × 1.4 */
     min-width: 126px;      /* 90 × 1.4 */
+}
+
+/* Disabled look when out of stock (SetEnabled(false) also grays Unity's default). */
+.store-row__buy--disabled {
+    opacity: 0.4;
+    background-color: rgba(60, 60, 68, 0.8);
 }
 
 .store-empty {

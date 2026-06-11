@@ -165,8 +165,7 @@ Panel flotante world-space con **UI Toolkit** (no TMP). `[RequireComponent(typeo
 - **`Bind(CreatureDNA, MoriMochiAgent)`**: recibe el agente explícitamente (no `GetComponentInParent`; el NameTag está en un hijo, no en el root). `ResolveElements()` cachea las Labels contra la identidad del `rootVisualElement` actual — si `UIDocument` reconstruyó el árbol al reactivar del pool, invalida y re-queryea.
 - **Billboard** en `LateUpdate`, **visible solo por proximidad** (`showDistance`). Vista pura — nunca muta nada.
 - Fuente de truth: `Core/Enums.cs → CreatureIntent` (14 valores). `MoriMochiAgent.Intent` es una propiedad calculada (switch sobre `AgentState`), nunca persistida.
-- **Assets**: `UI Toolkit/NameTagUITK.uxml` (3 labels) + `UI Toolkit/NameTagUITKStyle.uss` (card semitransparente, nombre 30px bold blanco, status color-desde-código, intent azul claro 20px).
-- **Setup de escena**: el NameTag debe ir en un **objeto hijo** del prefab de criatura (NO el root — billboard lo rotaría todo el mesh). Agregar `UIDocument` con `PanelSettings` tipo World Space + `NameTagUITK.uxml`. Posicionar ~1.2u arriba del cubo. Cablearlo como `nameTag` (SerializeField) en `MoriMochiAgent`.
+- **Assets**: `UI Toolkit/NameTagUITK.uxml` (4 labels: nombre, estado, intent, pet-hint) + `UI Toolkit/NameTagUITKStyle.uss`. Panel en un **objeto hijo** del prefab de criatura, `UIDocument` con `PanelSettings` tipo World Space, posicionado ~1.2u arriba del cubo.
 
 ### NavMesh — setup de escena (3 Areas)
 
@@ -204,8 +203,6 @@ Se descartaron las propuestas A/B y el volume/carve. **Una superficie continua**
 - **Inmune a tackle**: `Knock` hace early-out si `currentContainer != null` → un confinado (kinematic) no es empujado por otros lanzados; actúa como obstáculo sólido. Solo el player lo saca.
 
 **Desacople**: agent ↔ corral = mismo dominio World → refs directas (como `IThrowable`), sin `GameEvents`. **Sin persistencia de ocupantes** (runtime; la colocación del corral ya la persiste `FurnitureRegistry`).
-
-**Setup de escena**: crear Area `BreedingRoom` (Navigation → Areas); prefab del corral con `BoxCollider` (isTrigger ✓) + `MoriMochiContainer` + `NavMeshModifier` (set area = BreedingRoom); rebakear tras colocar. En el prefab del MoriMochi, elegir el área en el dropdown `breedingAreaName`.
 
 **Pendiente conocido**: levantar/mover un corral **ocupado** en build mode → bloquear `TryLift` si tiene ocupantes (no implementado).
 
@@ -248,14 +245,40 @@ Se descartaron las propuestas A/B y el volume/carve. **Una superficie continua**
 
 **Próximos pasos / pendientes:**
 - Cablear el **flush en logout** (`GameManager.FlushToCloud()` desde `CloudSyncService` al cerrar sesión) — quedó público pero sin enganchar.
-- *(Opcional)* petting directo del jugador (E sobre la criatura) además de la `PlayZone`.
 - *(Futuro)* recursos consumibles en estaciones; muerte por inanición (hoy Health solo decae, no mata); decay offline (catch-up por timestamp al cargar — hoy solo decae spawneado).
+
+### Petting (acariciar) — IMPLEMENTADO ✅
+
+Sistema de interacción directa jugador→criatura. Activa cuando la criatura se acerca y el jugador la mira.
+
+**Follow cooldown (tab Movement):**
+- `followDuration` (10s): máximo tiempo que un MoriMochi permanece en reacción amistosa (Approach/Follow/Retreat) antes de volver a roamear.
+- `reactCooldown` (15s): tiempo de espera antes de que pueda volver a reaccionar al jugador. Se activa al expirar el timer, al alejarse el jugador, o al ser acariciado.
+- `reactCooldownTimer` se descuenta en `Update()`; `ReactIfPlayerNear()` retorna `false` mientras sea > 0.
+- Flee queda excluido de ambos cooldowns (es respuesta de emergencia por Affect crítico, no afectiva).
+
+**Pet hint en NameTag:**
+- `IsInFriendlyReaction` (public): criatura en Reacting con reacción no-Flee → activa el primer filtro del hint.
+- `IsPlayerFacingMe()` (public): `player.forward` (horizontal, yaw del body) · `(creature − player).normalized` (XZ) `>= cos(petLookAngle)` **y** distancia `<= petRadius`. Usa el forward del body del jugador, nunca el de la cámara (sin problema de pitch).
+- NameTag muestra `[E] Acariciar` cuando `IsInFriendlyReaction && IsPlayerFacingMe()`.
+- NameTag muestra `Petting...` por 1.5 s tras una caricia exitosa (`pettingDisplayTimer`).
+
+**Pet detection (PlayerController):**
+- `TryPetNearbyCreature()`: `Physics.OverlapSphere(transform.position, grabRange, creatureLayer)` — sin raycast, los paneles world-space del NameTag no pueden interferir.
+- Se llama antes del interact general en `OnInteractReleased()`. Si retorna true, el flujo se corta y no llega al raycast de IInteractable.
+- Requiere campo `creatureLayer` en el inspector del PlayerController (asignar la layer del prefab del MoriMochi).
+
+**Pet action (MoriMochiAgent):**
+- `CanBePetted`: Reacting (no Flee) + `IsPlayerFacingMe()`. Una propiedad, sin redundancias.
+- `Interact()` (IInteractable): `CanBePetted` guard → `AddAffect(+20)` → `reactCooldownTimer = reactCooldown` → `pettingDisplayTimer = 1.5f` → `onPet` UnityEvent (Feel-ready) → `EnterRoaming()`.
+
+**Campos del inspector (tab Movement):**
+- `followDuration`, `reactCooldown`, `petRadius` (2.5m), `petLookAngle` (20°).
+- Radios de personalidad visibles como `[ShowInInspector, ReadOnly]`: `ProfileProximityRadius`, `ProfileRoamRadius`, `ProfileFollowDistance` (desde el SO en runtime).
 
 ### Estado del roadmap
 
-**Etapa 2.5 — Vida en Escena** 🔶 Código ✅ (World/: MoriMochiSpawner, MoriMochiAgent, NameTag UITK + CreatureIntent · Personality enum + PersonalityProfileSO · CombatRecord/CombatTurn en DNA, JS sincronizado · **Needs system: NeedsState + NeedStation/Registry + FSM** · pool + staggered cannon · collider trigger/solid).
-
-Falta setup de escena en Unity (NavMesh bake + 3 Areas, prefab del cubo, asset Personality Profile Table, wiring del spawner).
+**Etapa 2.5 — Vida en Escena** ✅ (World/: MoriMochiSpawner, MoriMochiAgent, NameTag UITK + CreatureIntent · Personality enum + PersonalityProfileSO · CombatRecord/CombatTurn en DNA, JS sincronizado · **Needs system: NeedsState + NeedStation/Registry + FSM** · pool + staggered cannon · collider trigger/solid · **Petting system: follow cooldown + react cooldown + pet hint NameTag + IInteractable**).
 
 ## Archivos clave
 

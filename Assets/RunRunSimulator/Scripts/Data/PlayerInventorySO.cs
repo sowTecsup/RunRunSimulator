@@ -33,6 +33,10 @@ public class PlayerInventorySO : SerializedScriptableObject
     [OdinSerialize, ReadOnly]
     private string[] hotbarSlots = new string[HotbarSize];
 
+    [Title("Dabloons (currency)")]
+    [OdinSerialize, ReadOnly]
+    private int dabloons;
+
     // ── Furniture ─────────────────────────────────────────────────
 
     // Ownership is a set — owning a piece lets you place it any number of times.
@@ -75,6 +79,51 @@ public class PlayerInventorySO : SerializedScriptableObject
 
     public IReadOnlyList<string> WorldPropsStored => worldPropsStored;
 
+    // ── Dabloons ──────────────────────────────────────────────────
+
+    public int Dabloons => dabloons;
+
+    public void AddDabloons(int amount)
+    {
+        if (amount <= 0) return;
+        dabloons += amount;
+        MarkDirty();
+    }
+
+    public bool SpendDabloons(int amount)
+    {
+        if (amount <= 0 || dabloons < amount) return false;
+        dabloons -= amount;
+        MarkDirty();
+        return true;
+    }
+
+    public void ResetDabloons()
+    {
+        dabloons = 0;
+        MarkDirty();
+    }
+
+    // ── Clear helpers (DEV / reset flows) ────────────────────────
+
+    public void ClearFurnitureOwned()
+    {
+        furnitureOwned.Clear();
+        MarkDirty();
+    }
+
+    public void ClearWorldPropsStored()
+    {
+        worldPropsStored.Clear();
+        MarkDirty();
+    }
+
+    public void ClearHotbar()
+    {
+        for (int i = 0; i < hotbarSlots.Length; i++) hotbarSlots[i] = null;
+        MarkDirty();
+    }
+
     // ── Hotbar ────────────────────────────────────────────────────
 
     public string GetHotbarSlot(int index) =>
@@ -101,6 +150,7 @@ public class PlayerInventorySO : SerializedScriptableObject
         public List<string> FurnitureOwned   = new List<string>();
         public List<string> WorldPropsStored = new List<string>();
         public string[]      HotbarSlots      = new string[HotbarSize];
+        public int           Dabloons         = 0;
     }
 
     public InventoryData GetData() => new InventoryData
@@ -108,6 +158,7 @@ public class PlayerInventorySO : SerializedScriptableObject
         FurnitureOwned   = new List<string>(furnitureOwned),
         WorldPropsStored = new List<string>(worldPropsStored),
         HotbarSlots      = (string[])hotbarSlots.Clone(),
+        Dabloons         = dabloons,
     };
 
     public void LoadFrom(InventoryData data)
@@ -115,6 +166,7 @@ public class PlayerInventorySO : SerializedScriptableObject
         furnitureOwned   = data?.FurnitureOwned   ?? new List<string>();
         worldPropsStored = data?.WorldPropsStored ?? new List<string>();
         hotbarSlots      = NormalizeHotbar(data?.HotbarSlots);
+        dabloons         = data?.Dabloons ?? 0;
         MarkDirty();
     }
 

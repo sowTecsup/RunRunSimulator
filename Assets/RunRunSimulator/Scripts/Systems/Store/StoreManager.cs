@@ -1,17 +1,20 @@
+using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-// A storefront in the world: holds the shop's catalog (a ShopCatalogSO) and runs the
-// two purchase flows. The StorePanel UITK reads Catalog to list what's for sale and
-// calls these Buy methods on confirm. There's no wallet yet — buying is free; price is
-// display-only for now (economy enforcement is a later stage). The flows differ by kind:
+// A storefront in the world: holds the shop's catalog (ShopCatalogSO) and runs the two
+// purchase flows. The StorePanel UITK reads Catalog to list what's for sale and calls
+// these Buy methods on confirm.
 //
-//  • Furniture  → straight into the inventory (furnitureOwned, "F#"). It's intangible
-//                 until placed in build mode, so no physical delivery.
-//  • World prop → a DeliveryBox drops at deliverySpawnPoint; opening it spawns the prop.
+// Purchase rules (enforced here, not in the UI):
+//   1. Stock check   — out of stock → BuyResult.OutOfStock
+//   2. AlreadyOwned  — furniture only: player already owns it → BuyResult.AlreadyOwned
+//   3. Funds check   — not enough Dabloons → BuyResult.InsufficientFunds
+//   4. Deduct funds + consume stock + add to inventory → BuyResult.Success
 //
-// Resolves the inventory via GameManager.Instance (project convention — gameplay
-// scripts don't serialize cross-references to shared assets).
+// Flows differ by kind:
+//   Furniture  → straight into inventory (furnitureOwned, "F#"). Placed later in build mode.
+//   World prop → DeliveryBox drops at deliverySpawnPoint; opening it spawns the prop.
 public class StoreManager : MonoBehaviour
 {
     [Title("Catalog")]
@@ -19,48 +22,59 @@ public class StoreManager : MonoBehaviour
 
     [Title("World-prop delivery")]
     [Required, AssetsOnly] [SerializeField] private DeliveryBox deliveryBoxPrefab;
-    [Required]             [SerializeField] private Transform deliverySpawnPoint;
+    [Required]             [SerializeField] private Transform   deliverySpawnPoint;
 
     public ShopCatalogSO Catalog => catalog;
 
     // ── Purchase API (called by StorePanelUITK) ───────────────────
 
-    // Furniture: ownership is a set, so buying a piece you already own is a no-op
-    // (returns false). Fires InventoryChanged → GameManager persists.
-    public bool BuyFurniture(FurnitureDefinitionSO def)
+    public BuyResult BuyFurniture(FurnitureDefinitionSO def, StoreShopData shop)
     {
-        if (def == null) { Debug.LogWarning("[StoreManager] BuyFurniture: null definition."); return false; }
+        if (def == null || shop == null) { Debug.LogWarning("[StoreManager] BuyFurniture: null arg."); return BuyResult.OutOfStock; }
+
+        if (!shop.InStock) return BuyResult.OutOfStock;
 
         var inventory = GameManager.Instance != null ? GameManager.Instance.Inventory : null;
-        if (inventory == null) { Debug.LogError("[StoreManager] No PlayerInventory available."); return false; }
+        if (inventory == null) { Debug.LogError("[StoreManager] No PlayerInventory available."); return BuyResult.OutOfStock; }
 
-        bool added = inventory.AddFurniture(def.Id);
-        if (added)
-        {
-            GameEvents.InventoryChanged(inventory);
-            Debug.Log($"[StoreManager] Bought furniture '{def.DisplayName}' ({def.Id}).");
-        }
-        else
-        {
-            Debug.Log($"[StoreManager] Furniture '{def.Id}' already owned — nothing added.");
-        }
-        return added;
+        if (inventory.HasFurniture(def.Id)) return BuyResult.AlreadyOwned;
+
+        var now   = GameManager.Instance != null ? GameManager.Instance.ServerNow : DateTime.Now;
+        int price = catalog.FinalPrice(shop, now);
+        if (price > 0 && !inventory.SpendDabloons(price)) return BuyResult.InsufficientFunds;
+
+        shop.TryConsume();
+        inventory.AddFurniture(def.Id);
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log($"[StoreManager] Bought furniture '{def.DisplayName}' ({def.Id}) for {price} Dabloons.");
+        return BuyResult.Success;
     }
 
-    // World prop: drops a DeliveryBox the player opens to receive the physical object.
-    public bool BuyWorldProp(ItemDefinitionSO def)
+    public BuyResult BuyWorldProp(ItemDefinitionSO def, StoreShopData shop)
     {
-        if (def == null) { Debug.LogWarning("[StoreManager] BuyWorldProp: null definition."); return false; }
+        if (def == null || shop == null) { Debug.LogWarning("[StoreManager] BuyWorldProp: null arg."); return BuyResult.OutOfStock; }
+
+        if (!shop.InStock) return BuyResult.OutOfStock;
+
         if (deliveryBoxPrefab == null || deliverySpawnPoint == null)
         {
             Debug.LogError("[StoreManager] Assign deliveryBoxPrefab + deliverySpawnPoint first.");
-            return false;
+            return BuyResult.OutOfStock;
         }
         if (!Application.isPlaying)
         {
             Debug.LogWarning("[StoreManager] Enter Play mode to buy (spawns a DeliveryBox).");
-            return false;
+            return BuyResult.OutOfStock;
         }
+
+        var inventory = GameManager.Instance != null ? GameManager.Instance.Inventory : null;
+        if (inventory == null) { Debug.LogError("[StoreManager] No PlayerInventory available."); return BuyResult.OutOfStock; }
+
+        var now   = GameManager.Instance != null ? GameManager.Instance.ServerNow : DateTime.Now;
+        int price = catalog.FinalPrice(shop, now);
+        if (price > 0 && !inventory.SpendDabloons(price)) return BuyResult.InsufficientFunds;
+
+        shop.TryConsume();
 
         var go  = Instantiate(deliveryBoxPrefab, deliverySpawnPoint.position, deliverySpawnPoint.rotation);
         var box = go.GetComponent<DeliveryBox>();
@@ -68,10 +82,22 @@ public class StoreManager : MonoBehaviour
         {
             Debug.LogError("[StoreManager] deliveryBoxPrefab has no DeliveryBox component.");
             Destroy(go);
-            return false;
+            // Refund — box never spawned.
+            if (price > 0) { inventory.AddDabloons(price); shop.CurrentStock++; }
+            return BuyResult.OutOfStock;
         }
         box.Configure(def);
-        Debug.Log($"[StoreManager] Ordered world prop '{def.DisplayName}' ({def.Id}).");
-        return true;
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log($"[StoreManager] Ordered '{def.DisplayName}' ({def.Id}) for {price} Dabloons.");
+        return BuyResult.Success;
+    }
+
+    // Called by StorePanelUITK when the panel opens. Restocks all listings if
+    // today is the shop's restock day and it hasn't fired yet this period.
+    public void RestockIfNeeded()
+    {
+        if (catalog == null) return;
+        var now = GameManager.Instance != null ? GameManager.Instance.ServerNow : DateTime.Now;
+        if (catalog.NeedsRestock(now)) catalog.RestockAll(now);
     }
 }

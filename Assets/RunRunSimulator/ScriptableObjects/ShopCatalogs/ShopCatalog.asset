@@ -21,13 +21,17 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
+  DiscountDays: 112
+  DiscountMonths: 4095
+  RestockMonths: 4095
+  RestockPeriod: 2
   furnitureListings:
   - Furniture: {fileID: 11400000, guid: 80f4b68885003194fa09dafad1fd2e30, type: 2}
     Shop:
       BasePrice: 10
       DiscountBase: 0.5
-      DiscountDays: 127
-      DiscountMonths: 4095
+      CurrentStock: 10
+      MaxStock: 10
       TypeFilter: 1
       Tags: []
   itemListings:
@@ -35,7 +39,7 @@ MonoBehaviour:
     Shop:
       BasePrice: 5
       DiscountBase: 0
-      DiscountDays: 0
-      DiscountMonths: 0
+      CurrentStock: 10
+      MaxStock: 10
       TypeFilter: 0
       Tags: []

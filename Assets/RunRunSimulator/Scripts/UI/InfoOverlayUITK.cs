@@ -44,17 +44,36 @@ public class InfoOverlayUITK : MonoBehaviour
           "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
 
     private Label dateLabel;
+    private Label dabloonsLabel;
     private float refreshTimer;
     private string lastDateText;
+
+    private void OnEnable()
+    {
+        GameEvents.OnInventoryChanged  += RefreshDabloons;
+        GameEvents.OnInventoryReloaded += RefreshDabloons;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnInventoryChanged  -= RefreshDabloons;
+        GameEvents.OnInventoryReloaded -= RefreshDabloons;
+    }
 
     private void Start()
     {
         var root = document != null ? document.rootVisualElement : null;
         if (root == null) { Debug.LogWarning("[InfoOverlayUITK] No UIDocument / root."); return; }
 
-        dateLabel = root.Q<Label>("date");
+        dateLabel     = root.Q<Label>("date");
+        dabloonsLabel = root.Q<Label>("dabloons");
+
         BuildHints(root.Q<VisualElement>("hints"));
         RefreshDate(force: true);
+
+        // Initial dabloons read — inventory is already loaded at this point.
+        var inv = GameManager.Instance != null ? GameManager.Instance.Inventory : null;
+        if (inv != null) RefreshDabloons(inv);
     }
 
     private void Update()
@@ -70,9 +89,15 @@ public class InfoOverlayUITK : MonoBehaviour
         if (dateLabel == null) return;
         var now = DateTime.Now;
         string text = $"{DayNames[(int)now.DayOfWeek]} {now.Day} de {MonthNames[now.Month - 1]}, {now.Year}";
-        if (!force && text == lastDateText) return;   // only touch the label when it changes
+        if (!force && text == lastDateText) return;
         lastDateText = text;
         dateLabel.text = text;
+    }
+
+    private void RefreshDabloons(PlayerInventorySO inv)
+    {
+        if (dabloonsLabel == null || inv == null) return;
+        dabloonsLabel.text = $"Dabloons: {inv.Dabloons:N0}";
     }
 
     private void BuildHints(VisualElement container)

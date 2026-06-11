@@ -36,3 +36,15 @@
     -unity-text-align: middle-center;
     white-space: nowrap;
 }
+
+/* Contextual pet hint — hidden by default, shown from code when the creature is
+   in a friendly reaction and the player can interact with E. */
+.tag__pet-hint {
+    display: none;
+    font-size: 18px;
+    color: rgb(255, 220, 100);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    margin-top: 4px;
+}

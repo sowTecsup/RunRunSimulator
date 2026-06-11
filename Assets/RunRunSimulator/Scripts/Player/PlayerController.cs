@@ -32,6 +32,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float grabRange  = 3f;
     [SerializeField] private LayerMask grabMask = ~0;
 
+    [Header("Pet")]
+    [Tooltip("Layer(s) that MoriMochi creatures are on. The pet check uses OverlapSphere (no raycast) so NameTag world-space panels cannot block it. Assign a dedicated creature layer here and set the prefab to that layer.")]
+    [SerializeField] private LayerMask creatureLayer = ~0;
+
     [Header("Throw")]
     [SerializeField] private float throwForce = 10f;
     [Tooltip("Extra upward lift blended into the aim direction so a level throw still arcs a little. 0 = throw exactly where you aim.")]
@@ -188,7 +192,11 @@ public class PlayerController : MonoBehaviour
         if (!grabbing) return;   // the hold already resolved into a grab — ignore this release
         grabbing = false;
 
-        // Released before the threshold → it was a TAP → interact.
+        // Released before the threshold → it was a TAP.
+        // Pet check first (OverlapSphere + dot, no raycast → NameTag panels can't block it).
+        // Falls through to the general IInteractable raycast if no creature is pettable.
+        if (TryPetNearbyCreature()) return;
+
         Debug.Log("[PlayerController] E tapped → trying to interact.");
         if (TryFindInView<IInteractable>(out var interactable))
             interactable.Interact();
@@ -279,6 +287,23 @@ public class PlayerController : MonoBehaviour
         Vector3 origin = holdAnchor != null ? holdAnchor.position : cameraTransform.position;
         Vector3 dir    = ((aimPoint - origin).normalized + Vector3.up * throwUpwardBias).normalized;
         return dir * throwForce;
+    }
+
+    // Pet check: OverlapSphere (no raycast → NameTag panels can't block it).
+    // CanBePetted already includes the IsPlayerFacingMe() dot-product check.
+    private bool TryPetNearbyCreature()
+    {
+        var cols = Physics.OverlapSphere(transform.position, grabRange, creatureLayer);
+        foreach (var col in cols)
+        {
+            var a = col.GetComponent<MoriMochiAgent>();
+            if (a == null && col.attachedRigidbody != null)
+                a = col.attachedRigidbody.GetComponent<MoriMochiAgent>();
+            if (a == null || !a.CanBePetted) continue;
+            a.Interact();
+            return true;
+        }
+        return false;
     }
 
     // Raycasts from the camera for a component of type T (interface or class).

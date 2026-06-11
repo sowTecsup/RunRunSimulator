@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "10 - Furniture & Building.md",
+                "file": "06 - Player & World.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "10 - Furniture & Building"
+              "title": "06 - Player & World"
             }
           }
         ]
@@ -171,15 +171,19 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
-    "08 - Known Bugs & Checkpoints.md.tmp.2344.9376f41f3c43",
-    "09 - Active Context.md.tmp.2344.08121790bd41",
-    "09 - Active Context.md.tmp.2344.31fb433eb49f",
-    "09 - Active Context.md.tmp.2344.cc07f2f7ad3d",
+    "10 - Furniture & Building.md.tmp.22308.b37bd2473392",
+    "10 - Furniture & Building.md.tmp.22308.5d18e54a506e",
+    "09 - Active Context.md.tmp.22308.37626a8d4517",
+    "06 - Player & World.md.tmp.22308.32391d9fde6d",
+    "06 - Player & World.md.tmp.22308.acb6c8531327",
+    "06 - Player & World.md.tmp.22308.63e2ade3b541",
+    "09 - Active Context.md.tmp.22308.618db72221e5",
+    "09 - Active Context.md.tmp.22308.a7dee37566fd",
+    "09 - Active Context.md.tmp.22308.41008b9b7e1a",
+    "06 - Player & World.md.tmp.22308.887fe23818a6",
     "11 - Propuestas.md",
-    "10 - Furniture & Building.md.tmp.2344.36d4b2b68ddc",
-    "10 - Furniture & Building.md.tmp.2344.4baf3ea16433",
-    "09 - Active Context.md.tmp.2344.cb68dfd52382",
     "10 - Furniture & Building.md",
+    "08 - Known Bugs & Checkpoints.md.tmp.2344.9376f41f3c43",
     "00 - Index.md",
     "01 - GDD Core.md",
     "02 - Genetics & Breeding.md",
@@ -190,10 +194,6 @@
     "07 - Persistence & Identity.md",
     "06 - Player & World.md",
     "03 - Combat.md",
-    "09 - Active Context.md.tmp.8532.1368a52a6752",
-    "09 - Active Context.md.tmp.8532.61b7a0efc140",
-    "09 - Active Context.md.tmp.8532.383740b7edd8",
-    "10 - Furniture & Building.md.tmp.8532.90bc026fe891",
     "Welcome.md"
   ]
 }

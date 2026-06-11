@@ -1,21 +1,17 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 // Shop screen: the visual face of a StoreManager's ShopCatalogSO. Three tabs split the
 // catalog the way the player thinks about it — Furniture, WorldProps (tools), and
-// Consumables (food + medicine) — and each row shows the live price (discount applied
-// if today is inside the listing's window) plus a Buy button that routes to the matching
-// StoreManager purchase flow. No wallet yet: price is display-only, buying is free.
+// Consumables (food + medicine). Each row shows the live price, the remaining stock, and
+// a Buy button. The panel enforces wallet + stock via StoreManager and shows a transient
+// toast ("¡Sin fondos!", "¡Agotado!") on failure.
 //
-// Opened by a world PanelTrigger via UIManager (UIPanelType.Store). Lives on the
-// always-active UIManager object referencing its UIDocument (same split as the other
-// UITK panels) and implements IUINavigable: left/right switch tab, up/down pick a row,
-// Submit buys it.
-//
-// One StoreManager reference for now (single test store). Multiple stores with distinct
-// catalogs is a later step — the trigger would point the panel at the right one.
+// Opened by a world PanelTrigger via UIManager (UIPanelType.Store). Implements
+// IUINavigable: left/right switch tab, up/down pick a row, Submit buys it.
 [DisallowMultipleComponent]
 public class StorePanelUITK : MonoBehaviour, IUINavigable
 {
@@ -24,7 +20,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private StoreManager store;
 
     private enum Tab { Furniture, WorldProps, Consumables }
-    private static readonly Tab[] Tabs = (Tab[])Enum.GetValues(typeof(Tab));
+    private static readonly Tab[]   Tabs      = (Tab[])Enum.GetValues(typeof(Tab));
     private static readonly string[] TabLabels = { "Muebles", "Objetos", "Consumibles" };
 
     private const string TabClass         = "store-tab";
@@ -35,22 +31,25 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     // One displayable catalog entry, flattened so the row builder is type-agnostic.
     private struct Row
     {
-        public string Name;
-        public StoreShopData Shop;
-        public Func<bool> Buy;   // routes to the right StoreManager flow
+        public string          Name;
+        public StoreShopData   Shop;        // class reference — mutations hit the catalog
+        public Func<BuyResult> Buy;
     }
 
     private VisualElement tabsContainer;
-    private ScrollView list;
-    private Label emptyLabel;
-    private Button closeButton;
+    private ScrollView    list;
+    private Label         emptyLabel;
+    private Label         balanceLabel;
+    private Label         notifyLabel;
+    private Button        closeButton;
 
     private readonly List<VisualElement> tabEls = new List<VisualElement>();
     private readonly List<VisualElement> rowEls = new List<VisualElement>();
-    private readonly List<Row> rows = new List<Row>();
+    private readonly List<Row>           rows   = new List<Row>();
 
     private int activeTab;
     private int selectedRow = -1;
+    private Coroutine notifyCoroutine;
 
     private ShopCatalogSO Catalog => store != null ? store.Catalog : null;
 
@@ -58,16 +57,18 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
     private void OnEnable()
     {
-        // Rebuild when our panel is opened so prices reflect the current date and any
-        // catalog edits, and reset to the first tab (panel convention).
         UIManager.OnPanelToggleRequested += OnPanelToggle;
         UIManager.OnPanelSetRequested    += OnPanelSet;
+        GameEvents.OnInventoryChanged    += OnInventoryChanged;
+        GameEvents.OnInventoryReloaded   += OnInventoryChanged;
     }
 
     private void OnDisable()
     {
         UIManager.OnPanelToggleRequested -= OnPanelToggle;
         UIManager.OnPanelSetRequested    -= OnPanelSet;
+        GameEvents.OnInventoryChanged    -= OnInventoryChanged;
+        GameEvents.OnInventoryReloaded   -= OnInventoryChanged;
     }
 
     private void Start()
@@ -75,6 +76,9 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         Resolve();
         BuildTabs();
         UIManager.RegisterNavigable(panel, this);
+
+        var inv = GameManager.Instance != null ? GameManager.Instance.Inventory : null;
+        RefreshBalance(inv);
         Rebuild();
     }
 
@@ -87,8 +91,11 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     private void OnPanelToggle(UIPanelType p) { if (p == panel) ResetAndRebuild(); }
     private void OnPanelSet(UIPanelType p, bool show) { if (p == panel && show) ResetAndRebuild(); }
 
+    private void OnInventoryChanged(PlayerInventorySO inv) => RefreshBalance(inv);
+
     private void ResetAndRebuild()
     {
+        store?.RestockIfNeeded();
         activeTab = 0;
         HighlightActiveTab();
         Rebuild();
@@ -100,13 +107,39 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     {
         if      (dir.x >  0.5f) StepTab(1);
         else if (dir.x < -0.5f) StepTab(-1);
-        else if (dir.y < -0.5f) StepRow(1);    // Navigate down is -y
+        else if (dir.y < -0.5f) StepRow(1);
         else if (dir.y >  0.5f) StepRow(-1);
     }
 
     public void OnUISubmit() => BuySelected();
 
-    public bool OnUICancel() => false;   // let UIManager close on ESC
+    public bool OnUICancel() => false;
+
+    // ── Balance ───────────────────────────────────────────────────
+
+    private void RefreshBalance(PlayerInventorySO inv)
+    {
+        if (balanceLabel == null) return;
+        balanceLabel.text = inv != null ? $"Saldo: {inv.Dabloons:N0} Dabloons" : "";
+    }
+
+    // ── Toast notify ──────────────────────────────────────────────
+
+    private void ShowNotify(string message)
+    {
+        if (notifyLabel == null) return;
+        notifyLabel.text                  = message;
+        notifyLabel.style.display         = DisplayStyle.Flex;
+        if (notifyCoroutine != null) StopCoroutine(notifyCoroutine);
+        notifyCoroutine = StartCoroutine(HideNotifyAfterDelay(2.5f));
+    }
+
+    private IEnumerator HideNotifyAfterDelay(float delay)
+    {
+        yield return new WaitForSecondsRealtime(delay);
+        if (notifyLabel != null) notifyLabel.style.display = DisplayStyle.None;
+        notifyCoroutine = null;
+    }
 
     // ── Tabs ──────────────────────────────────────────────────────
 
@@ -170,7 +203,6 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         Select(rows.Count == 0 ? -1 : Mathf.Clamp(selectedRow, 0, rows.Count - 1));
     }
 
-    // Flattens the active tab's listings into rows, each carrying the right Buy flow.
     private void CollectRows(Tab tab)
     {
         var catalog = Catalog;
@@ -182,30 +214,30 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
             {
                 var def = listing?.Furniture;
                 if (def == null) continue;
-                var captured = def;
+                var capturedDef  = def;
+                var capturedShop = listing.Shop;
                 rows.Add(new Row
                 {
                     Name = NameOf(def.DisplayName, def.Id),
-                    Shop = listing.Shop,
-                    Buy  = () => store.BuyFurniture(captured),
+                    Shop = capturedShop,
+                    Buy  = () => store.BuyFurniture(capturedDef, capturedShop),
                 });
             }
             return;
         }
 
-        // WorldProps = tools; Consumables = food + medicine. Both come from itemListings.
         foreach (var listing in catalog.ItemListings)
         {
             var def = listing?.Item;
             if (def == null) continue;
             if (!MatchesItemTab(tab, def.Category)) continue;
-
-            var captured = def;
+            var capturedDef  = def;
+            var capturedShop = listing.Shop;
             rows.Add(new Row
             {
                 Name = NameOf(def.DisplayName, def.Id),
-                Shop = listing.Shop,
-                Buy  = () => store.BuyWorldProp(captured),
+                Shop = capturedShop,
+                Buy  = () => store.BuyWorldProp(capturedDef, capturedShop),
             });
         }
     }
@@ -217,6 +249,9 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
     private VisualElement BuildRow(Row row)
     {
+        var  serverNow      = GameManager.Instance != null ? GameManager.Instance.ServerNow : DateTime.Now;
+        bool discountActive = Catalog?.IsDiscountActive(serverNow) ?? false;
+
         var el = new VisualElement();
         el.AddToClassList(RowClass);
 
@@ -224,23 +259,26 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         name.AddToClassList("store-row__name");
         el.Add(name);
 
-        el.Add(BuildPrice(row.Shop));
+        el.Add(BuildPrice(row.Shop, discountActive));
+        el.Add(BuildStock(row.Shop));
 
+        bool canBuy = row.Shop == null || row.Shop.InStock;
         var buy = new Button(() => Purchase(row)) { text = "Comprar" };
         buy.AddToClassList("store-row__buy");
+        buy.SetEnabled(canBuy);
+        if (!canBuy) buy.AddToClassList("store-row__buy--disabled");
         el.Add(buy);
 
         return el;
     }
 
-    // Price block: when a discount is active, strike the base and show the final price.
-    private VisualElement BuildPrice(StoreShopData shop)
+    private VisualElement BuildPrice(StoreShopData shop, bool discountActive)
     {
         var box = new VisualElement();
         box.AddToClassList("store-row__price");
 
-        bool discounted = shop.IsDiscountActive(DateTime.Now);
-        int final = shop.FinalPrice(DateTime.Now);
+        bool discounted = discountActive && shop?.DiscountBase > 0f;
+        int  final      = shop != null ? shop.FinalPrice(discounted) : 0;
 
         if (discounted)
         {
@@ -256,10 +294,52 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         return box;
     }
 
+    private Label BuildStock(StoreShopData shop)
+    {
+        var label = new Label();
+        label.AddToClassList("store-row__stock");
+
+        if (shop == null || shop.IsUnlimited)
+        {
+            label.style.display = DisplayStyle.None;
+            return label;
+        }
+
+        if (shop.CurrentStock <= 0)
+        {
+            label.text = "Agotado";
+            label.AddToClassList("store-row__stock--empty");
+        }
+        else
+        {
+            label.text = $"x{shop.CurrentStock}";
+            if (shop.CurrentStock <= 2) label.AddToClassList("store-row__stock--low");
+        }
+        return label;
+    }
+
+    // ── Purchase ──────────────────────────────────────────────────
+
     private void Purchase(Row row)
     {
         if (store == null) { Debug.LogWarning("[StorePanelUITK] No StoreManager assigned."); return; }
-        row.Buy?.Invoke();   // furniture refreshes the browser; world prop drops a box
+
+        var result = row.Buy.Invoke();
+        switch (result)
+        {
+            case BuyResult.Success:
+                Rebuild();   // refresh stock counts + button state
+                break;
+            case BuyResult.OutOfStock:
+                ShowNotify("¡Artículo agotado!");
+                break;
+            case BuyResult.InsufficientFunds:
+                ShowNotify("¡Dabloons insuficientes!");
+                break;
+            case BuyResult.AlreadyOwned:
+                ShowNotify("¡Ya tienes ese mueble!");
+                break;
+        }
     }
 
     private void BuySelected()
@@ -288,11 +368,16 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     {
         var root = document != null ? document.rootVisualElement : null;
         if (root == null) return;
+
         tabsContainer = root.Q<VisualElement>("tabs");
+        list          = root.Q<ScrollView>("list");
         emptyLabel    = root.Q<Label>("empty");
+        balanceLabel  = root.Q<Label>("balance");
+        notifyLabel   = root.Q<Label>("notify");
         closeButton   = root.Q<Button>("close-button");
-        if (closeButton != null) closeButton.clicked += OnCloseClicked;
-        list = root.Q<ScrollView>("list");
+
+        if (notifyLabel  != null) notifyLabel.style.display  = DisplayStyle.None;
+        if (closeButton  != null) closeButton.clicked        += OnCloseClicked;
     }
 
     private ScrollView ResolveList()

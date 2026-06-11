@@ -8,14 +8,14 @@ tags: [memory-bank, furniture, building, shop, stage-3]
 
 ## Estado por fase
 
-| Fase | Qué incluye | Estado |
-|------|-------------|--------|
-| **Fase 1 — Data + grid + API** | SOs, registry, `PlacementGrid`, `FurnitureSpawner`, `FurnitureService` con `TryPlace`/`TryRemove` + botones Odin de test | ✅ **implementada y commiteada** |
-| **Fase 2 — Building mode** | Action map `Building` (aditivo) + máquina de estados (Browsing/Placing/Editing/Deleting), ghost, hotbar 1-4, edición/borrado por raycast a muebles | 🔶 **código ✅**, falta setup de escena |
-| **Fase 2.5 — Inventario + Hotbar + Browser** | `PlayerInventorySO`, `ItemDefinitionSO/DB`, hotbar play-mode (6 slots), browser build-mode (Tab), adquisición vía `DeliveryBox`, `StorageContainer`, `StoreManager` test | 🔶 **código ✅**, falta setup de escena + assets |
-| **Fase 3 — Economía + tienda** | `Wallet` (moneda persistente), `ShopService`, panel UITK con catálogo + precio → entra a placement | 🔲 |
-| **Fase futura — superficies libres** | Muebles grandes como base que exponen superficies sobre las que acomodar props chicos (free placement local a la superficie), eventualmente con UI | 🔲 **solo diseño** (etapa posterior, ver Notion) |
-| **Persistencia** (transversal) | JSON propio para `FurnitureRegistrySO` + `PlayerInventorySO` vía `GameManager` + `SaveSystem`, cloud vía `CloudSyncService` en sign-in | ✅ **implementada** (2026-06-09) |
+| Fase                                         | Qué incluye                                                                                                                                                                                            | Estado                                                                                             |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| **Fase 1 — Data + grid + API**               | SOs, registry, `PlacementGrid`, `FurnitureSpawner`, `FurnitureService` con `TryPlace`/`TryRemove` + botones Odin de test                                                                               | ✅ **implementada y commiteada**                                                                    |
+| **Fase 2 — Building mode**                   | Action map `Building` (aditivo) + máquina de estados (Browsing/Placing/Editing/Deleting), ghost, hotbar 1-4, edición/borrado por raycast a muebles                                                     | ✅                                                                                                  |
+| **Fase 2.5 — Inventario + Hotbar + Browser** | `PlayerInventorySO`, `ItemDefinitionSO/DB`, hotbar play-mode (6 slots), browser build-mode (Tab), adquisición vía `DeliveryBox`, `StorageContainer`, `StoreManager` test                               | ✅                                                                                                  |
+| **Fase 3 — Economía + tienda**               | Dabloons (wallet en `PlayerInventorySO`), `BuyResult`, stock + toast + balance en `StorePanelUITK`, descuento+restock desacoplados al catálogo, server time anti-cheat, Cloud Save furniture+inventory | ✅ (pendiente menor: persistir `CurrentStock` en cloud + deploy `get-server-time.js`)               |
+| **Fase futura — superficies libres**         | Muebles grandes como base que exponen superficies sobre las que acomodar props chicos (free placement local a la superficie), eventualmente con UI                                                     | 🔲 **solo diseño** (etapa posterior, ver Notion)                                                   |
+| **Persistencia** (transversal)               | JSON propio para `FurnitureRegistrySO` + `PlayerInventorySO` vía `GameManager` + `SaveSystem`, cloud vía `CloudSyncService` en sign-in                                                                 | ✅ **implementada** (2026-06-09)                                                                    |
 
 > **Modelo de colocación — decisión confirmada (2026-06-02):** **grilla como base**, no posicionamiento libre. Razones: NavMesh determinista (las criaturas roam, la grilla evita huecos donde quedan atrapadas), persistencia cloud ligera/determinista (`DefId`+celda+rotación vs transform flotante que deriva), y foco de ingeniería en las criaturas (el canvas expresivo) y no en los muebles. El placement libre sobrevive solo como la "Fase futura" de arriba: **acotado a superficies de muebles grandes**, no global.
 
@@ -110,20 +110,6 @@ El runtime coloca el **pivote raíz** del prefab en el centro del footprint y **
   - `OnFurnitureChanged(FurnitureRegistrySO)` — toda mutación (place/remove/lift). La dispara `FurnitureService`.
   - `OnFurnitureReloaded(FurnitureRegistrySO)` — reload completo (clear+resync); UI/spawner only, sin push (espejo de `OnRegistryReloaded`).
 - Eventos de dominio (fuera de `GameEvents`, estilo `OnUIFocusChanged`): `BuildModeController.OnBuildModeChanged(bool)`, `PlayerInputs.BuildToggled`, y los eventos estáticos de `BuildingInputs`.
-
----
-
-## Setup en Unity (pendiente del usuario)
-
-**Data + escena base:**
-1. Prefab del mueble: Root vacío (= pivote) → Model (mesh, layer **Furniture**, con Collider). Bakeá el pivote con `FurniturePivotAligner` (centro-base) y borrá el helper.
-2. Assets: **Furniture Definition** (footprint, prefab) → **Furniture Database**: arrastrá las defs al **Bulk Add** → **Populate from Buffer** (o **Validate & Sync IDs**); **Furniture Registry**.
-3. GameObject con `PlacementGrid` (sobre el piso; el piso en layer **Floor** con collider).
-4. GameObject con `FurnitureSpawner` + `FurnitureService` (asignar grid/database/registry + la lista **Active Pieces** del hotbar + **`navSurface`** = la `NavMeshSurface` principal, para el rebake de corrales).
-
-**Build mode:**
-5. GameObject con `BuildingInputs` + `BuildModeController`. Asignar: `service`, `grid`, `aimTransform` (cámara FP), **`floorMask` = Floor**, **`furnitureMask` = Furniture**, `ghostMaterial` (URP/Lit Transparent).
-6. Play → **B** entra; **1-4** elegís pieza; mirás + **R** + click izq. para fijar + **F** confirma; **E** / click der. editás / borrás.
 
 ---
 

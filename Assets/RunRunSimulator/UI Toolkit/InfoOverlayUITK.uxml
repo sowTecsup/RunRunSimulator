@@ -1,10 +1,13 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="InfoOverlayUITKStyle.uss" />
     <!-- Always-on overlay. picking-mode Ignore so it never eats gameplay clicks. The
-         controller (InfoOverlayUITK) fills "date" (top-right) and builds the control
-         legend rows into "hints" (top-left). -->
+         controller (InfoOverlayUITK) fills "date" and "dabloons" (top-right column)
+         and builds the control legend rows into "hints" (top-left). -->
     <ui:VisualElement name="overlay-root" class="overlay-root" picking-mode="Ignore">
         <ui:VisualElement name="hints" class="overlay-hints" picking-mode="Ignore" />
-        <ui:Label name="date" text="" class="overlay-date" picking-mode="Ignore" />
+        <ui:VisualElement name="top-right" class="overlay-top-right" picking-mode="Ignore">
+            <ui:Label name="date" text="" class="overlay-date" picking-mode="Ignore" />
+            <ui:Label name="dabloons" text="" class="overlay-dabloons" picking-mode="Ignore" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -20,7 +20,7 @@ using UnityEngine.Events;
 // resume. RequireComponent guarantees both exist.
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Rigidbody))]
-public class MoriMochiAgent : MonoBehaviour, IThrowable
+public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 {
     // Carried = in the player's hand; Thrown = ragdoll in flight after a release/throw/knock.
     // SeekingNeed = pathing to a NeedStation; UsingStation = stopped, consuming it.
@@ -39,6 +39,26 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [TabGroup("Tuning", "Movement")]
     [Tooltip("How often (s) Reacting/Roaming recomputes its destination.")]
     [SerializeField] private float repathInterval = 0.35f;
+
+    [TabGroup("Tuning", "Movement"), Title("Player proximity")]
+    [Tooltip("Max seconds a friendly reaction (Approach/Follow/Retreat) lasts before the creature resumes its own business.")]
+    [SerializeField, Min(1f)] private float followDuration = 10f;
+    [TabGroup("Tuning", "Movement")]
+    [Tooltip("Seconds the creature waits before reacting to the player again after a reaction ends (timer or petting).")]
+    [SerializeField, Min(0f)] private float reactCooldown = 15f;
+    [TabGroup("Tuning", "Movement")]
+    [Tooltip("Max distance (m) at which the pet hint appears and petting is valid.")]
+    [SerializeField, Min(0.5f)] private float petRadius = 2.5f;
+    [TabGroup("Tuning", "Movement")]
+    [Tooltip("Half-angle of the camera cone (degrees) within which the player must be aiming at this creature for the pet hint to appear. 20° = ±20° from dead-center.")]
+    [SerializeField, Range(5f, 60f)] private float petLookAngle = 20f;
+
+    [TabGroup("Tuning", "Movement"), Title("Personality radii (runtime — from PersonalityProfileSO)")]
+    [ShowInInspector, ReadOnly] private float ProfileProximityRadius => profile?.ProximityRadius ?? 0f;
+    [TabGroup("Tuning", "Movement")]
+    [ShowInInspector, ReadOnly] private float ProfileRoamRadius      => profile?.RoamRadius      ?? 0f;
+    [TabGroup("Tuning", "Movement")]
+    [ShowInInspector, ReadOnly] private float ProfileFollowDistance  => profile?.FollowDistance  ?? 0f;
 
     [TabGroup("Tuning", "Movement"), Title("Breeding pen confinement")]
     [Tooltip("NavMesh Area that breeding pens paint their floor with. Free agents EXCLUDE it (so they route around every pen); a penned creature is RESTRICTED to it. Pick the exact Area from Navigation → Areas.")]
@@ -102,6 +122,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [TabGroup("Tuning", "Needs")]
     [Tooltip("Impact speed (m/s) at/above which a collision counts as 'hard' for stress.")]
     [SerializeField, Min(0f)] private float hardImpactThreshold = 4f;
+
+    [TabGroup("Tuning", "Needs"), Title("Player interaction")]
+    [Tooltip("Affect boost granted when the player pets this creature from the front.")]
+    [SerializeField, Min(0f)] private float affectOnPet = 20f;
 
     // ── Physics (throwable layer) ──
     [TabGroup("Tuning", "Physics"), Title("Hold feel (while carried)")]
@@ -178,6 +202,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     [SerializeField] private UnityEvent onLand;     // settled on the ground (before the get-up beat)
     [TabGroup("Tuning", "Presentation")]
     [SerializeField] private UnityEvent onGetUp;    // finished standing up, resumes roaming
+    [TabGroup("Tuning", "Presentation")]
+    [SerializeField] private UnityEvent onPet;      // player petted it from the front
 
     // ── Injected ──────────────────────────────────────────────────
     private CreatureDNA        dna;
@@ -199,6 +225,9 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private float     idleTimer;
     private float     idleDuration;
     private float     repathTimer;
+    private float     reactingTimer;      // seconds spent in the current friendly reaction; exits when ≥ followDuration
+    private float     reactCooldownTimer; // counts down after a reaction ends; creature ignores the player while > 0
+    private float     pettingDisplayTimer; // drives the "Petting…" label on the NameTag; decays to 0 on its own
     private AgentState stateBeforeReact = AgentState.Roaming;
 
     // Confinement (breeding pen): non-null only while penned. While confined the areaMask is
@@ -231,6 +260,20 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     // A container admits only creatures for which this is true (thrown in), never walk-ins.
     public bool IsAirborne => state == AgentState.Thrown;
     public CreatureDNA DNA => dna;
+
+    // True while the creature is actively reacting to the player in a friendly way (not fleeing).
+    // The NameTag polls this to show the pet hint — no dot product here so the hint doesn't flicker.
+    public bool IsInFriendlyReaction =>
+        state == AgentState.Reacting && activeReaction != ProximityReaction.Flee;
+
+    // True for a brief moment after the player pets this creature — drives the "Petting…" label.
+    public bool IsBeingPetted => pettingDisplayTimer > 0f;
+
+    // True when this creature is in a friendly Reacting state and the player is facing it.
+    public bool CanBePetted =>
+        state == AgentState.Reacting &&
+        activeReaction != ProximityReaction.Flee &&
+        IsPlayerFacingMe();
 
     // What this creature is trying to do RIGHT NOW, for the NameTag. Maps the internal
     // AgentState (+ active reaction / reserved need) to the player-facing CreatureIntent;
@@ -325,6 +368,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     private void Update()
     {
         TickNeeds(Time.deltaTime);
+        if (reactCooldownTimer  > 0f) reactCooldownTimer  -= Time.deltaTime;
+        if (pettingDisplayTimer > 0f) pettingDisplayTimer -= Time.deltaTime;
         switch (state)
         {
             case AgentState.Idle:         TickIdle();         break;
@@ -456,11 +501,28 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
             return;
         }
 
+        // Friendly reactions time out so the creature doesn't stay glued to the player forever.
+        // Flee is excluded — it's need-driven and must keep running until the need is met or the player leaves.
+        if (activeReaction != ProximityReaction.Flee)
+        {
+            reactingTimer += Time.deltaTime;
+            if (reactingTimer >= followDuration)
+            {
+                reactCooldownTimer = reactCooldown;   // won't react again until the cooldown expires
+                state = stateBeforeReact;
+                if (state == AgentState.Idle) EnterIdle(); else EnterRoaming();
+                return;
+            }
+        }
+
         float dist = PlanarDistanceToPlayer();
 
         // Player left (with hysteresis) → resume previous behavior.
+        // Non-flee reactions also start the cooldown so the creature doesn't immediately follow again
+        // if the player circles back.
         if (player == null || dist > profile.ProximityRadius * 1.25f)
         {
+            if (activeReaction != ProximityReaction.Flee) reactCooldownTimer = reactCooldown;
             state = stateBeforeReact;
             if (state == AgentState.Idle) EnterIdle(); else EnterRoaming();
             return;
@@ -655,6 +717,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
     {
         if (player == null) return false;
         if (PlanarDistanceToPlayer() > profile.ProximityRadius) return false;
+        if (reactCooldownTimer > 0f) return false;   // still cooling down from the last reaction
 
         // Stress (Affect emergency, no PlayZone freed it) → flee the player. This IS the need response,
         // not "following" the player, so it stays even though the creature isn't Healthy.
@@ -674,6 +737,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         stateBeforeReact = state == AgentState.Idle ? AgentState.Idle : AgentState.Roaming;
         state            = AgentState.Reacting;
         repathTimer      = 0f;
+        reactingTimer    = 0f;
         return true;
     }
 
@@ -743,10 +807,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         agent.updateRotation = true;
         SetColliderTrigger(true);
 
-        holdAnchor  = null;
-        settleTimer = thrownTimer = idleTimer = recoverTimer = repathTimer = 0f;
-        bounceCount = 0;
-        state       = AgentState.Idle;
+        holdAnchor         = null;
+        settleTimer        = thrownTimer = idleTimer = recoverTimer = repathTimer
+                           = reactingTimer = reactCooldownTimer = pettingDisplayTimer = 0f;
+        bounceCount        = 0;
+        state              = AgentState.Idle;
     }
 
     // Called by the spawner before this instance goes back to the pool (deactivated): free any
@@ -924,6 +989,38 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         return d.magnitude;
     }
 
+    // True when the player is within petRadius AND their horizontal forward aligns with the
+    // direction from the player to this creature (petLookAngle cone). Uses player.forward
+    // (the body yaw set by Move(), always horizontal) — no camera pitch issues, no creature
+    // forward dependency.
+    public bool IsPlayerFacingMe()
+    {
+        if (player == null) return false;
+
+        Vector3 toMe = transform.position - player.position; toMe.y = 0f;
+        if (toMe.sqrMagnitude > petRadius * petRadius) return false;
+        if (toMe.sqrMagnitude < 0.001f) return true;
+
+        Vector3 playerFwd = player.forward; playerFwd.y = 0f;
+        if (playerFwd.sqrMagnitude < 0.001f) return true;
+
+        float threshold = Mathf.Cos(petLookAngle * Mathf.Deg2Rad);
+        return Vector3.Dot(playerFwd.normalized, toMe.normalized) >= threshold;
+    }
+
+    // IInteractable — tap E while facing a creature in a friendly reaction to pet it.
+    // Gives an Affect boost, starts the cooldown so it won't immediately follow again,
+    // and sends the creature back to its own business.
+    public void Interact()
+    {
+        if (!CanBePetted) return;
+        dna?.Needs.AddAffect(affectOnPet);
+        reactCooldownTimer  = reactCooldown;
+        pettingDisplayTimer = 1.5f;   // NameTag shows "Petting…" for 1.5 s
+        onPet?.Invoke();
+        EnterRoaming();
+    }
+
     // ── Gizmos (action ranges) ────────────────────────────────────
     // Ranges come from the resolved profile, which only exists once Initialize()
     // runs — so these draw in PLAY mode when the cube is selected, not in edit mode.
@@ -937,6 +1034,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable
         Gizmos.DrawWireSphere(c, profile.ProximityRadius);
         Gizmos.color = new Color(0.3f, 0.8f, 1f);   // roam radius
         Gizmos.DrawWireSphere(c, profile.RoamRadius);
+        Gizmos.color = Color.purple;   // pet radius
+        Gizmos.DrawWireSphere(c, petRadius);
         if (profile.Reaction != ProximityReaction.Ignore)
         {
             Gizmos.color = new Color(0.4f, 1f, 0.5f);   // follow/stop distance

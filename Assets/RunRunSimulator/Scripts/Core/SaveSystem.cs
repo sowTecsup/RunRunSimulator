@@ -55,6 +55,18 @@ public static class SaveSystem
     public static Dictionary<string, CreatureDNA> Deserialize(string json) =>
         JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(json, Settings);
 
+    public static string SerializeFurniture(FurnitureRegistrySO registry) =>
+        JsonConvert.SerializeObject(registry.GetAll(), Settings);
+
+    public static Dictionary<string, PlacedFurniture> DeserializeFurniture(string json) =>
+        JsonConvert.DeserializeObject<Dictionary<string, PlacedFurniture>>(json, Settings);
+
+    public static string SerializeInventory(PlayerInventorySO inventory) =>
+        JsonConvert.SerializeObject(inventory.GetData(), Settings);
+
+    public static PlayerInventorySO.InventoryData DeserializeInventory(string json) =>
+        JsonConvert.DeserializeObject<PlayerInventorySO.InventoryData>(json, Settings);
+
     public static void LoadInto(CreatureRegistrySO registry)
     {
         string path        = DbPath;
