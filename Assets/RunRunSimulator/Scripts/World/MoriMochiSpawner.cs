@@ -69,8 +69,11 @@ public class MoriMochiSpawner : MonoBehaviour
     private readonly Queue<CreatureDNA>                       spawnQueue = new Queue<CreatureDNA>();
     private readonly HashSet<string>                          queued     = new HashSet<string>();
 
+    private const float WorldReadyDebounce = 0.75f;
+
     private Coroutine pump;
     private Coroutine prewarmRoutine;
+    private Coroutine worldReadyDebounce;
     private bool      isPrewarming;
     private bool      worldReady;
     private Transform player;
@@ -102,9 +105,10 @@ public class MoriMochiSpawner : MonoBehaviour
         GameEvents.OnRegistryChanged  -= OnRegistryChanged;
         GameEvents.OnRegistryReloaded -= OnRegistryReloaded;
         GameEvents.OnNavMeshRebaked   -= OnNavMeshReady;
-        pump           = null;
-        prewarmRoutine = null;
-        isPrewarming   = false;
+        pump               = null;
+        prewarmRoutine     = null;
+        worldReadyDebounce = null;
+        isPrewarming       = false;
     }
 
     private void Start()
@@ -115,11 +119,17 @@ public class MoriMochiSpawner : MonoBehaviour
             prewarmRoutine = StartCoroutine(PrewarmAndStart(registry));
     }
 
-    // The first NavMesh bake completed — the world (furniture geometry + baked mesh) is ready.
-    // Flip the gate and kick the pump in case prewarm already finished waiting on it. Runtime
-    // rebakes after this are no-ops here (pump's already running; agents handle them themselves).
     private void OnNavMeshReady()
     {
+        if (worldReady) return;
+        if (worldReadyDebounce != null) StopCoroutine(worldReadyDebounce);
+        worldReadyDebounce = StartCoroutine(WorldReadyAfterDebounce());
+    }
+
+    private IEnumerator WorldReadyAfterDebounce()
+    {
+        yield return new WaitForSeconds(WorldReadyDebounce);
+        worldReadyDebounce = null;
         worldReady = true;
         if (!isPrewarming) EnsurePump();
     }
@@ -293,7 +303,7 @@ public class MoriMochiSpawner : MonoBehaviour
         var bank  = GameManager.Instance != null ? GameManager.Instance.PartVisualBank      : null;
 
         // Activate on a valid NavMesh point so NavMeshAgent.OnEnable never fires off-mesh, then
-        // PrepareForLaunch disables the agent and teleports to the muzzle — never the reverse.
+        // Launch disables the agent and teleports to the muzzle — never the reverse.
         Vector3 navPoint = ResolveActivationPoint();
 
         MoriMonchiController controller;
@@ -321,7 +331,7 @@ public class MoriMochiSpawner : MonoBehaviour
         Vector3 muzzle = launchPoint != null ? launchPoint.position : transform.position;
         Vector3 target = RandomLandingPoint();
         float   angle  = Random.Range(launchAngle.x, launchAngle.y) * Mathf.Deg2Rad;
-        controller.PrepareForLaunch(muzzle, SolveLaunchVelocity(muzzle, target, angle));
+        controller.Launch(muzzle, SolveLaunchVelocity(muzzle, target, angle));
 
         spawned[dna.UniqueID] = controller;
     }

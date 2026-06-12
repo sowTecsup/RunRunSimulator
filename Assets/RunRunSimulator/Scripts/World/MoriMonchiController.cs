@@ -35,9 +35,7 @@ public class MoriMonchiController : MonoBehaviour
 
     // ── Spawner passthrough ───────────────────────────────────────
 
-    public void Launch(Vector3 impulse) => agent.Launch(impulse);
-
-    public void PrepareForLaunch(Vector3 launchPos, Vector3 impulse) => agent.PrepareForLaunch(launchPos, impulse);
+    public void Launch(Vector3 launchPos, Vector3 launchVelocity) => agent.Launch(launchPos, launchVelocity);
 
     public void PrepareForPool() => agent.PrepareForPool();
 }

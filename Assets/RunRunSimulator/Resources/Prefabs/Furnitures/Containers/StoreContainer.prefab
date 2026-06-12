@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 59787886342023105}
   - component: {fileID: 484705535595541630}
   - component: {fileID: 8531986243432641258}
-  - component: {fileID: 7067866970561308200}
+  - component: {fileID: 950915030550606727}
   m_Layer: 0
-  m_Name: BreedingFurniture
+  m_Name: StoreContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -71,7 +71,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3, y: 1, z: 3}
   m_Center: {x: 0, y: 0.54, z: 0}
---- !u!114 &7067866970561308200
+--- !u!114 &950915030550606727
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -80,13 +80,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 13855412886183546}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 40a1b0e817a24f348b5254a11638c68c, type: 3}
+  m_Script: {fileID: 11500000, guid: 4ababdee5493eb346871c8549a72ed8b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoriMochiContainer
+  m_EditorClassIdentifier: Assembly-CSharp::StoreContainer
   area: {fileID: 8531986243432641258}
   capacity: 2
   bounceOut: 5
   bounceUp: 4
+  restoreRate: 25
 --- !u!1 &5695882638547036477
 GameObject:
   m_ObjectHideFlags: 0

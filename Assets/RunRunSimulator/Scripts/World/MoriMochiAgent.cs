@@ -201,6 +201,24 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [TabGroup("Tuning", "Presentation")]
     [SerializeField] private UnityEvent onPet;      // player petted it from the front
 
+    [TabGroup("Tuning", "Dev"), Title("Dev Tools (Play mode only)")]
+    [Button("Force Ragdoll")]
+    private void DevForceRagdoll()
+    {
+        if (!Application.isPlaying) { Debug.LogWarning("[MoriMochiAgent] Enter Play mode first."); return; }
+        ReleaseStation();
+        EnterRagdoll();
+        rb.AddForce(Vector3.up * 4f, ForceMode.VelocityChange);
+    }
+
+    [TabGroup("Tuning", "Dev")]
+    [Button("Force Roam")]
+    private void DevForceRoam()
+    {
+        if (!Application.isPlaying) { Debug.LogWarning("[MoriMochiAgent] Enter Play mode first."); return; }
+        EnterRoaming();
+    }
+
     // ── Injected ──────────────────────────────────────────────────
     private CreatureDNA        dna;
     private PersonalityProfile profile;
@@ -251,6 +269,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private float      effGetUpDuration;
     private Quaternion getUpFrom;
     private Quaternion getUpTo;
+    private Vector3    getUpFromPos;
+    private Vector3    getUpToPos;
 
     public bool IsHeld => state == AgentState.Carried;
     // True only while ragdolling after a throw — not while carried, not while NavMesh-driven.
@@ -433,6 +453,24 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (state != AgentState.Thrown) return;
+
+        float impact = lastVelocity.magnitude;
+        if (impact < minBounceSpeed) return;
+
+        var hit = other.GetComponentInParent<IThrowable>();
+        if (hit == null || ReferenceEquals(hit, this)) return;
+
+        Vector3 push = other.transform.position - transform.position; push.y = 0f;
+        if (push.sqrMagnitude < 0.001f) push = transform.forward;
+        push = (push.normalized + Vector3.up * knockUpBias).normalized;
+        hit.Knock(push * impact * knockTransfer);
+
+        if (impact >= hardImpactThreshold) dna?.Needs.AddAffect(-affectOnHardCollision);
+    }
+
     // Knocked by another thrown object (IThrowable contract). If currently NavMesh-
     // controlled, hand off to physics like a throw; then apply the impulse so it
     // ragdolls away and can bounce / chain into others.
@@ -441,28 +479,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         if (state == AgentState.Carried) return;   // in the player's hand — don't yank it out
         if (currentContainer != null) return;      // penned: tackle-proof — only the player can take it out
 
-        ReleaseStation();           // interrupt any need-seeking/using cleanly
-        DetachToPhysics();
-        ApplyThrownPhysics();
-        holdAnchor = null;
-        state      = AgentState.Thrown;
+        ReleaseStation();
+        EnterRagdoll();
 
         dna?.Needs.AddAffect(-affectOnThrow);   // being slammed around is stressful
         rb.AddForce(force, ForceMode.Impulse);
-        onThrow?.Invoke();          // reuse the throw juice for the knock
-    }
-
-    // Spawn pop-out: launches the creature as a ragdoll in some direction, reusing the throw
-    // pipeline (bounce → settle → get-up → roam to its preferred area). Unlike Knock this carries
-    // NO affect penalty — being born isn't stressful — and ignores confinement (it's never penned
-    // at spawn). The spawner calls this right after Initialize().
-    public void Launch(Vector3 impulse)
-    {
-        DetachToPhysics();
-        ApplyThrownPhysics();
-        holdAnchor = null;
-        state      = AgentState.Thrown;
-        rb.AddForce(impulse, ForceMode.Impulse);
+        onThrow?.Invoke();
     }
 
     // Cannon spawn: disables the NavMeshAgent BEFORE teleporting to the muzzle so the agent never
@@ -470,9 +492,9 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     // physics). Initialize() must have been called first on a valid NavMesh point — this just
     // handles the "pop out of the machine" movement. It then arcs as a ragdoll, lands, and gets up
     // onto the mesh via the normal throw pipeline (TickThrown → BeginGetUp).
-    public void PrepareForLaunch(Vector3 launchPos, Vector3 launchVelocity)
+    public void Launch(Vector3 launchPos, Vector3 launchVelocity)
     {
-        DetachToPhysics();              // agent.enabled = false before teleporting off-mesh
+        DetachToPhysics();
         transform.position = launchPos;
         ApplyThrownPhysics();
         holdAnchor = null;
@@ -480,6 +502,14 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         // VelocityChange (not Impulse) so the body gets EXACTLY the computed ballistic velocity
         // regardless of mass — the spawner solved this to land inside the cannon's radius.
         rb.AddForce(launchVelocity, ForceMode.VelocityChange);
+    }
+
+    private void EnterRagdoll()
+    {
+        DetachToPhysics();
+        ApplyThrownPhysics();
+        holdAnchor = null;
+        state      = AgentState.Thrown;
     }
 
     // ── States ────────────────────────────────────────────────────
@@ -797,16 +827,14 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     public void OnRelease()
     {
-        holdAnchor = null;
-        state      = AgentState.Thrown;   // TickThrown watches for it to settle, then BeginGetUp()
-        ApplyThrownPhysics();
+        EnterRagdoll();
     }
 
     public void OnThrow(Vector3 force)
     {
-        OnRelease();
+        EnterRagdoll();
         rb.AddForce(force, ForceMode.Impulse);
-        dna?.Needs.AddAffect(-affectOnThrow);   // being thrown around is stressful
+        dna?.Needs.AddAffect(-affectOnThrow);
         onThrow?.Invoke();
     }
 
@@ -962,21 +990,25 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     // animates it upright before the agent brain takes over.
     private void BeginGetUp()
     {
-        if (!RejoinNavMesh(transform.position, agent.areaMask))
+        if (!NavMesh.SamplePosition(transform.position, out var hit, sampleRadius * 2f, agent.areaMask))
         {
-            state = AgentState.Thrown;      // couldn't rejoin (landed far off-mesh) — stay down, retry
+            state = AgentState.Thrown;
             return;
         }
 
-        agent.updateRotation = false;       // we hand-animate the get-up; the agent must not fight it
+        getUpFromPos = transform.position;
+        getUpToPos   = hit.position;
 
-        // Personality sets the pace (lazy = groggy/slow, skittish = springs up), plus a
-        // little per-throw jitter so a cluster of the same archetype doesn't rise in sync.
+        rb.isKinematic = true;
+        rb.useGravity  = false;
+        SetColliderTrigger(true);
+
+        agent.updateRotation = false;
+
         float scale  = Mathf.Max(0.1f, profile.RecoverySpeed) * Random.Range(1f - getUpJitter, 1f + getUpJitter);
         effDownedDelay   = downedDelay   / scale;
         effGetUpDuration = getUpDuration / scale;
 
-        // Target pose: keep its current heading (yaw), level out the tumble.
         Vector3 fwd = transform.forward; fwd.y = 0f;
         if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
         getUpFrom    = transform.rotation;
@@ -996,12 +1028,17 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         float t = effGetUpDuration <= 0f
             ? 1f
             : Mathf.InverseLerp(effDownedDelay, effDownedDelay + effGetUpDuration, recoverTimer);
-        transform.rotation = Quaternion.Slerp(getUpFrom, getUpTo, Mathf.SmoothStep(0f, 1f, t));
+        float smoothT = Mathf.SmoothStep(0f, 1f, t);
+        transform.position = Vector3.Lerp(getUpFromPos, getUpToPos, smoothT);
+        transform.rotation = Quaternion.Slerp(getUpFrom, getUpTo, smoothT);
 
         if (recoverTimer >= effDownedDelay + effGetUpDuration)
         {
+            if (!agent.enabled) agent.enabled = true;
+            agent.Warp(getUpToPos);
+            agent.ResetPath();
             onGetUp?.Invoke();
-            EnterRoaming();                 // restores agent.updateRotation
+            EnterRoaming();
         }
     }
 

@@ -11,10 +11,14 @@
             "id": "904556343679102e",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Vista gráfica"
+              "type": "markdown",
+              "state": {
+                "file": "02 - Genetics & Breeding.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "02 - Genetics & Breeding"
             }
           }
         ]
@@ -167,13 +171,17 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
-    "Sin título.canvas",
-    "08 - Known Bugs & Checkpoints.md",
-    "10 - Furniture & Building.md",
     "09 - Active Context.md",
+    "10 - Furniture & Building.md",
+    "04 - UGS & Cloud.md",
+    "03 - Combat.md",
+    "02 - Genetics & Breeding.md",
+    "01 - GDD Core.md",
+    "11 - Propuestas.md",
+    "08 - Known Bugs & Checkpoints.md",
+    "Sin título.canvas",
     "09 - Active Context.md.tmp.29288.3064edd54395",
     "09 - Active Context.md.tmp.22308.37db8f960a47",
-    "11 - Propuestas.md",
     "09 - Active Context.md.tmp.22308.e780a47c1107",
     "06 - Player & World.md",
     "10 - Furniture & Building.md.tmp.22308.b37bd2473392",
@@ -184,12 +192,8 @@
     "06 - Player & World.md.tmp.22308.63e2ade3b541",
     "09 - Active Context.md.tmp.22308.618db72221e5",
     "00 - Index.md",
-    "01 - GDD Core.md",
-    "02 - Genetics & Breeding.md",
-    "04 - UGS & Cloud.md",
     "05 - UI System.md",
     "07 - Persistence & Identity.md",
-    "03 - Combat.md",
     "Welcome.md"
   ]
 }

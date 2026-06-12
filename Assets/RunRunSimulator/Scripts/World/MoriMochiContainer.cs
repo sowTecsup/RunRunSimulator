@@ -43,7 +43,7 @@ public class MoriMochiContainer : MonoBehaviour
     public List<CreatureDNA> OccupantDNAs => occupants.Select(a => a.DNA).ToList();
 
     private void Reset() => area = GetComponent<BoxCollider>();
-    private void Awake() { if (area == null) area = GetComponent<BoxCollider>(); }
+    protected virtual void Awake() { if (area == null) area = GetComponent<BoxCollider>(); }
 
     // A creature THROWN in from outside crosses the trigger boundary here.
     private void OnTriggerEnter(Collider other)

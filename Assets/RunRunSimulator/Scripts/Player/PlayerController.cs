@@ -338,10 +338,8 @@ public class PlayerController : MonoBehaviour
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
         foreach (var hit in hits)
         {
-            if (hit.collider.TryGetComponent(out component)) return true;
-
-            var rb = hit.collider.attachedRigidbody;
-            if (rb != null && rb.TryGetComponent(out component)) return true;
+            component = hit.collider.GetComponentInParent<T>();
+            if (component != null) return true;
 
             // A solid collider that isn't the target blocks the reach; triggers are transparent.
             if (!hit.collider.isTrigger)

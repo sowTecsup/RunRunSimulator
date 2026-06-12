@@ -37,32 +37,37 @@ public class FurnitureService : MonoBehaviour
     // browser can drive placement directly without mutating the serialized activePieces list.
     private FurnitureDefinitionSO runtimeActivePiece;
 
-    private bool rebakePending;
+    private const float RebakeDebounce = 0.4f;
+    private Coroutine rebakeDebounce;
 
-    private void OnEnable()  => GameEvents.OnFurnitureReloaded += OnFurnitureReloaded;
-    private void OnDisable() => GameEvents.OnFurnitureReloaded -= OnFurnitureReloaded;
-
-    // After the initial furniture load (the spawner repopulates on its own Start), rebake once so
-    // any breeding-room floors that loaded in get their painted area into the NavMesh.
-    private void Start() => ScheduleRebake();
-
-    // A bulk (re)load just repopulated the scene → rebake so newly-loaded pens are navigable.
-    private void OnFurnitureReloaded(FurnitureRegistrySO r) => ScheduleRebake();
-
-    // Defers the rebake to end of frame so the FurnitureSpawner has finished (re)building the
-    // meshes first (both react to the same event; instantiation order between them isn't
-    // guaranteed). Coalesces multiple requests in the same frame into a single bake.
-    private void ScheduleRebake()
+    private void OnEnable()
     {
-        if (rebakePending || !isActiveAndEnabled || navSurface == null) return;
-        rebakePending = true;
-        StartCoroutine(RebakeEndOfFrame());
+        GameEvents.OnFurnitureReloaded += OnFurnitureReloaded;
+        GameEvents.OnFurnitureChanged  += OnFurnitureChanged;
     }
 
-    private IEnumerator RebakeEndOfFrame()
+    private void OnDisable()
     {
-        yield return new WaitForEndOfFrame();
-        rebakePending = false;
+        GameEvents.OnFurnitureReloaded -= OnFurnitureReloaded;
+        GameEvents.OnFurnitureChanged  -= OnFurnitureChanged;
+    }
+
+    private void Start() => ScheduleRebake();
+
+    private void OnFurnitureReloaded(FurnitureRegistrySO r) => ScheduleRebake();
+    private void OnFurnitureChanged(FurnitureRegistrySO r)  => ScheduleRebake();
+
+    private void ScheduleRebake()
+    {
+        if (!isActiveAndEnabled || navSurface == null) return;
+        if (rebakeDebounce != null) StopCoroutine(rebakeDebounce);
+        rebakeDebounce = StartCoroutine(RebakeAfterDebounce());
+    }
+
+    private IEnumerator RebakeAfterDebounce()
+    {
+        yield return new WaitForSeconds(RebakeDebounce);
+        rebakeDebounce = null;
         RebakeNavMesh();
     }
 

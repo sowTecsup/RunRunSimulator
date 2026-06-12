@@ -4,57 +4,28 @@ tags: [memory-bank, gdd, design]
 
 # 01 — GDD Core
 
-## Qué es este proyecto
+> Para discusiones de diseño, lore o mecánicas puras, consultar **Notion**. Este es el cheatsheet de la visión técnica.
 
-Simulador de tienda retro 3D ambientado en los años 80s. El jugador es el dueño de una tienda que se sumó a la tendencia "MoriMonchis": criaturas biológicas del tamaño de la palma de la mano (estética **Gremlins + Furby + Tamagotchi**). En la trastienda opera un club de peleas clandestino asíncrono.
+## Visión Core (TL;DR)
+Simulador de tienda retro 3D (años 80s). El jugador cría y vende "MoriMonchis" (criaturas biológicas gross/cute) y participa en un club de peleas clandestino asíncrono.
+- **Singular:** MoriMochi / **Plural:** MoriMonchis.
+- **En código:** `Creature` / `CreatureDNA`.
 
-Referencia de género: los *Simulator games* del mercado actual (PowerWash Simulator, etc.) pero con **genética y muerte permanente**.
+## Pilares & Invariantes
+- **Genética Visible:** Aspecto derivado del ensamblaje de partes individuales (DNA string).
+- **Muerte Permanente:** Perder peleas puede matar; `IsDead = true` bloquea breed y combate irreversiblemente.
+- **Asincronía (UGS):** Combates encolados y resueltos server-side vía Scheduler.
+- **Progresión Estricta:** Límite máximo de 4 breeds y 5 fights por criatura.
 
-## Nombre oficial de las criaturas
+## Core Loop Técnico
+1. **Mint / Breed:** Generación de `CreatureDNA` (herencia de stats y genética).
+2. **Simulación:** `MoriMochiAgent` interactuando en NavMesh basado en su Personality y Needs.
+3. **Peleas:** Resolución local o async (`CombatService` / `AsyncCombatService`).
+4. **Tienda:** Modo construcción y compra/venta de ítems (`StoreManager` / `FurnitureService`).
 
-- **Singular**: MoriMochi
-- **Plural**: MoriMonchis
-- En código interno: `Creature` / `CreatureDNA` (generalidad).
-- En UI, logs visibles al jugador y naming de assets: **MoriMochi/MoriMonchis**.
+## Nombres
+- Generación procedural usando `CreatureNameBank` (adjetivo + sustantivo). Editable por usuario.
 
-## Pilares
-
-- **Genética visible** — el aspecto de cada criatura nace de sus partes (DNA string), y el breeding mezcla padres por slot.
-- **Muerte permanente** — perder una pelea puede matar a la criatura. Estado `IsDead` bloquea breed y combate.
-- **Asincronía** — el combate clandestino corre server-side cada hora UTC vía UGS Scheduler. El jugador puede cerrar el juego.
-- **Estética retro / gross / cute** — tonos de los 80s, criaturas tipo Gremlin/Furby con nombres como "Fuzzy Blob".
-- **Simulador, no autobattler** — el meta es la tienda; el combate es un sub-sistema.
-
-## Core Loop (alto nivel)
-
-1. **Mint / Breed** — generar o criar MoriMonchis (genética + stats heredados).
-2. **Vida en escena** — los cubos vivos se mueven por el mundo según su personalidad.
-3. **Combate** — local (instantáneo, testing) o async (cola server-side, drena cada hora).
-4. **Progresión** — el ganador evoluciona una parte, el perdedor puede morir. Límites: 4 breeds, 5 fights por criatura.
-5. **Tienda** (futuro, Etapa 3) — vender criaturas a NPCs o en mercado P2P.
-
-## Sistema de Nombres de Criaturas (`CreatureNameBank`)
-
-- Clase estática. Nombre = **adjetivo + sustantivo** ("Fuzzy Blob"), estética gross/retro (Gremlins/Furby).
-- Pools: **50 adjetivos × 50 sustantivos = 2500 combinaciones**.
-- `GetRandomName()` se usa en Mint y Breed. El `CustomName` resultante es editable por el usuario.
-
-## Selección de modelo
-
-Antes de comenzar cualquier tarea, evaluar si el modelo actual (Sonnet) es adecuado. **Avisar al usuario si se recomienda cambiar a Opus** antes de proceder.
-
-**Cambiar a Opus** cuando la tarea implique:
-- Diseño de sistemas nuevos desde cero con muchas decisiones interconectadas (economía, tienda, meta-game).
-- Arquitectura que afecte múltiples etapas del roadmap simultáneamente.
-- Análisis de trade-offs complejos sin respuesta obvia.
-
-**Sonnet** es suficiente para:
-- Implementación de features concretas (scripts, refactoring, bugfixes).
-- Trabajo dentro de sistemas ya diseñados.
-- Tareas con requisitos claros y acotados.
-
-## Links a sub-páginas Notion relevantes
-
-- *Concepto y Pilares* (gameplay)
-- *Honorarios / Liga del Cielo* (lore)
-- *Decisiones de Diseño* (registro consolidado)
+## Cuándo cambiar de modelo LLM
+- **Usar Opus:** Tareas de arquitectura fundacional o decisiones de diseño complejas (ej. balance económico global).
+- **Usar Sonnet:** Implementación táctica, UI, refactors y sistemas con arquitectura ya resuelta.
