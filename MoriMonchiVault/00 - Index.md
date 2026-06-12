@@ -1,39 +1,131 @@
 ---
-tags: [memory-bank, index]
+tags: [memory-bank, index, entry-point]
 ---
 
-# 00 — Index (Memory Bank Routing Map)
+# 00 — Index (AI Entry Point)
 
-> **Source of truth para diseño**: el [Notion Wiki](https://www.notion.so/36cac10136a781819b74e176ed7c00d9). Este vault es la versión **destilada y code-focused** que Claude consulta. Para discusiones de diseño vivo, abrir el Notion.
+> Lee esto PRIMERO. Te dice exactamente qué archivos leer antes de tocar código.
 
-## Qué archivo leer según la tarea
+---
 
-| Tarea | Lee primero | Lee también |
-|-------|-------------|-------------|
-| Genética, DNA, partes, breeding | [[02 - Genetics & Breeding]] | [[07 - Persistence & Identity]] |
-| Combate (local o async) | [[03 - Combat]] | [[04 - UGS & Cloud]] |
-| Cloud Code, Scheduler, REST, CLI | [[04 - UGS & Cloud]] | [[03 - Combat]] |
-| Auth, sign-in, Cloud Save | [[04 - UGS & Cloud]] | [[07 - Persistence & Identity]] |
-| UI Toolkit, paneles, navegación | [[05 - UI System]] | [[06 - Player & World]] |
-| Player FP, cámara, grab/throw | [[06 - Player & World]] | [[05 - UI System]] |
-| MoriMonchis vivos, NavMesh, personalidad | [[06 - Player & World]] | [[02 - Genetics & Breeding]] |
-| Save system, registry, identidad | [[07 - Persistence & Identity]] | — |
-| Furniture, building mode, placement, tienda | [[10 - Furniture & Building]] | [[07 - Persistence & Identity]] |
-| Bug conocido o checkpoint futuro | [[08 - Known Bugs & Checkpoints]] | (el sistema afectado) |
-| Visión, lore, core loop | [[01 - GDD Core]] | (Notion) |
-| Qué estoy haciendo ahora | [[09 - Active Context]] | — |
+## 📁 Vault Structure
 
-## Sub-páginas del Notion (autoritativas)
+```
+MoriMonchiVault/
+├── 00 - Index.md              ← ESTE ARCHIVO (entry point para IA)
+├── Index/                     ← Notas principales por dominio (01-11)
+└── ScriptNodes/               ← Un nodo por script .cs
+```
 
-**Diseño/mecánicas → Gameplay; cómo está construido → Arquitectura.**
+---
 
-- 🎮 **Gameplay (GDD)** — Concepto y Pilares · Sistema Genético (Diseño) · Breeding · Combate, Venganza y Bidding · Evolución y Ciclo de Vida · Honorarios / Liga del Cielo · Tienda, Economía y Onboarding
-- 🏗️ **Arquitectura (Dev)** — Arquitectura General · Genética — Implementación · Identidad y Persistencia · Breeding — Implementación · Combate Local — Implementación · Combate Async + UGS · UGS CLI & Scheduler
-- 📋 **Decisiones de Diseño** — registro consolidado
-- ❓ **Preguntas Abiertas** — solo lo no resuelto
+## 🧭 Quick Routing (task → read these first)
 
-> Al resolver una pregunta abierta, moverla a Decisiones de Diseño. Al cambiar diseño, actualizar la sub-página de Gameplay; al cambiar implementación, la de Arquitectura.
+| Task | Read in `Index/` | Then read in `ScriptNodes/` |
+|------|-------------------|-----------------------------|
+| **DNA, parts, databases** | [[Index/02 - Genetics & Breeding]] | [[CreatureDNA]], [[BodyPart]], [[PartDatabaseSO]] |
+| **Breeding mechanic** | [[Index/02 - Genetics & Breeding]] | [[BreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[BreedingContainer]] |
+| **Visual assembly (3D)** | [[Index/02 - Genetics & Breeding]] | [[MoriMonchiVisualizer]], [[BodyPartJoint]], [[PartVisualBankSO]] |
+| **Local combat** | [[Index/03 - Combat]] | [[CombatService]], [[CombatRecord]], [[CombatTurn]] |
+| **Async combat (UGS)** | [[Index/03 - Combat]], [[Index/04 - UGS & Cloud]] | [[AsyncCombatService]], [[CloudSyncService]] |
+| **Auth & Cloud Save** | [[Index/04 - UGS & Cloud]], [[Index/07 - Persistence & Identity]] | [[CloudSyncService]], [[SaveSystem]], [[GameManager]] |
+| **UI panels & navigation** | [[Index/05 - UI System]] | [[UIManager]], [[UIInputs]], [[PanelTrigger]] |
+| **Player FP controller** | [[Index/06 - Player & World]] | [[PlayerInputs]], [[PlayerController]] |
+| **Creature AI (NavMesh)** | [[Index/06 - Player & World]] | [[MoriMochiAgent]], [[NeedStationRegistry]], [[PersonalityProfileSO]] |
+| **Needs system** | [[Index/06 - Player & World]] | [[NeedStation]], [[Feeder]], [[NeedsState]] |
+| **Containers / pens** | [[Index/06 - Player & World]] | [[MoriMochiContainer]], [[StoreContainer]], [[BreedingContainer]] |
+| **Hotbar / world props** | [[Index/06 - Player & World]] | [[HotbarController]], [[WorldPropInstance]], [[ThrowableObject]] |
+| **Save/load & persistence** | [[Index/07 - Persistence & Identity]] | [[SaveSystem]], [[GameEvents]], [[GameManager]] |
+| **Event bus architecture** | [[Index/07 - Persistence & Identity]] | [[GameEvents]] |
+| **Building mode** | [[Index/10 - Furniture & Building]] | [[BuildModeController]], [[BuildingInputs]], [[PlacementGrid]] |
+| **Store & economy** | [[Index/10 - Furniture & Building]] | [[StoreManager]], [[ShopCatalogSO]], [[DeliveryBox]] |
+| **Furniture system** | [[Index/10 - Furniture & Building]] | [[FurnitureService]], [[FurnitureSpawner]], [[FurnitureDefinitionSO]] |
+| **Known bugs / issues** | [[Index/08 - Known Bugs & Checkpoints]] | — |
+| **Current work session** | [[Index/09 - Active Context]] | — |
 
-## Convención de enlaces
+---
 
-Uso `[[wikilinks]]` estilo Obsidian. Apuntan a otras notas del vault. Cuando trabajo en un sistema, suele bastar con leer el archivo + el `Active Context`.
+## 🏗️ Directory Structure (source code)
+
+```
+Assets/RunRunSimulator/Scripts/
+├── Core/          # GameManager, GameEvents, SaveSystem, Enums, Interfaces
+├── Data/          # CreatureDNA, BodyPart, databases, SOs
+│   ├── Databases/ # ArmDatabaseSO, EyeDatabaseSO, etc.
+│   └── Parts/     # ArmPart, EyePart, MouthPart, BodyShapePart
+├── Systems/       # Desacoplados vía GameEvents
+│   ├── Breeding/  # BreedingService, AsyncBreedingService
+│   ├── Combat/    # CombatService, AsyncCombatService
+│   ├── Cloud/     # CloudSyncService, CloudCodeTester
+│   ├── Furniture/ # BuildModeController, FurnitureService, PlacementGrid
+│   └── Store/     # StoreManager, ShopCatalogSO, DeliveryBox
+├── UI/            # UIManager, UIInputs, 12 panel controllers
+├── Player/        # PlayerInputs, PlayerController, BuildingInputs
+├── Interactables/ # PanelTrigger, ThrowableObject
+└── World/         # MoriMochiAgent, NeedStation, HotbarController, containers
+```
+
+---
+
+## 🔌 Architectural Patterns (non-negotiable)
+
+### 1. Event Bus (`GameEvents.cs`)
+Cross-system communication is ALWAYS via static events. NEVER direct references between systems.
+- **Gameplay mutations** → `GameEvents.OnRegistryChanged` / `OnFurnitureChanged`
+- **UI events** → `UIManager` static events (separate bus)
+- **Input events** → `PlayerInputs` / `UIInputs` / `BuildingInputs` static events
+- **Rule**: event carries the payload; subscriber never fetches a singleton
+
+### 2. Singleton pattern
+Used for runtime services: `GameManager.Instance`, `CloudSaveService.Instance`, `NeedStationRegistry.Instance`, `StorageContainer.Instance`, `PartVisualBankSO.Current`, `BreedingAffinityTableSO.Current`, `InheritanceOddsTableSO.Current`
+
+### 3. Persistence pipeline
+```
+Mutation → GameEvents → GameManager → SaveSystem (disk) → CloudSyncService (cloud)
+```
+No gameplay script calls `SaveDatabase` or `PushToCloud` directly.
+
+### 4. Input isolation
+Three mutually exclusive action maps: `Player`, `UI`, `Building`. Only one active at a time. `UIInputs` enables/disables based on `UIManager.OnUIFocusChanged`.
+
+### 5. NeedsState special rule
+`NeedsState` (Health/Energy/Affect) lives inside `CreatureDNA` and mutates every frame. It MUST NOT fire `GameEvents.RegistryChanged` (would spam cloud save). Flushes only on quit/pause via `GameManager`.
+
+---
+
+## 🏷️ Tag / Keyword Index
+
+| Keyword | Look in |
+|---------|---------|
+| DNA, genetic string, part ID | [[CreatureDNA]], [[PartDatabaseSO]] |
+| Stats (HP/Attack/Speed) | [[CreatureStats]], [[BodyPart]] |
+| Personality, tint | [[PersonalityProfileSO]], [[MoriMochiAgent]] |
+| Combat, fight, battle | [[CombatService]], [[AsyncCombatService]] |
+| Breeding, cross, hatch | [[BreedingService]], [[BreedingContainer]] |
+| Affinity, compatibility | [[BreedingAffinityTableSO]] |
+| Inheritance odds | [[InheritanceOddsTableSO]] |
+| Cloud save, push, pull | [[CloudSyncService]], [[SaveSystem]] |
+| UI panel, stack, focus | [[UIManager]], [[UIInputs]] |
+| Building mode, ghost, grid | [[BuildModeController]], [[PlacementGrid]] |
+| Store, buy, sell, catalog | [[StoreManager]], [[ShopCatalogSO]] |
+| Need, hunger, energy, affect | [[NeedStation]], [[NeedsState]] |
+| NavMesh, agent, AI | [[MoriMochiAgent]] |
+| Container, corral, pen | [[MoriMochiContainer]] |
+| Hotbar, slot, throw | [[HotbarController]], [[ThrowableObject]] |
+| Interact, IInteractable | [[Interfaces]], [[PanelTrigger]] |
+| Persist, save, load, JSON | [[SaveSystem]], [[GameManager]] |
+
+---
+
+## ⚙️ How to use this vault (for AI)
+
+1. **Identify your task** in the Quick Routing table above
+2. **Read the Index/ note** for design intent, flow, and invariants
+3. **Read the specific ScriptNodes** for implementation details:
+   - Each node has: responsibility, file path, connected scripts
+   - Follow the `[[wikilinks]]` to understand relationships
+4. **Check [[Index/08 - Known Bugs & Checkpoints]]** for active issues
+5. **Check [[Index/09 - Active Context]]** for current session state
+6. **Only then read the `.cs` files** — you'll already know what they do
+
+> 📍 **Design discussions** live in [Notion](https://www.notion.so/36cac10136a781819b74e176ed7c00d9). This vault is the code-focused distilled version.

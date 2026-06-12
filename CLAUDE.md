@@ -1,97 +1,138 @@
 # RunRunSimulator — MoriMonchis — CLAUDE.md
 
-> **Memory Bank**: el detalle técnico vive en `MoriMonchiVault/` (Obsidian). Este archivo es el núcleo: reglas no-negociables + orientación + índice. Léelo siempre primero; lee el vault según la tarea.
+> Juan, empieza cada mensaje diciendo "Juan:". Este archivo es tu regla de oro: leelo primero siempre.
 
-## 📚 Source of truth
-
-| Recurso | Para qué |
-|---------|----------|
-| 🟣 [Notion Wiki](https://www.notion.so/36cac10136a781819b74e176ed7c00d9) | Diseño vivo, decisiones, preguntas abiertas. Cuando dudes de **diseño**, abre Notion. |
-| 📁 `MoriMonchiVault/` (Obsidian) | Detalle de **implementación**, quirks técnicos, archivos clave. Cuando dudes de **código**, lee del vault. |
+**Memory Bank:** el detalle tecnico vive en `MoriMonchiVault/` (Obsidian). Este archivo es el nucleo: reglas no-negociables + orientacion + indice. Leelo siempre primero; lee el vault segun la tarea.
 
 ---
 
-## Qué es este proyecto (1 línea)
+## Source of truth
 
-Simulador de tienda retro 3D ambientado en los 80s. El jugador cría/pelea **MoriMonchis** (criaturas tipo Gremlins + Furby + Tamagotchi) con **genética visible, muerte permanente y combate async server-side**. Más en [[MoriMonchiVault/01 - GDD Core|01 - GDD Core]].
+| Recurso | Para que |
+|---------|----------|
+| Notion Wiki | Diseno vivo, decisiones, preguntas abiertas. Cuando dudes de **diseno**, abre Notion. |
+| `MoriMonchiVault/` (Obsidian) | Detalle de **implementacion**, quirks tecnicos, archivos clave. Cuando dudes de **codigo**, lee del vault. |
+| `MoriMonchiVault/ScriptNodes/` | Un nodo `.md` por cada script `.cs`. Leer antes de abrir el codigo fuente. |
+
+---
+
+## Protocolo de trabajo para IA (Juan)
+
+Juan, antes de tocar cualquier codigo:
+
+1. **Abrir sesion**: leer `MoriMonchiVault/Index/09 - Active Context.md` (estado actual)
+2. **Identificar sistema**: usar `MoriMonchiVault/00 - Index.md` (routing por tarea)
+3. **Leer diseno**: abrir `MoriMonchiVault/Index/XX - Tema.md` (diseno, flujo, invariantes)
+4. **Leer script nodes**: abrir `MoriMonchiVault/ScriptNodes/NombreScript.md` (responsabilidad, conexiones)
+5. **Planear con Opus**: disenar la solucion antes de picar codigo. Evaluar alternativas, invariantes, impacto en otros sistemas.
+6. **Solo entonces leer `.cs`**: ya sabes que hace cada script y como se conecta. Confirmar que el plan encaja.
+7. **Generar sub-agentes**: delegar tareas concretas a sub-agentes (uno por archivo o responsabilidad). Cada sub-agente recibe el plan, la ruta del archivo, y las reglas de codigo.
+8. **Cerrar sesion**: actualizar `09 - Active Context.md` con lo tocado y siguiente paso
+9. **Cada mensaje** empieza con "Juan:" seguido del contenido
+
+---
+
+## Que es este proyecto (1 linea)
+
+Simulador de tienda retro 3D ambientado en los 80s. El jugador cria/pelea MoriMonchis (criaturas tipo Gremlins + Furby + Tamagotchi) con genetica visible, muerte permanente y combate async server-side. Mas en [[MoriMonchiVault/Index/01 - GDD Core]].
 
 ## Nombre oficial de las criaturas
 
 - **Singular**: MoriMochi · **Plural**: MoriMonchis.
-- Código interno: `Creature` / `CreatureDNA` (generalidad).
+- Codigo interno: `Creature` / `CreatureDNA` (generalidad).
 - UI, logs visibles al jugador, naming de assets: **MoriMochi/MoriMonchis**.
 
-## Stack Técnico
+## Stack Tecnico
 
 - **Motor**: Unity 3D (C#).
-- **Inspector**: Odin Inspector — SIEMPRE usar `SerializedScriptableObject`, `[OdinSerialize]` para Diccionarios, y atributos de Odin para UI de editor (`[Title]`, `[BoxGroup]`, `[Button]`, `[TableList]`, `[Searchable]`, etc.).
-- **Serialización**: Newtonsoft.Json — package `com.unity.nuget.newtonsoft-json` (no `Unity.Plastic.Newtonsoft.Json`).
-- **Backend**: Unity Gaming Services (UGS) — Authentication (Player Accounts), Cloud Save (Player Data + Custom Data), Cloud Code (JS scripts), Scheduler (cron triggers).
+- **Inspector**: Odin Inspector. SIEMPRE usar `SerializedScriptableObject`, `[OdinSerialize]` para Diccionarios, y atributos Odin para UI de editor (`[Title]`, `[BoxGroup]`, `[Button]`, `[TableList]`, `[Searchable]`).
+- **Serializacion**: Newtonsoft.Json (`com.unity.nuget.newtonsoft-json`).
+- **Backend**: Unity Gaming Services (UGS) Authentication (Player Accounts), Cloud Save (Player Data + Custom Data), Cloud Code (JS scripts), Scheduler (cron triggers).
 - **Dev tooling**: UGS CLI (`ugs`).
 - **Arte**: 3D, partes como FBX, ensamblaje con anchor points 2-2-1 (2 arms + 2 eyes + 1 mouth).
 
-## Selección de modelo
+---
 
-Antes de comenzar cualquier tarea, evaluar si el modelo actual (Sonnet) es adecuado. **Avisar al usuario si se recomienda cambiar a Opus** antes de proceder.
+## Arquitectura de vault (MoriMonchiVault/)
 
-**Opus** para: diseño de sistemas nuevos con muchas decisiones interconectadas (economía, tienda, meta-game), arquitectura que afecte múltiples etapas del roadmap, análisis de trade-offs complejos.
-
-**Sonnet** para: implementación de features concretas, refactoring, bugfixes, trabajo dentro de sistemas ya diseñados.
+```
+MoriMonchiVault/
+├── 00 - Index.md              ← Entry point IA (routing por tarea)
+├── Index/                     ← 11 notas principales por dominio (01-11)
+│   ├── 01 - GDD Core.md
+│   ├── 02 - Genetics & Breeding.md
+│   ├── ...
+│   └── 11 - Technical Debt.md
+└── ScriptNodes/               ← 95 nodos, uno por script .cs
+```
 
 ---
 
-## 🚨 Reglas de código (NO NEGOCIABLES)
+## Arquitectura del codigo
 
-1. **Desacoplamiento estricto vía eventos**: cada sistema (genética, batalla, tienda) es independiente. La comunicación cross-sistema pasa por `GameEvents` (bus estático), nunca por referencias directas ni llamadas a singletons del otro sistema. **Regla de oro: el evento transporta la data.** Un suscriptor recibe el `registry` (u otro payload) en el evento y trabaja sobre él — NO vuelve a buscarlo con `GameManager.Instance.Registry`.
-2. **Persistencia solo por evento**: ningún script de gameplay llama `SaveSystem.SaveDatabase` ni `PushToCloud` directamente. Disparan `GameEvents.RegistryChanged(registry)` y `GameManager` (único dueño de persistencia) hace el save+push. Excepción: `CloudSyncService` (capa de sync) y el flush final en `GameManager.OnApplicationQuit`. Reload externo (cloud pull/reset) usa `OnRegistryReloaded` → solo UI, sin re-push.
-3. **Sin comentarios en código**: no añadir ningún comentario (`//` ni `/* */`) a menos que el usuario lo pida explícitamente. La documentación técnica vive en el vault, no en el código. Incluye headers de archivo, docstrings, y bloques explicativos — ninguno sin pedido expreso.
-4. **Sin features adelantadas**: no implementar mecánicas hasta su etapa del roadmap. La persistencia local JSON es válida desde Etapa 1.3.
-5. **DNA como string ligero**: `CreatureDNA.ToStringID()` / `FromID()` son el contrato de red — no romperlo. El timestamp es metadata de registro, no forma parte del genetic string.
-6. **IDs de partes**: nunca pueden contener el carácter `-` (es el separador del DNA string).
-7. **Odin siempre**: cualquier ScriptableObject con Diccionarios hereda de `SerializedScriptableObject`. Usar `[OdinSerialize]` explícitamente.
-8. **Sin complejidad innecesaria**: no añadir campos, abstracciones ni features que no hayan sido pedidos. Tres líneas similares son mejor que una abstracción prematura.
-9. **Desuscribir siempre**: todo MonoBehaviour que se suscribe a un `GameEvents` lo hace en `OnEnable` y se desuscribe en `OnDisable`. Un `event static` mantiene vivo al suscriptor (leak + excepción al disparar sobre un objeto destruido).
-
----
-
-## Arquitectura de eventos (filosofía)
-
-Bus estático `GameEvents.cs` (namespace global). Publicadores y suscriptores dependen **solo del bus**. **Los eventos transportan la data**: el payload (registry, CombatResult, etc.) viaja en el invoke, el suscriptor no busca al singleton.
-
-Helper estático por evento (`RegistryChanged(so) => OnRegistryChanged?.Invoke(so)`). Un solo evento de mutación con payload (no dos en paralelo).
-
-| Evento | Quién dispara |
-|--------|---------------|
-| `OnRegistryChanged` | toda mutación de gameplay |
-| `OnRegistryReloaded` | `CloudSyncService` tras pull/reset (UI-only, sin push) |
-| `OnCreatureMinted` | `GameManager.MintRandomCreature` |
-| `OnCombatCompleted` | combate local |
-| `OnCombatLogged` | `AsyncCombatService.ApplyResult` |
-| `OnBreedingCompleted` | breeding local + async |
-| `OnFurnitureChanged` | toda mutación de furniture (`FurnitureService`) |
-| `OnFurnitureReloaded` | reload de furniture (clear+resync; UI/spawner-only, sin push) |
-
-Eventos UI viven en `UIManager` como `static event Action` (separados de `GameEvents`). Acción maps `Player`/`UI` mutuamente excluyentes, conmutados en `OnUIFocusChanged`. Detalle en [[MoriMonchiVault/05 - UI System|05 - UI System]] y [[MoriMonchiVault/07 - Persistence & Identity|07 - Persistence & Identity]].
-
----
-
-## Estructura de carpetas (top-level)
+### Estructura de carpetas (source)
 
 ```
 Assets/RunRunSimulator/Scripts/
-├── Core/          # Bus, persistencia, generación, tipos base, GameManager
-├── Systems/       # Breeding · Combat · Cloud · Furniture (cada uno desacoplado vía GameEvents)
-├── UI/            # UIManager + paneles uGUI/UITK + IUINavigable
-├── Player/        # PlayerInputs · PlayerController · PlayerAnimator (FP)
-├── Interactables/ # IInteractable · IThrowable (drop-a-script)
-├── World/         # MoriMochiSpawner · MoriMochiAgent · NameTag (NavMesh)
-└── Data/          # CreatureDNA, SOs, parts, databases
+├── Core/          # GameManager, GameEvents, SaveSystem, Enums, Interfaces, CreatureGenerator
+├── Data/          # CreatureDNA, BodyPart, databases, SOs
+│   ├── Databases/ # ArmDatabaseSO, EyeDatabaseSO, etc.
+│   └── Parts/     # ArmPart, EyePart, MouthPart, BodyShapePart
+├── Systems/       # Desacoplados via GameEvents
+│   ├── Breeding/  # BreedingService, AsyncBreedingService, BreedingController
+│   ├── Combat/    # CombatService, AsyncCombatService, CombatController
+│   ├── Cloud/     # CloudSyncService, CloudCodeTester
+│   ├── Furniture/ # BuildModeController, FurnitureService, PlacementGrid
+│   └── Store/     # StoreManager, ShopCatalogSO, DeliveryBox
+├── UI/            # UIManager, UIInputs, 12 panel controllers UITK
+├── Player/        # PlayerInputs, PlayerController, BuildingInputs, PlayerAnimator
+├── Interactables/ # PanelTrigger, ThrowableObject
+└── World/         # MoriMochiAgent, NeedStation*, HotbarController, containers
 
-CloudCode/         # Scripts JS server-side + .sched/.tr (UGS Scheduler+Trigger)
+CloudCode/         # Scripts JS server-side + .sched/.tr
 MoriMonchiVault/   # Memory Bank (Obsidian)
 ```
 
-Mapeo detallado de cada script → vault.
+### Patrones arquitectonicos clave
+
+1. **Event Bus (GameEvents.cs)**: Comunicacion cross-system via eventos estaticos. El evento transporta el payload. NEVER referencias directas entre sistemas.
+2. **Tres buses separados**: GameEvents (gameplay), UIManager events static (UI), Input events static (PlayerInputs/UIInputs/BuildingInputs).
+3. **Singletons**: GameManager.Instance, CloudSaveService.Instance, NeedStationRegistry.Instance, StorageContainer.Instance, PartVisualBankSO.Current, BreedingAffinityTableSO.Current, InheritanceOddsTableSO.Current.
+4. **Pipeline persistencia**: Mutacion → GameEvents → GameManager → SaveSystem (disco) → CloudSyncService (nube). Ningun gameplay script llama save/push directo.
+5. **Aislamiento de input**: Tres action maps mutuamente excluyentes: Player, UI, Building. Solo uno activo a la vez.
+6. **NeedsState rule**: Necesidades (Health/Energy/Affect) mutan cada frame en RAM. NO disparan RegistryChanged. Flush solo en quit/pause via GameManager.
+7. **Odin serialization**: Todos los SO con diccionarios heredan de `SerializedScriptableObject` con `[OdinSerialize]`.
+
+---
+
+## Reglas de codigo (NO NEGOCIABLES)
+
+1. **Desacoplamiento estricto via eventos**: Cada sistema independiente. Comunicacion cross-system solo por `GameEvents`. El evento transporta la data. Suscriptor NO busca `GameManager.Instance.Registry`.
+2. **Persistencia solo por evento**: Ningun gameplay script llama `SaveSystem.SaveDatabase` ni `PushToCloud`. Solo emiten `GameEvents.RegistryChanged`. `GameManager` es el unico dueno de persistencia.
+3. **Sin comentarios en codigo**: No anadir `//` ni `/* */` sin pedido expreso de Juan. La documentacion vive en el vault.
+4. **Sin features adelantadas**: No implementar mecanicas hasta su etapa del roadmap.
+5. **DNA como string ligero**: `ToStringID()`/`FromID()` son el contrato de red. Timestamp es metadata, no parte del genetic string.
+6. **IDs de partes**: nunca pueden contener `-` (separador del DNA string).
+7. **Odin siempre**: `SerializedScriptableObject` con `[OdinSerialize]` para diccionarios.
+8. **Sin complejidad innecesaria**: No anadir campos, abstracciones ni features no pedidos. Tres lineas similares > abstraccion prematura.
+9. **Desuscribir siempre**: `OnEnable` suscribe, `OnDisable` desuscribe. Un `event static` mantiene vivo al suscriptor (leak + excepcion al disparar sobre objeto destruido).
+
+---
+
+## Eventos (GameEvents.cs)
+
+| Evento | Quien dispara |
+|--------|---------------|
+| `OnRegistryChanged` | toda mutacion de gameplay |
+| `OnRegistryReloaded` | CloudSyncService tras pull/reset (UI-only, sin push) |
+| `OnCreatureMinted` | GameManager.MintRandomCreature |
+| `OnCombatCompleted` | combate local |
+| `OnCombatLogged` | AsyncCombatService.ApplyResult |
+| `OnBreedingCompleted` | breeding local + async |
+| `OnFurnitureChanged` | FurnitureService (toda mutacion) |
+| `OnFurnitureReloaded` | reload furniture (clear+resync, sin push) |
+
+Eventos UI viven en `UIManager` como `static event Action` (separados de GameEvents). Action maps Player/UI mutuamente excluyentes, conmutados en `OnUIFocusChanged`. Detalle en [[MoriMonchiVault/Index/05 - UI System]] y [[MoriMonchiVault/Index/07 - Persistence & Identity]].
 
 ---
 
@@ -99,56 +140,32 @@ Mapeo detallado de cada script → vault.
 
 | Etapa | Estado |
 |-------|--------|
-| 1.1 Arquitectura genética + DNA + Databases | ✅ |
-| 1.2 Visualizador de criaturas | 🔶 Grilla inspector ✅, falta 3D |
-| 1.3 Sistema de Breeding | 🔶 Local ✅, refinamientos pendientes |
-| 2.1 Sistema de Estadísticas | 🔶 BaseStats + stats por pieza ✅ |
-| 2.2 Combate local + Battle Log | ✅ |
-| 2.3 Integración UGS (async battles) | ✅ |
-| 2.4 Breeding Async (timer server-side) | ✅ |
-| 2.5 Vida en Escena (NavMesh + personalidad) | ✅ |
-| 3.1 Tienda Local (furniture + economía) | ✅ (pendiente menor: persistir CurrentStock en cloud + deploy get-server-time.js) |
-| 3.2 Mercado Online | 🔲 |
+| 1.1 Arquitectura genetica + DNA + Databases | Completado |
+| 1.2 Visualizador de criaturas | Grilla inspector completado, falta 3D |
+| 1.3 Sistema de Breeding | Local completado, refinamientos pendientes |
+| 2.1 Sistema de Estadisticas | BaseStats + stats por pieza completado |
+| 2.2 Combate local + Battle Log | Completado |
+| 2.3 Integracion UGS (async battles) | Completado |
+| 2.4 Breeding Async (timer server-side) | Completado |
+| 2.5 Vida en Escena (NavMesh + personalidad) | Completado |
+| 3.1 Tienda Local (furniture + economia) | Completado (pendiente CurrentStock en cloud + deploy get-server-time.js) |
+| 3.2 Mercado Online | Pendiente |
 
-Detalle por feature en [[MoriMonchiVault/02 - Genetics & Breeding|02]], [[MoriMonchiVault/03 - Combat|03]], [[MoriMonchiVault/06 - Player & World|06]]. Pendientes en [[MoriMonchiVault/08 - Known Bugs & Checkpoints|08]].
-
----
-
-## 📍 Índice del Memory Bank (`MoriMonchiVault/`)
-
-**Antes de tocar código, lee el archivo del vault relevante a la tarea.**
-
-| Archivo | Cuándo leerlo |
-|---------|---------------|
-| [[MoriMonchiVault/00 - Index\|00 - Index]] | Mapa completo (qué leer según tarea) |
-| [[MoriMonchiVault/01 - GDD Core\|01 - GDD Core]] | Visión, core loop, naming, pilares |
-| [[MoriMonchiVault/02 - Genetics & Breeding\|02 - Genetics & Breeding]] | DNA, partes, IDs, BreedingService, InheritanceOdds, breeding async |
-| [[MoriMonchiVault/03 - Combat\|03 - Combat]] | CombatService local + Async dual mode + Scheduler + Custom Data quirks |
-| [[MoriMonchiVault/04 - UGS & Cloud\|04 - UGS & Cloud]] | Auth, CloudSync, CLI, REST API, Service Accounts |
-| [[MoriMonchiVault/05 - UI System\|05 - UI System]] | UIManager hub, IUINavigable, stack/router, paneles UITK |
-| [[MoriMonchiVault/06 - Player & World\|06 - Player & World]] | FP controller, Cinemachine, grab/throw, MoriMonchis vivos, NavMesh |
-| [[MoriMonchiVault/07 - Persistence & Identity\|07 - Persistence & Identity]] | SaveSystem, registry, scoped saves, GameEvents detallado |
-| [[MoriMonchiVault/08 - Known Bugs & Checkpoints\|08 - Known Bugs & Checkpoints]] | Bugs activos + checkpoints futuros |
-| [[MoriMonchiVault/09 - Active Context\|09 - Active Context]] | **Qué se está tocando AHORA** (actualizar cada sesión) |
-| [[MoriMonchiVault/10 - Furniture & Building\|10 - Furniture & Building]] | Grid de placement, FurnitureService/Spawner, building mode, economía/tienda |
-
-> **Convención**: cuando empieces una sesión nueva, lee primero `09 - Active Context` para ver el estado y luego los archivos relevantes a la tarea. Actualiza `09 - Active Context` al cerrar.
+Detalle por feature en [[MoriMonchiVault/Index/02 - Genetics & Breeding]], [[MoriMonchiVault/Index/03 - Combat]], [[MoriMonchiVault/Index/06 - Player & World]]. Pendientes en [[MoriMonchiVault/Index/08 - Known Bugs & Checkpoints]].
 
 ---
 
-## Workflow de mantenimiento de documentación
+## Workflow de mantenimiento de documentacion
 
-Tres capas, tres dueños, tres triggers:
-
-| Capa | Dueño | Cuándo |
+| Capa | Dueno | Cuando |
 |------|-------|--------|
-| **Notion** (diseño) | Usuario | Decisión de diseño nueva, pregunta resuelta. Yo NO toco Notion. |
-| **`MoriMonchiVault/`** (implementación) | Claude (a pedido) | Cambió contrato público, quirk técnico nuevo, sub-etapa cerrada, script renombrado/movido. |
-| **`CLAUDE.md`** (núcleo) | Claude (a pedido) | Regla nueva, cambio de stack, roadmap status flip, nuevo archivo top-level del vault. |
-| **`09 - Active Context`** | Claude (cada sesión) | Apertura y cierre. |
+| **Notion** (diseno) | Juan | Decision de diseno nueva, pregunta resuelta. Yo NO toco Notion. |
+| **MoriMonchiVault/** (implementacion) | IA (a pedido) | Cambio contrato publico, quirk tecnico nuevo, sub-etapa cerrada, script renombrado/movido. |
+| **CLAUDE.md** (nucleo) | IA (a pedido) | Regla nueva, cambio de stack, roadmap status flip, nuevo archivo top-level del vault. |
+| **09 - Active Context** | IA (cada sesion) | Apertura y cierre de sesion. |
 
-**Regla operativa**: al cerrar sesión, **yo propongo** qué actualizar (lista corta con justificación), **el usuario valida**, **yo aplico**. Si no propongo nada, asumir que no aprendí nada que merezca capturarse.
+**Regla operativa**: al cerrar sesion, propongo que actualizar (lista corta con justificacion), Juan valida, yo aplico.
 
-Si solo se arregló un bug menor sin cambiar diseño/contratos → **no actualizar** (el git log basta).
+Si solo se arreglo un bug menor sin cambiar diseno/contratos → no actualizar (el git log basta).
 
-**Backup del CLAUDE.md original**: `ClaudeOld.md` en la raíz (no leer salvo migración).
+**Backup del CLAUDE.md original**: `ClaudeOld.md` en la raiz (no leer salvo migracion).

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "02 - Genetics & Breeding.md",
+                "file": "Index/01 - GDD Core.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "02 - Genetics & Breeding"
+              "title": "01 - GDD Core"
             }
           }
         ]
@@ -171,29 +171,42 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
-    "09 - Active Context.md",
-    "10 - Furniture & Building.md",
-    "04 - UGS & Cloud.md",
-    "03 - Combat.md",
-    "02 - Genetics & Breeding.md",
-    "01 - GDD Core.md",
-    "11 - Propuestas.md",
-    "08 - Known Bugs & Checkpoints.md",
-    "Sin título.canvas",
+    "Index/02 - Genetics & Breeding.md",
+    "Index/03 - Combat.md",
+    "Index/04 - UGS & Cloud.md",
+    "Index/05 - UI System.md",
+    "Index/06 - Player & World.md",
+    "Index/07 - Persistence & Identity.md",
+    "Index/08 - Known Bugs & Checkpoints.md",
+    "Index/09 - Active Context.md",
+    "Index/10 - Furniture & Building.md",
+    "Index/11 - Technical Debt.md",
+    "ScriptNodes/CreatureVisualUI.md",
+    "ScriptNodes/MorimonchiDetailInfoUITK.md",
+    "ScriptNodes/CombatManagerSO.md",
+    "00 - Index.md",
+    "BattleLog.md",
+    "Index/11 - Propuestas.md",
+    "Index/01 - GDD Core.md",
+    "ScriptNodes/CreatureRegistrySO.md",
+    "ScriptNodes/PlacedFurniture.md",
+    "ScriptNodes/ItemDatabaseSO.md",
+    "ScriptNodes/ItemDefinitionSO.md",
+    "ScriptNodes/FurnitureDatabaseSO.md",
+    "ScriptNodes/FurnitureDefinitionSO.md",
+    "ScriptNodes/StorageContainer.md",
+    "ScriptNodes/DeliveryBox.md",
+    "ScriptNodes/ShopCatalogSO.md",
+    "ScriptNodes",
+    "Index",
+    "ScriptsNodes",
+    "ScriptsNodes/Sin título.canvas",
     "09 - Active Context.md.tmp.29288.3064edd54395",
     "09 - Active Context.md.tmp.22308.37db8f960a47",
     "09 - Active Context.md.tmp.22308.e780a47c1107",
-    "06 - Player & World.md",
     "10 - Furniture & Building.md.tmp.22308.b37bd2473392",
     "10 - Furniture & Building.md.tmp.22308.5d18e54a506e",
     "09 - Active Context.md.tmp.22308.37626a8d4517",
-    "06 - Player & World.md.tmp.22308.32391d9fde6d",
-    "06 - Player & World.md.tmp.22308.acb6c8531327",
-    "06 - Player & World.md.tmp.22308.63e2ade3b541",
-    "09 - Active Context.md.tmp.22308.618db72221e5",
-    "00 - Index.md",
-    "05 - UI System.md",
-    "07 - Persistence & Identity.md",
-    "Welcome.md"
+    "06 - Player & World.md.tmp.22308.32391d9fde6d"
   ]
 }
