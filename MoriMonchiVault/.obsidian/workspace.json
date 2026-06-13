@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Index/01 - GDD Core.md",
+                "file": "Index/03 - Combat.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "01 - GDD Core"
+              "title": "03 - Combat"
             }
           }
         ]
@@ -171,6 +171,15 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
+    "2026-06-13.md",
+    "BattleLog.md",
+    "Sin título.canvas",
+    "ScriptNodes/CombatPanelUITK.md",
+    "ScriptNodes/CloudSyncService.md",
+    "ScriptNodes/AsyncBreedingService.md",
+    "ScriptNodes/ArmPart.md",
+    "ScriptNodes/ArmDatabaseSO.md",
+    "Index/01 - GDD Core.md",
     "Index/09 - Active Context.md.tmp.8252.575a3b1d2840",
     "_TEST_AGENT.md",
     "Index/02 - Genetics & Breeding.md",
@@ -187,16 +196,8 @@
     "ScriptNodes/MorimonchiDetailInfoUITK.md",
     "ScriptNodes/CombatManagerSO.md",
     "00 - Index.md",
-    "BattleLog.md",
     "Index/11 - Propuestas.md",
-    "Index/01 - GDD Core.md",
     "ScriptNodes/CreatureRegistrySO.md",
-    "ScriptNodes/PlacedFurniture.md",
-    "ScriptNodes/ItemDatabaseSO.md",
-    "ScriptNodes/ItemDefinitionSO.md",
-    "ScriptNodes/FurnitureDatabaseSO.md",
-    "ScriptNodes/FurnitureDefinitionSO.md",
-    "ScriptNodes/StorageContainer.md",
     "ScriptNodes",
     "Index",
     "ScriptsNodes",
@@ -206,7 +207,6 @@
     "09 - Active Context.md.tmp.22308.e780a47c1107",
     "10 - Furniture & Building.md.tmp.22308.b37bd2473392",
     "10 - Furniture & Building.md.tmp.22308.5d18e54a506e",
-    "09 - Active Context.md.tmp.22308.37626a8d4517",
-    "06 - Player & World.md.tmp.22308.32391d9fde6d"
+    "09 - Active Context.md.tmp.22308.37626a8d4517"
   ]
 }
