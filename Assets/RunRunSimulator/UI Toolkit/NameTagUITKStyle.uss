@@ -37,6 +37,43 @@
     white-space: nowrap;
 }
 
+/* Pen layout (gender glyph / personality / heart / timer) — hidden by default, shown
+   from code only while the creature is penned (BreedingContainer). Color of the gender
+   glyph is set per-gender from code. */
+.tag__gender {
+    display: none;
+    font-size: 30px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.tag__personality {
+    display: none;
+    font-size: 20px;
+    color: rgb(200, 200, 210);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.tag__heart {
+    display: none;
+    font-size: 26px;
+    color: rgb(235, 70, 90);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    margin-top: 2px;
+}
+
+.tag__timer {
+    display: none;
+    font-size: 20px;
+    color: rgb(255, 190, 210);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
 /* Contextual pet hint — hidden by default, shown from code when the creature is
    in a friendly reaction and the player can interact with E. */
 .tag__pet-hint {

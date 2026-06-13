@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -30,6 +31,10 @@ public class NameTag : MonoBehaviour
     private Label         statusLabel;
     private Label         intentLabel;
     private Label         petHintLabel;
+    private Label         genderLabel;
+    private Label         personalityLabel;
+    private Label         heartLabel;
+    private Label         timerLabel;
 
     private MoriMochiAgent agent;
     private CreatureDNA    dna;
@@ -71,10 +76,14 @@ public class NameTag : MonoBehaviour
         root.style.justifyContent = Justify.Center;   // …so it floats over the pivot, not the panel's corner
         root.pickingMode          = PickingMode.Ignore;
 
-        nameLabel    = root.Q<Label>("name-label");
-        statusLabel  = root.Q<Label>("status-label");
-        intentLabel  = root.Q<Label>("intent-label");
-        petHintLabel = root.Q<Label>("pet-hint-label");
+        nameLabel        = root.Q<Label>("name-label");
+        statusLabel      = root.Q<Label>("status-label");
+        intentLabel      = root.Q<Label>("intent-label");
+        petHintLabel     = root.Q<Label>("pet-hint-label");
+        genderLabel      = root.Q<Label>("gender-label");
+        personalityLabel = root.Q<Label>("personality-label");
+        heartLabel       = root.Q<Label>("heart-label");
+        timerLabel       = root.Q<Label>("timer-label");
     }
 
     private void LateUpdate()
@@ -111,6 +120,45 @@ public class NameTag : MonoBehaviour
     {
         ResolveElements();
         if (dna == null) return;
+
+        // Penned creatures swap to the pen layout (gender + name + personality, plus heart/timer
+        // while breeding); free creatures keep the status/intent/pet-hint readout.
+        if (agent != null && agent.IsPenned) RefreshPenned();
+        else                                 RefreshDefault();
+    }
+
+    // Pen layout: gender glyph + name + personality only. While the creature is breeding, add a
+    // heart and the egg's live countdown. The free-roam lines (status/intent/pet-hint) are hidden.
+    private void RefreshPenned()
+    {
+        SetDisplay(statusLabel,  false);
+        SetDisplay(intentLabel,  false);
+        SetDisplay(petHintLabel, false);
+
+        if (genderLabel != null)
+        {
+            genderLabel.text        = GenderGlyph(dna.Gender);
+            genderLabel.style.color = GenderColor(dna.Gender);
+            SetDisplay(genderLabel, true);
+        }
+        if (personalityLabel != null)
+        {
+            personalityLabel.text = PersonalityText(dna.Personality);
+            SetDisplay(personalityLabel, true);
+        }
+
+        bool breeding = dna.BusyState == BusyReason.Breeding && dna.BreedReadyAt > 0;
+        SetDisplay(heartLabel, breeding);
+        SetDisplay(timerLabel, breeding);
+        if (breeding && timerLabel != null) timerLabel.text = CountdownText(dna.BreedReadyAt);
+    }
+
+    private void RefreshDefault()
+    {
+        SetDisplay(genderLabel,      false);
+        SetDisplay(personalityLabel, false);
+        SetDisplay(heartLabel,       false);
+        SetDisplay(timerLabel,       false);
 
         if (statusLabel != null)
         {
@@ -150,6 +198,11 @@ public class NameTag : MonoBehaviour
         }
     }
 
+    private static void SetDisplay(Label label, bool visible)
+    {
+        if (label != null) label.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+    }
+
     // (text, color) for the busy/dead status line. Empty text → the line hides.
     private static (string, Color) StatusOf(CreatureDNA dna)
     {
@@ -181,4 +234,38 @@ public class NameTag : MonoBehaviour
         CreatureIntent.Tumbling      => "¡Por los aires!",
         _                            => "",
     };
+
+    // ── Pen layout helpers ────────────────────────────────────────
+
+    private static string GenderGlyph(CreatureGender g) => g switch
+    {
+        CreatureGender.Male   => "♂",
+        CreatureGender.Female => "♀",
+        _                     => "?",
+    };
+
+    private static Color GenderColor(CreatureGender g) => g switch
+    {
+        CreatureGender.Male   => new Color(0.45f, 0.65f, 1f),
+        CreatureGender.Female => new Color(1f, 0.5f, 0.75f),
+        _                     => new Color(0.7f, 0.7f, 0.7f),
+    };
+
+    private static string PersonalityText(Personality p) => p switch
+    {
+        Personality.Skittish   => "Asustadizo",
+        Personality.Aggressive => "Agresivo",
+        Personality.Lazy       => "Perezoso",
+        Personality.Curious    => "Curioso",
+        Personality.Social     => "Sociable",
+        Personality.Grumpy     => "Gruñón",
+        _                      => p.ToString(),
+    };
+
+    // Live mm:ss until the egg can hatch (server epoch ms); "¡Listo! [E]" once due.
+    private static string CountdownText(long readyAtMs)
+    {
+        long left = readyAtMs - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        return left <= 0 ? "¡Listo! [E]" : $"{TimeSpan.FromMilliseconds(left):mm\\:ss}";
+    }
 }

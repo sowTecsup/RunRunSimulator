@@ -18,8 +18,10 @@ using UnityEngine;
 // GameManager.Instance in Awake — no serialized cross-references needed.
 public class AsyncBreedingService : MonoBehaviour
 {
-    private const string CLOUD_CODE_START = "start-breeding";
-    private const string CLOUD_CODE_HATCH = "hatch-breeding";
+    private const string CLOUD_CODE_START      = "start-breeding";
+    private const string CLOUD_CODE_HATCH      = "hatch-breeding";
+    private const string CLOUD_CODE_CANCEL     = "cancel-breeding";
+    private const string CLOUD_CODE_CANCEL_ALL = "cancel-all-breeding";
 
     // ── Cached References ─────────────────────────────────────────
 
@@ -95,6 +97,72 @@ public class AsyncBreedingService : MonoBehaviour
         {
             status = $"Start breeding error: {e.Message}";
             Debug.LogError($"[AsyncBreeding] StartBreedingAsync failed: {e}");
+        }
+    }
+
+    public async Task CancelBreedingAsync(string motherID, string fatherID)
+    {
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            Debug.LogError("[AsyncBreeding] Not signed in — cannot cancel breeding.");
+            return;
+        }
+
+        status = $"Cancelling egg for {motherID} x {fatherID}...";
+        try
+        {
+            var payload = new Dictionary<string, object>
+            {
+                { "motherId", motherID },
+                { "fatherId", fatherID },
+            };
+
+            var raw = await CloudCodeService.Instance.CallEndpointAsync<string>(CLOUD_CODE_CANCEL, payload);
+
+            if (registry.TryGet(motherID, out var mother)) ClearBreedState(mother);
+            if (registry.TryGet(fatherID, out var father)) ClearBreedState(father);
+            GameEvents.RegistryChanged(registry);
+
+            status = $"Breeding cancelled ({raw}).";
+            Debug.Log($"[AsyncBreeding] {status}");
+        }
+        catch (Exception e)
+        {
+            status = $"Cancel breeding error: {e.Message}";
+            Debug.LogError($"[AsyncBreeding] CancelBreedingAsync failed: {e}");
+
+            if (registry.TryGet(motherID, out var mother)) ClearBreedState(mother);
+            if (registry.TryGet(fatherID, out var father)) ClearBreedState(father);
+            GameEvents.RegistryChanged(registry);
+        }
+    }
+
+    // Wipes the ENTIRE server breeding queue, then clears every locally-Breeding parent.
+    // Recovery tool: the only way to drop eggs the client no longer tracks (orphans left
+    // by a failed cancel). Always reconciles local state, even if the call throws.
+    public async Task CancelAllBreedingAsync()
+    {
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            Debug.LogError("[AsyncBreeding] Not signed in — cannot cancel breeding.");
+            return;
+        }
+
+        status = "Cancelling ALL eggs...";
+        try
+        {
+            var raw = await CloudCodeService.Instance.CallEndpointAsync<string>(CLOUD_CODE_CANCEL_ALL, new Dictionary<string, object>());
+            status  = $"All eggs cancelled ({raw}).";
+            Debug.Log($"[AsyncBreeding] {status}");
+        }
+        catch (Exception e)
+        {
+            status = $"Cancel all breeding error: {e.Message}";
+            Debug.LogError($"[AsyncBreeding] CancelAllBreedingAsync failed: {e}");
+        }
+        finally
+        {
+            ClearAllLocalBreeding();
         }
     }
 
@@ -218,6 +286,15 @@ public class AsyncBreedingService : MonoBehaviour
     {
         if (registry.TryGet(motherID, out var mother)) ClearBreedState(mother);
         if (registry.TryGet(fatherID, out var father)) ClearBreedState(father);
+        GameEvents.RegistryChanged(registry);
+    }
+
+    // Drops the Breeding state off every creature in the registry — mirrors a server-side
+    // wipe of the egg queue (CancelAllBreedingAsync).
+    private void ClearAllLocalBreeding()
+    {
+        foreach (var dna in registry.GetAll().Values)
+            if (dna.BusyState == BusyReason.Breeding) ClearBreedState(dna);
         GameEvents.RegistryChanged(registry);
     }
 

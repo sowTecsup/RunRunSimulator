@@ -176,13 +176,13 @@ MonoBehaviour:
       Data: 5|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 71.56088
+      Data: 87.42567
     - Name: Energy
       Entry: 4
-      Data: 34.9690933
+      Data: 96.47939
     - Name: Affect
       Entry: 4
-      Data: 97.18753
+      Data: 2.62903833
     - Name: 
       Entry: 8
       Data: 
@@ -524,13 +524,13 @@ MonoBehaviour:
       Data: 16|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 54.97894
+      Data: 59.3500938
     - Name: Energy
       Entry: 4
-      Data: 66.721756
+      Data: 54.1303558
     - Name: Affect
       Entry: 4
-      Data: 62.2438965
+      Data: 12.0603714
     - Name: 
       Entry: 8
       Data: 
@@ -699,13 +699,13 @@ MonoBehaviour:
       Data: 20|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 28.3384018
+      Data: 71.36688
     - Name: Energy
       Entry: 4
-      Data: 83.4080658
+      Data: 78.08435
     - Name: Affect
       Entry: 4
-      Data: 0.9174624
+      Data: 25.77364
     - Name: 
       Entry: 8
       Data: 
@@ -947,13 +947,13 @@ MonoBehaviour:
       Data: 27|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 38.738636
+      Data: 82.2447
     - Name: Energy
       Entry: 4
-      Data: 21.6742382
+      Data: 55.2939873
     - Name: Affect
       Entry: 4
-      Data: -19.496048
+      Data: 16.4215279
     - Name: 
       Entry: 8
       Data: 
@@ -1242,10 +1242,10 @@ MonoBehaviour:
       Data: 0
     - Name: FightCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: WinCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: BreedCount
       Entry: 3
       Data: 3
@@ -1254,7 +1254,7 @@ MonoBehaviour:
       Data: 1
     - Name: ArmTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: EyeTier
       Entry: 3
       Data: 1
@@ -1276,7 +1276,134 @@ MonoBehaviour:
         mscorlib
     - Name: 
       Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 35|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Neon Slug
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849926463297904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
       Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Arm
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 36|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 37|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Snort
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 7
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 38|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Snort
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 44
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 39|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Snort
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -1288,22 +1415,22 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 35|NeedsState, Assembly-CSharp
+      Data: 40|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 87.8732758
+      Data: 55.9220619
     - Name: Energy
       Entry: 4
-      Data: 66.1631851
+      Data: 66.14431
     - Name: Affect
       Entry: 4
-      Data: 55.05362
+      Data: 75.52749
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -1333,7 +1460,7 @@ MonoBehaviour:
       Data: BS3-A3-E1-M2-0695E0-639156644212742145
     - Name: $v
       Entry: 7
-      Data: 36|CreatureDNA, Assembly-CSharp
+      Data: 41|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS3
@@ -1387,7 +1514,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 37|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 42|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1435,7 +1562,7 @@ MonoBehaviour:
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 38|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 43|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1451,16 +1578,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 39|NeedsState, Assembly-CSharp
+      Data: 44|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 72.05681
+      Data: 30.4634628
     - Name: Energy
       Entry: 4
-      Data: 98.39299
+      Data: 99.23947
     - Name: Affect
       Entry: 4
-      Data: -18.2450562
+      Data: 0.2762872
     - Name: 
       Entry: 8
       Data: 
@@ -1496,7 +1623,7 @@ MonoBehaviour:
       Data: BS0-A1-E1-M0-C146BA-639156644302977936
     - Name: $v
       Entry: 7
-      Data: 40|CreatureDNA, Assembly-CSharp
+      Data: 45|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1550,7 +1677,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 41|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 46|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1598,14 +1725,14 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 42|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 47|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 43|CombatRecord, Assembly-CSharp
+      Data: 48|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Lumpy Chunk
@@ -1635,14 +1762,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 44|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 49|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 45|CombatTurn, Assembly-CSharp
+      Data: 50|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -1669,7 +1796,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 46|CombatTurn, Assembly-CSharp
+      Data: 51|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -1696,7 +1823,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 47|CombatTurn, Assembly-CSharp
+      Data: 52|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -1732,7 +1859,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 48|CombatRecord, Assembly-CSharp
+      Data: 53|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Drippy Runt
@@ -1762,14 +1889,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 49|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 54|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 50|CombatTurn, Assembly-CSharp
+      Data: 55|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -1805,7 +1932,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 51|CombatRecord, Assembly-CSharp
+      Data: 56|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Misty Snag
@@ -1835,14 +1962,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 52|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 57|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 8
     - Name: 
       Entry: 7
-      Data: 53|CombatTurn, Assembly-CSharp
+      Data: 58|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -1869,7 +1996,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 54|CombatTurn, Assembly-CSharp
+      Data: 59|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -1896,7 +2023,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 55|CombatTurn, Assembly-CSharp
+      Data: 60|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -1923,7 +2050,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 56|CombatTurn, Assembly-CSharp
+      Data: 61|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -1950,7 +2077,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 57|CombatTurn, Assembly-CSharp
+      Data: 62|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -1977,7 +2104,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 58|CombatTurn, Assembly-CSharp
+      Data: 63|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -2004,7 +2131,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 59|CombatTurn, Assembly-CSharp
+      Data: 64|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -2031,7 +2158,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 60|CombatTurn, Assembly-CSharp
+      Data: 65|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -2076,16 +2203,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 61|NeedsState, Assembly-CSharp
+      Data: 66|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 66.4778061
+      Data: 43.4150963
     - Name: Energy
       Entry: 4
-      Data: 73.61736
+      Data: 77.2677
     - Name: Affect
       Entry: 4
-      Data: 63.78987
+      Data: -1.10374784
     - Name: 
       Entry: 8
       Data: 
@@ -2121,7 +2248,7 @@ MonoBehaviour:
       Data: BS4-A3-E2-M3-50D134-639156644332473630
     - Name: $v
       Entry: 7
-      Data: 62|CreatureDNA, Assembly-CSharp
+      Data: 67|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -2175,7 +2302,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 63|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 68|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
@@ -2229,7 +2356,7 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 64|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 69|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -2245,16 +2372,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 65|NeedsState, Assembly-CSharp
+      Data: 70|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 47.0627975
+      Data: 90.0371552
     - Name: Energy
       Entry: 4
-      Data: 20.23183
+      Data: 60.85508
     - Name: Affect
       Entry: 4
-      Data: 62.2366028
+      Data: -2.70599246
     - Name: 
       Entry: 8
       Data: 
@@ -2290,7 +2417,7 @@ MonoBehaviour:
       Data: BS1-A1-E4-M0-4EB344-639157099558749392
     - Name: $v
       Entry: 7
-      Data: 66|CreatureDNA, Assembly-CSharp
+      Data: 71|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -2344,7 +2471,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 67|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 72|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 3
@@ -2401,14 +2528,14 @@ MonoBehaviour:
       Data: 11
     - Name: CombatHistory
       Entry: 7
-      Data: 68|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 73|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 69|CombatRecord, Assembly-CSharp
+      Data: 74|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Misty Snag
@@ -2438,7 +2565,7 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 70|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 75|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -2463,16 +2590,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 71|NeedsState, Assembly-CSharp
+      Data: 76|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 86.9240341
+      Data: 59.7148476
     - Name: Energy
       Entry: 4
-      Data: 31.5803719
+      Data: 83.2436142
     - Name: Affect
       Entry: 4
-      Data: -11.134594
+      Data: -0.4878762
     - Name: 
       Entry: 8
       Data: 
@@ -2508,7 +2635,7 @@ MonoBehaviour:
       Data: BS4-A0-E2-M1-E5CB4A-639157099758374241
     - Name: $v
       Entry: 7
-      Data: 72|CreatureDNA, Assembly-CSharp
+      Data: 77|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -2562,7 +2689,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 73|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 78|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -2583,7 +2710,7 @@ MonoBehaviour:
       Data: 5
     - Name: FightCount
       Entry: 3
-      Data: 2
+      Data: 3
     - Name: WinCount
       Entry: 3
       Data: 0
@@ -2613,14 +2740,14 @@ MonoBehaviour:
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 74|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 79|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 2
     - Name: 
       Entry: 7
-      Data: 75|CombatRecord, Assembly-CSharp
+      Data: 80|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Glowy Snoot
@@ -2650,14 +2777,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 76|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 81|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 6
     - Name: 
       Entry: 7
-      Data: 77|CombatTurn, Assembly-CSharp
+      Data: 82|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -2684,7 +2811,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 78|CombatTurn, Assembly-CSharp
+      Data: 83|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -2711,7 +2838,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 79|CombatTurn, Assembly-CSharp
+      Data: 84|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -2738,7 +2865,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 80|CombatTurn, Assembly-CSharp
+      Data: 85|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -2765,7 +2892,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 81|CombatTurn, Assembly-CSharp
+      Data: 86|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -2792,13 +2919,221 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 82|CombatTurn, Assembly-CSharp
+      Data: 87|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
     - Name: AttackerName
       Entry: 1
       Data: Glowy Snoot
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 88|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Misty Snag
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849926466837904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: true
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 89|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 6
+    - Name: 
+      Entry: 7
+      Data: 90|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 24
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 22
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 91|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 9
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 92|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 14
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 93|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 94|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 6
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 95|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
     - Name: DefenderName
       Entry: 1
       Data: Fuzzy Munch
@@ -2834,25 +3169,25 @@ MonoBehaviour:
       Data: 
     - Name: IsDead
       Entry: 5
-      Data: false
+      Data: true
     - Name: Needs
       Entry: 7
-      Data: 83|NeedsState, Assembly-CSharp
+      Data: 96|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 36.0066147
+      Data: 94.34112
     - Name: Energy
       Entry: 4
-      Data: 84.21556
+      Data: 96.14742
     - Name: Affect
       Entry: 4
-      Data: 4.830886
+      Data: 71.34112
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -2882,7 +3217,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-1A60CF-639157465862957193
     - Name: $v
       Entry: 7
-      Data: 84|CreatureDNA, Assembly-CSharp
+      Data: 97|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -2936,7 +3271,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 85|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 98|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -2987,7 +3322,7 @@ MonoBehaviour:
       Data: 10
     - Name: CombatHistory
       Entry: 7
-      Data: 86|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 99|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -3003,16 +3338,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 87|NeedsState, Assembly-CSharp
+      Data: 100|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 13.8109379
+      Data: 73.57407
     - Name: Energy
       Entry: 4
-      Data: 25.7139187
+      Data: 29.094244
     - Name: Affect
       Entry: 4
-      Data: -12.4583378
+      Data: 10.70179
     - Name: 
       Entry: 8
       Data: 
@@ -3048,7 +3383,7 @@ MonoBehaviour:
       Data: BS4-A1-E0-M4-6157EA-639157466028960842
     - Name: $v
       Entry: 7
-      Data: 88|CreatureDNA, Assembly-CSharp
+      Data: 101|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -3102,7 +3437,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 89|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 102|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -3150,7 +3485,7 @@ MonoBehaviour:
       Data: 2
     - Name: CombatHistory
       Entry: 7
-      Data: 90|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 103|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -3166,16 +3501,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 91|NeedsState, Assembly-CSharp
+      Data: 104|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 88.0247955
+      Data: 78.7208557
     - Name: Energy
       Entry: 4
-      Data: 84.31433
+      Data: 61.829998
     - Name: Affect
       Entry: 4
-      Data: -22.1259212
+      Data: 5.742724
     - Name: 
       Entry: 8
       Data: 
@@ -3211,7 +3546,7 @@ MonoBehaviour:
       Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: $v
       Entry: 7
-      Data: 92|CreatureDNA, Assembly-CSharp
+      Data: 105|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -3265,7 +3600,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 93|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 106|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
@@ -3319,7 +3654,7 @@ MonoBehaviour:
       Data: 1
     - Name: CombatHistory
       Entry: 7
-      Data: 94|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 107|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -3335,7 +3670,7 @@ MonoBehaviour:
       Data: true
     - Name: Needs
       Entry: 7
-      Data: 95|NeedsState, Assembly-CSharp
+      Data: 108|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
       Data: 100
@@ -3380,7 +3715,7 @@ MonoBehaviour:
       Data: BS1-A0-E3-M1-E9422E-639157586322083999
     - Name: $v
       Entry: 7
-      Data: 96|CreatureDNA, Assembly-CSharp
+      Data: 109|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -3434,7 +3769,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 97|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 110|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -3485,7 +3820,7 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 98|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 111|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -3501,16 +3836,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 99|NeedsState, Assembly-CSharp
+      Data: 112|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 65.9343262
+      Data: 79.26866
     - Name: Energy
       Entry: 4
-      Data: 56.81464
+      Data: 44.3125153
     - Name: Affect
       Entry: 4
-      Data: -10.7577858
+      Data: 40.14842
     - Name: 
       Entry: 8
       Data: 
@@ -3546,7 +3881,7 @@ MonoBehaviour:
       Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
     - Name: $v
       Entry: 7
-      Data: 100|CreatureDNA, Assembly-CSharp
+      Data: 113|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -3600,7 +3935,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 101|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 114|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -3651,14 +3986,14 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 102|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 115|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 2
     - Name: 
       Entry: 7
-      Data: 103|CombatRecord, Assembly-CSharp
+      Data: 116|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Chunky Slug
@@ -3688,14 +4023,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 104|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 117|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 105|CombatTurn, Assembly-CSharp
+      Data: 118|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -3731,7 +4066,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 106|CombatRecord, Assembly-CSharp
+      Data: 119|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Spongy Snoot
@@ -3761,14 +4096,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 107|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 120|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 108|CombatTurn, Assembly-CSharp
+      Data: 121|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -3795,7 +4130,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 109|CombatTurn, Assembly-CSharp
+      Data: 122|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -3822,7 +4157,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 110|CombatTurn, Assembly-CSharp
+      Data: 123|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -3867,22 +4202,22 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 111|NeedsState, Assembly-CSharp
+      Data: 124|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 69.13498
+      Data: 99.97685
     - Name: Energy
       Entry: 4
-      Data: 32.1300125
+      Data: 80.1463242
     - Name: Affect
       Entry: 4
-      Data: -11.0219078
+      Data: 81.3093948
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -3894,10 +4229,10 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 0
+      Data: 1781331165262
     - Name: BreedPartnerID
       Entry: 1
-      Data: 
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
     - Name: 
       Entry: 8
       Data: 
@@ -3912,7 +4247,7 @@ MonoBehaviour:
       Data: BS4-A4-E4-M1-AB6807-639157766096457471
     - Name: $v
       Entry: 7
-      Data: 112|CreatureDNA, Assembly-CSharp
+      Data: 125|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -3966,7 +4301,7 @@ MonoBehaviour:
       Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: ChildrenIDs
       Entry: 7
-      Data: 113|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 126|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -4017,14 +4352,14 @@ MonoBehaviour:
       Data: 1
     - Name: CombatHistory
       Entry: 7
-      Data: 114|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 127|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 2
     - Name: 
       Entry: 7
-      Data: 115|CombatRecord, Assembly-CSharp
+      Data: 128|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Glowy Snoot
@@ -4054,7 +4389,7 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 116|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 129|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -4070,7 +4405,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 117|CombatRecord, Assembly-CSharp
+      Data: 130|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Spongy Gunk
@@ -4100,14 +4435,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 118|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 131|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 12
     - Name: 
       Entry: 7
-      Data: 119|CombatTurn, Assembly-CSharp
+      Data: 132|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -4134,7 +4469,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 120|CombatTurn, Assembly-CSharp
+      Data: 133|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -4161,7 +4496,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 121|CombatTurn, Assembly-CSharp
+      Data: 134|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -4188,7 +4523,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 122|CombatTurn, Assembly-CSharp
+      Data: 135|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -4215,7 +4550,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 123|CombatTurn, Assembly-CSharp
+      Data: 136|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -4242,7 +4577,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 124|CombatTurn, Assembly-CSharp
+      Data: 137|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -4269,7 +4604,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 125|CombatTurn, Assembly-CSharp
+      Data: 138|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -4296,7 +4631,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 126|CombatTurn, Assembly-CSharp
+      Data: 139|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -4323,7 +4658,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 127|CombatTurn, Assembly-CSharp
+      Data: 140|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 5
@@ -4350,7 +4685,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 128|CombatTurn, Assembly-CSharp
+      Data: 141|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 5
@@ -4377,7 +4712,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 129|CombatTurn, Assembly-CSharp
+      Data: 142|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 6
@@ -4404,7 +4739,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 130|CombatTurn, Assembly-CSharp
+      Data: 143|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 6
@@ -4449,22 +4784,22 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 131|NeedsState, Assembly-CSharp
+      Data: 144|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 29.8217869
+      Data: 99.97685
     - Name: Energy
       Entry: 4
-      Data: 62.6106834
+      Data: 82.17751
     - Name: Affect
       Entry: 4
-      Data: -26.0868378
+      Data: 27.54615
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -4476,10 +4811,10 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 0
+      Data: 1781331165262
     - Name: BreedPartnerID
       Entry: 1
-      Data: 
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
     - Name: 
       Entry: 8
       Data: 
@@ -4494,7 +4829,7 @@ MonoBehaviour:
       Data: BS4-A1-E1-M1-72EF17-639158759894039650
     - Name: $v
       Entry: 7
-      Data: 132|CreatureDNA, Assembly-CSharp
+      Data: 145|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -4548,7 +4883,7 @@ MonoBehaviour:
       Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: ChildrenIDs
       Entry: 7
-      Data: 133|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 146|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -4599,7 +4934,7 @@ MonoBehaviour:
       Data: 1
     - Name: CombatHistory
       Entry: 7
-      Data: 134|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 147|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -4615,16 +4950,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 135|NeedsState, Assembly-CSharp
+      Data: 148|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 23.5695934
+      Data: 99.26443
     - Name: Energy
       Entry: 4
-      Data: 69.71783
+      Data: 23.5056725
     - Name: Affect
       Entry: 4
-      Data: 36.3912964
+      Data: 41.14256
     - Name: 
       Entry: 8
       Data: 
@@ -4660,7 +4995,7 @@ MonoBehaviour:
       Data: BS1-A4-E0-M1-B1B03C-639158780052655723
     - Name: $v
       Entry: 7
-      Data: 136|CreatureDNA, Assembly-CSharp
+      Data: 149|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -4714,7 +5049,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 137|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 150|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
@@ -4765,7 +5100,7 @@ MonoBehaviour:
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 138|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 151|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -4781,16 +5116,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 139|NeedsState, Assembly-CSharp
+      Data: 152|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 29.22143
+      Data: 34.51901
     - Name: Energy
       Entry: 4
-      Data: 85.46673
+      Data: 76.18444
     - Name: Affect
       Entry: 4
-      Data: -40.5145645
+      Data: 46.0587044
     - Name: 
       Entry: 8
       Data: 
@@ -4826,7 +5161,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M3-0B85DC-639163615986003412
     - Name: $v
       Entry: 7
-      Data: 140|CreatureDNA, Assembly-CSharp
+      Data: 153|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -4880,7 +5215,7 @@ MonoBehaviour:
       Data: BS4-A1-E1-M1-72EF17-639158759894039650
     - Name: ChildrenIDs
       Entry: 7
-      Data: 141|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 154|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -4928,14 +5263,14 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 142|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 155|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 4
     - Name: 
       Entry: 7
-      Data: 143|CombatRecord, Assembly-CSharp
+      Data: 156|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Spongy Gunk
@@ -4965,7 +5300,7 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 144|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 157|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -4981,7 +5316,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 145|CombatRecord, Assembly-CSharp
+      Data: 158|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Lumpy Gloop
@@ -5011,14 +5346,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 146|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 159|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 147|CombatTurn, Assembly-CSharp
+      Data: 160|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5054,7 +5389,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 148|CombatRecord, Assembly-CSharp
+      Data: 161|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Lumpy Munch
@@ -5084,14 +5419,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 149|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 162|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 150|CombatTurn, Assembly-CSharp
+      Data: 163|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5127,7 +5462,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 151|CombatRecord, Assembly-CSharp
+      Data: 164|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Chunky Slug
@@ -5157,14 +5492,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 152|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 165|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 9
     - Name: 
       Entry: 7
-      Data: 153|CombatTurn, Assembly-CSharp
+      Data: 166|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5191,7 +5526,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 154|CombatTurn, Assembly-CSharp
+      Data: 167|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5218,7 +5553,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 155|CombatTurn, Assembly-CSharp
+      Data: 168|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -5245,7 +5580,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 156|CombatTurn, Assembly-CSharp
+      Data: 169|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -5272,7 +5607,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 157|CombatTurn, Assembly-CSharp
+      Data: 170|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -5299,7 +5634,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 158|CombatTurn, Assembly-CSharp
+      Data: 171|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -5326,7 +5661,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 159|CombatTurn, Assembly-CSharp
+      Data: 172|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -5353,7 +5688,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 160|CombatTurn, Assembly-CSharp
+      Data: 173|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -5380,7 +5715,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 161|CombatTurn, Assembly-CSharp
+      Data: 174|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 5
@@ -5425,16 +5760,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 162|NeedsState, Assembly-CSharp
+      Data: 175|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 76.25954
+      Data: 56.9070778
     - Name: Energy
       Entry: 4
-      Data: 78.78023
+      Data: 39.68024
     - Name: Affect
       Entry: 4
-      Data: -9.236568
+      Data: 19.13802
     - Name: 
       Entry: 8
       Data: 
@@ -5470,7 +5805,7 @@ MonoBehaviour:
       Data: BS4-A0-E2-M1-5918EA-639163844724570114
     - Name: $v
       Entry: 7
-      Data: 163|CreatureDNA, Assembly-CSharp
+      Data: 176|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -5524,7 +5859,7 @@ MonoBehaviour:
       Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
     - Name: ChildrenIDs
       Entry: 7
-      Data: 164|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 177|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -5572,7 +5907,7 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 165|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 178|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -5588,16 +5923,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 166|NeedsState, Assembly-CSharp
+      Data: 179|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 30.53626
+      Data: 51.3221931
     - Name: Energy
       Entry: 4
-      Data: 82.01112
+      Data: 59.1014137
     - Name: Affect
       Entry: 4
-      Data: 56.4618263
+      Data: 6.28989124
     - Name: 
       Entry: 8
       Data: 
@@ -5633,7 +5968,7 @@ MonoBehaviour:
       Data: BS4-A1-E0-M1-35DFC7-639163844734879923
     - Name: $v
       Entry: 7
-      Data: 167|CreatureDNA, Assembly-CSharp
+      Data: 180|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -5687,7 +6022,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-1A60CF-639157465862957193
     - Name: ChildrenIDs
       Entry: 7
-      Data: 168|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 181|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -5735,14 +6070,14 @@ MonoBehaviour:
       Data: 11
     - Name: CombatHistory
       Entry: 7
-      Data: 169|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 182|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 170|CombatRecord, Assembly-CSharp
+      Data: 183|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Pudgy Wart
@@ -5772,14 +6107,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 171|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 184|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 172|CombatTurn, Assembly-CSharp
+      Data: 185|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5815,7 +6150,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 173|CombatRecord, Assembly-CSharp
+      Data: 186|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Drippy Runt
@@ -5845,14 +6180,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 174|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 187|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 9
     - Name: 
       Entry: 7
-      Data: 175|CombatTurn, Assembly-CSharp
+      Data: 188|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5879,7 +6214,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 176|CombatTurn, Assembly-CSharp
+      Data: 189|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5906,7 +6241,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 177|CombatTurn, Assembly-CSharp
+      Data: 190|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -5933,7 +6268,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 178|CombatTurn, Assembly-CSharp
+      Data: 191|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -5960,7 +6295,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 179|CombatTurn, Assembly-CSharp
+      Data: 192|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -5987,7 +6322,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 180|CombatTurn, Assembly-CSharp
+      Data: 193|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -6014,7 +6349,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 181|CombatTurn, Assembly-CSharp
+      Data: 194|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -6041,7 +6376,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 182|CombatTurn, Assembly-CSharp
+      Data: 195|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -6068,7 +6403,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 183|CombatTurn, Assembly-CSharp
+      Data: 196|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 5
@@ -6104,7 +6439,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 184|CombatRecord, Assembly-CSharp
+      Data: 197|CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Slimy Spore
@@ -6134,14 +6469,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 185|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+      Data: 198|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 7
     - Name: 
       Entry: 7
-      Data: 186|CombatTurn, Assembly-CSharp
+      Data: 199|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -6168,7 +6503,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 187|CombatTurn, Assembly-CSharp
+      Data: 200|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -6195,7 +6530,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 188|CombatTurn, Assembly-CSharp
+      Data: 201|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -6222,7 +6557,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 189|CombatTurn, Assembly-CSharp
+      Data: 202|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -6249,7 +6584,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 190|CombatTurn, Assembly-CSharp
+      Data: 203|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -6276,7 +6611,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 191|CombatTurn, Assembly-CSharp
+      Data: 204|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -6303,7 +6638,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 192|CombatTurn, Assembly-CSharp
+      Data: 205|CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -6348,16 +6683,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 193|NeedsState, Assembly-CSharp
+      Data: 206|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 90.53884
+      Data: 33.714
     - Name: Energy
       Entry: 4
-      Data: 74.42183
+      Data: 40.9168167
     - Name: Affect
       Entry: 4
-      Data: 70.9406052
+      Data: 20.93988
     - Name: 
       Entry: 8
       Data: 
@@ -6393,7 +6728,7 @@ MonoBehaviour:
       Data: BS1-A1-E0-M1-0B19C8-639163844748752240
     - Name: $v
       Entry: 7
-      Data: 194|CreatureDNA, Assembly-CSharp
+      Data: 207|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -6447,7 +6782,7 @@ MonoBehaviour:
       Data: BS1-A4-E0-M1-B1B03C-639158780052655723
     - Name: ChildrenIDs
       Entry: 7
-      Data: 195|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 208|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -6495,7 +6830,7 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 196|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 209|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -6511,16 +6846,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 197|NeedsState, Assembly-CSharp
+      Data: 210|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 84.95955
+      Data: 35.9144478
     - Name: Energy
       Entry: 4
-      Data: 66.19388
+      Data: 33.61612
     - Name: Affect
       Entry: 4
-      Data: -11.6900921
+      Data: 88.90364
     - Name: 
       Entry: 8
       Data: 

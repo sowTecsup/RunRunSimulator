@@ -24,7 +24,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 {
     // Carried = in the player's hand; Thrown = ragdoll in flight after a release/throw/knock.
     // SeekingNeed = pathing to a NeedStation; UsingStation = stopped, consuming it.
-    private enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation }
+    private enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting }
 
     // ── Tuning (Odin tabs) ────────────────────────────────────────
     // Grouped to mirror the two concerns this component juggles — the NavMesh "brain"
@@ -278,6 +278,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public bool IsAirborne => state == AgentState.Thrown;
     public CreatureDNA DNA => dna;
 
+    // True while this creature is confined to a pen (breeding/store container). The NameTag
+    // reads it to swap to the pen layout (gender + name + personality, plus heart/timer if breeding).
+    public bool IsPenned => currentContainer != null;
+    public bool IsCourting => state == AgentState.Courting;
+
     // True while the creature is actively reacting to the player in a friendly way (not fleeing).
     // The NameTag polls this to show the pet hint — no dot product here so the hint doesn't flicker.
     public bool IsInFriendlyReaction =>
@@ -402,6 +407,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
             case AgentState.Recovering:   TickRecovering();   break;
             case AgentState.SeekingNeed:  TickSeekingNeed();  break;
             case AgentState.UsingStation: TickUsingStation(); break;
+            case AgentState.Courting:     TickCourting();     break;
             // Carried: nothing to tick — the carry-follow runs in FixedUpdate.
         }
     }
@@ -674,6 +680,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
             EnterRoaming();                   // full → EnterRoaming releases the station + unstops
     }
 
+    private void TickCourting() { }
+
     // Drops the reserved station (if any). Called on every transition out of seeking/using.
     private void ReleaseStation()
     {
@@ -909,7 +917,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     // NavMesh-driven states (vs. physics/animation-driven: carried, thrown, recovering).
     private bool IsNavMeshControlled() =>
         state == AgentState.Idle    || state == AgentState.Roaming     || state == AgentState.Reacting ||
-        state == AgentState.SeekingNeed || state == AgentState.UsingStation;
+        state == AgentState.SeekingNeed || state == AgentState.UsingStation || state == AgentState.Courting;
 
     // ── Physics handoff (NavMeshAgent ⇄ Rigidbody) ────────────────
 
@@ -983,6 +991,36 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         holdAnchor       = null;
         EnterRoaming();
         return true;
+    }
+
+    public void EnterCourtship(Vector3 position, Vector3 lookAt)
+    {
+        ReleaseStation();
+
+        if (agent.enabled && agent.isOnNavMesh)
+        {
+            Vector3 point = position;
+            if (NavMesh.SamplePosition(position, out var hit, sampleRadius, agent.areaMask))
+                point = hit.position;
+            agent.Warp(point);
+            agent.ResetPath();
+        }
+
+        agent.updateRotation = false;
+        SetStopped(true);
+
+        Vector3 dir = lookAt - position; dir.y = 0f;
+        if (dir.sqrMagnitude > 0.001f)
+            transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
+
+        state = AgentState.Courting;
+    }
+
+    public void ExitCourtship()
+    {
+        if (state != AgentState.Courting) return;
+        agent.updateRotation = true;
+        EnterRoaming();
     }
 
     // After a throw settles: snap back onto the NavMesh but DON'T steer yet. It

@@ -43,7 +43,7 @@ public static class SaveSystem
     {
         string json = JsonConvert.SerializeObject(registry.GetAll(), Settings);
         File.WriteAllText(DbPath, json);
-        Debug.Log($"[SaveSystem] Saved {registry.Count} creatures → {DbPath}");
+     //   Debug.Log($"[SaveSystem] Saved {registry.Count} creatures → {DbPath}");
     }
 
     public static string Serialize(Dictionary<string, CreatureDNA> data) =>
@@ -91,7 +91,7 @@ public static class SaveSystem
             File.ReadAllText(path), Settings);
 
         registry.LoadFrom(data);
-        Debug.Log($"[SaveSystem] Loaded {registry.Count} creatures from {path}");
+      //  Debug.Log($"[SaveSystem] Loaded {registry.Count} creatures from {path}");
     }
 
     // ── Furniture registry ────────────────────────────────────────
@@ -119,7 +119,7 @@ public static class SaveSystem
         var data = JsonConvert.DeserializeObject<Dictionary<string, PlacedFurniture>>(
             File.ReadAllText(path), Settings);
         registry.LoadFrom(data);
-        Debug.Log($"[SaveSystem] Loaded {registry.Count} placed furniture from {path}");
+      //  Debug.Log($"[SaveSystem] Loaded {registry.Count} placed furniture from {path}");
     }
 
     // ── Player inventory ──────────────────────────────────────────
@@ -144,7 +144,7 @@ public static class SaveSystem
         var data = JsonConvert.DeserializeObject<PlayerInventorySO.InventoryData>(
             File.ReadAllText(path), Settings);
         inventory.LoadFrom(data);
-        Debug.Log($"[SaveSystem] Loaded inventory from {path}");
+       // Debug.Log($"[SaveSystem] Loaded inventory from {path}");
     }
 
     // Serializes UnityEngine.Color as a 6-character hex string (e.g. "FF00AA").

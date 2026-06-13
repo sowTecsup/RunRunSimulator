@@ -35,12 +35,23 @@ public class MoriMochiContainer : MonoBehaviour
     public bool    IsFull         => occupants.Count >= capacity;
     public IReadOnlyList<MoriMochiAgent> Occupants => occupants;
 
-    // The DNA of every MoriMochi currently penned — for breeding / pen UI later ("nos servirá").
-    // [ShowInInspector] surfaces the live occupants in the inspector at runtime (read-only).
-    // Añadimos .ToList() al final para que devuelva una lista concreta
+    // A trimmed view of who's penned — just name, gender and personality (no full CreatureDNA dump).
+    // LINQ projects each live occupant into a lightweight OccupantInfo; [ShowInInspector] surfaces it
+    // read-only at runtime and re-evaluates every inspector repaint, so it tracks who's actually in.
     [ShowInInspector, ReadOnly, PropertyOrder(10)]
-    [LabelText("Occupants (DNA)"), ListDrawerSettings(IsReadOnly = true, ShowItemCount = true)]
-    public List<CreatureDNA> OccupantDNAs => occupants.Select(a => a.DNA).ToList();
+    [LabelText("Occupants"), TableList(IsReadOnly = true, ShowIndexLabels = true)]
+    public List<OccupantInfo> OccupantInfos => occupants
+        .Where(a => a != null && a.DNA != null)
+        .Select(a => new OccupantInfo { Name = a.DNA.CustomName, Gender = a.DNA.Gender, Personality = a.DNA.Personality })
+        .ToList();
+
+    // Display-only row for the occupants table.
+    public struct OccupantInfo
+    {
+        [ReadOnly] public string         Name;
+        [ReadOnly] public CreatureGender Gender;
+        [ReadOnly] public Personality    Personality;
+    }
 
     private void Reset() => area = GetComponent<BoxCollider>();
     protected virtual void Awake() { if (area == null) area = GetComponent<BoxCollider>(); }
@@ -69,7 +80,21 @@ public class MoriMochiContainer : MonoBehaviour
     // NavMesh) — otherwise we'd hold a phantom occupant that isn't really inside.
     private void Admit(MoriMochiAgent agent)
     {
-        if (agent.EnterConfinement(this)) occupants.Add(agent);
+        if (Claim(agent))
+            Debug.Log($"[{name}] Admitido \"{agent.DNA?.CustomName}\" — ocupantes: {occupants.Count}/{capacity}.");
+        else
+            Debug.LogWarning($"[{name}] '{agent.name}' NO admitido. ¿El piso del corral está pintado con el área de cría y horneado (bake)?");
+    }
+
+    // Confines an agent and registers it as an occupant if there's room and it isn't already in.
+    // Shared by thrown-in admission (Admit) and startup reclaim (penned breeders restored after a
+    // scene reload — see BreedingContainer). Returns false if full, already in, or confinement failed.
+    protected bool Claim(MoriMochiAgent agent)
+    {
+        if (agent == null || occupants.Contains(agent) || IsFull) return false;
+        if (!agent.EnterConfinement(this)) return false;
+        occupants.Add(agent);
+        return true;
     }
 
     private void BounceOut(MoriMochiAgent agent)
@@ -79,6 +104,7 @@ public class MoriMochiContainer : MonoBehaviour
         agent.Knock(away * bounceOut + Vector3.up * bounceUp);
     }
 
-    // Called by the agent when the player lifts it out — the only exit.
-    public void Release(MoriMochiAgent agent) => occupants.Remove(agent);
+    // Called by the agent when the player lifts it out — the only exit. Virtual so a pen can react
+    // (BreedingContainer cancels any in-progress pairing for the creature leaving).
+    public virtual void Release(MoriMochiAgent agent) => occupants.Remove(agent);
 }

@@ -18903,6 +18903,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BreedingController
   asyncBreedingService: {fileID: 1227227761}
+  affinityTable: {fileID: 11400000, guid: 385ff62d28fcc1b428b55a9f8e9f9c19, type: 2}
   breedMotherID: 
   breedFatherID: 
   hatchIndex: 0
@@ -20446,7 +20447,7 @@ MonoBehaviour:
   grabRange: 10
   grabMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 257
   creatureLayer:
     serializedVersion: 2
     m_Bits: 256
@@ -21743,7 +21744,7 @@ Transform:
   m_GameObject: {fileID: 1984452806}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -30.119999, y: 0.716, z: 4.37}
+  m_LocalPosition: {x: -41.67, y: 1.73, z: 30}
   m_LocalScale: {x: 0.4131, y: 0.4131, z: 0.4131}
   m_ConstrainProportionsScale: 0
   m_Children: []

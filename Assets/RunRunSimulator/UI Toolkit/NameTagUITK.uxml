@@ -5,9 +5,13 @@
          is stable, status (busy/dead) and intent (what it wants to do) update live.
          The panel root is centered + made non-pickable from code. -->
     <ui:VisualElement name="tag-root" class="tag">
-        <ui:Label name="name-label"    text="Name"        class="tag__name" />
-        <ui:Label name="status-label"  text=""            class="tag__status" />
-        <ui:Label name="intent-label"  text=""            class="tag__intent" />
-        <ui:Label name="pet-hint-label" text="[E] Acariciar" class="tag__pet-hint" />
+        <ui:Label name="gender-label"      text=""            class="tag__gender" />
+        <ui:Label name="name-label"        text="Name"        class="tag__name" />
+        <ui:Label name="personality-label" text=""            class="tag__personality" />
+        <ui:Label name="heart-label"       text="❤"           class="tag__heart" />
+        <ui:Label name="timer-label"       text=""            class="tag__timer" />
+        <ui:Label name="status-label"      text=""            class="tag__status" />
+        <ui:Label name="intent-label"      text=""            class="tag__intent" />
+        <ui:Label name="pet-hint-label"    text="[E] Acariciar" class="tag__pet-hint" />
     </ui:VisualElement>
 </ui:UXML>

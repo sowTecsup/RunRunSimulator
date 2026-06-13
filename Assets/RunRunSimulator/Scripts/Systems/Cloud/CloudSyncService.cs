@@ -101,7 +101,7 @@ public class CloudSyncService : MonoBehaviour
     private void SetupAuthEvents()
     {
         AuthenticationService.Instance.SignedIn += () =>
-            Debug.Log($"[CloudSync] Auth signed in — ID: {AuthenticationService.Instance.PlayerId}");
+           Debug.Log($"[CloudSync] Auth signed in — ID: {AuthenticationService.Instance.PlayerId}");
         AuthenticationService.Instance.SignInFailed += err =>
             Debug.LogError($"[CloudSync] Sign-in failed: {err}");
         AuthenticationService.Instance.SignedOut += () =>
@@ -148,7 +148,7 @@ public class CloudSyncService : MonoBehaviour
         playerName = await SafeGetPlayerName();
         status     = $"Signed in ({method})";
         RefreshSecurityDisplay();
-        Debug.Log($"[CloudSync] Signed in via '{method}' — ID: {playerID}, Name: {playerName}");
+      //  Debug.Log($"[CloudSync] Signed in via '{method}' — ID: {playerID}, Name: {playerName}");
 
         // Scope local save by player + auto-sync from cloud
         SaveSystem.SetUserScope(playerID);

@@ -114,20 +114,20 @@ public class PlayerInputs : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext c)
     {
-        Debug.Log("[PlayerInputs] Interact (E) DOWN → InteractPressed.");
+        //Debug.Log("[PlayerInputs] Interact (E) DOWN → InteractPressed.");
         InteractPressed?.Invoke();
     }
 
     private void OnInteractCanceled(InputAction.CallbackContext c)
     {
-        Debug.Log("[PlayerInputs] Interact (E) UP → InteractReleased.");
+      //  Debug.Log("[PlayerInputs] Interact (E) UP → InteractReleased.");
         InteractReleased?.Invoke();
     }
 
     private void OnAttack(InputAction.CallbackContext c)
     {
         int subs = ThrowPressed?.GetInvocationList().Length ?? 0;
-        Debug.Log($"[PlayerInputs] Attack fired → invoking ThrowPressed ({subs} listener(s)).");
+       // Debug.Log($"[PlayerInputs] Attack fired → invoking ThrowPressed ({subs} listener(s)).");
         ThrowPressed?.Invoke();
     }
 

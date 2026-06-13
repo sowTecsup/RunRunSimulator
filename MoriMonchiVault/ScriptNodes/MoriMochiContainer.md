@@ -6,8 +6,8 @@ tags: [memory-bank, script, player-world]
 
 **Ruta:** `World/MoriMochiContainer.cs`
 
-**Responsabilidad:** Corral base. Trigger volume, capacity, bounce-out, `areaMask` para confinar agentes.
+**Responsabilidad:** Corral base con `BoxCollider` trigger. Admite criaturas lanzadas (`OnTriggerEnter`) o soltadas dentro (`OnTriggerStay`) hasta `capacity`. Rebotar si lleno (`BounceOut`). Expone `Occupants` (IReadOnlyList) y tabla `OccupantInfos` para inspector (nombre/género/personalidad). `Claim()` protegido compartido por admisión y `BreedingContainer`. `Release()` virtual para que subclases reaccionen. Confina al agente via `EnterConfinement` (cambia areaMask).
 
 **Vinculado a:** [[Index/06 - Player & World]]
 
-**Conexiones:** [[StoreContainer]], [[BreedingContainer]], [[MoriMochiAgent]]
+**Conexiones:** [[BreedingContainer]], [[MoriMochiAgent]], [[StoreContainer]]

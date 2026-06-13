@@ -263,8 +263,8 @@ public class PlayerController : MonoBehaviour
 
         if (HotbarController.Instance != null && HotbarController.Instance.HasActiveItem)
             HotbarController.Instance.UseActive();
-        else
-            Debug.Log("[PlayerController] Nothing held and no active hotbar item — click does nothing.");
+        /*else
+            Debug.Log("[PlayerController] Nothing held and no active hotbar item — click does nothing.");*/
     }
 
     // Impulse for a throw aimed at the crosshair. The object floats at the hold anchor,
