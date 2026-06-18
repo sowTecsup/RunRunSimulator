@@ -26,6 +26,33 @@ public class BreedingController : MonoBehaviour
     [Tooltip("Personality affinity matrix. Falls back to BreedingAffinityTableSO.Current if left empty.")]
     [SerializeField] private BreedingAffinityTableSO affinityTable;
 
+    [BoxGroup("Setup")]
+    [Tooltip("Life stage thresholds (age in days → stage). Read by the NameTag for the age line.")]
+    [SerializeField] private CreatureLifeStageTableSO lifeStageTable;
+
+    public CreatureLifeStageTableSO LifeStageTable => lifeStageTable;
+
+    // ── Corrales (manager awareness) ──────────────────────────────
+    // The breeding manager knows every active pen and its pairs by reading BreedingContainer's
+    // static registry — no serialized references to keep in sync.
+
+    [ShowInInspector, ReadOnly, LabelText("Corrales activos"), BoxGroup("Corrales")]
+    private int ActivePenCount => Application.isPlaying ? BreedingContainer.All.Count : 0;
+
+    [ShowInInspector, ReadOnly, LabelText("Parejas activas"), BoxGroup("Corrales")]
+    private string ActivePairsInfo
+    {
+        get
+        {
+            if (!Application.isPlaying) return "(solo en Play)";
+            var lines = new System.Collections.Generic.List<string>();
+            foreach (var pen in BreedingContainer.All)
+                foreach (var (mother, father, slot) in pen.ActivePairs())
+                    lines.Add($"[{pen.PenKey} #{slot}] \"{mother}\" × \"{father}\"");
+            return lines.Count == 0 ? "Sin parejas activas." : string.Join("  |  ", lines);
+        }
+    }
+
     // ── Private Fields ────────────────────────────────────────────
 
     [BoxGroup("Breed")]

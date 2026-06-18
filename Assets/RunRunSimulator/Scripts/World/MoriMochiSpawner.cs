@@ -67,7 +67,13 @@ public class MoriMochiSpawner : MonoBehaviour
     private readonly Dictionary<string, MoriMonchiController> prewarmed = new Dictionary<string, MoriMonchiController>();
     private readonly Queue<MoriMonchiController>              pool       = new Queue<MoriMonchiController>();
     private readonly Queue<CreatureDNA>                       spawnQueue = new Queue<CreatureDNA>();
+    // Breeders drain first: placed directly inside their pen before any free creature is fired.
+    private readonly Queue<CreatureDNA>                       breederQueue = new Queue<CreatureDNA>();
     private readonly HashSet<string>                          queued     = new HashSet<string>();
+
+    // childUniqueID → world point to fire a newborn from. Registered by the BreedingContainer that bred
+    // it (the pen owns the request), so the cría arcs out of its pen instead of the global muzzle.
+    private readonly Dictionary<string, Vector3>             birthLaunchPoints = new Dictionary<string, Vector3>();
 
     private const float WorldReadyDebounce = 0.75f;
 
@@ -85,13 +91,19 @@ public class MoriMochiSpawner : MonoBehaviour
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private int PooledCount    => pool.Count;
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
-    private int QueuedCount    => spawnQueue.Count;
+    private int QueuedCount    => spawnQueue.Count + breederQueue.Count;
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private int PrewarmedCount => prewarmed.Count;
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private int DebugShotCount => debugShots.Count;
 
     // ── Lifecycle ─────────────────────────────────────────────────
+
+    public static MoriMochiSpawner Instance { get; private set; }
+
+    private void Awake() => Instance = this;
+
+    private void OnDestroy() { if (Instance == this) Instance = null; }
 
     private void OnEnable()
     {
@@ -136,6 +148,13 @@ public class MoriMochiSpawner : MonoBehaviour
 
     private void OnRegistryChanged(CreatureRegistrySO registry) => Sync(registry);
 
+    // Called by the BreedingContainer that just bred a child: the next time the spawner fires this
+    // creature, it leaves from 'worldPoint' (the pen) instead of the global muzzle.
+    public void RegisterBirthLaunch(string childId, Vector3 worldPoint)
+    {
+        if (!string.IsNullOrEmpty(childId)) birthLaunchPoints[childId] = worldPoint;
+    }
+
     private void OnRegistryReloaded(CreatureRegistrySO registry)
     {
         // Cancel any running startup sequence — DNA instances are being replaced.
@@ -160,6 +179,7 @@ public class MoriMochiSpawner : MonoBehaviour
         foreach (var id in stale) Despawn(id);
 
         spawnQueue.Clear();
+        breederQueue.Clear();
         queued.Clear();
         foreach (var kv in all)
         {
@@ -169,10 +189,7 @@ public class MoriMochiSpawner : MonoBehaviour
             if (spawned.TryGetValue(kv.Key, out var controller))
                 controller.Initialize(dna, table, player, GameManager.Instance?.PartVisualBank);
             else
-            {
-                spawnQueue.Enqueue(dna);
-                queued.Add(kv.Key);
-            }
+                Enqueue(dna);
         }
 
         EnsurePump();
@@ -255,8 +272,7 @@ public class MoriMochiSpawner : MonoBehaviour
             var dna = kv.Value;
             if (dna.IsDead) continue;
             if (spawned.ContainsKey(kv.Key) || queued.Contains(kv.Key)) continue;
-            spawnQueue.Enqueue(dna);
-            queued.Add(kv.Key);
+            Enqueue(dna);
         }
 
         var stale = spawned.Keys
@@ -267,17 +283,25 @@ public class MoriMochiSpawner : MonoBehaviour
         EnsurePump();
     }
 
+    // Breeders go to the priority queue (placed directly in their pen); everyone else is fired.
+    private void Enqueue(CreatureDNA dna)
+    {
+        if (dna.BusyState == BusyReason.Breeding) breederQueue.Enqueue(dna);
+        else                                      spawnQueue.Enqueue(dna);
+        queued.Add(dna.UniqueID);
+    }
+
     // ── Pump ──────────────────────────────────────────────────────
 
     private IEnumerator SpawnPump()
     {
         var wait = spawnInterval > 0f ? new WaitForSeconds(spawnInterval) : null;
 
-        while (spawnQueue.Count > 0)
+        while (breederQueue.Count > 0 || spawnQueue.Count > 0)
         {
-            for (int i = 0; i < spawnPerTick && spawnQueue.Count > 0; i++)
+            for (int i = 0; i < spawnPerTick && (breederQueue.Count > 0 || spawnQueue.Count > 0); i++)
             {
-                var dna = spawnQueue.Dequeue();
+                var dna = breederQueue.Count > 0 ? breederQueue.Dequeue() : spawnQueue.Dequeue();
                 queued.Remove(dna.UniqueID);
 
                 if (!dna.IsDead && !spawned.ContainsKey(dna.UniqueID))
@@ -293,47 +317,83 @@ public class MoriMochiSpawner : MonoBehaviour
     {
         if (isPrewarming) return;   // startup sequence hasn't completed yet
         if (!worldReady)   return;  // world (furniture + NavMesh) not ready — hold the cannon
-        if (pump == null && spawnQueue.Count > 0 && isActiveAndEnabled)
+        if (pump == null && (breederQueue.Count > 0 || spawnQueue.Count > 0) && isActiveAndEnabled)
             pump = StartCoroutine(SpawnPump());
     }
 
     private void SpawnOne(CreatureDNA dna)
     {
-        var table = GameManager.Instance != null ? GameManager.Instance.PersonalityProfiles : null;
-        var bank  = GameManager.Instance != null ? GameManager.Instance.PartVisualBank      : null;
+        // Breeders are placed directly inside their pen — no cannon shot. Free creatures fall through.
+        if (dna.BusyState == BusyReason.Breeding && BreedingContainer.TryGet(dna.HomePenKey, out var pen))
+        {
+            if (TryPlaceInPen(dna, pen)) return;
+        }
 
         // Activate on a valid NavMesh point so NavMeshAgent.OnEnable never fires off-mesh, then
         // Launch disables the agent and teleports to the muzzle — never the reverse.
-        Vector3 navPoint = ResolveActivationPoint();
-
-        MoriMonchiController controller;
-
-        // Hot path: prewarmed controller already has its model assembled — reposition, enable,
-        // re-init the agent (bank=null skips Assemble, leaving the model intact).
-        if (prewarmed.TryGetValue(dna.UniqueID, out controller))
-        {
-            prewarmed.Remove(dna.UniqueID);
-            controller.transform.SetPositionAndRotation(navPoint, Quaternion.identity);
-            controller.gameObject.SetActive(true);
-            controller.Initialize(dna, table, player, null);
-        }
-        else
-        {
-            // Cold path: runtime spawn (born after prewarm, or prewarm interrupted).
-            controller = GetController(navPoint);
-            if (controller == null) return;
-            controller.Initialize(dna, table, player, bank);
-        }
+        var controller = Acquire(dna, ResolveActivationPoint());
+        if (controller == null) return;
 
         controller.name = $"MoriMochi_{dna.CustomName}";
 
+        // Newborns fire from the point their breeding pen registered; everyone else from the global muzzle.
+        Vector3 muzzle;
+        if (birthLaunchPoints.TryGetValue(dna.UniqueID, out var bornPoint))
+        {
+            muzzle = bornPoint;
+            birthLaunchPoints.Remove(dna.UniqueID);
+        }
+        else muzzle = launchPoint != null ? launchPoint.position : transform.position;
+
         // Fire it: solve the velocity that lands at a random point inside the radius.
-        Vector3 muzzle = launchPoint != null ? launchPoint.position : transform.position;
         Vector3 target = RandomLandingPoint();
         float   angle  = Random.Range(launchAngle.x, launchAngle.y) * Mathf.Deg2Rad;
         controller.Launch(muzzle, SolveLaunchVelocity(muzzle, target, angle));
 
         spawned[dna.UniqueID] = controller;
+    }
+
+    // Acquires a controller at 'navPoint' — prewarmed (model already assembled, bank=null skips
+    // Assemble) or cold (pool/fresh, full bank). Returns null only if a cold spawn can't be made.
+    private MoriMonchiController Acquire(CreatureDNA dna, Vector3 navPoint)
+    {
+        var table = GameManager.Instance != null ? GameManager.Instance.PersonalityProfiles : null;
+        var bank  = GameManager.Instance != null ? GameManager.Instance.PartVisualBank      : null;
+
+        if (prewarmed.TryGetValue(dna.UniqueID, out var controller))
+        {
+            prewarmed.Remove(dna.UniqueID);
+            controller.transform.SetPositionAndRotation(navPoint, Quaternion.identity);
+            controller.gameObject.SetActive(true);
+            controller.Initialize(dna, table, player, null);
+            return controller;
+        }
+
+        controller = GetController(navPoint);
+        if (controller == null) return null;
+        controller.Initialize(dna, table, player, bank);
+        return controller;
+    }
+
+    // Places a breeder directly inside its pen instead of firing it. Returns false (so SpawnOne falls
+    // back to the cannon) if the pen rejects it (full / breeding navmesh not ready yet).
+    private bool TryPlaceInPen(CreatureDNA dna, BreedingContainer pen)
+    {
+        Vector3 navPoint = NavMesh.SamplePosition(pen.Center, out var hit, 5f, NavMesh.AllAreas) ? hit.position : pen.Center;
+
+        var controller = Acquire(dna, navPoint);
+        if (controller == null) return false;
+
+        if (!pen.ReclaimDirect(controller.Agent))
+        {
+            // Pen rejected it — return the controller so SpawnOne's fallback fires it cleanly.
+            ReturnToPool(controller);
+            return false;
+        }
+
+        controller.name = $"MoriMochi_{dna.CustomName}";
+        spawned[dna.UniqueID] = controller;
+        return true;
     }
 
     // ── Pool ──────────────────────────────────────────────────────
@@ -370,6 +430,7 @@ public class MoriMochiSpawner : MonoBehaviour
     {
         if (spawned.TryGetValue(id, out var controller)) ReturnToPool(controller);
         spawned.Remove(id);
+        birthLaunchPoints.Remove(id);
 
         // A creature that died before activation — return its prewarmed slot to the pool.
         if (prewarmed.TryGetValue(id, out var prewarmedController))
@@ -384,6 +445,7 @@ public class MoriMochiSpawner : MonoBehaviour
         foreach (var controller in spawned.Values) ReturnToPool(controller);
         spawned.Clear();
         spawnQueue.Clear();
+        breederQueue.Clear();
         queued.Clear();
     }
 

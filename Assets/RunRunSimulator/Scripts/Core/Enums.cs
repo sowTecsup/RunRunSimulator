@@ -31,6 +31,17 @@ public enum CreatureGender
     Female  = 2
 }
 
+// Visible life phase derived from age in days (CreatureLifeStageTableSO maps day
+// thresholds → stage). Display-only: shown on the NameTag, never part of the DNA string.
+public enum LifeStage
+{
+    Newborn = 0,
+    Child   = 1,
+    Teen    = 2,
+    Adult   = 3,
+    Elder   = 4
+}
+
 // Identifies the anatomical slot a part occupies — used for thematic name generation.
 public enum PartRole
 {

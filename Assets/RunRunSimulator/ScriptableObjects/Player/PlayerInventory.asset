@@ -26,10 +26,7 @@ MonoBehaviour:
       Data: 0|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 1
-      Data: F4
+      Data: 0
     - Name: 
       Entry: 13
       Data: 
@@ -41,16 +38,7 @@ MonoBehaviour:
       Data: 1|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 5
-    - Name: 
-      Entry: 1
-      Data: I0
-    - Name: 
-      Entry: 1
-      Data: I0
-    - Name: 
-      Entry: 1
-      Data: I0
+      Data: 2
     - Name: 
       Entry: 1
       Data: I0
@@ -95,4 +83,4 @@ MonoBehaviour:
       Data: 
     - Name: dabloons
       Entry: 3
-      Data: 500
+      Data: 0

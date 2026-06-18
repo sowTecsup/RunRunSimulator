@@ -25,6 +25,12 @@ public class NameTag : MonoBehaviour
     [Tooltip("Keep the text upright (ignore camera pitch) instead of fully facing it.")]
     [SerializeField] private bool uprightOnly = true;
 
+    [Header("Pen layout")]
+    [Tooltip("Extra height (m) added while penned, so the compact breeding tag doesn't clip the floor.")]
+    [SerializeField] private float penRaise = 0.6f;
+    [Tooltip("Uniform scale applied while penned, to make the breeding tag more compact.")]
+    [SerializeField] private float penScale = 0.8f;
+
     private UIDocument    document;
     private VisualElement root;
     private Label         nameLabel;
@@ -33,6 +39,8 @@ public class NameTag : MonoBehaviour
     private Label         petHintLabel;
     private Label         genderLabel;
     private Label         personalityLabel;
+    private Label         stageLabel;
+    private Label         breedLabel;
     private Label         heartLabel;
     private Label         timerLabel;
 
@@ -41,11 +49,16 @@ public class NameTag : MonoBehaviour
     private Transform      cam;
     private bool           shown = true;
 
+    private Vector3 baseLocalPos;
+    private Vector3 baseLocalScale;
+
     private void Awake()
     {
         document = GetComponent<UIDocument>();
       //  agent    = GetComponentInParent<MoriMochiAgent>();   // intent source (same World domain → direct ref)
         if (Camera.main != null) cam = Camera.main.transform;
+        baseLocalPos   = transform.localPosition;
+        baseLocalScale = transform.localScale;
     }
 
     // Called by the agent right after Initialize(). The document tree is built in the
@@ -82,6 +95,8 @@ public class NameTag : MonoBehaviour
         petHintLabel     = root.Q<Label>("pet-hint-label");
         genderLabel      = root.Q<Label>("gender-label");
         personalityLabel = root.Q<Label>("personality-label");
+        stageLabel       = root.Q<Label>("stage-label");
+        breedLabel       = root.Q<Label>("breed-label");
         heartLabel       = root.Q<Label>("heart-label");
         timerLabel       = root.Q<Label>("timer-label");
     }
@@ -101,6 +116,11 @@ public class NameTag : MonoBehaviour
         if (!visible) return;
 
         Refresh();
+
+        // Penned creatures get a raised, compact tag so the breeding layout clears the floor.
+        bool penned = agent != null && agent.IsPenned;
+        transform.localScale    = penned ? baseLocalScale * penScale         : baseLocalScale;
+        transform.localPosition = penned ? baseLocalPos + Vector3.up * penRaise : baseLocalPos;
 
         // Billboard: point the panel's front (+Z, the face UITK draws on) at the camera.
         Vector3 toCam = transform.position - cam.position;
@@ -146,6 +166,16 @@ public class NameTag : MonoBehaviour
             personalityLabel.text = PersonalityText(dna.Personality);
             SetDisplay(personalityLabel, true);
         }
+        if (stageLabel != null)
+        {
+            stageLabel.text = StageText(dna.AgeDays);
+            SetDisplay(stageLabel, true);
+        }
+        if (breedLabel != null)
+        {
+            breedLabel.text = $"{dna.BreedCount}/{BreedingService.MaxBreedCount}";
+            SetDisplay(breedLabel, true);
+        }
 
         bool breeding = dna.BusyState == BusyReason.Breeding && dna.BreedReadyAt > 0;
         SetDisplay(heartLabel, breeding);
@@ -157,8 +187,15 @@ public class NameTag : MonoBehaviour
     {
         SetDisplay(genderLabel,      false);
         SetDisplay(personalityLabel, false);
+        SetDisplay(breedLabel,       false);
         SetDisplay(heartLabel,       false);
         SetDisplay(timerLabel,       false);
+
+        if (stageLabel != null)
+        {
+            stageLabel.text = StageText(dna.AgeDays);
+            SetDisplay(stageLabel, true);
+        }
 
         if (statusLabel != null)
         {
@@ -261,6 +298,14 @@ public class NameTag : MonoBehaviour
         Personality.Grumpy     => "Gruñón",
         _                      => p.ToString(),
     };
+
+    private static string StageText(int ageDays)
+    {
+        var table = BreedingController.Instance != null ? BreedingController.Instance.LifeStageTable : null;
+        return table != null
+            ? $"{table.Label(table.GetStage(ageDays))} · {ageDays}d"
+            : $"{ageDays}d";
+    }
 
     // Live mm:ss until the egg can hatch (server epoch ms); "¡Listo! [E]" once due.
     private static string CountdownText(long readyAtMs)

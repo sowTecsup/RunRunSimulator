@@ -485,8 +485,14 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         if (state == AgentState.Carried) return;   // in the player's hand — don't yank it out
         if (currentContainer != null) return;      // penned: tackle-proof — only the player can take it out
 
+        // A knock mid-flight must NOT reset the safety timeout: a cluster of creatures knocking each
+        // other every contact would otherwise reset it forever and hang "in the air" — preserve it.
+        bool  wasAirborne = state == AgentState.Thrown;
+        float keepThrown  = thrownTimer;
+
         ReleaseStation();
         EnterRagdoll();
+        if (wasAirborne) thrownTimer = keepThrown;
 
         dna?.Needs.AddAffect(-affectOnThrow);   // being slammed around is stressful
         rb.AddForce(force, ForceMode.Impulse);
@@ -792,6 +798,13 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         // with an emergency keeps prioritizing its need and ignores the player.
         if (Condition != CreatureCondition.Healthy) return false;
         if (profile.Reaction == ProximityReaction.Ignore) return false;
+
+        // Penned: the ONLY restricted behavior is coming to the player — skip approach/follow inside the
+        // pen. Everything else (flee/retreat, roaming, idle) keeps running normally.
+        if (currentContainer != null &&
+            (profile.Reaction == ProximityReaction.Approach || profile.Reaction == ProximityReaction.Follow))
+            return false;
+
         return BeginReaction(profile.Reaction);
     }
 

@@ -6,7 +6,7 @@ tags: [memory-bank, script, gdd-core]
 
 **Ruta:** `Core/Enums.cs`
 
-**Responsabilidad:** Define todos los enumeradores globales: `Rarity`, `PartSet`, `PartRole`, `Tier`, `CreatureGender`, `Personality`, `NeedType`, `BusyReason`, `UIPanelType`, `FurnitureCategory`, `ItemType`.
+**Responsabilidad:** Define todos los enumeradores globales: `Rarity`, `PartSet`, `PartRole`, `Tier`, `CreatureGender`, `LifeStage`, `Personality`, `NeedType`, `BusyReason`, `UIPanelType`, `PlayerStateType`, `FurnitureCategory`, `ItemType`, `WorldPropCategory`, `DiscountDay`, `DiscountMonth`, `RestockPeriod`, `BuyResult`, `StoreItemTypeFilter`, `NeedType`, `CreatureCondition`, `Personality`, `CreatureIntent`, `ProximityReaction`, `WorldArea`, `CombatOutcome`.
 
 **Vinculado a:** [[Index/01 - GDD Core]]
 

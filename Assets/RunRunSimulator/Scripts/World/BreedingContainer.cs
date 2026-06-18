@@ -30,9 +30,18 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
     [Tooltip("On scene load, breeders mid-incubation are pulled back into the pen once the cannon spawns them. Stop trying after this many seconds.")]
     [SerializeField, Min(0f)] private float reclaimTimeout = 20f;
 
+    // Fixed breed points: one slot per pair the pen allows. Each slot = two child anchors the pair
+    // stands on, facing each other. Configured in the inspector (drag child empties) — no runtime spacing.
+    [System.Serializable]
+    private struct BreedingSlot
+    {
+        public Transform spotA;
+        public Transform spotB;
+    }
+
     [BoxGroup("Breeding")]
-    [Tooltip("Distance between the two MoriMonchis while they court (incubating), in meters.")]
-    [SerializeField, Min(0f)] private float courtGap = 0.6f;
+    [Tooltip("Puntos fijos de cría: un slot por pareja. Cada slot = dos anclas hijas (spotA/spotB) donde se paran los dos MoriMonchis mirándose.")]
+    [SerializeField] private BreedingSlot[] breedingSlots;
 
     [BoxGroup("Breeding")]
     [SerializeField] private UnityEvent onPairFormed;
@@ -46,10 +55,96 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
     [ShowInInspector, ReadOnly, LabelText("Diagnóstico Pareja")]
     private string PairDiagnostics => Application.isPlaying ? BuildDiagnostics() : "(solo en Play)";
 
+    [BoxGroup("Breeding")]
+    [Tooltip("Altura sobre el centro del corral desde donde se lanzan las crías recién nacidas.")]
+    [SerializeField, Min(0f)] private float launchHeight = 1.5f;
+
     private float rollTimer;
     private readonly Dictionary<string, float> cooldowns = new Dictionary<string, float>();
 
-    private void Start() => StartCoroutine(ReclaimBreedingOccupants());
+    private string penKey;
+    private static readonly Dictionary<string, BreedingContainer> byKey = new Dictionary<string, BreedingContainer>();
+
+    // El corral más reciente lanza a sus crías desde aquí; los recién nacidos vuelan al centro + esta altura.
+    public Vector3 LaunchPoint => Center + Vector3.up * launchHeight;
+
+    public static bool TryGet(string key, out BreedingContainer pen)
+    {
+        if (string.IsNullOrEmpty(key)) { pen = null; return false; }
+        return byKey.TryGetValue(key, out pen);
+    }
+
+    // All active pens in the scene — the BreedingController (manager) reads this to know how many
+    // pens exist and which pairs are breeding where, without holding its own references.
+    public static IReadOnlyCollection<BreedingContainer> All => byKey.Values;
+
+    public string PenKey => penKey;
+
+    // The active breeding pairs in this pen and the slot each occupies — "qué MM ↔ qué MM, en qué slot".
+    public IEnumerable<(string mother, string father, int slot)> ActivePairs()
+    {
+        for (int i = 0; i < Occupants.Count; i++)
+        {
+            var d = Occupants[i]?.DNA;
+            if (d == null || d.Gender != CreatureGender.Female || d.BusyState != BusyReason.Breeding) continue;
+            string fatherName = GameManager.Instance != null && GameManager.Instance.Registry != null &&
+                                GameManager.Instance.Registry.TryGet(d.BreedPartnerID, out var f) ? f.CustomName : "???";
+            yield return (d.CustomName, fatherName, d.HomePenSlot);
+        }
+    }
+
+    private void Start()
+    {
+        // El marker lo estampa FurnitureSpawner en la raíz tras el Instantiate, así que recién está disponible en Start.
+        var marker = GetComponentInParent<PlacedFurnitureMarker>();
+        if (marker != null)
+        {
+            penKey = $"{marker.AnchorCell.x}_{marker.AnchorCell.y}";
+        }
+        else
+        {
+            penKey = name;
+            Debug.LogWarning($"[BreedingContainer] El corral \"{name}\" no tiene PlacedFurnitureMarker; usando el nombre como clave.");
+        }
+        byKey[penKey] = this;
+
+        StartCoroutine(ReclaimBreedingOccupants());
+    }
+
+    private void OnDestroy()
+    {
+        if (!string.IsNullOrEmpty(penKey) && byKey.TryGetValue(penKey, out var pen) && ReferenceEquals(pen, this))
+            byKey.Remove(penKey);
+    }
+
+    private void OnEnable()  => GameEvents.OnBreedingCompleted += OnBreedingCompleted;
+    private void OnDisable() => GameEvents.OnBreedingCompleted -= OnBreedingCompleted;
+
+    // Una pareja de ESTE corral acaba de tener cría: pedimos al spawner que la lance desde aquí
+    // (el corral es quien hace la solicitud) y mandamos a ambos padres de vuelta a deambular dentro
+    // del corral (estaban posados en cortejo, pero ya no se están apareando).
+    private void OnBreedingCompleted(CreatureDNA mother, CreatureDNA father, CreatureDNA child)
+    {
+        var motherAgent = FindOccupant(mother);
+        var fatherAgent = FindOccupant(father);
+        if (motherAgent == null && fatherAgent == null) return;   // no nació en este corral
+
+        if (child != null) MoriMochiSpawner.Instance?.RegisterBirthLaunch(child.UniqueID, LaunchPoint);
+
+        if (motherAgent != null) motherAgent.ExitCourtship();
+        if (fatherAgent != null) fatherAgent.ExitCourtship();
+    }
+
+    private MoriMochiAgent FindOccupant(CreatureDNA target)
+    {
+        if (target == null) return null;
+        for (int i = 0; i < Occupants.Count; i++)
+            if (Occupants[i] != null && ReferenceEquals(Occupants[i].DNA, target)) return Occupants[i];
+        return null;
+    }
+
+    // El spawner de crías coloca al recién nacido directamente en este corral.
+    public bool ReclaimDirect(MoriMochiAgent agent) => Claim(agent);
 
     private void Update()
     {
@@ -77,58 +172,75 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         }
     }
 
-    // Poses the incubating pair face-to-face at courtGap distance; exits courtship for any
-    // other occupant that is still in the Courting state but is no longer part of an active pair.
+    // Poses each active breeding pair at its assigned fixed slot (female→spotA, male→spotB, facing each
+    // other). Exits courtship for any occupant not currently part of a posed pair.
     private void ManageCourtship()
     {
-        MoriMochiAgent agentA = null;
-        MoriMochiAgent agentB = null;
+        var posed = new HashSet<MoriMochiAgent>();
 
         var breeding = new List<MoriMochiAgent>();
         for (int i = 0; i < Occupants.Count; i++)
         {
             var a = Occupants[i];
-            if (a == null || a.DNA == null) continue;
-            if (a.DNA.BusyState == BusyReason.Breeding) breeding.Add(a);
+            if (a != null && a.DNA != null && a.DNA.BusyState == BusyReason.Breeding) breeding.Add(a);
         }
 
-        for (int i = 0; i < breeding.Count && agentA == null; i++)
+        for (int i = 0; i < breeding.Count; i++)
         {
-            var candidate = breeding[i];
-            if (string.IsNullOrEmpty(candidate.DNA.BreedPartnerID)) continue;
+            var a = breeding[i];
+            if (posed.Contains(a) || string.IsNullOrEmpty(a.DNA.BreedPartnerID)) continue;
+
+            MoriMochiAgent partner = null;
             for (int j = i + 1; j < breeding.Count; j++)
             {
-                var other = breeding[j];
-                if (candidate.DNA.BreedPartnerID == other.DNA.UniqueID &&
-                    other.DNA.BreedPartnerID == candidate.DNA.UniqueID)
+                var b = breeding[j];
+                if (a.DNA.BreedPartnerID == b.DNA.UniqueID && b.DNA.BreedPartnerID == a.DNA.UniqueID)
                 {
-                    agentA = candidate;
-                    agentB = other;
+                    partner = b;
                     break;
                 }
             }
-        }
+            if (partner == null) continue;
 
-        if (agentA != null && agentB != null)
-        {
-            Vector3 center = Center;
-            Vector3 axis   = transform.right; axis.y = 0f;
-            if (axis.sqrMagnitude < 0.001f) axis = Vector3.right;
-            axis = axis.normalized;
-            Vector3 slotA = center + axis * (courtGap * 0.5f);
-            Vector3 slotB = center - axis * (courtGap * 0.5f);
+            var female = a.DNA.Gender == CreatureGender.Female ? a : partner;
+            var male   = ReferenceEquals(female, a) ? partner : a;
 
-            if (!agentA.IsCourting) agentA.EnterCourtship(slotA, slotB);
-            if (!agentB.IsCourting) agentB.EnterCourtship(slotB, slotA);
+            int idx = female.DNA.HomePenSlot;
+            if (breedingSlots == null || idx < 0 || idx >= breedingSlots.Length) continue;
+
+            var slot = breedingSlots[idx];
+            if (slot.spotA == null || slot.spotB == null) continue;
+
+            if (!female.IsCourting) female.EnterCourtship(slot.spotA.position, slot.spotB.position);
+            if (!male.IsCourting)   male.EnterCourtship(slot.spotB.position, slot.spotA.position);
+
+            posed.Add(female);
+            posed.Add(male);
         }
 
         for (int i = 0; i < Occupants.Count; i++)
         {
             var a = Occupants[i];
-            if (a == null) continue;
-            if (ReferenceEquals(a, agentA) || ReferenceEquals(a, agentB)) continue;
+            if (a == null || posed.Contains(a)) continue;
             if (a.IsCourting) a.ExitCourtship();
         }
+    }
+
+    // First breed slot not already claimed by another breeding pair in this pen. -1 if none free.
+    private int FindFreeSlot()
+    {
+        if (breedingSlots == null || breedingSlots.Length == 0) return -1;
+
+        var used = new HashSet<int>();
+        for (int i = 0; i < Occupants.Count; i++)
+        {
+            var d = Occupants[i]?.DNA;
+            if (d != null && d.BusyState == BusyReason.Breeding && d.HomePenSlot >= 0) used.Add(d.HomePenSlot);
+        }
+
+        for (int i = 0; i < breedingSlots.Length; i++)
+            if (!used.Contains(i)) return i;
+        return -1;
     }
 
     [Button("Forzar Roll de Pareja", ButtonSizes.Large), GUIColor(1f, 0.7f, 0.85f), BoxGroup("Breeding")]
@@ -185,6 +297,11 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         // don't lie about it and don't burn a cooldown on a pairing that never happened.
         if (motherDNA.BusyState == BusyReason.Breeding && fatherDNA.BusyState == BusyReason.Breeding)
         {
+            int slot = FindFreeSlot();
+            motherDNA.HomePenKey = penKey;
+            fatherDNA.HomePenKey = penKey;
+            motherDNA.HomePenSlot = slot;
+            fatherDNA.HomePenSlot = slot;
             cooldowns[motherDNA.UniqueID] = Time.time + pairCooldown;
             cooldowns[fatherDNA.UniqueID] = Time.time + pairCooldown;
             Report(true, $"¡Emparejados! {pair} — {math} → incubando.");
@@ -276,6 +393,8 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         d.BusyState      = BusyReason.None;
         d.BreedReadyAt   = 0;
         d.BreedPartnerID = "";
+        d.HomePenKey     = "";
+        d.HomePenSlot    = -1;
     }
 
     // ── Persistence: re-pen breeders after a scene reload ─────────
@@ -288,7 +407,7 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         while (GameManager.Instance == null || GameManager.Instance.Registry == null) yield return null;
 
         var targets = new HashSet<string>(GameManager.Instance.Registry.GetAll().Values
-            .Where(d => d.BusyState == BusyReason.Breeding)
+            .Where(d => d.BusyState == BusyReason.Breeding && d.HomePenKey == penKey)
             .Select(d => d.UniqueID));
         if (targets.Count == 0) yield break;
 

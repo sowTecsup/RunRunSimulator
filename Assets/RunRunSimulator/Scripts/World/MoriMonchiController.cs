@@ -15,6 +15,8 @@ public class MoriMonchiController : MonoBehaviour
 
     public CreatureDNA DNA => agent.DNA;
 
+    public MoriMochiAgent Agent => agent;
+
     // Full initialization: wires behavior + assembles 3D model + applies personality tint.
     // bank may be null (no visuals assembled) — agent still initializes normally.
     public void Initialize(

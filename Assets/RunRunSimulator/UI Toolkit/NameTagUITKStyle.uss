@@ -56,6 +56,23 @@
     white-space: nowrap;
 }
 
+.tag__stage {
+    display: none;
+    font-size: 18px;
+    color: rgb(180, 200, 180);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.tag__breed {
+    display: none;
+    font-size: 20px;
+    color: rgb(150, 235, 170);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
 .tag__heart {
     display: none;
     font-size: 26px;
