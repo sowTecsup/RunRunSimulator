@@ -11,14 +11,10 @@
             "id": "904556343679102e",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Index/03 - Combat.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "03 - Combat"
+              "title": "Nueva pestaña"
             }
           }
         ]
@@ -78,7 +74,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 200
   },
   "right": {
     "id": "549d91d0a25ce724",
@@ -171,6 +167,23 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
+    "Archive - Fur Shaders (POC descartado)/00 - Fur Shaders Index.md.tmp.44860.91b4456cf74c",
+    "FurShaders/FUR_02_Speckled.md",
+    "Archive - Fur Shaders (POC descartado)/FUR_02_Speckled.md",
+    "Archive - Fur Shaders (POC descartado)/FUR_01_Smooth.md",
+    "Archive - Fur Shaders (POC descartado)/00 - Fur Shaders Index.md",
+    "Archive - Fur Shaders (POC descartado)",
+    "FurShaders/FUR_01_Smooth.md",
+    "FurShaders/FUR_02_Speckled.md.tmp.44860.278b4124cf8e",
+    "FurShaders/00 - Fur Shaders Index.md.tmp.44860.755b365114b2",
+    "Index/07 - Persistence & Identity.md",
+    "FurShaders/00 - Fur Shaders Index.md",
+    "Index/03 - Combat.md",
+    "FurShaders/00 - Fur Shaders Index.md.tmp.44860.57a3f3edfeec",
+    "SortLater/FUR_01_Smooth.md",
+    "FurShaders",
+    "SortLater",
+    "Nueva carpeta",
     "2026-06-13.md",
     "BattleLog.md",
     "Sin título.canvas",
@@ -183,30 +196,14 @@
     "Index/09 - Active Context.md.tmp.8252.575a3b1d2840",
     "_TEST_AGENT.md",
     "Index/02 - Genetics & Breeding.md",
-    "Index/03 - Combat.md",
     "Index/04 - UGS & Cloud.md",
     "Index/05 - UI System.md",
     "Index/06 - Player & World.md",
-    "Index/07 - Persistence & Identity.md",
     "Index/08 - Known Bugs & Checkpoints.md",
     "Index/09 - Active Context.md",
     "Index/10 - Furniture & Building.md",
-    "Index/11 - Technical Debt.md",
-    "ScriptNodes/CreatureVisualUI.md",
-    "ScriptNodes/MorimonchiDetailInfoUITK.md",
-    "ScriptNodes/CombatManagerSO.md",
-    "00 - Index.md",
-    "Index/11 - Propuestas.md",
-    "ScriptNodes/CreatureRegistrySO.md",
     "ScriptNodes",
     "Index",
-    "ScriptsNodes",
-    "ScriptsNodes/Sin título.canvas",
-    "09 - Active Context.md.tmp.29288.3064edd54395",
-    "09 - Active Context.md.tmp.22308.37db8f960a47",
-    "09 - Active Context.md.tmp.22308.e780a47c1107",
-    "10 - Furniture & Building.md.tmp.22308.b37bd2473392",
-    "10 - Furniture & Building.md.tmp.22308.5d18e54a506e",
-    "09 - Active Context.md.tmp.22308.37626a8d4517"
+    "ScriptsNodes/Sin título.canvas"
   ]
 }
