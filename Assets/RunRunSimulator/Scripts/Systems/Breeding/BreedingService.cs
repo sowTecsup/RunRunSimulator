@@ -59,7 +59,10 @@ public static class BreedingService
             ArmID        = ResolveSlot(PartRole.Arm,   motherID, fatherID, registry, partDb, odds),
             EyeID        = ResolveSlot(PartRole.Eye,   motherID, fatherID, registry, partDb, odds),
             MouthID      = ResolveSlot(PartRole.Mouth, motherID, fatherID, registry, partDb, odds),
-            PrimaryColor = Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.6f, 1f),
+            BaseColor    = ColorGenetics.Inherit(mother.BaseColor,    father.BaseColor),
+            ShadowsColor = ColorGenetics.Inherit(mother.ShadowsColor, father.ShadowsColor),
+            OutlineColor = ColorGenetics.Inherit(mother.OutlineColor, father.OutlineColor),
+            FurType      = ColorGenetics.Inherit(mother.FurType,      father.FurType),
             Gender       = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female,
             Personality  = CreatureGenerator.RandomPersonality(),   // random, not inherited
             MotherID     = motherID,

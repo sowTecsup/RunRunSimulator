@@ -284,7 +284,7 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         CreatureDNA dna = null;
         if (!string.IsNullOrEmpty(onlineSelectedId) && registry != null) registry.TryGet(onlineSelectedId, out dna);
 
-        if (onlineImg != null) onlineImg.style.backgroundColor = dna != null ? dna.PrimaryColor : new Color(0.24f, 0.24f, 0.28f);
+        if (onlineImg != null) onlineImg.style.backgroundColor = dna != null ? dna.BaseColor : new Color(0.24f, 0.24f, 0.28f);
         if (onlineName != null) onlineName.text = dna != null ? dna.CustomName : "Selecciona un MoriMochi";
 
         if (onlineStats != null)
@@ -359,7 +359,7 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         CreatureDNA dna = null;
         if (!string.IsNullOrEmpty(id) && registry != null) registry.TryGet(id, out dna);
         if (nameLabel != null) nameLabel.text = dna != null ? dna.CustomName : "Vacío";
-        if (img != null) img.style.backgroundColor = dna != null ? dna.PrimaryColor : new Color(0.24f, 0.24f, 0.28f);
+        if (img != null) img.style.backgroundColor = dna != null ? dna.BaseColor : new Color(0.24f, 0.24f, 0.28f);
     }
 
     private void DoLocalFight()

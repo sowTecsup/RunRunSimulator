@@ -81,7 +81,7 @@ public class CreatureGridView : MonoBehaviour
         public static CreatureRow From(CreatureDNA d, CreatureRegistrySO registry) => new CreatureRow
         {
             Name   = string.IsNullOrEmpty(d.CustomName) ? d.ToStringID() : d.CustomName,
-            Color  = d.PrimaryColor,
+            Color  = d.BaseColor,
             Gender = d.Gender,
             HP     = d.BaseHP,
             ATK    = d.BaseAttack,

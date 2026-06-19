@@ -32,11 +32,9 @@ public class MoriMonchiVisualizer : MonoBehaviour
     [Tooltip("Mouth socket.")]
     [SerializeField] private Transform mouthSocket;
 
-    // Internal — used for color / tint application.
-    private Renderer bodyRenderer;
-
-    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-    private static readonly int ColorId     = Shader.PropertyToID("_Color");
+    private static readonly int BaseColorId    = Shader.PropertyToID("_Base_Color");
+    private static readonly int ShadowsColorId = Shader.PropertyToID("_Shadows_Color");
+    private static readonly int OutlineColorId = Shader.PropertyToID("_Outline_Color");
 
     // Root transforms of the instantiated parts — exposed for future procedural animation.
     [ShowInInspector, ReadOnly] public Transform   BodyTransform  { get; private set; }
@@ -91,12 +89,7 @@ public class MoriMonchiVisualizer : MonoBehaviour
         // Body (single, no mirror)
         var bodyPrefab = bank.GetBody(dna.BodyShapeID);
         if (bodyPrefab != null)
-        {
             BodyTransform = AttachPart(bodyPrefab, bodySocket, mirror: false);
-            bodyRenderer  = BodyTransform != null
-                ? BodyTransform.GetComponentInChildren<Renderer>()
-                : null;
-        }
 
         // Arms — same prefab, R instance mirrored when BodyPartJoint.isMirror is true.
         var armPrefab = bank.GetArm(dna.ArmID);
@@ -111,11 +104,8 @@ public class MoriMonchiVisualizer : MonoBehaviour
         // Mouth (single, no mirror)
         MouthTransform = AttachPart(bank.GetMouth(dna.MouthID), mouthSocket, mirror: false);
 
-        ApplyColor(bodyRenderer, dna.PrimaryColor);
+        ApplyFur(dna);
     }
-
-    // Overlays the personality tint on the body renderer. Call after Assemble.
-    public void ApplyPersonalityTint(Color tint) => ApplyColor(bodyRenderer, tint);
 
     // ── Private ───────────────────────────────────────────────────
 
@@ -152,7 +142,6 @@ public class MoriMonchiVisualizer : MonoBehaviour
         ClearSocket(eyeSocketR);
         ClearSocket(mouthSocket);
 
-        bodyRenderer   = null;
         BodyTransform  = null;
         ArmTransforms  = new Transform[2];
         EyeTransforms  = new Transform[2];
@@ -166,14 +155,24 @@ public class MoriMonchiVisualizer : MonoBehaviour
             Object.Destroy(socket.GetChild(i).gameObject);
     }
 
-    private void ApplyColor(Renderer r, Color c)
+    private void ApplyFur(CreatureDNA dna)
     {
-        if (r == null) return;
+        var furMat = FurTypeDatabaseSO.Current != null
+            ? FurTypeDatabaseSO.Current.GetMaterial(dna.FurType)
+            : null;
+
+        var renderers = modelRoot.GetComponentsInChildren<Renderer>(true);
         var mpb = new MaterialPropertyBlock();
-        r.GetPropertyBlock(mpb);
-        mpb.SetColor(BaseColorId, c);
-        mpb.SetColor(ColorId, c);
-        r.SetPropertyBlock(mpb);
+        mpb.SetColor(BaseColorId, dna.BaseColor);
+        mpb.SetColor(ShadowsColorId, dna.ShadowsColor);
+        mpb.SetColor(OutlineColorId, dna.OutlineColor);
+
+        foreach (var r in renderers)
+        {
+            if (furMat != null)
+                r.sharedMaterial = furMat;
+            r.SetPropertyBlock(mpb);
+        }
     }
 
     // ── Gizmos ───────────────────────────────────────────────────

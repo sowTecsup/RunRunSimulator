@@ -18,13 +18,19 @@ public static class CreatureGenerator
         if (bodyShape == null || arm == null || eye == null || mouth == null)
             Debug.LogWarning("[CreatureGenerator] One or more part slots are empty — ensure all databases are populated.");
 
+        var baseColor = ColorGenetics.RandomBase();
+        var furValues = System.Enum.GetValues(typeof(FurType));
+
         return new CreatureDNA
         {
             BodyShapeID  = bodyShape?.ID ?? "",
             ArmID        = arm?.ID       ?? "",
             EyeID        = eye?.ID       ?? "",
             MouthID      = mouth?.ID     ?? "",
-            PrimaryColor = Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.6f, 1f),
+            BaseColor    = baseColor,
+            ShadowsColor = ColorGenetics.DeriveShadow(baseColor),
+            OutlineColor = ColorGenetics.DeriveOutline(baseColor),
+            FurType      = (FurType)furValues.GetValue(Random.Range(0, furValues.Length)),
         };
     }
 

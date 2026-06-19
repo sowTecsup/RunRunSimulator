@@ -42,6 +42,19 @@ public enum LifeStage
     Elder   = 4
 }
 
+// Coat type of a MoriMochi. Maps 1:1 to a CartoonShader material in FurTypeDatabaseSO.
+// Inherited 50/50 from one parent at breed time. Stored in CreatureDNA, NOT part of
+// the genetic string (metadata like Gender/Personality). The material defines the look
+// (outline/shadow sizing, gradients); the per-creature colors ride on a MaterialPropertyBlock.
+public enum FurType
+{
+    Smooth = 0,  // Clean cartoon, no fuzz
+    Fluffy = 1,  // Soft and puffy
+    Spiky  = 2,  // Sharp tufts
+    Shaggy = 3,  // Long unkempt coat
+    Scaly  = 4,  // Reptilian plates
+}
+
 // Identifies the anatomical slot a part occupies — used for thematic name generation.
 public enum PartRole
 {

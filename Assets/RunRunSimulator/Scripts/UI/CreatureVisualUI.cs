@@ -17,7 +17,7 @@ public class CreatureVisualUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI nameLabel;
 
     // Slot for the creature's icon/sprite. We don't render real icons yet,
-    // so for now we just tint this Image with the creature's PrimaryColor —
+    // so for now we just tint this Image with the creature's BaseColor —
     // gives each card a distinct look and proves the sprite slot is wired.
     // When per-creature sprites exist, set iconImage.sprite here instead.
     [SerializeField] private Image iconImage;
@@ -34,7 +34,7 @@ public class CreatureVisualUI : MonoBehaviour
         nameLabel.text = string.IsNullOrEmpty(dna.CustomName) ? dna.ToStringID() : dna.CustomName;
 
         if (iconImage != null)
-            iconImage.color = dna.PrimaryColor;
+            iconImage.color = dna.BaseColor;
 
         stateLabel.text = StateOf(dna);
     }

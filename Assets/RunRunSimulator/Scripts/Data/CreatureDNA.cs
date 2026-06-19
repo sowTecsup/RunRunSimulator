@@ -15,7 +15,15 @@ public class CreatureDNA
     public string MouthID     = "";
 
     [ColorUsage(false)]
-    public Color PrimaryColor = Color.white;
+    public Color BaseColor = Color.white;
+
+    [ColorUsage(false)]
+    public Color ShadowsColor = new Color(0.35f, 0.35f, 0.40f);
+
+    [ColorUsage(false)]
+    public Color OutlineColor = Color.black;
+
+    public FurType FurType = FurType.Smooth;
 
     // ── Identity ──────────────────────────────────────────────────
     public string   CustomName = "";     // editable display name — auto-assigned on Mint/Breed
@@ -95,7 +103,7 @@ public class CreatureDNA
     }
 
     public string ToStringID() =>
-        $"{BodyShapeID}-{ArmID}-{EyeID}-{MouthID}-{ColorUtility.ToHtmlStringRGB(PrimaryColor)}";
+        $"{BodyShapeID}-{ArmID}-{EyeID}-{MouthID}-{ColorUtility.ToHtmlStringRGB(BaseColor)}";
 
     // Returns "{body} {arm} {eye} {mouth}" using part Name fields; falls back to part IDs.
     public string GetDisplayName(CreatureDatabaseSO db)
@@ -141,7 +149,7 @@ public class CreatureDNA
             MouthID     = parts[3],
         };
 
-        if (!ColorUtility.TryParseHtmlString("#" + colorHex, out dna.PrimaryColor))
+        if (!ColorUtility.TryParseHtmlString("#" + colorHex, out dna.BaseColor))
             Debug.LogWarning($"[CreatureDNA] Could not parse color '{colorHex}', defaulting to white.");
 
         return dna;

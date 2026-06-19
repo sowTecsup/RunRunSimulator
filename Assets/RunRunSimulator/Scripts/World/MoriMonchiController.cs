@@ -17,8 +17,6 @@ public class MoriMonchiController : MonoBehaviour
 
     public MoriMochiAgent Agent => agent;
 
-    // Full initialization: wires behavior + assembles 3D model + applies personality tint.
-    // bank may be null (no visuals assembled) — agent still initializes normally.
     public void Initialize(
         CreatureDNA          dna,
         PersonalityProfileSO profileTable,
@@ -30,9 +28,6 @@ public class MoriMonchiController : MonoBehaviour
         if (bank == null) return;
 
         visualizer.Assemble(dna, bank);
-
-        var profile = (profileTable ?? PersonalityProfileSO.Current)?.GetProfile(dna.Personality);
-        visualizer.ApplyPersonalityTint(profile?.Tint ?? Color.white);
     }
 
     // ── Spawner passthrough ───────────────────────────────────────

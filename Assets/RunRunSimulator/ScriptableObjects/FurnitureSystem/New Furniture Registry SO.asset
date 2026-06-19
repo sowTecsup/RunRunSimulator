@@ -34,22 +34,49 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 6
+      Data: 10
     - Name: 
       Entry: 7
       Data: 
     - Name: $k
       Entry: 1
-      Data: 15_6
+      Data: 10_2
     - Name: $v
       Entry: 7
       Data: 2|PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
+      Data: F4
+    - Name: CellX
+      Entry: 3
+      Data: 10
+    - Name: CellY
+      Entry: 3
+      Data: 2
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 13_6
+    - Name: $v
+      Entry: 7
+      Data: 3|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
       Data: F6
     - Name: CellX
       Entry: 3
-      Data: 15
+      Data: 13
     - Name: CellY
       Entry: 3
       Data: 6
@@ -67,16 +94,124 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: 9_16
+      Data: 18_8
     - Name: $v
       Entry: 7
-      Data: 3|PlacedFurniture, Assembly-CSharp
+      Data: 4|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F3
+    - Name: CellX
+      Entry: 3
+      Data: 18
+    - Name: CellY
+      Entry: 3
+      Data: 8
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 18_5
+    - Name: $v
+      Entry: 7
+      Data: 5|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F4
+    - Name: CellX
+      Entry: 3
+      Data: 18
+    - Name: CellY
+      Entry: 3
+      Data: 5
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 16_3
+    - Name: $v
+      Entry: 7
+      Data: 6|PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F5
     - Name: CellX
       Entry: 3
+      Data: 16
+    - Name: CellY
+      Entry: 3
+      Data: 3
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 15_9
+    - Name: $v
+      Entry: 7
+      Data: 7|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F0
+    - Name: CellX
+      Entry: 3
+      Data: 15
+    - Name: CellY
+      Entry: 3
       Data: 9
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 10_16
+    - Name: $v
+      Entry: 7
+      Data: 8|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F0
+    - Name: CellX
+      Entry: 3
+      Data: 10
     - Name: CellY
       Entry: 3
       Data: 16
@@ -94,64 +229,10 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: 18_9
-    - Name: $v
-      Entry: 7
-      Data: 4|PlacedFurniture, Assembly-CSharp
-    - Name: DefId
-      Entry: 1
-      Data: F4
-    - Name: CellX
-      Entry: 3
-      Data: 18
-    - Name: CellY
-      Entry: 3
-      Data: 9
-    - Name: Rotation
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: 20_20
-    - Name: $v
-      Entry: 7
-      Data: 5|PlacedFurniture, Assembly-CSharp
-    - Name: DefId
-      Entry: 1
-      Data: F6
-    - Name: CellX
-      Entry: 3
-      Data: 20
-    - Name: CellY
-      Entry: 3
-      Data: 20
-    - Name: Rotation
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
       Data: 3_27
     - Name: $v
       Entry: 7
-      Data: 6|PlacedFurniture, Assembly-CSharp
+      Data: 9|PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F3
@@ -175,13 +256,40 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
+      Data: 7_27
+    - Name: $v
+      Entry: 7
+      Data: 10|PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F7
+    - Name: CellX
+      Entry: 3
+      Data: 7
+    - Name: CellY
+      Entry: 3
+      Data: 27
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
       Data: 11_27
     - Name: $v
       Entry: 7
-      Data: 7|PlacedFurniture, Assembly-CSharp
+      Data: 11|PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
-      Data: F3
+      Data: F8
     - Name: CellX
       Entry: 3
       Data: 11

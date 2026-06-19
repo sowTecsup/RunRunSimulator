@@ -137,7 +137,7 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
             titleLabel.text = string.IsNullOrEmpty(dna.CustomName) ? dna.ToStringID() : dna.CustomName;
 
         if (portrait != null)
-            portrait.style.backgroundColor = dna.PrimaryColor;
+            portrait.style.backgroundColor = dna.BaseColor;
 
         // Final stat with its (base + bonus-from-parts/tier) breakdown.
         var eff = database != null
@@ -329,7 +329,7 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
         var sw = new VisualElement();
         sw.AddToClassList("tree-swatch");
-        sw.style.backgroundColor = dna != null ? dna.PrimaryColor : new Color(0.2f, 0.2f, 0.25f);
+        sw.style.backgroundColor = dna != null ? dna.BaseColor : new Color(0.2f, 0.2f, 0.25f);
         chip.Add(sw);
 
         var name = new Label(ChipName(dna));

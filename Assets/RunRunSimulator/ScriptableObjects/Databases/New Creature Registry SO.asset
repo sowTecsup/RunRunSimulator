@@ -34,19 +34,19 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 18
+      Data: 25
     - Name: 
       Entry: 7
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS2-A1-E0-M1-EB3DA0-639155849153534462
+      Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: $v
       Entry: 7
       Data: 2|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS2
+      Data: BS0
     - Name: ArmID
       Entry: 1
       Data: A1
@@ -55,37 +55,76 @@ MonoBehaviour:
       Data: E0
     - Name: MouthID
       Entry: 1
-      Data: M1
-    - Name: PrimaryColor
+      Data: M3
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.921568632
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.239215687
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.627451
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Chunky Volt
+      Data: Wiggly Zap
     - Name: Timestamp
       Entry: 3
-      Data: 639155849153534462
+      Data: 639156193256399807
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250841867580922366
+      Data: 5250842211683787711
     - Name: 
       Entry: 8
       Data: 
@@ -100,10 +139,19 @@ MonoBehaviour:
       Data: 3|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 4
     - Name: 
       Entry: 1
-      Data: BS2-A2-E1-M1-2ADE36-639173961449469782
+      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
+    - Name: 
+      Entry: 1
+      Data: BS3-A3-E1-M2-0695E0-639156644212742145
+    - Name: 
+      Entry: 1
+      Data: BS0-A1-E1-M0-C146BA-639156644302977936
+    - Name: 
+      Entry: 1
+      Data: BS4-A3-E2-M3-50D134-639156644332473630
     - Name: 
       Entry: 13
       Data: 
@@ -112,19 +160,19 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: Personality
       Entry: 3
       Data: 0
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: WinCount
       Entry: 3
       Data: 0
     - Name: BreedCount
       Entry: 3
-      Data: 1
+      Data: 4
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -139,13 +187,13 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 10
+      Data: 1
     - Name: BaseAttack
       Entry: 4
-      Data: 6
+      Data: 2
     - Name: BaseSpeed
       Entry: 4
-      Data: 8
+      Data: 7
     - Name: CombatHistory
       Entry: 7
       Data: 4|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
@@ -167,13 +215,13 @@ MonoBehaviour:
       Data: 5|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 68.43466
+      Data: 93.4286957
     - Name: Energy
       Entry: 4
-      Data: 80.1704559
+      Data: 88.42443
     - Name: Affect
       Entry: 4
-      Data: 34.0668068
+      Data: 99.53975
     - Name: 
       Entry: 8
       Data: 
@@ -197,7 +245,7 @@ MonoBehaviour:
       Data: 
     - Name: HomePenKey
       Entry: 1
-      Data: 3_27
+      Data: 
     - Name: HomePenSlot
       Entry: 3
       Data: -1
@@ -212,52 +260,91 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS2-A0-E1-M1-9EB322-639155849165650913
+      Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: $v
       Entry: 7
       Data: 6|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS2
+      Data: BS1
     - Name: ArmID
       Entry: 1
       Data: A0
     - Name: EyeID
       Entry: 1
-      Data: E1
+      Data: E2
     - Name: MouthID
       Entry: 1
       Data: M1
-    - Name: PrimaryColor
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.619607866
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.7019608
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.13333334
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Wobbly Pudge
+      Data: Glowy Glob
     - Name: Timestamp
       Entry: 3
-      Data: 639155849165650913
+      Data: 639156193268302489
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250841867593038817
+      Data: 5250842211695690393
     - Name: 
       Entry: 8
       Data: 
@@ -272,7 +359,19 @@ MonoBehaviour:
       Data: 7|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 4
+    - Name: 
+      Entry: 1
+      Data: BS4-A0-E2-M1-E5CB4A-639157099758374241
+    - Name: 
+      Entry: 1
+      Data: BS0-A1-E0-M1-1A60CF-639157465862957193
+    - Name: 
+      Entry: 1
+      Data: BS1-A0-E3-M1-E9422E-639157586322083999
+    - Name: 
+      Entry: 1
+      Data: BS1-A4-E0-M1-B1B03C-639158780052655723
     - Name: 
       Entry: 13
       Data: 
@@ -281,212 +380,80 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: Personality
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 4
     - Name: BodyTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: ArmTier
       Entry: 3
       Data: 1
     - Name: EyeTier
       Entry: 3
-      Data: 1
+      Data: 3
     - Name: MouthTier
       Entry: 3
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 1
+      Data: 4
     - Name: BaseAttack
       Entry: 4
-      Data: 9
+      Data: 8
     - Name: BaseSpeed
       Entry: 4
-      Data: 6
+      Data: 9
     - Name: CombatHistory
       Entry: 7
       Data: 8|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 2
     - Name: 
-      Entry: 13
-      Data: 
+      Entry: 7
+      Data: 9|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Neon Slug
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849867016052612
     - Name: 
       Entry: 8
       Data: 
-    - Name: IsDead
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
       Entry: 5
       Data: false
-    - Name: Needs
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Body
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
       Entry: 7
-      Data: 9|NeedsState, Assembly-CSharp
-    - Name: Health
-      Entry: 4
-      Data: 25.518425
-    - Name: Energy
-      Entry: 4
-      Data: 42.055336
-    - Name: Affect
-      Entry: 4
-      Data: 42.7550621
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: QueuedAt
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BreedReadyAt
-      Entry: 3
-      Data: 0
-    - Name: BreedPartnerID
-      Entry: 1
-      Data: 
-    - Name: HomePenKey
-      Entry: 1
-      Data: 
-    - Name: HomePenSlot
-      Entry: 3
-      Data: -1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS0-A0-E0-M0-4D2CAF-639155849170961103
-    - Name: $v
-      Entry: 7
-      Data: 10|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS0
-    - Name: ArmID
-      Entry: 1
-      Data: A0
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M0
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.3019608
-    - Name: 
-      Entry: 4
-      Data: 0.172549024
-    - Name: 
-      Entry: 4
-      Data: 0.6862745
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: Crispy Snag
-    - Name: Timestamp
-      Entry: 3
-      Data: 639155849170961103
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250841867598349007
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: 
-    - Name: FatherID
-      Entry: 1
-      Data: 
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 11|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: Personality
-      Entry: 3
-      Data: 2
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 7
-    - Name: BaseAttack
-      Entry: 4
-      Data: 7
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 3
-    - Name: CombatHistory
-      Entry: 7
-      Data: 12|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 10|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -497,175 +464,136 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
-    - Name: IsDead
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 11|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Spongy Snoot
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849921103277904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
       Entry: 5
       Data: false
-    - Name: Needs
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Eye
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
       Entry: 7
-      Data: 13|NeedsState, Assembly-CSharp
-    - Name: Health
-      Entry: 4
-      Data: 34.783268
-    - Name: Energy
-      Entry: 4
-      Data: 37.82047
-    - Name: Affect
-      Entry: 4
-      Data: 34.783268
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: QueuedAt
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BreedReadyAt
-      Entry: 3
-      Data: 0
-    - Name: BreedPartnerID
-      Entry: 1
-      Data: 
-    - Name: HomePenKey
-      Entry: 1
-      Data: 
-    - Name: HomePenSlot
-      Entry: 3
-      Data: -1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS2-A0-E0-M0-09D8AD-639155849172588286
-    - Name: $v
-      Entry: 7
-      Data: 14|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS2
-    - Name: ArmID
-      Entry: 1
-      Data: A0
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M0
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.03529412
-    - Name: 
-      Entry: 4
-      Data: 0.847058833
-    - Name: 
-      Entry: 4
-      Data: 0.6784314
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: Chunky Volt
-    - Name: Timestamp
-      Entry: 3
-      Data: 639155849172588286
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250841867599976190
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: 
-    - Name: FatherID
-      Entry: 1
-      Data: 
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 15|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 12|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
     - Name: 
       Entry: 12
-      Data: 2
+      Data: 3
     - Name: 
+      Entry: 7
+      Data: 13|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
       Entry: 1
-      Data: BS2-A0-E0-M1-C41909-639172427837917472
-    - Name: 
+      Data: Glowy Glob
+    - Name: DefenderName
       Entry: 1
-      Data: BS2-A0-E4-M2-9DFB18-639173917206459011
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 2
-    - Name: Personality
-      Entry: 3
-      Data: 1
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 2
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
+      Data: Spongy Snoot
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
       Entry: 4
-      Data: 4
-    - Name: BaseAttack
-      Entry: 4
-      Data: 5
-    - Name: BaseSpeed
+      Data: 24
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
       Entry: 4
       Data: 6
-    - Name: CombatHistory
-      Entry: 7
-      Data: 16|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
     - Name: 
-      Entry: 12
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 14|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Spongy Snoot
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Glob
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 13
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 15|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Glob
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Snoot
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
       Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -677,16 +605,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 17|NeedsState, Assembly-CSharp
+      Data: 16|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 78.86657
     - Name: Energy
       Entry: 4
-      Data: 78.97922
+      Data: 83.49529
     - Name: Affect
       Entry: 4
-      Data: 45.7920456
+      Data: 74.9968
     - Name: 
       Entry: 8
       Data: 
@@ -698,7 +626,7 @@ MonoBehaviour:
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 0
+      Data: 5250849921043934273
     - Name: 
       Entry: 8
       Data: 
@@ -725,10 +653,10 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A1-E1-M1-0E7E99-639155849174107031
+      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: $v
       Entry: 7
-      Data: 18|CreatureDNA, Assembly-CSharp
+      Data: 17|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -737,40 +665,79 @@ MonoBehaviour:
       Data: A1
     - Name: EyeID
       Entry: 1
-      Data: E1
+      Data: E0
     - Name: MouthID
       Entry: 1
       Data: M1
-    - Name: PrimaryColor
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.05490196
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.494117647
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.6
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Grubby Grub
+      Data: Wobbly Chunk
     - Name: Timestamp
       Entry: 3
-      Data: 639155849174107031
+      Data: 639156259112286863
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250841867601494935
+      Data: 5250842277539674767
     - Name: 
       Entry: 8
       Data: 
@@ -782,10 +749,532 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 19|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 18|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 1
+      Data: BS1-A1-E4-M0-4EB344-639157099558749392
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E0-M4-6157EA-639157466028960842
+    - Name: 
+      Entry: 1
+      Data: BS4-A0-E4-M1-E3082B-639157586238054610
+    - Name: 
+      Entry: 1
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 2
+    - Name: FightCount
+      Entry: 3
+      Data: 2
+    - Name: WinCount
+      Entry: 3
+      Data: 1
+    - Name: BreedCount
+      Entry: 3
+      Data: 4
+    - Name: BodyTier
+      Entry: 3
+      Data: 2
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 6
+    - Name: BaseAttack
+      Entry: 4
+      Data: 6
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 2
+    - Name: CombatHistory
+      Entry: 7
+      Data: 19|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
     - Name: 
       Entry: 12
       Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 20|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 90.51089
+    - Name: Energy
+      Entry: 4
+      Data: 61.0345726
+    - Name: Affect
+      Entry: 4
+      Data: -25.2531948
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS0-A0-E0-M0-1047BA-639156259122481028
+    - Name: $v
+      Entry: 7
+      Data: 21|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS0
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M0
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Lumpy Munch
+    - Name: Timestamp
+      Entry: 3
+      Data: 639156259122481028
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250842277549868932
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: 
+    - Name: FatherID
+      Entry: 1
+      Data: 
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 22|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 1
+      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
+    - Name: 
+      Entry: 1
+      Data: BS3-A3-E1-M2-0695E0-639156644212742145
+    - Name: 
+      Entry: 1
+      Data: BS0-A1-E1-M0-C146BA-639156644302977936
+    - Name: 
+      Entry: 1
+      Data: BS4-A3-E2-M3-50D134-639156644332473630
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 0
+    - Name: FightCount
+      Entry: 3
+      Data: 3
+    - Name: WinCount
+      Entry: 3
+      Data: 3
+    - Name: BreedCount
+      Entry: 3
+      Data: 4
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 3
+    - Name: EyeTier
+      Entry: 3
+      Data: 2
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 9
+    - Name: BaseAttack
+      Entry: 4
+      Data: 7
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 23|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 24|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849862843112559
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Arm
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 25|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 26|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 27|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 27.6224
+    - Name: Energy
+      Entry: 4
+      Data: 42.74036
+    - Name: Affect
+      Entry: 4
+      Data: -21.6916256
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS0-A1-E0-M0-B94235-639156644128371992
+    - Name: $v
+      Entry: 7
+      Data: 28|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS0
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M0
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Bouncy Grub
+    - Name: Timestamp
+      Entry: 3
+      Data: 639156644128371992
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250842662555759896
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: 
+    - Name: FatherID
+      Entry: 1
+      Data: 
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 29|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 1
+      Data: BS1-A1-E4-M0-4EB344-639157099558749392
+    - Name: 
+      Entry: 1
+      Data: BS0-A1-E0-M1-1A60CF-639157465862957193
+    - Name: 
+      Entry: 1
+      Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: 
       Entry: 13
       Data: 
@@ -800,13 +1289,13 @@ MonoBehaviour:
       Data: 4
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: WinCount
       Entry: 3
       Data: 0
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -827,10 +1316,10 @@ MonoBehaviour:
       Data: 3
     - Name: BaseSpeed
       Entry: 4
-      Data: 4
+      Data: 10
     - Name: CombatHistory
       Entry: 7
-      Data: 20|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 30|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -843,19 +1332,19 @@ MonoBehaviour:
       Data: 
     - Name: IsDead
       Entry: 5
-      Data: false
+      Data: true
     - Name: Needs
       Entry: 7
-      Data: 21|NeedsState, Assembly-CSharp
+      Data: 31|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 77.47254
+      Data: 100
     - Name: Energy
       Entry: 4
-      Data: 60.0431366
+      Data: 100
     - Name: Affect
       Entry: 4
-      Data: 34.53593
+      Data: 0
     - Name: 
       Entry: 8
       Data: 
@@ -867,7 +1356,7 @@ MonoBehaviour:
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250851506466557784
+      Data: 0
     - Name: 
       Entry: 8
       Data: 
@@ -894,239 +1383,115 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A0-E0-M1-3A769E-639161837224508566
+      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
     - Name: $v
       Entry: 7
-      Data: 22|CreatureDNA, Assembly-CSharp
+      Data: 32|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS0
+      Data: BS4
     - Name: ArmID
       Entry: 1
-      Data: A0
+      Data: A2
     - Name: EyeID
       Entry: 1
       Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M1
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.227450982
-    - Name: 
-      Entry: 4
-      Data: 0.4627451
-    - Name: 
-      Entry: 4
-      Data: 0.619607866
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: Jumpy Snag
-    - Name: Timestamp
-      Entry: 3
-      Data: 639161837224508566
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250847855651896470
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: 
-    - Name: FatherID
-      Entry: 1
-      Data: 
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 23|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 1
-      Data: BS2-A0-E0-M1-F449FD-639165488352966261
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 2
-    - Name: Personality
-      Entry: 3
-      Data: 4
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 1
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 8
-    - Name: BaseAttack
-      Entry: 4
-      Data: 6
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 6
-    - Name: CombatHistory
-      Entry: 7
-      Data: 24|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: Needs
-      Entry: 7
-      Data: 25|NeedsState, Assembly-CSharp
-    - Name: Health
-      Entry: 4
-      Data: 60.6833
-    - Name: Energy
-      Entry: 4
-      Data: 96.82757
-    - Name: Affect
-      Entry: 4
-      Data: -38.2626266
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: QueuedAt
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BreedReadyAt
-      Entry: 3
-      Data: 0
-    - Name: BreedPartnerID
-      Entry: 1
-      Data: 
-    - Name: HomePenKey
-      Entry: 1
-      Data: 
-    - Name: HomePenSlot
-      Entry: 3
-      Data: -1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS1-A0-E1-M3-559B23-639161837261534827
-    - Name: $v
-      Entry: 7
-      Data: 26|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS1
-    - Name: ArmID
-      Entry: 1
-      Data: A0
-    - Name: EyeID
-      Entry: 1
-      Data: E1
     - Name: MouthID
       Entry: 1
       Data: M3
-    - Name: PrimaryColor
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.333333343
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.607843161
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.137254909
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Wiggly Dollop
+      Data: Lumpy Snort
     - Name: Timestamp
       Entry: 3
-      Data: 639161837261534827
+      Data: 639156644193406137
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250847855688922731
+      Data: 5250842662620794041
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: 
+      Data: BS0-A0-E0-M0-1047BA-639156259122481028
     - Name: FatherID
       Entry: 1
-      Data: 
+      Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 27|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 33|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 3
+    - Name: 
+      Entry: 1
+      Data: BS4-A0-E2-M1-E5CB4A-639157099758374241
+    - Name: 
+      Entry: 1
+      Data: BS1-A0-E3-M1-E9422E-639157586322083999
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E0-M1-35DFC7-639163844734879923
     - Name: 
       Entry: 13
       Data: 
@@ -1135,47 +1500,174 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: Personality
       Entry: 3
-      Data: 3
+      Data: 0
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: BodyTier
       Entry: 3
       Data: 1
     - Name: ArmTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: EyeTier
       Entry: 3
       Data: 1
     - Name: MouthTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: BaseHP
       Entry: 4
-      Data: 4
+      Data: 10
     - Name: BaseAttack
       Entry: 4
-      Data: 10
+      Data: 8
     - Name: BaseSpeed
       Entry: 4
-      Data: 10
+      Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 28|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 34|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 35|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Neon Slug
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849926463297904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
       Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Arm
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 36|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 37|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Snort
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 7
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 38|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Snort
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 44
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 39|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Snort
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -1187,16 +1679,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 29|NeedsState, Assembly-CSharp
+      Data: 40|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 97.2555
+      Data: 90.55979
     - Name: Energy
       Entry: 4
-      Data: 92.29462
+      Data: 79.84118
     - Name: Affect
       Entry: 4
-      Data: 90.41759
+      Data: -22.35597
     - Name: 
       Entry: 8
       Data: 
@@ -1208,7 +1700,7 @@ MonoBehaviour:
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 0
+      Data: 5250849920707040262
     - Name: 
       Entry: 8
       Data: 
@@ -1235,70 +1727,106 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A0-E0-M1-7E15C7-639161837268218806
+      Data: BS3-A3-E1-M2-0695E0-639156644212742145
     - Name: $v
       Entry: 7
-      Data: 30|CreatureDNA, Assembly-CSharp
+      Data: 41|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS0
+      Data: BS3
     - Name: ArmID
       Entry: 1
-      Data: A0
+      Data: A3
     - Name: EyeID
       Entry: 1
-      Data: E0
+      Data: E1
     - Name: MouthID
       Entry: 1
-      Data: M1
-    - Name: PrimaryColor
+      Data: M2
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.494117647
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.08235294
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.78039217
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Grubby Creep
+      Data: Rusty Glob
     - Name: Timestamp
       Entry: 3
-      Data: 639161837268218806
+      Data: 639156644212742145
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250847855695606710
+      Data: 5250842662640130049
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: 
+      Data: BS0-A0-E0-M0-1047BA-639156259122481028
     - Name: FatherID
       Entry: 1
-      Data: 
+      Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 31|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 42|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 1
-      Data: BS2-A0-E0-M1-C41909-639172427837917472
+      Data: 0
     - Name: 
       Entry: 13
       Data: 
@@ -1310,16 +1838,16 @@ MonoBehaviour:
       Data: 1
     - Name: Personality
       Entry: 3
-      Data: 5
+      Data: 0
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: BreedCount
       Entry: 3
-      Data: 1
+      Data: 0
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -1328,22 +1856,22 @@ MonoBehaviour:
       Data: 1
     - Name: EyeTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: MouthTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: BaseHP
       Entry: 4
-      Data: 5
+      Data: 9
     - Name: BaseAttack
       Entry: 4
-      Data: 4
+      Data: 8
     - Name: BaseSpeed
       Entry: 4
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 32|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 43|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1359,16 +1887,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 33|NeedsState, Assembly-CSharp
+      Data: 44|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 31.2059155
+      Data: 27.30704
     - Name: Energy
       Entry: 4
-      Data: 40.4438934
+      Data: 55.79056
     - Name: Affect
       Entry: 4
-      Data: 70.3987
+      Data: 17.7868023
     - Name: 
       Entry: 8
       Data: 
@@ -1407,64 +1935,103 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A0-E1-M0-7232CC-639161837274982365
+      Data: BS0-A1-E1-M0-C146BA-639156644302977936
     - Name: $v
       Entry: 7
-      Data: 34|CreatureDNA, Assembly-CSharp
+      Data: 45|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
     - Name: ArmID
       Entry: 1
-      Data: A0
+      Data: A1
     - Name: EyeID
       Entry: 1
       Data: E1
     - Name: MouthID
       Entry: 1
       Data: M0
-    - Name: PrimaryColor
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.447058827
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.196078435
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.8
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Vile Gloob
+      Data: Lumpy Gloop
     - Name: Timestamp
       Entry: 3
-      Data: 639161837274982365
+      Data: 639156644302977936
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250847855702370269
+      Data: 5250842662730365840
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: 
+      Data: BS0-A0-E0-M0-1047BA-639156259122481028
     - Name: FatherID
       Entry: 1
-      Data: 
+      Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 35|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 46|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1479,13 +2046,13 @@ MonoBehaviour:
       Data: 1
     - Name: Personality
       Entry: 3
-      Data: 4
+      Data: 1
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 4
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: BreedCount
       Entry: 3
       Data: 0
@@ -1494,7 +2061,7 @@ MonoBehaviour:
       Data: 1
     - Name: ArmTier
       Entry: 3
-      Data: 1
+      Data: 3
     - Name: EyeTier
       Entry: 3
       Data: 1
@@ -1502,21 +2069,483 @@ MonoBehaviour:
       Entry: 3
       Data: 1
     - Name: BaseHP
-      Entry: 4
-      Data: 10
-    - Name: BaseAttack
       Entry: 4
       Data: 9
+    - Name: BaseAttack
+      Entry: 4
+      Data: 8
     - Name: BaseSpeed
       Entry: 4
-      Data: 4
+      Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 36|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 47|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 48|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Lumpy Chunk
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849856710834391
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 49|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 50|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 51|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Chunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 52|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
       Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 53|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849861314964093
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Arm
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 54|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 55|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 56|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Misty Snag
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849876864187904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 57|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 8
+    - Name: 
+      Entry: 7
+      Data: 58|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 36
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 59|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 41
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 60|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 26
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 61|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 18
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 23
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 62|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 16
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 63|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 18
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 5
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 64|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 6
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 65|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -1528,16 +2557,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 37|NeedsState, Assembly-CSharp
+      Data: 66|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 65.5681458
+      Data: 72.38738
     - Name: Energy
       Entry: 4
-      Data: 78.4268646
+      Data: 63.73042
     - Name: Affect
       Entry: 4
-      Data: 44.3068657
+      Data: 97.09635
     - Name: 
       Entry: 8
       Data: 
@@ -1576,67 +2605,112 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A0-E0-M0-27DD78-639161837280275709
+      Data: BS4-A3-E2-M3-50D134-639156644332473630
     - Name: $v
       Entry: 7
-      Data: 38|CreatureDNA, Assembly-CSharp
+      Data: 67|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS0
+      Data: BS4
     - Name: ArmID
       Entry: 1
-      Data: A0
+      Data: A3
     - Name: EyeID
       Entry: 1
-      Data: E0
+      Data: E2
     - Name: MouthID
       Entry: 1
-      Data: M0
-    - Name: PrimaryColor
+      Data: M3
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.152941182
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.8666667
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.470588237
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Fuzzy Smudge
+      Data: Gooey Chunk
     - Name: Timestamp
       Entry: 3
-      Data: 639161837280275709
+      Data: 639156644332473630
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250847855707663613
+      Data: 5250842662759861534
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: 
+      Data: BS0-A0-E0-M0-1047BA-639156259122481028
     - Name: FatherID
       Entry: 1
-      Data: 
+      Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: ChildrenIDs
       Entry: 7
-      Data: 39|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 68|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 2
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E1-M1-72EF17-639158759894039650
+    - Name: 
+      Entry: 1
+      Data: BS0-A0-E0-M3-0B85DC-639163615986003412
     - Name: 
       Entry: 13
       Data: 
@@ -1645,25 +2719,25 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: Personality
       Entry: 3
       Data: 1
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: BodyTier
       Entry: 3
       Data: 1
     - Name: ArmTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: EyeTier
       Entry: 3
       Data: 1
@@ -1672,16 +2746,16 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 8
+      Data: 9
     - Name: BaseAttack
       Entry: 4
-      Data: 8
+      Data: 6
     - Name: BaseSpeed
       Entry: 4
-      Data: 10
+      Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 40|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 69|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -1697,16 +2771,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 41|NeedsState, Assembly-CSharp
+      Data: 70|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 26.7940483
+      Data: 43.2979
     - Name: Energy
       Entry: 4
-      Data: 65.37694
+      Data: 67.20515
     - Name: Affect
       Entry: 4
-      Data: 53.388237
+      Data: -20.488884
     - Name: 
       Entry: 8
       Data: 
@@ -1745,10 +2819,10 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS1-A1-E0-M0-1D96C5-639161837284557231
+      Data: BS1-A1-E4-M0-4EB344-639157099558749392
     - Name: $v
       Entry: 7
-      Data: 42|CreatureDNA, Assembly-CSharp
+      Data: 71|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -1757,55 +2831,103 @@ MonoBehaviour:
       Data: A1
     - Name: EyeID
       Entry: 1
-      Data: E0
+      Data: E4
     - Name: MouthID
       Entry: 1
       Data: M0
-    - Name: PrimaryColor
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.113725491
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.5882353
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.772549033
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Vile Tadpole
+      Data: Grumpy Munch
     - Name: Timestamp
       Entry: 3
-      Data: 639161837284557231
+      Data: 639157099558749392
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250847855711945135
+      Data: 5250843117986137296
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: 
+      Data: BS0-A1-E0-M0-B94235-639156644128371992
     - Name: FatherID
       Entry: 1
-      Data: 
+      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 43|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 72|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 3
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E0-M4-6157EA-639157466028960842
+    - Name: 
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
+    - Name: 
+      Entry: 1
+      Data: BS1-A1-E0-M1-0B19C8-639163844748752240
     - Name: 
       Entry: 13
       Data: 
@@ -1814,22 +2936,22 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: Personality
       Entry: 3
-      Data: 3
+      Data: 2
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: BodyTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: ArmTier
       Entry: 3
       Data: 1
@@ -1841,20 +2963,66 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 3
+      Data: 5
     - Name: BaseAttack
       Entry: 4
       Data: 5
     - Name: BaseSpeed
       Entry: 4
-      Data: 6
+      Data: 11
     - Name: CombatHistory
       Entry: 7
-      Data: 44|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 73|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 74|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Misty Snag
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849867016097772
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 75|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -1866,16 +3034,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 45|NeedsState, Assembly-CSharp
+      Data: 76|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 15.4947481
+      Data: 98.92718
     - Name: Energy
       Entry: 4
-      Data: 97.98515
+      Data: 18.5786667
     - Name: Affect
       Entry: 4
-      Data: 33.8535042
+      Data: -24.447525
     - Name: 
       Entry: 8
       Data: 
@@ -1914,70 +3082,109 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS2-A0-E0-M0-2597BD-639161837291933740
+      Data: BS4-A0-E2-M1-E5CB4A-639157099758374241
     - Name: $v
       Entry: 7
-      Data: 46|CreatureDNA, Assembly-CSharp
+      Data: 77|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS2
+      Data: BS4
     - Name: ArmID
       Entry: 1
       Data: A0
     - Name: EyeID
       Entry: 1
-      Data: E0
+      Data: E2
     - Name: MouthID
       Entry: 1
-      Data: M0
-    - Name: PrimaryColor
+      Data: M1
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.145098045
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.5921569
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.7411765
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Smelly Tadpole
+      Data: Fuzzy Munch
     - Name: Timestamp
       Entry: 3
-      Data: 639161837291933740
+      Data: 639157099758374241
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250847855719321644
+      Data: 5250843118185762145
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: 
+      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
     - Name: FatherID
       Entry: 1
-      Data: 
+      Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 47|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 78|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 1
-      Data: BS2-A0-E0-M1-F449FD-639165488352966261
+      Data: BS4-A0-E2-M1-5918EA-639163844724570114
     - Name: 
       Entry: 13
       Data: 
@@ -1986,13 +3193,13 @@ MonoBehaviour:
       Data: 
     - Name: Gender
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: Personality
       Entry: 3
       Data: 5
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: WinCount
       Entry: 3
       Data: 0
@@ -2013,20 +3220,436 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 8
+      Data: 3
     - Name: BaseAttack
       Entry: 4
       Data: 8
     - Name: BaseSpeed
       Entry: 4
-      Data: 2
+      Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 48|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 79|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 80|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Glowy Snoot
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849888569027904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 81|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 6
+    - Name: 
+      Entry: 7
+      Data: 82|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Snoot
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 42
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 83|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Snoot
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 9
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 84|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Snoot
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 24
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 18
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 85|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Snoot
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 86|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Snoot
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 10
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 87|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Snoot
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
       Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 88|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Misty Snag
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849926466837904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: true
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 89|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 6
+    - Name: 
+      Entry: 7
+      Data: 90|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 24
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 22
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 91|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 9
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 92|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 14
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 93|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 94|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Misty Snag
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 6
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 95|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Misty Snag
+    - Name: DefenderName
+      Entry: 1
+      Data: Fuzzy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -2035,19 +3658,19 @@ MonoBehaviour:
       Data: 
     - Name: IsDead
       Entry: 5
-      Data: false
+      Data: true
     - Name: Needs
       Entry: 7
-      Data: 49|NeedsState, Assembly-CSharp
+      Data: 96|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 80.98946
+      Data: 94.34112
     - Name: Energy
       Entry: 4
-      Data: 98.7793961
+      Data: 96.14742
     - Name: Affect
       Entry: 4
-      Data: 12.6428881
+      Data: 71.34112
     - Name: 
       Entry: 8
       Data: 
@@ -2059,7 +3682,7 @@ MonoBehaviour:
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 0
+      Data: 5250849920675815075
     - Name: 
       Entry: 8
       Data: 
@@ -2086,10 +3709,10 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A1-E1-M1-E53A2C-639161837294797393
+      Data: BS0-A1-E0-M1-1A60CF-639157465862957193
     - Name: $v
       Entry: 7
-      Data: 50|CreatureDNA, Assembly-CSharp
+      Data: 97|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -2098,55 +3721,97 @@ MonoBehaviour:
       Data: A1
     - Name: EyeID
       Entry: 1
-      Data: E1
+      Data: E0
     - Name: MouthID
       Entry: 1
       Data: M1
-    - Name: PrimaryColor
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.8980392
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.227450982
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.172549024
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Wobbly Slug
+      Data: Stinky Droob
     - Name: Timestamp
       Entry: 3
-      Data: 639161837294797393
+      Data: 639157465862957193
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250847855722185297
+      Data: 5250843484290345097
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: 
+      Data: BS0-A1-E0-M0-B94235-639156644128371992
     - Name: FatherID
       Entry: 1
-      Data: 
+      Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: ChildrenIDs
       Entry: 7
-      Data: 51|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 98|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E0-M1-35DFC7-639163844734879923
     - Name: 
       Entry: 13
       Data: 
@@ -2158,7 +3823,7 @@ MonoBehaviour:
       Data: 1
     - Name: Personality
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -2167,7 +3832,7 @@ MonoBehaviour:
       Data: 0
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -2182,16 +3847,16 @@ MonoBehaviour:
       Data: 1
     - Name: BaseHP
       Entry: 4
-      Data: 2
+      Data: 6
     - Name: BaseAttack
       Entry: 4
       Data: 8
     - Name: BaseSpeed
       Entry: 4
-      Data: 6
+      Data: 10
     - Name: CombatHistory
       Entry: 7
-      Data: 52|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 99|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -2207,16 +3872,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 53|NeedsState, Assembly-CSharp
+      Data: 100|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 9.563242
+      Data: 28.0762234
     - Name: Energy
       Entry: 4
-      Data: 27.8008556
+      Data: 38.4613266
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 87.2954941
     - Name: 
       Entry: 8
       Data: 
@@ -2255,13 +3920,646 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS0-A1-E2-M1-17C8B6-639161837296429581
+      Data: BS4-A1-E0-M4-6157EA-639157466028960842
     - Name: $v
       Entry: 7
-      Data: 54|CreatureDNA, Assembly-CSharp
+      Data: 101|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS0
+      Data: BS4
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M4
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Lumpy Snag
+    - Name: Timestamp
+      Entry: 3
+      Data: 639157466028960842
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250843484456348746
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS1-A1-E4-M0-4EB344-639157099558749392
+    - Name: FatherID
+      Entry: 1
+      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 102|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 2
+    - Name: FightCount
+      Entry: 3
+      Data: 1
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 6
+    - Name: BaseAttack
+      Entry: 4
+      Data: 6
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 2
+    - Name: CombatHistory
+      Entry: 7
+      Data: 103|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 104|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 34.18599
+    - Name: Energy
+      Entry: 4
+      Data: 12.1205893
+    - Name: Affect
+      Entry: 4
+      Data: 84.47607
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS4-A0-E4-M1-E3082B-639157586238054610
+    - Name: $v
+      Entry: 7
+      Data: 105|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS4
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E4
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Bouncy Nugget
+    - Name: Timestamp
+      Entry: 3
+      Data: 639157586238054610
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250843604665442514
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS0-A1-E0-M0-B94235-639156644128371992
+    - Name: FatherID
+      Entry: 1
+      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 106|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E1-M1-72EF17-639158759894039650
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 5
+    - Name: FightCount
+      Entry: 3
+      Data: 1
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 2
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 4
+    - Name: BaseAttack
+      Entry: 4
+      Data: 5
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 1
+    - Name: CombatHistory
+      Entry: 7
+      Data: 107|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: true
+    - Name: Needs
+      Entry: 7
+      Data: 108|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 100
+    - Name: Energy
+      Entry: 4
+      Data: 100
+    - Name: Affect
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS1-A0-E3-M1-E9422E-639157586322083999
+    - Name: $v
+      Entry: 7
+      Data: 109|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS1
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E3
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Raspy Gunk
+    - Name: Timestamp
+      Entry: 3
+      Data: 639157586322083999
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250843604749471903
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
+    - Name: FatherID
+      Entry: 1
+      Data: BS1-A0-E2-M1-9D1578-639156193268302489
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 110|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 2
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 1
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 5
+    - Name: BaseAttack
+      Entry: 4
+      Data: 7
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 111|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 112|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 39.99883
+    - Name: Energy
+      Entry: 4
+      Data: 30.9413433
+    - Name: Affect
+      Entry: 4
+      Data: -23.2350864
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
+    - Name: $v
+      Entry: 7
+      Data: 113|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS1
     - Name: ArmID
       Entry: 1
       Data: A1
@@ -2271,51 +4569,510 @@ MonoBehaviour:
     - Name: MouthID
       Entry: 1
       Data: M1
-    - Name: PrimaryColor
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.09019608
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.784313738
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.7137255
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Smelly Chunk
+      Data: Pudgy Wart
     - Name: Timestamp
       Entry: 3
-      Data: 639161837296429581
+      Data: 639157765839713470
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250847855723817485
+      Data: 5250843784267101374
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: 
+      Data: BS1-A0-E3-M1-E9422E-639157586322083999
     - Name: FatherID
       Entry: 1
-      Data: 
+      Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: ChildrenIDs
       Entry: 7
-      Data: 55|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 114|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 1
+      Data: BS4-A0-E2-M1-5918EA-639163844724570114
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E2-M3-8B13D5-639169737673400817
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 2
+    - Name: FightCount
+      Entry: 3
+      Data: 2
+    - Name: WinCount
+      Entry: 3
+      Data: 1
+    - Name: BreedCount
+      Entry: 3
+      Data: 2
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 2
+    - Name: BaseHP
+      Entry: 4
+      Data: 7
+    - Name: BaseAttack
+      Entry: 4
+      Data: 8
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 7
+    - Name: CombatHistory
+      Entry: 7
+      Data: 115|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 116|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849863419240131
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 117|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 118|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Pudgy Wart
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
       Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 119|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Spongy Snoot
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849911660817904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Mouth
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 120|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 121|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Pudgy Wart
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Snoot
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 22
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 122|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Spongy Snoot
+    - Name: DefenderName
+      Entry: 1
+      Data: Pudgy Wart
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 8
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 27
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 123|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Pudgy Wart
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Snoot
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 24
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 124|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 75.4739151
+    - Name: Energy
+      Entry: 4
+      Data: 42.77621
+    - Name: Affect
+      Entry: 4
+      Data: 92.99683
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 2
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 1781378839579
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
+    - Name: $v
+      Entry: 7
+      Data: 125|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS4
+    - Name: ArmID
+      Entry: 1
+      Data: A4
+    - Name: EyeID
+      Entry: 1
+      Data: E4
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: Timestamp
+      Entry: 3
+      Data: 639157766096457471
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250843784523845375
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS1-A1-E4-M0-4EB344-639157099558749392
+    - Name: FatherID
+      Entry: 1
+      Data: BS4-A0-E4-M1-E3082B-639157586238054610
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 126|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 1
+      Data: BS1-A4-E0-M1-B1B03C-639158780052655723
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E2-M3-8B13D5-639169737673400817
     - Name: 
       Entry: 13
       Data: 
@@ -2327,538 +5084,25 @@ MonoBehaviour:
       Data: 2
     - Name: Personality
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 10
-    - Name: BaseAttack
-      Entry: 4
-      Data: 5
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 1
-    - Name: CombatHistory
-      Entry: 7
-      Data: 56|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: Needs
-      Entry: 7
-      Data: 57|NeedsState, Assembly-CSharp
-    - Name: Health
-      Entry: 4
-      Data: 98.75086
-    - Name: Energy
-      Entry: 4
-      Data: 82.10561
-    - Name: Affect
-      Entry: 4
-      Data: 81.45759
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: QueuedAt
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250851210145944785
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BreedReadyAt
-      Entry: 3
-      Data: 0
-    - Name: BreedPartnerID
-      Entry: 1
-      Data: 
-    - Name: HomePenKey
-      Entry: 1
-      Data: 
-    - Name: HomePenSlot
-      Entry: 3
-      Data: -1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS2-A0-E0-M1-F449FD-639165488352966261
-    - Name: $v
-      Entry: 7
-      Data: 58|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS2
-    - Name: ArmID
-      Entry: 1
-      Data: A0
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M1
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.956862748
-    - Name: 
-      Entry: 4
-      Data: 0.286274523
-    - Name: 
-      Entry: 4
-      Data: 0.992156863
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: Crusty Gremlin
-    - Name: Timestamp
-      Entry: 3
-      Data: 639165488352966261
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250851506780354165
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: BS0-A0-E0-M1-3A769E-639161837224508566
-    - Name: FatherID
-      Entry: 1
-      Data: BS2-A0-E0-M0-2597BD-639161837291933740
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 59|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: Personality
-      Entry: 3
-      Data: 1
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 7
-    - Name: BaseAttack
-      Entry: 4
-      Data: 9
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 5
-    - Name: CombatHistory
-      Entry: 7
-      Data: 60|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: Needs
-      Entry: 7
-      Data: 61|NeedsState, Assembly-CSharp
-    - Name: Health
-      Entry: 4
-      Data: 68.48679
-    - Name: Energy
-      Entry: 4
-      Data: 45.7346153
-    - Name: Affect
-      Entry: 4
-      Data: 4.75879431
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: QueuedAt
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BreedReadyAt
-      Entry: 3
-      Data: 0
-    - Name: BreedPartnerID
-      Entry: 1
-      Data: 
-    - Name: HomePenKey
-      Entry: 1
-      Data: 
-    - Name: HomePenSlot
-      Entry: 3
-      Data: -1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS2-A0-E0-M1-C41909-639172427837917472
-    - Name: $v
-      Entry: 7
-      Data: 62|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS2
-    - Name: ArmID
-      Entry: 1
-      Data: A0
-    - Name: EyeID
-      Entry: 1
-      Data: E0
-    - Name: MouthID
-      Entry: 1
-      Data: M1
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.768627465
-    - Name: 
-      Entry: 4
-      Data: 0.09803922
-    - Name: 
-      Entry: 4
-      Data: 0.03529412
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: Raspy Smudge
-    - Name: Timestamp
-      Entry: 3
-      Data: 639172427837917472
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250858446265305376
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: BS2-A0-E0-M0-09D8AD-639155849172588286
-    - Name: FatherID
-      Entry: 1
-      Data: BS0-A0-E0-M1-7E15C7-639161837268218806
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 63|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 1
-      Data: BS2-A0-E4-M2-9DFB18-639173917206459011
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: Personality
-      Entry: 3
-      Data: 4
-    - Name: FightCount
-      Entry: 3
-      Data: 0
-    - Name: WinCount
-      Entry: 3
-      Data: 0
-    - Name: BreedCount
-      Entry: 3
-      Data: 1
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: ArmTier
-      Entry: 3
-      Data: 1
-    - Name: EyeTier
-      Entry: 3
-      Data: 1
-    - Name: MouthTier
-      Entry: 3
-      Data: 1
-    - Name: BaseHP
-      Entry: 4
-      Data: 4
-    - Name: BaseAttack
-      Entry: 4
-      Data: 3
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 7
-    - Name: CombatHistory
-      Entry: 7
-      Data: 64|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: Needs
-      Entry: 7
-      Data: 65|NeedsState, Assembly-CSharp
-    - Name: Health
-      Entry: 4
-      Data: 28.83654
-    - Name: Energy
-      Entry: 4
-      Data: 38.5453758
-    - Name: Affect
-      Entry: 4
-      Data: -100
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: QueuedAt
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BreedReadyAt
-      Entry: 3
-      Data: 0
-    - Name: BreedPartnerID
-      Entry: 1
-      Data: 
-    - Name: HomePenKey
-      Entry: 1
-      Data: 
-    - Name: HomePenSlot
-      Entry: 3
-      Data: -1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS2-A0-E4-M2-9DFB18-639173917206459011
-    - Name: $v
-      Entry: 7
-      Data: 66|CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS2
-    - Name: ArmID
-      Entry: 1
-      Data: A0
-    - Name: EyeID
-      Entry: 1
-      Data: E4
-    - Name: MouthID
-      Entry: 1
-      Data: M2
-    - Name: PrimaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.6156863
-    - Name: 
-      Entry: 4
-      Data: 0.9843137
-    - Name: 
-      Entry: 4
-      Data: 0.09411765
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: CustomName
-      Entry: 1
-      Data: Sneaky Blorp
-    - Name: Timestamp
-      Entry: 3
-      Data: 639173917206459011
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250859935633846915
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: BS2-A0-E0-M0-09D8AD-639155849172588286
-    - Name: FatherID
-      Entry: 1
-      Data: BS2-A0-E0-M1-C41909-639172427837917472
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 67|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 1
-      Data: BS2-A2-E1-M1-2ADE36-639173961449469782
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 1
-    - Name: Personality
       Entry: 3
       Data: 3
-    - Name: FightCount
-      Entry: 3
-      Data: 0
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: BreedCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: BodyTier
       Entry: 3
       Data: 1
     - Name: ArmTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: EyeTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: MouthTier
       Entry: 3
       Data: 1
@@ -2870,14 +5114,430 @@ MonoBehaviour:
       Data: 6
     - Name: BaseSpeed
       Entry: 4
-      Data: 5
+      Data: 1
     - Name: CombatHistory
       Entry: 7
-      Data: 68|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 127|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 128|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Glowy Snoot
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849858391585208
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 129|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
       Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 130|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849890703247904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Eye
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 131|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 12
+    - Name: 
+      Entry: 7
+      Data: 132|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 1
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 20
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 133|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 43
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 134|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 1
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 19
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 135|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 36
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 136|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 1
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 18
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 137|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 21
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 15
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 138|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 1
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 17
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 139|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 8
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 140|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 5
+    - Name: AttackerName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 1
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 16
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 141|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 5
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 142|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 6
+    - Name: AttackerName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 1
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 15
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 143|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 6
+    - Name: AttackerName
+      Entry: 1
+      Data: Glowy Smudge
+    - Name: DefenderName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -2889,22 +5549,22 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 69|NeedsState, Assembly-CSharp
+      Data: 144|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 31.2004
+      Data: 75.35102
     - Name: Energy
       Entry: 4
-      Data: 34.6866646
+      Data: 83.32466
     - Name: Affect
       Entry: 4
-      Data: 55.80254
+      Data: 97.58937
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -2916,13 +5576,13 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 0
+      Data: 1781378839579
     - Name: BreedPartnerID
       Entry: 1
-      Data: 
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
     - Name: HomePenKey
       Entry: 1
-      Data: 3_27
+      Data: 
     - Name: HomePenSlot
       Entry: 3
       Data: -1
@@ -2937,64 +5597,525 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS2-A2-E1-M1-2ADE36-639173961449469782
+      Data: BS4-A1-E1-M1-72EF17-639158759894039650
     - Name: $v
       Entry: 7
-      Data: 70|CreatureDNA, Assembly-CSharp
+      Data: 145|CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
-      Data: BS2
+      Data: BS4
     - Name: ArmID
       Entry: 1
-      Data: A2
+      Data: A1
     - Name: EyeID
       Entry: 1
       Data: E1
     - Name: MouthID
       Entry: 1
       Data: M1
-    - Name: PrimaryColor
+    - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.164705887
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.870588243
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.211764708
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
     - Name: CustomName
       Entry: 1
-      Data: Fuzzy Pip
+      Data: Smelly Booger
     - Name: Timestamp
       Entry: 3
-      Data: 639173961449469782
+      Data: 639158759894039650
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250859979876857686
+      Data: 5250844778321427554
     - Name: 
       Entry: 8
       Data: 
     - Name: MotherID
       Entry: 1
-      Data: BS2-A1-E0-M1-EB3DA0-639155849153534462
+      Data: BS4-A3-E2-M3-50D134-639156644332473630
     - Name: FatherID
       Entry: 1
-      Data: BS2-A0-E4-M2-9DFB18-639173917206459011
+      Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: ChildrenIDs
       Entry: 7
-      Data: 71|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 146|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: BS0-A0-E0-M3-0B85DC-639163615986003412
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 1
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 4
+    - Name: BaseAttack
+      Entry: 4
+      Data: 6
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 1
+    - Name: CombatHistory
+      Entry: 7
+      Data: 147|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 148|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 51.2491264
+    - Name: Energy
+      Entry: 4
+      Data: 21.7705288
+    - Name: Affect
+      Entry: 4
+      Data: -6.54943037
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS1-A4-E0-M1-B1B03C-639158780052655723
+    - Name: $v
+      Entry: 7
+      Data: 149|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS1
+    - Name: ArmID
+      Entry: 1
+      Data: A4
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Zappy Slug
+    - Name: Timestamp
+      Entry: 3
+      Data: 639158780052655723
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250844798480043627
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
+    - Name: FatherID
+      Entry: 1
+      Data: BS1-A0-E2-M1-9D1578-639156193268302489
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 150|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: BS1-A1-E0-M1-0B19C8-639163844748752240
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 1
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 1
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 3
+    - Name: BaseAttack
+      Entry: 4
+      Data: 7
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 8
+    - Name: CombatHistory
+      Entry: 7
+      Data: 151|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 152|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 86.34411
+    - Name: Energy
+      Entry: 4
+      Data: 65.8879547
+    - Name: Affect
+      Entry: 4
+      Data: 75.9963455
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS0-A0-E0-M3-0B85DC-639163615986003412
+    - Name: $v
+      Entry: 7
+      Data: 153|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS0
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M3
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: Timestamp
+      Entry: 3
+      Data: 639163615986003412
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849634413391316
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS4-A3-E2-M3-50D134-639156644332473630
+    - Name: FatherID
+      Entry: 1
+      Data: BS4-A1-E1-M1-72EF17-639158759894039650
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 154|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -3009,7 +6130,1709 @@ MonoBehaviour:
       Data: 2
     - Name: Personality
       Entry: 3
+      Data: 2
+    - Name: FightCount
+      Entry: 3
       Data: 4
+    - Name: WinCount
+      Entry: 3
+      Data: 1
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 2
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 8
+    - Name: BaseAttack
+      Entry: 4
+      Data: 5
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 6
+    - Name: CombatHistory
+      Entry: 7
+      Data: 155|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 7
+      Data: 156|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Spongy Gunk
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849858391555111
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Arm
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 157|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 158|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849861314964093
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 159|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 160|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Gloop
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 161|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Lumpy Munch
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849862843112559
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 162|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 163|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Lumpy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 164|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849876261736621
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 165|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 9
+    - Name: 
+      Entry: 7
+      Data: 166|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 31
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 167|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 50
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 168|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 21
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 169|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 44
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 170|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 11
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 171|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 38
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 172|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 173|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 32
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 174|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 5
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 175|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 29.4414577
+    - Name: Energy
+      Entry: 4
+      Data: 72.08558
+    - Name: Affect
+      Entry: 4
+      Data: 75.69523
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS4-A0-E2-M1-5918EA-639163844724570114
+    - Name: $v
+      Entry: 7
+      Data: 176|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS4
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E2
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Lumpy Creep
+    - Name: Timestamp
+      Entry: 3
+      Data: 639163844724570114
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849863151958018
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS4-A0-E2-M1-E5CB4A-639157099758374241
+    - Name: FatherID
+      Entry: 1
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 177|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 0
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 7
+    - Name: BaseAttack
+      Entry: 4
+      Data: 8
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 6
+    - Name: CombatHistory
+      Entry: 7
+      Data: 178|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 179|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 41.42698
+    - Name: Energy
+      Entry: 4
+      Data: 24.065588
+    - Name: Affect
+      Entry: 4
+      Data: 84.99183
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS4-A1-E0-M1-35DFC7-639163844734879923
+    - Name: $v
+      Entry: 7
+      Data: 180|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS4
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: Timestamp
+      Entry: 3
+      Data: 639163844734879923
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849863162267827
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
+    - Name: FatherID
+      Entry: 1
+      Data: BS0-A1-E0-M1-1A60CF-639157465862957193
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 181|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 0
+    - Name: FightCount
+      Entry: 3
+      Data: 3
+    - Name: WinCount
+      Entry: 3
+      Data: 3
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 2
+    - Name: EyeTier
+      Entry: 3
+      Data: 2
+    - Name: MouthTier
+      Entry: 3
+      Data: 2
+    - Name: BaseHP
+      Entry: 4
+      Data: 11
+    - Name: BaseAttack
+      Entry: 4
+      Data: 9
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 11
+    - Name: CombatHistory
+      Entry: 7
+      Data: 182|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 183|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Pudgy Wart
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849863419240131
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Arm
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 184|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 185|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Pudgy Wart
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 9
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 186|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849876261736621
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Mouth
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 187|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 9
+    - Name: 
+      Entry: 7
+      Data: 188|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 31
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 189|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 50
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 190|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 21
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 191|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 44
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 192|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 11
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 193|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 38
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 194|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 195|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 32
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 196|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 5
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Drippy Runt
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 197|CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Slimy Spore
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: Manolito#1325
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849876872967904
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Eye
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 198|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 7
+    - Name: 
+      Entry: 7
+      Data: 199|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Slimy Spore
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 11
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 34
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 200|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Slimy Spore
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 1
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 55
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 201|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Slimy Spore
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 11
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 23
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 202|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Slimy Spore
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 1
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 54
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 203|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Slimy Spore
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 11
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 12
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 204|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Slimy Spore
+    - Name: DefenderName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 3
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 51
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 205|CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Chunky Slug
+    - Name: DefenderName
+      Entry: 1
+      Data: Slimy Spore
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 33
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 206|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 91.74947
+    - Name: Energy
+      Entry: 4
+      Data: 74.4915
+    - Name: Affect
+      Entry: 4
+      Data: 81.90205
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS1-A1-E0-M1-0B19C8-639163844748752240
+    - Name: $v
+      Entry: 7
+      Data: 207|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS1
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Spongy Glob
+    - Name: Timestamp
+      Entry: 3
+      Data: 639163844748752240
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250849863176140144
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS1-A1-E4-M0-4EB344-639157099558749392
+    - Name: FatherID
+      Entry: 1
+      Data: BS1-A4-E0-M1-B1B03C-639158780052655723
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 208|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 3
     - Name: FightCount
       Entry: 3
       Data: 0
@@ -3039,10 +7862,10 @@ MonoBehaviour:
       Data: 6
     - Name: BaseSpeed
       Entry: 4
-      Data: 6
+      Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 72|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+      Data: 209|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
         mscorlib
     - Name: 
       Entry: 12
@@ -3058,16 +7881,432 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 73|NeedsState, Assembly-CSharp
+      Data: 210|NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 100
+      Data: 90.1386
     - Name: Energy
       Entry: 4
-      Data: 100
+      Data: 82.41362
     - Name: Affect
       Entry: 4
-      Data: 100
+      Data: 85.5875
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS4-A1-E2-M3-8B13D5-639169737673400817
+    - Name: $v
+      Entry: 7
+      Data: 211|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS4
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E2
+    - Name: MouthID
+      Entry: 1
+      Data: M3
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.349019617
+    - Name: 
+      Entry: 4
+      Data: 0.4
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Frosty Gloob
+    - Name: Timestamp
+      Entry: 3
+      Data: 639169737673400817
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250855756100788721
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS4-A4-E4-M1-AB6807-639157766096457471
+    - Name: FatherID
+      Entry: 1
+      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 212|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 4
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 3
+    - Name: BaseAttack
+      Entry: 4
+      Data: 6
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 8
+    - Name: CombatHistory
+      Entry: 7
+      Data: 213|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 214|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 31.83756
+    - Name: Energy
+      Entry: 4
+      Data: 30.5878639
+    - Name: Affect
+      Entry: 4
+      Data: 92.74453
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS0-A0-E0-M1-CB3A6C-639174375654252477
+    - Name: $v
+      Entry: 7
+      Data: 215|CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS0
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.7942252
+    - Name: 
+      Entry: 4
+      Data: 0.227649659
+    - Name: 
+      Entry: 4
+      Data: 0.4253418
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ShadowsColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.436823875
+    - Name: 
+      Entry: 4
+      Data: 0.08152494
+    - Name: 
+      Entry: 4
+      Data: 0.205497488
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OutlineColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.1985563
+    - Name: 
+      Entry: 4
+      Data: 0.0271289721
+    - Name: 
+      Entry: 4
+      Data: 0.08694419
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Grubby Morsel
+    - Name: Timestamp
+      Entry: 3
+      Data: 639174375654252477
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250860394081640381
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: 
+    - Name: FatherID
+      Entry: 1
+      Data: 
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 216|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 2
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 7
+    - Name: BaseAttack
+      Entry: 4
+      Data: 8
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 4
+    - Name: CombatHistory
+      Entry: 7
+      Data: 217|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
+        mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 218|NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 66.06286
+    - Name: Energy
+      Entry: 4
+      Data: 56.78024
+    - Name: Affect
+      Entry: 4
+      Data: 93.9067459
     - Name: 
       Entry: 8
       Data: 
