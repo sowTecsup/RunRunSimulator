@@ -15,7 +15,7 @@
       }
     },
     {
-      "query": "tag:#dna  tag:#genetics  ",
+      "query": "tag:#dna",
       "color": {
         "a": 1,
         "rgb": 14069084
@@ -34,6 +34,27 @@
         "a": 1,
         "rgb": 6084188
       }
+    },
+    {
+      "query": "tag:#ui",
+      "color": {
+        "a": 1,
+        "rgb": 6084269
+      }
+    },
+    {
+      "query": "tag:#player ",
+      "color": {
+        "a": 1,
+        "rgb": 6073814
+      }
+    },
+    {
+      "query": "tag:#genetics ",
+      "color": {
+        "a": 1,
+        "rgb": 6053078
+      }
     }
   ],
   "collapse-display": false,
@@ -46,6 +67,6 @@
   "repelStrength": 10.9147609147609,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 0.9999999999999841,
+  "scale": 0.7132754626224272,
   "close": false
 }
