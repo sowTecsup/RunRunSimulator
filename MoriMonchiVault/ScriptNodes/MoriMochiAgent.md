@@ -11,3 +11,10 @@ tags: [memory-bank, script, player-world]
 **Vinculado a:** [[Index/06 - Player & World]], [[Index/02 - Genetics & Breeding]]
 
 **Conexiones:** [[CreatureDNA]], [[NeedsState]], [[PersonalityProfileSO]], [[NeedStationRegistry]], [[MoriMochiContainer]], [[NameTag]], [[GameEvents]]
+
+**Organización (partial class):**
+- `MoriMochiAgent.cs` — núcleo: campos, lifecycle, dispatch, helpers NavMesh, gizmos
+- `MoriMochiAgent.Tuning.cs` — campos serializados Odin + readouts + dev buttons
+- `MoriMochiAgent.Brain.cs` — estados + needs + reacciones + intent
+- `MoriMochiAgent.Physics.cs` — colisión/knock/throw/ragdoll/recovery/handoff
+- `MoriMochiAgent.Confinement.cs` — pen + courtship + rebake + pooling

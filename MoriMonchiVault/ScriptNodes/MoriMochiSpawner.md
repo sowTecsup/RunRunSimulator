@@ -11,3 +11,9 @@ tags: [memory-bank, script, player-world]
 **Vinculado a:** [[Index/06 - Player & World]]
 
 **Conexiones:** [[CreatureRegistrySO]], [[MoriMonchiController]], [[MoriMochiAgent]], [[MoriMonchiVisualizer]], [[PartVisualBankSO]]
+
+**Organización (partial class):**
+- `MoriMochiSpawner.cs` — motor: prewarm/sync/pump/spawn
+- `MoriMochiSpawner.Pool.cs` — pool
+- `MoriMochiSpawner.Ballistics.cs` — solve velocity/landing
+- `MoriMochiSpawner.Debug.cs` — dev buttons + gizmos

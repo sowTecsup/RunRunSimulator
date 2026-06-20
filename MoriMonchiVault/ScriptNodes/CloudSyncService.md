@@ -11,3 +11,8 @@ tags: [memory-bank, script, cloud]
 **Vinculado a:** [[Index/04 - UGS & Cloud]]
 
 **Conexiones:** [[GameManager]], [[GameEvents]], [[CloudCodeTester]]
+
+**Organización (partial class):**
+- `CloudSyncService.cs` — núcleo: constants/SyncMeta/fields/lifecycle/meta helpers
+- `CloudSyncService.Auth.cs` — auth+init+cuenta
+- `CloudSyncService.Sync.cs` — validate+reset+push+pull

@@ -11,3 +11,8 @@ tags: [memory-bank, script, ui]
 **Vinculado a:** [[Index/05 - UI System]]
 
 **Conexiones:** [[UIManager]], [[CombatController]], [[CombatService]]
+
+**Organización (partial class):**
+- `CombatPanelUITK.cs` — núcleo/lifecycle/wiring/data
+- `CombatPanelUITK.Tabs.cs` — contenido de las 4 pestañas
+- `CombatPanelUITK.Navigation.cs` — IUINavigable + foco

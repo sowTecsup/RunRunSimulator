@@ -11,3 +11,7 @@ tags: [memory-bank, script, ui]
 **Vinculado a:** [[Index/05 - UI System]]
 
 **Conexiones:** [[UIManager]], [[CreatureGridUITK]], [[CreatureDNA]], [[CreatureVisualUI]]
+
+**Organización (partial class):**
+- `MorimonchiDetailInfoUITK.cs` — núcleo + Info + Combat tab
+- `MorimonchiDetailInfoUITK.Trees.cs` — tabs Linaje/Descendencia

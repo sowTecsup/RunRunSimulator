@@ -47,6 +47,19 @@ MoriMonchiVault/
 
 ---
 
+## Regla de arquitectura general (regla de oro tecnica)
+
+> **Una responsabilidad por archivo, una direccion de comunicacion, un dueno por dato.**
+
+Cuando una decision NO este cubierta por las 10 reglas de abajo, se aplica esta. Las 10 reglas son casos concretos de estos 4 principios:
+
+1. **Capas sin saltos de dos niveles**: `Data` (estado puro) → `Systems/Core` (orquestacion, dueno de persistencia y red) → `World/UI` (representacion). La representacion LEE estado y reacciona a eventos; nunca persiste ni toca la nube directamente.
+2. **Comunicacion cruzada solo por bus o servicio explicito**: `GameEvents` (gameplay), eventos `static` de `UIManager` (UI), eventos de Inputs. Un consumidor nunca hace `Find*`/`GetComponentInParent` para localizar otro sistema. El evento transporta la data.
+3. **Limite de tamano/dominio**: si un archivo supera ~400 lineas O mezcla 2+ dominios (datos, presentacion, fisica, red), se parte en colaboradores con una sola responsabilidad cada uno.
+4. **Singleton = servicio runtime; SO = data**: un servicio runtime puede ser singleton (`GameManager.Instance`). Un ScriptableObject expone su instancia activa de UNA sola forma elegida (no mezclar criterios). Detalle y hoja de ruta en [[MoriMonchiVault/Index/11 - Technical Debt]].
+
+---
+
 ## Reglas de codigo (NO NEGOCIABLES)
 
 1. **Desacoplamiento estricto via eventos**: Comunicacion cross-system solo por `GameEvents`. El evento transporta la data. Suscriptor NO busca `GameManager.Instance.Registry`.

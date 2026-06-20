@@ -15,7 +15,7 @@
       }
     },
     {
-      "query": "tag:#dna  ",
+      "query": "tag:#dna  tag:#genetics  ",
       "color": {
         "a": 1,
         "rgb": 14069084
@@ -46,6 +46,6 @@
   "repelStrength": 10.9147609147609,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 0.362887369301207,
+  "scale": 0.9999999999999841,
   "close": false
 }

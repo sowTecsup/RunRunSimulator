@@ -11,10 +11,10 @@
             "id": "904556343679102e",
             "type": "leaf",
             "state": {
-              "type": "empty",
+              "type": "graph",
               "state": {},
-              "icon": "lucide-file",
-              "title": "Nueva pestaña"
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
             }
           }
         ]
@@ -167,6 +167,10 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
+    "Index/09 - Active Context.md.tmp.35224.64fc7161ec78",
+    "ScriptNodes/BodyPart.md",
+    "ScriptNodes/PartDatabaseSO.md",
+    "ScriptNodes/MoriMochiAgent.md",
     "Archive - Fur Shaders (POC descartado)/00 - Fur Shaders Index.md.tmp.44860.91b4456cf74c",
     "FurShaders/FUR_02_Speckled.md",
     "Archive - Fur Shaders (POC descartado)/FUR_02_Speckled.md",
@@ -199,11 +203,7 @@
     "Index/04 - UGS & Cloud.md",
     "Index/05 - UI System.md",
     "Index/06 - Player & World.md",
-    "Index/08 - Known Bugs & Checkpoints.md",
-    "Index/09 - Active Context.md",
-    "Index/10 - Furniture & Building.md",
     "ScriptNodes",
-    "Index",
     "ScriptsNodes/Sin título.canvas"
   ]
 }

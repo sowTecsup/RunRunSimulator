@@ -6,8 +6,8 @@ tags: [memory-bank, script, gdd-core]
 
 **Ruta:** `Core/Enums.cs`
 
-**Responsabilidad:** Define todos los enumeradores globales: `Rarity`, `PartSet`, `PartRole`, `Tier`, `CreatureGender`, `LifeStage`, `Personality`, `NeedType`, `BusyReason`, `UIPanelType`, `PlayerStateType`, `FurnitureCategory`, `ItemType`, `WorldPropCategory`, `DiscountDay`, `DiscountMonth`, `RestockPeriod`, `BuyResult`, `StoreItemTypeFilter`, `NeedType`, `CreatureCondition`, `Personality`, `CreatureIntent`, `ProximityReaction`, `WorldArea`, `CombatOutcome`.
+**Responsabilidad:** Define todos los enumeradores globales: `Rarity`, `PartSet`, `CreatureGender`, `LifeStage`, `FurType`, `PartRole`, `Tier`, `BusyReason`, `UIPanelType`, `PlayerStateType`, `FurnitureCategory`, `ItemType`, `WorldPropCategory`, `DiscountDay`, `DiscountMonth`, `RestockPeriod`, `BuyResult`, `StoreItemTypeFilter`, `NeedType`, `CreatureCondition`, `Personality`, `CreatureIntent`, `ProximityReaction`, `WorldArea`, `CombatOutcome`.
 
 **Vinculado a:** [[Index/01 - GDD Core]]
 
-**Conexiones:** [[Interfaces]], [[CreatureDNA]], [[BodyPart]], [[UIManager]], [[NeedStation]]
+**Conexiones:** [[Interfaces]], [[CreatureDNA]], [[BodyPart]], [[UIManager]], [[NeedStation]], [[FurTypeDatabaseSO]], [[ColorGenetics]]

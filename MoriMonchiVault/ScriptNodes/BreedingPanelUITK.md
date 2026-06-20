@@ -11,3 +11,8 @@ tags: [memory-bank, script, ui]
 **Vinculado a:** [[Index/05 - UI System]]
 
 **Conexiones:** [[UIManager]], [[BreedingController]]
+
+**Organización (partial class):**
+- `BreedingPanelUITK.cs` — núcleo/lifecycle/wiring/data
+- `BreedingPanelUITK.Content.cs` — candidatos/huevos/preview/breed/hatch
+- `BreedingPanelUITK.Navigation.cs` — IUINavigable + foco
