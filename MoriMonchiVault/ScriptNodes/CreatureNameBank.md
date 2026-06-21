@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, genetics]
+tags: [script, genetics]
 ---
 
 # CreatureNameBank.cs
 
-**Ruta:** `Data/CreatureNameBank.cs`
+**Ruta:** `Data/Genetics/CreatureNameBank.cs`
 
 **Responsabilidad:** Generación procedural de nombres para criaturas (adjetivo + sustantivo).
 

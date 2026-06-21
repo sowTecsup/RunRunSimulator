@@ -2004,13 +2004,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: 0.6524457, y: -0.19085191, z: 0.17482227, w: 0.7122691}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 84.98, y: -30, z: 0}
 --- !u!114 &410087042
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18076,54 +18076,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
   rarityOddsTable: {fileID: 11400000, guid: a3afe6af2bf139b4e9e397193f27a2e0, type: 2}
-  inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
-  combatConfig: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
   personalityProfiles: {fileID: 11400000, guid: 17482f6255cdc6c4789dcacf427724fe, type: 2}
   creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
   furnitureRegistry: {fileID: 11400000, guid: 065d7cb988feefa4db35e5ec9e276bd2, type: 2}
   inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
   partVisualBank: {fileID: 11400000, guid: 0f4abf5f11f4e7a468321e65eea303fe, type: 2}
+  furTypeDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
   cloudSync: {fileID: 1443145214}
-  devDabloonsAmount: 500
-  currentDNA:
-    BodyShapeID: BS0
-    ArmID: A0
-    EyeID: E0
-    MouthID: M0
-    BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    ShadowsColor: {r: 0.35, g: 0.35, b: 0.4, a: 1}
-    OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    FurType: 0
-    CustomName: 
-    Timestamp: 0
-    MotherID: 
-    FatherID: 
-    ChildrenIDs: []
-    Gender: 0
-    Personality: 3
-    FightCount: 0
-    WinCount: 0
-    BreedCount: 0
-    BodyTier: 1
-    ArmTier: 1
-    EyeTier: 1
-    MouthTier: 1
-    BaseHP: 0
-    BaseAttack: 0
-    BaseSpeed: 0
-    CombatHistory: []
-    IsDead: 0
-    Needs:
-      Health: 100
-      Energy: 100
-      Affect: 0
-    BusyState: 0
-    BreedReadyAt: 0
-    BreedPartnerID: 
-    HomePenKey: 
-    HomePenSlot: -1
-  currentDNAString: BS0-A0-E0-M0-55C54A
-  loadIDInput: 
 --- !u!4 &1046970363
 Transform:
   m_ObjectHideFlags: 0
@@ -18145,6 +18104,8 @@ Transform:
   - {fileID: 2004143670}
   - {fileID: 513610713}
   - {fileID: 1067912612}
+  - {fileID: 2066205449}
+  - {fileID: 1204421449}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1046970364
@@ -18647,6 +18608,52 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &1204421448
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1204421449}
+  - component: {fileID: 1204421450}
+  m_Layer: 0
+  m_Name: DevTools
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1204421449
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1204421448}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1046970363}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1204421450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1204421448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 694627de2ce30c34c931ea29ad587164, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DevToolsConsole
+  gameManager: {fileID: 1046970362}
+  devDabloonsAmount: 500
 --- !u!1 &1218711422
 GameObject:
   m_ObjectHideFlags: 0
@@ -18728,12 +18735,12 @@ MonoBehaviour:
     SerializationNodes:
     - Name: panels
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[UIPanelType, Assembly-CSharp],[UnityEngine.GameObject,
-        UnityEngine.CoreModule]], mscorlib
+      Data: 0|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.UIPanelType,
+        Assembly-CSharp],[UnityEngine.GameObject, UnityEngine.CoreModule]], mscorlib
     - Name: comparer
       Entry: 7
-      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[UIPanelType, Assembly-CSharp]],
-        mscorlib
+      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.UIPanelType,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -19000,6 +19007,7 @@ GameObject:
   - component: {fileID: 1227227760}
   - component: {fileID: 1227227759}
   - component: {fileID: 1227227761}
+  - component: {fileID: 1227227762}
   m_Layer: 0
   m_Name: BreedingController
   m_TagString: Untagged
@@ -19019,12 +19027,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad2dd2b6a4dee4c4799d2b016e7f9dc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BreedingController
+  inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
   asyncBreedingService: {fileID: 1227227761}
   affinityTable: {fileID: 11400000, guid: 385ff62d28fcc1b428b55a9f8e9f9c19, type: 2}
   lifeStageTable: {fileID: 11400000, guid: 54bc3ef92a2cf7f45a86f9df179ec2ee, type: 2}
-  breedMotherID: 
-  breedFatherID: 
-  hatchIndex: 0
 --- !u!4 &1227227760
 Transform:
   m_ObjectHideFlags: 0
@@ -19053,6 +19059,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AsyncBreedingService
   energyCostPerParent: 20
+--- !u!114 &1227227762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1227227758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a4c816969abcc641a196e7944d1e737, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BreedingDevConsole
+  gameManager: {fileID: 1046970362}
+  breedingController: {fileID: 1227227759}
+  breedMotherID: 
+  breedFatherID: 
+  hatchIndex: 0
 --- !u!1 &1264994134
 GameObject:
   m_ObjectHideFlags: 0
@@ -21706,6 +21729,7 @@ GameObject:
   - component: {fileID: 1813964819}
   - component: {fileID: 1813964818}
   - component: {fileID: 1813964817}
+  - component: {fileID: 1813964820}
   m_Layer: 0
   m_Name: CombatController
   m_TagString: Untagged
@@ -21737,11 +21761,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd186e1431f391c499353f16887657d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatController
+  config: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
   asyncCombatService: {fileID: 1813964817}
-  combatAID: 
-  combatBID: 
-  asyncCreatureID: 
-  dequeueIndex: 0
 --- !u!4 &1813964819
 Transform:
   m_ObjectHideFlags: 0
@@ -21757,6 +21778,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1046970363}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1813964820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1813964816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d627f1a95b00b674ba006f36187a6e04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatDevConsole
+  gameManager: {fileID: 1046970362}
+  combatController: {fileID: 1813964818}
+  combatAID: 
+  combatBID: 
+  asyncCreatureID: 
+  dequeueIndex: 0
 --- !u!1 &1828995157
 GameObject:
   m_ObjectHideFlags: 0
@@ -21990,6 +22029,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1999386638}
   - component: {fileID: 1999386639}
+  - component: {fileID: 1999386640}
   m_Layer: 0
   m_Name: MoriMonchiSpawner
   m_TagString: Untagged
@@ -22033,6 +22073,21 @@ MonoBehaviour:
   spawnInterval: 3
   spawnPerTick: 3
   navMeshWaitTimeout: 10
+  dataReadyTimeout: 6
+--- !u!114 &1999386640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999386637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe29137f37223954ebf21cf5281d7c28, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.SpawnDiagnostics
+  logToConsole: 1
+  historySize: 40
 --- !u!1 &2004143669
 GameObject:
   m_ObjectHideFlags: 0
@@ -22324,6 +22379,89 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &2066205448
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2066205449}
+  - component: {fileID: 2066205450}
+  m_Layer: 0
+  m_Name: GeneticsLabsPreview
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2066205449
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066205448}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1046970363}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2066205450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2066205448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07f041e7181cf33408d1da01886e7883, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GeneticsLabPreview
+  gameManager: {fileID: 1046970362}
+  currentDNA:
+    BodyShapeID: 
+    ArmID: 
+    EyeID: 
+    MouthID: 
+    BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    SecondaryColor: {r: 1, g: 1, b: 1, a: 1}
+    FurType: 0
+    CustomName: 
+    Timestamp: 0
+    MotherID: 
+    FatherID: 
+    ChildrenIDs: []
+    Gender: 0
+    Personality: 3
+    FightCount: 0
+    WinCount: 0
+    BreedCount: 0
+    BodyTier: 1
+    ArmTier: 1
+    EyeTier: 1
+    MouthTier: 1
+    BaseHP: 0
+    BaseAttack: 0
+    BaseSpeed: 0
+    CombatHistory: []
+    IsDead: 0
+    Needs:
+      Health: 100
+      Energy: 100
+      Affect: 0
+    BusyState: 0
+    BreedReadyAt: 0
+    BreedPartnerID: 
+    HomePenKey: 
+    HomePenSlot: -1
+  currentDNAString: ---
+  loadIDInput: 
 --- !u!1 &2067556434
 GameObject:
   m_ObjectHideFlags: 0

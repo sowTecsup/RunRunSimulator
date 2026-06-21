@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 public partial class BreedingPanelUITK
 {
@@ -207,4 +209,5 @@ public partial class BreedingPanelUITK
 
     private static bool InRange(List<VisualElement> list, int i) => i >= 0 && i < list.Count;
     private static bool InRange2(List<EggView> list, int i) => i >= 0 && i < list.Count;
+}
 }

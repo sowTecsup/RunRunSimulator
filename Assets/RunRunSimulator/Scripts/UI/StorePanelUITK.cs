@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // Shop screen: the visual face of a StoreManager's ShopCatalogSO. Three tabs split the
 // catalog the way the player thinks about it — Furniture, WorldProps (tools), and
@@ -393,4 +395,5 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
     private static string NameOf(string display, string id) =>
         string.IsNullOrEmpty(display) ? id : display;
+}
 }

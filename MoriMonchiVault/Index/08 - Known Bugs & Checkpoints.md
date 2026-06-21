@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, bugs, checkpoints, future]
+tags: [index, core]
 ---
 
 # 08 - Known Bugs & Checkpoints

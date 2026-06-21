@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 public partial class BreedingPanelUITK
 {
@@ -143,7 +145,7 @@ public partial class BreedingPanelUITK
         preview.Add(ParentSummary(father));
         preview.Add(ParentSummary(mother));
 
-        int mins = InheritanceOddsTableSO.Current != null ? InheritanceOddsTableSO.Current.BreedDurationMinutes : 30;
+        int mins = (BreedingController.Instance != null && BreedingController.Instance.InheritanceOdds != null) ? BreedingController.Instance.InheritanceOdds.BreedDurationMinutes : 30;
         if (timeLabel != null) timeLabel.text = $"≈ {mins} min";
     }
 
@@ -270,4 +272,5 @@ public partial class BreedingPanelUITK
             btn.RemoveFromClassList("egg-hatch--busy");
         }
     }
+}
 }

@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+namespace MoriMonchiSimulator
+{
 
 // Single owner of the "Building" action map — the construction-mode mirror of
 // PlayerInputs / UIInputs. It only translates raw input into STATIC events that
@@ -87,4 +89,5 @@ public class BuildingInputs : MonoBehaviour
     private void OnSlot3(InputAction.CallbackContext c)   => SlotSelected?.Invoke(2);
     private void OnSlot4(InputAction.CallbackContext c)   => SlotSelected?.Invoke(3);
     private void OnFurnitureCatalog(InputAction.CallbackContext c) => BrowseToggled?.Invoke();
+}
 }

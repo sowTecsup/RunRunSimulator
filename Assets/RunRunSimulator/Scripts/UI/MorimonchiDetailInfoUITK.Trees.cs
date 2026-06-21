@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 public partial class MorimonchiDetailInfoUITK
 {
@@ -193,4 +195,5 @@ public partial class MorimonchiDetailInfoUITK
         col.Add(kidsRow);
         return col;
     }
+}
 }

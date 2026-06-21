@@ -1,6 +1,8 @@
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 public abstract class BodyPart : SerializedScriptableObject
 {
@@ -75,4 +77,5 @@ public abstract class BodyPart : SerializedScriptableObject
         PartSet.ZapZone        => new Color(1f,   1f,   0.3f),
         _                      => Color.gray
     };
+}
 }

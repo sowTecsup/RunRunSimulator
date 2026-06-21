@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, combat]
+tags: [script, combat]
 ---
 
 # CombatResult.cs
 
-**Ruta:** `Data/CombatResult.cs`
+**Ruta:** `Data/Combat/CombatResult.cs`
 
 **Responsabilidad:** Resultado final: ganador, experiencia, loot.
 

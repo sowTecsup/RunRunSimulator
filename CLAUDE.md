@@ -51,11 +51,11 @@ MoriMonchiVault/
 
 > **Una responsabilidad por archivo, una direccion de comunicacion, un dueno por dato.**
 
-Cuando una decision NO este cubierta por las 10 reglas de abajo, se aplica esta. Las 10 reglas son casos concretos de estos 4 principios:
+Cuando una decision NO este cubierta por las 11 reglas de abajo, se aplica esta. Las 11 reglas son casos concretos de estos 4 principios:
 
 1. **Capas sin saltos de dos niveles**: `Data` (estado puro) → `Systems/Core` (orquestacion, dueno de persistencia y red) → `World/UI` (representacion). La representacion LEE estado y reacciona a eventos; nunca persiste ni toca la nube directamente.
 2. **Comunicacion cruzada solo por bus o servicio explicito**: `GameEvents` (gameplay), eventos `static` de `UIManager` (UI), eventos de Inputs. Un consumidor nunca hace `Find*`/`GetComponentInParent` para localizar otro sistema. El evento transporta la data.
-3. **Limite de tamano/dominio**: si un archivo supera ~400 lineas O mezcla 2+ dominios (datos, presentacion, fisica, red), se parte en colaboradores con una sola responsabilidad cada uno.
+3. **Limite de tamano/dominio**: si un archivo supera ~400 lineas O mezcla 2+ dominios (datos, presentacion, fisica, red), se parte en **clases/componentes independientes**, una responsabilidad cada uno. La `partial class` NO es el remedio al tamano (ver regla 11).
 4. **Singleton = servicio runtime; SO = data**: un servicio runtime puede ser singleton (`GameManager.Instance`). Un ScriptableObject expone su instancia activa de UNA sola forma elegida (no mezclar criterios). Detalle y hoja de ruta en [[MoriMonchiVault/Index/11 - Technical Debt]].
 
 ---
@@ -72,6 +72,7 @@ Cuando una decision NO este cubierta por las 10 reglas de abajo, se aplica esta.
 8. **Sin complejidad innecesaria**: No anadir campos, abstracciones ni features no pedidos. Tres lineas similares > abstraccion prematura.
 9. **Desuscribir siempre**: `OnEnable` suscribe, `OnDisable` desuscribe. Un `event static` mantiene vivo al suscriptor (leak + excepcion al disparar sobre objeto destruido).
 10. **Evitar referencias redundantes**: Siempre buscar centralizar eventos y comunicarlos o suscribirlos atravez de eventos o singleton
+11. **Partial class solo por ventaja fisica de archivo**: usar `partial` UNICAMENTE cuando la separacion de archivos da una ventaja real (evitar conflictos de Git, aislar codigo autogenerado). Si la clase crecio, el remedio es **dividirla en clases/componentes independientes**, no esconder el tamano en varios archivos — una partial sigue siendo UNA clase con un solo estado mutable: no reduce acoplamiento. Codigo puro (matematica, helpers sin estado) NUNCA va en partial: es clase estatica aparte. Tooling dev/debug que solo usa **API publica** va en componente aparte (caso F3: DevConsoles con refs serializadas). Excepcion pragmatica (partial SOLO si se documenta como deuda en [[MoriMonchiVault/Index/11 - Technical Debt]]): un nucleo con estado mutable irreducible (FSM MonoBehaviour, arbol UITK, sesion de red) — y el tooling dev/gizmos **atado a ese estado privado** es parte de la excepcion del componente, no una violacion aparte (extraerlo obligaria a exponer internals).
 
 ---
 

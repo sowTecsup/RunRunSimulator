@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, furniture]
+tags: [script, furniture]
 ---
 
 # FurnitureDefinitionSO.md
 
-**Ruta:** `Data/FurnitureDefinitionSO.cs`
+**Ruta:** `Data/Furniture/FurnitureDefinitionSO.cs`
 
 **Responsabilidad:** Definición de mueble: nombre, prefab 3D, tamaño grid, categoría, precio.
 

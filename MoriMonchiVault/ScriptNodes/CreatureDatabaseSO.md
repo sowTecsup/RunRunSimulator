@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, genetics]
+tags: [script, genetics]
 ---
 
 # CreatureDatabaseSO.md
 
-**Ruta:** `Data/CreatureDatabaseSO.cs`
+**Ruta:** `Data/Databases/CreatureDatabaseSO.cs`
 
 **Responsabilidad:** Database maestra de criaturas. Métodos de búsqueda por ID, rareza.
 

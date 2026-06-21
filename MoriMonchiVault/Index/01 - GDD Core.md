@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, gdd, design]
+tags: [index, core]
 ---
 
 # 01 - GDD Core

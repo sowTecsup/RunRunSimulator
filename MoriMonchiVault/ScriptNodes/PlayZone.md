@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, player-world]
+tags: [script, world]
 ---
 
 # PlayZone.cs
 
-**Ruta:** `World/PlayZone.cs`
+**Ruta:** `World/Needs/PlayZone.cs`
 
 **Responsabilidad:** Estación concreta que restaura `NeedType.Affect`.
 

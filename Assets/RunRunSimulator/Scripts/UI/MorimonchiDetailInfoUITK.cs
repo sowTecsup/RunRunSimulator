@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // Detailed MoriMochi summary window (UI Toolkit), FireRed-summary inspired.
 // Lives on the always-active UIManager object and fills its own UIDocument
@@ -286,4 +288,5 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
     private static string Born(CreatureDNA d) =>
         d.BirthDate == default ? "—" : d.BirthDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+}
 }

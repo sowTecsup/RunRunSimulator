@@ -1,4 +1,6 @@
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // A world object that, when the player taps E on it, asks the UIManager to
 // show/hide a Canvas panel. Knows nothing about a UIManager instance — it just
@@ -15,4 +17,5 @@ public class PanelTrigger : MonoBehaviour, IInteractable
         Debug.Log($"[PanelTrigger] '{name}' interacted → requesting toggle of '{panel}'.");
         UIManager.RequestPanelToggle(panel);
     }
+}
 }

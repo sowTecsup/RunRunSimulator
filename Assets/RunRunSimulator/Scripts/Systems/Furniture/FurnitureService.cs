@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using Unity.AI.Navigation;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Orchestrates furniture placement: validates against the grid, mutates the registry,
 // and announces changes via GameEvents (the spawner reacts, persistence later). It owns
@@ -229,4 +231,5 @@ public class FurnitureService : MonoBehaviour
 
     // Rounds an arbitrary angle to the nearest 90° step in [0, 270].
     private static int Snap90(int deg) => ((Mathf.RoundToInt(deg / 90f) * 90) % 360 + 360) % 360;
+}
 }

@@ -4,6 +4,8 @@ using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // Owns every Canvas/UI panel AND is the static event hub for UI-domain panel
 // events. The events live here (not in GameEvents) on purpose: GameEvents stays
@@ -213,4 +215,5 @@ public class UIManager : SerializedMonoBehaviour
         focused = nowFocused;
         OnUIFocusChanged?.Invoke(focused);
     }
+}
 }

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Stateless service — called by GameManager. All state lives in the passed-in databases.
 public static class BreedingService
@@ -53,16 +55,17 @@ public static class BreedingService
             return null;
         }
 
+        var childBase = ColorGenetics.Inherit(mother.BaseColor, father.BaseColor);
+
         var child = new CreatureDNA
         {
-            BodyShapeID  = ResolveSlot(PartRole.Body,  motherID, fatherID, registry, partDb, odds),
-            ArmID        = ResolveSlot(PartRole.Arm,   motherID, fatherID, registry, partDb, odds),
-            EyeID        = ResolveSlot(PartRole.Eye,   motherID, fatherID, registry, partDb, odds),
-            MouthID      = ResolveSlot(PartRole.Mouth, motherID, fatherID, registry, partDb, odds),
-            BaseColor    = ColorGenetics.Inherit(mother.BaseColor,    father.BaseColor),
-            ShadowsColor = ColorGenetics.Inherit(mother.ShadowsColor, father.ShadowsColor),
-            OutlineColor = ColorGenetics.Inherit(mother.OutlineColor, father.OutlineColor),
-            FurType      = ColorGenetics.Inherit(mother.FurType,      father.FurType),
+            BodyShapeID    = ResolveSlot(PartRole.Body,  motherID, fatherID, registry, partDb, odds),
+            ArmID          = ResolveSlot(PartRole.Arm,   motherID, fatherID, registry, partDb, odds),
+            EyeID          = ResolveSlot(PartRole.Eye,   motherID, fatherID, registry, partDb, odds),
+            MouthID        = ResolveSlot(PartRole.Mouth, motherID, fatherID, registry, partDb, odds),
+            BaseColor      = childBase,
+            SecondaryColor = ColorGenetics.DeriveSecondary(childBase),
+            FurType        = ColorGenetics.Inherit(mother.FurType, father.FurType),
             Gender       = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female,
             Personality  = CreatureGenerator.RandomPersonality(),   // random, not inherited
             MotherID     = motherID,
@@ -171,4 +174,5 @@ public static class BreedingService
         int   delta     = Random.Range(-1, 2);   // -1, 0, or +1 with equal probability
         return Mathf.Max(1f, inherited + delta);
     }
+}
 }

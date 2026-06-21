@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, player, world, navmesh, personality]
+tags: [index, world]
 ---
 
 # 06 - Player & World

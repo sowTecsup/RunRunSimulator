@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Bridges furniture DATA → PRESENCE: rebuilds the placed-furniture meshes from the
 // registry, event-driven (mirror of MoriMochiSpawner). Owns only meshes — the
@@ -95,4 +97,5 @@ public class FurnitureSpawner : MonoBehaviour
         foreach (var go in spawned.Values) if (go != null) Destroy(go);
         spawned.Clear();
     }
+}
 }

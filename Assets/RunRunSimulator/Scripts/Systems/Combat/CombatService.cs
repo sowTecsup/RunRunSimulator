@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Stateless turn-based combat simulator.
 // Attack order: highest Speed attacks first each round.
@@ -293,4 +295,5 @@ public static class CombatService
     };
 
     private static string Clip(string id) => id[..Mathf.Min(14, id.Length)];
+}
 }

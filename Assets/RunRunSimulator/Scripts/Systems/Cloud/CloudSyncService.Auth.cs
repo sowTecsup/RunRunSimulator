@@ -11,6 +11,8 @@ using Unity.Services.CloudSave;
 using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.Serialization;
+namespace MoriMonchiSimulator
+{
 
 public partial class CloudSyncService
 {
@@ -243,4 +245,5 @@ public partial class CloudSyncService
             Debug.LogError($"[CloudSync] UpdatePlayerName failed: {e}");
         }
     }
+}
 }

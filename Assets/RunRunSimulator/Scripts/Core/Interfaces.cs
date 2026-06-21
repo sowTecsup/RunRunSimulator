@@ -1,4 +1,6 @@
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // All cross-system interfaces live here (project rule: one home for interfaces).
 
@@ -51,4 +53,5 @@ public interface IThrowable
     // the given impulse. Lets thrown objects knock each other ragdoll-style. A held
     // object ignores this (it's in the player's hand).
     void Knock(Vector3 force);
+}
 }

@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, player-world]
+tags: [script, world]
 ---
 
 # BodyPartJoint.md
 
-**Ruta:** `World/BodyPartJoint.cs`
+**Ruta:** `World/Creatures/BodyPartJoint.cs`
 
 **Responsabilidad:** Punto de conexión de un prefab de parte. `isMirror` (L/R), `insertionJoint` (alineación al socket).
 

@@ -11,6 +11,8 @@ using Unity.Services.CloudSave;
 using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.Serialization;
+namespace MoriMonchiSimulator
+{
 
 public partial class CloudSyncService
 {
@@ -63,11 +65,21 @@ public partial class CloudSyncService
         {
             status = "Resetting...";
 
+            try { await CloudEndpoint.CallAsync(CANCEL_ALL_BREEDING, new Dictionary<string, object>()); } catch { }
+
+            foreach (var dna in registry.GetAll().Values)
+            {
+                if (dna.BusyState != BusyReason.QueuedForCombat) continue;
+                try { await CloudEndpoint.CallAsync(DEQUEUE_COMBAT, new Dictionary<string, object> { { "creatureId", dna.UniqueID } }); }
+                catch { }
+            }
+
             // Clear cloud keys (ignore errors if key doesn't exist)
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY);  } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY);      } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY); } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY);       } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY);           } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY);      } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY);      } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(COMBAT_RESULTS_KEY); } catch { }
 
             // Clear local data and JSON — do NOT push back (we just cleared the cloud)
             registry.LoadFrom(new System.Collections.Generic.Dictionary<string, CreatureDNA>());
@@ -215,4 +227,5 @@ public partial class CloudSyncService
             Debug.LogError($"[CloudSync] Pull failed: {e}");
         }
     }
+}
 }

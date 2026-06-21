@@ -1,13 +1,13 @@
 ---
-tags: [memory-bank, script, genetics]
+tags: [script, genetics]
 ---
 
 # BreedingController.cs
 
 **Ruta:** `Systems/Breeding/BreedingController.cs`
 
-**Responsabilidad:** Singleton dueño de servicios de cría en escena. Las `BreedingContainer` le piden la tabla de afinidad, el `AsyncBreedingService` y la `CreatureLifeStageTableSO`. Botones dev: Fill Random Breeders, Breed (local), Breed Timer, Hatch Egg, Cancel All Eggs, Show Eggs. `BreedCreatures()` para cría local (síncrona). `GetEggs()` devuelve hembras incubando. Delega `StartBreedingAsync`, `HatchAsync`, `CancelBreedingAsync`, `CancelAllBreedingAsync` al `AsyncBreedingService`. Propiedad pública `LifeStageTable` expone la tabla de etapas de vida para que `NameTag` lea los thresholds.
+**Responsabilidad:** Apex del sistema de cría (domain owner). Singleton: `static Instance`. Posee `inheritanceOddsTable`, `affinityTable`, `lifeStageTable` y `asyncBreedingService` (todos serializados). Getters públicos: `InheritanceOdds`, `LifeStageTable`. Public API: `GetAffinity()`, `BreedCreatures()` (devuelve ID hijo), wrappers async (StartBreedingAsync, HatchAsync, CancelBreedingAsync, CancelAllBreedingAsync). Las BreedingContainer piden servicios vía Instance. Resuelve registry y database de GameManager.Instance en Awake.
 
-**Vinculado a:** [[Index/02 - Genetics & Breeding]]
+**Vinculado a:** [[Index/02 - Breeding]]
 
-**Conexiones:** [[BreedingContainer]], [[AsyncBreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[BreedingService]]
+**Conexiones:** [[AsyncBreedingService]], [[BreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[CreatureLifeStageTableSO]], [[GameManager]], [[BreedingDevConsole]], [[BreedingContainer]]

@@ -1,6 +1,8 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+namespace MoriMonchiSimulator
+{
 
 // Visual card for ONE MoriMochi inside the in-game grid (Canvas).
 // Pure view (Etapa 1.2 visual): receives a CreatureDNA and paints itself.
@@ -46,4 +48,5 @@ public class CreatureVisualUI : MonoBehaviour
         d.BusyState == BusyReason.Breeding        ? "Breeding" :
         d.BusyState == BusyReason.QueuedForCombat ? "In Queue" :
         "Free";
+}
 }

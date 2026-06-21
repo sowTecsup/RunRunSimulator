@@ -2,11 +2,9 @@ using Sirenix.OdinInspector;
 using System;
 using UnityEngine;
 using UnityEngine.Serialization;
+namespace MoriMonchiSimulator
+{
 
-// Genetics Lab core + single source of truth for the shared assets.
-// Other MonoBehaviours (CombatController, BreedingController, AsyncCombatService,
-// CloudSyncService) resolve their assets via GameManager.Instance in Awake/Start
-// — no serialized cross-references needed.
 [DefaultExecutionOrder(-10)]
 public class GameManager : MonoBehaviour
 {
@@ -24,13 +22,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private RarityOddsTableSO rarityOddsTable;
 
     [AssetsOnly, BoxGroup("Setup")]
-    [FormerlySerializedAs("_inheritanceOddsTable")]
-    [SerializeField] private InheritanceOddsTableSO inheritanceOddsTable;
-
-    [AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CombatManagerSO combatConfig;
-
-    [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private PersonalityProfileSO personalityProfiles;
 
     [Required, AssetsOnly, BoxGroup("Setup")]
@@ -46,98 +37,20 @@ public class GameManager : MonoBehaviour
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private PartVisualBankSO partVisualBank;
 
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private FurTypeDatabaseSO furTypeDatabase;
+
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
-
-    [Title("Dev Tools")]
-    [BoxGroup("Dev Tools"), SerializeField, LabelText("Dabloons to add")]
-    private int devDabloonsAmount = 500;
-
-    [Button("Add Dabloons (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Dev Tools")]
-    private void DevAddDabloons()
-    {
-        if (inventory == null) { Debug.LogWarning("[GameManager] No inventory assigned."); return; }
-        inventory.AddDabloons(devDabloonsAmount);
-        GameEvents.InventoryChanged(inventory);
-        Debug.Log($"[GameManager] +{devDabloonsAmount} Dabloons → total: {inventory.Dabloons}");
-    }
-
-    [Button("Reset Dabloons (DEV)", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.3f), BoxGroup("Dev Tools")]
-    private void DevResetDabloons()
-    {
-        if (inventory == null) { Debug.LogWarning("[GameManager] No inventory assigned."); return; }
-        inventory.ResetDabloons();
-        SaveSystem.SaveInventory(inventory);
-        GameEvents.InventoryChanged(inventory);
-        Debug.Log("[GameManager] Dabloons reset to 0.");
-    }
-
-    [Button("Clear Furniture Owned (DEV)", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.3f), BoxGroup("Dev Tools")]
-    private void DevClearFurnitureOwned()
-    {
-        if (inventory == null) { Debug.LogWarning("[GameManager] No inventory assigned."); return; }
-        inventory.ClearFurnitureOwned();
-        SaveSystem.SaveInventory(inventory);
-        GameEvents.InventoryChanged(inventory);
-        Debug.Log("[GameManager] Furniture owned list cleared.");
-    }
-
-    [Button("Clear World Props (DEV)", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.3f), BoxGroup("Dev Tools")]
-    private void DevClearWorldProps()
-    {
-        if (inventory == null) { Debug.LogWarning("[GameManager] No inventory assigned."); return; }
-        inventory.ClearWorldPropsStored();
-        inventory.ClearHotbar();
-        SaveSystem.SaveInventory(inventory);
-        GameEvents.InventoryChanged(inventory);
-        Debug.Log("[GameManager] World props and hotbar cleared.");
-    }
-
-    [BoxGroup("Current Creature")]
-    [FormerlySerializedAs("_currentDNA")]
-    [SerializeField, ReadOnly, InlineProperty, HideLabel]
-    private CreatureDNA currentDNA = new CreatureDNA();
-
-    [BoxGroup("Current Creature")]
-    [FormerlySerializedAs("_currentDNAString")]
-    [SerializeField, ReadOnly, LabelText("DNA String")]
-    private string currentDNAString = "---";
 
     [ShowInInspector, ReadOnly, LabelText("Last Minted ID")]
     [BoxGroup("Mint")]
     private string lastMintedID = "---";
 
-    [Title("Rarity Breakdown")]
-    [ShowInInspector, ReadOnly, LabelText("Body Shape"), LabelWidth(80)]
-    [BoxGroup("Current Creature/Rarity")]
-    private Rarity rarityBodyShape;
-
-    [ShowInInspector, ReadOnly, LabelText("Arms"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
-    private Rarity rarityArms;
-
-    [ShowInInspector, ReadOnly, LabelText("Eyes"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
-    private Rarity rarityEyes;
-
-    [ShowInInspector, ReadOnly, LabelText("Mouth"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
-    private Rarity rarityMouth;
-
-    [ShowInInspector, ReadOnly, LabelText("Score"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
-    private string rarityScore = "---";
-
-    [BoxGroup("Load by ID")]
-    [InfoBox("Format: BODYSHAPEID-ARMID-EYEID-MOUTHID-RRGGBB   (e.g.  BS0-A3-E1-M2-FF00AA)")]
-    [FormerlySerializedAs("_loadIDInput")]
-    [SerializeField, LabelText("DNA String")]
-    private string loadIDInput = "";
-
     // ── Lifecycle ─────────────────────────────────────────────────
 
     private void Awake() => Instance = this;
 
-    // GameManager is the single owner of persistence: it's the only gameplay
-    // script that knows SaveSystem and CloudSync. Everyone else just fires
-    // GameEvents.RegistryChanged() / FurnitureChanged() / InventoryChanged() and
-    // these handlers do the save (+ cloud push for creatures).
     private void OnEnable()
     {
         GameEvents.OnRegistryChanged  += Persist;
@@ -200,63 +113,6 @@ public class GameManager : MonoBehaviour
         if (changed) SaveSystem.SaveInventory(inventory);
     }
 
-    // ── Private Methods ───────────────────────────────────────────
-
-    [Button("Generate Random Creature", ButtonSizes.Large), GUIColor(0.4f, 0.85f, 0.4f)]
-    [BoxGroup("Current Creature")]
-    private void GenerateRandomCreature()
-    {
-        currentDNA       = CreatureGenerator.GenerateRandom(database, rarityOddsTable);
-        currentDNAString = currentDNA.ToStringID();
-        RefreshRarityBreakdown();
-        Debug.Log($"[GameManager] Generated (preview): {currentDNAString}");
-    }
-
-    [Button("Load from ID"), GUIColor(0.4f, 0.6f, 0.95f), BoxGroup("Load by ID")]
-    private void LoadFromID()
-    {
-        if (string.IsNullOrWhiteSpace(loadIDInput)) { Debug.LogWarning("[GameManager] No ID entered."); return; }
-
-        currentDNA       = CreatureDNA.FromID(loadIDInput);
-        currentDNAString = currentDNA.ToStringID();
-        RefreshRarityBreakdown();
-        Debug.Log($"[GameManager] Loaded: {currentDNAString}");
-        ValidateDNA(currentDNA);
-    }
-
-    private void RefreshRarityBreakdown()
-    {
-        if (database == null) return;
-
-        var bodyShape = database.GetBodyShape(currentDNA.BodyShapeID);
-        var arm       = database.GetArm(currentDNA.ArmID);
-        var eye       = database.GetEye(currentDNA.EyeID);
-        var mouth     = database.GetMouth(currentDNA.MouthID);
-
-        rarityBodyShape = bodyShape?.Rarity ?? Rarity.Common;
-        rarityArms      = arm?.Rarity       ?? Rarity.Common;
-        rarityEyes      = eye?.Rarity       ?? Rarity.Common;
-        rarityMouth     = mouth?.Rarity     ?? Rarity.Common;
-
-        float avg   = ((int)rarityBodyShape + (int)rarityArms + (int)rarityEyes + (int)rarityMouth) / 4f;
-        rarityScore = $"{(Rarity)Mathf.RoundToInt(avg)}  (avg {avg:F2})";
-    }
-
-    private void ValidateDNA(CreatureDNA dna)
-    {
-        if (database == null) return;
-        LogPart("Body",  database.GetBodyShape(dna.BodyShapeID), dna.BodyShapeID);
-        LogPart("Arms",  database.GetArm(dna.ArmID),             dna.ArmID);
-        LogPart("Eyes",  database.GetEye(dna.EyeID),             dna.EyeID);
-        LogPart("Mouth", database.GetMouth(dna.MouthID),         dna.MouthID);
-    }
-
-    private static void LogPart(string label, BodyPart part, string id)
-    {
-        if (part != null) Debug.Log($"  [OK] {label,-6} → [{id}] {part.Name}  ({part.Rarity})");
-        else              Debug.LogWarning($"  [!!] {label,-6} → ID '{id}' not found in database.");
-    }
-
     // ── Public Methods ────────────────────────────────────────────
 
     // Fire-and-forget cloud push. PushAsync internally checks isSignedIn,
@@ -308,11 +164,11 @@ public class GameManager : MonoBehaviour
     public PlayerInventorySO      Inventory            => inventory;
     public CreatureDatabaseSO     Database             => database;
     public RarityOddsTableSO      RarityOddsTable      => rarityOddsTable;
-    public InheritanceOddsTableSO InheritanceOddsTable => inheritanceOddsTable;
-    public CombatManagerSO        CombatConfig         => combatConfig;
     public PersonalityProfileSO   PersonalityProfiles  => personalityProfiles;
     public PartVisualBankSO       PartVisualBank       => partVisualBank;
+    public FurTypeDatabaseSO      FurTypeDatabase      => furTypeDatabase;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures"), BoxGroup("Registry")]
     public int RegistryCount => creatureRegistry?.Count ?? 0;
+}
 }

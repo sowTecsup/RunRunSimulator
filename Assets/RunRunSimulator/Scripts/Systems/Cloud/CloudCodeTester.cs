@@ -5,6 +5,8 @@ using Sirenix.OdinInspector;
 using Unity.Services.Authentication;
 using Unity.Services.CloudCode;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Diagnostic tool for Cloud Code endpoints. Attach to any GameObject; the
 // component reuses whatever Unity Services session CloudSyncService established.
@@ -94,4 +96,5 @@ public class CloudCodeTester : MonoBehaviour
         public int remaining;
         public int dropped;
     }
+}
 }

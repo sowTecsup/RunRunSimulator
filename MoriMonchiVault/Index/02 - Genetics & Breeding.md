@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, genetics, breeding, dna, visual-assembler]
+tags: [index, genetics]
 ---
 
 # 02 - Genetics & Breeding

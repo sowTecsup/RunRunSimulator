@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Read-only grid view of every registered MoriMochi. Driven entirely by events:
 // the registry arrives in the event payload, so this view never reaches into
@@ -115,4 +117,5 @@ public class CreatureGridView : MonoBehaviour
             State == "Free" ? new Color(0.6f, 0.95f, 0.65f) :
                               new Color(1f, 0.9f, 0.5f);
     }
+}
 }

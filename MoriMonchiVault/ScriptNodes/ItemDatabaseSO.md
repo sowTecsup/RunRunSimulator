@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, furniture]
+tags: [script, furniture]
 ---
 
 # ItemDatabaseSO.md
 
-**Ruta:** `Data/ItemDatabaseSO.cs`
+**Ruta:** `Data/Databases/ItemDatabaseSO.cs`
 
 **Responsabilidad:** Database de todos los items no-mueble.
 

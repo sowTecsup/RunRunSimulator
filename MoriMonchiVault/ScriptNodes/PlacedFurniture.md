@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, furniture]
+tags: [script, furniture]
 ---
 
 # PlacedFurniture.md
 
-**Ruta:** `Data/PlacedFurniture.cs`
+**Ruta:** `Data/Furniture/PlacedFurniture.cs`
 
 **Responsabilidad:** Record serializable de mueble colocado: ID, posición, rotación.
 

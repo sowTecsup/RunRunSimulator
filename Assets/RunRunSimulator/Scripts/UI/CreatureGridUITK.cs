@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // UI Toolkit twin of CreatureGridUI. Same contract, different rendering tech:
 // instead of instantiating uGUI prefabs under a GridLayoutGroup, it clones a
@@ -236,4 +238,5 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
         d.BusyState == BusyReason.Breeding        ? "Breeding" :
         d.BusyState == BusyReason.QueuedForCombat ? "In Queue" :
         "Free";
+}
 }

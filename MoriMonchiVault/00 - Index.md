@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, index, entry-point]
+tags: [index, core]
 ---
 
 # 00 — Index (AI Entry Point)

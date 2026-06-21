@@ -1,5 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // EDITOR HELPER — temporary, removable. Drop it on a furniture prefab ROOT, hit the button,
 // and it moves the root's CHILDREN so the root pivot lands at the footprint's horizontal
@@ -81,4 +83,5 @@ public class FurniturePivotAligner : MonoBehaviour
         Gizmos.DrawWireCube(Vector3.zero, new Vector3(footprint.x * cellSize, 0.02f, footprint.y * cellSize));
     }
 #endif
+}
 }

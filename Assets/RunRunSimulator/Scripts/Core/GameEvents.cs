@@ -1,4 +1,6 @@
 using System;
+namespace MoriMonchiSimulator
+{
 
 // Central event bus. Publishers and subscribers depend only on this class,
 // never on each other — that decoupling is the whole point: gameplay logic
@@ -78,4 +80,5 @@ public static class GameEvents
 
     public static event Action<PlayerInventorySO> OnInventoryReloaded;
     public static void InventoryReloaded(PlayerInventorySO inventory) => OnInventoryReloaded?.Invoke(inventory);
+}
 }

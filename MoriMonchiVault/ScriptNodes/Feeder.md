@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, player-world]
+tags: [script, world]
 ---
 
 # Feeder.cs
 
-**Ruta:** `World/Feeder.cs`
+**Ruta:** `World/Needs/Feeder.cs`
 
 **Responsabilidad:** Estación concreta que restaura `NeedType.Health`.
 

@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, genetics]
+tags: [script, genetics]
 ---
 
 # PartVisualBankSO.cs
 
-**Ruta:** `Data/PartVisualBankSO.cs`
+**Ruta:** `Data/Databases/PartVisualBankSO.cs`
 
 **Responsabilidad:** Mapa part ID → prefab `BodyPartJoint`. Botones "Populate from Database" y "Fill Empty with Defaults". Singleton `Current`.
 

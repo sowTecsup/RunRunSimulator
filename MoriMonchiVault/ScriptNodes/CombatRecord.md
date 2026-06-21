@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, combat]
+tags: [script, combat]
 ---
 
 # CombatRecord.cs
 
-**Ruta:** `Data/CombatRecord.cs`
+**Ruta:** `Data/Combat/CombatRecord.cs`
 
 **Responsabilidad:** Registro serializable de un combate completo. Contiene lista de `CombatTurn`, resultado, metadatos.
 

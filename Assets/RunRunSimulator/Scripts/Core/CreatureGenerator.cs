@@ -1,4 +1,6 @@
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 public static class CreatureGenerator
 {
@@ -27,10 +29,9 @@ public static class CreatureGenerator
             ArmID        = arm?.ID       ?? "",
             EyeID        = eye?.ID       ?? "",
             MouthID      = mouth?.ID     ?? "",
-            BaseColor    = baseColor,
-            ShadowsColor = ColorGenetics.DeriveShadow(baseColor),
-            OutlineColor = ColorGenetics.DeriveOutline(baseColor),
-            FurType      = (FurType)furValues.GetValue(Random.Range(0, furValues.Length)),
+            BaseColor      = baseColor,
+            SecondaryColor = ColorGenetics.DeriveSecondary(baseColor),
+            FurType        = (FurType)furValues.GetValue(Random.Range(0, furValues.Length)),
         };
     }
 
@@ -54,4 +55,5 @@ public static class CreatureGenerator
         }
         return db?.GetRandomPart();
     }
+}
 }

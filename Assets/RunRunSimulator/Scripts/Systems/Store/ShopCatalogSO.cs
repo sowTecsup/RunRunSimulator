@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // One shop's catalog: the things THIS store sells and what each costs. Three stores = three
 // assets, each with its own prices and schedules. The catalog owns two temporal schedules:
@@ -15,7 +17,7 @@ using UnityEngine;
 //
 // Having both schedules at the catalog level means a designer configures "this shop runs
 // weekend deals in winter" in one place, not per item.
-[CreateAssetMenu(fileName = "ShopCatalog", menuName = "RunRunSimulator/Shop Catalog")]
+[CreateAssetMenu(fileName = "ShopCatalog", menuName = "RunRunSimulator/Store/Shop Catalog")]
 public class ShopCatalogSO : SerializedScriptableObject
 {
     [Serializable]
@@ -143,4 +145,5 @@ public class ShopCatalogSO : SerializedScriptableObject
     private static RestockPeriod PeriodOf(DateTime d) =>
         d.Day <= 10 ? RestockPeriod.EarlyMonth :
         d.Day <= 20 ? RestockPeriod.MidMonth   : RestockPeriod.EndOfMonth;
+}
 }

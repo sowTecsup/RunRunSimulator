@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Sirenix.OdinInspector;
 using Unity.Services.Authentication;
-using Unity.Services.CloudCode;
 using Unity.Services.CloudSave;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Orchestrates async combat: enqueues creatures via Cloud Code, polls Cloud Save for results.
 // Cloud Code scripts:
@@ -75,8 +76,9 @@ public class AsyncCombatService : MonoBehaviour
 
         dna.BusyState = BusyReason.QueuedForCombat;
         dna.QueuedAt  = DateTime.UtcNow;
-        if (CombatManagerSO.Current != null)
-            dna.Needs.SpendEnergy(CombatManagerSO.Current.EnergyCostToQueue);   // queueing tires it
+        var cfg = CombatController.Instance != null ? CombatController.Instance.Config : null;
+        if (cfg != null)
+            dna.Needs.SpendEnergy(cfg.EnergyCostToQueue);
         inFlightEnqueues.Add(dna.UniqueID);
         GameEvents.RegistryChanged(registry);
 
@@ -104,8 +106,7 @@ public class AsyncCombatService : MonoBehaviour
                 { "playerName",   playerName },
             };
 
-            var raw      = await CloudCodeService.Instance.CallEndpointAsync<string>(endpoint, payload);
-            var response = JsonConvert.DeserializeObject<CloudMatchResponse>(raw);
+            var response = await CloudEndpoint.CallAsync<CloudMatchResponse>(endpoint, payload);
 
             switch (response.Status)
             {
@@ -131,7 +132,7 @@ public class AsyncCombatService : MonoBehaviour
                     break;
 
                 default:
-                    status = $"Unexpected response: {raw}";
+                    status = $"Unexpected response status: {response.Status}";
                     Debug.LogWarning($"[AsyncCombat] {status}");
                     break;
             }
@@ -195,9 +196,8 @@ public class AsyncCombatService : MonoBehaviour
         if (!AuthenticationService.Instance.IsSignedIn) return new HashSet<string>();
         try
         {
-            var raw  = await CloudCodeService.Instance.CallEndpointAsync<string>(
+            var resp = await CloudEndpoint.CallAsync<CloudQueueStatusResponse>(
                 CLOUD_CODE_QUEUE_STATUS, new Dictionary<string, object>());
-            var resp = JsonConvert.DeserializeObject<CloudQueueStatusResponse>(raw);
 
             // ok=false means a pool read failed server-side → we only have a partial
             // view. Treat exactly like unreachable (null) so reconcile is skipped and
@@ -396,9 +396,8 @@ public class AsyncCombatService : MonoBehaviour
         status = $"Dequeueing \"{dna.CustomName}\"...";
         try
         {
-            var payload = new Dictionary<string, object> { { "creatureId", dna.UniqueID } };
-            var raw      = await CloudCodeService.Instance.CallEndpointAsync<string>("dequeue-combat", payload);
-            var response = JsonConvert.DeserializeObject<CloudDequeueResponse>(raw);
+            var payload  = new Dictionary<string, object> { { "creatureId", dna.UniqueID } };
+            var response = await CloudEndpoint.CallAsync<CloudDequeueResponse>("dequeue-combat", payload);
 
             dna.BusyState = BusyReason.None;
             GameEvents.RegistryChanged(registry);
@@ -459,4 +458,5 @@ public class AsyncCombatService : MonoBehaviour
         public List<string>     Log   = new List<string>();
         public List<CombatTurn> Turns = new List<CombatTurn>(); // structured replay from the server
     }
+}
 }

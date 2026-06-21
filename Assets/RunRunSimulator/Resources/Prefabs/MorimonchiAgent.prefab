@@ -199,6 +199,9 @@ MonoBehaviour:
   onPet:
     m_PersistentCalls:
       m_Calls: []
+  forceRagdoll: 0
+  logStateTransitions: 0
+  snapWarnThreshold: 0.75
 --- !u!136 &6063265132029860742
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -349,6 +352,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NameTag
   showDistance: 8
   uprightOnly: 1
+  penRaise: 0.6
+  penScale: 0.8
 --- !u!114 &227817693175286306
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,3 +1,5 @@
+namespace MoriMonchiSimulator
+{
 public enum Rarity
 {
     Common    = 0,
@@ -299,4 +301,5 @@ public enum CombatOutcome
     Won  = 0,
     Lost = 1,
     Draw = 2,
+}
 }

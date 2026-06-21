@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // Always-on play-mode hotbar HUD: 6 slots at the bottom, the active one highlighted.
 // Pure display — it owns no state, it reads the inventory's hotbarSlots and the
@@ -117,4 +119,5 @@ public class HotbarHUDUITK : MonoBehaviour
         var def = database != null ? database.GetById(id) : null;
         return def != null && !string.IsNullOrEmpty(def.DisplayName) ? def.DisplayName : id;
     }
+}
 }

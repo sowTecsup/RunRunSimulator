@@ -2,6 +2,8 @@ using System.Collections;
 using System.Text;
 using Sirenix.OdinInspector;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // The physical storage box in the shop: an access point to the player's global
 // world-prop inventory (worldPropsStored), not a container with its own data. Two
@@ -126,4 +128,5 @@ public class StorageContainer : MonoBehaviour, IInteractable
         if (!Application.isPlaying) { Debug.LogWarning("[StorageContainer] Enter Play mode to eject."); return; }
         Eject(id);
     }
+}
 }

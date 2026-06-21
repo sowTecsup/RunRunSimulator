@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, ui, uitk, panels, input]
+tags: [index, ui]
 ---
 
 # 05 - UI System

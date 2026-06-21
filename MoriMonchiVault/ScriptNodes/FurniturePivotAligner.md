@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, script, furniture]
+tags: [script, furniture]
 ---
 
 # FurniturePivotAligner.cs

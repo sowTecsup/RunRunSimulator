@@ -23,7 +23,7 @@ MonoBehaviour:
     SerializationNodes:
     - Name: placed
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[PlacedFurniture,
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[MoriMonchiSimulator.PlacedFurniture,
         Assembly-CSharp]], mscorlib
     - Name: comparer
       Entry: 7
@@ -34,7 +34,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 10
+      Data: 13
     - Name: 
       Entry: 7
       Data: 
@@ -43,7 +43,7 @@ MonoBehaviour:
       Data: 10_2
     - Name: $v
       Entry: 7
-      Data: 2|PlacedFurniture, Assembly-CSharp
+      Data: 2|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F4
@@ -70,7 +70,7 @@ MonoBehaviour:
       Data: 13_6
     - Name: $v
       Entry: 7
-      Data: 3|PlacedFurniture, Assembly-CSharp
+      Data: 3|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F6
@@ -97,7 +97,7 @@ MonoBehaviour:
       Data: 18_8
     - Name: $v
       Entry: 7
-      Data: 4|PlacedFurniture, Assembly-CSharp
+      Data: 4|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F3
@@ -124,7 +124,7 @@ MonoBehaviour:
       Data: 18_5
     - Name: $v
       Entry: 7
-      Data: 5|PlacedFurniture, Assembly-CSharp
+      Data: 5|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F4
@@ -151,7 +151,7 @@ MonoBehaviour:
       Data: 16_3
     - Name: $v
       Entry: 7
-      Data: 6|PlacedFurniture, Assembly-CSharp
+      Data: 6|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F5
@@ -178,7 +178,7 @@ MonoBehaviour:
       Data: 15_9
     - Name: $v
       Entry: 7
-      Data: 7|PlacedFurniture, Assembly-CSharp
+      Data: 7|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F0
@@ -205,7 +205,7 @@ MonoBehaviour:
       Data: 10_16
     - Name: $v
       Entry: 7
-      Data: 8|PlacedFurniture, Assembly-CSharp
+      Data: 8|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F0
@@ -232,7 +232,7 @@ MonoBehaviour:
       Data: 3_27
     - Name: $v
       Entry: 7
-      Data: 9|PlacedFurniture, Assembly-CSharp
+      Data: 9|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F3
@@ -259,7 +259,7 @@ MonoBehaviour:
       Data: 7_27
     - Name: $v
       Entry: 7
-      Data: 10|PlacedFurniture, Assembly-CSharp
+      Data: 10|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F7
@@ -286,7 +286,7 @@ MonoBehaviour:
       Data: 11_27
     - Name: $v
       Entry: 7
-      Data: 11|PlacedFurniture, Assembly-CSharp
+      Data: 11|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
       Data: F8
@@ -296,6 +296,87 @@ MonoBehaviour:
     - Name: CellY
       Entry: 3
       Data: 27
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 19_26
+    - Name: $v
+      Entry: 7
+      Data: 12|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F4
+    - Name: CellX
+      Entry: 3
+      Data: 19
+    - Name: CellY
+      Entry: 3
+      Data: 26
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 18_23
+    - Name: $v
+      Entry: 7
+      Data: 13|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F5
+    - Name: CellX
+      Entry: 3
+      Data: 18
+    - Name: CellY
+      Entry: 3
+      Data: 23
+    - Name: Rotation
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: 23_24
+    - Name: $v
+      Entry: 7
+      Data: 14|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
+    - Name: DefId
+      Entry: 1
+      Data: F6
+    - Name: CellX
+      Entry: 3
+      Data: 23
+    - Name: CellY
+      Entry: 3
+      Data: 24
     - Name: Rotation
       Entry: 3
       Data: 0

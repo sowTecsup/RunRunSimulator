@@ -1,5 +1,5 @@
 ---
-tags: [fur, shadergraph, visual, descartado, poc]
+tags: [archive]
 ---
 
 # 00 - Fur Shaders Index

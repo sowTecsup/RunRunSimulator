@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // Always-on screen overlay: the current date (top-right) and a small input legend
 // (top-left). Generic chrome, not tied to any system — it just reads the clock and a
@@ -121,4 +123,5 @@ public class InfoOverlayUITK : MonoBehaviour
             container.Add(row);
         }
     }
+}
 }

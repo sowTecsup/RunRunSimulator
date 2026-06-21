@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, script, gdd-core]
+tags: [script, core]
 ---
 
 # Interfaces.cs

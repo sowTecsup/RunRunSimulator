@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, furniture, building, shop, stage-3]
+tags: [index, furniture]
 ---
 
 # 10 - Furniture & Building

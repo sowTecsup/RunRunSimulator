@@ -1,6 +1,8 @@
 using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // The COMMERCIAL data of one shop listing: price, per-item discount percentage, stock
 // counts and tags. Kept apart from the item/furniture definition so the same def can
@@ -59,4 +61,5 @@ public class StoreShopData
         CurrentStock--;
         return true;
     }
+}
 }

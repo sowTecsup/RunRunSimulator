@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, player-world]
+tags: [script, world]
 ---
 
 # NeedStation.cs
 
-**Ruta:** `World/NeedStation.cs`
+**Ruta:** `World/Needs/NeedStation.cs`
 
 **Responsabilidad:** Estación abstracta de restauración de necesidades. Slot-based capacity, fill rate. Se auto-registra en `NeedStationRegistry`.
 

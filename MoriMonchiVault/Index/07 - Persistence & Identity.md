@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, persistence, identity, save, events]
+tags: [index, cloud]
 ---
 
 # 07 - Persistence & Identity

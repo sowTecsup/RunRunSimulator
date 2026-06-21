@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Owns the BUILD-MODE lifecycle, its sub-state machine, and the placement ghost.
 // Entered/left from the Player (B = PlayerInputs.BuildToggled); the rest is driven by the
@@ -415,4 +417,5 @@ public class BuildModeController : MonoBehaviour
             r.SetPropertyBlock(mpb);
         }
     }
+}
 }

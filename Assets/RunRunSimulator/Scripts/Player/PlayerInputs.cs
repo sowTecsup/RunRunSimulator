@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+namespace MoriMonchiSimulator
+{
 
 // Single source of player intent and the ONLY script that touches the Input
 // System. No gameplay logic — it just translates raw Input System callbacks into
@@ -132,4 +134,5 @@ public class PlayerInputs : MonoBehaviour
     }
 
     private void OnBuild(InputAction.CallbackContext c) => BuildToggled?.Invoke();
+}
 }

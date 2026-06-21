@@ -1,0 +1,157 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+namespace MoriMonchiSimulator
+{
+
+// Genetic string format: "BODYSHAPE-ARM-EYE-MOUTH-RRGGBB"  (e.g. "BS0-A3-E1-M2-FF00AA")
+// Registry key (UniqueID): "<genetic_string>-<timestamp_ticks>"
+// Part IDs must not contain '-'.
+[Serializable]
+public class CreatureDNA
+{
+    // ── Genetics ──────────────────────────────────────────────────
+    public string BodyShapeID = "";
+    public string ArmID       = "";
+    public string EyeID       = "";
+    public string MouthID     = "";
+
+    [ColorUsage(false)]
+    public Color BaseColor = Color.white;
+
+    [ColorUsage(false)]
+    public Color SecondaryColor = Color.white;
+
+    public FurType FurType = FurType.Smooth;
+
+    // ── Identity ──────────────────────────────────────────────────
+    public string   CustomName = "";     // editable display name — auto-assigned on Mint/Breed
+    public long     Timestamp = 0;       // UTC ticks set on Stamp(); 0 = not yet registered
+    public DateTime BirthDate;           // human-readable creation time
+
+    // ── Lineage ───────────────────────────────────────────────────
+    public string       MotherID    = "";
+    public string       FatherID    = "";
+    public List<string> ChildrenIDs = new List<string>();
+
+    // ── Social ────────────────────────────────────────────────────
+    public CreatureGender Gender = CreatureGender.Unknown;
+
+    // Behavioral archetype — random at mint/hatch, NOT inherited, NOT in the
+    // genetic string. Drives world movement (see MoriMochiAgent / PersonalityProfileSO).
+    public Personality Personality = Personality.Curious;
+
+    // ── Progression ───────────────────────────────────────────────
+    public int FightCount = 0;
+    public int WinCount   = 0;
+    public int BreedCount = 0;
+
+    // ── Tier per slot ─────────────────────────────────────────────
+    public Tier BodyTier  = Tier.Tier1;
+    public Tier ArmTier   = Tier.Tier1;
+    public Tier EyeTier   = Tier.Tier1;
+    public Tier MouthTier = Tier.Tier1;
+
+    // ── Base Stats (asignados en Mint por StatCalculator — Etapa 2.1) ─
+    public float BaseHP     = 0f;
+    public float BaseAttack = 0f;
+    public float BaseSpeed  = 0f;
+
+    // ── Combat history ────────────────────────────────────────────
+    // One CombatRecord per finished fight (local + async), turn-by-turn for the
+    // future Combat Visualizer. Persisted with the DNA (local + cloud), unbounded
+    // — MaxFightCount can change, so we don't cap it here.
+    public List<CombatRecord> CombatHistory = new List<CombatRecord>();
+
+    // ── Mortality ─────────────────────────────────────────────────
+    public bool IsDead = false;
+
+    // ── Runtime needs (World) ─────────────────────────────────────
+    // Mutable wellbeing (health/energy/affect) the MoriMochiAgent ticks while spawned. Lives here
+    // because CreatureDNA is already the persisted save record (like CombatHistory/BusyState) — so
+    // it rides the local + Cloud Save with zero extra plumbing. NOT part of the genetic string.
+    public NeedsState Needs = new NeedsState();
+
+    // ── Busy state ────────────────────────────────────────────────
+    public BusyReason BusyState = BusyReason.None;
+    public bool IsBusy => BusyState != BusyReason.None;
+
+    // When this creature was enqueued for async combat (UTC). Display-only metadata
+    // for the Resultados tab ("encolado a las HH:mm"); set on enqueue, not part of
+    // the genetic string. default = never queued.
+    public DateTime QueuedAt;
+
+    // ── Breeding timer (local cache for display; server is authoritative) ─
+    public long   BreedReadyAt   = 0;    // server epoch ms when the egg can hatch; 0 = not breeding
+    public string BreedPartnerID = "";   // the other parent — lets the client rebuild the pair locally
+    public string HomePenKey     = "";   // breeding pen (furniture CellKey) this creature breeds in; reload re-pens it here
+    public int    HomePenSlot    = -1;   // fixed breed slot index inside that pen; -1 = unassigned. Persists as the pair's preference
+
+    // Whole days lived since BirthDate (UTC). Drives the NameTag life stage; 0 until stamped.
+    public int AgeDays => BirthDate == default ? 0 : Mathf.Max(0, (int)(DateTime.UtcNow - BirthDate).TotalDays);
+
+    // Unique registry key: two creatures with identical genes are still different entries.
+    public string UniqueID => Timestamp > 0 ? $"{ToStringID()}-{Timestamp}" : "";
+
+    // Call once before registering. Sets Timestamp and BirthDate atomically.
+    public void Stamp()
+    {
+        var now   = DateTime.UtcNow;
+        Timestamp = now.Ticks;
+        BirthDate = now;
+    }
+
+    public string ToStringID() =>
+        $"{BodyShapeID}-{ArmID}-{EyeID}-{MouthID}-{ColorUtility.ToHtmlStringRGB(BaseColor)}";
+
+    // Returns "{body} {arm} {eye} {mouth}" using part Name fields; falls back to part IDs.
+    public string GetDisplayName(CreatureDatabaseSO db)
+    {
+        string body  = db?.GetBodyShape(BodyShapeID)?.Name ?? BodyShapeID;
+        string arm   = db?.GetArm(ArmID)?.Name             ?? ArmID;
+        string eye   = db?.GetEye(EyeID)?.Name             ?? EyeID;
+        string mouth = db?.GetMouth(MouthID)?.Name         ?? MouthID;
+        return $"{body} {arm} {eye} {mouth}";
+    }
+
+    // Parses only the genetic string (BODYSHAPE-ARM-EYE-MOUTH-RRGGBB).
+    // Does not parse Timestamp or lineage — use JSON deserialization for full state.
+    public static CreatureDNA FromID(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            Debug.LogError("[CreatureDNA] Cannot parse a null or empty ID.");
+            return new CreatureDNA();
+        }
+
+        int lastDash = id.LastIndexOf('-');
+        if (lastDash < 0 || id.Length - lastDash - 1 != 6)
+        {
+            Debug.LogError($"[CreatureDNA] Invalid ID '{id}'. Expected: BODYSHAPE-ARM-EYE-MOUTH-RRGGBB");
+            return new CreatureDNA();
+        }
+
+        string   colorHex = id.Substring(lastDash + 1);
+        string[] parts    = id.Substring(0, lastDash).Split('-');
+
+        if (parts.Length != 4)
+        {
+            Debug.LogError($"[CreatureDNA] Expected 4 part tokens, got {parts.Length} in '{id}'.");
+            return new CreatureDNA();
+        }
+
+        var dna = new CreatureDNA
+        {
+            BodyShapeID = parts[0],
+            ArmID       = parts[1],
+            EyeID       = parts[2],
+            MouthID     = parts[3],
+        };
+
+        if (!ColorUtility.TryParseHtmlString("#" + colorHex, out dna.BaseColor))
+            Debug.LogWarning($"[CreatureDNA] Could not parse color '{colorHex}', defaulting to white.");
+
+        return dna;
+    }
+}
+}

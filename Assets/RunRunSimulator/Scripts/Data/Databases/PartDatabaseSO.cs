@@ -3,6 +3,8 @@ using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 public abstract class PartDatabaseSO<T> : SerializedScriptableObject where T : BodyPart
 {
@@ -139,4 +141,5 @@ public abstract class PartDatabaseSO<T> : SerializedScriptableObject where T : B
     [ShowInInspector, ReadOnly]
     [TableList(AlwaysExpanded = false, DrawScrollView = true, MaxScrollViewHeight = 300)]
     public List<T> PartsTable => parts?.Values.Where(p => p != null).ToList() ?? new List<T>();
+}
 }

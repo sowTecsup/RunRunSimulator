@@ -1,4 +1,6 @@
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Stamped on every spawned furniture instance so build mode can pick a placed piece by
 // pointing AT it (a furniture-layer raycast) and recover its anchor cell directly — no second
@@ -6,4 +8,5 @@ using UnityEngine;
 public class PlacedFurnitureMarker : MonoBehaviour
 {
     public Vector2Int AnchorCell;
+}
 }

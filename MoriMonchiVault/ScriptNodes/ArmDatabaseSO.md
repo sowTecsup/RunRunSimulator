@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, script, genetics]
+tags: [script, genetics]
 ---
 
 # ArmDatabaseSO.cs

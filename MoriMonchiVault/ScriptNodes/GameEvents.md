@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, script, persistence]
+tags: [script, cloud]
 ---
 
 # GameEvents.cs

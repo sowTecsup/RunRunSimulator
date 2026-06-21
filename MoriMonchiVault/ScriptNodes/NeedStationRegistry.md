@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, player-world]
+tags: [script, world]
 ---
 
 # NeedStationRegistry.cs
 
-**Ruta:** `World/NeedStationRegistry.cs`
+**Ruta:** `World/Needs/NeedStationRegistry.cs`
 
 **Responsabilidad:** Índice runtime de estaciones. `GetClosest(pos, need, onlyAvailable)`. Singleton `Instance`.
 

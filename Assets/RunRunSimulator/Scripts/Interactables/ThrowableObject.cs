@@ -1,4 +1,6 @@
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // A Rigidbody object the player can pick up, hold in front of them, and throw.
 // Works for the starter cube and anything else with a Rigidbody + Collider.
@@ -62,4 +64,5 @@ public class ThrowableObject : MonoBehaviour, IThrowable
         // Velocity toward the anchor — keeps the body solid against colliders.
         rb.linearVelocity = (holdAnchor.position - rb.position) * followSpeed;
     }
+}
 }

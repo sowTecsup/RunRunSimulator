@@ -4,6 +4,8 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Requires: com.unity.nuget.newtonsoft-json in Package Manager.
 // Saves/loads the full CreatureRegistrySO (including genealogy tree) to Application.persistentDataPath.
@@ -161,4 +163,5 @@ public static class SaveSystem
             return c;
         }
     }
+}
 }

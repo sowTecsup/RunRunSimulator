@@ -1,6 +1,8 @@
 using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // A storefront in the world: holds the shop's catalog (ShopCatalogSO) and runs the two
 // purchase flows. The StorePanel UITK reads Catalog to list what's for sale and calls
@@ -100,4 +102,5 @@ public class StoreManager : MonoBehaviour
         var now = GameManager.Instance != null ? GameManager.Instance.ServerNow : DateTime.Now;
         if (catalog.NeedsRestock(now)) catalog.RestockAll(now);
     }
+}
 }

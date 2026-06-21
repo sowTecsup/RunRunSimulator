@@ -23,7 +23,7 @@ MonoBehaviour:
     SerializationNodes:
     - Name: creatures
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[CreatureDNA,
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[MoriMonchiSimulator.CreatureDNA,
         Assembly-CSharp]], mscorlib
     - Name: comparer
       Entry: 7
@@ -34,7 +34,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 25
+      Data: 27
     - Name: 
       Entry: 7
       Data: 
@@ -43,7 +43,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M3-07A4BB-639156193256399807
     - Name: $v
       Entry: 7
-      Data: 2|CreatureDNA, Assembly-CSharp
+      Data: 2|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -61,49 +61,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.02745098
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.6431373
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.733333349
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.160606012
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.444075674
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.8833333
     - Name: 
       Entry: 4
       Data: 1
@@ -196,8 +178,8 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 4|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 4|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -212,16 +194,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 5|NeedsState, Assembly-CSharp
+      Data: 5|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 93.4286957
+      Data: 99.97243
     - Name: Energy
       Entry: 4
-      Data: 88.42443
+      Data: 100
     - Name: Affect
       Entry: 4
-      Data: 99.53975
+      Data: 99.97243
     - Name: 
       Entry: 8
       Data: 
@@ -263,7 +245,7 @@ MonoBehaviour:
       Data: BS1-A0-E2-M1-9D1578-639156193268302489
     - Name: $v
       Entry: 7
-      Data: 6|CreatureDNA, Assembly-CSharp
+      Data: 6|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -281,49 +263,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.6156863
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.08235294
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.470588237
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.7656863
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.201907054
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.341691047
     - Name: 
       Entry: 4
       Data: 1
@@ -416,14 +380,14 @@ MonoBehaviour:
       Data: 9
     - Name: CombatHistory
       Entry: 7
-      Data: 8|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 8|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
     - Name: 
       Entry: 7
-      Data: 9|CombatRecord, Assembly-CSharp
+      Data: 9|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Neon Slug
@@ -453,8 +417,8 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 10|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 10|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -469,7 +433,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 11|CombatRecord, Assembly-CSharp
+      Data: 11|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Spongy Snoot
@@ -499,14 +463,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 12|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 12|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 13|CombatTurn, Assembly-CSharp
+      Data: 13|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -533,7 +497,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 14|CombatTurn, Assembly-CSharp
+      Data: 14|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -560,7 +524,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 15|CombatTurn, Assembly-CSharp
+      Data: 15|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -605,16 +569,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 16|NeedsState, Assembly-CSharp
+      Data: 16|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 78.86657
+      Data: 86.0612
     - Name: Energy
       Entry: 4
-      Data: 83.49529
+      Data: 68.66825
     - Name: Affect
       Entry: 4
-      Data: 74.9968
+      Data: 62.8760147
     - Name: 
       Entry: 8
       Data: 
@@ -656,7 +620,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-7D03AF-639156259112286863
     - Name: $v
       Entry: 7
-      Data: 17|CreatureDNA, Assembly-CSharp
+      Data: 17|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -674,49 +638,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.490196079
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.0117647061
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.6862745
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.8362745
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.137626871
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.7040188
     - Name: 
       Entry: 4
       Data: 1
@@ -809,8 +755,8 @@ MonoBehaviour:
       Data: 2
     - Name: CombatHistory
       Entry: 7
-      Data: 19|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 19|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -825,16 +771,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 20|NeedsState, Assembly-CSharp
+      Data: 20|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 90.51089
+      Data: 94.56381
     - Name: Energy
       Entry: 4
-      Data: 61.0345726
+      Data: 77.19465
     - Name: Affect
       Entry: 4
-      Data: -25.2531948
+      Data: 54.73418
     - Name: 
       Entry: 8
       Data: 
@@ -876,7 +822,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M0-1047BA-639156259122481028
     - Name: $v
       Entry: 7
-      Data: 21|CreatureDNA, Assembly-CSharp
+      Data: 21|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -894,49 +840,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.0627451
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.2784314
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.7294118
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.303113163
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.196212828
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.8794118
     - Name: 
       Entry: 4
       Data: 1
@@ -1029,14 +957,14 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 23|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 23|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 24|CombatRecord, Assembly-CSharp
+      Data: 24|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Drippy Runt
@@ -1066,14 +994,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 25|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 25|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 26|CombatTurn, Assembly-CSharp
+      Data: 26|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -1118,16 +1046,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 27|NeedsState, Assembly-CSharp
+      Data: 27|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 27.6224
+      Data: 88.34889
     - Name: Energy
       Entry: 4
-      Data: 42.74036
+      Data: 41.6168442
     - Name: Affect
       Entry: 4
-      Data: -21.6916256
+      Data: 56.4898529
     - Name: 
       Entry: 8
       Data: 
@@ -1169,7 +1097,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M0-B94235-639156644128371992
     - Name: $v
       Entry: 7
-      Data: 28|CreatureDNA, Assembly-CSharp
+      Data: 28|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1187,49 +1115,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.7254902
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.258823544
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.20784314
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.8754902
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.651677
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.344517171
     - Name: 
       Entry: 4
       Data: 1
@@ -1319,8 +1229,8 @@ MonoBehaviour:
       Data: 10
     - Name: CombatHistory
       Entry: 7
-      Data: 30|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 30|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1335,7 +1245,7 @@ MonoBehaviour:
       Data: true
     - Name: Needs
       Entry: 7
-      Data: 31|NeedsState, Assembly-CSharp
+      Data: 31|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
       Data: 100
@@ -1386,7 +1296,7 @@ MonoBehaviour:
       Data: BS4-A2-E0-M3-DA55B3-639156644193406137
     - Name: $v
       Entry: 7
-      Data: 32|CreatureDNA, Assembly-CSharp
+      Data: 32|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -1404,49 +1314,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.854901969
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.333333343
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.7019608
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.481422
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.5990184
     - Name: 
       Entry: 4
       Data: 1
@@ -1536,14 +1428,14 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 34|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 34|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 35|CombatRecord, Assembly-CSharp
+      Data: 35|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Neon Slug
@@ -1573,14 +1465,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 36|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 36|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 37|CombatTurn, Assembly-CSharp
+      Data: 37|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -1607,7 +1499,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 38|CombatTurn, Assembly-CSharp
+      Data: 38|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -1634,7 +1526,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 39|CombatTurn, Assembly-CSharp
+      Data: 39|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -1679,16 +1571,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 40|NeedsState, Assembly-CSharp
+      Data: 40|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 90.55979
+      Data: 98.8093262
     - Name: Energy
       Entry: 4
-      Data: 79.84118
+      Data: 83.5836639
     - Name: Affect
       Entry: 4
-      Data: -22.35597
+      Data: 61.1433449
     - Name: 
       Entry: 8
       Data: 
@@ -1730,7 +1622,7 @@ MonoBehaviour:
       Data: BS3-A3-E1-M2-0695E0-639156644212742145
     - Name: $v
       Entry: 7
-      Data: 41|CreatureDNA, Assembly-CSharp
+      Data: 41|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS3
@@ -1748,49 +1640,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.0235294122
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.58431375
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.8784314
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.172767878
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.318330467
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
@@ -1871,8 +1745,8 @@ MonoBehaviour:
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 43|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 43|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -1887,16 +1761,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 44|NeedsState, Assembly-CSharp
+      Data: 44|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 27.30704
+      Data: 65.01789
     - Name: Energy
       Entry: 4
-      Data: 55.79056
+      Data: 69.53235
     - Name: Affect
       Entry: 4
-      Data: 17.7868023
+      Data: 50.5241928
     - Name: 
       Entry: 8
       Data: 
@@ -1938,7 +1812,7 @@ MonoBehaviour:
       Data: BS0-A1-E1-M0-C146BA-639156644302977936
     - Name: $v
       Entry: 7
-      Data: 45|CreatureDNA, Assembly-CSharp
+      Data: 45|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -1956,49 +1830,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.75686276
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.274509817
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.7294118
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.906862736
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.41560626
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.643102
     - Name: 
       Entry: 4
       Data: 1
@@ -2079,14 +1935,14 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 47|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 47|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 48|CombatRecord, Assembly-CSharp
+      Data: 48|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Lumpy Chunk
@@ -2116,14 +1972,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 49|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 49|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 50|CombatTurn, Assembly-CSharp
+      Data: 50|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -2150,7 +2006,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 51|CombatTurn, Assembly-CSharp
+      Data: 51|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -2177,7 +2033,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 52|CombatTurn, Assembly-CSharp
+      Data: 52|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -2213,7 +2069,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 53|CombatRecord, Assembly-CSharp
+      Data: 53|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Drippy Runt
@@ -2243,14 +2099,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 54|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 54|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 55|CombatTurn, Assembly-CSharp
+      Data: 55|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -2286,7 +2142,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 56|CombatRecord, Assembly-CSharp
+      Data: 56|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Misty Snag
@@ -2316,14 +2172,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 57|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 57|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 8
     - Name: 
       Entry: 7
-      Data: 58|CombatTurn, Assembly-CSharp
+      Data: 58|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -2350,7 +2206,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 59|CombatTurn, Assembly-CSharp
+      Data: 59|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -2377,7 +2233,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 60|CombatTurn, Assembly-CSharp
+      Data: 60|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -2404,7 +2260,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 61|CombatTurn, Assembly-CSharp
+      Data: 61|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -2431,7 +2287,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 62|CombatTurn, Assembly-CSharp
+      Data: 62|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -2458,7 +2314,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 63|CombatTurn, Assembly-CSharp
+      Data: 63|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -2485,7 +2341,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 64|CombatTurn, Assembly-CSharp
+      Data: 64|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -2512,7 +2368,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 65|CombatTurn, Assembly-CSharp
+      Data: 65|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -2557,16 +2413,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 66|NeedsState, Assembly-CSharp
+      Data: 66|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 72.38738
+      Data: 22.7930851
     - Name: Energy
       Entry: 4
-      Data: 63.73042
+      Data: 45.7192955
     - Name: Affect
       Entry: 4
-      Data: 97.09635
+      Data: 60.5231476
     - Name: 
       Entry: 8
       Data: 
@@ -2608,7 +2464,7 @@ MonoBehaviour:
       Data: BS4-A3-E2-M3-50D134-639156644332473630
     - Name: $v
       Entry: 7
-      Data: 67|CreatureDNA, Assembly-CSharp
+      Data: 67|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -2626,49 +2482,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.3137255
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.819607854
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.203921571
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.350496948
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.96960783
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.537255645
     - Name: 
       Entry: 4
       Data: 1
@@ -2755,8 +2593,8 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 69|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 69|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -2771,16 +2609,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 70|NeedsState, Assembly-CSharp
+      Data: 70|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 43.2979
+      Data: 63.2992058
     - Name: Energy
       Entry: 4
-      Data: 67.20515
+      Data: 75.6843
     - Name: Affect
       Entry: 4
-      Data: -20.488884
+      Data: 98.67235
     - Name: 
       Entry: 8
       Data: 
@@ -2822,7 +2660,7 @@ MonoBehaviour:
       Data: BS1-A1-E4-M0-4EB344-639157099558749392
     - Name: $v
       Entry: 7
-      Data: 71|CreatureDNA, Assembly-CSharp
+      Data: 71|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -2840,49 +2678,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.305882365
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.7019608
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.266666681
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.402896553
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.8519608
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.5779913
     - Name: 
       Entry: 4
       Data: 1
@@ -2972,14 +2792,14 @@ MonoBehaviour:
       Data: 11
     - Name: CombatHistory
       Entry: 7
-      Data: 73|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 73|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 74|CombatRecord, Assembly-CSharp
+      Data: 74|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Misty Snag
@@ -3009,8 +2829,8 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 75|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 75|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -3034,16 +2854,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 76|NeedsState, Assembly-CSharp
+      Data: 76|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 98.92718
+      Data: 25.3241329
     - Name: Energy
       Entry: 4
-      Data: 18.5786667
+      Data: 86.7405
     - Name: Affect
       Entry: 4
-      Data: -24.447525
+      Data: 56.48403
     - Name: 
       Entry: 8
       Data: 
@@ -3085,7 +2905,7 @@ MonoBehaviour:
       Data: BS4-A0-E2-M1-E5CB4A-639157099758374241
     - Name: $v
       Entry: 7
-      Data: 77|CreatureDNA, Assembly-CSharp
+      Data: 77|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -3103,49 +2923,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.8980392
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.796078444
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.2901961
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.820349336
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.424672425
     - Name: 
       Entry: 4
       Data: 1
@@ -3229,14 +3031,14 @@ MonoBehaviour:
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 79|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 79|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
     - Name: 
       Entry: 7
-      Data: 80|CombatRecord, Assembly-CSharp
+      Data: 80|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Glowy Snoot
@@ -3266,14 +3068,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 81|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 81|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 6
     - Name: 
       Entry: 7
-      Data: 82|CombatTurn, Assembly-CSharp
+      Data: 82|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -3300,7 +3102,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 83|CombatTurn, Assembly-CSharp
+      Data: 83|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -3327,7 +3129,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 84|CombatTurn, Assembly-CSharp
+      Data: 84|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -3354,7 +3156,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 85|CombatTurn, Assembly-CSharp
+      Data: 85|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -3381,7 +3183,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 86|CombatTurn, Assembly-CSharp
+      Data: 86|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -3408,7 +3210,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 87|CombatTurn, Assembly-CSharp
+      Data: 87|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -3444,7 +3246,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 88|CombatRecord, Assembly-CSharp
+      Data: 88|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Misty Snag
@@ -3474,14 +3276,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 89|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 89|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 6
     - Name: 
       Entry: 7
-      Data: 90|CombatTurn, Assembly-CSharp
+      Data: 90|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -3508,7 +3310,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 91|CombatTurn, Assembly-CSharp
+      Data: 91|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -3535,7 +3337,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 92|CombatTurn, Assembly-CSharp
+      Data: 92|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -3562,7 +3364,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 93|CombatTurn, Assembly-CSharp
+      Data: 93|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -3589,7 +3391,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 94|CombatTurn, Assembly-CSharp
+      Data: 94|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -3616,7 +3418,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 95|CombatTurn, Assembly-CSharp
+      Data: 95|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -3661,7 +3463,7 @@ MonoBehaviour:
       Data: true
     - Name: Needs
       Entry: 7
-      Data: 96|NeedsState, Assembly-CSharp
+      Data: 96|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
       Data: 94.34112
@@ -3712,7 +3514,7 @@ MonoBehaviour:
       Data: BS0-A1-E0-M1-1A60CF-639157465862957193
     - Name: $v
       Entry: 7
-      Data: 97|CreatureDNA, Assembly-CSharp
+      Data: 97|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -3730,49 +3532,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.101960786
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.3764706
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.8117647
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.3136094
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.246945858
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.9617647
     - Name: 
       Entry: 4
       Data: 1
@@ -3856,8 +3640,8 @@ MonoBehaviour:
       Data: 10
     - Name: CombatHistory
       Entry: 7
-      Data: 99|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 99|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -3872,16 +3656,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 100|NeedsState, Assembly-CSharp
+      Data: 100|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 28.0762234
+      Data: 42.0244942
     - Name: Energy
       Entry: 4
-      Data: 38.4613266
+      Data: 81.52689
     - Name: Affect
       Entry: 4
-      Data: 87.2954941
+      Data: 97.14343
     - Name: 
       Entry: 8
       Data: 
@@ -3923,7 +3707,7 @@ MonoBehaviour:
       Data: BS4-A1-E0-M4-6157EA-639157466028960842
     - Name: $v
       Entry: 7
-      Data: 101|CreatureDNA, Assembly-CSharp
+      Data: 101|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -3941,49 +3725,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.380392164
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.34117648
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.917647064
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.758658
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.4660256
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
@@ -4064,8 +3830,8 @@ MonoBehaviour:
       Data: 2
     - Name: CombatHistory
       Entry: 7
-      Data: 103|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 103|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -4080,16 +3846,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 104|NeedsState, Assembly-CSharp
+      Data: 104|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 34.18599
+      Data: 82.06709
     - Name: Energy
       Entry: 4
-      Data: 12.1205893
+      Data: 64.15662
     - Name: Affect
       Entry: 4
-      Data: 84.47607
+      Data: 63.749176
     - Name: 
       Entry: 8
       Data: 
@@ -4131,7 +3897,7 @@ MonoBehaviour:
       Data: BS4-A0-E4-M1-E3082B-639157586238054610
     - Name: $v
       Entry: 7
-      Data: 105|CreatureDNA, Assembly-CSharp
+      Data: 105|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -4149,49 +3915,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.8901961
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.03137255
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.168627456
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.4425199
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.1799559
     - Name: 
       Entry: 4
       Data: 1
@@ -4278,8 +4026,8 @@ MonoBehaviour:
       Data: 1
     - Name: CombatHistory
       Entry: 7
-      Data: 107|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 107|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -4294,7 +4042,7 @@ MonoBehaviour:
       Data: true
     - Name: Needs
       Entry: 7
-      Data: 108|NeedsState, Assembly-CSharp
+      Data: 108|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
       Data: 100
@@ -4345,7 +4093,7 @@ MonoBehaviour:
       Data: BS1-A0-E3-M1-E9422E-639157586322083999
     - Name: $v
       Entry: 7
-      Data: 109|CreatureDNA, Assembly-CSharp
+      Data: 109|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -4363,49 +4111,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.9137255
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.258823544
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.180392161
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.718223155
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.317811131
     - Name: 
       Entry: 4
       Data: 1
@@ -4489,8 +4219,8 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 111|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 111|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -4505,16 +4235,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 112|NeedsState, Assembly-CSharp
+      Data: 112|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 39.99883
+      Data: 59.5247269
     - Name: Energy
       Entry: 4
-      Data: 30.9413433
+      Data: 92.47257
     - Name: Affect
       Entry: 4
-      Data: -23.2350864
+      Data: 64.34662
     - Name: 
       Entry: 8
       Data: 
@@ -4556,7 +4286,7 @@ MonoBehaviour:
       Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
     - Name: $v
       Entry: 7
-      Data: 113|CreatureDNA, Assembly-CSharp
+      Data: 113|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -4574,49 +4304,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.235294119
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.623529434
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.972549
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.35564512
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.3856695
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
@@ -4703,14 +4415,14 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 115|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 115|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
     - Name: 
       Entry: 7
-      Data: 116|CombatRecord, Assembly-CSharp
+      Data: 116|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Chunky Slug
@@ -4740,14 +4452,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 117|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 117|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 118|CombatTurn, Assembly-CSharp
+      Data: 118|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -4783,7 +4495,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 119|CombatRecord, Assembly-CSharp
+      Data: 119|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Spongy Snoot
@@ -4813,14 +4525,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 120|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 120|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 121|CombatTurn, Assembly-CSharp
+      Data: 121|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -4847,7 +4559,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 122|CombatTurn, Assembly-CSharp
+      Data: 122|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -4874,7 +4586,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 123|CombatTurn, Assembly-CSharp
+      Data: 123|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -4919,22 +4631,22 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 124|NeedsState, Assembly-CSharp
+      Data: 124|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 75.4739151
+      Data: 35.5053024
     - Name: Energy
       Entry: 4
-      Data: 42.77621
+      Data: 92.35397
     - Name: Affect
       Entry: 4
-      Data: 92.99683
+      Data: -30.50841
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -4946,10 +4658,10 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1781378839579
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS4-A4-E4-M1-AB6807-639157766096457471
+      Data: 
     - Name: HomePenKey
       Entry: 1
       Data: 
@@ -4970,7 +4682,7 @@ MonoBehaviour:
       Data: BS4-A4-E4-M1-AB6807-639157766096457471
     - Name: $v
       Entry: 7
-      Data: 125|CreatureDNA, Assembly-CSharp
+      Data: 125|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -4988,49 +4700,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.670588255
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.407843143
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.02745098
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.772783041
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.820588231
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.151640862
     - Name: 
       Entry: 4
       Data: 1
@@ -5117,14 +4811,14 @@ MonoBehaviour:
       Data: 1
     - Name: CombatHistory
       Entry: 7
-      Data: 127|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 127|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 2
     - Name: 
       Entry: 7
-      Data: 128|CombatRecord, Assembly-CSharp
+      Data: 128|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Glowy Snoot
@@ -5154,8 +4848,8 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 129|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 129|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -5170,7 +4864,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 130|CombatRecord, Assembly-CSharp
+      Data: 130|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Spongy Gunk
@@ -5200,14 +4894,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 131|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 131|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 12
     - Name: 
       Entry: 7
-      Data: 132|CombatTurn, Assembly-CSharp
+      Data: 132|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5234,7 +4928,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 133|CombatTurn, Assembly-CSharp
+      Data: 133|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -5261,7 +4955,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 134|CombatTurn, Assembly-CSharp
+      Data: 134|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -5288,7 +4982,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 135|CombatTurn, Assembly-CSharp
+      Data: 135|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -5315,7 +5009,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 136|CombatTurn, Assembly-CSharp
+      Data: 136|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -5342,7 +5036,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 137|CombatTurn, Assembly-CSharp
+      Data: 137|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -5369,7 +5063,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 138|CombatTurn, Assembly-CSharp
+      Data: 138|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -5396,7 +5090,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 139|CombatTurn, Assembly-CSharp
+      Data: 139|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -5423,7 +5117,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 140|CombatTurn, Assembly-CSharp
+      Data: 140|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 5
@@ -5450,7 +5144,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 141|CombatTurn, Assembly-CSharp
+      Data: 141|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 5
@@ -5477,7 +5171,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 142|CombatTurn, Assembly-CSharp
+      Data: 142|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 6
@@ -5504,7 +5198,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 143|CombatTurn, Assembly-CSharp
+      Data: 143|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 6
@@ -5549,22 +5243,22 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 144|NeedsState, Assembly-CSharp
+      Data: 144|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 75.35102
+      Data: 33.5341148
     - Name: Energy
       Entry: 4
-      Data: 83.32466
+      Data: 28.7199917
     - Name: Affect
       Entry: 4
-      Data: 97.58937
+      Data: 63.8479424
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -5576,10 +5270,10 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1781378839579
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS1-A1-E2-M1-3C9FF8-639157765839713470
+      Data: 
     - Name: HomePenKey
       Entry: 1
       Data: 
@@ -5600,7 +5294,7 @@ MonoBehaviour:
       Data: BS4-A1-E1-M1-72EF17-639158759894039650
     - Name: $v
       Entry: 7
-      Data: 145|CreatureDNA, Assembly-CSharp
+      Data: 145|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -5618,49 +5312,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.447058827
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.9372549
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.09019608
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.231799126
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.276895523
     - Name: 
       Entry: 4
       Data: 1
@@ -5696,10 +5372,16 @@ MonoBehaviour:
       Data: 146|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 3
     - Name: 
       Entry: 1
       Data: BS0-A0-E0-M3-0B85DC-639163615986003412
+    - Name: 
+      Entry: 1
+      Data: BS0-A1-E1-M3-3AAD96-639176248759151064
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E0-M3-116ED4-639176267828498213
     - Name: 
       Entry: 13
       Data: 
@@ -5720,7 +5402,7 @@ MonoBehaviour:
       Data: 0
     - Name: BreedCount
       Entry: 3
-      Data: 1
+      Data: 3
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -5744,8 +5426,8 @@ MonoBehaviour:
       Data: 1
     - Name: CombatHistory
       Entry: 7
-      Data: 147|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 147|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -5760,16 +5442,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 148|NeedsState, Assembly-CSharp
+      Data: 148|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 51.2491264
+      Data: 99.97243
     - Name: Energy
       Entry: 4
-      Data: 21.7705288
+      Data: 99.9448547
     - Name: Affect
       Entry: 4
-      Data: -6.54943037
+      Data: 99.97243
     - Name: 
       Entry: 8
       Data: 
@@ -5811,7 +5493,7 @@ MonoBehaviour:
       Data: BS1-A4-E0-M1-B1B03C-639158780052655723
     - Name: $v
       Entry: 7
-      Data: 149|CreatureDNA, Assembly-CSharp
+      Data: 149|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -5829,49 +5511,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.694117665
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.6901961
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.235294119
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.6205171
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.844117641
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.3698379
     - Name: 
       Entry: 4
       Data: 1
@@ -5955,8 +5619,8 @@ MonoBehaviour:
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 151|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 151|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -5971,16 +5635,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 152|NeedsState, Assembly-CSharp
+      Data: 152|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 86.34411
+      Data: 64.82068
     - Name: Energy
       Entry: 4
-      Data: 65.8879547
+      Data: 23.5921173
     - Name: Affect
       Entry: 4
-      Data: 75.9963455
+      Data: 6.70053148
     - Name: 
       Entry: 8
       Data: 
@@ -6022,7 +5686,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M3-0B85DC-639163615986003412
     - Name: $v
       Entry: 7
-      Data: 153|CreatureDNA, Assembly-CSharp
+      Data: 153|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -6040,49 +5704,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.0431372561
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.521568656
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.8627451
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.1925
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.276263863
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
@@ -6118,7 +5764,13 @@ MonoBehaviour:
       Data: 154|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 2
+    - Name: 
+      Entry: 1
+      Data: BS0-A1-E1-M3-3AAD96-639176248759151064
+    - Name: 
+      Entry: 1
+      Data: BS4-A1-E0-M3-116ED4-639176267828498213
     - Name: 
       Entry: 13
       Data: 
@@ -6139,7 +5791,7 @@ MonoBehaviour:
       Data: 1
     - Name: BreedCount
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -6163,14 +5815,14 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 155|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 155|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 4
     - Name: 
       Entry: 7
-      Data: 156|CombatRecord, Assembly-CSharp
+      Data: 156|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Spongy Gunk
@@ -6200,8 +5852,8 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 157|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 157|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -6216,7 +5868,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 158|CombatRecord, Assembly-CSharp
+      Data: 158|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Lumpy Gloop
@@ -6246,14 +5898,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 159|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 159|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 160|CombatTurn, Assembly-CSharp
+      Data: 160|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -6289,7 +5941,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 161|CombatRecord, Assembly-CSharp
+      Data: 161|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Lumpy Munch
@@ -6319,14 +5971,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 162|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 162|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 163|CombatTurn, Assembly-CSharp
+      Data: 163|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -6362,7 +6014,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 164|CombatRecord, Assembly-CSharp
+      Data: 164|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Chunky Slug
@@ -6392,14 +6044,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 165|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 165|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 9
     - Name: 
       Entry: 7
-      Data: 166|CombatTurn, Assembly-CSharp
+      Data: 166|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -6426,7 +6078,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 167|CombatTurn, Assembly-CSharp
+      Data: 167|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -6453,7 +6105,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 168|CombatTurn, Assembly-CSharp
+      Data: 168|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -6480,7 +6132,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 169|CombatTurn, Assembly-CSharp
+      Data: 169|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -6507,7 +6159,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 170|CombatTurn, Assembly-CSharp
+      Data: 170|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -6534,7 +6186,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 171|CombatTurn, Assembly-CSharp
+      Data: 171|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -6561,7 +6213,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 172|CombatTurn, Assembly-CSharp
+      Data: 172|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -6588,7 +6240,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 173|CombatTurn, Assembly-CSharp
+      Data: 173|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -6615,7 +6267,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 174|CombatTurn, Assembly-CSharp
+      Data: 174|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 5
@@ -6660,16 +6312,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 175|NeedsState, Assembly-CSharp
+      Data: 175|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 29.4414577
+      Data: 99.97243
     - Name: Energy
       Entry: 4
-      Data: 72.08558
+      Data: 100
     - Name: Affect
       Entry: 4
-      Data: 75.69523
+      Data: 99.97243
     - Name: 
       Entry: 8
       Data: 
@@ -6711,7 +6363,7 @@ MonoBehaviour:
       Data: BS4-A0-E2-M1-5918EA-639163844724570114
     - Name: $v
       Entry: 7
-      Data: 176|CreatureDNA, Assembly-CSharp
+      Data: 176|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -6729,49 +6381,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.349019617
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.09411765
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.917647064
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: ShadowsColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.349019617
+      Data: 0.8394439
     - Name: 
       Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.237179458
     - Name: 
       Entry: 4
       Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: OutlineColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0
-    - Name: 
-      Entry: 4
-      Data: 0
-    - Name: 
-      Entry: 4
-      Data: 0
     - Name: 
       Entry: 4
       Data: 1
@@ -6852,8 +6486,8 @@ MonoBehaviour:
       Data: 6
     - Name: CombatHistory
       Entry: 7
-      Data: 178|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 178|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -6868,16 +6502,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 179|NeedsState, Assembly-CSharp
+      Data: 179|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 41.42698
+      Data: 70.36246
     - Name: Energy
       Entry: 4
-      Data: 24.065588
+      Data: 55.49361
     - Name: Affect
       Entry: 4
-      Data: 84.99183
+      Data: 63.32191
     - Name: 
       Entry: 8
       Data: 
@@ -6919,7 +6553,7 @@ MonoBehaviour:
       Data: BS4-A1-E0-M1-35DFC7-639163844734879923
     - Name: $v
       Entry: 7
-      Data: 180|CreatureDNA, Assembly-CSharp
+      Data: 180|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -6937,49 +6571,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.20784314
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.8745098
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.78039217
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.352017939
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.780448556
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 1
     - Name: 
       Entry: 4
       Data: 1
@@ -7060,14 +6676,14 @@ MonoBehaviour:
       Data: 11
     - Name: CombatHistory
       Entry: 7
-      Data: 182|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 182|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 3
     - Name: 
       Entry: 7
-      Data: 183|CombatRecord, Assembly-CSharp
+      Data: 183|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Pudgy Wart
@@ -7097,14 +6713,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 184|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 184|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 185|CombatTurn, Assembly-CSharp
+      Data: 185|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -7140,7 +6756,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 186|CombatRecord, Assembly-CSharp
+      Data: 186|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Drippy Runt
@@ -7170,14 +6786,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 187|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 187|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 9
     - Name: 
       Entry: 7
-      Data: 188|CombatTurn, Assembly-CSharp
+      Data: 188|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -7204,7 +6820,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 189|CombatTurn, Assembly-CSharp
+      Data: 189|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -7231,7 +6847,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 190|CombatTurn, Assembly-CSharp
+      Data: 190|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -7258,7 +6874,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 191|CombatTurn, Assembly-CSharp
+      Data: 191|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -7285,7 +6901,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 192|CombatTurn, Assembly-CSharp
+      Data: 192|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -7312,7 +6928,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 193|CombatTurn, Assembly-CSharp
+      Data: 193|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -7339,7 +6955,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 194|CombatTurn, Assembly-CSharp
+      Data: 194|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -7366,7 +6982,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 195|CombatTurn, Assembly-CSharp
+      Data: 195|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -7393,7 +7009,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 196|CombatTurn, Assembly-CSharp
+      Data: 196|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 5
@@ -7429,7 +7045,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 197|CombatRecord, Assembly-CSharp
+      Data: 197|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Slimy Spore
@@ -7459,14 +7075,14 @@ MonoBehaviour:
       Data: true
     - Name: Turns
       Entry: 7
-      Data: 198|System.Collections.Generic.List`1[[CombatTurn, Assembly-CSharp]],
-        mscorlib
+      Data: 198|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 7
     - Name: 
       Entry: 7
-      Data: 199|CombatTurn, Assembly-CSharp
+      Data: 199|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -7493,7 +7109,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 200|CombatTurn, Assembly-CSharp
+      Data: 200|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -7520,7 +7136,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 201|CombatTurn, Assembly-CSharp
+      Data: 201|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -7547,7 +7163,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 202|CombatTurn, Assembly-CSharp
+      Data: 202|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -7574,7 +7190,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 203|CombatTurn, Assembly-CSharp
+      Data: 203|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -7601,7 +7217,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 204|CombatTurn, Assembly-CSharp
+      Data: 204|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 3
@@ -7628,7 +7244,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 205|CombatTurn, Assembly-CSharp
+      Data: 205|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 4
@@ -7673,16 +7289,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 206|NeedsState, Assembly-CSharp
+      Data: 206|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 91.74947
+      Data: 61.0629654
     - Name: Energy
       Entry: 4
-      Data: 74.4915
+      Data: 86.07469
     - Name: Affect
       Entry: 4
-      Data: 81.90205
+      Data: 87.84661
     - Name: 
       Entry: 8
       Data: 
@@ -7724,7 +7340,7 @@ MonoBehaviour:
       Data: BS1-A1-E0-M1-0B19C8-639163844748752240
     - Name: $v
       Entry: 7
-      Data: 207|CreatureDNA, Assembly-CSharp
+      Data: 207|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS1
@@ -7742,49 +7358,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.0431372561
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.09803922
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.784313738
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.488468438
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.183826223
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.9343138
     - Name: 
       Entry: 4
       Data: 1
@@ -7865,8 +7463,8 @@ MonoBehaviour:
       Data: 7
     - Name: CombatHistory
       Entry: 7
-      Data: 209|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 209|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -7881,16 +7479,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 210|NeedsState, Assembly-CSharp
+      Data: 210|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 90.1386
+      Data: 71.3472061
     - Name: Energy
       Entry: 4
-      Data: 82.41362
+      Data: 35.51797
     - Name: Affect
       Entry: 4
-      Data: 85.5875
+      Data: 29.9469051
     - Name: 
       Entry: 8
       Data: 
@@ -7932,7 +7530,7 @@ MonoBehaviour:
       Data: BS4-A1-E2-M3-8B13D5-639169737673400817
     - Name: $v
       Entry: 7
-      Data: 211|CreatureDNA, Assembly-CSharp
+      Data: 211|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS4
@@ -7950,49 +7548,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.545098066
     - Name: 
       Entry: 4
-      Data: 1
+      Data: 0.07450981
     - Name: 
       Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.349019617
-    - Name: 
-      Entry: 4
-      Data: 0.4
+      Data: 0.8352941
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.9852941
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.222500652
     - Name: 
       Entry: 4
-      Data: 0
+      Data: 0.910115838
     - Name: 
       Entry: 4
       Data: 1
@@ -8073,8 +7653,8 @@ MonoBehaviour:
       Data: 8
     - Name: CombatHistory
       Entry: 7
-      Data: 213|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 213|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -8089,16 +7669,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 214|NeedsState, Assembly-CSharp
+      Data: 214|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 31.83756
+      Data: 49.4819031
     - Name: Energy
       Entry: 4
-      Data: 30.5878639
+      Data: 27.1152687
     - Name: Affect
       Entry: 4
-      Data: 92.74453
+      Data: 20.4819317
     - Name: 
       Entry: 8
       Data: 
@@ -8140,7 +7720,7 @@ MonoBehaviour:
       Data: BS0-A0-E0-M1-CB3A6C-639174375654252477
     - Name: $v
       Entry: 7
-      Data: 215|CreatureDNA, Assembly-CSharp
+      Data: 215|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -8158,49 +7738,31 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.7942252
+      Data: 0.796078444
     - Name: 
       Entry: 4
-      Data: 0.227649659
+      Data: 0.227450982
     - Name: 
       Entry: 4
-      Data: 0.4253418
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ShadowsColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.436823875
-    - Name: 
-      Entry: 4
-      Data: 0.08152494
-    - Name: 
-      Entry: 4
-      Data: 0.205497488
+      Data: 0.423529416
     - Name: 
       Entry: 4
       Data: 1
     - Name: 
       Entry: 8
       Data: 
-    - Name: OutlineColor
+    - Name: SecondaryColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.1985563
+      Data: 0.9460784
     - Name: 
       Entry: 4
-      Data: 0.0271289721
+      Data: 0.449317455
     - Name: 
       Entry: 4
-      Data: 0.08694419
+      Data: 0.371673644
     - Name: 
       Entry: 4
       Data: 1
@@ -8281,8 +7843,8 @@ MonoBehaviour:
       Data: 4
     - Name: CombatHistory
       Entry: 7
-      Data: 217|System.Collections.Generic.List`1[[CombatRecord, Assembly-CSharp]],
-        mscorlib
+      Data: 217|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -8297,16 +7859,396 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 218|NeedsState, Assembly-CSharp
+      Data: 218|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 66.06286
+      Data: 57.60632
     - Name: Energy
       Entry: 4
-      Data: 56.78024
+      Data: 28.2405033
     - Name: Affect
       Entry: 4
-      Data: 93.9067459
+      Data: 98.46265
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS0-A1-E1-M3-3AAD96-639176248759151064
+    - Name: $v
+      Entry: 7
+      Data: 219|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS0
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E1
+    - Name: MouthID
+      Entry: 1
+      Data: M3
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.227450982
+    - Name: 
+      Entry: 4
+      Data: 0.6784314
+    - Name: 
+      Entry: 4
+      Data: 0.5882353
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SecondaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.360343635
+    - Name: 
+      Entry: 4
+      Data: 0.6973667
+    - Name: 
+      Entry: 4
+      Data: 0.828431368
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Scruffy Murk
+    - Name: Timestamp
+      Entry: 3
+      Data: 639176248759151064
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250862267186538968
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS0-A0-E0-M3-0B85DC-639163615986003412
+    - Name: FatherID
+      Entry: 1
+      Data: BS4-A1-E1-M1-72EF17-639158759894039650
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 220|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 4
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 3
+    - Name: BaseAttack
+      Entry: 4
+      Data: 6
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 1
+    - Name: CombatHistory
+      Entry: 7
+      Data: 221|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 222|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 50.9851265
+    - Name: Energy
+      Entry: 4
+      Data: 85.89282
+    - Name: Affect
+      Entry: 4
+      Data: 38.984993
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: HomePenKey
+      Entry: 1
+      Data: 
+    - Name: HomePenSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS4-A1-E0-M3-116ED4-639176267828498213
+    - Name: $v
+      Entry: 7
+      Data: 223|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS4
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M3
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.06605929
+    - Name: 
+      Entry: 4
+      Data: 0.4327138
+    - Name: 
+      Entry: 4
+      Data: 0.832400858
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SecondaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.214821741
+    - Name: 
+      Entry: 4
+      Data: 0.213628888
+    - Name: 
+      Entry: 4
+      Data: 0.9824009
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Sneaky Blob
+    - Name: Timestamp
+      Entry: 3
+      Data: 639176267828498213
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250862286255886117
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS0-A0-E0-M3-0B85DC-639163615986003412
+    - Name: FatherID
+      Entry: 1
+      Data: BS4-A1-E1-M1-72EF17-639158759894039650
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 224|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 4
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 9
+    - Name: BaseAttack
+      Entry: 4
+      Data: 6
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 2
+    - Name: CombatHistory
+      Entry: 7
+      Data: 225|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 226|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 60.6644669
+    - Name: Energy
+      Entry: 4
+      Data: 35.88282
+    - Name: Affect
+      Entry: 4
+      Data: 95.35549
     - Name: 
       Entry: 8
       Data: 

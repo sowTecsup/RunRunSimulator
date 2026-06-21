@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, combat]
+tags: [script, combat]
 ---
 
 # CombatLogEntry.cs
 
-**Ruta:** `Data/CombatLogEntry.cs`
+**Ruta:** `Data/Combat/CombatLogEntry.cs`
 
 **Responsabilidad:** Entrada resumida del combat log para UI.
 

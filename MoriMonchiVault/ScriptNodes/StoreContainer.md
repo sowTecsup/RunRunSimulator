@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, player-world]
+tags: [script, world]
 ---
 
 # StoreContainer.cs
 
-**Ruta:** `World/StoreContainer.cs`
+**Ruta:** `World/Containers/StoreContainer.cs`
 
 **Responsabilidad:** Corral que restaura las 3 necesidades a `restoreRate/s`. Hereda `MoriMochiContainer`.
 

@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+namespace MoriMonchiSimulator
+{
 
 // Single owner of the "UI" action map — the menu-side mirror of PlayerInputs
 // (which owns the "Player" map). It translates raw UI input into STATIC events
@@ -84,4 +86,5 @@ public class UIInputs : MonoBehaviour
     private void OnCancel(InputAction.CallbackContext c) => CancelPressed?.Invoke();
 
     private static float Step(float a) => a > 0.5f ? 1f : a < -0.5f ? -1f : 0f;
+}
 }

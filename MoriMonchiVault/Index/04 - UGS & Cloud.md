@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, ugs, cloud, auth, persistence]
+tags: [index, cloud]
 ---
 
 # 04 - UGS & Cloud

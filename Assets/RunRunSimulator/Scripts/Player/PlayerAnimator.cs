@@ -1,4 +1,6 @@
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Player ANIMATION layer. Like PlayerController, it only subscribes to
 // PlayerInputs' static events — no reference to PlayerInputs, no movement logic.
@@ -43,4 +45,5 @@ public class PlayerAnimator : MonoBehaviour
 
     private void OnJump()  { if (animator != null) animator.SetTrigger(JumpHash); }
     private void OnThrow() { if (animator != null) animator.SetTrigger(ThrowHash); }
+}
 }

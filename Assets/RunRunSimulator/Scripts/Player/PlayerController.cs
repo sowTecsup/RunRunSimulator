@@ -1,5 +1,7 @@
 using Unity.Cinemachine;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // First-person player LOGIC: movement, jump, and grab/throw orchestration.
 // It NEVER references PlayerInputs — it only subscribes to PlayerInputs' static
@@ -352,4 +354,5 @@ public class PlayerController : MonoBehaviour
         component = null;
         return false;
     }
+}
 }

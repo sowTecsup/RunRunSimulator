@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 public partial class CombatPanelUITK
 {
@@ -231,4 +233,5 @@ public partial class CombatPanelUITK
     }
 
     private static bool InRange(List<VisualElement> list, int i) => i >= 0 && i < list.Count;
+}
 }

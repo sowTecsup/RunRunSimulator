@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // Furniture browser shown in build mode: the player opens it (Tab), picks an owned
 // piece, and the build mode starts placing it. It REPLACES the 1-4 hotbar as the way
@@ -222,4 +224,5 @@ public class BuildBrowserUITK : MonoBehaviour
         c.style.flexWrap      = Wrap.Wrap;
         c.style.alignContent  = Align.FlexStart;
     }
+}
 }

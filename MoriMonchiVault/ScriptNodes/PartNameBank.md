@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, genetics]
+tags: [script, genetics]
 ---
 
 # PartNameBank.cs
 
-**Ruta:** `Data/PartNameBank.cs`
+**Ruta:** `Data/Genetics/PartNameBank.cs`
 
 **Responsabilidad:** Bancos de palabras para nombres procedurales de partes. `Dictionary<PartSet, Dictionary<PartRole, string[]>>`.
 

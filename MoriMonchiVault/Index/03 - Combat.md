@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, combat, async, scheduler]
+tags: [index, combat]
 ---
 
 # 03 - Combat

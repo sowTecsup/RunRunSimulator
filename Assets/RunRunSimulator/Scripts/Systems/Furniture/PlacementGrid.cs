@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Logical placement grid for furniture. Owns cell↔world conversion, bounds and
 // occupancy — all the placement MATH, isolated from meshes (FurnitureSpawner) and
@@ -105,4 +107,5 @@ public class PlacementGrid : MonoBehaviour
             Gizmos.DrawCube(o + new Vector3((c.x + 0.5f) * cellSize, 0.05f, (c.y + 0.5f) * cellSize),
                             new Vector3(cellSize * 0.9f, 0.1f, cellSize * 0.9f));
     }
+}
 }

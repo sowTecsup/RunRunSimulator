@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // Storage box panel: lists the world props sitting in the player's storage
 // (worldPropsStored), grouped by id with a count, and ejects them back into the
@@ -182,4 +184,5 @@ public class StoragePanelUITK : MonoBehaviour, IUINavigable
         var def = database != null ? database.GetById(id) : null;
         return def != null && !string.IsNullOrEmpty(def.DisplayName) ? def.DisplayName : id;
     }
+}
 }

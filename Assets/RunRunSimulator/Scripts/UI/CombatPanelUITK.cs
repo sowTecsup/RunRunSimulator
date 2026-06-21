@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // In-game combat screen (UI Toolkit), modal, with three tabs:
 //   • "Batalla Online" — pick one of yours, see it (stats + parts), send it to async
@@ -89,7 +91,7 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
         if (document != null) document.sortingOrder = sortingOrder;
         var gm = GameManager.Instance;
         registry = gm != null ? gm.Registry : null;
-        config   = gm != null ? (gm.CombatConfig ?? CombatManagerSO.Current) : CombatManagerSO.Current;
+        config   = CombatController.Instance != null ? CombatController.Instance.Config : null;
     }
 
     private void OnEnable()
@@ -238,4 +240,5 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     private CombatService.EffectiveStats StatsOf(CreatureDNA dna) =>
         database != null ? CombatService.GetEffectiveStats(dna, database)
                          : new CombatService.EffectiveStats(dna.BaseHP, dna.BaseAttack, dna.BaseSpeed);
+}
 }

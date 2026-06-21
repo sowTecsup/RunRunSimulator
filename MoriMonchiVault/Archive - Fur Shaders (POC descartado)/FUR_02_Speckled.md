@@ -1,3 +1,7 @@
+---
+tags: [archive]
+---
+
 # Fur 02 — Speckled (Shader Graph · URP)
 
 > Objetivo visual: miles de manchitas diminutas de color sobre un color base legible.

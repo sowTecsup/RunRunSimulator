@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 // In-game breeding screen (UI Toolkit), modal, with two tabs:
 //   • "Criar"     — pick a Father + Mother, preview both (stats + parts), see the
@@ -167,4 +169,5 @@ public partial class BreedingPanelUITK : MonoBehaviour, IUINavigable
         RebuildEggs();
         RefreshSlots();
     }
+}
 }

@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, persistence]
+tags: [script, cloud]
 ---
 
 # PlayerInventorySO.md
 
-**Ruta:** `Data/PlayerInventorySO.cs`
+**Ruta:** `Data/Player/PlayerInventorySO.cs`
 
 **Responsabilidad:** Inventario persistente del jugador (items, dinero).
 

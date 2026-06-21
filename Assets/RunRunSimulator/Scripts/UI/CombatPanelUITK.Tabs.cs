@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
+namespace MoriMonchiSimulator
+{
 
 public partial class CombatPanelUITK
 {
@@ -387,4 +389,5 @@ public partial class CombatPanelUITK
         CombatOutcome.Lost => "cbt-result-status--lose",
         _                  => "cbt-result-status--draw",
     };
+}
 }

@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, script, combat]
+tags: [script, combat]
 ---
 
 # CombatTurn.cs

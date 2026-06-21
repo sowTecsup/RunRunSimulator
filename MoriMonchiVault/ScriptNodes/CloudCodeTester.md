@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, script, cloud]
+tags: [script, cloud]
 ---
 
 # CloudCodeTester.cs

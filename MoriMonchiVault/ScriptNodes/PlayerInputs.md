@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, script, player-world]
+tags: [script, world]
 ---
 
 # PlayerInputs.cs

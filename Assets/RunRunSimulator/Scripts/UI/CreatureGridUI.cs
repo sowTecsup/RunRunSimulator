@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // In-game visual grid of MoriMonchis — lives on the Canvas, mirrors the
 // read-only data that CreatureGridView shows in the inspector.
@@ -66,4 +68,5 @@ public class CreatureGridUI : MonoBehaviour
             if (card != null) Destroy(card.gameObject);
         spawned.Clear();
     }
+}
 }

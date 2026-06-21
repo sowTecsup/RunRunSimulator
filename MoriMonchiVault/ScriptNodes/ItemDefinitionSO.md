@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, furniture]
+tags: [script, furniture]
 ---
 
 # ItemDefinitionSO.md
 
-**Ruta:** `Data/ItemDefinitionSO.cs`
+**Ruta:** `Data/Items/ItemDefinitionSO.cs`
 
 **Responsabilidad:** Definición de item (no-mueble): nombre, icono, tipo, precio.
 

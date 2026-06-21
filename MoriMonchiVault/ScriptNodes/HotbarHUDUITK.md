@@ -1,5 +1,5 @@
 ---
-tags: [memory-bank, script, ui]
+tags: [script, ui]
 ---
 
 # HotbarHUDUITK.md

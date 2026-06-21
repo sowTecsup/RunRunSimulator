@@ -1,3 +1,7 @@
+---
+tags: [archive]
+---
+
 # Fur 01 — Smooth (Shader Graph · URP)
 
 > Objetivo visual: color uniforme, variación mínima, fresnel suave, aspecto de juguete nuevo.

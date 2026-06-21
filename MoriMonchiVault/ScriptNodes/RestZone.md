@@ -1,10 +1,10 @@
 ---
-tags: [memory-bank, script, player-world]
+tags: [script, world]
 ---
 
 # RestZone.cs
 
-**Ruta:** `World/RestZone.cs`
+**Ruta:** `World/Needs/RestZone.cs`
 
 **Responsabilidad:** Estación concreta que restaura `NeedType.Energy`.
 

@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Sirenix.OdinInspector;
 using Unity.Services.Authentication;
-using Unity.Services.CloudCode;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // Orchestrates timed (async) breeding. The start timestamp and the hatch check
 // are server-authoritative (Cloud Code + Custom Data) — the client cannot forge
@@ -25,9 +25,8 @@ public class AsyncBreedingService : MonoBehaviour
 
     // ── Cached References ─────────────────────────────────────────
 
-    private CreatureRegistrySO     registry;
-    private CreatureDatabaseSO     database;
-    private InheritanceOddsTableSO inheritanceOdds;
+    private CreatureRegistrySO  registry;
+    private CreatureDatabaseSO  database;
 
     [Tooltip("Energy each parent spends when breeding starts (NeedsState).")]
     [SerializeField, Min(0f)] private float energyCostPerParent = 20f;
@@ -39,10 +38,9 @@ public class AsyncBreedingService : MonoBehaviour
 
     private void Awake()
     {
-        var gm          = GameManager.Instance;
-        registry        = gm.Registry;
-        database        = gm.Database;
-        inheritanceOdds = gm.InheritanceOddsTable;
+        var gm   = GameManager.Instance;
+        registry = gm.Registry;
+        database = gm.Database;
     }
 
     // ── Public Methods ────────────────────────────────────────────
@@ -67,8 +65,7 @@ public class AsyncBreedingService : MonoBehaviour
                 { "fatherId", fatherID },
             };
 
-            var raw      = await CloudCodeService.Instance.CallEndpointAsync<string>(CLOUD_CODE_START, payload);
-            var response = JsonConvert.DeserializeObject<StartResponse>(raw);
+            var response = await CloudEndpoint.CallAsync<StartResponse>(CLOUD_CODE_START, payload);
 
             if (response.Status == "already_breeding")
             {
@@ -117,7 +114,7 @@ public class AsyncBreedingService : MonoBehaviour
                 { "fatherId", fatherID },
             };
 
-            var raw = await CloudCodeService.Instance.CallEndpointAsync<string>(CLOUD_CODE_CANCEL, payload);
+            var raw = await CloudEndpoint.CallAsync(CLOUD_CODE_CANCEL, payload);
 
             if (registry.TryGet(motherID, out var mother)) ClearBreedState(mother);
             if (registry.TryGet(fatherID, out var father)) ClearBreedState(father);
@@ -151,7 +148,7 @@ public class AsyncBreedingService : MonoBehaviour
         status = "Cancelling ALL eggs...";
         try
         {
-            var raw = await CloudCodeService.Instance.CallEndpointAsync<string>(CLOUD_CODE_CANCEL_ALL, new Dictionary<string, object>());
+            var raw = await CloudEndpoint.CallAsync(CLOUD_CODE_CANCEL_ALL, new Dictionary<string, object>());
             status  = $"All eggs cancelled ({raw}).";
             Debug.Log($"[AsyncBreeding] {status}");
         }
@@ -184,8 +181,7 @@ public class AsyncBreedingService : MonoBehaviour
                 { "motherId", motherID },
                 { "fatherId", fatherID },
             };
-            var raw      = await CloudCodeService.Instance.CallEndpointAsync<string>(CLOUD_CODE_HATCH, payload);
-            var response = JsonConvert.DeserializeObject<HatchResponse>(raw);
+            var response = await CloudEndpoint.CallAsync<HatchResponse>(CLOUD_CODE_HATCH, payload);
 
             switch (response.Status)
             {
@@ -207,7 +203,7 @@ public class AsyncBreedingService : MonoBehaviour
                     break;
 
                 default:
-                    status = $"Unexpected hatch response: {raw}";
+                    status = $"Unexpected hatch response: {response.Status}";
                     Debug.LogWarning($"[AsyncBreeding] {status}");
                     break;
             }
@@ -249,7 +245,7 @@ public class AsyncBreedingService : MonoBehaviour
         if (registry.TryGet(motherID, out var mother)) ClearBreedState(mother);
         if (registry.TryGet(fatherID, out var father)) ClearBreedState(father);
 
-        var odds = inheritanceOdds ?? InheritanceOddsTableSO.Current;
+        var odds = BreedingController.Instance != null ? BreedingController.Instance.InheritanceOdds : null;
         if (odds == null) { Debug.LogError("[AsyncBreeding] No InheritanceOddsTable available."); return; }
 
         var child = BreedingService.Breed(motherID, fatherID, registry, database, odds);
@@ -317,4 +313,5 @@ public class AsyncBreedingService : MonoBehaviour
         public string MotherId;
         public string FatherId;
     }
+}
 }

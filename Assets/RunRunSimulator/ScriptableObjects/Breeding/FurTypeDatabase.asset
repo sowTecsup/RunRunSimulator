@@ -16,10 +16,7 @@ MonoBehaviour:
     SerializedFormat: 2
     SerializedBytes: 
     ReferencedUnityObjects:
-    - {fileID: 2100000, guid: 3db00e26fd577824ab9a186bce5e37a9, type: 2}
-    - {fileID: 2100000, guid: e920e0c323345a545974b6945f5aa6a5, type: 2}
-    - {fileID: 2100000, guid: f2c8a29447a3d254e8c37fd97e02faff, type: 2}
-    - {fileID: 2100000, guid: 09a8855dff6d1ba41b41e81d47b24caf, type: 2}
+    - {fileID: 2100000, guid: 2f0e641ee2f093448ae5204babb1a484, type: 2}
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
@@ -27,12 +24,12 @@ MonoBehaviour:
     SerializationNodes:
     - Name: materials
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[FurType, Assembly-CSharp],[UnityEngine.Material,
-        UnityEngine.CoreModule]], mscorlib
+      Data: 0|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.FurType,
+        Assembly-CSharp],[UnityEngine.Material, UnityEngine.CoreModule]], mscorlib
     - Name: comparer
       Entry: 7
-      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[FurType, Assembly-CSharp]],
-        mscorlib
+      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.FurType,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -65,7 +62,7 @@ MonoBehaviour:
       Data: 1
     - Name: $v
       Entry: 10
-      Data: 1
+      Data: 0
     - Name: 
       Entry: 8
       Data: 
@@ -77,7 +74,7 @@ MonoBehaviour:
       Data: 2
     - Name: $v
       Entry: 10
-      Data: 2
+      Data: 0
     - Name: 
       Entry: 8
       Data: 
@@ -89,7 +86,7 @@ MonoBehaviour:
       Data: 3
     - Name: $v
       Entry: 10
-      Data: 3
+      Data: 0
     - Name: 
       Entry: 8
       Data: 
@@ -101,7 +98,7 @@ MonoBehaviour:
       Data: 4
     - Name: $v
       Entry: 10
-      Data: 1
+      Data: 0
     - Name: 
       Entry: 8
       Data: 

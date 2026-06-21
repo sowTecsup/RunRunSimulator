@@ -1,5 +1,7 @@
 using System;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // The three mutable runtime needs of a MoriMochi. Lives INSIDE CreatureDNA (which is already the
 // persisted save record) so it rides the local + Cloud Save with zero extra plumbing. NOT part of
@@ -39,4 +41,5 @@ public class NeedsState
         NeedType.Energy => Energy,
         _               => Affect,
     };
+}
 }

@@ -1,5 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
+namespace MoriMonchiSimulator
+{
 
 // The physical package a world-prop order arrives in, dropped in front of the shop by
 // StoreManager. Tapping E "opens" it: the prop spawns as a tangible object the player
@@ -43,4 +45,5 @@ public class DeliveryBox : MonoBehaviour, IInteractable
 
         Destroy(gameObject);
     }
+}
 }

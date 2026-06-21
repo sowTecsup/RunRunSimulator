@@ -11,6 +11,8 @@ using Unity.Services.CloudSave;
 using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.Serialization;
+namespace MoriMonchiSimulator
+{
 
 // Dashboard requirements:
 //   Authentication → enable Anonymous + Unity Player Accounts
@@ -22,6 +24,9 @@ public partial class CloudSyncService : MonoBehaviour
     private const string META_KEY      = "sync_meta";
     private const string FURNITURE_KEY = "furnitureregistry";
     private const string INVENTORY_KEY = "playerinventory";
+    private const string COMBAT_RESULTS_KEY  = "combat_results";
+    private const string CANCEL_ALL_BREEDING = "cancel-all-breeding";
+    private const string DEQUEUE_COMBAT      = "dequeue-combat";
 
     private string MetaPath =>
         Path.Combine(Application.persistentDataPath,
@@ -130,4 +135,5 @@ public partial class CloudSyncService : MonoBehaviour
         try { return await AuthenticationService.Instance.GetPlayerNameAsync() ?? "---"; }
         catch { return "---"; }
     }
+}
 }
