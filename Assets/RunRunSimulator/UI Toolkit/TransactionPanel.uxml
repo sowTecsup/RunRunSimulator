@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement class="panel">
+    <ui:Label name="customer-name" class="customer-name" />
+    <ui:Label name="archetype" class="archetype" />
+    <ui:Label name="target-name" class="target-name" />
+    <ui:Label name="offer" class="offer" />
+    <ui:VisualElement class="actions">
+      <ui:Button name="accept"  text="Aceptar" />
+      <ui:Button name="counter" text="Pedir más" />
+      <ui:Button name="reject"  text="Rechazar" />
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

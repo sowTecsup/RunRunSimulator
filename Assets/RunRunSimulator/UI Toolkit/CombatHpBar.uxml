@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="CombatHpBar.uss" />
+    <ui:VisualElement name="root" class="hp-root">
+        <ui:Label name="name" text="?" class="hp-name" />
+        <ui:VisualElement name="track" class="hp-track">
+            <ui:VisualElement name="fill" class="hp-fill" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

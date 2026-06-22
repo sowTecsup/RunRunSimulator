@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="CombatVisualizerPanel.uss" />
+    <ui:VisualElement name="root" class="cv-root">
+        <ui:VisualElement name="header" class="cv-header">
+            <ui:Label name="turn-label" text="Turno" class="cv-turn" />
+        </ui:VisualElement>
+        <ui:VisualElement name="spacer" class="cv-spacer" />
+        <ui:VisualElement name="log-frame" class="cv-log-frame">
+            <ui:VisualElement name="log-container" class="cv-log" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

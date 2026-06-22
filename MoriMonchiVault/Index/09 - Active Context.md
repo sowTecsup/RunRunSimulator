@@ -4,6 +4,273 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-21 (Session 18 — Combat Visualizer: replay desde `CombatRecord`, hooks Feel, UI Pokémon-style) — **CÓDIGO HECHO, SIN testear en Play (pendiente de wiring Unity)**
+**Focus:** Sistema standalone para visualizar peleas en escena propia. Recibe 2 `CreatureDNA` + un `CombatRecord` (turn-by-turn ya persistido en `CreatureDNA.CombatHistory`) y reproduce la pelea: arma los dos modelos vía `MoriMonchiVisualizer.Assemble`, ejecuta los `CombatTurn` en coroutine (windup → hit → HP tween → between-turns), barras de HP world-space por lado y log inferior cartas-por-turno. Hooks Feel (`UnityEvent`) listos para arrastrar `MMF_Player` desde inspector.
+
+**Decisiones de arquitectura (Juan):**
+- `CombatVisualizerService.Instance` apex: dueño de slots, prefab visualizer-only, refs serializadas a `CreatureDatabaseSO` + `PartVisualBankSO` + `FurTypeDatabaseSO` (cascada estricta, NO va a `GameManager.Instance`).
+- Bus dedicado `CombatVisualEvents` (estático, archivo aparte) — NO ensucia `GameEvents` con eventos visuales efímeros. Justificado por el patrón "eventos visuales viven en su propio bus" (como UIManager).
+- HP máx por lado = `CombatService.GetEffectiveStats(dna, db).HP` (el mismo `BaseHP × 5` + bonos de partes que usa el sim). HP tras cada turno = `CombatTurn.DefenderHpAfter`.
+- Standalone (NO panel del UIManager): la idea futura es escena aparte. Si después se mete al stack, se migra.
+- Reuso total de `MoriMonchiVisualizer.Assemble/RefreshFur` — el prefab es una variante MM **sin** `MoriMochiAgent` (zero AI/NavMesh).
+- Hooks Feel: 1 componente con enum `HookKind { Global, SideA, SideB }` → Juan instancia 3 GameObjects (1 global + 1 por side) y arrastra MMFs. Por-side filtra Attack/Hit/Crit/Dead/HpChanged; Global cubre CombatStart/End + TurnStart/End + Log.
+
+**Eventos del bus (`CombatVisualEvents`):**
+`OnVisualCombatStart(ctx)` · `OnVisualCombatEnd(winnerSide, isDraw)` · `OnTurnStart/End(turn)` · `OnAttack(side)` · `OnHit(hit)` · `OnCrit(hit)` · `OnHpChanged(side, current, max)` · `OnDead(side)` · `OnLog(line)`.
+
+**Files Created (input para ScriptNodes — agente haiku al cierre):**
+- `Systems/CombatVisualizer/CombatVisualEvents.cs` (bus + DTOs `CombatVisualContext`, `CombatVisualHit`, enum `CombatVisualSide`).
+- `Systems/CombatVisualizer/CombatVisualizerService.cs` (apex `.Instance`, `Play(dnaA, dnaB, record)`, coroutine de replay, spawn/despawn de visualizers).
+- `Systems/CombatVisualizer/CombatVisualHooks.cs` (`HookKind` enum + UnityEvents filtrados por side).
+- `UI/CombatVisualizerPanelUITK.cs` (header de turno + log inferior, suscribe el bus).
+- `UI/CombatHpBarUITK.cs` (world-space por side, lerp del fill por % HP).
+- `UI Toolkit/CombatVisualizerPanel.uxml/.uss` (cv-root + cv-header + cv-log-frame).
+- `UI Toolkit/CombatHpBar.uxml/.uss` (hp-root + hp-track + hp-fill).
+
+**Files Touched:** ninguno (sistema 100% nuevo).
+
+**PASO MANUAL PENDIENTE (Juan, Unity) — bloqueante para Play:**
+1. Variante de prefab del MM **sin** `MoriMochiAgent` (solo `MoriMonchiVisualizer` con sockets) → asignar como `visualizerPrefab` del Service.
+2. Crear GameObject "CombatVisualizer" con `CombatVisualizerService` + 2 child empty `SlotA` / `SlotB`. Asignar refs (`database` = el `CreatureDatabaseSO` del proyecto, `partVisualBank` = el `PartVisualBankSO`, `furDatabase` = el `FurTypeDatabaseSO`, slots, prefab).
+3. Como child de cada slot: GameObject con `UIDocument` world-space apuntando a `CombatHpBar.uxml` + `CombatHpBarUITK` con `side` A o B según el slot.
+4. GameObject standalone "CombatVisualizerPanel" con `UIDocument` (screen-space) apuntando a `CombatVisualizerPanel.uxml` + `CombatVisualizerPanelUITK`.
+5. GameObjects "FeelHooks_Global" / "FeelHooks_A" / "FeelHooks_B" con `CombatVisualHooks` (`HookKind` respectivo). Arrastrar `MMF_Player` en cada `UnityEvent` que se quiera usar.
+6. Para testear: desde un dev tool / botón Odin, llamar `CombatVisualizerService.Instance.Play(dnaA, dnaB, record)` con un `CombatRecord` cualquiera del `CreatureDNA.CombatHistory` de algún MM existente.
+
+---
+
+## TESTING REQUIRED — Sesión 19 (Juan, en Play)
+
+Sesión 18 cerró sin Play (sistema nuevo, sin escena armada). Checklist de validación, ordenada por flujo. Si algún paso falla, anotar el síntoma y NO seguir hasta entender la causa.
+
+**Pre-flight (wiring Unity):**
+- [ ] Reabrir Unity → recompila sin errores. Carpeta nueva `Systems/CombatVisualizer/` debe generar su `.meta`.
+- [ ] Crear variante de prefab MM **sin** `MoriMochiAgent` (mantiene solo `MoriMonchiVisualizer` con sockets configurados vía botón Setup).
+- [ ] GameObject "CombatVisualizer" en escena con `CombatVisualizerService` + 2 child empty `SlotA` / `SlotB` separados ~3-4m en X.
+- [ ] Refs asignadas en el Service: `database` (el `CreatureDatabaseSO` del proyecto), `partVisualBank`, `furDatabase`, `visualizerPrefab` (la variante anterior), `slotA`, `slotB`.
+- [ ] Como child de cada slot: GameObject con `UIDocument` (Render Mode = World Space, PanelSettings world-space) apuntando a `CombatHpBar.uxml` + `CombatHpBarUITK` con `side` A o B según slot. Escalar el UIDocument a ~0.005-0.01 y posicionarlo encima del modelo.
+- [ ] GameObject standalone "CombatVisualizerPanel" con `UIDocument` (screen-space overlay) apuntando a `CombatVisualizerPanel.uxml` + `CombatVisualizerPanelUITK`.
+- [ ] GameObjects de hooks (mínimo para Test 5): `FeelHooks_Global` (HookKind=Global), `FeelHooks_A` (HookKind=SideA), `FeelHooks_B` (HookKind=SideB).
+- [ ] Cámara apuntando a la zona entre los slots (puede ser una cámara dedicada o un transform al que mover la principal).
+
+**Disparo de prueba (botón Odin o dev tool temporal):**
+- [ ] Asegurar que hay al menos 2 MM en el registry con `CombatHistory` poblado. Si no, simular una pelea local primero vía el `CombatDevConsole` para llenar el historial.
+- [ ] Desde un dev tool (botón Odin nuevo o reutilizar `CombatDevConsole`), invocar:
+  ```csharp
+  var dnaA   = GameManager.Instance.Registry.All[0];
+  var dnaB   = GameManager.Instance.Registry.All[1];
+  var record = dnaA.CombatHistory[^1];
+  CombatVisualizerService.Instance.Play(dnaA, dnaB, record);
+  ```
+
+**Test 1 — Spawn visual:**
+- [ ] Al llamar `Play`, aparecen 2 modelos 3D ensamblados (cuerpo + brazos + ojos + boca) en SlotA y SlotB.
+- [ ] Color del fur coincide con `BaseColor` de cada DNA (regresión: invariante color↔identidad de S15).
+- [ ] Si los modelos salen desensamblados o sin partes, revisar que `visualizerPrefab` tenga sockets seteados (botón Setup en `MoriMonchiVisualizer`).
+
+**Test 2 — Barras HP world-space:**
+- [ ] Aparecen 2 HP bars con el `CustomName` de cada MM y la barra al 100%.
+- [ ] Si no se ven o salen gigantes, revisar PanelSettings (mode = World) + escala del UIDocument transform.
+
+**Test 3 — Log inferior + header turno:**
+- [ ] Header arriba muestra "Turno 0 / N" al inicio (N = `record.Turns.Count`).
+- [ ] El log va llenando líneas: "VS: A vs B", "Turno 1 · A → B", "Daño: X" o "¡Crítico! X de daño", "X cae derrotado.", "Ganador: …" / "Empate.".
+- [ ] El header se actualiza a "Turno K / N" en cada `OnTurnStart`.
+- [ ] El log respeta `maxLogLines` (default 6) — las viejas se recortan por arriba.
+
+**Test 4 — HP tween:**
+- [ ] La barra del defensor baja con lerp suave hasta el % correspondiente (`DefenderHpAfter / hpMax`).
+- [ ] Al final del último turno, el % de la barra coincide visualmente con el último `DefenderHpAfter` del record (no debería divergir).
+- [ ] Cambiar `fillLerpSeconds` en el inspector de la HP bar afecta la velocidad del tween.
+
+**Test 5 — Hooks Feel (sin MMF aún, solo verificar disparo):**
+- [ ] En cada slot de `FeelHooks_Global`/`A`/`B`, colgar temporalmente un `UnityEvent → Debug.Log("…")`:
+  - **Global**: ver logs de Start, TurnStart, TurnEnd, End, LogLine (con string).
+  - **SideA**: Attack, HitTaken, HitDealt, CritTaken, CritDealt, Dead, HpChanged (con float, float).
+  - **SideB**: idem.
+- [ ] Confirmar que SideA solo dispara cuando el side del evento es A (atacante o defensor según el hook), y SideB cuando es B. Ningún cruce.
+
+**Test 6 — Crítico / muerte / empate:**
+- [ ] Reproducir un record que termine en KO → `OnDead(loser)` se dispara exactamente UNA vez al cruce de HP=0; el log muestra "X cae derrotado."
+- [ ] Reproducir un record que haya llegado a `MaxRounds` sin KO → `OnVisualCombatEnd(winner=A, isDraw=true)` y el header muestra "Empate" tras el último turno.
+- [ ] Reproducir un record con al menos un `WasCrit=true` → `OnCrit` se dispara, el log muestra "¡Crítico!" y los hooks per-side `OnCritTaken`/`OnCritDealt` se invocan.
+
+**Test 7 — Replay consecutivo:**
+- [ ] Llamar `Play(...)` mientras hay otro combate corriendo → `Stop()` interno limpia los visualizers viejos y arranca el nuevo SIN GameObjects huérfanos en los slots.
+- [ ] Al terminar (post `endHoldSeconds`, default 1.5s), los 2 visualizers se destruyen y los slots quedan vacíos.
+- [ ] `IsPlaying` vuelve a `false` y `playRoutine` es null.
+
+**Test 8 — Feel real (cuando Juan integre MMF_Players):**
+- [ ] Reemplazar los `Debug.Log` por `MMF_Player.PlayFeedbacks()` en cada hook (windup en `OnAttack`, impacto en `OnHitTaken`/`OnCritTaken`, shake/zoom en `OnCritDealt`, ragdoll/disolve en `OnDead`).
+- [ ] Confirmar que el ritmo se siente sincronizado con `windupSeconds` (0.35) e `impactSeconds` (0.35). Ajustar timings del Service si la animación de Feel necesita otro tempo.
+
+**Bugs latentes posibles (revisar si aparecen en Play):**
+- 🟡 Si `record.Turns` está vacío (combat draw sin turns? — improbable, el sim siempre agrega al menos 1), el visualizer dispara Start → End sin pasar por turnos. Síntoma: aparecen los modelos un instante y se van. No es bug, es comportamiento esperado con record vacío — pero conviene verificar que `endHoldSeconds` mantenga visible el "Empate"/"Final" un momento.
+- 🟡 Si el `CombatRecord` viene de async (server-side), `OpponentName` puede no matchear ningún DNA del registry → llamada `Play` necesita un dnaB válido a mano (no reconstruible del record solo). Documentado como fuera de scope; bloqueante real solo cuando se integre el botón "Replay" en el panel de Resultados.
+
+---
+
+### Sesión 17 (histórico) — 2026-06-21
+
+**Session:** 2026-06-21 (Session 17 — Sistema de NPC compradores: arquitectura + implementación Fase 1) — **CÓDIGO HECHO, SIN testear en Play (sesión de pura arquitectura por decisión de Juan)**
+**Focus:** Diseñar e implementar el sistema completo de NPCs compradores. 3 pilares: NPC humanoide con FSM + estantes (`StoreContainer` ya furniture) + caja registradora (`CashRegister`, nueva furniture comprable). NPC pasea, inspecciona N displays según arquetipo, elige un MoriMonchi, se forma en cola tipo árbol ternario (Back/Left/Right por eslabón), espera atención en la caja con timeout, negocia 1 contraoferta. UITK barra superior con estado mínimo + panel de transacción en la caja (3 botones Aceptar/Pedir más/Rechazar) + price tag world-space en cada `StoreContainer`. Venta = `BusyReason.Sold` (no Remove, no IsDead).
+
+**Decisiones de arquitectura (Juan):**
+- NPC humanoide, archivo único (NO partial — clase chica, no aplica regla 11).
+- Cascada de responsabilidad: `CustomerService.Instance` apex (dueño de SOs); `NpcController.Instance` apex de spawn; `CashRegister.Instance` apex de cola.
+- Cola visible tipo árbol ternario por eslabón (BFS para el primer slot libre, `slotSpacing` único derivado a 3 offsets locales). Al avanzar la cola se recolectan ocupantes BFS y se re-asignan slots desde la raíz.
+- Caja registradora = FURNITURE comprable en el ShopCatalog (consistente con la regla: todos los objetos son furniture). Validación de unicidad en el `BuildModeController` queda pendiente del lado Unity.
+- ValuationHandler puro + NegotiationFlow puro (sin estado, instanciados por `CustomerService`). Fórmula simple multiplicadores configurables vía `CustomerPricingSO`.
+- StoreContainer emite `OnDisplayContentsChanged(IReadOnlyList<MoriMochiAgent>)` por polling barato del count (sin tocar `MoriMochiContainer`).
+- 5 eventos nuevos en `GameEvents`: Spawned/Decided/ArrivedAtRegister/Sold/Left.
+- `BusyReason.Sold = 3` y `UIPanelType.Transaction = 7` agregados.
+- "Pedir más" mínimo: 1 botón, sube `pricing.RenegotiationStep` (def 20%), 1 sola contra, NPC acepta según `archetype.RenegotiationTolerance` (random vs umbral).
+
+**Bug evitado (mismatch de tipo, fix aplicado):**
+- `StoreContainer.Occupants` (heredado de `MoriMochiContainer`) es `IReadOnlyList<MoriMochiAgent>`, NO `MoriMonchiController`. El sub-agente UI había escrito `StoreContainerPriceTagUITK.HandleChanged/Rebuild` con `MoriMonchiController` → arreglado a `MoriMochiAgent` (`.DNA` se accede igual: `MoriMochiAgent.Brain.cs:15 public CreatureDNA DNA => dna;`). `NpcAgent.BestPickFromContainer` usa `var` en el foreach → compila por inferencia.
+
+**Files Touched (input para ScriptNodes — agente haiku al cierre):**
+- `Core/Enums.cs`: `+ BusyReason.Sold`, `+ UIPanelType.Transaction`.
+- `Core/GameEvents.cs`: + 5 eventos de customers (Spawned/Decided/ArrivedAtRegister/Sold/Left).
+- `World/Containers/StoreContainer.cs`: + evento `OnDisplayContentsChanged` por polling de `Occupants.Count`.
+
+**Files Created:**
+- `Data/Customers/CustomerPricingSO.cs` (base por tier + multiplicadores + step renegociación).
+- `Data/Customers/CustomerArchetypeSO.cs` (preferencia + presupuesto + tolerancia + browsing + timeout).
+- `Data/Customers/CustomerArchetypeDatabaseSO.cs` (pool + RandomArchetype).
+- `Systems/Customers/ValuationHandler.cs` (cálculo puro de oferta inicial).
+- `Systems/Customers/NegotiationFlow.cs` (ComputeCounter + EvaluateCounter).
+- `Systems/Customers/CustomerService.cs` (apex `.Instance`, dueño de SOs).
+- `World/Npc/NpcController.cs` (apex spawn, cadencia, despawn).
+- `World/Npc/NpcAgent.cs` (FSM humanoide, archivo único, 8 estados).
+- `World/Containers/CashRegister.cs` (árbol ternario de cola + IInteractable via PanelTrigger del prefab).
+- `UI/TransactionPanelUITK.cs` (panel del UIManager: 3 botones, suscribe `OnCurrentCustomerChanged`).
+- `UI/NpcStatusBarUITK.cs` (overlay standalone estilo `InfoOverlayUITK`, estados textuales en ES).
+- `UI/StoreContainerPriceTagUITK.cs` (world-space, usa `CustomerService.EstimateAverage`).
+- `UI Toolkit/TransactionPanel.uxml/.uss`, `NpcStatusBar.uxml/.uss`, `StoreContainerPriceTag.uxml/.uss`.
+
+**PASO MANUAL PENDIENTE (Juan, Unity) — bloqueante para Play:**
+1. Crear los SO assets: `CustomerPricing.asset`, N `CustomerArchetype.asset`, `CustomerArchetypeDatabase.asset` (con archetypes adentro).
+2. Asignar `pricing` + `archetypes` en el componente `CustomerService` (mismo GameObject que GameManager, sugerido).
+3. Crear prefab humanoide placeholder con `NavMeshAgent` + `NpcAgent`.
+4. Crear prefab `CashRegister`: collider, `PlacedFurnitureMarker`, `PanelTrigger(panel=Transaction)`, `CashRegister`, child empty "QueueAnchor" asignado a `queueRoot`.
+5. Crear `FurnitureDefinitionSO` para la caja + entrada en el `ShopCatalog` (categoría Functional, stock=1).
+6. Validación de unicidad de caja en `BuildModeController` (no permitir colocar 2).
+7. En el GameObject del NpcController: asignar `spawnPoint`, `exitPoint`, `displays` (lista de StoreContainers), `register`, `defaultAgentPrefab`.
+8. En UIManager dict Odin: asignar slot `Transaction → [GameObject del TransactionPanel]` (panel con UIDocument apuntando a `TransactionPanel.uxml` + `TransactionPanelUITK`).
+9. Crear GameObject standalone "NpcStatusBar" con UIDocument + `NpcStatusBarUITK`.
+10. En el prefab del StoreContainer: agregar child con UIDocument world-space (apunta a `StoreContainerPriceTag.uxml`) + componente `StoreContainerPriceTagUITK`.
+
+---
+
+## TESTING REQUIRED — Sesión 18 (Juan, en Play)
+
+Juan no testeó esta sesión (decisión: pura arquitectura). Esto es la checklist completa de validación en Play, ordenada por flujo. Si cualquier paso falla, anotar el síntoma y NO seguir con los siguientes hasta entender la causa.
+
+**Pre-flight (compilación + wiring):**
+- [ ] Reabrir Unity → recompila sin errores (en particular, sin "type or namespace 'X' could not be found"). Las 13 carpetas nuevas (`Data/Customers`, `Systems/Customers`, `World/Npc`) deben generar sus `.meta`.
+- [ ] Crear los 3 SO assets vía menú: `RunRunSimulator/Customers/Customer Pricing`, `…/Customer Archetype` (al menos 2-3 arquetipos distintos), `…/Customer Archetype Database` (con la lista poblada).
+- [ ] En `CustomerPricing.asset` pulsar "Seed Defaults" → confirmar `BasePricePerTier` se rellena (T1=20, T2=50, T3=120).
+- [ ] Asignar `pricing` + `archetypes` en el componente `CustomerService` del GameObject que lo aloja.
+- [ ] Crear prefab humanoide NPC con `NavMeshAgent` + `NpcAgent` (puede ser un cubito alto stand-in).
+- [ ] Crear prefab `CashRegister.prefab`: collider sólido, `PlacedFurnitureMarker`, `PanelTrigger(panel=Transaction)`, `CashRegister`, child empty "QueueAnchor" asignado a `queueRoot`.
+- [ ] Crear `Furniture3x2_CashRegister.asset` (FurnitureDefinitionSO) + agregar al `ShopCatalog` con stock=1.
+- [ ] Validación de unicidad en `BuildModeController` (no permitir colocar 2 cajas) — pendiente de implementar.
+- [ ] En el GameObject del `NpcController`: asignar `spawnPoint`, `exitPoint`, `displays` (arrastra los StoreContainers de escena), `register`, `defaultAgentPrefab`.
+- [ ] En `UIManager` (dict Odin): asignar `Transaction → [GameObject del TransactionPanel]`. El panel necesita `UIDocument` (apuntando a `TransactionPanel.uxml`) + `TransactionPanelUITK`.
+- [ ] Crear GameObject standalone "NpcStatusBar" con `UIDocument` (apuntando a `NpcStatusBar.uxml`) + `NpcStatusBarUITK`.
+- [ ] En el prefab del `StoreContainer`: agregar child world-space con `UIDocument` (apuntando a `StoreContainerPriceTag.uxml`) + `StoreContainerPriceTagUITK`.
+
+**Test 1 — Price tag del StoreContainer (mínimo viable):**
+- [ ] Tirar un MoriMonchi a un StoreContainer → aparece el price tag con `{nombre} · {N} D` encima del estante.
+- [ ] Sacarlo → el tag desaparece (`DisplayStyle.None`).
+- [ ] Tirar 2 MoriMonchis → aparecen 2 filas.
+
+**Test 2 — Spawn + wandering + inspección:**
+- [ ] Spawnea un NPC al pasar `minSpawnInterval` (default 20s). Aparece en `spawnPoint`.
+- [ ] El NPC camina hacia un StoreContainer con ocupantes (NavMesh path visible si Gizmos on).
+- [ ] Aparece en la barra superior con su arquetipo y estado "Pensando…" o "Mirando…".
+- [ ] Tras `InspectionDuration` (default 3s) parado frente al display, transiciona: o "Yendo a la caja" (eligió uno) o vuelve a "Mirando…" (otro display).
+
+**Test 3 — Cola en árbol:**
+- [ ] 1er NPC llega a la caja → ocupa el slot raíz (frente).
+- [ ] 2do NPC llega → ocupa uno de Back/Left/Right del 1er NPC.
+- [ ] 3er NPC llega → ocupa otro hueco entre los 3 disponibles.
+- [ ] Si los slots se ven solapados en Play, ajustar `slotSpacing` en el inspector del `CashRegister`.
+
+**Test 4 — Negociación:**
+- [ ] Acercarse a la caja y tocar E → abre el `TransactionPanel`.
+- [ ] El panel muestra: arquetipo del cliente, nombre del MM target, oferta inicial.
+- [ ] "Aceptar" → suma Dabloons al inventario, MM marcado `BusyState=Sold`, NPC se va al `exitPoint`, despawn al llegar.
+- [ ] "Pedir más" → la oferta sube `RenegotiationStep` (def +20%). Botón se deshabilita (1 sola contra).
+- [ ] Si el NPC tiene `RenegotiationTolerance=1` siempre acepta; si =0 cierra y el NPC se va decepcionado.
+- [ ] "Rechazar" → NPC se va al exitPoint, sin venta.
+
+**Test 5 — Timeout:**
+- [ ] Dejar a un NPC esperando en la caja sin abrir el panel → tras `WaitTimeoutSeconds` (def 60s) se va solo.
+
+**Test 6 — Cola dinámica (BUG SOSPECHADO, ver review abajo):**
+- [ ] 2 NPCs en cola. Vender al 1ro → el 2do debe avanzar al frente y caminar hasta el slot raíz.
+- [ ] **Si el 2do se queda parado en su slot viejo en lugar de moverse adelante**, confirmamos el bug latente que detallo en el review.
+
+**Test 7 — Filtros de venta:**
+- [ ] Un MM en breeding/QueuedForCombat NO debe ser ofertable (`dna.IsBusy` true → `BestPickFromContainer` lo saltea).
+- [ ] Un MM `Sold` desaparece del CreatureGrid UI / no se respawna en mundo (el filtro del spawner ya descarta `IsBusy` históricamente — confirmar).
+
+---
+
+## Review de arquitectura: ¿overengineering? Veredicto
+
+Pasada crítica sobre los 12 archivos nuevos contra la regla 8 ("Sin complejidad innecesaria. Tres líneas similares > abstracción prematura"). **Veredicto general: el sistema NO está sobre-ingenierizado** — cada pieza responde a una decisión explícita de Juan (cola en árbol, archetype bundleado, SO pricing aparte, panel separado de overlay). Detectados 1 bug latente + 2 grasas cosméticas, ninguno bloqueante para testing.
+
+**🟡 Bug latente (probable, revisar en Test 6):**
+- `CashRegister.CurrentSlotOf(NpcAgent)` está expuesto pero **nadie lo consume**. `NpcAgent.TickQueueing` usa `reservedQueueSlot` (cache local de la primera reserva) y nunca repollea su slot real. Consecuencia: tras `AdvanceQueue` (cuando el front sale), los NPCs que quedaron en la cola reciben slot nuevo en el árbol, pero su `navAgent.destination` sigue apuntando al lugar viejo. **El 2do NPC se quedaría parado en lugar de avanzar al frente**.
+- Fix futuro (S18, después de confirmar el síntoma): en `TickQueueing`, repollear `register.CurrentSlotOf(this)`; si difiere de `reservedQueueSlot`, actualizar `reservedQueueSlot` y llamar `SetDestination`. O — más limpio — un evento `OnSlotReassigned(NpcAgent, Vector3)` que `CashRegister` dispare desde `AdvanceQueue`. Elegir el más simple según se vea en Play.
+
+**🟢 Grasa cosmética 1 — `NpcState.Spawned`:**
+- Valor inicial del enum antes de `Initialize`. La FSM no lo ticka (no hay case en el switch). Podría eliminarse y arrancar directamente en `Wandering` por default (el primer `TransitionTo(Wandering)` ya pasa por `Initialize`). Cosmético, no bloqueante. Borrarlo es 1 línea menos.
+
+**🟢 Grasa cosmética 2 — `inspectStandoff` no usado en `TickInspecting`:**
+- Se usa solo al fijar el destino inicial en `TickWandering` (línea 89), pero el nombre sugiere que también afecta la distancia de chequeo de llegada. No es bug — el chequeo usa `arriveDistance`. Renombrar a `inspectDestinationOffset` haría el campo auto-documentado. Cosmético.
+
+**Lo que NO es overengineering aunque parezca:**
+- Árbol ternario en `CashRegister`: Juan pidió textualmente "atrás / izquierda / derecha del eslabón". El árbol implementa exactamente eso. Una List<Transform> serializada hubiera sido más simple pero NO cumple el requisito.
+- 3 SOs separados (Pricing / Archetype / Database): consistente con el patrón existente (FurnitureDatabaseSO, CreatureDatabaseSO, etc.). No introducir un nuevo patrón ahorra carga cognitiva.
+- `ValuationHandler` y `NegotiationFlow` como clases plain C# `[Serializable]` en archivos separados: cada una resuelve UNA responsabilidad pura. Fusionarlas en CustomerService crearía un God Object. Mantener separadas es la opción de menor resistencia futura.
+- `BusyReason.Sold` en lugar de `bool IsSold` paralelo: reutiliza el campo de verdad (`BusyState`) y la propiedad derivada (`IsBusy`). El spawner / breeding / combat ya descartan los `IsBusy` → cero plumbing nuevo.
+
+**Camino de menor resistencia confirmado en estas decisiones:**
+- Caja registradora como furniture comprable (no como GO de escena hardcodeado) → reutiliza ShopCatalog, BuildModeController, PlacedFurnitureMarker.
+- TransactionPanel como panel del UIManager (no como overlay custom) → reutiliza el stack LIFO + input maps + PanelTrigger.
+- StoreContainerPriceTag como world-space UIDocument hermano (no como Canvas world-space) → consistente con la migración UITK del proyecto.
+- Polling barato (`lastOccupantCount`) en `StoreContainer.Update` en lugar de hookear `Admit`/`Release` con virtual override → cero tocar `MoriMochiContainer` (sistema sensible — corrales, breeding, F1/F2 históricos).
+- Reutilización del `PanelTrigger` existente en lugar de implementar `IInteractable` en `CashRegister` → 0 líneas de código de interacción.
+
+**NEXT SESSION (18):**
+1. Ejecutar Tests 1-7 arriba en orden. Reportar fallas.
+2. Si Test 6 confirma el bug latente: aplicar el fix más simple (probablemente añadir polling en `TickQueueing` a `register.CurrentSlotOf(this)`).
+3. Si todo OK → eliminar `NpcState.Spawned` (cosmético) y marcar etapa ✅ — primer mecanismo de monetización real del juego.
+4. Volver al bug pendiente de Sesión 16 (1ª carga en frío del breeding cortejo — abierto en [[Index/11 - Technical Debt]]).
+
+---
+
+## Cierre Sesión 17 (formal)
+
+- **Tipo de sesión:** 100% arquitectura + implementación, sin Play. Decisión explícita de Juan (no estaba físicamente para testear).
+- **Volumen entregado:** 3 archivos `.cs` modificados + 12 archivos `.cs` nuevos + 6 archivos UXML/USS = **21 archivos** tocados/creados en una pasada.
+- **Pipeline de ejecución usado:**
+  - **Opus** (esta sesión): diseño + validación de decisiones + plan de archivos + revisión crítica final.
+  - **5 sub-agentes Sonnet en paralelo** (1 wave): Foundations / Services / World-Npc / Furnitures / UI. Cada uno con contratos públicos de los vecinos para evitar mismatches → 1 mismatch real detectado y arreglado in-line (`MoriMonchiController` → `MoriMochiAgent`).
+  - **1 sub-agente Haiku** para ScriptNodes del vault: 3 actualizados + 12 creados (per memoria de Juan: haiku en lugar de opencode/Deepseek que se cuelga).
+- **Estado vault:** ScriptNodes al día, Active Context al día. `CLAUDE.md` no requiere update (no se introdujo regla nueva ni cambio de stack — el patrón "todo objeto físico es furniture comprable" ya estaba codificado).
+- **Pendiente único antes de marcar etapa ✅:** validación en Play (Tests 1-7), realizable cuando Juan esté frente a Unity (S18).
+- **Riesgo conocido:** 1 bug latente probable (cola dinámica tras `AdvanceQueue`), Test 6 lo detecta. Fix documentado.
+- **Sin deuda nueva en [[Index/11 - Technical Debt]]:** no se introdujeron partial classes, ni `static SO Current`, ni saltos de capa. El árbol ternario en CashRegister es complejidad esencial (requisito de diseño), no deuda.
+
+---
+
+### Sesión 16 (histórico) — 2026-06-21
+
 **Session:** 2026-06-21 (Session 16 — Breeding container: cortejo orientado al AGENTE (orbit/tend) + 3 comportamientos + bug de carga en frío) — **EN PROGRESO, 1ª carga SIN confirmar**
 **Focus:** Mejorar el behavior dentro de los corrales: cortejo vivo (no congelado) con sub-estado por sexo, cría sale disparada al nacer, solo adultos crían, padres vuelven a merodear al nacer. **PARCIAL:** el feel + reload (2ª carga) funcionan y gustan; la 1ª carga en frío sigue fallando (pareja congelada + cría no sale del corral) → la raíz es el ORDEN DE CARGA, ver [[Index/11 - Technical Debt]] (🔴 ABIERTO — orden de carga). NO parchear más sin trazar primero.
 

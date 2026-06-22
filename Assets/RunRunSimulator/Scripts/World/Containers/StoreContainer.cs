@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 namespace MoriMonchiSimulator
@@ -9,6 +11,10 @@ public class StoreContainer : MoriMochiContainer
     [Title("Store Display")]
     private float restoreRate = 25f;
 
+    public event Action<IReadOnlyList<MoriMochiAgent>> OnDisplayContentsChanged;
+
+    private int lastOccupantCount = -1;
+
     private void Update()
     {
         float delta = restoreRate * Time.deltaTime;
@@ -19,6 +25,12 @@ public class StoreContainer : MoriMochiContainer
             dna.Needs.AddHealth(delta);
             dna.Needs.AddEnergy(delta);
             dna.Needs.AddAffect(delta);
+        }
+
+        if (Occupants.Count != lastOccupantCount)
+        {
+            lastOccupantCount = Occupants.Count;
+            OnDisplayContentsChanged?.Invoke(Occupants);
         }
     }
 }

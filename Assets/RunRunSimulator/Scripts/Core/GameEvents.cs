@@ -80,5 +80,20 @@ public static class GameEvents
 
     public static event Action<PlayerInventorySO> OnInventoryReloaded;
     public static void InventoryReloaded(PlayerInventorySO inventory) => OnInventoryReloaded?.Invoke(inventory);
+
+    public static event Action<NpcAgent> OnCustomerSpawned;
+    public static void CustomerSpawned(NpcAgent agent) => OnCustomerSpawned?.Invoke(agent);
+
+    public static event Action<NpcAgent, CreatureDNA> OnCustomerDecided;
+    public static void CustomerDecided(NpcAgent agent, CreatureDNA target) => OnCustomerDecided?.Invoke(agent, target);
+
+    public static event Action<NpcAgent> OnCustomerArrivedAtRegister;
+    public static void CustomerArrivedAtRegister(NpcAgent agent) => OnCustomerArrivedAtRegister?.Invoke(agent);
+
+    public static event Action<NpcAgent, CreatureDNA, int> OnCustomerSold;
+    public static void CustomerSold(NpcAgent agent, CreatureDNA mm, int finalPrice) => OnCustomerSold?.Invoke(agent, mm, finalPrice);
+
+    public static event Action<NpcAgent, bool> OnCustomerLeft;
+    public static void CustomerLeft(NpcAgent agent, bool sold) => OnCustomerLeft?.Invoke(agent, sold);
 }
 }

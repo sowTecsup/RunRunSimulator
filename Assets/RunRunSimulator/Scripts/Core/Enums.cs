@@ -80,6 +80,7 @@ public enum BusyReason
     None              = 0,
     QueuedForCombat   = 1,  // Waiting for async matchmaking
     Breeding          = 2,  // Occupied in a timed breeding process (future)
+    Sold              = 3,
 }
 
 // Identifies each Canvas panel the player can open via world interaction.
@@ -94,6 +95,7 @@ public enum UIPanelType
     Combat           = 4,  // Combat screen: online battle + local combat + results
     Storage          = 5,  // Storage box: list of stored world props + eject
     Store            = 6,  // Shop screen: catalog of furniture + world props with prices
+    Transaction      = 7,
 }
 
 // What the player is currently doing. Drives input/cursor/camera: while a UI

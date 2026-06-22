@@ -1,0 +1,7 @@
+.panel { padding: 16px; min-width: 360px; }
+.customer-name { font-size: 18px; -unity-font-style: bold; }
+.archetype { opacity: 0.8; }
+.target-name { font-size: 16px; margin-top: 8px; }
+.offer { font-size: 22px; margin-top: 8px; -unity-font-style: bold; }
+.actions { flex-direction: row; margin-top: 16px; }
+.actions > Button { flex-grow: 1; margin-right: 8px; }

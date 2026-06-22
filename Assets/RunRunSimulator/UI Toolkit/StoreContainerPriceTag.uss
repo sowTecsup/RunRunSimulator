@@ -1,0 +1,3 @@
+.price-tag { padding: 6px 10px; background-color: rgba(0,0,0,0.45); border-radius: 4px; }
+.price-list { flex-direction: column; }
+.price-row { color: white; font-size: 12px; }
