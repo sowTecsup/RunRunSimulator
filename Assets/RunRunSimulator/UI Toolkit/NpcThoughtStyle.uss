@@ -1,0 +1,23 @@
+.npc-tag {
+    align-items: center;
+    align-self: center;
+    padding: 6px 12px;
+    background-color: rgba(20, 20, 28, 0.82);
+    border-radius: 10px;
+}
+
+.npc-tag__name {
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: rgb(180, 215, 255);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+.npc-tag__thought {
+    font-size: 20px;
+    color: rgb(235, 235, 240);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    margin-top: 2px;
+}

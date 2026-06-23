@@ -36,6 +36,7 @@ public class NameTag : MonoBehaviour
     private UIDocument    document;
     private VisualElement root;
     private Label         nameLabel;
+    private Label         priceLabel;
     private Label         statusLabel;
     private Label         intentLabel;
     private Label         petHintLabel;
@@ -92,6 +93,7 @@ public class NameTag : MonoBehaviour
         root.pickingMode          = PickingMode.Ignore;
 
         nameLabel        = root.Q<Label>("name-label");
+        priceLabel       = root.Q<Label>("price-label");
         statusLabel      = root.Q<Label>("status-label");
         intentLabel      = root.Q<Label>("intent-label");
         petHintLabel     = root.Q<Label>("pet-hint-label");
@@ -143,16 +145,41 @@ public class NameTag : MonoBehaviour
         ResolveElements();
         if (dna == null) return;
 
-        // Penned creatures swap to the pen layout (gender + name + personality, plus heart/timer
-        // while breeding); free creatures keep the status/intent/pet-hint readout.
-        if (agent != null && agent.IsPenned) RefreshPenned();
-        else                                 RefreshDefault();
+        // Store creatures show the sale layout (name + price); other penned creatures swap to the
+        // breeding pen layout (gender + name + personality, plus heart/timer while breeding); free
+        // creatures keep the status/intent/pet-hint readout.
+        if      (agent != null && agent.IsForSale) RefreshStore();
+        else if (agent != null && agent.IsPenned)  RefreshPenned();
+        else                                       RefreshDefault();
+    }
+
+    // Store layout: name (kept from Bind) + the sale price under it. Every other line hides.
+    private void RefreshStore()
+    {
+        SetDisplay(statusLabel,      false);
+        SetDisplay(intentLabel,      false);
+        SetDisplay(petHintLabel,     false);
+        SetDisplay(genderLabel,      false);
+        SetDisplay(personalityLabel, false);
+        SetDisplay(stageLabel,       false);
+        SetDisplay(breedLabel,       false);
+        SetDisplay(heartLabel,       false);
+        SetDisplay(timerLabel,       false);
+
+        if (priceLabel != null)
+        {
+            var svc = CustomerService.Instance;
+            int price = svc != null ? svc.EstimateAverage(dna) : 0;
+            priceLabel.text = $"{price} D";
+            SetDisplay(priceLabel, true);
+        }
     }
 
     // Pen layout: gender glyph + name + personality only. While the creature is breeding, add a
     // heart and the egg's live countdown. The free-roam lines (status/intent/pet-hint) are hidden.
     private void RefreshPenned()
     {
+        SetDisplay(priceLabel,   false);
         SetDisplay(statusLabel,  false);
         SetDisplay(intentLabel,  false);
         SetDisplay(petHintLabel, false);
@@ -187,6 +214,7 @@ public class NameTag : MonoBehaviour
 
     private void RefreshDefault()
     {
+        SetDisplay(priceLabel,       false);
         SetDisplay(genderLabel,      false);
         SetDisplay(personalityLabel, false);
         SetDisplay(breedLabel,       false);

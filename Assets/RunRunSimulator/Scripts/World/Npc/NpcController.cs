@@ -13,7 +13,6 @@ namespace MoriMonchiSimulator
         [Required] [SerializeField] private Transform exitPoint;
 
         [Title("Targets")]
-        [SerializeField] private List<StoreContainer> displays = new();
         [Required] [SerializeField] private CashRegister register;
 
         [Title("Cadence")]
@@ -53,26 +52,33 @@ namespace MoriMonchiSimulator
             nextSpawnAt = Time.time + Random.Range(minSpawnInterval, maxSpawnInterval);
         }
 
-        private void TrySpawnOne()
+        public NpcAgent ForceSpawn()
+        {
+            var agent = TrySpawnOne();
+            nextSpawnAt = Time.time + Random.Range(minSpawnInterval, maxSpawnInterval);
+            return agent;
+        }
+
+        private NpcAgent TrySpawnOne()
         {
             if (CustomerService.Instance == null)
             {
                 Debug.LogWarning("[NpcController] CustomerService.Instance is null.");
-                return;
+                return null;
             }
 
             var archetype = CustomerService.Instance.Archetypes?.RandomArchetype();
             if (archetype == null)
             {
                 Debug.LogWarning("[NpcController] No archetype available.");
-                return;
+                return null;
             }
 
             var prefab = archetype.AgentPrefab != null ? archetype.AgentPrefab : defaultAgentPrefab;
             if (prefab == null)
             {
                 Debug.LogWarning("[NpcController] No prefab available for archetype or default.");
-                return;
+                return null;
             }
 
             var go = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
@@ -81,12 +87,13 @@ namespace MoriMonchiSimulator
             {
                 Debug.LogWarning("[NpcController] Prefab has no NpcAgent component.");
                 Destroy(go);
-                return;
+                return null;
             }
 
-            agent.Initialize(archetype, displays, register, this);
+            agent.Initialize(archetype, StoreDisplayRegistry.All, register, this);
             active.Add(agent);
             GameEvents.CustomerSpawned(agent);
+            return agent;
         }
 
         public void Despawn(NpcAgent agent)

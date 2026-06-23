@@ -26,18 +26,21 @@ namespace MoriMonchiSimulator
         public int CurrentOffer { get; private set; }
         public bool HasCounteredOnce { get; private set; }
         public NpcState State { get; private set; } = NpcState.Spawned;
+        public StoreContainer CurrentDisplay => currentDisplay;
 
         [Title("Movement")]
         [MinValue(0.1f)] [SerializeField] private float arriveDistance = 0.5f;
-        [MinValue(0f)]   [SerializeField] private float inspectStandoff = 1.5f;
 
-        private List<StoreContainer> displays;
+        private const float displaySampleRadius = 1.5f;
+
+        private IReadOnlyList<StoreContainer> displays;
         private CashRegister register;
         private NpcController controller;
 
         private NavMeshAgent navAgent;
         private int inspectionsRemaining;
         private StoreContainer currentDisplay;
+        private StoreContainer reservedDisplay;
         private float inspectTimer;
         private float waitTimer;
         private Vector3 reservedQueueSlot;
@@ -45,7 +48,7 @@ namespace MoriMonchiSimulator
         private bool leavingDestinationSet;
         private bool approachingSlotRequested;
 
-        public void Initialize(CustomerArchetypeSO archetype, List<StoreContainer> shopDisplays, CashRegister cashRegister, NpcController owner)
+        public void Initialize(CustomerArchetypeSO archetype, IReadOnlyList<StoreContainer> shopDisplays, CashRegister cashRegister, NpcController owner)
         {
             Archetype = archetype;
             displays = shopDisplays;
@@ -72,6 +75,8 @@ namespace MoriMonchiSimulator
 
         private void TickWandering()
         {
+            ReleaseDisplaySlot();
+
             var candidates = new List<StoreContainer>();
             foreach (var d in displays)
             {
@@ -85,16 +90,32 @@ namespace MoriMonchiSimulator
                 return;
             }
 
-            currentDisplay = candidates[UnityEngine.Random.Range(0, candidates.Count)];
-            var dest = currentDisplay.transform.position + (transform.position - currentDisplay.transform.position).normalized * inspectStandoff;
-            navAgent.SetDestination(dest);
-            TransitionTo(NpcState.InspectingDisplay);
+            int start = UnityEngine.Random.Range(0, candidates.Count);
+            for (int k = 0; k < candidates.Count; k++)
+            {
+                var d = candidates[(start + k) % candidates.Count];
+                if (d.TryReserveUsePoint(this, transform.position, navAgent.areaMask, displaySampleRadius, out var usePos))
+                {
+                    reservedDisplay = d;
+                    currentDisplay  = d;
+                    navAgent.SetDestination(usePos);
+                    TransitionTo(NpcState.InspectingDisplay);
+                    return;
+                }
+            }
+
+            TransitionTo(NpcState.Leaving);
+        }
+
+        private void ReleaseDisplaySlot()
+        {
+            if (reservedDisplay != null) { reservedDisplay.ReleaseUsePoint(this); reservedDisplay = null; }
         }
 
         private void TickInspecting()
         {
-            float dist = Vector3.Distance(transform.position, navAgent.destination);
-            if (dist > arriveDistance) return;
+            if (navAgent.pathPending) return;
+            if (navAgent.remainingDistance > arriveDistance + 0.01f) return;
 
             inspectTimer += Time.deltaTime;
             if (inspectTimer < Archetype.InspectionDuration) return;
@@ -238,6 +259,7 @@ namespace MoriMonchiSimulator
             else if (next == NpcState.ApproachingRegister)
             {
                 approachingSlotRequested = false;
+                ReleaseDisplaySlot();
             }
             else if (next == NpcState.WaitingAtRegister)
             {
@@ -245,6 +267,7 @@ namespace MoriMonchiSimulator
             }
             else if (next == NpcState.Leaving)
             {
+                ReleaseDisplaySlot();
                 leavingDestinationSet = false;
                 if (register != null) register.ReleaseSlot(this);
                 if (navAgent != null && navAgent.isOnNavMesh && controller != null && controller.ExitPoint != null)
@@ -275,6 +298,7 @@ namespace MoriMonchiSimulator
 
         private void OnDisable()
         {
+            ReleaseDisplaySlot();
             if (register != null) register.ReleaseSlot(this);
         }
     }

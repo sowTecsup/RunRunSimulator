@@ -20,6 +20,18 @@
     white-space: nowrap;
 }
 
+/* Store layout: the sale price under the name, shown from code only while the
+   creature is displayed in a StoreContainer. Hidden by default. */
+.tag__price {
+    display: none;
+    font-size: 24px;
+    -unity-font-style: bold;
+    color: rgb(255, 214, 120);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    margin-top: 2px;
+}
+
 /* Color is set from code per status (busy/dead); empty text hides the line. */
 .tag__status {
     font-size: 20px;

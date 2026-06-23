@@ -4,6 +4,55 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-22 (Session 19 — Sistema NPC compradores: wiring en Play + precio por MoriMonchi + thought tag por NPC + UX panel transacción + use points anti-overlap + auto-registro de estantes) — **CÓDIGO HECHO, panel transacción confirmado visualmente en Play; resto pendiente de testear**
+**Focus:** Retomar el wiring/testeo en Play del sistema de NPCs de la S17. Se resolvieron bugs de wiring (panel no abría, price tag no salía, status bar invisible) y se aplicaron mejoras de arquitectura pedidas por Juan (use points, auto-registro, thought tag por NPC).
+
+**Decisiones de arquitectura (Juan):**
+- **Precio = opción B (por MoriMonchi, NO por estante):** el `StoreContainer` vuelve a ser SOLO contenedor/interactuable; el precio sale en el `NameTag` propio de cada MM cuando está en venta. Eliminado el `StoreContainerPriceTag` (cartel-lista del estante) + su evento `OnDisplayContentsChanged`/polling en `StoreContainer`.
+- **Estado de venta por NameTag:** nuevo `MoriMochiAgent.IsForSale => currentContainer is StoreContainer`; `NameTag` agrega layout "tienda" (`RefreshStore`: nombre + precio via `CustomerService.EstimateAverage`), branch ANTES del layout de cría (que también es `IsPenned`).
+- **Thought tag por NPC (no barra standalone):** reemplazado `NpcStatusBar` (overlay agregado tipo HUD) por `NpcThoughtTag` (world-space por NPC, patrón `NameTag`: billboard + distance-gate, lee `NpcAgent.State` vivo, diálogos ES por estado, se auto-bindea con `GetComponentInParent<NpcAgent>`). Razón de Juan: consistencia con el patrón establecido + inmersión + cada NPC tiene su pensamiento.
+- **Panel transacción:** layout 3 columnas (cliente | swatch `BaseColor` + nombre + género/edad | `+oferta` price-tag verde) + 3 botones (Cancelar/Aceptar/Pedir más). **Fix de ciclo de vida:** el panel se oculta por `display` (no `SetActive`), así que `OnEnable` corría 1 sola vez → ahora detecta abrir/cerrar por el estado real de `display` en `Update` → `EnterNegotiating`/`ExitNegotiating` robusto (incluido ESC). **Fix visual:** faltaba `<Style src="TransactionPanel.uss">` en el UXML (se veía sin estilos) + backdrop `position:absolute inset:0` (patrón `CombatPanel`) para centrar apaisado (antes `flex-grow` lo clampeaba a lo alto).
+- **Auto-registro de estantes (`StoreDisplayRegistry`):** espejo de `NeedStationRegistry`. Los `StoreContainer` se auto-registran en `OnEnable`/`OnDisable`; `NpcController` ya NO tiene `displays` serializada, le pasa `StoreDisplayRegistry.All` (lista viva) a los NPCs en `Initialize`. Resuelve orden de spawn + furniture colocada en runtime.
+- **Use points anti-overlap (igual que los feeders/`NeedStation`):** `StoreContainer.usePoints` + `TryReserveUsePoint`/`ReleaseUsePoint` (1 NPC por punto, snap a NavMesh via `NavMesh.SamplePosition`). El NPC reserva el punto libre más cercano y alcanzable; si ninguno en ningún estante → se va. Reemplaza el standoff geométrico (causa raíz del atasco "Mmm, déjame ver…" eterno: el punto caía off-mesh bajo el estante). Release en transiciones `ApproachingRegister`/`Leaving`, re-wander y `OnDisable`.
+- **Fix llegada inspección:** `TickInspecting` usa `remainingDistance` (path-based) en vez de `Vector3.Distance` al destino, consistente con las demás fases.
+- **Debug del StoreContainer (`StoreContainerDebug`, patrón F3 solo API pública):** listas en vivo de MMs adentro (nombre/género/busy/precio) + NPCs interactuando (arquetipo/estado/target, filtra por `NpcAgent.CurrentDisplay == container`) + botón "Spawn Test Customer" (`NpcController.ForceSpawn`).
+
+**Confirmado en Play (Juan):** el panel de transacción se ve correcto (header dorado, 3 columnas con divisores, swatch enmarcado, price-tag verde, botones coloreados, centrado apaisado).
+
+**Files Created:**
+- `World/Npc/NpcThoughtTag.cs`
+- `World/Containers/StoreDisplayRegistry.cs`
+- `World/Containers/StoreContainerDebug.cs`
+- `UI Toolkit/NpcThought.uxml`, `UI Toolkit/NpcThoughtStyle.uss`
+
+**Files Touched (.cs — input ScriptNodes):**
+- `World/AI/MoriMochiAgent.Brain.cs`: + `IsForSale`.
+- `World/Creatures/NameTag.cs`: layout tienda (precio) + `RefreshStore` + `price-label` (oculto en los otros layouts).
+- `World/Containers/StoreContainer.cs`: solo contenedor + `usePoints` + registro en `StoreDisplayRegistry` + `TryReserveUsePoint`/`ReleaseUsePoint`/`HasFreeUsePoint` + gizmos (eliminado evento/polling).
+- `UI/TransactionPanelUITK.cs`: swatch/info/oferta `+Valor` + fix lifecycle (poll de `display` en Update).
+- `World/Npc/NpcAgent.cs`: `CurrentDisplay`, fix `TickInspecting` (remainingDistance), reserva use point en `TickWandering`, `ReleaseDisplaySlot`, `displays` → `IReadOnlyList`, fuera `inspectStandoff`.
+- `World/Npc/NpcController.cs`: `ForceSpawn`, `TrySpawnOne` devuelve `NpcAgent`, sin `displays` serializada (usa `StoreDisplayRegistry.All`).
+- UXML/USS (no van a ScriptNodes): `NameTagUITK.uxml`/`NameTagUITKStyle.uss` (price), `TransactionPanel.uxml`/`.uss` (layout + estilo + backdrop).
+
+**Files Deleted:**
+- `UI/StoreContainerPriceTagUITK.cs` + `StoreContainerPriceTag.uxml`/`.uss` (+ metas) → borrar `ScriptNodes/StoreContainerPriceTagUITK.md`.
+- `UI/NpcStatusBarUITK.cs` + `NpcStatusBar.uxml`/`.uss` (+ metas) → borrar `ScriptNodes/NpcStatusBarUITK.md`.
+
+**PASOS MANUALES PENDIENTES (Juan, Unity):**
+1. Prefab NPC: en el child que tenía `NpcStatusBarUITK` (script faltante ahora), poner `NpcThoughtTag` + UIDocument Source = `NpcThought.uxml` (mantener `WorldUIPanelSettings`), posicionar sobre la cabeza.
+2. Cada `StoreContainer`: agregar `usePoints` (child empties sobre el NavMesh; gizmos amarillos guían) + componente `StoreContainerDebug`. **Piso pintado con el área de confinamiento + bakeado** (si no, el MM no es admitido → sin precio).
+3. `NpcController`: ya no tiene `displays` (auto-registro). Confirmar `register`/`spawnPoint`/`exitPoint`/`defaultAgentPrefab`.
+4. Panel transacción: reimportar UXML/USS; confirmar slot `Transaction → GameObject` en UIManager + `PanelTrigger(Transaction)` + collider/layer (en `grabMask`) en la caja.
+
+**NEXT SESSION (20) — pendientes pedidos por Juan:**
+1. **Estado "Sold" completo (debe funcionar EXACTAMENTE como "Dead"):** al aceptar oferta el MM ya pasa a `BusyReason.Sold` (`NpcAgent.AcceptCurrentOffer`), PERO falta: (a) **timestamp de venta** (paralelo a la fecha de muerte de `IsDead` — buscar dónde se guarda la death date en `CreatureDNA` y espejarlo), (b) tratamiento completo igual que `IsDead` (filtros en grid UI / spawn / persistencia), (c) helper/propiedad tipo `IsSold`.
+2. **Texto del vendedor feliz al vender:** el `NpcThoughtTag` debe mostrar un diálogo feliz al concretarse la venta (suscribir `GameEvents.OnCustomerSold` o un estado post-venta — hoy el NPC pasa directo a `Leaving` con "Será en otra ocasión…", que no aplica a una venta exitosa).
+3. Testear en Play lo de la S19: use points (no overlap), fix del atasco, precio en NameTag, thought tag por NPC.
+
+---
+
+### Sesión 18 (histórico) — 2026-06-21
+
 **Session:** 2026-06-21 (Session 18 — Combat Visualizer: replay desde `CombatRecord`, hooks Feel, UI Pokémon-style) — **CÓDIGO HECHO, SIN testear en Play (pendiente de wiring Unity)**
 **Focus:** Sistema standalone para visualizar peleas en escena propia. Recibe 2 `CreatureDNA` + un `CombatRecord` (turn-by-turn ya persistido en `CreatureDNA.CombatHistory`) y reproduce la pelea: arma los dos modelos vía `MoriMonchiVisualizer.Assemble`, ejecuta los `CombatTurn` en coroutine (windup → hit → HP tween → between-turns), barras de HP world-space por lado y log inferior cartas-por-turno. Hooks Feel (`UnityEvent`) listos para arrastrar `MMF_Player` desde inspector.
 

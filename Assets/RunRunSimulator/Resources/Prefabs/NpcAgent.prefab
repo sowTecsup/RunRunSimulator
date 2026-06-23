@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6037045616653602287}
+  - component: {fileID: 2230033992661765723}
   - component: {fileID: 1217412971279536974}
   m_Layer: 0
   m_Name: NpcStatusBarUITK
@@ -26,12 +27,26 @@ Transform:
   m_GameObject: {fileID: 577910811865770350}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1.44, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4586777181949456094}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2230033992661765723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 577910811865770350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5f5b7d6583b15943b7a9fd1db2d146c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.NpcThoughtTag
+  showDistance: 12
+  uprightOnly: 1
 --- !u!114 &1217412971279536974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -46,7 +61,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
   m_PanelSettings: {fileID: 11400000, guid: f7750a822f2d4c043984a713566595f9, type: 2}
   m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: 3cfc0492c4e5c8b4385495930c4421f0, type: 3}
+  sourceAsset: {fileID: 9197481963319205126, guid: e70fb4f0b02e96c48a0272a90eab8af7, type: 3}
   m_SortingOrder: 0
   m_Position: 0
   m_WorldSpaceSizeMode: 0
@@ -68,7 +83,6 @@ GameObject:
   - component: {fileID: 6689440348297703383}
   - component: {fileID: 7046752176032328846}
   - component: {fileID: 2408992398748220351}
-  - component: {fileID: 8920682036337248423}
   m_Layer: 0
   m_Name: NpcAgent
   m_TagString: Untagged
@@ -185,16 +199,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.NpcAgent
   arriveDistance: 0.5
   inspectStandoff: 1.5
---- !u!114 &8920682036337248423
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9154677963158892302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bff8066de65d91049a7b1269a76e1716, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.NpcStatusBarUITK
-  document: {fileID: 1217412971279536974}

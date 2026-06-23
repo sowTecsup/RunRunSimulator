@@ -17,6 +17,10 @@ public partial class MoriMochiAgent
     // True while this creature is confined to a pen (breeding/store container). The NameTag
     // reads it to swap to the pen layout (gender + name + personality, plus heart/timer if breeding).
     public bool IsPenned => currentContainer != null;
+
+    // True while displayed for sale in a StoreContainer. The NameTag reads it to swap to the
+    // store layout (name + price) instead of the breeding pen layout.
+    public bool IsForSale => currentContainer is StoreContainer;
     public bool IsCourting => state == AgentState.Courting;
     public bool IsRecovering => state == AgentState.Recovering;
     private bool IsBreeding => dna != null && dna.BusyState == BusyReason.Breeding;

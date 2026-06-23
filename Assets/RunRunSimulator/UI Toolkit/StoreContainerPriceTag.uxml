@@ -1,5 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements">
-  <ui:VisualElement class="price-tag" picking-mode="Ignore">
-    <ui:VisualElement name="price-list" class="price-list" />
-  </ui:VisualElement>
-</ui:UXML>

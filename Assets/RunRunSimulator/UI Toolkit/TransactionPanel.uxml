@@ -1,13 +1,43 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements">
-  <ui:VisualElement class="panel">
-    <ui:Label name="customer-name" class="customer-name" />
-    <ui:Label name="archetype" class="archetype" />
-    <ui:Label name="target-name" class="target-name" />
-    <ui:Label name="offer" class="offer" />
-    <ui:VisualElement class="actions">
-      <ui:Button name="accept"  text="Aceptar" />
-      <ui:Button name="counter" text="Pedir más" />
-      <ui:Button name="reject"  text="Rechazar" />
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+  <Style src="TransactionPanel.uss" />
+  <ui:VisualElement name="backdrop" class="tx-backdrop">
+    <ui:VisualElement name="panel-root" class="panel">
+      <ui:VisualElement class="panel__header">
+        <ui:Label text="OFERTA DE COMPRA" class="panel__title" />
+      </ui:VisualElement>
+
+      <ui:VisualElement class="top-row">
+        <ui:VisualElement class="col col--customer">
+          <ui:Label text="CLIENTE" class="col__label" />
+          <ui:Label name="customer-name" text="Cliente" class="customer-name" />
+          <ui:Label name="archetype" text="" class="archetype" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="divider" />
+
+        <ui:VisualElement class="col col--mm">
+          <ui:Label text="MORIMONCHI" class="col__label" />
+          <ui:VisualElement name="mm-swatch" class="mm-swatch" />
+          <ui:Label name="target-name" text="" class="target-name" />
+          <ui:Label name="target-info" text="" class="target-info" />
+        </ui:VisualElement>
+
+        <ui:VisualElement class="divider" />
+
+        <ui:VisualElement class="col col--value">
+          <ui:Label text="OFRECE" class="col__label" />
+          <ui:VisualElement class="price-tag">
+            <ui:Label name="offer" text="+0" class="offer" />
+            <ui:Label text="Dabloons" class="offer-unit" />
+          </ui:VisualElement>
+        </ui:VisualElement>
+      </ui:VisualElement>
+
+      <ui:VisualElement class="actions">
+        <ui:Button name="reject"  text="Cancelar"  class="action action--cancel" />
+        <ui:Button name="accept"  text="Aceptar"   class="action action--accept" />
+        <ui:Button name="counter" text="Pedir más" class="action action--more" />
+      </ui:VisualElement>
     </ui:VisualElement>
   </ui:VisualElement>
 </ui:UXML>
