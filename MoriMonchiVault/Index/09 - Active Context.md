@@ -4,6 +4,68 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-23 (Session 20 — Estado "Sold" completo + diálogo NPC + rediseño total de la cola de caja + nombres random NPC) — **CÓDIGO HECHO, sin testear en Play**
+**Focus:** (1) Completar el estado Sold como Dead (timestamp, filtros, `IsSold`). (2) Diálogos del `NpcThoughtTag` (feliz al vender, "muy lleno" al no caber). (3) **Rediseño total de la cola de la caja** (varias iteraciones con Juan): de árbol ternario BFS → cadena lineal ortogonal que tiende a la salida. (4) Nombres random de NPC.
+
+**Decisiones de arquitectura — Cola (S20, diseño FINAL tras iterar con Juan):**
+- **Causa original:** árbol ternario BFS (`QueueSlotNode` root→Back/Left/Right por nivel) → repartía en abanico, no en fila. + bug latente S17: `TickQueueing` cacheaba el slot una sola vez y nunca repolleaba → al avanzar la cola los de atrás no se movían.
+- **Modelo final (cadena lineal por responsabilidades, guía explícita de Juan):** `CashRegister` es **dueño del orden** (`List<Link>{Agent,Pos}`, frente = índice 0). Por cada cliente pide candidatos a dos handlers puros y entrega el `Vector3` al `NpcAgent` (que solo camina).
+  - **`QueueDirectionHandler` (puro `[Serializable]`):** `Candidates(anchorPos, backAxis, spacing, outBuf)` → 3 candidatos **estrictamente ortogonales (90°)** en orden **Atrás → Izquierda → Derecha**, todos relativos a un **eje fijo** (no al diagonal del anterior). Atrás siempre preferido.
+  - **`QueueAvailabilityHandler` (puro `[Serializable]`):** `IsAvailable(from, candidate, areaMask, sampleRadius, maxSnap, occupied, minSeparation, out snapped)` → cae en NavMesh (`SamplePosition`) + **no se desvió más de `maxSnap` al pegarse** (si el mesh válido queda lejos → estaba sobre un obstáculo → se descarta) + camino libre desde el anterior (`NavMesh.Raycast`) + no se solapa (`minSeparation`).
+  - **Dirección de la cola = `BackDirection()`:** apunta del frente hacia la **salida** (`queueTowards` serializado → fallback `NpcController.Instance.ExitPoint` → fallback alejándose de la caja), luego **snappeada a la dirección ortogonal más cercana** (`SnapToOrthogonal`, entre ±forward/±right de la caja). Así la fila se forma hacia afuera como en la vida real PERO con pasos 90° puros (sin diagonales). **Regla 1 de Juan: tender siempre a la salida.**
+  - **Regla 2 de Juan (sin espacio → se va):** `TryComputeLink` devuelve `bool`; si ningún candidato pasa la validación NO inventa posición (saqué el fallback que forzaba un lugar malo) → `TryReserveSlot` devuelve `null` → `NpcAgent.QueueWasFull = true` → se va y el thought tag dice **"¡Está muy lleno!"**. En `Recompute` los ya-en-fila conservan su lugar si no se recalcula (no se evicta a nadie a mitad).
+  - **Avance arreglado:** `TickQueueing` repollea `register.CurrentSlotOf(this)` cada frame; si difiere >0.2m actualiza destino. `ReleaseSlot` → `Recompute()` rearma la cadena frente-a-atrás.
+  - **Detección por NavMesh** (no físicas), consistente con los use points.
+  - Tunables `CashRegister`: `queueRoot`, `queueTowards`, `slotSpacing`, `sampleRadius`, `maxSnap` (0.5), `minSeparation`, `maxQueueDepth` (largo máx). Gizmos: flecha azul larga (dirección a la salida) + cadena (frente verde, resto ámbar).
+  - API pública INTACTA → `TransactionPanelUITK`/`NpcController` no se tocan.
+- **Nombres random NPC:** `NpcNameBank` (estático, espejo de `CreatureNameBank`): nombre+apellido humanos ES. `NpcAgent.DisplayName` asignado en `Initialize`; el `NpcThoughtTag` muestra el nombre del cliente (fallback arquetipo/"Cliente").
+
+**Decisiones de arquitectura (S20):**
+- **`IsSold` como propiedad derivada** (no bool separado): `public bool IsSold => BusyState == BusyReason.Sold;` en `CreatureDNA`. El dato ya existe en `BusyState`; no duplicar. Diferencia con `IsDead` (que es bool separado): `IsDead` se setea independiente del BusyState (un MM puede morir sin pasar por un estado Busy explícito), pero `Sold` SIEMPRE pasa por `BusyReason.Sold`. Derivar evita desync.
+- **`SaleDate`**: `public DateTime SaleDate;` en `CreatureDNA`, paralelo a `QueuedAt`. Se estampa en `NpcAgent.AcceptCurrentOffer()` con `DateTime.UtcNow`.
+- **Diálogo Leaving post-venta**: `NpcThoughtTag.ThoughtText` distingue `Leaving` → si `target.IsSold` → `"¡{targetName} se viene conmigo!"`, sino `"Será en otra ocasión…"`. Sin evento extra, sin estado adicional: el dato ya está en el DNA del `TargetMM`.
+- **Spawner**: todos los checks `d.IsDead` extendidos a `d.IsDead || d.IsSold` (6 lugares: 2× `.Where`, 3× `if continue`, 1× guard en pump).
+
+**Files Created:**
+- `World/Containers/QueueDirectionHandler.cs` (handler puro: 3 candidatos ortogonales Atrás/Izq/Der relativos a un eje fijo).
+- `World/Containers/QueueAvailabilityHandler.cs` (handler puro: NavMesh + maxSnap + raycast camino libre + separación).
+- `World/Npc/NpcNameBank.cs` (estático: nombre+apellido humanos ES, espejo de `CreatureNameBank`).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Data/Genetics/CreatureDNA.cs`: + `SaleDate` (DateTime) + `IsSold` (propiedad derivada de BusyState).
+- `World/Npc/NpcAgent.cs`: + `using System;`; stamp `TargetMM.SaleDate` en `AcceptCurrentOffer`; `TickQueueing` repollea `CurrentSlotOf` (fix bug S17); + `DisplayName` (random en `Initialize`) + `QueueWasFull` (true cuando el registro devuelve null).
+- `World/Npc/NpcThoughtTag.cs`: nameLabel = `agent.DisplayName`; `ThoughtText(state, target, queueWasFull)` → feliz al vender / "¡Está muy lleno!" / "Será en otra ocasión…".
+- `World/Containers/CashRegister.cs`: árbol BFS → cadena lineal ortogonal hacia la salida (dueño del orden, 2 handlers, `BackDirection`+`SnapToOrthogonal`, `queueTowards`, `TryComputeLink` bool, `Recompute`, `maxSnap`, gizmos). API pública intacta.
+- `World/Spawning/MoriMochiSpawner.cs`: 6 checks `IsDead` → `IsDead || IsSold`.
+- `UI/CreatureGridUITK.cs` / `CreatureVisualUI.cs` / `CreatureGridView.cs` / `MorimonchiDetailInfoUITK.cs`: `StateOf` + `"SOLD"` antes de `"DEAD"`.
+
+**PASOS MANUALES PENDIENTES (Juan, Unity — heredados S19):**
+1. Prefab NPC: en el child que tenía `NpcStatusBarUITK` (script faltante ahora), poner `NpcThoughtTag` + UIDocument Source = `NpcThought.uxml` (mantener `WorldUIPanelSettings`), posicionar sobre la cabeza.
+2. Cada `StoreContainer`: agregar `usePoints` (child empties sobre el NavMesh; gizmos amarillos guían) + componente `StoreContainerDebug`. **Piso pintado con el área de confinamiento + bakeado** (si no, el MM no es admitido → sin precio).
+3. `NpcController`: ya no tiene `displays` (auto-registro). Confirmar `register`/`spawnPoint`/`exitPoint`/`defaultAgentPrefab`.
+4. Panel transacción: reimportar UXML/USS; confirmar slot `Transaction → GameObject` en UIManager + `PanelTrigger(Transaction)` + collider/layer (en `grabMask`) en la caja.
+5. **Cola hacia la salida:** la grilla de la cola se alinea a la orientación de la `CashRegister` (rotar la caja rota los 4 ejes posibles). La dirección la elige sola hacia la salida: si el `NpcController` tiene `exitPoint`, no hace falta cablear nada; si querés apuntar a la puerta (≠ punto de despawn), creá un empty y arrastralo a `queueTowards`. La **flecha azul larga** del gizmo confirma hacia dónde crece la fila. NavMesh bakeado en esa zona. Tunables si hace falta: `slotSpacing`, `maxSnap` (sube si esquiva de más, baja si atraviesa muebles), `minSeparation`, `maxQueueDepth`.
+
+**ScriptNodes Actualizados (fin de sesión 20 — documentación mecánica):**
+- `CashRegister.md` — actualizado: cadena lineal ortogonal, `BackDirection`, `SnapToOrthogonal`, `maxSnap`, gizmos azul+cadena.
+- `QueueDirectionHandler.md` — actualizado: 3 candidatos ortogonales estrictamente 90° (Atrás/Izq/Der).
+- `QueueAvailabilityHandler.md` — actualizado: `maxSnap` como validación de desviación, raycast camino libre.
+- `NpcAgent.md` — actualizado: `DisplayName`, `QueueWasFull`, `TickQueueing` repollea slot, `AcceptCurrentOffer` estampa `SaleDate`, conexión a `NpcNameBank`.
+- `NpcThoughtTag.md` — actualizado: nameLabel = `agent.DisplayName`, `ThoughtText` toma `queueWasFull`, diálogo "¡Está muy lleno!", conexión a `NpcNameBank`.
+- `NpcNameBank.md` — CREADO: clase estática, 40 nombres + 40 apellidos ES, `GetRandomName()`.
+
+**NEXT SESSION (21) — PENDIENTE DE TESTEO EN PLAY (todo el código S19+S20 está hecho, nada testeado salvo el panel de transacción de la S19):**
+1. **S19:** use points (no overlap al inspeccionar), fix del atasco "Mmm déjame ver…", precio en NameTag de los MM en venta, thought tag por NPC.
+2. **S20 — Sold:** al aceptar oferta el MM queda `Sold` con `SaleDate`; desaparece del mundo (no respawnea) y muestra "SOLD" en el grid/detail; el vendedor sale feliz ("¡X se viene conmigo!").
+3. **S20 — Cola:** (a) 2-3 clientes forman fila recta **hacia la salida** (flecha azul); (b) pasos **90° puros** (atrás/izq/der, sin diagonales) al rodear un obstáculo; (c) al vender/irse el frente los de atrás **AVANZAN** un lugar (bug S17); (d) **Regla 2:** si no hay espacio válido el cliente se va diciendo "¡Está muy lleno!" (probar saturando la zona de cola o tapándola).
+4. **S20 — Nombres:** cada NPC muestra un nombre random (nombre+apellido) en su thought tag.
+5. Si todo OK → marcar ✅ el sistema NPC compradores.
+6. Volver al bug pendiente de S16 (1ª carga en frío del breeding cortejo — abierto en [[Index/11 - Technical Debt]]).
+
+---
+
+### Sesión 19 (histórico) — 2026-06-22
+
 **Session:** 2026-06-22 (Session 19 — Sistema NPC compradores: wiring en Play + precio por MoriMonchi + thought tag por NPC + UX panel transacción + use points anti-overlap + auto-registro de estantes) — **CÓDIGO HECHO, panel transacción confirmado visualmente en Play; resto pendiente de testear**
 **Focus:** Retomar el wiring/testeo en Play del sistema de NPCs de la S17. Se resolvieron bugs de wiring (panel no abría, price tag no salía, status bar invisible) y se aplicaron mejoras de arquitectura pedidas por Juan (use points, auto-registro, thought tag por NPC).
 

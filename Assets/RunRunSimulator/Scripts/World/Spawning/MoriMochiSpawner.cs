@@ -217,7 +217,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
         var furDb = GameManager.Instance != null ? GameManager.Instance.FurTypeDatabase     : null;
 
         var stale = spawned.Keys
-            .Where(id => !all.TryGetValue(id, out var d) || d.IsDead)
+            .Where(id => !all.TryGetValue(id, out var d) || d.IsDead || d.IsSold)
             .ToList();
         foreach (var id in stale) Despawn(id);
 
@@ -228,7 +228,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
         foreach (var kv in all)
         {
             var dna = kv.Value;
-            if (dna.IsDead) continue;
+            if (dna.IsDead || dna.IsSold) continue;
 
             if (spawned.TryGetValue(kv.Key, out var controller))
             {
@@ -269,7 +269,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
         foreach (var kv in all)
         {
             var dna = kv.Value;
-            if (dna.IsDead) continue;
+            if (dna.IsDead || dna.IsSold) continue;
             if (creaturePrefab == null) break;
 
             var controller = Instantiate(creaturePrefab, prewarmPos, Quaternion.identity);
@@ -323,13 +323,13 @@ public partial class MoriMochiSpawner : MonoBehaviour
         foreach (var kv in all)
         {
             var dna = kv.Value;
-            if (dna.IsDead) continue;
+            if (dna.IsDead || dna.IsSold) continue;
             if (spawned.ContainsKey(kv.Key) || queued.Contains(kv.Key)) continue;
             Enqueue(dna);
         }
 
         var stale = spawned.Keys
-            .Where(id => !all.TryGetValue(id, out var d) || d.IsDead)
+            .Where(id => !all.TryGetValue(id, out var d) || d.IsDead || d.IsSold)
             .ToList();
         foreach (var id in stale) Despawn(id);
 
@@ -357,7 +357,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
                 var dna = breederQueue.Count > 0 ? breederQueue.Dequeue() : spawnQueue.Dequeue();
                 queued.Remove(dna.UniqueID);
 
-                if (!dna.IsDead && !spawned.ContainsKey(dna.UniqueID))
+                if (!dna.IsDead && !dna.IsSold && !spawned.ContainsKey(dna.UniqueID))
                     SpawnOne(dna);
             }
 

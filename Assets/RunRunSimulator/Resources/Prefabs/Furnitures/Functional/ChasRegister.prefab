@@ -82,6 +82,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CashRegister
   queueRoot: {fileID: 5416477435765187683}
   slotSpacing: 1.5
+  lateralAngle: 45
+  sampleRadius: 1.5
+  minSeparation: 0.6
   maxQueueDepth: 16
 --- !u!1 &3596765307062785984
 GameObject:

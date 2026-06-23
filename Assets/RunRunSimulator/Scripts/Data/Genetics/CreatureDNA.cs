@@ -75,11 +75,13 @@ public class CreatureDNA
     // ── Busy state ────────────────────────────────────────────────
     public BusyReason BusyState = BusyReason.None;
     public bool IsBusy => BusyState != BusyReason.None;
+    public bool IsSold => BusyState == BusyReason.Sold;
 
     // When this creature was enqueued for async combat (UTC). Display-only metadata
     // for the Resultados tab ("encolado a las HH:mm"); set on enqueue, not part of
     // the genetic string. default = never queued.
     public DateTime QueuedAt;
+    public DateTime SaleDate;
 
     // ── Breeding timer (local cache for display; server is authoritative) ─
     public long   BreedReadyAt   = 0;    // server epoch ms when the egg can hatch; 0 = not breeding

@@ -75,17 +75,19 @@ public class NpcThoughtTag : MonoBehaviour
         if (agent == null) return;
 
         if (nameLabel != null)
-            nameLabel.text = agent.Archetype != null ? agent.Archetype.DisplayName : "Cliente";
+            nameLabel.text = !string.IsNullOrEmpty(agent.DisplayName) ? agent.DisplayName
+                           : agent.Archetype != null ? agent.Archetype.DisplayName
+                           : "Cliente";
 
         if (thoughtLabel != null)
         {
-            string thought = ThoughtText(agent.State, agent.TargetMM);
+            string thought = ThoughtText(agent.State, agent.TargetMM, agent.QueueWasFull);
             thoughtLabel.text          = thought;
             thoughtLabel.style.display = string.IsNullOrEmpty(thought) ? DisplayStyle.None : DisplayStyle.Flex;
         }
     }
 
-    private static string ThoughtText(NpcAgent.NpcState state, CreatureDNA target)
+    private static string ThoughtText(NpcAgent.NpcState state, CreatureDNA target, bool queueWasFull)
     {
         string targetName = target != null && !string.IsNullOrEmpty(target.CustomName) ? target.CustomName : "ese";
         return state switch
@@ -96,7 +98,9 @@ public class NpcThoughtTag : MonoBehaviour
             NpcAgent.NpcState.Queueing            => "Esperaré mi turno…",
             NpcAgent.NpcState.WaitingAtRegister   => "¿Hay alguien en la caja?",
             NpcAgent.NpcState.Negotiating         => $"¿Cuánto por {targetName}?",
-            NpcAgent.NpcState.Leaving             => "Será en otra ocasión…",
+            NpcAgent.NpcState.Leaving             => (target != null && target.IsSold) ? $"¡{targetName} se viene conmigo!"
+                                                   : queueWasFull                      ? "¡Está muy lleno!"
+                                                   : "Será en otra ocasión…",
             _                                     => "",
         };
     }

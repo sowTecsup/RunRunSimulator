@@ -6,7 +6,7 @@ tags: [script, genetics]
 
 **Ruta:** `Data/Genetics/CreatureDNA.cs`
 
-**Responsabilidad:** Modelo central: string genético (`ToStringID()`/`FromID()`: `"BODYSHAPE-ARM-EYE-MOUTH-RRGGBB"`), identidad (`UniqueID` con timestamp), linaje (`MotherID`/`FatherID`/`ChildrenIDs`), género, personalidad, stats base (`BaseHP`/`BaseAttack`/`BaseSpeed`), combat history, needs, busy state, timers de cría (`BreedReadyAt`/`BreedPartnerID`/`HomePenKey`/`HomePenSlot`), `FurType` (metadata), y colores (`BaseColor` solo en la genetic string, `SecondaryColor` derivado determinista). `FromID()` parsea solo la parte genética; la deserialización JSON maneja el estado completo. `SecondaryColor` se regenera automático en `ReconcileColors()` (CreatureRegistrySO).
+**Responsabilidad:** Modelo central: string genético (`ToStringID()`/`FromID()`: `"BODYSHAPE-ARM-EYE-MOUTH-RRGGBB"`), identidad (`UniqueID` con timestamp), linaje (`MotherID`/`FatherID`/`ChildrenIDs`), género, personalidad, stats base (`BaseHP`/`BaseAttack`/`BaseSpeed`), combat history, needs, busy state (`BusyReason`), propiedad `IsSold` (true iff BusyState == Sold), timers de cría (`BreedReadyAt`/`BreedPartnerID`/`HomePenKey`/`HomePenSlot`), timestamps (`QueuedAt` enqueue async, `SaleDate` venta a NPC), `FurType` (metadata), y colores (`BaseColor` solo en la genetic string, `SecondaryColor` derivado determinista). `FromID()` parsea solo la parte genética; la deserialización JSON maneja el estado completo. `SecondaryColor` se regenera automático en `ReconcileColors()` (CreatureRegistrySO).
 
 **Vinculado a:** [[Index/02 - Genetics & Breeding]]
 

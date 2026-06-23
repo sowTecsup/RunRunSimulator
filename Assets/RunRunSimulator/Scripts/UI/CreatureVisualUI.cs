@@ -44,6 +44,7 @@ public class CreatureVisualUI : MonoBehaviour
     // ── Private Methods ───────────────────────────────────────────
 
     private static string StateOf(CreatureDNA d) =>
+        d.IsSold                                  ? "SOLD"     :
         d.IsDead                                  ? "DEAD"     :
         d.BusyState == BusyReason.Breeding        ? "Breeding" :
         d.BusyState == BusyReason.QueuedForCombat ? "In Queue" :

@@ -17,7 +17,12 @@ tags: [script, world, npc, ui]
 - `LateUpdate()` → distance gate, billboard, `Refresh()`.
 - `SetShown(bool)` → toggle display del root.
 - `ResolveElements()` → queries `npc-name-label` y `thought-label` del root UITK.
-- `Refresh()` → llama `ThoughtText(agent.State, agent.TargetMM)`, actualiza labels.
+- `Refresh()` → actualiza nameLabel con `agent.DisplayName` (fallback archetype.DisplayName, fallback "Cliente"), llama `ThoughtText(agent.State, agent.TargetMM, agent.QueueWasFull)`, actualiza thoughtLabel.
+
+**nameLabel:**
+- Muestra `agent.DisplayName` si no es vacío.
+- Fallback: `agent.Archetype.DisplayName`.
+- Fallback final: "Cliente".
 
 **ThoughtText (mapeo NpcState → diálogo ES):**
 - `Wandering` → "¿Qué tendrán hoy?"
@@ -26,7 +31,10 @@ tags: [script, world, npc, ui]
 - `Queueing` → "Esperaré mi turno…"
 - `WaitingAtRegister` → "¿Hay alguien en la caja?"
 - `Negotiating` → $"¿Cuánto por {targetName}?"
-- `Leaving` → "Será en otra ocasión…"
+- `Leaving` → condicional:
+  - si `target.IsSold` → $"¡{targetName} se viene conmigo!"
+  - si `queueWasFull` → "¡Está muy lleno!"
+  - sino → "Será en otra ocasión…"
 
 **Requerimientos:**
 - `[RequireComponent(typeof(UIDocument))]` — el nodo hijo del NPC que representa la burbuja.
@@ -34,4 +42,4 @@ tags: [script, world, npc, ui]
 
 **Vinculado a:** [[Index/06 - Player & World]]
 
-**Conexiones:** [[NpcAgent]], [[CreatureDNA]], [[CustomerArchetypeSO]]
+**Conexiones:** [[NpcAgent]], [[NpcNameBank]], [[CreatureDNA]], [[CustomerArchetypeSO]]

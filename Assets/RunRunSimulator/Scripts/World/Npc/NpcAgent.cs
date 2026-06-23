@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -21,6 +22,8 @@ namespace MoriMonchiSimulator
         }
 
         public CustomerArchetypeSO Archetype { get; private set; }
+        public string DisplayName { get; private set; }
+        public bool QueueWasFull { get; private set; }
         public CreatureDNA TargetMM { get; private set; }
         public int InitialOffer { get; private set; }
         public int CurrentOffer { get; private set; }
@@ -51,6 +54,7 @@ namespace MoriMonchiSimulator
         public void Initialize(CustomerArchetypeSO archetype, IReadOnlyList<StoreContainer> shopDisplays, CashRegister cashRegister, NpcController owner)
         {
             Archetype = archetype;
+            DisplayName = NpcNameBank.GetRandomName();
             displays = shopDisplays;
             register = cashRegister;
             controller = owner;
@@ -155,6 +159,7 @@ namespace MoriMonchiSimulator
             var slot = register.TryReserveSlot(this);
             if (slot == null)
             {
+                QueueWasFull = true;
                 TransitionTo(NpcState.Leaving);
                 return;
             }
@@ -166,6 +171,13 @@ namespace MoriMonchiSimulator
 
         private void TickQueueing()
         {
+            var slot = register.CurrentSlotOf(this);
+            if (slot.HasValue && (slot.Value - reservedQueueSlot).sqrMagnitude > 0.04f)
+            {
+                reservedQueueSlot = slot.Value;
+                navAgent.SetDestination(reservedQueueSlot);
+            }
+
             float dist = Vector3.Distance(transform.position, reservedQueueSlot);
 
             if (register.IsFrontSlot(this) && dist < arriveDistance)
@@ -205,6 +217,7 @@ namespace MoriMonchiSimulator
         {
             if (TargetMM == null) { TransitionTo(NpcState.Leaving); return; }
             TargetMM.BusyState = BusyReason.Sold;
+            TargetMM.SaleDate  = DateTime.UtcNow;
             var gm = GameManager.Instance;
             if (gm != null)
             {

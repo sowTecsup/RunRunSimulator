@@ -1616,6 +1616,18 @@ PrefabInstance:
       propertyPath: 'm_SharedVertices.Array.data[15].m_Vertices.Array.data[2]'
       value: 18
       objectReference: {fileID: 0}
+    - target: {fileID: 2066447720613032280, guid: 9e2fc18e7fc66304ebbf007744f270fe, type: 3}
+      propertyPath: m_Extents.x
+      value: 0.9
+      objectReference: {fileID: 0}
+    - target: {fileID: 2066447720613032280, guid: 9e2fc18e7fc66304ebbf007744f270fe, type: 3}
+      propertyPath: m_Extents.y
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2066447720613032280, guid: 9e2fc18e7fc66304ebbf007744f270fe, type: 3}
+      propertyPath: m_Extents.z
+      value: 0.9
+      objectReference: {fileID: 0}
     - target: {fileID: 2269708120462870123, guid: 9e2fc18e7fc66304ebbf007744f270fe, type: 3}
       propertyPath: m_Name
       value: ProBuilderSimpleCube3 Variant
