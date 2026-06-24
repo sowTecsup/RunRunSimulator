@@ -11,6 +11,7 @@ using Unity.Services.CloudSave;
 using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.Serialization;
+using PlayerDeleteOptions = Unity.Services.CloudSave.Models.Data.Player.DeleteOptions;
 namespace MoriMonchiSimulator
 {
 
@@ -75,11 +76,11 @@ public partial class CloudSyncService
             }
 
             // Clear cloud keys (ignore errors if key doesn't exist)
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY);       } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY);           } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY);      } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY);      } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(COMBAT_RESULTS_KEY); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY,       new PlayerDeleteOptions()); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY,           new PlayerDeleteOptions()); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY,      new PlayerDeleteOptions()); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY,      new PlayerDeleteOptions()); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(COMBAT_RESULTS_KEY, new PlayerDeleteOptions()); } catch { }
 
             // Clear local data and JSON — do NOT push back (we just cleared the cloud)
             registry.LoadFrom(new System.Collections.Generic.Dictionary<string, CreatureDNA>());

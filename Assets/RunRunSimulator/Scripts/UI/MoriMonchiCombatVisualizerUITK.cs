@@ -2,11 +2,13 @@ using UnityEngine;
 using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
-public class CombatHpBarUITK : MonoBehaviour
+public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
 {
     [SerializeField] private UIDocument       document;
     [SerializeField] private CombatVisualSide side;
     [SerializeField, Range(0.05f, 2f)] private float fillLerpSeconds = 0.4f;
+
+    public void SetSide(CombatVisualSide s) => side = s;
 
     private VisualElement root;
     private Label         nameLabel;
@@ -30,7 +32,7 @@ public class CombatHpBarUITK : MonoBehaviour
 
     private void Start()
     {
-        if (document == null) { Debug.LogWarning("[CombatHpBarUITK] No UIDocument."); return; }
+        if (document == null) { Debug.LogWarning("[MoriMonchiCombatVisualizerUITK] No UIDocument."); return; }
         root = document.rootVisualElement;
         if (root == null) return;
         nameLabel = root.Q<Label>("name");
