@@ -14,13 +14,13 @@ public class StoreContainer : MoriMochiContainer
     [Tooltip("Stand-here points for browsing NPCs (one customer per point, snapped onto the NavMesh). Several let customers browse from any reachable side without overlapping. Empty → a single implicit slot at this transform.")]
     [SerializeField] private List<Transform> usePoints = new List<Transform>();
 
-    private NpcAgent[] occupants;
+    private NpcAgent[] usePointOccupants;
     private int SlotCount => (usePoints != null && usePoints.Count > 0) ? usePoints.Count : 1;
 
     private void EnsureSlots()
     {
-        if (occupants == null || occupants.Length != SlotCount)
-            occupants = new NpcAgent[SlotCount];
+        if (usePointOccupants == null || usePointOccupants.Length != SlotCount)
+            usePointOccupants = new NpcAgent[SlotCount];
     }
 
     private Vector3 SlotPosition(int i) =>
@@ -28,7 +28,7 @@ public class StoreContainer : MoriMochiContainer
 
     public bool HasFreeUsePoint
     {
-        get { EnsureSlots(); foreach (var o in occupants) if (o == null) return true; return false; }
+        get { EnsureSlots(); foreach (var o in usePointOccupants) if (o == null) return true; return false; }
     }
 
     private void OnEnable()  { EnsureSlots(); StoreDisplayRegistry.Register(this); }
@@ -52,32 +52,32 @@ public class StoreContainer : MoriMochiContainer
         usePos = transform.position;
         EnsureSlots();
 
-        for (int i = 0; i < occupants.Length; i++)
-            if (occupants[i] == agent)
+        for (int i = 0; i < usePointOccupants.Length; i++)
+            if (usePointOccupants[i] == agent)
             {
                 usePos = NavMesh.SamplePosition(SlotPosition(i), out var h, sampleRadius, areaMask) ? h.position : SlotPosition(i);
                 return true;
             }
 
         int best = -1; float bestSqr = float.MaxValue;
-        for (int i = 0; i < occupants.Length; i++)
+        for (int i = 0; i < usePointOccupants.Length; i++)
         {
-            if (occupants[i] != null) continue;
+            if (usePointOccupants[i] != null) continue;
             if (!NavMesh.SamplePosition(SlotPosition(i), out var hit, sampleRadius, areaMask)) continue;
             float d = (hit.position - from).sqrMagnitude;
             if (d < bestSqr) { bestSqr = d; best = i; usePos = hit.position; }
         }
         if (best < 0) return false;
 
-        occupants[best] = agent;
+        usePointOccupants[best] = agent;
         return true;
     }
 
     public void ReleaseUsePoint(NpcAgent agent)
     {
-        if (occupants == null) return;
-        for (int i = 0; i < occupants.Length; i++)
-            if (occupants[i] == agent) occupants[i] = null;
+        if (usePointOccupants == null) return;
+        for (int i = 0; i < usePointOccupants.Length; i++)
+            if (usePointOccupants[i] == agent) usePointOccupants[i] = null;
     }
 
     private void OnDrawGizmos()
@@ -87,7 +87,7 @@ public class StoreContainer : MoriMochiContainer
         {
             var p = usePoints[i];
             if (p == null) continue;
-            bool occupied = occupants != null && i < occupants.Length && occupants[i] != null;
+            bool occupied = usePointOccupants != null && i < usePointOccupants.Length && usePointOccupants[i] != null;
             Gizmos.color = occupied ? new Color(1f, 0.3f, 0.3f) : new Color(0.95f, 0.8f, 0.3f);
             Gizmos.DrawWireSphere(p.position, 0.3f);
             Gizmos.DrawLine(transform.position, p.position);

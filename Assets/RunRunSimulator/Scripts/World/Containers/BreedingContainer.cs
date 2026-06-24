@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
@@ -27,10 +26,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
     [BoxGroup("Breeding")]
     [Tooltip("Needs (health/energy/affect) restored per second to every penned occupant.")]
     [SerializeField, Min(0f)] private float restoreRate = 5f;
-
-    [BoxGroup("Breeding")]
-    [Tooltip("On scene load, breeders mid-incubation are pulled back into the pen once the cannon spawns them. Stop trying after this many seconds.")]
-    [SerializeField, Min(0f)] private float reclaimTimeout = 20f;
 
     // Fixed breed points: one slot per pair the pen allows. Each slot = two child anchors the pair
     // stands on, facing each other. Configured in the inspector (drag child empties) — no runtime spacing.
@@ -68,8 +63,7 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
     private float rollTimer;
     private readonly Dictionary<string, float> cooldowns = new Dictionary<string, float>();
 
-    private string penKey;
-    private static readonly Dictionary<string, BreedingContainer> byKey = new Dictionary<string, BreedingContainer>();
+    private static readonly List<BreedingContainer> all = new List<BreedingContainer>();
 
     // El corral más reciente lanza a sus crías desde aquí; los recién nacidos vuelan al centro + esta altura.
     public Vector3 LaunchPoint => Center + Vector3.up * launchHeight;
@@ -85,17 +79,9 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         return new Vector3(c.x + dir.x * dist, c.y, c.z + dir.y * dist);
     }
 
-    public static bool TryGet(string key, out BreedingContainer pen)
-    {
-        if (string.IsNullOrEmpty(key)) { pen = null; return false; }
-        return byKey.TryGetValue(key, out pen);
-    }
-
     // All active pens in the scene — the BreedingController (manager) reads this to know how many
     // pens exist and which pairs are breeding where, without holding its own references.
-    public static IReadOnlyCollection<BreedingContainer> All => byKey.Values;
-
-    public string PenKey => penKey;
+    public static IReadOnlyCollection<BreedingContainer> All => all;
 
     // The active breeding pairs in this pen and the slot each occupies — "qué MM ↔ qué MM, en qué slot".
     public IEnumerable<(string mother, string father, int slot)> ActivePairs()
@@ -106,32 +92,20 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
             if (d == null || d.Gender != CreatureGender.Female || d.BusyState != BusyReason.Breeding) continue;
             string fatherName = GameManager.Instance != null && GameManager.Instance.Registry != null &&
                                 GameManager.Instance.Registry.TryGet(d.BreedPartnerID, out var f) ? f.CustomName : "???";
-            yield return (d.CustomName, fatherName, d.HomePenSlot);
+            yield return (d.CustomName, fatherName, d.LocationSlot);
         }
     }
 
-    private void Start()
+    protected override void Start()
     {
-        // El marker lo estampa FurnitureSpawner en la raíz tras el Instantiate, así que recién está disponible en Start.
-        var marker = GetComponentInParent<PlacedFurnitureMarker>();
-        if (marker != null)
-        {
-            penKey = $"{marker.AnchorCell.x}_{marker.AnchorCell.y}";
-        }
-        else
-        {
-            penKey = name;
-            Debug.LogWarning($"[BreedingContainer] El corral \"{name}\" no tiene PlacedFurnitureMarker; usando el nombre como clave.");
-        }
-        byKey[penKey] = this;
-
-        StartCoroutine(ReclaimBreedingOccupants());
+        base.Start();   // deriva anchorKey + registra en AnchorRegistry
+        all.Add(this);
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
-        if (!string.IsNullOrEmpty(penKey) && byKey.TryGetValue(penKey, out var pen) && ReferenceEquals(pen, this))
-            byKey.Remove(penKey);
+        base.OnDestroy();   // AnchorRegistry.Unregister
+        all.Remove(this);
     }
 
     private void OnEnable()  => GameEvents.OnBreedingCompleted += OnBreedingCompleted;
@@ -159,9 +133,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
             if (Occupants[i] != null && ReferenceEquals(Occupants[i].DNA, target)) return Occupants[i];
         return null;
     }
-
-    // El spawner de crías coloca al recién nacido directamente en este corral.
-    public bool ReclaimDirect(MoriMochiAgent agent) => Claim(agent);
 
     private void Update()
     {
@@ -242,10 +213,10 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
     }
 
     // The point the pair courts around: the assigned slot's midpoint if it's valid, otherwise the pen
-    // center — so courtship still kicks in after a reload even if HomePenSlot didn't survive.
+    // center — so courtship still kicks in after a reload even if LocationSlot didn't survive.
     private Vector3 ResolveCourtAnchor(MoriMochiAgent female)
     {
-        int idx = female.DNA.HomePenSlot;
+        int idx = female.DNA.LocationSlot;
         if (breedingSlots != null && idx >= 0 && idx < breedingSlots.Length)
         {
             var slot = breedingSlots[idx];
@@ -264,7 +235,7 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         for (int i = 0; i < Occupants.Count; i++)
         {
             var d = Occupants[i]?.DNA;
-            if (d != null && d.BusyState == BusyReason.Breeding && d.HomePenSlot >= 0) used.Add(d.HomePenSlot);
+            if (d != null && d.BusyState == BusyReason.Breeding && d.LocationSlot >= 0) used.Add(d.LocationSlot);
         }
 
         for (int i = 0; i < breedingSlots.Length; i++)
@@ -327,10 +298,10 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         if (motherDNA.BusyState == BusyReason.Breeding && fatherDNA.BusyState == BusyReason.Breeding)
         {
             int slot = FindFreeSlot();
-            motherDNA.HomePenKey = penKey;
-            fatherDNA.HomePenKey = penKey;
-            motherDNA.HomePenSlot = slot;
-            fatherDNA.HomePenSlot = slot;
+            motherDNA.LocationKey = AnchorKey;
+            fatherDNA.LocationKey = AnchorKey;
+            motherDNA.LocationSlot = slot;
+            fatherDNA.LocationSlot = slot;
             cooldowns[motherDNA.UniqueID] = Time.time + pairCooldown;
             cooldowns[fatherDNA.UniqueID] = Time.time + pairCooldown;
 
@@ -437,39 +408,8 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         d.BusyState      = BusyReason.None;
         d.BreedReadyAt   = 0;
         d.BreedPartnerID = "";
-        d.HomePenKey     = "";
-        d.HomePenSlot    = -1;
-    }
-
-    // ── Persistence: re-pen breeders after a scene reload ─────────
-
-    // On (re)load the cannon drops every creature in the open, not inside the pen. We query the
-    // registry for creatures still mid-breed (BusyState==Breeding) and, once their agents spawn and
-    // settle, teleport them back in (up to capacity) so a paired couple keeps incubating in the pen.
-    private IEnumerator ReclaimBreedingOccupants()
-    {
-        while (GameManager.Instance == null || GameManager.Instance.Registry == null) yield return null;
-
-        var targets = new HashSet<string>(GameManager.Instance.Registry.GetAll().Values
-            .Where(d => d.BusyState == BusyReason.Breeding && d.HomePenKey == penKey)
-            .Select(d => d.UniqueID));
-        if (targets.Count == 0) yield break;
-
-        float deadline = Time.time + reclaimTimeout;
-        var   wait     = new WaitForSeconds(0.5f);
-
-        while (Time.time < deadline && !IsFull)
-        {
-            foreach (var a in FindObjectsByType<MoriMochiAgent>(FindObjectsSortMode.None))
-            {
-                if (IsFull) break;
-                if (a == null || a.DNA == null || a.IsPenned) continue;
-                if (a.IsHeld || a.IsAirborne || a.IsRecovering) continue;   // wait until it lands AND finishes getting up
-                if (!targets.Contains(a.DNA.UniqueID)) continue;
-                if (Claim(a)) Debug.Log($"[BreedingContainer] Recuperado al corral: \"{a.DNA.CustomName}\".");
-            }
-            yield return wait;
-        }
+        d.LocationKey    = "";
+        d.LocationSlot   = -1;
     }
 
     // ── Helpers ───────────────────────────────────────────────────

@@ -23333,7 +23333,7 @@ MonoBehaviour:
   spawnPerTick: 3
   navMeshWaitTimeout: 10
   dataReadyTimeout: 6
-  breederPlaceTimeout: 5
+  anchorPlaceTimeout: 5
 --- !u!114 &1999386640
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23718,8 +23718,8 @@ MonoBehaviour:
     BusyState: 0
     BreedReadyAt: 0
     BreedPartnerID: 
-    HomePenKey: 
-    HomePenSlot: -1
+    LocationKey: 
+    LocationSlot: -1
   currentDNAString: ---
   loadIDInput: 
 --- !u!1 &2067556434

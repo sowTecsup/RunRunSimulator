@@ -58,7 +58,7 @@ public partial class MoriMochiSpawner
     private void DumpSpawnState()
     {
         if (!Application.isPlaying) { Debug.LogWarning("[MoriMochiSpawner] Enter Play mode."); return; }
-        Debug.Log($"[MoriMochiSpawner] spawned={spawned.Count}  queued={spawnQueue.Count + breederQueue.Count}  " +
+        Debug.Log($"[MoriMochiSpawner] spawned={spawned.Count}  queued={spawnQueue.Count + anchoredQueue.Count}  " +
                   $"prewarmed={prewarmed.Count}  pooled={controllerPool?.Count ?? 0}  worldReady={worldReady}");
         foreach (var kv in spawned)
             Debug.Log($"  • {kv.Key} → {(kv.Value != null ? kv.Value.name : "null")}");

@@ -17,7 +17,9 @@ public partial class MoriMochiAgent
     private void RestoreNavMeshControl()
     {
         ReleaseStation();
-        if (currentContainer != null) { currentContainer.Release(this); currentContainer = null; }
+        // lifecycle re-init, not a player exit: drop from the census only — Release here would persist a
+        // phantom anchor and, in a BreedingContainer, cancel the server egg on pool reuse.
+        if (currentContainer != null) { currentContainer.DetachOccupant(this); currentContainer = null; }
 
         if (!rb.isKinematic)            // only clear on a dynamic body — setting velocity on a kinematic one warns
         {
@@ -51,7 +53,9 @@ public partial class MoriMochiAgent
     public void PrepareForPool()
     {
         ReleaseStation();
-        if (currentContainer != null) { currentContainer.Release(this); currentContainer = null; }
+        // silent recycle, not a player exit: detach from the census without persisting or cancelling
+        // domain state (egg) — Release belongs to OnGrab, where the player actually lifts the occupant.
+        if (currentContainer != null) { currentContainer.DetachOccupant(this); currentContainer = null; }
         if (agent.enabled && agent.isOnNavMesh) agent.ResetPath();
     }
 

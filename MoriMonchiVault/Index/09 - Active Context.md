@@ -4,8 +4,66 @@ tags: [index, core]
 
 # 09 - Active Context
 
-**Session:** 2026-06-23 (Session 20 — Estado "Sold" completo + diálogo NPC + rediseño total de la cola de caja + nombres random NPC) — **CÓDIGO HECHO, sin testear en Play**
+**Session:** 2026-06-24 (Session 21 — Generalización de containers: ancla de ubicación persistida + spawn por colocación-primero) — **CÓDIGO HECHO, TESTEO PENDIENTE (se prueba la próxima sesión)**
+**Focus:** Cambio arquitectónico estilo Palworld: que los MoriMonchis retomen lo que estaban haciendo al cargar la partida. Se generalizó el patrón de reclaim que SOLO tenía el breeding a TODOS los containers (breeding / store / corral) vía un contrato `IAnchorPlace` + `AnchorRegistry`, y se invirtió el spawner a "colocación primero" (el cañón queda solo para criaturas libres). Resuelve la persistencia faltante del store y ataca la raíz de la familia de bugs de carga en frío (la carrera cañón-vs-reclaim deja de existir).
+
+> ### ⏳ TESTEO PENDIENTE — Generalización de containers (S21, 2026-06-24)
+> Código completo y verificado por barrido estático (cero referencias a símbolos viejos), PERO **sin probar en Play** — Juan lo testea la próxima sesión. Checklist de validación abajo. NO marcar ✅ hasta que pase.
+
+**Concepto (decisión de diseño, planeada con Opus + Juan):**
+- **Costo de nube ≈ cero:** el registro se sube como UN blob de una sola key (`CloudSyncService.Sync.cs`). El `CreatureDNA` ya viaja entero (Needs, CombatHistory, BusyState). Sumar el ancla = decenas de bytes por criatura, sin operaciones extra. El techo real a vigilar es `CombatHistory` ilimitado, no el ancla.
+- **Local vs nube: ya es ambos** automáticamente (todo lo que vive en `CreatureDNA` ride el JSON local + Cloud Save). NO se separa. Lo de alta frecuencia (posición de merodeador, sub-FSM) NO se persiste ni dispara push — el ancla se estampa solo en transición (entrar/salir).
+- **El costo real estaba en el World layer, no en la nube:** el cañón dispersaba a todos y cada container tenía que recuperarse con su propia coroutine de poll (la causa de los bugs S14-S16). Invertir a colocación-primero **borra** esas carreras.
+
+**Contrato nuevo (las 4 semánticas de ocupación):**
+- **Entrar** (tirado adentro) → `Admit`: estampa `LocationKey/LocationSlot` + `RegistryChanged`. ✅ persiste.
+- **Salir** (lo levanta el jugador) → `Release`: limpia el ancla + `RegistryChanged`. ✅ persiste.
+- **Reclaim en carga** → `TryReclaim`/`AnchorPosition`: coloca directo, ❌ NO persiste (ya estaba estampado).
+- **Lifecycle** (pool/re-init) → `DetachOccupant`: saca del censo, ❌ silencioso (no persiste, no cancela cría).
+
+**Decisiones puntuales:**
+- `HomePenKey/HomePenSlot` → renombrados a `LocationKey/LocationSlot` (genéricos). **Caveat de migración aceptado por Juan:** saves viejos con breeders a mitad de incubación pierden el ancla en la 1ª carga post-update (se re-dispersan una vez; hay botón Reset).
+- El ancla (DÓNDE) es genérica en la base; la ACTIVIDAD (cortejo/incubación) sigue siendo propia del `BreedingContainer` (`BreedPartnerID`/`BreedReadyAt` intactos).
+- `StoreContainer` gana persistencia **gratis por herencia** (cero lógica nueva) — resuelve el gap del store.
+- Ancla huérfana (furniture removida mientras no estabas): el spawner cae al cañón y **limpia** `LocationKey` (sin defer infinito).
+- Re-ancla tras pull de nube en `OnRegistryReloaded` (generaliza la deuda D de S16).
+- **Sin wiring nuevo en Unity:** la clave sale del `PlacedFurnitureMarker` existente; `AnchorRegistry` se auto-registra. Única precondición (ya existía): piso del container pintado con el área de confinamiento + bakeado.
+
+**Fuera de scope (Fase 2, infra ya lista):** camas persistentes + energía offline. La cama es un `NeedStation`, no un container; persistirla = sumarle `IAnchorPlace` a `NeedStation`, y el "siguieron descansando mientras no estabas" es matemática de `sync_meta` en la carga (casi gratis). No se metió ahora para no expandir el blast radius dentro del FSM de needs.
+
+**Files Created:**
+- `World/Containers/AnchorRegistry.cs` (interface `IAnchorPlace` + registro estático espejo de `NeedStationRegistry`).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Data/Genetics/CreatureDNA.cs`: `HomePenKey/HomePenSlot` → `LocationKey/LocationSlot` (significado genérico).
+- `World/Containers/MoriMochiContainer.cs`: implementa `IAnchorPlace`; deriva `AnchorKey` del marker en `Start` + auto-registro/desregistro; `Admit` estampa+persiste; `Release` limpia+persiste (solo grab del jugador); nuevo `DetachOccupant` silencioso; `TryReclaim`/`AnchorPosition`.
+- `World/Containers/BreedingContainer.cs`: borrado `penKey`/`byKey`/`TryGet`/`ReclaimDirect`/`ReclaimBreedingOccupants` (+ campo `reclaimTimeout`); `Start`/`OnDestroy` → `protected override` que llaman `base`; `All` respaldado por lista propia; usa `AnchorKey`; renombres DNA; `ClearBreed` conserva el clear de `LocationKey/Slot` (cubre a la pareja no-agarrada).
+- `World/Containers/StoreContainer.cs`: hereda persistencia de ancla sin lógica nueva; rename interno `occupants`(NpcAgent[]) → `usePointOccupants` (evita choque con la base).
+- `World/AI/MoriMochiAgent.Confinement.cs`: `RestoreNavMeshControl` + `PrepareForPool` → `DetachOccupant` (silencioso) en vez de `Release` (evita push fantasma + cancelación de huevo al reciclar). `OnGrab` (Physics) intacto con `Release`.
+- `World/Spawning/MoriMochiSpawner.cs` (+`.Debug.cs`): `breederQueue`→`anchoredQueue`, ruteo por `LocationKey`, `TryPlaceAtAnchor`/`DeferAnchored` genéricos vía `AnchorRegistry`, clear de ancla huérfana, re-ancla en reload. Cañón/balística/recién nacidos intactos.
+- (colateral) `Systems/Breeding/BreedingDevConsole.cs`: `pen.PenKey` → `pen.AnchorKey`.
+
+**TESTEO PENDIENTE S22 (Juan, en Play):**
+1. **Compila** sin errores (carpeta/clase nueva genera su `.meta`).
+2. **Regresión breeding frío:** pareja incubando carga → cortejo orbita → eclosiona (no romper el fix S16).
+3. **Store persiste (NUEVO):** MM al estante → quit → reload → vuelve al estante con su precio.
+4. **Corral persiste (NUEVO):** MM al corral → reload → sigue adentro.
+5. **Clear-on-grab:** sacar un MM del estante → reload → NO se re-shelvea.
+6. **Ancla muerta:** borrar la furniture con un MM anclado → reload → sale por cañón y queda libre (sin defer infinito).
+7. Si todo OK → marcar ✅ y pasar a Fase 2 (camas persistentes + energía offline) o al Combat Visualizer (S18, aún sin Play).
+
+**ScriptNodes a actualizar (cierre S21 — agente haiku):** `AnchorRegistry.md` (CREAR), `MoriMochiContainer.md`, `BreedingContainer.md`, `StoreContainer.md`, `MoriMochiAgent.md` (Confinement), `MoriMochiSpawner.md`, `CreatureDNA.md`.
+
+---
+
+### Sesión 20 (histórico) — 2026-06-23
+
+**Session:** 2026-06-23 (Session 20 — Sold + diálogo NPC + rediseño cola + nombres + outbid + variación + banco de diálogos + cerco de áreas) — **PROBADO EN PLAY ✅**
 **Focus:** (1) Completar el estado Sold como Dead (timestamp, filtros, `IsSold`). (2) Diálogos del `NpcThoughtTag` (feliz al vender, "muy lleno" al no caber). (3) **Rediseño total de la cola de la caja** (varias iteraciones con Juan): de árbol ternario BFS → cadena lineal ortogonal que tiende a la salida. (4) Nombres random de NPC.
+
+> ### ✅ CIERRE — Sistema NPC compradores CERRADO (2026-06-23)
+> Juan probó en Play: **funciona suficientemente bien**, se cierra el tema (primer mecanismo de monetización live). Entregado en S17-S20: use points anti-overlap, precio por NameTag, cola lineal ortogonal hacia la salida con avance, estado Sold=Dead, reacción "¡Me ganaron!" (outbid), variación NavMesh + ReactionDelay + banco de diálogos, cerco de áreas caminables. **Bug de carga en frío del breeding (S16): también RESUELTO** (ver [[Index/11 - Technical Debt]], causa = refresh de data al reclamar al corral).
+> **Siguiente foco:** Combat Visualizer (S18) — único sistema codificado SIN testear en Play (checklist Test 1-8 más abajo). Cosmético suelto: borrar `NpcState.Spawned`.
 
 **Decisiones de arquitectura — Cola (S20, diseño FINAL tras iterar con Juan):**
 - **Causa original:** árbol ternario BFS (`QueueSlotNode` root→Back/Left/Right por nivel) → repartía en abanico, no en fila. + bug latente S17: `TickQueueing` cacheaba el slot una sola vez y nunca repolleaba → al avanzar la cola los de atrás no se movían.
@@ -30,11 +88,12 @@ tags: [index, core]
 - `World/Containers/QueueDirectionHandler.cs` (handler puro: 3 candidatos ortogonales Atrás/Izq/Der relativos a un eje fijo).
 - `World/Containers/QueueAvailabilityHandler.cs` (handler puro: NavMesh + maxSnap + raycast camino libre + separación).
 - `World/Npc/NpcNameBank.cs` (estático: nombre+apellido humanos ES, espejo de `CreatureNameBank`).
+- `World/Npc/NpcDialogueBank.cs` (estático, S20-cont: 5-6 frases por situación con `{0}`=nombre del MM; `Pick(state, reason, name)`).
 
 **Files Touched (.cs — input ScriptNodes):**
 - `Data/Genetics/CreatureDNA.cs`: + `SaleDate` (DateTime) + `IsSold` (propiedad derivada de BusyState).
-- `World/Npc/NpcAgent.cs`: + `using System;`; stamp `TargetMM.SaleDate` en `AcceptCurrentOffer`; `TickQueueing` repollea `CurrentSlotOf` (fix bug S17); + `DisplayName` (random en `Initialize`) + `QueueWasFull` (true cuando el registro devuelve null).
-- `World/Npc/NpcThoughtTag.cs`: nameLabel = `agent.DisplayName`; `ThoughtText(state, target, queueWasFull)` → feliz al vender / "¡Está muy lleno!" / "Será en otra ocasión…".
+- `World/Npc/NpcAgent.cs`: + `using System;`; stamp `TargetMM.SaleDate` en `AcceptCurrentOffer`; `TickQueueing` repollea `CurrentSlotOf` (fix bug S17); + `DisplayName` (random en `Initialize`). **S20-cont:** `QueueWasFull` → enum `LeaveReason {None,Purchased,Outbid,QueueFull}` + propiedad `Reason` (dueño del "porqué me voy"); se suscribe a `GameEvents.OnCustomerSold` (`OnEnable`/`OnDisable`) → si el MM vendido por OTRO == su `TargetMM` ⇒ `Reason=Outbid` + `Leaving`; `AcceptCurrentOffer` setea `Reason=Purchased`; `ApplyInstanceVariation` (en `Initialize`) sortea speed/angularSpeed/acceleration (`moveVariation`), `avoidancePriority` y `ReactionDelay`.
+- `World/Npc/NpcThoughtTag.cs`: nameLabel = `agent.DisplayName`. **S20-cont:** se eliminó `ThoughtText` fijo → `UpdateThought` lee `NpcDialogueBank.Pick(State, Reason, name)`, detecta cambio de situación, cachea la frase y la muestra recién tras `agent.ReactionDelay` (mantiene la frase previa durante el delay; sin blanco). Distingue comprador (Purchased "se viene conmigo") de perdedor (Outbid "¡Me ganaron a X!").
 - `World/Containers/CashRegister.cs`: árbol BFS → cadena lineal ortogonal hacia la salida (dueño del orden, 2 handlers, `BackDirection`+`SnapToOrthogonal`, `queueTowards`, `TryComputeLink` bool, `Recompute`, `maxSnap`, gizmos). API pública intacta.
 - `World/Spawning/MoriMochiSpawner.cs`: 6 checks `IsDead` → `IsDead || IsSold`.
 - `UI/CreatureGridUITK.cs` / `CreatureVisualUI.cs` / `CreatureGridView.cs` / `MorimonchiDetailInfoUITK.cs`: `StateOf` + `"SOLD"` antes de `"DEAD"`.
@@ -61,6 +120,27 @@ tags: [index, core]
 4. **S20 — Nombres:** cada NPC muestra un nombre random (nombre+apellido) en su thought tag.
 5. Si todo OK → marcar ✅ el sistema NPC compradores.
 6. Volver al bug pendiente de S16 (1ª carga en frío del breeding cortejo — abierto en [[Index/11 - Technical Debt]]).
+
+**S20 — CONTINUACIÓN (mismo día 2026-06-23): reacción "me ganaron" + variación por NPC + banco de diálogos**
+
+Pedido de Juan tras la auditoría: escenario "10 clientes quieren el mismo MM" + dar vida a los NPCs.
+
+- **Reacción en cadena al vender (bug + feature):** la lógica vieja decidía el diálogo de salida por `target.IsSold`, pero TODOS los que querían ese MM lo tienen en `true` → todos decían "se viene conmigo". Fix: el "porqué me voy" pasa a ser **un dato dueño del agente** (`enum LeaveReason`, propiedad `Reason`). Cada `NpcAgent` se suscribe al `Action` existente `GameEvents.OnCustomerSold` (reuso, Regla 10); si `buyer != this` y `mm == TargetMM` (igualdad por referencia, `CreatureDNA` no sobreescribe `==`) ⇒ `Reason=Outbid` + `Leaving`. Comprador ⇒ `Reason=Purchased`. Guardas: ignora si es el comprador o ya está en `Leaving`. Suscripción en `OnEnable`/`OnDisable` (Regla 9, NPCs se `Destroy`ean al despawn).
+- **Variación del NavMeshAgent al instanciar** (`ApplyInstanceVariation` en `Initialize`): sortea por separado `speed`/`angularSpeed`/`acceleration` (tunable `moveVariation`, ±15% def, piso 0.1) + `avoidancePriority` (rango `avoidancePriorityRange`, def 30-70). Comportamiento → vive en el agente.
+- **`ReactionDelay` random por NPC** (`reactionDelayRange`, def 0.2-1.2s) + **`NpcDialogueBank`**: el `NpcThoughtTag` elige una frase random del banco por situación `(State, Reason)`, la cachea (no re-sortea cada frame) y la muestra recién tras el delay, manteniendo la frase previa mientras "piensa" (sin parpadeo en blanco). Delay aplicado a la **respuesta verbal**, no al comportamiento. Presentación → vive en el thought tag.
+- **Auditoría previa (sin cambios de código):** se verificó que el path "Sold mientras está en estante" está limpio (`RegistryChanged`→`Sync`→`Despawn`→`pool.Return`→`PrepareForPool`→`currentContainer.Release` → sale de `Occupants`, NameTag se va con el GameObject) y que el fix de avance de cola S17 es correcto. Cosmético pendiente: `NpcState.Spawned` sigue en el enum (inofensivo).
+
+**Nuevos ítems de test S21 (sumar):**
+- **Outbid:** varios clientes en cola apuntando al MISMO MM (un solo MM en venta, precio atractivo) → vender al frente ⇒ el resto dice "¡Me ganaron a X!" y se va. Si toda la cola quería ese MM, la fila se vacía y el panel se cierra (esperado).
+- **Variación:** los clientes se mueven a velocidades/giros distintos y se esquivan con prioridades distintas.
+- **Delay + banco:** las frases varían por cliente y por situación, aparecen tras un beat random, sin respuestas vacías. **Caveat de wiring:** `NavMeshAgent.stoppingDistance` del prefab NPC en ~0 (si ≥0.5 el cliente del frente nunca llega a `WaitingAtRegister`).
+
+**POST-TEST (mismo día 2026-06-23) — Juan probó en Play: el sistema NPC funciona correctamente.** Único ajuste pedido: **reforzar las áreas caminables**. Los NPCs a veces ruteaban por el breeding room para acortar camino.
+- **Cerco de áreas (`NpcAgent`):** nuevo campo serializado `walkableAreaNames` (`List<string>` con `[ValueDropdown]` de los nombres reales de Navigation, default `ShopFrontDesk` + `Outside`; helper `EditorNavMeshAreaNames` espejo del de `MoriMochiAgent`). `ApplyWalkableAreas` (en `Initialize`) lo convierte en `navAgent.areaMask` → el pathfinding nunca sale de esas áreas. Fallback a `AllAreas` si la lista está vacía o los nombres no existen (no congela al NPC). `GetAreaFromName` es case-sensitive.
+- **Cola hereda la máscara:** `NpcAgent.AreaMask` (propiedad pública) → `CashRegister.TryComputeLink` muestrea los slots con `agent.AreaMask` en vez de `NavMesh.AllAreas` (single source of truth, sin config duplicada).
+- **Paso manual Juan:** en el prefab NPC → `NpcAgent` → "Walkable areas", confirmar las 2 áreas exactas desde el dropdown; ambas pintadas/bakeadas/conectadas.
+
+**ScriptNodes PENDIENTES de re-doc (S20-cont):** `NpcAgent.md` (re-update: `LeaveReason`/`Reason`, suscripción `OnCustomerSold`, `ApplyInstanceVariation`, `ReactionDelay`, `walkableAreaNames`/`ApplyWalkableAreas`/`AreaMask`), `NpcThoughtTag.md` (re-update: `UpdateThought` + banco + delay), `NpcDialogueBank.md` (CREAR), `CashRegister.md` (re-update: cola muestrea con `agent.AreaMask`).
 
 ---
 

@@ -61,8 +61,8 @@ public partial class MoriMochiSpawner : MonoBehaviour
     [Tooltip("Fallback: si no llega ninguna carga autoritativa (reload local/nube) en este tiempo, puebla desde el registro local igual — evita esperar para siempre offline. 0 = esperar siempre.")]
     [Min(0f), SerializeField] private float dataReadyTimeout = 6f;
 
-    [Tooltip("Los breeders esperan a que su corral esté listo para colocarse DIRECTO adentro (sin cañón, sin ragdoll). Si el corral no aparece en este tiempo (s), recién ahí se disparan por cañón como último recurso. 0 = nunca esperar (cañón siempre).")]
-    [Min(0f), SerializeField] private float breederPlaceTimeout = 5f;
+    [Tooltip("Las criaturas ancladas esperan a que su lugar (corral / estante / corral de cría) esté listo para colocarse DIRECTO adentro (sin cañón, sin ragdoll). Si el lugar no aparece en este tiempo (s), recién ahí van por cañón como último recurso. 0 = nunca esperar (cañón siempre).")]
+    [Min(0f), SerializeField] private float anchorPlaceTimeout = 5f;
 
     // ── World gate ─────────────────────────────────────────────────
     // False until the furniture has loaded AND the NavMesh has baked (first OnNavMeshRebaked).
@@ -78,8 +78,8 @@ public partial class MoriMochiSpawner : MonoBehaviour
     private readonly Dictionary<string, MoriMonchiController> prewarmed = new Dictionary<string, MoriMonchiController>();
     private ControllerPool controllerPool;
     private readonly Queue<CreatureDNA>                       spawnQueue = new Queue<CreatureDNA>();
-    // Breeders drain first: placed directly inside their pen before any free creature is fired.
-    private readonly Queue<CreatureDNA>                       breederQueue = new Queue<CreatureDNA>();
+    // Anchored creatures drain first: placed directly inside their place before any free creature is fired.
+    private readonly Queue<CreatureDNA>                       anchoredQueue = new Queue<CreatureDNA>();
     private readonly HashSet<string>                          queued     = new HashSet<string>();
 
     // childUniqueID → world point to fire a newborn from. Registered by the BreedingContainer that bred
@@ -88,9 +88,9 @@ public partial class MoriMochiSpawner : MonoBehaviour
     // childUniqueID → world point a newborn lands at (just outside its pen, so it pops OUT of the corral).
     private readonly Dictionary<string, Vector3>             birthLandingPoints = new Dictionary<string, Vector3>();
 
-    // breederUniqueID → Time.time deadline. While a breeder waits for its pen to register we re-queue it
-    // instead of cannon-firing it; past the deadline we give up and fire it (pen likely gone).
-    private readonly Dictionary<string, float>               breederPlaceDeadline = new Dictionary<string, float>();
+    // anchoredUniqueID → Time.time deadline. While an anchored creature waits for its place to register we
+    // re-queue it instead of cannon-firing it; past the deadline we give up and fire it (place likely gone).
+    private readonly Dictionary<string, float>               anchorPlaceDeadline = new Dictionary<string, float>();
 
     private const float WorldReadyDebounce = 0.75f;
 
@@ -109,7 +109,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private int PooledCount    => controllerPool?.Count ?? 0;
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
-    private int QueuedCount    => spawnQueue.Count + breederQueue.Count;
+    private int QueuedCount    => spawnQueue.Count + anchoredQueue.Count;
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private int PrewarmedCount => prewarmed.Count;
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
@@ -222,7 +222,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
         foreach (var id in stale) Despawn(id);
 
         spawnQueue.Clear();
-        breederQueue.Clear();
+        anchoredQueue.Clear();
         queued.Clear();
         int rebound = 0, enqueued = 0;
         foreach (var kv in all)
@@ -232,8 +232,19 @@ public partial class MoriMochiSpawner : MonoBehaviour
 
             if (spawned.TryGetValue(kv.Key, out var controller))
             {
-                controller.Rebind(dna, table, furDb);
-                rebound++;
+                // An anchored creature that came back from the pull as a free roamer (lost its place
+                // on a cold load): despawn and re-route through placement instead of a stale Rebind.
+                if (!string.IsNullOrEmpty(dna.LocationKey) && controller.Agent != null && !controller.Agent.IsPenned)
+                {
+                    Despawn(kv.Key);
+                    Enqueue(dna);
+                    enqueued++;
+                }
+                else
+                {
+                    controller.Rebind(dna, table, furDb);
+                    rebound++;
+                }
             }
             else
             {
@@ -336,11 +347,11 @@ public partial class MoriMochiSpawner : MonoBehaviour
         EnsurePump();
     }
 
-    // Breeders go to the priority queue (placed directly in their pen); everyone else is fired.
+    // Anchored creatures go to the priority queue (placed directly in their place); everyone else is fired.
     private void Enqueue(CreatureDNA dna)
     {
-        if (dna.BusyState == BusyReason.Breeding) breederQueue.Enqueue(dna);
-        else                                      spawnQueue.Enqueue(dna);
+        if (!string.IsNullOrEmpty(dna.LocationKey)) anchoredQueue.Enqueue(dna);
+        else                                        spawnQueue.Enqueue(dna);
         queued.Add(dna.UniqueID);
     }
 
@@ -350,11 +361,11 @@ public partial class MoriMochiSpawner : MonoBehaviour
     {
         var wait = spawnInterval > 0f ? new WaitForSeconds(spawnInterval) : null;
 
-        while (breederQueue.Count > 0 || spawnQueue.Count > 0)
+        while (anchoredQueue.Count > 0 || spawnQueue.Count > 0)
         {
-            for (int i = 0; i < spawnPerTick && (breederQueue.Count > 0 || spawnQueue.Count > 0); i++)
+            for (int i = 0; i < spawnPerTick && (anchoredQueue.Count > 0 || spawnQueue.Count > 0); i++)
             {
-                var dna = breederQueue.Count > 0 ? breederQueue.Dequeue() : spawnQueue.Dequeue();
+                var dna = anchoredQueue.Count > 0 ? anchoredQueue.Dequeue() : spawnQueue.Dequeue();
                 queued.Remove(dna.UniqueID);
 
                 if (!dna.IsDead && !dna.IsSold && !spawned.ContainsKey(dna.UniqueID))
@@ -371,23 +382,30 @@ public partial class MoriMochiSpawner : MonoBehaviour
         if (isPrewarming) return;   // startup sequence hasn't completed yet
         if (!dataReady)    return;
         if (!worldReady)   return;  // world (furniture + NavMesh) not ready — hold the cannon
-        if (pump == null && (breederQueue.Count > 0 || spawnQueue.Count > 0) && isActiveAndEnabled)
+        if (pump == null && (anchoredQueue.Count > 0 || spawnQueue.Count > 0) && isActiveAndEnabled)
             pump = StartCoroutine(SpawnPump());
     }
 
     private void SpawnOne(CreatureDNA dna)
     {
-        // Breeders are placed directly inside their pen — never fired as a ragdoll. If the pen isn't
-        // ready yet, DEFER (re-queue) rather than cannon-fire them; only fall back to the cannon once
-        // breederPlaceTimeout elapses (pen likely gone).
-        if (dna.BusyState == BusyReason.Breeding)
+        // Anchored creatures are placed directly inside their place — never fired as a ragdoll. If the
+        // place isn't ready yet, DEFER (re-queue) rather than cannon-fire them; only fall back to the
+        // cannon once anchorPlaceTimeout elapses (place likely gone).
+        if (!string.IsNullOrEmpty(dna.LocationKey))
         {
-            if (BreedingContainer.TryGet(dna.HomePenKey, out var pen) && TryPlaceInPen(dna, pen))
+            if (AnchorRegistry.TryGet(dna.LocationKey, out var place) && TryPlaceAtAnchor(dna, place))
             {
-                breederPlaceDeadline.Remove(dna.UniqueID);
+                anchorPlaceDeadline.Remove(dna.UniqueID);
                 return;
             }
-            if (DeferBreeder(dna)) return;
+            if (DeferAnchored(dna)) return;
+
+            // The place never showed up (furniture removed while away) → fall through to the cannon and
+            // CLEAR the orphan anchor, otherwise this creature would try to re-anchor forever.
+            dna.LocationKey  = "";
+            dna.LocationSlot = -1;
+            if (GameManager.Instance != null && GameManager.Instance.Registry != null)
+                GameEvents.RegistryChanged(GameManager.Instance.Registry);
         }
 
         // Activate on a valid NavMesh point so NavMeshAgent.OnEnable never fires off-mesh, then
@@ -439,18 +457,19 @@ public partial class MoriMochiSpawner : MonoBehaviour
         return controller;
     }
 
-    // Places a breeder directly inside its pen instead of firing it. Returns false (so SpawnOne falls
-    // back to the cannon) if the pen rejects it (full / breeding navmesh not ready yet).
-    private bool TryPlaceInPen(CreatureDNA dna, BreedingContainer pen)
+    // Places a creature directly inside its anchored place instead of firing it. Returns false (so
+    // SpawnOne falls back to the cannon) if the place rejects it (full / navmesh not ready yet).
+    private bool TryPlaceAtAnchor(CreatureDNA dna, IAnchorPlace place)
     {
-        Vector3 navPoint = NavMesh.SamplePosition(pen.Center, out var hit, 5f, NavMesh.AllAreas) ? hit.position : pen.Center;
+        Vector3 anchorPos = place.AnchorPosition(dna.LocationSlot);
+        Vector3 navPoint  = NavMesh.SamplePosition(anchorPos, out var hit, 5f, NavMesh.AllAreas) ? hit.position : anchorPos;
 
         var controller = Acquire(dna, navPoint);
         if (controller == null) return false;
 
-        if (!pen.ReclaimDirect(controller.Agent))
+        if (!place.TryReclaim(controller.Agent, dna.LocationSlot))
         {
-            // Pen rejected it — return the controller so SpawnOne's fallback fires it cleanly.
+            // Place rejected it — return the controller so SpawnOne's fallback fires it cleanly.
             controllerPool.Return(controller);
             return false;
         }
@@ -460,25 +479,25 @@ public partial class MoriMochiSpawner : MonoBehaviour
         return true;
     }
 
-    // A breeder whose pen isn't registered/ready yet: re-queue it for a later tick instead of ragdolling
-    // it out of the cannon. Returns false once breederPlaceTimeout elapses so SpawnOne fires it as a last
-    // resort (timeout 0 disables the wait → always cannon).
-    private bool DeferBreeder(CreatureDNA dna)
+    // An anchored creature whose place isn't registered/ready yet: re-queue it for a later tick instead
+    // of ragdolling it out of the cannon. Returns false once anchorPlaceTimeout elapses so SpawnOne fires
+    // it as a last resort (timeout 0 disables the wait → always cannon).
+    private bool DeferAnchored(CreatureDNA dna)
     {
-        if (breederPlaceTimeout <= 0f) return false;
+        if (anchorPlaceTimeout <= 0f) return false;
 
-        if (!breederPlaceDeadline.TryGetValue(dna.UniqueID, out var deadline))
+        if (!anchorPlaceDeadline.TryGetValue(dna.UniqueID, out var deadline))
         {
-            deadline = Time.time + breederPlaceTimeout;
-            breederPlaceDeadline[dna.UniqueID] = deadline;
+            deadline = Time.time + anchorPlaceTimeout;
+            anchorPlaceDeadline[dna.UniqueID] = deadline;
         }
         if (Time.time >= deadline)
         {
-            breederPlaceDeadline.Remove(dna.UniqueID);
+            anchorPlaceDeadline.Remove(dna.UniqueID);
             return false;
         }
 
-        breederQueue.Enqueue(dna);
+        anchoredQueue.Enqueue(dna);
         queued.Add(dna.UniqueID);
         return true;
     }
@@ -491,7 +510,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
         spawned.Remove(id);
         birthLaunchPoints.Remove(id);
         birthLandingPoints.Remove(id);
-        breederPlaceDeadline.Remove(id);
+        anchorPlaceDeadline.Remove(id);
 
         // A creature that died before activation — return its prewarmed slot to the pool.
         if (prewarmed.TryGetValue(id, out var prewarmedController))
@@ -506,9 +525,9 @@ public partial class MoriMochiSpawner : MonoBehaviour
         foreach (var controller in spawned.Values) controllerPool.Return(controller);
         spawned.Clear();
         spawnQueue.Clear();
-        breederQueue.Clear();
+        anchoredQueue.Clear();
         queued.Clear();
-        breederPlaceDeadline.Clear();
+        anchorPlaceDeadline.Clear();
     }
 
     // ── Spawn helpers ─────────────────────────────────────────────

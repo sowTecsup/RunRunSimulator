@@ -31,7 +31,7 @@ public class BreedingDevConsole : MonoBehaviour
             var lines = new List<string>();
             foreach (var pen in BreedingContainer.All)
                 foreach (var (mother, father, slot) in pen.ActivePairs())
-                    lines.Add($"[{pen.PenKey} #{slot}] \"{mother}\" × \"{father}\"");
+                    lines.Add($"[{pen.AnchorKey} #{slot}] \"{mother}\" × \"{father}\"");
             return lines.Count == 0 ? "Sin parejas activas." : string.Join("  |  ", lines);
         }
     }

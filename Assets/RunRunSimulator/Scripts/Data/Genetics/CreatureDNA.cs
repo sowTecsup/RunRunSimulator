@@ -86,8 +86,8 @@ public class CreatureDNA
     // ── Breeding timer (local cache for display; server is authoritative) ─
     public long   BreedReadyAt   = 0;    // server epoch ms when the egg can hatch; 0 = not breeding
     public string BreedPartnerID = "";   // the other parent — lets the client rebuild the pair locally
-    public string HomePenKey     = "";   // breeding pen (furniture CellKey) this creature breeds in; reload re-pens it here
-    public int    HomePenSlot    = -1;   // fixed breed slot index inside that pen; -1 = unassigned. Persists as the pair's preference
+    public string LocationKey  = "";   // furniture cell key ("x_y") of the place this creature is anchored to (pen / shelf / corral); "" = free roamer (cannon)
+    public int    LocationSlot = -1;   // fixed slot index inside that place; -1 = unassigned
 
     // Whole days lived since BirthDate (UTC). Drives the NameTag life stage; 0 until stamped.
     public int AgeDays => BirthDate == default ? 0 : Mathf.Max(0, (int)(DateTime.UtcNow - BirthDate).TotalDays);

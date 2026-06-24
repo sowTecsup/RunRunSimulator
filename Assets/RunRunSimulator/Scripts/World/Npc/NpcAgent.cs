@@ -21,18 +21,35 @@ namespace MoriMonchiSimulator
             Leaving
         }
 
+        public enum LeaveReason { None, Purchased, Outbid, QueueFull }
+
         public CustomerArchetypeSO Archetype { get; private set; }
         public string DisplayName { get; private set; }
-        public bool QueueWasFull { get; private set; }
+        public float ReactionDelay { get; private set; }
+        public LeaveReason Reason { get; private set; }
         public CreatureDNA TargetMM { get; private set; }
         public int InitialOffer { get; private set; }
         public int CurrentOffer { get; private set; }
         public bool HasCounteredOnce { get; private set; }
         public NpcState State { get; private set; } = NpcState.Spawned;
         public StoreContainer CurrentDisplay => currentDisplay;
+        public int AreaMask => navAgent != null ? navAgent.areaMask : NavMesh.AllAreas;
 
         [Title("Movement")]
         [MinValue(0.1f)] [SerializeField] private float arriveDistance = 0.5f;
+
+        [Title("Walkable areas")]
+        [Tooltip("Áreas de NavMesh por las que el NPC PUEDE caminar — su único cerco. Elegí las exactas desde Navigation → Areas (típico: ShopFrontDesk + Outside) para que nunca rutee por el breeding room. La cola de la caja hereda esta máscara. Vacío o nombres inexistentes → sin restricción (AllAreas).")]
+        [ValueDropdown(nameof(EditorNavMeshAreaNames))]
+        [SerializeField] private List<string> walkableAreaNames = new List<string> { "ShopFrontDesk", "Outside" };
+
+        [Title("Per-instance variation")]
+        [Tooltip("Variación ± aplicada por separado a velocidad, giro y aceleración del NavMeshAgent al instanciar (0.15 = ±15%). Cada cliente sale un poco más rápido/lento y gira distinto.")]
+        [MinValue(0f)] [SerializeField] private float moveVariation = 0.15f;
+        [Tooltip("Rango de avoidancePriority (0-99, menor = más prioridad) sorteado por cliente, para que se esquiven con personalidad en vez de empujarse igual.")]
+        [SerializeField] private Vector2Int avoidancePriorityRange = new Vector2Int(30, 70);
+        [Tooltip("Rango (s) del delay random de reacción: cuánto 'piensa' cada cliente antes de soltar su frase al cambiar de situación.")]
+        [SerializeField] private Vector2 reactionDelayRange = new Vector2(0.2f, 1.2f);
 
         private const float displaySampleRadius = 1.5f;
 
@@ -59,8 +76,41 @@ namespace MoriMonchiSimulator
             register = cashRegister;
             controller = owner;
             navAgent = GetComponent<NavMeshAgent>();
+            ApplyWalkableAreas();
+            ApplyInstanceVariation();
             inspectionsRemaining = UnityEngine.Random.Range(archetype.MinInspections, archetype.MaxInspections + 1);
             TransitionTo(NpcState.Wandering);
+        }
+
+        private void ApplyWalkableAreas()
+        {
+            int mask = 0;
+            if (walkableAreaNames != null)
+                foreach (var areaName in walkableAreaNames)
+                {
+                    int idx = NavMesh.GetAreaFromName(areaName);
+                    if (idx >= 0) mask |= 1 << idx;
+                }
+            navAgent.areaMask = mask != 0 ? mask : NavMesh.AllAreas;
+        }
+
+        private static System.Collections.Generic.IEnumerable<string> EditorNavMeshAreaNames()
+        {
+#if UNITY_EDITOR
+            return NavMesh.GetAreaNames();
+#else
+            return System.Array.Empty<string>();
+#endif
+        }
+
+        private void ApplyInstanceVariation()
+        {
+            float v = moveVariation;
+            navAgent.speed        *= UnityEngine.Random.Range(Mathf.Max(0.1f, 1f - v), 1f + v);
+            navAgent.angularSpeed *= UnityEngine.Random.Range(Mathf.Max(0.1f, 1f - v), 1f + v);
+            navAgent.acceleration *= UnityEngine.Random.Range(Mathf.Max(0.1f, 1f - v), 1f + v);
+            navAgent.avoidancePriority = UnityEngine.Random.Range(avoidancePriorityRange.x, avoidancePriorityRange.y + 1);
+            ReactionDelay = UnityEngine.Random.Range(reactionDelayRange.x, reactionDelayRange.y);
         }
 
         private void Update()
@@ -159,7 +209,7 @@ namespace MoriMonchiSimulator
             var slot = register.TryReserveSlot(this);
             if (slot == null)
             {
-                QueueWasFull = true;
+                Reason = LeaveReason.QueueFull;
                 TransitionTo(NpcState.Leaving);
                 return;
             }
@@ -218,6 +268,7 @@ namespace MoriMonchiSimulator
             if (TargetMM == null) { TransitionTo(NpcState.Leaving); return; }
             TargetMM.BusyState = BusyReason.Sold;
             TargetMM.SaleDate  = DateTime.UtcNow;
+            Reason = LeaveReason.Purchased;
             var gm = GameManager.Instance;
             if (gm != null)
             {
@@ -309,10 +360,21 @@ namespace MoriMonchiSimulator
             return best;
         }
 
+        private void OnEnable() => GameEvents.OnCustomerSold += OnSomeoneSold;
+
         private void OnDisable()
         {
+            GameEvents.OnCustomerSold -= OnSomeoneSold;
             ReleaseDisplaySlot();
             if (register != null) register.ReleaseSlot(this);
+        }
+
+        private void OnSomeoneSold(NpcAgent buyer, CreatureDNA mm, int finalPrice)
+        {
+            if (buyer == this || State == NpcState.Leaving) return;
+            if (TargetMM == null || mm != TargetMM) return;
+            Reason = LeaveReason.Outbid;
+            TransitionTo(NpcState.Leaving);
         }
     }
 }

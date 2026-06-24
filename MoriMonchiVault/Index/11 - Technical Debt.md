@@ -114,9 +114,13 @@ Regla 11 codificada en `CLAUDE.md`: **partial solo por ventaja física de archiv
 
 ---
 
-### 🔴 ABIERTO — Orden de carga de data + colocación de breeders en frío (Sesión 16, 2026-06-21)
+### ✅ RESUELTO — Orden de carga de data + colocación de breeders en frío (Sesión 16 → confirmado por Juan 2026-06-23)
 
-**Síntoma:** en la PRIMERA carga tras abrir Play, una pareja de breeders queda mal: uno "flotando"/congelado y/o no quedan ambos como ocupantes del MISMO corral → `ManageCourtship` no los empareja (se quedan quietos, sin orbitar) y al eclosionar `OnBreedingCompleted.FindOccupant` falla → la cría NO sale del corral y los padres no salen de cortejo. En la SEGUNDA carga (local==nube, mesh "caliente") carga correcto. Misma familia de carreras que la Sesión 14 (snap / re-instancia).
+**Estado:** Juan confirma que la 1ª carga en frío del breeding ya coloca y empareja correctamente (cortejo orbita, la cría sale del corral). Deuda cerrada.
+
+**Causa raíz real (según Juan, tentativo):** al cargar/recuperar los breeders AL CORRAL en frío **no se actualizaban/refrescaban sus datos al cargarlos** → la pareja quedaba con estado/ocupancia stale → el cortejo no matcheaba y la cría no salía. Es decir, fue un problema de **refresh de data al reclamar al corral** (`ReclaimBreedingOccupants`/`ReclaimDirect`/`Claim` + `Rebind` tras `OnRegistryReloaded`), NO el timing del bake del NavMesh que era la hipótesis principal de abajo. La hipótesis histórica + fix A-E quedan como registro.
+
+**Síntoma (histórico):** en la PRIMERA carga tras abrir Play, una pareja de breeders queda mal: uno "flotando"/congelado y/o no quedan ambos como ocupantes del MISMO corral → `ManageCourtship` no los empareja (se quedan quietos, sin orbitar) y al eclosionar `OnBreedingCompleted.FindOccupant` falla → la cría NO sale del corral y los padres no salen de cortejo. En la SEGUNDA carga (local==nube, mesh "caliente") carga correcto. Misma familia de carreras que la Sesión 14 (snap / re-instancia).
 
 **Hipótesis de raíz (CONFIRMAR con instrumentación ANTES de tocar — evitar bola de nieve):** la colocación/confinamiento de breeders corre antes de que su pre-requisito esté listo. Pre-requisitos que hoy NO se verifican explícitamente por corral:
 1. **Área de NavMesh de cría horneada** en el piso de ESE corral. Hoy se asume del `worldReady` genérico (primer bake); puede haber varios bakes y el área de cría llegar tarde → `EnterConfinement`/`RejoinNavMesh` con `confinedAreaMask` falla.
@@ -149,4 +153,4 @@ Regla 11 codificada en `CLAUDE.md`: **partial solo por ventaja física de archiv
 | 9 | Disciplina partial class (regla 11 + audit) ✅ | 3 | Arquitectura | Bajo |
 | 7 | Unificar convención de acceso a SO (cascada) ✅ | 4 | Estabilidad | Medio |
 | 8 | Deduplicar Async services (CloudEndpoint) ✅ | 5 | Arquitectura | Medio |
-| 10 | 🔴 Orden de carga de data + colocación de breeders en frío (trazar → fix A-E) | — | Estabilidad | Alto |
+| 10 | ✅ Orden de carga de data + colocación de breeders en frío (resuelto, confirmado Juan 2026-06-23) | — | Estabilidad | Alto |

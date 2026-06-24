@@ -34,7 +34,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 27
+      Data: 28
     - Name: 
       Entry: 7
       Data: 
@@ -219,16 +219,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -572,19 +581,19 @@ MonoBehaviour:
       Data: 16|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 59.357708
+      Data: 100
     - Name: Energy
       Entry: 4
-      Data: 50.06208
+      Data: 100
     - Name: Affect
       Entry: 4
-      Data: -5.20427942
+      Data: 100
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -594,16 +603,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250864665951951833
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -774,19 +792,19 @@ MonoBehaviour:
       Data: 20|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 50.55872
+      Data: 99.9945
     - Name: Energy
       Entry: 4
-      Data: 80.6382751
+      Data: 99.989
     - Name: Affect
       Entry: 4
-      Data: 32.7914543
+      Data: 99.9945
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -796,16 +814,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250864730101801416
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -1049,13 +1076,13 @@ MonoBehaviour:
       Data: 27|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 31.5155277
+      Data: 64.2122
     - Name: Energy
       Entry: 4
-      Data: 77.56422
+      Data: 55.31008
     - Name: Affect
       Entry: 4
-      Data: 16.7034378
+      Data: 40.8066978
     - Name: 
       Entry: 8
       Data: 
@@ -1071,16 +1098,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -1270,16 +1306,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -1374,7 +1419,7 @@ MonoBehaviour:
       Data: 33|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 3
+      Data: 4
     - Name: 
       Entry: 1
       Data: BS4-A0-E2-M1-E5CB4A-639157099758374241
@@ -1384,6 +1429,9 @@ MonoBehaviour:
     - Name: 
       Entry: 1
       Data: BS4-A1-E0-M1-35DFC7-639163844734879923
+    - Name: 
+      Entry: 1
+      Data: BS0-A0-E0-M0-CA8382-639178750921323004
     - Name: 
       Entry: 13
       Data: 
@@ -1404,7 +1452,7 @@ MonoBehaviour:
       Data: 2
     - Name: BreedCount
       Entry: 3
-      Data: 3
+      Data: 4
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -1574,19 +1622,19 @@ MonoBehaviour:
       Data: 40|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 100
+      Data: 44.31534
     - Name: Energy
       Entry: 4
-      Data: 100
+      Data: 41.6990242
     - Name: Affect
       Entry: 4
-      Data: 100
+      Data: -21.68469
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 2
+      Data: 0
     - Name: QueuedAt
       Entry: 7
       Data: System.DateTime, mscorlib
@@ -1596,18 +1644,27 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
-    - Name: BreedReadyAt
-      Entry: 3
-      Data: 1782031936420
-    - Name: BreedPartnerID
-      Entry: 1
-      Data: BS1-A4-E0-M1-B1B03C-639158780052655723
-    - Name: HomePenKey
-      Entry: 1
-      Data: 3_27
-    - Name: HomePenSlot
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
       Entry: 3
       Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: LocationKey
+      Entry: 1
+      Data: 
+    - Name: LocationSlot
+      Entry: 3
+      Data: -1
     - Name: 
       Entry: 8
       Data: 
@@ -1764,13 +1821,13 @@ MonoBehaviour:
       Data: 44|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 67.0845
+      Data: 89.2313
     - Name: Energy
       Entry: 4
-      Data: 33.9595261
+      Data: 25.8038769
     - Name: Affect
       Entry: 4
-      Data: 84.5385361
+      Data: 76.47626
     - Name: 
       Entry: 8
       Data: 
@@ -1786,16 +1843,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -2416,13 +2482,13 @@ MonoBehaviour:
       Data: 66|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 64.47478
+      Data: 86.61919
     - Name: Energy
       Entry: 4
-      Data: 27.78644
+      Data: 53.57752
     - Name: Affect
       Entry: 4
-      Data: -35.2582474
+      Data: -3.29409432
     - Name: 
       Entry: 8
       Data: 
@@ -2438,16 +2504,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -2612,13 +2687,13 @@ MonoBehaviour:
       Data: 70|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 44.4416046
+      Data: 79.33119
     - Name: Energy
       Entry: 4
-      Data: 63.9891968
+      Data: 49.2124672
     - Name: Affect
       Entry: 4
-      Data: -3.9441905
+      Data: -15.5659685
     - Name: 
       Entry: 8
       Data: 
@@ -2634,16 +2709,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -2857,13 +2941,13 @@ MonoBehaviour:
       Data: 76|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 27.5486832
+      Data: 62.1704254
     - Name: Energy
       Entry: 4
-      Data: 40.0875473
+      Data: 81.34819
     - Name: Affect
       Entry: 4
-      Data: 32.506012
+      Data: 46.2746658
     - Name: 
       Entry: 8
       Data: 
@@ -2879,16 +2963,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -3488,16 +3581,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -3659,13 +3761,13 @@ MonoBehaviour:
       Data: 100|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 89.68896
+      Data: 41.99138
     - Name: Energy
       Entry: 4
-      Data: 61.2045059
+      Data: 35.0216866
     - Name: Affect
       Entry: 4
-      Data: 26.9837952
+      Data: -11.8072309
     - Name: 
       Entry: 8
       Data: 
@@ -3681,16 +3783,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -3849,13 +3960,13 @@ MonoBehaviour:
       Data: 104|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 48.3096237
+      Data: 82.94285
     - Name: Energy
       Entry: 4
-      Data: 53.87121
+      Data: 32.06248
     - Name: Affect
       Entry: 4
-      Data: 11.5829554
+      Data: -50.6572762
     - Name: 
       Entry: 8
       Data: 
@@ -3871,16 +3982,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -4067,16 +4187,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -4238,20 +4367,29 @@ MonoBehaviour:
       Data: 112|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 35.39544
+      Data: 99.97018
     - Name: Energy
       Entry: 4
-      Data: 64.49735
+      Data: 99.9403458
     - Name: Affect
       Entry: 4
-      Data: 37.93685
+      Data: 99.97018
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 2
     - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SaleDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
@@ -4262,16 +4400,16 @@ MonoBehaviour:
       Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 0
+      Data: 1782280200415
     - Name: BreedPartnerID
       Entry: 1
-      Data: 
-    - Name: HomePenKey
+      Data: BS1-A4-E0-M1-B1B03C-639158780052655723
+    - Name: LocationKey
       Entry: 1
-      Data: 
-    - Name: HomePenSlot
+      Data: 3_27
+    - Name: LocationSlot
       Entry: 3
-      Data: -1
+      Data: 0
     - Name: 
       Entry: 8
       Data: 
@@ -4634,13 +4772,13 @@ MonoBehaviour:
       Data: 124|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 30.4088478
+      Data: 64.95803
     - Name: Energy
       Entry: 4
-      Data: 30.5880184
+      Data: 73.42325
     - Name: Affect
       Entry: 4
-      Data: 41.60641
+      Data: -22.4359016
     - Name: 
       Entry: 8
       Data: 
@@ -4656,16 +4794,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -5246,13 +5393,13 @@ MonoBehaviour:
       Data: 144|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 80.95548
+      Data: 48.01406
     - Name: Energy
       Entry: 4
-      Data: 91.52945
+      Data: 73.59361
     - Name: Affect
       Entry: 4
-      Data: 18.1236725
+      Data: 58.5770645
     - Name: 
       Entry: 8
       Data: 
@@ -5268,16 +5415,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -5445,13 +5601,13 @@ MonoBehaviour:
       Data: 148|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 88.30648
+      Data: 45.6494064
     - Name: Energy
       Entry: 4
-      Data: 48.17518
+      Data: 41.09009
     - Name: Affect
       Entry: 4
-      Data: -30.23544
+      Data: 75.48233
     - Name: 
       Entry: 8
       Data: 
@@ -5467,16 +5623,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -5571,10 +5736,13 @@ MonoBehaviour:
       Data: 150|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 2
     - Name: 
       Entry: 1
       Data: BS1-A1-E0-M1-0B19C8-639163844748752240
+    - Name: 
+      Entry: 1
+      Data: BS0-A0-E0-M0-CA8382-639178750921323004
     - Name: 
       Entry: 13
       Data: 
@@ -5595,7 +5763,7 @@ MonoBehaviour:
       Data: 0
     - Name: BreedCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: BodyTier
       Entry: 3
       Data: 1
@@ -5638,13 +5806,13 @@ MonoBehaviour:
       Data: 152|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 100
+      Data: 99.97018
     - Name: Energy
       Entry: 4
-      Data: 100
+      Data: 99.9403458
     - Name: Affect
       Entry: 4
-      Data: 100
+      Data: 99.97018
     - Name: 
       Entry: 8
       Data: 
@@ -5660,16 +5828,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
-      Data: 1782031936420
+      Data: 1782280200415
     - Name: BreedPartnerID
       Entry: 1
-      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
-    - Name: HomePenKey
+      Data: BS1-A0-E3-M1-E9422E-639157586322083999
+    - Name: LocationKey
       Entry: 1
       Data: 3_27
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: 0
     - Name: 
@@ -6315,13 +6492,13 @@ MonoBehaviour:
       Data: 175|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 74.7247
+      Data: 37.8948
     - Name: Energy
       Entry: 4
-      Data: 78.599144
+      Data: 62.48474
     - Name: Affect
       Entry: 4
-      Data: 19.72464
+      Data: 80.80317
     - Name: 
       Entry: 8
       Data: 
@@ -6337,16 +6514,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -6505,13 +6691,13 @@ MonoBehaviour:
       Data: 179|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 55.5104675
+      Data: 20.5965824
     - Name: Energy
       Entry: 4
-      Data: 57.09543
+      Data: 70.85461
     - Name: Affect
       Entry: 4
-      Data: 19.33266
+      Data: 86.36023
     - Name: 
       Entry: 8
       Data: 
@@ -6527,16 +6713,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -7292,13 +7487,13 @@ MonoBehaviour:
       Data: 206|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 62.7256126
+      Data: 28.7856655
     - Name: Energy
       Entry: 4
-      Data: 58.61474
+      Data: 65.93661
     - Name: Affect
       Entry: 4
-      Data: 4.210003
+      Data: 14.6144123
     - Name: 
       Entry: 8
       Data: 
@@ -7314,16 +7509,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -7482,13 +7686,13 @@ MonoBehaviour:
       Data: 210|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 75.6067657
+      Data: 54.490593
     - Name: Energy
       Entry: 4
-      Data: 77.36573
+      Data: 50.275074
     - Name: Affect
       Entry: 4
-      Data: 29.2359657
+      Data: 37.01237
     - Name: 
       Entry: 8
       Data: 
@@ -7504,16 +7708,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -7672,13 +7885,13 @@ MonoBehaviour:
       Data: 214|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 64.17385
+      Data: 40.0476227
     - Name: Energy
       Entry: 4
-      Data: 30.9931049
+      Data: 38.19919
     - Name: Affect
       Entry: 4
-      Data: 32.9601173
+      Data: 87.36991
     - Name: 
       Entry: 8
       Data: 
@@ -7694,16 +7907,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -7862,13 +8084,13 @@ MonoBehaviour:
       Data: 218|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 70.93849
+      Data: 99.97018
     - Name: Energy
       Entry: 4
-      Data: 34.47963
+      Data: 100
     - Name: Affect
       Entry: 4
-      Data: 30.8287048
+      Data: 99.97018
     - Name: 
       Entry: 8
       Data: 
@@ -7884,16 +8106,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
-      Data: 
-    - Name: HomePenSlot
+      Data: 11_27
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -8052,13 +8283,13 @@ MonoBehaviour:
       Data: 222|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 64.06377
+      Data: 43.89236
     - Name: Energy
       Entry: 4
-      Data: 55.69313
+      Data: 85.07108
     - Name: Affect
       Entry: 4
-      Data: 84.30976
+      Data: 54.8337631
     - Name: 
       Entry: 8
       Data: 
@@ -8074,16 +8305,25 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 
@@ -8242,13 +8482,13 @@ MonoBehaviour:
       Data: 226|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 43.3725433
+      Data: 1.51536584
     - Name: Energy
       Entry: 4
-      Data: 82.66236
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: -6.350206
+      Data: -53.7564545
     - Name: 
       Entry: 8
       Data: 
@@ -8264,16 +8504,224 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenKey
+    - Name: LocationKey
+      Entry: 1
+      Data: 7_27
+    - Name: LocationSlot
+      Entry: 3
+      Data: -1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS0-A0-E0-M0-CA8382-639178750921323004
+    - Name: $v
+      Entry: 7
+      Data: 227|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS0
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M0
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.7921569
+    - Name: 
+      Entry: 4
+      Data: 0.5137255
+    - Name: 
+      Entry: 4
+      Data: 0.509803951
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SecondaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.9421569
+    - Name: 
+      Entry: 4
+      Data: 0.797689736
+    - Name: 
+      Entry: 4
+      Data: 0.65671134
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Snappy Droob
+    - Name: Timestamp
+      Entry: 3
+      Data: 639178750921323004
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250864769348710908
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: BS4-A2-E0-M3-DA55B3-639156644193406137
+    - Name: FatherID
+      Entry: 1
+      Data: BS1-A4-E0-M1-B1B03C-639158780052655723
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 228|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 1
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseHP
+      Entry: 4
+      Data: 11
+    - Name: BaseAttack
+      Entry: 4
+      Data: 9
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 8
+    - Name: CombatHistory
+      Entry: 7
+      Data: 229|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 230|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 99.97018
+    - Name: Energy
+      Entry: 4
+      Data: 99.9403458
+    - Name: Affect
+      Entry: 4
+      Data: 99.97018
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
       Entry: 1
       Data: 
-    - Name: HomePenSlot
+    - Name: LocationKey
+      Entry: 1
+      Data: 9_4
+    - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: 

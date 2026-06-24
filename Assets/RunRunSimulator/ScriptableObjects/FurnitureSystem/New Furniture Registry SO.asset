@@ -283,19 +283,19 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: 14_3
+      Data: 14_5
     - Name: $v
       Entry: 7
       Data: 11|MoriMonchiSimulator.PlacedFurniture, Assembly-CSharp
     - Name: DefId
       Entry: 1
-      Data: F1
+      Data: F0
     - Name: CellX
       Entry: 3
       Data: 14
     - Name: CellY
       Entry: 3
-      Data: 3
+      Data: 5
     - Name: Rotation
       Entry: 3
       Data: 0

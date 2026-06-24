@@ -19,6 +19,13 @@ public class NpcThoughtTag : MonoBehaviour
     private Transform cam;
     private bool      shown = true;
 
+    private NpcAgent.NpcState    lastState;
+    private NpcAgent.LeaveReason lastReason;
+    private bool                 situationInit;
+    private string               pendingLine;
+    private string               shownLine = "";
+    private float                responseTimer;
+
     private void Awake()
     {
         document = GetComponent<UIDocument>();
@@ -79,30 +86,31 @@ public class NpcThoughtTag : MonoBehaviour
                            : agent.Archetype != null ? agent.Archetype.DisplayName
                            : "Cliente";
 
-        if (thoughtLabel != null)
-        {
-            string thought = ThoughtText(agent.State, agent.TargetMM, agent.QueueWasFull);
-            thoughtLabel.text          = thought;
-            thoughtLabel.style.display = string.IsNullOrEmpty(thought) ? DisplayStyle.None : DisplayStyle.Flex;
-        }
+        UpdateThought();
     }
 
-    private static string ThoughtText(NpcAgent.NpcState state, CreatureDNA target, bool queueWasFull)
+    private void UpdateThought()
     {
-        string targetName = target != null && !string.IsNullOrEmpty(target.CustomName) ? target.CustomName : "ese";
-        return state switch
+        if (thoughtLabel == null) return;
+
+        var state  = agent.State;
+        var reason = agent.Reason;
+        if (!situationInit || state != lastState || reason != lastReason)
         {
-            NpcAgent.NpcState.Wandering           => "¿Qué tendrán hoy?",
-            NpcAgent.NpcState.InspectingDisplay   => "Mmm, déjame ver…",
-            NpcAgent.NpcState.ApproachingRegister => $"¡Me llevo a {targetName}!",
-            NpcAgent.NpcState.Queueing            => "Esperaré mi turno…",
-            NpcAgent.NpcState.WaitingAtRegister   => "¿Hay alguien en la caja?",
-            NpcAgent.NpcState.Negotiating         => $"¿Cuánto por {targetName}?",
-            NpcAgent.NpcState.Leaving             => (target != null && target.IsSold) ? $"¡{targetName} se viene conmigo!"
-                                                   : queueWasFull                      ? "¡Está muy lleno!"
-                                                   : "Será en otra ocasión…",
-            _                                     => "",
-        };
+            situationInit = true;
+            lastState     = state;
+            lastReason    = reason;
+            string name   = agent.TargetMM != null && !string.IsNullOrEmpty(agent.TargetMM.CustomName)
+                          ? agent.TargetMM.CustomName : "ese";
+            pendingLine   = NpcDialogueBank.Pick(state, reason, name);
+            responseTimer = agent.ReactionDelay;
+        }
+
+        if (responseTimer > 0f) responseTimer -= Time.deltaTime;
+        else                    shownLine = pendingLine;
+
+        thoughtLabel.text          = shownLine;
+        thoughtLabel.style.display = string.IsNullOrEmpty(shownLine) ? DisplayStyle.None : DisplayStyle.Flex;
     }
 }
 }

@@ -100,9 +100,11 @@ public class CashRegister : MonoBehaviour
 
     private bool TryComputeLink(int index, NpcAgent agent, out Link link)
     {
+        int areaMask = agent != null ? agent.AreaMask : NavMesh.AllAreas;
+
         if (index == 0)
         {
-            Vector3 pos = NavMesh.SamplePosition(QueueRootPos, out var h, sampleRadius, NavMesh.AllAreas)
+            Vector3 pos = NavMesh.SamplePosition(QueueRootPos, out var h, sampleRadius, areaMask)
                 ? h.position : QueueRootPos;
             link = new Link { Agent = agent, Pos = pos };
             return true;
@@ -116,7 +118,7 @@ public class CashRegister : MonoBehaviour
         directions.Candidates(prev.Pos, BackDirection(), slotSpacing, candBuf);
         for (int i = 0; i < candBuf.Count; i++)
         {
-            if (availability.IsAvailable(prev.Pos, candBuf[i].Pos, NavMesh.AllAreas, sampleRadius, maxSnap, occBuf, minSeparation, out var snapped))
+            if (availability.IsAvailable(prev.Pos, candBuf[i].Pos, areaMask, sampleRadius, maxSnap, occBuf, minSeparation, out var snapped))
             {
                 link = new Link { Agent = agent, Pos = snapped };
                 return true;
