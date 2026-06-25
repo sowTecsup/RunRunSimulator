@@ -304,4 +304,14 @@ public enum CombatOutcome
     Lost = 1,
     Draw = 2,
 }
+
+public enum MMAnimationType
+{
+    Idle    = 0,
+    Walk    = 1,
+    Attack  = 2,
+    Hit     = 3,
+    Death   = 4,
+    Victory = 5,
+}
 }

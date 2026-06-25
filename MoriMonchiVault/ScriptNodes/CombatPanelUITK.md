@@ -6,7 +6,7 @@ tags: [script, ui]
 
 **Ruta:** `UI/CombatPanelUITK.cs`
 
-**Responsabilidad:** Panel UI de combate (3 pestañas: Batalla Online, Combate Local, Resultados). Implementa `IUINavigable` (focus jerárquico). Obtiene config vía `CombatController.Instance.Config`. Obtiene registry de GameManager. Combate local via `CombatService.Simulate()`, async vía `CombatController.EnqueueForAsyncCombat()`, poll vía wrappers de CombatController.
+**Responsabilidad:** Panel UI de combate (4 pestañas: Batalla Online, Combate Local, Resultados, Historial). Implementa `IUINavigable` (focus jerárquico). Obtiene config vía propiedad lazy `Config => CombatController.Instance?.Config` (resuelta en el momento de uso en `DoLocalFight`/`MaxFights`), evita carrera de orden de Awake si el panel despierta antes que CombatController. Obtiene registry de GameManager. Combate local vía `CombatService.Simulate()`, async vía `CombatController.EnqueueForAsyncCombat()`, poll vía wrappers de CombatController.
 
 **Vinculado a:** [[Index/05 - UI System]]
 

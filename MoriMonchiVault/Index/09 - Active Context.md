@@ -4,6 +4,85 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-25 (Session 24 — Animación procedural del MoriMonchi: `MoriMonchiProceduralAnimator` idle/walk + reacciones) — **🟡 EN PROGRESO (bug de cableado abierto)**
+**Focus:** Teorizar e implementar animación procedural para que el MoriMonchi se mueva (idle/walk + reacciones de combate), reutilizable en GameScene y escena de combate. Las animaciones se ven bien en Play; falta destrabar el cableado a los UnityEvents.
+
+> ### ✅ Animación procedural — FUNCIONA en idle/walk (S24). 🟡 reacciones pendientes de cablear (bug abajo).
+> Juan revisó idle/walk en Play y le gustan. Las reacciones (Attack/Hit/Death/Victory) están implementadas pero el cableado a los UnityEvents tira StackOverflow (ver bug).
+
+**Decisiones de diseño (planeado con Opus + Juan):**
+- **Viabilidad ALTA:** el modelo es una jerarquía de Transforms rígidos colgados de 6 sockets (NO skinned mesh / NO bones). Las genéticas combinatorias hacen inviable la animación autorizada (clips por combinación) → procedural es el approach natural. Los Transforms ya estaban expuestos en `MoriMonchiVisualizer` "for future procedural animation".
+- **Componente nuevo independiente** `MoriMonchiProceduralAnimator` (una responsabilidad: pose procedural). NO toca `MoriMonchiVisualizer` (ensamblaje/fur) ni `MoriMonchiCombatVisualizer` (hooks Feel). Solo LEE los Transforms públicos del visualizer.
+- **Movimiento de cuerpo entero sobre `ModelRoot`** (los 6 sockets son hermanos, no hijos del body → bobear solo el body dejaría los brazos flotando). Se expuso `ModelRoot` en `MoriMonchiVisualizer`. Respiración → escala del body; swing/sway → rotación de brazos; parpadeo → escala Y de ojos.
+- **Enum `MMAnimationType { Idle, Walk, Attack, Hit, Death, Victory }` en `Core/Enums.cs`** (regla: TODOS los enums centralizados ahí, no en archivos sueltos). Idle/Walk = loops persistentes; Attack/Hit/Victory = one-shots superpuestos que vuelven al loop; Death = topplea + encoge y se queda (un Idle/Walk lo revive).
+- **Todo en `LateUpdate`** (corre tras NavMeshAgent y Assemble), sin coroutines ni eventos que desuscribir. Captura la **rest pose lazy** tras el Assemble y la recaptura si reensambla (detecta cambio de `BodyTransform`).
+- **Brazos espejados:** la parte R tiene `scale.x` negativo. Para idle **sincronizado** + walk **opuesto** la solución es que el brazo R use SIEMPRE el signo opuesto al L en ambos modos (se eliminó el toggle `mirroredArms`).
+- **API:** `PlayMMAnimation(MMAnimationType)` (código + botón `Test ▶` Odin) + **6 wrappers sin parámetros** (`PlayIdle/PlayWalk/PlayAttack/PlayHit/PlayDeath/PlayVictory`). Razón: los UnityEvent NO serializan argumentos `enum` (solo int/float/string/bool/Object) → solo se cablean métodos sin args. **Odin NO es solución** (no reemplaza el cableado de refs de escena de UnityEvent).
+- **Tooltips** en todos los stats (General/Idle/Walk/Reacciones): distancias en m, ángulos en °, tiempos en s, amplitudes como fracción.
+
+**🐞 BUG ABIERTO (próxima sesión) — StackOverflow al disparar PlayAttack:**
+- `MoriMonchiCombatVisualizer.PlayAttack()` (`MoriMonchiCombatVisualizer.cs:27`) hace `OnAttack?.Invoke()`. El `UnityEvent OnAttack` quedó cableado a **`MoriMonchiCombatVisualizer.PlayAttack` (a sí mismo)** en vez de a `MoriMonchiProceduralAnimator.PlayAttack` → recursión infinita.
+- **Raíz:** colisión de nombres. Ambos componentes viven en el MISMO GameObject del peleador y los dos exponen `PlayAttack()`/`PlayVictory()` → fácil elegir el equivocado en el dropdown del UnityEvent.
+- **Fix probable:** renombrar los wrappers del `MoriMonchiProceduralAnimator` (ej. `AnimAttack()`/`PlayAnim*()`) para eliminar la colisión, y recablear los UnityEvents al componente correcto.
+
+**🧹 DEUDA marcada por Juan (código `MoriMonchiProceduralAnimator.cs` L131):** el `autoLoopFromMovement` lee `NavMeshAgent.velocity` para cambiar idle↔walk — acopla la representación con otro sistema (viola Regla 1/2). Se metió como atajo para probar sin cablear. **Forma limpia futura:** el dueño del movimiento (`MoriMochiAgent`) llama `PlayWalk()`/`PlayIdle()` en sus transiciones; el animator solo recibe llamadas (igual que las de combate). Dejar `autoLoopFromMovement` apagado o eliminarlo.
+
+**Files Created (.cs — input ScriptNodes):**
+- `World/Creatures/MoriMonchiProceduralAnimator.cs` (NUEVO): pose procedural idle/walk + one-shots, TabGroups Odin, tooltips, `PlayMMAnimation` + wrappers, auto idle/walk por velocidad (deuda), readout `Status` + botón `Test ▶`.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `World/Creatures/MoriMonchiVisualizer.cs`: + `public Transform ModelRoot => modelRoot;` (expuesto para el animator).
+- `Core/Enums.cs`: + enum `MMAnimationType`.
+
+**ScriptNodes a actualizar (cierre S24 — agente externo):**
+- `MoriMonchiProceduralAnimator.md` — CREAR.
+- `MoriMonchiVisualizer.md` — actualizar (ahora expone `ModelRoot`).
+
+**Next session:**
+1. Resolver el StackOverflow (renombrar wrappers del animator + recablear los UnityEvents al componente correcto).
+2. Enganchar los one-shots (`Attack`/`Hit`/`Death`/`Victory`) a los UnityEvents del `MoriMonchiCombatVisualizer`.
+3. Desacoplar Walk/Idle del `NavMeshAgent` (deuda L131): mover el disparo al `MoriMochiAgent`.
+
+---
+
+**Session:** 2026-06-25 (Session 23 — Combat Visualizer: hooks Feel reales (MMF) + fix carrera de Awake del combate local) — **✅ CERRADA**
+**Focus:** Cerrar el último pendiente del Combat Visualizer (enganchar los feedbacks Feel/MMF) y un bug de combate local en la escena de juego. Se confirmaron cerrados los testeos/limpiezas pendientes de S20-S21.
+
+> ### ✅ Hooks Feel del Combat Visualizer — HECHO (S23, 2026-06-25)
+> Decisión de Juan: en vez del bridge `CombatVisualHooks` por-side, una **clase derivada `MoriMonchiCombatVisualizer : MoriMonchiVisualizer`** que vive en el prefab del peleador y expone los `UnityEvent`s (Juan arrastra los MMF; un evento admite varios). Los **`CombatNode`** de la lista enlazada son los que disparan los `Play*` sobre la instancia correcta (atacante/defensor) por fase. Inspector compactado con TabGroups de Odin (Ataque / Recibe / Estado).
+
+> ### ✅ Fix — combate local "No CombatManager config" (S23)
+> Era una **carrera de orden de Awake**: `CombatPanelUITK.Awake` cacheaba `config = CombatController.Instance.Config`, pero el `Awake` del controller (que setea `Instance`) podía correr después → `config` null permanente, aunque el SO estuviera asignado. Fix: `config` pasó de campo cacheado a **propiedad lazy** `Config => CombatController.Instance?.Config`. No había cableado cruzado entre escenas.
+
+**Detalle del diseño de hooks (lo vigente):**
+- `MoriMonchiCombatVisualizer : MoriMonchiVisualizer` (en `World/Creatures/`). UnityEvents públicos: `OnAttack`/`OnHitDealt`/`OnCritDealt` (Ataque), `OnHitTaken`/`OnCritTaken`/`OnHpChanged` (Recibe), `OnCombatStart`/`OnDead`/`OnVictory` (Estado). `OnHpChanged` usa subclase concreta `HpChangedEvent : UnityEvent<float,float>` para ser cableable en inspector. Métodos `Play*()` invocan cada uno.
+- El `CombatNode` guarda `Attacker`/`Defender`/`Crit` y dispara: `FireWindup` (atacante `PlayAttack`), `FireImpact` (hit/crit dealt+taken + `PlayHpChanged`), `FireDeath` (defensor `PlayDead`). El Service resuelve `hooksA`/`hooksB` (instancias derivadas vía `as`) al spawnear, dispara `PlayCombatStart` al instanciar y `PlayVictory` del ganador al final. El rewind (`Restore`) NO dispara juice.
+- Bus `CombatVisualEvents` y `CombatVisualHooks` quedan **intactos** (panel + hooks globales/escena opcionales). `CombatVisualHooks` SideA/SideB queda redundante para feedbacks del peleador (ya no hace falta `FeelHooks_A`/`_B` en escena); el `kind=Global` sigue válido para cámara/SFX.
+
+**WIRING UNITY (Juan):** en el prefab del peleador del visualizer, reemplazar el componente `MoriMonchiVisualizer` por `MoriMonchiCombatVisualizer` (re-correr Setup + reasignar `modelRoot` tras el swap), luego arrastrar los MMF a las pestañas. El `visualizerPrefab` del Service NO se toca (la derivada es-un base).
+
+**Files Created (.cs — input ScriptNodes):**
+- `World/Creatures/MoriMonchiCombatVisualizer.cs` (NUEVO): derivada con UnityEvents Feel + métodos `Play*`, TabGroups Odin.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: `CombatNode` gana `Attacker`/`Defender`/`Crit` + `FireWindup`/`FireImpact`/`FireDeath`; resuelve `hooksA`/`hooksB`; dispara `PlayCombatStart`/`PlayVictory`.
+- `UI/CombatPanelUITK.cs`: `config` campo cacheado → propiedad lazy `Config`.
+- `UI/CombatPanelUITK.Tabs.cs`: usa `Config` (propiedad) en `DoLocalFight`.
+
+**Cierres confirmados por Juan (S23):**
+- ✅ **S21 Generalización de containers**: probado en Play, funciona (store/corral persisten, clear-on-grab, ancla muerta). CERRADO.
+- ✅ Combat Visualizer: correcto para etapa de prototipo.
+- ✅ Limpieza Unity (componente `CombatHpBarUITK` huérfano + campos viejos del Service): hecha.
+- ✅ Cosmético: `NpcState.Spawned` borrado.
+- ⏳ Diferido (no bloqueante): botón "Replay" desde el panel de resultados async.
+
+**ScriptNodes a actualizar (cierre S23 — agente Haiku):**
+- `MoriMonchiCombatVisualizer.md` — CREAR.
+- `CombatVisualizerService.md` — actualizar (nodos disparan feedbacks Feel vía `hooksA`/`hooksB`, `FireWindup`/`Impact`/`Death`, `PlayCombatStart`/`Victory`).
+- `CombatPanelUITK.md` — actualizar (`config` lazy vía `CombatController.Instance`, fix carrera de Awake).
+
+---
+
 **Session:** 2026-06-24/25 (Session 22 — Combat Visualizer: cierre completo, probado en Play e iterado con Juan) — **✅ FUNCIONANDO DECENTEMENTE**
 **Focus:** Retomar el Combat Visualizer de S18 (replay de un `CombatRecord` en escena, hooks Feel, UI Pokémon-style) que nunca se probó ni se documentó. Se auditó, se reescribió el motor de reproducción y se iteró en varias rondas de Play con Juan hasta dejarlo funcional.
 
@@ -110,8 +189,8 @@ Juan probó en Play: **andaba a grandes rasgos**. Pidió fixes y features. Se re
 **Session:** 2026-06-24 (Session 21 — Generalización de containers: ancla de ubicación persistida + spawn por colocación-primero) — **CÓDIGO HECHO, TESTEO PENDIENTE (se prueba la próxima sesión)**
 **Focus:** Cambio arquitectónico estilo Palworld: que los MoriMonchis retomen lo que estaban haciendo al cargar la partida. Se generalizó el patrón de reclaim que SOLO tenía el breeding a TODOS los containers (breeding / store / corral) vía un contrato `IAnchorPlace` + `AnchorRegistry`, y se invirtió el spawner a "colocación primero" (el cañón queda solo para criaturas libres). Resuelve la persistencia faltante del store y ataca la raíz de la familia de bugs de carga en frío (la carrera cañón-vs-reclaim deja de existir).
 
-> ### ⏳ TESTEO PENDIENTE — Generalización de containers (S21, 2026-06-24)
-> Código completo y verificado por barrido estático (cero referencias a símbolos viejos), PERO **sin probar en Play** — Juan lo testea la próxima sesión. Checklist de validación abajo. NO marcar ✅ hasta que pase.
+> ### ✅ CERRADO — Generalización de containers (S21, probado en Play en S23, 2026-06-25)
+> Juan probó en Play: funciona. Store/corral persisten tras reload, clear-on-grab no re-shelvea, ancla muerta cae al cañón sin defer infinito, regresión de breeding frío intacta. Checklist de abajo cubierto.
 
 **Concepto (decisión de diseño, planeada con Opus + Juan):**
 - **Costo de nube ≈ cero:** el registro se sube como UN blob de una sola key (`CloudSyncService.Sync.cs`). El `CreatureDNA` ya viaja entero (Needs, CombatHistory, BusyState). Sumar el ancla = decenas de bytes por criatura, sin operaciones extra. El techo real a vigilar es `CombatHistory` ilimitado, no el ancla.

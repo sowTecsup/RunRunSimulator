@@ -73,8 +73,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8304748543852559700}
   - component: {fileID: 5081513166221571659}
-  - component: {fileID: 9121188545248217067}
   - component: {fileID: 992515727134330810}
+  - component: {fileID: 9121188545248217067}
+  - component: {fileID: 5320951607348134726}
   - component: {fileID: 6063265132029860742}
   - component: {fileID: 1685240067436616514}
   - component: {fileID: 6941703199582355247}
@@ -96,7 +97,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.47, y: 0, z: -4.69}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 1
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9068832504220964469}
   - {fileID: 2979730703620325569}
@@ -116,25 +117,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiController
   agent: {fileID: 992515727134330810}
   visualizer: {fileID: 9121188545248217067}
---- !u!114 &9121188545248217067
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3990977039202299874}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6b60d04f201d8a7428e6d28ab4d634e4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiVisualizer
-  modelRoot: {fileID: 9068832504220964469}
-  bodySocket: {fileID: 5142140073938020432}
-  armSocketL: {fileID: 1761582168825375760}
-  armSocketR: {fileID: 2231705980254399520}
-  eyeSocketL: {fileID: 4676890747215171530}
-  eyeSocketR: {fileID: 4340735862686482454}
-  mouthSocket: {fileID: 1605927891193101959}
 --- !u!114 &992515727134330810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,6 +137,13 @@ MonoBehaviour:
   petRadius: 2.5
   petLookAngle: 20
   breedingAreaName: BreedingRoom
+  courtSpeedMultiplier: 1.7
+  courtOrbitRadius: 0.9
+  courtAngularSpeed: 140
+  courtLookahead: 35
+  courtRepath: 0.12
+  courtTendRadius: 0.35
+  courtTendInterval: 0.5
   healthDecayPerSecond: 0.5
   energyDecayPerSecond: 1
   affectDecayPerSecond: 0.5
@@ -172,6 +161,7 @@ MonoBehaviour:
   thrownAngularDamping: 2
   groundCheckDistance: 0.2
   maxThrownTime: 6
+  offMeshRecoverDelay: 1.5
   bounciness: 1
   maxBounces: 4
   minBounceSpeed: 1.5
@@ -202,6 +192,70 @@ MonoBehaviour:
   forceRagdoll: 0
   logStateTransitions: 0
   snapWarnThreshold: 0.75
+--- !u!114 &9121188545248217067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3990977039202299874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b60d04f201d8a7428e6d28ab4d634e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiVisualizer
+  modelRoot: {fileID: 9068832504220964469}
+  bodySocket: {fileID: 5142140073938020432}
+  armSocketL: {fileID: 1761582168825375760}
+  armSocketR: {fileID: 2231705980254399520}
+  eyeSocketL: {fileID: 4676890747215171530}
+  eyeSocketR: {fileID: 4340735862686482454}
+  mouthSocket: {fileID: 1605927891193101959}
+--- !u!114 &5320951607348134726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3990977039202299874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85cbdf0626d167b44a03b4c8bc066019, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.MoriMonchiProceduralAnimator
+  visualizer: {fileID: 9121188545248217067}
+  defaultLoop: 0
+  playOnEnable: 1
+  autoLoopFromMovement: 1
+  walkSpeedThreshold: 0.08
+  breatheAmp: 0.06
+  breatheSpeed: 2
+  bobAmp: 0.04
+  bobSpeed: 1.6
+  armOpenAngle: 17.3
+  armOpenSpeed: 2.15
+  blinkMinInterval: 1
+  blinkMaxInterval: 4
+  blinkDuration: 0.12
+  blinkClosedScale: 0.1
+  walkBreatheAmp: 0.14
+  walkBreatheSpeed: 5
+  walkBobAmp: 0.081
+  walkBobSpeed: 4.31
+  armSwingAngle: 31.2
+  armSwingSpeed: 7
+  attackLungeDist: 0.45
+  attackPitch: 14
+  attackDuration: 0.3
+  hitRecoilDist: 0.25
+  hitShakeAngle: 12
+  hitDuration: 0.3
+  deathToppleAngle: 85
+  deathShrink: 0.7
+  deathDuration: 0.5
+  victoryHopHeight: 0.25
+  victoryHops: 3
+  victoryDuration: 0.7
 --- !u!136 &6063265132029860742
 CapsuleCollider:
   m_ObjectHideFlags: 0

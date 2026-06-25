@@ -22,7 +22,7 @@
 6. **Solo entonces leer `.cs`**: ya sabes que hace cada script y como se conecta. Confirmar que el plan encaja.
 7. **Generar sub-agentes Sonnet**: delegar tareas concretas a sub-agentes (uno por archivo o responsabilidad). Cada sub-agente recibe el plan, la ruta del archivo, y las reglas de codigo.
 8. **Cerrar sesion**: actualizar `09 - Active Context.md` con lo tocado y siguiente paso.
-9. **Disparar agente de vault** *(autorizado por Juan, ejecutar siempre al cierre)*: invocar Deepseek via OpenCode para actualizar ScriptNodes. Ver seccion **Agente Externo de Vault**.
+9. **Disparar agente de vault** *(autorizado por Juan, ejecutar siempre al cierre)*: invocar un sub-agente **Haiku** (Agent tool, `model: haiku`) para actualizar ScriptNodes. Ver seccion **Agente de Vault**.
 10. **Cada mensaje** empieza con "Juan:" seguido del contenido
 
 ---
@@ -99,11 +99,11 @@ Eventos UI viven en `UIManager` como `static event Action`. Detalle en [[MoriMon
 |------|-------|--------|
 | **Notion** (diseno) | Juan | Decision de diseno nueva, pregunta resuelta. Yo NO toco Notion. |
 | **MoriMonchiVault/Index/** (implementacion) | IA (a pedido) | Cambio contrato publico, quirk tecnico nuevo, sub-etapa cerrada. |
-| **MoriMonchiVault/ScriptNodes/** | Agente externo Deepseek | Automatico al cierre de sesion si hubo scripts tocados. |
+| **MoriMonchiVault/ScriptNodes/** | Sub-agente Haiku | Automatico al cierre de sesion si hubo scripts tocados. |
 | **CLAUDE.md** (nucleo) | IA (a pedido) | Regla nueva, cambio de stack, roadmap status flip, nuevo archivo top-level del vault. |
 | **09 - Active Context** | IA (cada sesion) | Apertura y cierre de sesion. |
 
-**09 - Active Context** debe listar al final: que archivos `.cs` se modificaron y que archivos se crearon. Esa lista es el input del agente externo.
+**09 - Active Context** debe listar al final: que archivos `.cs` se modificaron y que archivos se crearon. Esa lista es el input del sub-agente de vault.
 
 Bug menor sin cambiar contratos → no actualizar vault (git log basta).
 
@@ -111,21 +111,18 @@ Bug menor sin cambiar contratos → no actualizar vault (git log basta).
 
 ---
 
-## Agente Externo de Vault (Deepseek via OpenCode)
+## Agente de Vault (Haiku via sub-agente de Claude Code)
 
 **Proposito**: actualizar `ScriptNodes/` al cierre de sesion sin gastar tokens de Opus/Sonnet en documentacion mecanica.
 
-**Comando** (ejecutado por Claude Code via Bash al paso 9):
-```
-opencode run -m opencode/deepseek-v4-flash-free "<prompt>"
-```
+**Mecanismo** (ejecutado por Claude Code al paso 9): invocar un sub-agente con la **Agent tool** y `model: haiku`, pasandole el prompt de handoff. No usa CLI externo (se reemplazo el viejo `opencode run` de Deepseek).
 
-**Formato del prompt de handoff** (autocontenido, Deepseek no tiene contexto del proyecto):
+**Formato del prompt de handoff** (autocontenido, el sub-agente no tiene contexto del proyecto):
 ```
 Eres un agente de documentacion para un proyecto Unity C#.
 Tu unica tarea: actualizar los ScriptNodes del vault de Obsidian.
 
-RUTA DEL VAULT: C:/Users/USUARIO/Documents/GitHub/RunRunSimulator/MoriMonchiVault/ScriptNodes/
+RUTA DEL VAULT: C:/Users/Docente/Desktop/UnityProyects/RunRunSimulator/MoriMonchiVault/ScriptNodes/
 
 SCRIPTS TOCADOS EN ESTA SESION:
 - [ruta relativa al script] → [NUEVO | MODIFICADO] → ScriptNodes/[NombreScript].md

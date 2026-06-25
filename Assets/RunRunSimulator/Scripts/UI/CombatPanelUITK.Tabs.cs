@@ -135,9 +135,9 @@ public partial class CombatPanelUITK
     {
         if (string.IsNullOrEmpty(fighterAId) || string.IsNullOrEmpty(fighterBId)) { Debug.LogWarning("[CombatPanel] Pick two fighters."); return; }
         if (fighterAId == fighterBId) { Debug.LogWarning("[CombatPanel] Pick two DIFFERENT fighters."); return; }
-        if (config == null) { Debug.LogError("[CombatPanel] No CombatManager config."); return; }
+        if (Config == null) { Debug.LogError("[CombatPanel] No CombatManager config."); return; }
 
-        var result = CombatService.Simulate(fighterAId, fighterBId, registry, database, config);
+        var result = CombatService.Simulate(fighterAId, fighterBId, registry, database, Config);
         if (result == null) return;
 
         GameEvents.CombatCompleted(result);

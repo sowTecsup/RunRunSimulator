@@ -23,6 +23,8 @@ tags: [script, combat]
 
 **Muerte estilo Pokémon:** al llegar a 0 el defensor, tras `deathPauseSeconds` se hace `SetActive(false)` (desaparece); al final queda el ganador. `Back` lo reactiva.
 
+**Feel Juice via CombatNode:** La lista doblemente enlazada de `CombatNode` ahora dispara los feedbacks Feel del peleador. Cada nodo tiene `FireWindup(a, b)` (atacante `PlayAttack`), `FireImpact(a, b, maxA, maxB)` (golpeado/crítico de ataque y defensa, luego `PlayHpChanged`), y `FireDeath(a, b)` (defensor `PlayDead`). El Service resuelve `hooksA`/`hooksB` (instancias `MoriMonchiCombatVisualizer` derivadas, vía `as`) al spawnear, dispara `PlayCombatStart` en todos en `BeginRoutine`, dispara `PlayVictory` del ganador al final de `ForwardRoutine`. El rewind (`Restore`) NO dispara juice, solo actualiza estado puro.
+
 **Barras por referencia directa:** guarda `barA`/`barB` (no por evento de side). `PushHp(side,…)` empuja a la barra correcta y además dispara `OnHpChanged` para los hooks. Los nombres se bindean tras 2 frames (cuando el UIDocument ya construyó su árbol).
 
 **DBs por `GameManager.Instance`** (`Database`/`PartVisualBank`/`FurTypeDatabase`); las únicas refs de inspector son `visualizerPrefab` + `slotA`/`slotB` + timings + `playbackSpeed`.
@@ -33,4 +35,4 @@ tags: [script, combat]
 
 **Vinculado a:** [[Index/03 - Combat]]
 
-**Conexiones:** [[CombatVisualEvents]], [[CombatRecord]], [[CombatTurn]], [[CreatureDNA]], [[MoriMonchiVisualizer]], [[MoriMonchiCombatVisualizerUITK]], [[CombatVisualizerPanelUITK]], [[CombatService]], [[GameManager]]
+**Conexiones:** [[CombatVisualEvents]], [[CombatRecord]], [[CombatTurn]], [[CreatureDNA]], [[MoriMonchiVisualizer]], [[MoriMonchiCombatVisualizer]], [[MoriMonchiCombatVisualizerUITK]], [[CombatVisualizerPanelUITK]], [[CombatService]], [[GameManager]]

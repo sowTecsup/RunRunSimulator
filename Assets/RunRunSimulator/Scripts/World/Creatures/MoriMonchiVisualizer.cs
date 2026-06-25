@@ -42,6 +42,7 @@ public class MoriMonchiVisualizer : MonoBehaviour
     private FurTypeDatabaseSO furDatabase;
 
     // Root transforms of the instantiated parts — exposed for future procedural animation.
+    public Transform ModelRoot => modelRoot;
     [ShowInInspector, ReadOnly] public Transform   BodyTransform  { get; private set; }
     [ShowInInspector, ReadOnly] public Transform[] ArmTransforms  { get; private set; } = new Transform[2];
     [ShowInInspector, ReadOnly] public Transform[] EyeTransforms  { get; private set; } = new Transform[2];

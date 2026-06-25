@@ -58,7 +58,7 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
 
     // ── State ──
     private CreatureRegistrySO registry;
-    private CombatManagerSO config;
+    private CombatManagerSO Config => CombatController.Instance != null ? CombatController.Instance.Config : null;
 
     private string onlineSelectedId = "";
     private string fighterAId = "", fighterBId = "";
@@ -91,7 +91,6 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
         if (document != null) document.sortingOrder = sortingOrder;
         var gm = GameManager.Instance;
         registry = gm != null ? gm.Registry : null;
-        config   = CombatController.Instance != null ? CombatController.Instance.Config : null;
     }
 
     private void OnEnable()
@@ -235,7 +234,7 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
             .Where(d => !d.IsDead && !d.IsBusy && d.FightCount < MaxFights())
             .OrderBy(d => d.CustomName);
 
-    private int MaxFights() => config != null ? config.MaxFightCount : 5;
+    private int MaxFights() => Config != null ? Config.MaxFightCount : 5;
 
     private CombatService.EffectiveStats StatsOf(CreatureDNA dna) =>
         database != null ? CombatService.GetEffectiveStats(dna, database)

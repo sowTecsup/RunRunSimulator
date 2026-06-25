@@ -39,14 +39,47 @@ public class CombatVisualizerService : MonoBehaviour
         public bool                      ADead;
         public bool                      BDead;
         public int                       TurnNumber;
+        public CombatVisualSide          Attacker;
+        public CombatVisualSide          Defender;
+        public bool                      Crit;
         public List<CombatVisualLogLine> Log;
         public CombatNode                Prev;
         public CombatNode                Next;
         public bool IsEnd => Next == null;
+
+        private static MoriMonchiCombatVisualizer Pick(CombatVisualSide side, MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b)
+            => side == CombatVisualSide.A ? a : b;
+
+        public void FireWindup(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b)
+        {
+            if (!HasTurn) return;
+            Pick(Attacker, a, b)?.PlayAttack();
+        }
+
+        public void FireImpact(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b, float maxA, float maxB)
+        {
+            if (!HasTurn) return;
+            var atk = Pick(Attacker, a, b);
+            var def = Pick(Defender, a, b);
+            if (Crit) { atk?.PlayCritDealt(); def?.PlayCritTaken(); }
+            else      { atk?.PlayHitDealt();  def?.PlayHitTaken(); }
+            float defHp  = Defender == CombatVisualSide.A ? HpA : HpB;
+            float defMax = Defender == CombatVisualSide.A ? maxA : maxB;
+            def?.PlayHpChanged(defHp, defMax);
+        }
+
+        public void FireDeath(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b)
+        {
+            if (!HasTurn) return;
+            bool dead = Defender == CombatVisualSide.A ? ADead : BDead;
+            if (dead) Pick(Defender, a, b)?.PlayDead();
+        }
     }
 
     private MoriMonchiVisualizer instanceA;
     private MoriMonchiVisualizer instanceB;
+    private MoriMonchiCombatVisualizer hooksA;
+    private MoriMonchiCombatVisualizer hooksB;
     private MoriMonchiCombatVisualizerUITK barA;
     private MoriMonchiCombatVisualizerUITK barB;
 
@@ -200,6 +233,9 @@ public class CombatVisualizerService : MonoBehaviour
                     HasTurn = true, Turn = t,
                     HpA = hpA, HpB = hpB, ADead = aDead, BDead = bDead,
                     TurnNumber = t.TurnNumber, Log = new List<CombatVisualLogLine>(log),
+                    Attacker = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B,
+                    Defender = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A,
+                    Crit     = t.WasCrit,
                 };
                 node.Next = next; next.Prev = node; node = next;
                 totalTurns++;
@@ -238,6 +274,8 @@ public class CombatVisualizerService : MonoBehaviour
         CombatVisualEvents.VisualCombatStart(ctx);
         barA?.Bind(selfDna.CustomName);
         barB?.Bind(activeRecord.OpponentName);
+        hooksA?.PlayCombatStart();
+        hooksB?.PlayCombatStart();
 
         isAuto  = false;
         current = head;
@@ -273,10 +311,12 @@ public class CombatVisualizerService : MonoBehaviour
 
         CombatVisualEvents.TurnStart(t);
         CombatVisualEvents.Attack(attacker);
+        target.FireWindup(hooksA, hooksB);
         yield return new WaitForSeconds(windupSeconds / Speed);
 
         var hit = new CombatVisualHit { Attacker = attacker, Defender = defender, Damage = t.Damage, Crit = t.WasCrit };
         CombatVisualEvents.Hit(hit);
+        target.FireImpact(hooksA, hooksB, hpMaxA, hpMaxB);
         if (t.WasCrit)
         {
             CombatVisualEvents.Crit(hit);
@@ -300,6 +340,7 @@ public class CombatVisualizerService : MonoBehaviour
         if (defenderDead)
         {
             CombatVisualEvents.Dead(defender);
+            target.FireDeath(hooksA, hooksB);
             CombatVisualEvents.Log($"{t.DefenderName} cae derrotado");
             yield return new WaitForSeconds(deathPauseSeconds / Speed);
             SetFighterActive(defender, false);
@@ -308,7 +349,10 @@ public class CombatVisualizerService : MonoBehaviour
         CombatVisualEvents.TurnEnd(t);
 
         if (current.IsEnd)
+        {
             CombatVisualEvents.VisualCombatEnd(endWinner, endIsDraw);
+            if (!endIsDraw) (endWinner == CombatVisualSide.A ? hooksA : hooksB)?.PlayVictory();
+        }
 
         busy       = false;
         fwdRoutine = null;
@@ -355,6 +399,8 @@ public class CombatVisualizerService : MonoBehaviour
         DespawnFighters();
         instanceA = SpawnOne(dnaA, slotA, out barA);
         instanceB = SpawnOne(dnaB, slotB, out barB);
+        hooksA = instanceA as MoriMonchiCombatVisualizer;
+        hooksB = instanceB as MoriMonchiCombatVisualizer;
     }
 
     private MoriMonchiVisualizer SpawnOne(CreatureDNA dna, Transform slot, out MoriMonchiCombatVisualizerUITK bar)
@@ -385,6 +431,8 @@ public class CombatVisualizerService : MonoBehaviour
         if (instanceB != null) Destroy(instanceB.gameObject);
         instanceA = null;
         instanceB = null;
+        hooksA    = null;
+        hooksB    = null;
         barA      = null;
         barB      = null;
     }
