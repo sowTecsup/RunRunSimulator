@@ -4,6 +4,109 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-24/25 (Session 22 — Combat Visualizer: cierre completo, probado en Play e iterado con Juan) — **✅ FUNCIONANDO DECENTEMENTE**
+**Focus:** Retomar el Combat Visualizer de S18 (replay de un `CombatRecord` en escena, hooks Feel, UI Pokémon-style) que nunca se probó ni se documentó. Se auditó, se reescribió el motor de reproducción y se iteró en varias rondas de Play con Juan hasta dejarlo funcional.
+
+> ### ✅ Combat Visualizer — FUNCIONA (S22, 2026-06-25)
+> Juan probó en Play e iteró hasta dejarlo "funcionando decentemente". Doc del vault aprobada y actualizada. Pendiente cosmético/futuro: hooks Feel reales (MMF_Players) + botón "Replay" desde el panel de resultados async.
+
+**RESUMEN FINAL del subsistema (lo vigente):**
+- **Motor por lista doblemente enlazada** (`CombatNode` con Prev/Next; sugerencia de Juan): cada nodo = un estado del combate. `current` navega; `head` = inicio. Reemplazó al modelo de índices.
+- **Control de reproducción** (panel UITK + DEV harness): arranca en pausa; `TogglePlay` (auto), `Next`/`Back` (manual; Back revive al derrotado), `SetSpeed` 0.25–4x.
+- **Slots fijos A=tu MM / B=oponente**; orientación de turnos por `attackerIsSelf = (AttackerIsA == record.SelfWasA)`. Nombre del oponente desde `record.OpponentName`.
+- **Barras por referencia directa** (`barA`/`barB`, sin `side`), billboard a cámara (como NameTag), binding resiliente con fix de árbol huérfano del UIDocument al reactivar.
+- **Muerte estilo Pokémon**: el derrotado `SetActive(false)`; queda el ganador. Back lo revive.
+- **Log en cartas** (ScrollView, caja de tamaño fijo): una carta por turno con color por tipo; nombres azul (local) / rojo (oponente) y **daño en rojo** vía rich-text.
+- **DBs por `GameManager.Instance`**; DEV harness sin Rival B (autoresuelve por nombre).
+
+**Historial de bugs resueltos en S22 (Play):**
+1. Barra de HP oculta al instanciar → refs lazy + 2 frames antes del Start.
+2. Replay espejado → mapeo `SelfWasA` (no swap).
+3. Nombre/HP del oponente cruzados → barras driven por referencia directa + nombre del record.
+4. Nombre/HP rotos al re-Simular → binding resiliente (reaplica en Update).
+5. Oponente de espaldas / barra rota al rotar ancla → billboard de la barra.
+6. Derrotado "desaparece y pierde referencia" al retroceder → fix de árbol huérfano del UIDocument (detecta swap en EnsureRefs) + revive vía nodo.
+
+**LIMPIEZA EN UNITY (heredada, si no se hizo):** borrar el componente `CombatHpBarUITK` huérfano (missing script) en el GameObject del `CombatVisualizerPanel` de las escenas; el `MoriMonchiCombatVisualizerUITK` debe ir en un HIJO del prefab (no la raíz) para el billboard; reimportar `CombatVisualizerPanel.uxml`/`.uss`.
+
+---
+
+> ### ⏳ (histórico) Checklist de testeo S22 — ya cubierto en Play
+
+**Estado real del código (evolucionó desde el doc de S18 — esto es lo vigente):**
+- **DBs por `GameManager.Instance`** (`Database`/`PartVisualBank`/`FurTypeDatabase`), NO refs serializadas. Las únicas refs del inspector del Service: `visualizerPrefab`, `slotA`, `slotB`, timings.
+- **Barra de HP = `MoriMonchiCombatVisualizerUITK`** (componente HIJO del prefab del peleador, recibe el side vía `SetSide` al instanciar). Reemplaza al `CombatHpBarUITK` de S18 (script borrado; el UXML `CombatHpBar.uxml` sigue siendo la barra). YA NO hay que crear GameObjects de HP bar por slot a mano.
+- **DEV Test Harness integrado en el Service** (Odin): dropdowns (Combatiente A / pelea / rival B opcional) + "🎲 MM al azar con pelea" + "▶ Simular". NO hace falta dev tool externo ni `CombatDevConsole`.
+
+**Bug encontrado y arreglado (orientación por `SelfWasA`):**
+- Cada pelea se persiste en el `CombatHistory` de AMBAS criaturas, cada una desde su POV, con `CombatRecord.SelfWasA` (¿fui yo el combatiente A de la sim?). Los `Turns` son simétricos y su `AttackerIsA` apunta al combatiente A de la simulación.
+- `Play` asumía ciegamente `dnaA = combatiente A`. El harness pasa `dnaA = la criatura cuyo historial leés` (= "self"), que solo es A cuando `SelfWasA == true`. → En ~la mitad de los replays (cuando self fue B) la pelea salía **espejada**: animaba al lado equivocado y las barras de HP cruzaban su `HpMax` (podían leer >100%).
+- **Fix:** `Play(self, opponent, record)` ahora orienta con `var dnaA = record.SelfWasA ? self : opponent; var dnaB = record.SelfWasA ? opponent : self;`. El `PlayRoutine` queda intacto (sigue asumiendo dnaA = sim-A, que ahora es correcto). Blinda también el futuro botón "Replay" del panel de resultados (tendrá self+opponent+record naturalmente).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: `Play(dnaA, dnaB, record)` → `Play(self, opponent, record)` + orientación por `record.SelfWasA`.
+
+**ScriptNodes actualizados (en esta sesión, a mano):**
+- `CombatVisualizerService.md` — actualizado (DBs por GameManager, `Play(self,opponent)`+SelfWasA, DEV harness, conexión a MoriMonchiCombatVisualizerUITK).
+- `MoriMonchiCombatVisualizerUITK.md` — CREADO (reemplaza al borrado).
+- `CombatVisualEvents.md` — conexión `CombatHpBarUITK` → `MoriMonchiCombatVisualizerUITK`.
+- `CombatHpBarUITK.md` — BORRADO (script ya no existe).
+- `Index/03 - Combat.md` — agregada sección/tabla "Combat Visualizer" + flujo.
+
+**WIRING UNITY (corregido respecto a S18 — bloqueante para Play):**
+1. Reabrir Unity → recompila sin errores.
+2. Variante de prefab del MM **sin** `MoriMochiAgent` (solo `MoriMonchiVisualizer` con sockets seteados vía botón Setup) → como child, GameObject con `UIDocument` world-space → `CombatHpBar.uxml` + `MoriMonchiCombatVisualizerUITK` (con su `document` asignado). El side lo fija el Service al instanciar; no hay que tocarlo en el prefab.
+3. GameObject "CombatVisualizer" con `CombatVisualizerService` + 2 child empty `SlotA`/`SlotB` (~3-4m en X). Asignar `visualizerPrefab`, `slotA`, `slotB`. **NO** hay refs de DB (salen de GameManager).
+4. GameObject "CombatVisualizerPanel" con `UIDocument` (screen-space) → `CombatVisualizerPanel.uxml` + `CombatVisualizerPanelUITK`.
+5. (Opcional, Test 9) `FeelHooks_Global`/`_A`/`_B` con `CombatVisualHooks` (HookKind respectivo).
+6. Cámara apuntando entre los slots.
+
+**TESTEO PENDIENTE S22 (Juan, en Play) — disparo desde el DEV harness del Service:**
+1. **Poblar historial:** que haya ≥2 MM con `CombatHistory` con turnos (si no, simular una pelea local con `CombatDevConsole`).
+2. **Disparo:** en el inspector del `CombatVisualizerService` (en Play) → FoldoutGroup "DEV — Test Harness" → "🎲 MM al azar con pelea" → "▶ Simular".
+3. **Spawn:** aparecen 2 modelos ensamblados en A/B; el fur coincide con `BaseColor` (regresión invariante color↔identidad S15).
+4. **HP bars:** 2 barras con el `CustomName` correcto al 100%; bajan con lerp suave.
+5. **Orientación (EL FIX):** elegí a propósito una pelea donde la criatura A **perdió/fue B** → confirmar que ataca el lado correcto y la barra que baja es la del que recibió (NO espejado). Repetir con varias peleas.
+6. **Log/header:** header "Turno K / N"; log "VS…", "Turno k · X→Y", "Daño/¡Crítico!", "X cae derrotado.", "Ganador/Empate"; respeta `maxLogLines` (6).
+7. **KO/empate/crítico:** KO → `OnDead` una vez; MaxRounds sin KO → "Empate"; crítico → "¡Crítico!".
+8. **Replay consecutivo:** "▶ Simular" con otro corriendo → `Stop()` limpia sin huérfanos; al terminar (`endHoldSeconds` 1.5s) se destruyen los 2.
+9. **Hooks (si se cablearon):** Global dispara Start/Turn/End/Log; SideA/B solo su lado, sin cruce.
+10. Si todo OK → marcar ✅ el Combat Visualizer (1er sistema de S18 cerrado).
+
+---
+
+### S22 — CONTINUACIÓN (post-Play): fixes + control de reproducción manual/auto + muerte estilo Pokémon
+
+Juan probó en Play: **andaba a grandes rasgos**. Pidió fixes y features. Se rediseñó el motor de reproducción a **por pasos con snapshots** (única forma de soportar avanzar Y retroceder consistente).
+
+**Cambios de diseño (todos pedidos de Juan):**
+1. **Bug barra de HP oculta al instanciar — RESUELTO.** Causa: el `Start()` de `MoriMonchiCombatVisualizerUITK` corría DESPUÉS de que el Service disparaba `OnVisualCombatStart` (Instantiate no ejecuta Start en el acto) → handler con `root==null`, y luego `Start()` la ocultaba para siempre. Fix: refs **lazy** (`EnsureRefs()` en los handlers) + 2 `yield return null` en `BeginRoutine` antes de disparar Start + se eliminó toda la lógica de ocultar/mostrar (la barra es visible mientras su GO esté activo).
+2. **Slots fijos A = tu MM (`self`), B = oponente** (se REVIRTIÓ el swap de la primera parte de S22). La orientación correcta de turnos se mapea con `attackerIsSelf = (turn.AttackerIsA == record.SelfWasA)` al construir los frames. `Play(self, opponent, record)` ya NO hace swap.
+3. **El `side` dejó de ser campo de inspector** en `MoriMonchiCombatVisualizerUITK` (lo asigna el Service vía `SetSide`).
+4. **Reproducción controlable (no auto-pasa):** arranca **en pausa** en step 0. Controles: `TogglePlay/SetAuto` (auto con `playbackSpeed`), `Next`/`Back` (paso manual; `Back` revive al derrotado), `SetSpeed` (0.25x–4x divide los timings).
+5. **Muerte estilo Pokémon:** al llegar a 0 el defensor, tras `deathPauseSeconds` se hace `SetActive(false)` (desaparece); al final queda el ganador. Rewind lo revive.
+6. **Controles en el panel UITK** (`CombatVisualizerPanel.uxml`): ◀ / ▶❚❚ / ▶▶ + slider "Velocidad". El panel se reconstruye entero desde `OnPanelState` (snapshot). Los botones llaman a `CombatVisualizerService.Instance` (servicio explícito, permitido).
+
+**Motor (Service):** `Frame` por turno (HpA/HpB, ADead/BDead, nº turno, log acumulado). `ForwardRoutine` = transición con juice (windup/hit/crit/hp tween/muerte); `ApplyFrame`/`RestoreTo` = estado puro (rewind, sin juice). Nuevo evento `CombatVisualEvents.OnPanelState` + DTO `CombatVisualPanelState`.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Systems/CombatVisualizer/CombatVisualEvents.cs`: + `CombatVisualPanelState` + evento `OnPanelState`.
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: reescrito — motor por pasos, control API, A=self/B=opp + mapeo SelfWasA, muerte-desaparece, DEV harness con botones de control.
+- `UI/MoriMonchiCombatVisualizerUITK.cs`: refs lazy (fix barra), quitado `side` serializado + lógica de visibilidad.
+- `UI/CombatVisualizerPanelUITK.cs`: render desde `OnPanelState`, controles cableados al servicio.
+- (no-ScriptNode) `CombatVisualizerPanel.uxml`/`.uss`: fila de controles + slider + estilos.
+
+**LIMPIEZA EN UNITY PENDIENTE (Juan):**
+- En las escenas `CombatVisualizerMM.unity` y `TestScene.unity`, el GameObject del `CombatVisualizerPanel` tiene un componente **`CombatHpBarUITK` huérfano (missing script, `document:0`)** — borrarlo (no hacía nada; las barras reales están en el `visualizerPrefab`).
+- El Service en escena tiene `endHoldSeconds` serializado (campo eliminado, Unity lo ignora). Revisar en el inspector los nuevos: `deathPauseSeconds` (0.6), `playbackSpeed` (1).
+- En el prefab del peleador, confirmar que la HP bar es `MoriMonchiCombatVisualizerUITK` con su `UIDocument` asignado (el side lo pone el Service solo).
+
+**TESTEO PENDIENTE S22-cont (Juan, Play):** disparar con "▶ Simular"; (a) la barra de HP ahora SÍ se ve al instanciar; (b) arranca pausado → ▶ reproduce, ❚❚ pausa; (c) ◀/▶▶ pasan turnos a mano (con un combate pausado); (d) el slider cambia la velocidad del texto; (e) el derrotado desaparece y queda el ganador; (f) ◀ desde el final revive al derrotado y rebobina HP+log; (g) probar una pelea donde tu MM fue B → no espejado.
+
+---
+
+### Sesión 21 (histórico) — 2026-06-24
+
 **Session:** 2026-06-24 (Session 21 — Generalización de containers: ancla de ubicación persistida + spawn por colocación-primero) — **CÓDIGO HECHO, TESTEO PENDIENTE (se prueba la próxima sesión)**
 **Focus:** Cambio arquitectónico estilo Palworld: que los MoriMonchis retomen lo que estaban haciendo al cargar la partida. Se generalizó el patrón de reclaim que SOLO tenía el breeding a TODOS los containers (breeding / store / corral) vía un contrato `IAnchorPlace` + `AnchorRegistry`, y se invirtió el spawner a "colocación primero" (el cañón queda solo para criaturas libres). Resuelve la persistencia faltante del store y ataca la raíz de la familia de bugs de carga en frío (la carrera cañón-vs-reclaim deja de existir).
 

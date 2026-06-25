@@ -24,6 +24,28 @@ public struct CombatVisualHit
     public bool             Crit;
 }
 
+public enum CombatVisualLogKind { Versus, Hit, Crit, Death, Result }
+
+public struct CombatVisualLogLine
+{
+    public string              Text;
+    public CombatVisualLogKind Kind;
+}
+
+public struct CombatVisualPanelState
+{
+    public int                   TurnNumber;
+    public int                   TotalTurns;
+    public CombatVisualLogLine[] Log;
+    public bool                  Ended;
+    public bool                  IsDraw;
+    public CombatVisualSide      Winner;
+    public bool                  IsAuto;
+    public bool                  CanForward;
+    public bool                  CanBack;
+    public float                 Speed;
+}
+
 public static class CombatVisualEvents
 {
     public static event Action<CombatVisualContext> OnVisualCombatStart;
@@ -55,5 +77,8 @@ public static class CombatVisualEvents
 
     public static event Action<string> OnLog;
     public static void Log(string line) => OnLog?.Invoke(line);
+
+    public static event Action<CombatVisualPanelState> OnPanelState;
+    public static void PanelState(CombatVisualPanelState st) => OnPanelState?.Invoke(st);
 }
 }

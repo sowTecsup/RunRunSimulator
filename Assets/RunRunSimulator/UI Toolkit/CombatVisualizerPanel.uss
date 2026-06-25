@@ -33,16 +33,136 @@
     border-radius: 8px;
     border-width: 3px;
     border-color: rgb(255, 255, 255);
-    min-height: 160px;
+    height: 220px;
+    flex-shrink: 0;
+    flex-grow: 0;
+}
+
+.cv-log-scroll {
+    flex-grow: 1;
 }
 
 .cv-log {
     flex-direction: column;
 }
 
-.log-line {
-    color: rgb(255, 255, 255);
-    font-size: 18px;
-    padding: 2px 0;
+.log-card {
+    flex-direction: row;
+    align-items: center;
+    margin: 3px 2px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border-left-width: 5px;
+    border-left-color: rgb(200, 200, 200);
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+.log-text {
+    color: rgb(245, 245, 245);
+    font-size: 16px;
     white-space: normal;
+    flex-grow: 1;
+}
+
+.log-versus {
+    background-color: rgba(38, 78, 150, 0.55);
+    border-left-color: rgb(106, 160, 255);
+}
+
+.log-versus .log-text {
+    -unity-font-style: bold;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+}
+
+.log-hit {
+    background-color: rgba(70, 70, 70, 0.55);
+    border-left-color: rgb(200, 200, 200);
+}
+
+.log-crit {
+    background-color: rgba(150, 70, 12, 0.6);
+    border-left-color: rgb(255, 155, 61);
+}
+
+.log-crit .log-text {
+    color: rgb(255, 205, 130);
+    -unity-font-style: bold;
+}
+
+.log-death {
+    background-color: rgba(140, 24, 24, 0.6);
+    border-left-color: rgb(255, 90, 90);
+}
+
+.log-death .log-text {
+    color: rgb(255, 175, 175);
+    -unity-font-style: bold;
+}
+
+.log-result {
+    background-color: rgba(150, 120, 20, 0.6);
+    border-left-color: rgb(255, 210, 74);
+}
+
+.log-result .log-text {
+    color: rgb(255, 230, 150);
+    -unity-font-style: bold;
+    font-size: 18px;
+    -unity-text-align: middle-center;
+}
+
+.cv-controls {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 0 12px 14px 12px;
+    padding: 8px 12px;
+    background-color: rgba(0, 0, 0, 0.78);
+    border-radius: 8px;
+    border-width: 3px;
+    border-color: rgb(255, 255, 255);
+}
+
+.cv-btn {
+    min-width: 56px;
+    height: 40px;
+    margin: 0 4px;
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+    background-color: rgba(40, 40, 40, 0.95);
+    border-width: 2px;
+    border-color: rgb(255, 255, 255);
+    border-radius: 6px;
+}
+
+.cv-btn:hover {
+    background-color: rgba(80, 80, 80, 0.95);
+}
+
+.cv-btn:disabled {
+    opacity: 0.4;
+}
+
+.cv-btn-play {
+    background-color: rgba(34, 120, 52, 0.95);
+}
+
+.cv-speed {
+    flex-direction: column;
+    margin-left: 16px;
+    min-width: 180px;
+}
+
+.cv-speed-label {
+    color: rgb(255, 255, 255);
+    font-size: 14px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 2px;
+}
+
+.cv-slider {
+    flex-grow: 1;
 }

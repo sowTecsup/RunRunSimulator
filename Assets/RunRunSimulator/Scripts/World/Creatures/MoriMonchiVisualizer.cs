@@ -184,10 +184,18 @@ public class MoriMonchiVisualizer : MonoBehaviour
 
         foreach (var r in renderers)
         {
+            if (IsEyeRenderer(r)) continue;
             if (furMat != null)
                 r.sharedMaterial = furMat;
             r.SetPropertyBlock(mpb);
         }
+    }
+
+    private bool IsEyeRenderer(Renderer r)
+    {
+        if (r == null) return false;
+        return (eyeSocketL != null && r.transform.IsChildOf(eyeSocketL))
+            || (eyeSocketR != null && r.transform.IsChildOf(eyeSocketR));
     }
 
     // ── Gizmos ───────────────────────────────────────────────────

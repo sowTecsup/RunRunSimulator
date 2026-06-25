@@ -6,7 +6,18 @@
         </ui:VisualElement>
         <ui:VisualElement name="spacer" class="cv-spacer" />
         <ui:VisualElement name="log-frame" class="cv-log-frame">
-            <ui:VisualElement name="log-container" class="cv-log" />
+            <ui:ScrollView name="log-scroll" class="cv-log-scroll">
+                <ui:VisualElement name="log-container" class="cv-log" />
+            </ui:ScrollView>
+        </ui:VisualElement>
+        <ui:VisualElement name="controls" class="cv-controls">
+            <ui:Button name="btn-back" text="◀" class="cv-btn" />
+            <ui:Button name="btn-play" text="▶" class="cv-btn cv-btn-play" />
+            <ui:Button name="btn-next" text="▶▶" class="cv-btn" />
+            <ui:VisualElement name="speed-box" class="cv-speed">
+                <ui:Label name="speed-label" text="Velocidad x1.0" class="cv-speed-label" />
+                <ui:Slider name="speed-slider" low-value="0.25" high-value="4" value="1" class="cv-slider" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

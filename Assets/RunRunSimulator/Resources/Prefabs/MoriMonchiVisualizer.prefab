@@ -1,5 +1,76 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8610052208390746539
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3656451146762808532}
+  - component: {fileID: 7086708987279820367}
+  - component: {fileID: 988634436226174859}
+  m_Layer: 8
+  m_Name: MorimonchiCombatVisualizerUITK
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3656451146762808532
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8610052208390746539}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8211617497169395146}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7086708987279820367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8610052208390746539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7430fdb0d6cf7ad45889ee90c32d3e64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.MoriMonchiCombatVisualizerUITK
+  document: {fileID: 988634436226174859}
+  fillLerpSeconds: 0.4
+  uprightOnly: 1
+--- !u!114 &988634436226174859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8610052208390746539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: f7750a822f2d4c043984a713566595f9, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 2902f2eb1caa6e0478efa751972da99d, type: 3}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 0
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
 --- !u!1001 &195311024691200158
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24,17 +95,25 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5433115026417847636, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6063265132029860742, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8304748543852559700, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -3.93
       objectReference: {fileID: 0}
     - target: {fileID: 8304748543852559700, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 1.09
       objectReference: {fileID: 0}
     - target: {fileID: 8304748543852559700, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.06
       objectReference: {fileID: 0}
     - target: {fileID: 8304748543852559700, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
       propertyPath: m_LocalRotation.w
@@ -64,8 +143,20 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8304748543852559700, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 8304748543852559700, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3656451146762808532}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+--- !u!4 &8211617497169395146 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8304748543852559700, guid: cfed67c08b449ee44929bb03b91bbc4d, type: 3}
+  m_PrefabInstance: {fileID: 195311024691200158}
+  m_PrefabAsset: {fileID: 0}

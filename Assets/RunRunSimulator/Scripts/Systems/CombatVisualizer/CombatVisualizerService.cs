@@ -17,21 +17,65 @@ public class CombatVisualizerService : MonoBehaviour
     [Required, SerializeField] private Transform slotA;
     [Required, SerializeField] private Transform slotB;
 
-    [Title("Timing (seconds)")]
+    [Title("Timing (seconds, divided by speed)")]
     [SerializeField, MinValue(0f)] private float windupSeconds       = 0.35f;
     [SerializeField, MinValue(0f)] private float impactSeconds       = 0.35f;
     [SerializeField, MinValue(0f)] private float betweenTurnsSeconds = 0.55f;
-    [SerializeField, MinValue(0f)] private float endHoldSeconds      = 1.5f;
+    [SerializeField, MinValue(0f)] private float deathPauseSeconds   = 0.6f;
+
+    [Title("Playback")]
+    [SerializeField, Range(0.25f, 4f)] private float playbackSpeed = 1f;
+
+    private const string SelfColor   = "5AA0FF";
+    private const string OppColor    = "FF6B6B";
+    private const string DamageColor = "FF3B3B";
+
+    private class CombatNode
+    {
+        public bool                      HasTurn;
+        public CombatTurn                Turn;
+        public float                     HpA;
+        public float                     HpB;
+        public bool                      ADead;
+        public bool                      BDead;
+        public int                       TurnNumber;
+        public List<CombatVisualLogLine> Log;
+        public CombatNode                Prev;
+        public CombatNode                Next;
+        public bool IsEnd => Next == null;
+    }
 
     private MoriMonchiVisualizer instanceA;
     private MoriMonchiVisualizer instanceB;
-    private Coroutine            playRoutine;
+    private MoriMonchiCombatVisualizerUITK barA;
+    private MoriMonchiCombatVisualizerUITK barB;
 
-    public bool IsPlaying => playRoutine != null;
+    private CreatureDNA  selfDna;
+    private CreatureDNA  oppDna;
+    private CombatRecord activeRecord;
+    private CombatNode   head;
+    private CombatNode   current;
+    private int          totalTurns;
+    private float        hpMaxA;
+    private float        hpMaxB;
+    private bool         endIsDraw;
+    private CombatVisualSide endWinner;
 
-    private CreatureDatabaseSO Db       => GameManager.Instance != null ? GameManager.Instance.Database : null;
-    private PartVisualBankSO   PartBank => GameManager.Instance != null ? GameManager.Instance.PartVisualBank : null;
-    private FurTypeDatabaseSO  FurDb    => GameManager.Instance != null ? GameManager.Instance.FurTypeDatabase : null;
+    private bool isAuto;
+    private bool busy;
+
+    private Coroutine beginRoutine;
+    private Coroutine autoRoutine;
+    private Coroutine fwdRoutine;
+
+    public bool  IsPlaying => head != null;
+    public bool  IsAuto    => isAuto;
+    public float Speed     => Mathf.Max(0.01f, playbackSpeed);
+
+    private bool CanForward => current != null && current.Next != null && !busy;
+    private bool CanBack    => current != null && current.Prev != null && !busy;
+
+    private CreatureDatabaseSO Db => GameManager.Instance != null ? GameManager.Instance.Database : null;
 
     private void Awake()
     {
@@ -44,16 +88,9 @@ public class CombatVisualizerService : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
-    [Button("Stop"), DisableInEditorMode]
-    public void Stop()
+    public void Play(CreatureDNA self, CreatureDNA opponent, CombatRecord record)
     {
-        if (playRoutine != null) { StopCoroutine(playRoutine); playRoutine = null; }
-        DespawnFighters();
-    }
-
-    public void Play(CreatureDNA dnaA, CreatureDNA dnaB, CombatRecord record)
-    {
-        if (dnaA == null || dnaB == null || record == null)
+        if (self == null || opponent == null || record == null)
         {
             Debug.LogError("[CombatVisualizer] Play called with null DNA or record.");
             return;
@@ -63,125 +100,283 @@ public class CombatVisualizerService : MonoBehaviour
             Debug.LogError("[CombatVisualizer] No GameManager in scene — cannot resolve visual databases.");
             return;
         }
-        if (IsPlaying) Stop();
-        playRoutine = StartCoroutine(PlayRoutine(dnaA, dnaB, record));
+        Stop();
+        selfDna      = self;
+        oppDna       = opponent;
+        activeRecord = record;
+        BuildStates();
+        if (head == null) { Debug.LogWarning("[CombatVisualizer] No states built."); return; }
+        beginRoutine = StartCoroutine(BeginRoutine());
     }
 
-    private IEnumerator PlayRoutine(CreatureDNA dnaA, CreatureDNA dnaB, CombatRecord record)
+    [Button("Stop"), DisableInEditorMode]
+    public void Stop()
     {
-        SpawnFighters(dnaA, dnaB);
+        StopAllCoroutines();
+        beginRoutine = null;
+        autoRoutine  = null;
+        fwdRoutine   = null;
+        isAuto       = false;
+        busy         = false;
+        head         = null;
+        current      = null;
+        DespawnFighters();
+    }
 
-        var statsA = CombatService.GetEffectiveStats(dnaA, Db);
-        var statsB = CombatService.GetEffectiveStats(dnaB, Db);
-        float hpMaxA = statsA.HP;
-        float hpMaxB = statsB.HP;
-        float hpA    = hpMaxA;
-        float hpB    = hpMaxB;
+    public void TogglePlay() => SetAuto(!isAuto);
 
-        var ctx = new CombatVisualContext
+    public void SetAuto(bool value)
+    {
+        if (head == null) return;
+        if (value && current != null && current.IsEnd) Restore(head);
+        isAuto = value;
+        if (autoRoutine != null) { StopCoroutine(autoRoutine); autoRoutine = null; }
+        if (isAuto && !busy) autoRoutine = StartCoroutine(AutoRoutine());
+        Publish();
+    }
+
+    public void Next()
+    {
+        if (!CanForward) return;
+        SetAuto(false);
+        fwdRoutine = StartCoroutine(ForwardRoutine());
+    }
+
+    public void Back()
+    {
+        if (!CanBack) return;
+        SetAuto(false);
+        Restore(current.Prev);
+    }
+
+    public void SetSpeed(float value)
+    {
+        playbackSpeed = Mathf.Clamp(value, 0.25f, 4f);
+        Publish();
+    }
+
+    private void BuildStates()
+    {
+        hpMaxA = CombatService.GetEffectiveStats(selfDna, Db).HP;
+        hpMaxB = CombatService.GetEffectiveStats(oppDna, Db).HP;
+
+        var log = new List<CombatVisualLogLine>
         {
-            DnaA = dnaA, DnaB = dnaB,
-            HpMaxA = hpMaxA, HpMaxB = hpMaxB,
-            SlotA = slotA, SlotB = slotB,
-            TotalTurns = record.Turns?.Count ?? 0,
+            Line(CombatVisualLogKind.Versus,
+                $"{Colored(selfDna.CustomName, SelfColor)}   VS   {Colored(activeRecord.OpponentName, OppColor)}"),
         };
+        float hpA = hpMaxA, hpB = hpMaxB;
+        bool aDead = false, bDead = false;
 
-        CombatVisualEvents.VisualCombatStart(ctx);
-        CombatVisualEvents.HpChanged(CombatVisualSide.A, hpA, hpMaxA);
-        CombatVisualEvents.HpChanged(CombatVisualSide.B, hpB, hpMaxB);
-        CombatVisualEvents.Log($"VS: {dnaA.CustomName} vs {dnaB.CustomName}");
+        head = new CombatNode { HasTurn = false, HpA = hpA, HpB = hpB, TurnNumber = 0, Log = new List<CombatVisualLogLine>(log) };
+        var node = head;
+        totalTurns = 0;
 
-        bool aDead = false;
-        bool bDead = false;
-
-        if (record.Turns != null)
+        if (activeRecord.Turns != null)
         {
-            foreach (var turn in record.Turns)
+            foreach (var t in activeRecord.Turns)
             {
-                var attacker = turn.AttackerIsA ? CombatVisualSide.A : CombatVisualSide.B;
-                var defender = turn.AttackerIsA ? CombatVisualSide.B : CombatVisualSide.A;
+                bool attackerIsSelf = t.AttackerIsA == activeRecord.SelfWasA;
+                string atk = Colored(t.AttackerName, attackerIsSelf ? SelfColor : OppColor);
+                string def = Colored(t.DefenderName, attackerIsSelf ? OppColor : SelfColor);
+                string dmg = Colored($"{t.Damage:F0}", DamageColor);
+                log.Add(t.WasCrit
+                    ? Line(CombatVisualLogKind.Crit, $"¡CRÍTICO! {atk} → {def} · {dmg} de daño")
+                    : Line(CombatVisualLogKind.Hit,  $"{atk} golpea a {def} · {dmg} de daño"));
 
-                CombatVisualEvents.TurnStart(turn);
-                CombatVisualEvents.Log($"Turno {turn.TurnNumber} · {turn.AttackerName} → {turn.DefenderName}");
-                CombatVisualEvents.Attack(attacker);
-                yield return new WaitForSeconds(windupSeconds);
-
-                var hit = new CombatVisualHit
+                if (attackerIsSelf)
                 {
-                    Attacker = attacker,
-                    Defender = defender,
-                    Damage   = turn.Damage,
-                    Crit     = turn.WasCrit,
+                    hpB = t.DefenderHpAfter;
+                    if (hpB <= 0f && !bDead) { bDead = true; log.Add(Line(CombatVisualLogKind.Death, $"{def} cae derrotado")); }
+                }
+                else
+                {
+                    hpA = t.DefenderHpAfter;
+                    if (hpA <= 0f && !aDead) { aDead = true; log.Add(Line(CombatVisualLogKind.Death, $"{def} cae derrotado")); }
+                }
+
+                var next = new CombatNode
+                {
+                    HasTurn = true, Turn = t,
+                    HpA = hpA, HpB = hpB, ADead = aDead, BDead = bDead,
+                    TurnNumber = t.TurnNumber, Log = new List<CombatVisualLogLine>(log),
                 };
-                CombatVisualEvents.Hit(hit);
-                if (turn.WasCrit)
-                {
-                    CombatVisualEvents.Crit(hit);
-                    CombatVisualEvents.Log($"¡Crítico! {turn.Damage:F1} de daño");
-                }
-                else
-                {
-                    CombatVisualEvents.Log($"Daño: {turn.Damage:F1}");
-                }
-
-                if (turn.AttackerIsA)
-                {
-                    hpB = turn.DefenderHpAfter;
-                    CombatVisualEvents.HpChanged(CombatVisualSide.B, hpB, hpMaxB);
-                    if (hpB <= 0f && !bDead)
-                    {
-                        bDead = true;
-                        CombatVisualEvents.Dead(CombatVisualSide.B);
-                        CombatVisualEvents.Log($"{turn.DefenderName} cae derrotado.");
-                    }
-                }
-                else
-                {
-                    hpA = turn.DefenderHpAfter;
-                    CombatVisualEvents.HpChanged(CombatVisualSide.A, hpA, hpMaxA);
-                    if (hpA <= 0f && !aDead)
-                    {
-                        aDead = true;
-                        CombatVisualEvents.Dead(CombatVisualSide.A);
-                        CombatVisualEvents.Log($"{turn.DefenderName} cae derrotado.");
-                    }
-                }
-
-                yield return new WaitForSeconds(impactSeconds);
-                CombatVisualEvents.TurnEnd(turn);
-
+                node.Next = next; next.Prev = node; node = next;
+                totalTurns++;
                 if (aDead || bDead) break;
-                yield return new WaitForSeconds(betweenTurnsSeconds);
             }
         }
 
-        bool isDraw = !aDead && !bDead;
-        var  winner = aDead ? CombatVisualSide.B : CombatVisualSide.A;
-        CombatVisualEvents.Log(isDraw
-            ? "Empate."
-            : $"Ganador: {(winner == CombatVisualSide.A ? dnaA.CustomName : dnaB.CustomName)}");
-        CombatVisualEvents.VisualCombatEnd(winner, isDraw);
+        endIsDraw = !aDead && !bDead;
+        endWinner = aDead ? CombatVisualSide.B : CombatVisualSide.A;
+        string winnerName = endWinner == CombatVisualSide.A ? selfDna.CustomName : activeRecord.OpponentName;
+        node.Log.Add(endIsDraw
+            ? Line(CombatVisualLogKind.Result, "Empate")
+            : Line(CombatVisualLogKind.Result, $"Ganador: {Colored(winnerName, endWinner == CombatVisualSide.A ? SelfColor : OppColor)}"));
 
-        yield return new WaitForSeconds(endHoldSeconds);
-        DespawnFighters();
-        playRoutine = null;
+        current = head;
+    }
+
+    private static CombatVisualLogLine Line(CombatVisualLogKind kind, string text)
+        => new CombatVisualLogLine { Kind = kind, Text = text };
+
+    private static string Colored(string text, string hex) => $"<color=#{hex}>{text}</color>";
+
+    private IEnumerator BeginRoutine()
+    {
+        SpawnFighters(selfDna, oppDna);
+        yield return null;
+        yield return null;
+
+        var ctx = new CombatVisualContext
+        {
+            DnaA = selfDna, DnaB = oppDna,
+            HpMaxA = hpMaxA, HpMaxB = hpMaxB,
+            SlotA = slotA, SlotB = slotB,
+            TotalTurns = totalTurns,
+        };
+        CombatVisualEvents.VisualCombatStart(ctx);
+        barA?.Bind(selfDna.CustomName);
+        barB?.Bind(activeRecord.OpponentName);
+
+        isAuto  = false;
+        current = head;
+        Restore(head);
+        beginRoutine = null;
+    }
+
+    private IEnumerator AutoRoutine()
+    {
+        while (isAuto && current != null && current.Next != null)
+        {
+            yield return StartCoroutine(ForwardRoutine());
+            if (!isAuto) break;
+            yield return new WaitForSeconds(betweenTurnsSeconds / Speed);
+        }
+        isAuto      = false;
+        autoRoutine = null;
+        Publish();
+    }
+
+    private IEnumerator ForwardRoutine()
+    {
+        if (current == null || current.Next == null) yield break;
+
+        busy = true;
+        Publish();
+
+        var target = current.Next;
+        var t       = target.Turn;
+        bool attackerIsSelf = t.AttackerIsA == activeRecord.SelfWasA;
+        var attacker = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B;
+        var defender = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A;
+
+        CombatVisualEvents.TurnStart(t);
+        CombatVisualEvents.Attack(attacker);
+        yield return new WaitForSeconds(windupSeconds / Speed);
+
+        var hit = new CombatVisualHit { Attacker = attacker, Defender = defender, Damage = t.Damage, Crit = t.WasCrit };
+        CombatVisualEvents.Hit(hit);
+        if (t.WasCrit)
+        {
+            CombatVisualEvents.Crit(hit);
+            CombatVisualEvents.Log($"¡CRÍTICO! {t.AttackerName} → {t.DefenderName} · {t.Damage:F0} de daño");
+        }
+        else
+        {
+            CombatVisualEvents.Log($"{t.AttackerName} golpea a {t.DefenderName} · {t.Damage:F0} de daño");
+        }
+
+        float defHp  = defender == CombatVisualSide.A ? target.HpA : target.HpB;
+        float defMax = defender == CombatVisualSide.A ? hpMaxA : hpMaxB;
+        PushHp(defender, defHp, defMax);
+
+        current = target;
+        Publish();
+
+        yield return new WaitForSeconds(impactSeconds / Speed);
+
+        bool defenderDead = defender == CombatVisualSide.A ? target.ADead : target.BDead;
+        if (defenderDead)
+        {
+            CombatVisualEvents.Dead(defender);
+            CombatVisualEvents.Log($"{t.DefenderName} cae derrotado");
+            yield return new WaitForSeconds(deathPauseSeconds / Speed);
+            SetFighterActive(defender, false);
+        }
+
+        CombatVisualEvents.TurnEnd(t);
+
+        if (current.IsEnd)
+            CombatVisualEvents.VisualCombatEnd(endWinner, endIsDraw);
+
+        busy       = false;
+        fwdRoutine = null;
+        Publish();
+    }
+
+    private void Restore(CombatNode node)
+    {
+        if (node == null) return;
+        current = node;
+
+        SetFighterActive(CombatVisualSide.A, !node.ADead);
+        SetFighterActive(CombatVisualSide.B, !node.BDead);
+
+        PushHp(CombatVisualSide.A, node.HpA, hpMaxA);
+        PushHp(CombatVisualSide.B, node.HpB, hpMaxB);
+
+        if (node.IsEnd)
+            CombatVisualEvents.VisualCombatEnd(endWinner, endIsDraw);
+
+        Publish();
+    }
+
+    private void Publish()
+    {
+        if (current == null) return;
+        CombatVisualEvents.PanelState(new CombatVisualPanelState
+        {
+            TurnNumber = current.TurnNumber,
+            TotalTurns = totalTurns,
+            Log        = current.Log.ToArray(),
+            Ended      = current.IsEnd,
+            IsDraw     = endIsDraw,
+            Winner     = endWinner,
+            IsAuto     = isAuto,
+            CanForward = CanForward,
+            CanBack    = CanBack,
+            Speed      = playbackSpeed,
+        });
     }
 
     private void SpawnFighters(CreatureDNA dnaA, CreatureDNA dnaB)
     {
         DespawnFighters();
-        instanceA = SpawnOne(dnaA, slotA, CombatVisualSide.A);
-        instanceB = SpawnOne(dnaB, slotB, CombatVisualSide.B);
+        instanceA = SpawnOne(dnaA, slotA, out barA);
+        instanceB = SpawnOne(dnaB, slotB, out barB);
     }
 
-    private MoriMonchiVisualizer SpawnOne(CreatureDNA dna, Transform slot, CombatVisualSide side)
+    private MoriMonchiVisualizer SpawnOne(CreatureDNA dna, Transform slot, out MoriMonchiCombatVisualizerUITK bar)
     {
         var inst = Instantiate(visualizerPrefab, slot.position, slot.rotation, slot);
-        var ui   = inst.GetComponentInChildren<MoriMonchiCombatVisualizerUITK>(true);
-        if (ui != null) ui.SetSide(side);
-        inst.SetFurDatabase(FurDb);
-        inst.Assemble(dna, PartBank);
+        bar = inst.GetComponentInChildren<MoriMonchiCombatVisualizerUITK>(true);
+        inst.SetFurDatabase(GameManager.Instance.FurTypeDatabase);
+        inst.Assemble(dna, GameManager.Instance.PartVisualBank);
         return inst;
+    }
+
+    private void PushHp(CombatVisualSide side, float hp, float max)
+    {
+        CombatVisualEvents.HpChanged(side, hp, max);
+        var bar = side == CombatVisualSide.A ? barA : barB;
+        if (bar != null) bar.SetHp(max > 0f ? hp / max : 0f);
+    }
+
+    private void SetFighterActive(CombatVisualSide side, bool active)
+    {
+        var inst = side == CombatVisualSide.A ? instanceA : instanceB;
+        if (inst != null && inst.gameObject.activeSelf != active) inst.gameObject.SetActive(active);
     }
 
     private void DespawnFighters()
@@ -190,12 +385,11 @@ public class CombatVisualizerService : MonoBehaviour
         if (instanceB != null) Destroy(instanceB.gameObject);
         instanceA = null;
         instanceB = null;
+        barA      = null;
+        barB      = null;
     }
 
     // ── DEV — Test Harness ────────────────────────────────────────
-    // Selección de una pelea ya persistida (CreatureDNA.CombatHistory) para dispararla
-    // a mano. Los dropdowns leen GameManager.Instance.Registry, así que sólo se pueblan
-    // en Play Mode (en Editor el registro está vacío).
 
     [FoldoutGroup("DEV — Test Harness"), ShowInInspector]
     [ValueDropdown(nameof(FighterOptions)), LabelText("Combatiente A")]
@@ -204,10 +398,6 @@ public class CombatVisualizerService : MonoBehaviour
     [FoldoutGroup("DEV — Test Harness"), ShowInInspector]
     [ValueDropdown(nameof(FightOptions)), LabelText("Pelea (slot)")]
     private int devFightIndex;
-
-    [FoldoutGroup("DEV — Test Harness"), ShowInInspector]
-    [ValueDropdown(nameof(OpponentOptions)), LabelText("Rival B (vacío = auto)")]
-    private string devCreatureB;
 
     [FoldoutGroup("DEV — Test Harness")]
     [Button("🎲 MM al azar con pelea", ButtonSizes.Medium), DisableInEditorMode]
@@ -225,7 +415,6 @@ public class CombatVisualizerService : MonoBehaviour
         devCreatureA  = pick.UniqueID;
         devFightIndex = pick.CombatHistory.FindIndex(HasTurns);
         if (devFightIndex < 0) devFightIndex = 0;
-        devCreatureB  = "";
         Debug.Log($"[CombatVisualizer] Seleccionado \"{pick.CustomName}\" · pelea #{devFightIndex}.");
     }
 
@@ -239,11 +428,23 @@ public class CombatVisualizerService : MonoBehaviour
         { Debug.LogWarning("[CombatVisualizer] Índice de pelea inválido."); return; }
 
         var record = dnaA.CombatHistory[devFightIndex];
-        var dnaB   = ResolveOpponent(devCreatureB, record, dnaA);
-        if (dnaB == null) { Debug.LogWarning("[CombatVisualizer] No pude resolver el rival B. Elegilo manualmente."); return; }
+        var dnaB   = ResolveOpponent(record, dnaA);
+        if (dnaB == null) { Debug.LogWarning($"[CombatVisualizer] El rival \"{record.OpponentName}\" no está en el registro (¿murió/se vendió?). No puedo armar su modelo."); return; }
 
         Play(dnaA, dnaB, record);
     }
+
+    [ButtonGroup("DEV — Test Harness/Controles")]
+    [Button("◀ Atrás"), DisableInEditorMode]
+    private void DevBack() => Back();
+
+    [ButtonGroup("DEV — Test Harness/Controles")]
+    [Button("▶/❚❚"), DisableInEditorMode]
+    private void DevTogglePlay() => TogglePlay();
+
+    [ButtonGroup("DEV — Test Harness/Controles")]
+    [Button("▶▶ Adelante"), DisableInEditorMode]
+    private void DevNext() => Next();
 
     private static bool HasTurns(CombatRecord r) => r != null && r.Turns != null && r.Turns.Count > 0;
 
@@ -254,18 +455,12 @@ public class CombatVisualizerService : MonoBehaviour
         return reg != null && reg.TryGet(id, out var dna) ? dna : null;
     }
 
-    private CreatureDNA ResolveOpponent(string overrideId, CombatRecord record, CreatureDNA self)
+    private CreatureDNA ResolveOpponent(CombatRecord record, CreatureDNA self)
     {
-        var explicitB = ResolveDna(overrideId);
-        if (explicitB != null) return explicitB;
-
         var reg = GameManager.Instance != null ? GameManager.Instance.Registry : null;
         if (reg == null) return null;
-
         foreach (var dna in reg.GetAll().Values)
             if (dna != null && dna != self && dna.CustomName == record.OpponentName) return dna;
-        foreach (var dna in reg.GetAll().Values)
-            if (dna != null && dna != self) return dna;
         return null;
     }
 
@@ -292,16 +487,6 @@ public class CombatVisualizerService : MonoBehaviour
             var r = dna.CombatHistory[i];
             list.Add(new ValueDropdownItem<int>($"#{i} vs {r.OpponentName} ({r.Turns?.Count ?? 0} turnos)", i));
         }
-        return list;
-    }
-
-    private IEnumerable<ValueDropdownItem<string>> OpponentOptions()
-    {
-        var list = new List<ValueDropdownItem<string>> { new ValueDropdownItem<string>("(auto desde la pelea)", "") };
-        var reg  = GameManager.Instance != null ? GameManager.Instance.Registry : null;
-        if (reg == null) return list;
-        foreach (var dna in reg.GetAll().Values)
-            if (dna != null) list.Add(new ValueDropdownItem<string>(dna.CustomName, dna.UniqueID));
         return list;
     }
 }

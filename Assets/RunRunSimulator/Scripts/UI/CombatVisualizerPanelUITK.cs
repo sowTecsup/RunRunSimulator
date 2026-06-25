@@ -5,27 +5,29 @@ namespace MoriMonchiSimulator
 public class CombatVisualizerPanelUITK : MonoBehaviour
 {
     [SerializeField] private UIDocument document;
-    [SerializeField, Range(1, 30)] private int maxLogLines = 6;
 
     private VisualElement root;
     private Label         turnLabel;
+    private ScrollView    logScroll;
     private VisualElement logContainer;
-    private int           totalTurns;
+    private Button        backButton;
+    private Button        playButton;
+    private Button        nextButton;
+    private Slider        speedSlider;
+    private Label         speedLabel;
+
+    private CombatVisualizerService Service => CombatVisualizerService.Instance;
 
     private void OnEnable()
     {
         CombatVisualEvents.OnVisualCombatStart += HandleStart;
-        CombatVisualEvents.OnVisualCombatEnd   += HandleEnd;
-        CombatVisualEvents.OnTurnStart         += HandleTurnStart;
-        CombatVisualEvents.OnLog               += HandleLog;
+        CombatVisualEvents.OnPanelState        += HandleState;
     }
 
     private void OnDisable()
     {
         CombatVisualEvents.OnVisualCombatStart -= HandleStart;
-        CombatVisualEvents.OnVisualCombatEnd   -= HandleEnd;
-        CombatVisualEvents.OnTurnStart         -= HandleTurnStart;
-        CombatVisualEvents.OnLog               -= HandleLog;
+        CombatVisualEvents.OnPanelState        -= HandleState;
     }
 
     private void Start()
@@ -33,41 +35,75 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
         if (document == null) { Debug.LogWarning("[CombatVisualizerPanelUITK] No UIDocument."); return; }
         root = document.rootVisualElement;
         if (root == null) return;
+
         turnLabel    = root.Q<Label>("turn-label");
+        logScroll    = root.Q<ScrollView>("log-scroll");
         logContainer = root.Q<VisualElement>("log-container");
+        backButton   = root.Q<Button>("btn-back");
+        playButton   = root.Q<Button>("btn-play");
+        nextButton   = root.Q<Button>("btn-next");
+        speedSlider  = root.Q<Slider>("speed-slider");
+        speedLabel   = root.Q<Label>("speed-label");
+
+        if (backButton  != null) backButton.clicked += () => Service?.Back();
+        if (playButton  != null) playButton.clicked += () => Service?.TogglePlay();
+        if (nextButton  != null) nextButton.clicked += () => Service?.Next();
+        if (speedSlider != null) speedSlider.RegisterValueChangedCallback(e => Service?.SetSpeed(e.newValue));
+
         SetVisible(false);
     }
 
-    private void HandleStart(CombatVisualContext ctx)
+    private void HandleStart(CombatVisualContext ctx) => SetVisible(true);
+
+    private void HandleState(CombatVisualPanelState st)
     {
-        totalTurns = ctx.TotalTurns;
         SetVisible(true);
-        if (turnLabel != null) turnLabel.text = totalTurns > 0 ? $"Turno 0 / {totalTurns}" : "Turno 0";
-        logContainer?.Clear();
+
+        if (turnLabel != null)
+            turnLabel.text = st.Ended
+                ? (st.IsDraw ? "Empate" : "Final")
+                : (st.TotalTurns > 0 ? $"Turno {st.TurnNumber} / {st.TotalTurns}" : $"Turno {st.TurnNumber}");
+
+        RebuildLog(st.Log);
+
+        backButton?.SetEnabled(st.CanBack);
+        nextButton?.SetEnabled(st.CanForward);
+        if (playButton != null) playButton.text = st.IsAuto ? "❚❚" : "▶";
+        if (speedLabel != null) speedLabel.text = $"Velocidad x{st.Speed:0.0}";
+        if (speedSlider != null && !Mathf.Approximately(speedSlider.value, st.Speed))
+            speedSlider.SetValueWithoutNotify(st.Speed);
     }
 
-    private void HandleEnd(CombatVisualSide _, bool isDraw)
-    {
-        if (turnLabel != null) turnLabel.text = isDraw ? "Empate" : "Final";
-    }
-
-    private void HandleTurnStart(CombatTurn turn)
-    {
-        if (turnLabel == null) return;
-        turnLabel.text = totalTurns > 0
-            ? $"Turno {turn.TurnNumber} / {totalTurns}"
-            : $"Turno {turn.TurnNumber}";
-    }
-
-    private void HandleLog(string line)
+    private void RebuildLog(CombatVisualLogLine[] lines)
     {
         if (logContainer == null) return;
-        var label = new Label(line);
-        label.AddToClassList("log-line");
-        logContainer.Add(label);
-        while (logContainer.childCount > maxLogLines)
-            logContainer.RemoveAt(0);
+        logContainer.Clear();
+        if (lines == null) return;
+
+        foreach (var line in lines)
+        {
+            var card = new VisualElement();
+            card.AddToClassList("log-card");
+            card.AddToClassList(KindClass(line.Kind));
+            var label = new Label(line.Text);
+            label.AddToClassList("log-text");
+            card.Add(label);
+            logContainer.Add(card);
+        }
+
+        if (logScroll != null)
+            logScroll.schedule.Execute(() => logScroll.scrollOffset = new Vector2(0f, float.MaxValue)).ExecuteLater(1);
     }
+
+    private static string KindClass(CombatVisualLogKind kind) => kind switch
+    {
+        CombatVisualLogKind.Versus => "log-versus",
+        CombatVisualLogKind.Hit    => "log-hit",
+        CombatVisualLogKind.Crit   => "log-crit",
+        CombatVisualLogKind.Death  => "log-death",
+        CombatVisualLogKind.Result => "log-result",
+        _                          => "log-hit",
+    };
 
     private void SetVisible(bool v)
     {
