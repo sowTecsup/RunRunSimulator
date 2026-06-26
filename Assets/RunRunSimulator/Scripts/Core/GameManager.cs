@@ -136,9 +136,7 @@ public class GameManager : MonoBehaviour
         var dna        = CreatureGenerator.GenerateRandom(database, rarityOddsTable);
         dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
         dna.Personality = CreatureGenerator.RandomPersonality();
-        dna.BaseHP     = UnityEngine.Random.Range(1, 11);
-        dna.BaseAttack = UnityEngine.Random.Range(1, 11);
-        dna.BaseSpeed  = UnityEngine.Random.Range(1, 11);
+        (dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed) = CreatureGenerator.RandomBaseStats();
         dna.CustomName = CreatureNameBank.GetRandomName();
         dna.Stamp();
 

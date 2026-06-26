@@ -52,10 +52,15 @@ public class CreatureDNA
     public Tier EyeTier   = Tier.Tier1;
     public Tier MouthTier = Tier.Tier1;
 
-    // ── Base Stats (asignados en Mint por StatCalculator — Etapa 2.1) ─
-    public float BaseHP     = 0f;
-    public float BaseAttack = 0f;
-    public float BaseSpeed  = 0f;
+    // ── Base Stats (point-buy en Mint, heredados en Breed) ─
+    public float BaseConstitution = 0f;
+    public float BaseAttack       = 0f;
+    public float BaseSpeed        = 0f;
+
+    // ── Gear-derived Stats (start at 0, filled by future equipment) ─
+    public float BaseDefense  = 0f;
+    public float BaseLuck     = 0f;
+    public float BaseEvasion  = 0f;
 
     // ── Combat history ────────────────────────────────────────────
     // One CombatRecord per finished fight (local + async), turn-by-turn for the

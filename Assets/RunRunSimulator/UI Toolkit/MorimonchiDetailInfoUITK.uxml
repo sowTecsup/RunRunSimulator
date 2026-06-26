@@ -21,9 +21,12 @@
                         <ui:VisualElement class="info-left">
                             <ui:VisualElement name="portrait" class="portrait" />
                             <ui:VisualElement name="stats" class="stats">
-                                <ui:Label name="stat-hp"  class="stat stat--hp" />
+                                <ui:Label name="stat-con" class="stat stat--con" />
                                 <ui:Label name="stat-atk" class="stat stat--atk" />
                                 <ui:Label name="stat-spd" class="stat stat--spd" />
+                                <ui:Label name="stat-def" class="stat stat--def" />
+                                <ui:Label name="stat-lck" class="stat stat--lck" />
+                                <ui:Label name="stat-eva" class="stat stat--eva" />
                             </ui:VisualElement>
                         </ui:VisualElement>
 

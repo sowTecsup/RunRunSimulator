@@ -90,10 +90,10 @@ MonoBehaviour:
   OnAttack:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1437995984510737875}
-        m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiCombatVisualizer,
+      - m_Target: {fileID: 4158614718049895225}
+        m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiProceduralAnimator,
           Assembly-CSharp
-        m_MethodName: PlayAttack
+        m_MethodName: AnimAttack
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -105,43 +105,17 @@ MonoBehaviour:
         m_CallState: 2
   OnHitDealt:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 4158614718049895225}
-        m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiProceduralAnimator,
-          Assembly-CSharp
-        m_MethodName: PlayHit
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   OnCritDealt:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 4158614718049895225}
-        m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiProceduralAnimator,
-          Assembly-CSharp
-        m_MethodName: PlayAttack
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   OnHitTaken:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 4158614718049895225}
         m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiProceduralAnimator,
           Assembly-CSharp
-        m_MethodName: PlayHit
+        m_MethodName: AnimHit
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -157,7 +131,7 @@ MonoBehaviour:
       - m_Target: {fileID: 4158614718049895225}
         m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiProceduralAnimator,
           Assembly-CSharp
-        m_MethodName: PlayHit
+        m_MethodName: AnimHit
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -176,7 +150,7 @@ MonoBehaviour:
       - m_Target: {fileID: 4158614718049895225}
         m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiProceduralAnimator,
           Assembly-CSharp
-        m_MethodName: PlayIdle
+        m_MethodName: AnimIdle
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -192,7 +166,7 @@ MonoBehaviour:
       - m_Target: {fileID: 4158614718049895225}
         m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiProceduralAnimator,
           Assembly-CSharp
-        m_MethodName: PlayDeath
+        m_MethodName: AnimDeath
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -208,7 +182,7 @@ MonoBehaviour:
       - m_Target: {fileID: 4158614718049895225}
         m_TargetAssemblyTypeName: MoriMonchiSimulator.MoriMonchiProceduralAnimator,
           Assembly-CSharp
-        m_MethodName: PlayVictory
+        m_MethodName: AnimVictory
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

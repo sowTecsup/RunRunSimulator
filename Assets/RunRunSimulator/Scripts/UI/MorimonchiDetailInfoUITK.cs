@@ -31,7 +31,7 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     [SerializeField] private int sortingOrder = 100;
 
     // Queried once the document tree is built.
-    private Label titleLabel, statHp, statAtk, statSpd, identityLabel, progressionLabel, personalityLabel;
+    private Label titleLabel, statCon, statAtk, statSpd, statDef, statLck, statEva, identityLabel, progressionLabel, personalityLabel;
     private VisualElement portrait, partsContainer, lineageTree, breedTree;
     private ScrollView combatHistory;
     private Label combatEmpty, lineageEmpty, breedEmpty;
@@ -96,9 +96,12 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
         titleLabel       = root.Q<Label>("title");
         portrait         = root.Q<VisualElement>("portrait");
-        statHp           = root.Q<Label>("stat-hp");
+        statCon          = root.Q<Label>("stat-con");
         statAtk          = root.Q<Label>("stat-atk");
         statSpd          = root.Q<Label>("stat-spd");
+        statDef          = root.Q<Label>("stat-def");
+        statLck          = root.Q<Label>("stat-lck");
+        statEva          = root.Q<Label>("stat-eva");
         identityLabel    = root.Q<Label>("identity");
         personalityLabel = root.Q<Label>("personality");
         partsContainer   = root.Q<VisualElement>("parts");
@@ -144,11 +147,14 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         // Final stat with its (base + bonus-from-parts/tier) breakdown.
         var eff = database != null
             ? CombatService.GetEffectiveStats(dna, database)
-            : new CombatService.EffectiveStats(dna.BaseHP, dna.BaseAttack, dna.BaseSpeed);
+            : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
 
-        SetStat(statHp,  "HP",  eff.HP,     dna.BaseHP);
-        SetStat(statAtk, "ATK", eff.Attack, dna.BaseAttack);
-        SetStat(statSpd, "SPD", eff.Speed,  dna.BaseSpeed);
+        SetStat(statCon, "CON", eff.Constitution, dna.BaseConstitution);
+        SetStat(statAtk, "ATK", eff.Attack,       dna.BaseAttack);
+        SetStat(statSpd, "SPD", eff.Speed,        dna.BaseSpeed);
+        SetStat(statDef, "DEF", eff.Defense,      dna.BaseDefense);
+        SetStat(statLck, "LCK", eff.Luck,         dna.BaseLuck);
+        SetStat(statEva, "EVA", eff.Evasion,      dna.BaseEvasion);
 
         if (identityLabel != null)
             identityLabel.text = $"Género: {dna.Gender}\nEstado: {StateOf(dna)}\nNacimiento: {Born(dna)}";

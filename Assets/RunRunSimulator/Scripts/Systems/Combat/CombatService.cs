@@ -16,10 +16,10 @@ namespace MoriMonchiSimulator
 // Combat Visualizer reads. The async server motors emit the same shape.
 public static class CombatService
 {
-    // Combat HP is intentionally swingier than the raw stat: base HP is scaled ×5
-    // entering a fight so battles last several rounds. Attack/Speed are untouched.
+    // Combat HP is intentionally swingier than the raw stat: Constitution is scaled ×5
+    // entering a fight so battles last several rounds. Other stats are untouched.
     // The cloud motors (process-matchmaking.js / run-combat.js) apply the same ×5.
-    private const float BaseHpCombatMultiplier = 5f;
+    public const float BaseHpCombatMultiplier = 5f;
 
     public static CombatResult Simulate(
         string             idA,
@@ -63,12 +63,12 @@ public static class CombatService
         var statsA = ComputeStats(dnaA, db);
         var statsB = ComputeStats(dnaB, db);
 
-        result.Log.Add($"=== COMBAT START ===");
-        result.Log.Add($"[A] \"{dnaA.CustomName}\"  {Clip(idA)}  HP:{statsA.TotalHP:F1}  ATK:{statsA.Attack:F1}  SPD:{statsA.Speed:F1}");
-        result.Log.Add($"[B] \"{dnaB.CustomName}\"  {Clip(idB)}  HP:{statsB.TotalHP:F1}  ATK:{statsB.Attack:F1}  SPD:{statsB.Speed:F1}");
+        float hpA = statsA.Constitution * BaseHpCombatMultiplier;
+        float hpB = statsB.Constitution * BaseHpCombatMultiplier;
 
-        float hpA = statsA.TotalHP;
-        float hpB = statsB.TotalHP;
+        result.Log.Add($"=== COMBAT START ===");
+        result.Log.Add($"[A] \"{dnaA.CustomName}\"  {Clip(idA)}  HP:{hpA:F1}  ATK:{statsA.Attack:F1}  SPD:{statsA.Speed:F1}  DEF:{statsA.Defense:F0}  LCK:{statsA.Luck:F0}  EVA:{statsA.Evasion:F0}");
+        result.Log.Add($"[B] \"{dnaB.CustomName}\"  {Clip(idB)}  HP:{hpB:F1}  ATK:{statsB.Attack:F1}  SPD:{statsB.Speed:F1}  DEF:{statsB.Defense:F0}  LCK:{statsB.Luck:F0}  EVA:{statsB.Evasion:F0}");
 
         // ── Turn simulation ───────────────────────────────────────
 
@@ -82,18 +82,18 @@ public static class CombatService
 
             if (aFirst)
             {
-                hpB -= Strike(dnaA.CustomName, dnaB.CustomName, true,  statsA.Attack, hpB, config, result, round);
+                hpB -= Strike(dnaA.CustomName, dnaB.CustomName, true,  statsA.Attack, statsA.Luck, hpB, statsB.Defense, statsB.Evasion, config, result, round);
                 if (hpB <= 0f) { someoneKO = true; break; }
 
-                hpA -= Strike(dnaB.CustomName, dnaA.CustomName, false, statsB.Attack, hpA, config, result, round);
+                hpA -= Strike(dnaB.CustomName, dnaA.CustomName, false, statsB.Attack, statsB.Luck, hpA, statsA.Defense, statsA.Evasion, config, result, round);
                 if (hpA <= 0f) { someoneKO = true; break; }
             }
             else
             {
-                hpA -= Strike(dnaB.CustomName, dnaA.CustomName, false, statsB.Attack, hpA, config, result, round);
+                hpA -= Strike(dnaB.CustomName, dnaA.CustomName, false, statsB.Attack, statsB.Luck, hpA, statsA.Defense, statsA.Evasion, config, result, round);
                 if (hpA <= 0f) { someoneKO = true; break; }
 
-                hpB -= Strike(dnaA.CustomName, dnaB.CustomName, true,  statsA.Attack, hpB, config, result, round);
+                hpB -= Strike(dnaA.CustomName, dnaB.CustomName, true,  statsA.Attack, statsA.Luck, hpB, statsB.Defense, statsB.Evasion, config, result, round);
                 if (hpB <= 0f) { someoneKO = true; break; }
             }
         }
@@ -169,63 +169,99 @@ public static class CombatService
 
     private struct Stats
     {
-        public float TotalHP;
+        public float Constitution;
         public float Attack;
         public float Speed;
+        public float Defense;
+        public float Luck;
+        public float Evasion;
     }
 
     // Effective stats for display (e.g. the detail window): base (DNA) plus each
-    // part's stat and its +(tier-1) bonus. Same math the combat sim uses.
+    // part's stat and its +(tier-1) bonus. Same math the combat sim uses. The combat
+    // HP pool is Constitution × BaseHpCombatMultiplier, derived where needed.
     public readonly struct EffectiveStats
     {
-        public readonly float HP;
+        public readonly float Constitution;
         public readonly float Attack;
         public readonly float Speed;
-        public EffectiveStats(float hp, float atk, float spd) { HP = hp; Attack = atk; Speed = spd; }
+        public readonly float Defense;
+        public readonly float Luck;
+        public readonly float Evasion;
+        public EffectiveStats(float con, float atk, float spd, float def, float lck, float eva)
+        { Constitution = con; Attack = atk; Speed = spd; Defense = def; Luck = lck; Evasion = eva; }
     }
 
     public static EffectiveStats GetEffectiveStats(CreatureDNA dna, CreatureDatabaseSO db)
     {
         var s = ComputeStats(dna, db);
-        return new EffectiveStats(s.TotalHP, s.Attack, s.Speed);
+        return new EffectiveStats(s.Constitution, s.Attack, s.Speed, s.Defense, s.Luck, s.Evasion);
     }
 
     private static Stats ComputeStats(CreatureDNA dna, CreatureDatabaseSO db)
     {
-        float hp  = dna.BaseHP * BaseHpCombatMultiplier;
+        float con = dna.BaseConstitution;
         float atk = dna.BaseAttack;
         float spd = dna.BaseSpeed;
 
-        AccumulatePart(db.GetBodyShape(dna.BodyShapeID), dna.BodyTier,  ref hp, ref atk, ref spd);
-        AccumulatePart(db.GetArm(dna.ArmID),             dna.ArmTier,   ref hp, ref atk, ref spd);
-        AccumulatePart(db.GetEye(dna.EyeID),             dna.EyeTier,   ref hp, ref atk, ref spd);
-        AccumulatePart(db.GetMouth(dna.MouthID),         dna.MouthTier, ref hp, ref atk, ref spd);
+        AccumulatePart(db.GetBodyShape(dna.BodyShapeID), dna.BodyTier,  ref con, ref atk, ref spd);
+        AccumulatePart(db.GetArm(dna.ArmID),             dna.ArmTier,   ref con, ref atk, ref spd);
+        AccumulatePart(db.GetEye(dna.EyeID),             dna.EyeTier,   ref con, ref atk, ref spd);
+        AccumulatePart(db.GetMouth(dna.MouthID),         dna.MouthTier, ref con, ref atk, ref spd);
 
-        return new Stats { TotalHP = hp, Attack = atk, Speed = spd };
+        return new Stats
+        {
+            Constitution = con,
+            Attack       = atk,
+            Speed        = spd,
+            Defense      = dna.BaseDefense,
+            Luck         = dna.BaseLuck,
+            Evasion      = dna.BaseEvasion,
+        };
     }
 
-    private static void AccumulatePart(BodyPart part, Tier tier, ref float hp, ref float atk, ref float spd)
+    private static void AccumulatePart(BodyPart part, Tier tier, ref float con, ref float atk, ref float spd)
     {
         if (part == null) return;
         int bonus = (int)tier - 1;   // Tier1=0, Tier2=+1, Tier3=+2
-        hp  += part.HP     + bonus;
+        con += part.HP     + bonus;
         atk += part.Attack + bonus;
         spd += part.Speed  + bonus;
     }
 
-    // Executes one attack. defenderHP is HP before the hit. Logs a line AND appends
-    // a structured CombatTurn (attackerIsA = the striker is combatant A). Returns
-    // damage dealt.
+    // Executes one attack. defenderHP is HP before the hit. Order: evasion (dodge →
+    // 0 dmg) → crit (CritChance + attacker LCK) → DEF reduction. Logs a line AND
+    // appends a structured CombatTurn (attackerIsA = the striker is combatant A).
     private static float Strike(
         string attackerName, string defenderName, bool attackerIsA,
-        float attack, float defenderHP,
+        float attack, float attackerLuck, float defenderHP, float defenderDef, float defenderEva,
         CombatManagerSO config, CombatResult result, int round)
     {
-        bool  isCrit  = UnityEngine.Random.value < config.CritChance;
-        float damage  = attack * (isCrit ? config.CritMultiplier : 1f);
-        float hpAfter = Mathf.Max(0f, defenderHP - damage);
-
         string dir = attackerIsA ? "A→B" : "B→A";
+
+        if (UnityEngine.Random.value < defenderEva * config.EvasionPerPoint)
+        {
+            result.Log.Add($"  [{dir}] DODGE! defender HP:{defenderHP:F1}");
+            result.Turns.Add(new CombatTurn
+            {
+                TurnNumber      = round,
+                AttackerName    = attackerName,
+                DefenderName    = defenderName,
+                AttackerIsA     = attackerIsA,
+                Damage          = 0f,
+                WasCrit         = false,
+                DefenderHpAfter = defenderHP,
+            });
+            return 0f;
+        }
+
+        float critChance = config.CritChance + attackerLuck * config.LuckCritPerPoint;
+        bool  isCrit     = UnityEngine.Random.value < critChance;
+        float raw        = attack * (isCrit ? config.CritMultiplier : 1f);
+        float reduction  = Mathf.Clamp01(defenderDef * config.DefenseReductionPerPoint);
+        float damage     = raw * (1f - reduction);
+        float hpAfter    = Mathf.Max(0f, defenderHP - damage);
+
         result.Log.Add($"  [{dir}]{(isCrit ? " CRIT!" : "")} dmg:{damage:F1}  defender HP after:{hpAfter:F1}");
 
         result.Turns.Add(new CombatTurn

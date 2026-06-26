@@ -16,14 +16,46 @@
 }
 
 .hp-track {
-    height: 12px;
+    height: 16px;
     background-color: rgba(80, 0, 0, 0.85);
     border-width: 1px;
     border-color: rgb(255, 255, 255);
+    justify-content: center;
 }
 
 .hp-fill {
     width: 100%;
     height: 100%;
     background-color: rgb(72, 220, 86);
+}
+
+.hp-value {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    color: rgb(255, 255, 255);
+    font-size: 11px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.hp-stats {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 4px;
+}
+
+.hp-stat {
+    font-size: 11px;
+    -unity-font-style: bold;
+}
+
+.hp-atk {
+    color: rgb(255, 180, 120);
+}
+
+.hp-spd {
+    color: rgb(150, 210, 255);
 }

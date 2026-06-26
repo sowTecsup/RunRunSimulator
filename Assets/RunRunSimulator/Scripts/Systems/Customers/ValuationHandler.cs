@@ -23,7 +23,8 @@ namespace MoriMonchiSimulator
             float wTier     = archetype != null ? archetype.WeightTier     : 1f;
             float budgetMul = archetype != null ? archetype.BudgetMultiplier : 1f;
 
-            float statsBonus  = (dna.BaseHP + dna.BaseAttack + dna.BaseSpeed) * wStats * pricing.StatsMultiplier;
+            float statsBonus  = (dna.BaseConstitution + dna.BaseAttack + dna.BaseSpeed
+                               + dna.BaseDefense + dna.BaseLuck + dna.BaseEvasion) * wStats * pricing.StatsMultiplier;
             float breedBonus  = dna.BreedCount * wBreed * pricing.BreedCountMultiplier;
             float winrate     = dna.FightCount > 0 ? (float)dna.WinCount / dna.FightCount : 0f;
             float combatBonus = winrate * wCombat * pricing.CombatWinrateMultiplier;

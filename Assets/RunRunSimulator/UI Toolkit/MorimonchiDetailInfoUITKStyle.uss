@@ -164,9 +164,12 @@
     margin-bottom: 4px;
 }
 
-.stat--hp  { color: rgb(110, 220, 120); }
+.stat--con { color: rgb(110, 220, 120); }
 .stat--atk { color: rgb(235, 120, 100); }
 .stat--spd { color: rgb(110, 190, 235); }
+.stat--def { color: rgb(200, 200, 120); }
+.stat--lck { color: rgb(220, 170, 240); }
+.stat--eva { color: rgb(120, 230, 215); }
 
 .info-right {
     flex-grow: 1;

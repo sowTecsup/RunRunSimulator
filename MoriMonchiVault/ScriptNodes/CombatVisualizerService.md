@@ -25,7 +25,9 @@ tags: [script, combat]
 
 **Feel Juice via CombatNode:** La lista doblemente enlazada de `CombatNode` ahora dispara los feedbacks Feel del peleador. Cada nodo tiene `FireWindup(a, b)` (atacante `PlayAttack`), `FireImpact(a, b, maxA, maxB)` (golpeado/crítico de ataque y defensa, luego `PlayHpChanged`), y `FireDeath(a, b)` (defensor `PlayDead`). El Service resuelve `hooksA`/`hooksB` (instancias `MoriMonchiCombatVisualizer` derivadas, vía `as`) al spawnear, dispara `PlayCombatStart` en todos en `BeginRoutine`, dispara `PlayVictory` del ganador al final de `ForwardRoutine`. El rewind (`Restore`) NO dispara juice, solo actualiza estado puro.
 
-**Barras por referencia directa:** guarda `barA`/`barB` (no por evento de side). `PushHp(side,…)` empuja a la barra correcta y además dispara `OnHpChanged` para los hooks. Los nombres se bindean tras 2 frames (cuando el UIDocument ya construyó su árbol).
+**Caché de animadores:** guarda `animA`/`animB` (MoriMonchiProceduralAnimator) en `SpawnFighters` para poder restaurar la pose de animación sin juice en el rewind (`Restore`). Helper privado `RestoreAnim(anim, dead)` repone AnimIdle si vivo, AnimDeath si muerto.
+
+**Barras por referencia directa:** guarda `barA`/`barB` (no por evento de side). `Bind(nombre, ataque, velocidad)` establece el nombre y stats en la barra; `PushHp(side, hp, max)` empuja los valores reales de HP (no porcentaje) a la barra correcta y además dispara `OnHpChanged` para los hooks. Los nombres y stats se bindean tras 2 frames (cuando el UIDocument ya construyó su árbol). En `BeginRoutine`: `barA?.Bind(selfDna.CustomName, statsA.Attack, statsA.Speed)` y similar para barB (statsA/statsB vienen de `BuildStates`).
 
 **DBs por `GameManager.Instance`** (`Database`/`PartVisualBank`/`FurTypeDatabase`); las únicas refs de inspector son `visualizerPrefab` + `slotA`/`slotB` + timings + `playbackSpeed`.
 

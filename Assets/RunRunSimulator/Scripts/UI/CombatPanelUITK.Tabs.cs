@@ -34,7 +34,7 @@ public partial class CombatPanelUITK
         row.userData = dna.UniqueID;
 
         var eff = StatsOf(dna);
-        var l = new Label($"{dna.CustomName}  ·  HP {eff.HP:0} ATK {eff.Attack:0} SPD {eff.Speed:0}  ·  {dna.FightCount}/{MaxFights()}");
+        var l = new Label($"{dna.CustomName}  ·  CON {eff.Constitution:0} ATK {eff.Attack:0} SPD {eff.Speed:0} DEF {eff.Defense:0} LCK {eff.Luck:0} EVA {eff.Evasion:0}  ·  {dna.FightCount}/{MaxFights()}");
         l.AddToClassList("cbt-candidate-text");
         row.Add(l);
 
@@ -58,7 +58,7 @@ public partial class CombatPanelUITK
 
         if (onlineStats != null)
         {
-            if (dna != null) { var e = StatsOf(dna); onlineStats.text = $"HP {e.HP:0}   ATK {e.Attack:0}   SPD {e.Speed:0}"; }
+            if (dna != null) { var e = StatsOf(dna); onlineStats.text = $"CON {e.Constitution:0}   ATK {e.Attack:0}   SPD {e.Speed:0}   DEF {e.Defense:0}   LCK {e.Luck:0}   EVA {e.Evasion:0}"; }
             else onlineStats.text = "";
         }
 

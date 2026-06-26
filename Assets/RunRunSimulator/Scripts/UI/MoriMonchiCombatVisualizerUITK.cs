@@ -10,23 +10,35 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
 
     private VisualElement root;
     private Label         nameLabel;
+    private Label         hpValueLabel;
+    private Label         atkLabel;
+    private Label         spdLabel;
     private VisualElement fill;
     private float         targetPct   = 1f;
     private float         currentPct  = 1f;
+    private float         maxHp       = 1f;
     private string        desiredName = "?";
-    private bool          nameDirty;
+    private string        desiredAtk  = "";
+    private string        desiredSpd  = "";
+    private bool          staticDirty;
     private Transform     cam;
 
-    public void Bind(string displayName)
+    public void Bind(string displayName, float attack, float speed)
     {
         desiredName = displayName;
-        nameDirty   = true;
+        desiredAtk  = $"ATK {Mathf.RoundToInt(attack)}";
+        desiredSpd  = $"VEL {Mathf.RoundToInt(speed)}";
+        staticDirty = true;
         targetPct   = 1f;
         currentPct  = 1f;
         Apply();
     }
 
-    public void SetHp(float pct) => targetPct = Mathf.Clamp01(pct);
+    public void SetHp(float current, float max)
+    {
+        maxHp     = Mathf.Max(0f, max);
+        targetPct = maxHp > 0f ? Mathf.Clamp01(current / maxHp) : 0f;
+    }
 
     private bool EnsureRefs()
     {
@@ -36,10 +48,13 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
         if (docRoot == null) return false;
         if (docRoot == root && nameLabel != null && fill != null) return true;
 
-        root      = docRoot;
-        nameLabel = root.Q<Label>("name");
-        fill      = root.Q<VisualElement>("fill");
-        nameDirty = true;
+        root         = docRoot;
+        nameLabel    = root.Q<Label>("name");
+        fill         = root.Q<VisualElement>("fill");
+        hpValueLabel = root.Q<Label>("hp-value");
+        atkLabel     = root.Q<Label>("atk");
+        spdLabel     = root.Q<Label>("spd");
+        staticDirty  = true;
         return nameLabel != null && fill != null;
     }
 
@@ -48,13 +63,21 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
     private void Apply()
     {
         if (!EnsureRefs()) return;
-        if (nameDirty && nameLabel != null) { nameLabel.text = desiredName; nameDirty = false; }
+        if (staticDirty)
+        {
+            if (nameLabel != null) nameLabel.text = desiredName;
+            if (atkLabel  != null) atkLabel.text  = desiredAtk;
+            if (spdLabel  != null) spdLabel.text  = desiredSpd;
+            staticDirty = false;
+        }
         if (!Mathf.Approximately(currentPct, targetPct))
         {
             float t = fillLerpSeconds > 0f ? Mathf.Min(1f, Time.deltaTime / fillLerpSeconds) : 1f;
             currentPct = Mathf.Lerp(currentPct, targetPct, t);
         }
         if (fill != null) fill.style.width = Length.Percent(currentPct * 100f);
+        if (hpValueLabel != null)
+            hpValueLabel.text = $"{Mathf.RoundToInt(currentPct * maxHp)} / {Mathf.RoundToInt(maxHp)}";
     }
 
     private void LateUpdate()

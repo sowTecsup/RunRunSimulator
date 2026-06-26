@@ -73,7 +73,11 @@ public class NameTag : MonoBehaviour
         dna = creature;
         this.agent = agent;
         ResolveElements();
-        if (nameLabel != null) nameLabel.text = creature?.CustomName ?? "";
+        if (nameLabel != null)
+        {
+            nameLabel.text = creature?.CustomName ?? "";
+            if (creature != null) nameLabel.style.color = GenderColor(creature.Gender);
+        }
         Refresh();
     }
 

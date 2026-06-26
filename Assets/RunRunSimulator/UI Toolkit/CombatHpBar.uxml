@@ -4,6 +4,11 @@
         <ui:Label name="name" text="?" class="hp-name" />
         <ui:VisualElement name="track" class="hp-track">
             <ui:VisualElement name="fill" class="hp-fill" />
+            <ui:Label name="hp-value" text="0 / 0" class="hp-value" />
+        </ui:VisualElement>
+        <ui:VisualElement name="stats" class="hp-stats">
+            <ui:Label name="atk" text="ATK 0" class="hp-stat hp-atk" />
+            <ui:Label name="spd" text="VEL 0" class="hp-stat hp-spd" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

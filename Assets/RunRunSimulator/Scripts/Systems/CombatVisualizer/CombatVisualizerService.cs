@@ -82,6 +82,8 @@ public class CombatVisualizerService : MonoBehaviour
     private MoriMonchiCombatVisualizer hooksB;
     private MoriMonchiCombatVisualizerUITK barA;
     private MoriMonchiCombatVisualizerUITK barB;
+    private MoriMonchiProceduralAnimator   animA;
+    private MoriMonchiProceduralAnimator   animB;
 
     private CreatureDNA  selfDna;
     private CreatureDNA  oppDna;
@@ -91,6 +93,8 @@ public class CombatVisualizerService : MonoBehaviour
     private int          totalTurns;
     private float        hpMaxA;
     private float        hpMaxB;
+    private CombatService.EffectiveStats statsA;
+    private CombatService.EffectiveStats statsB;
     private bool         endIsDraw;
     private CombatVisualSide endWinner;
 
@@ -190,8 +194,10 @@ public class CombatVisualizerService : MonoBehaviour
 
     private void BuildStates()
     {
-        hpMaxA = CombatService.GetEffectiveStats(selfDna, Db).HP;
-        hpMaxB = CombatService.GetEffectiveStats(oppDna, Db).HP;
+        statsA = CombatService.GetEffectiveStats(selfDna, Db);
+        statsB = CombatService.GetEffectiveStats(oppDna, Db);
+        hpMaxA = statsA.Constitution * CombatService.BaseHpCombatMultiplier;
+        hpMaxB = statsB.Constitution * CombatService.BaseHpCombatMultiplier;
 
         var log = new List<CombatVisualLogLine>
         {
@@ -272,8 +278,8 @@ public class CombatVisualizerService : MonoBehaviour
             TotalTurns = totalTurns,
         };
         CombatVisualEvents.VisualCombatStart(ctx);
-        barA?.Bind(selfDna.CustomName);
-        barB?.Bind(activeRecord.OpponentName);
+        barA?.Bind(selfDna.CustomName, statsA.Attack, statsA.Speed);
+        barB?.Bind(activeRecord.OpponentName, statsB.Attack, statsB.Speed);
         hooksA?.PlayCombatStart();
         hooksB?.PlayCombatStart();
 
@@ -367,6 +373,9 @@ public class CombatVisualizerService : MonoBehaviour
         SetFighterActive(CombatVisualSide.A, !node.ADead);
         SetFighterActive(CombatVisualSide.B, !node.BDead);
 
+        RestoreAnim(animA, node.ADead);
+        RestoreAnim(animB, node.BDead);
+
         PushHp(CombatVisualSide.A, node.HpA, hpMaxA);
         PushHp(CombatVisualSide.B, node.HpB, hpMaxB);
 
@@ -374,6 +383,12 @@ public class CombatVisualizerService : MonoBehaviour
             CombatVisualEvents.VisualCombatEnd(endWinner, endIsDraw);
 
         Publish();
+    }
+
+    private static void RestoreAnim(MoriMonchiProceduralAnimator anim, bool dead)
+    {
+        if (anim == null) return;
+        if (dead) anim.AnimDeath(); else anim.AnimIdle();
     }
 
     private void Publish()
@@ -401,6 +416,8 @@ public class CombatVisualizerService : MonoBehaviour
         instanceB = SpawnOne(dnaB, slotB, out barB);
         hooksA = instanceA as MoriMonchiCombatVisualizer;
         hooksB = instanceB as MoriMonchiCombatVisualizer;
+        animA  = instanceA != null ? instanceA.GetComponent<MoriMonchiProceduralAnimator>() : null;
+        animB  = instanceB != null ? instanceB.GetComponent<MoriMonchiProceduralAnimator>() : null;
     }
 
     private MoriMonchiVisualizer SpawnOne(CreatureDNA dna, Transform slot, out MoriMonchiCombatVisualizerUITK bar)
@@ -416,7 +433,7 @@ public class CombatVisualizerService : MonoBehaviour
     {
         CombatVisualEvents.HpChanged(side, hp, max);
         var bar = side == CombatVisualSide.A ? barA : barB;
-        if (bar != null) bar.SetHp(max > 0f ? hp / max : 0f);
+        if (bar != null) bar.SetHp(hp, max);
     }
 
     private void SetFighterActive(CombatVisualSide side, bool active)
@@ -435,6 +452,8 @@ public class CombatVisualizerService : MonoBehaviour
         hooksB    = null;
         barA      = null;
         barB      = null;
+        animA     = null;
+        animB     = null;
     }
 
     // ── DEV — Test Harness ────────────────────────────────────────

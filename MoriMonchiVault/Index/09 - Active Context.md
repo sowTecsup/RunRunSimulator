@@ -4,7 +4,60 @@ tags: [index, core]
 
 # 09 - Active Context
 
-**Session:** 2026-06-25 (Session 24 — Animación procedural del MoriMonchi: `MoriMonchiProceduralAnimator` idle/walk + reacciones) — **🟡 EN PROGRESO (bug de cableado abierto)**
+**Session:** 2026-06-25 (Session 25 — Cierre del bug S24 (StackOverflow), fixes del Combat Visualizer (rewind/muerte, doble animación), stats en la barra de HP, botón Volver a GameScene, color de género en el NameTag) — **✅ CERRADA (probado en Play por Juan)**
+**Focus:** Resolver los pendientes de S24 y pulir el Combat Visualizer con UI y un fix cosmético del NameTag.
+
+> ### ✅ Bug S24 StackOverflow — RESUELTO (S25)
+> **Causa:** el `UnityEvent OnAttack` de `MoriMonchiCombatVisualizer` estaba cableado a su **propio** `PlayAttack` (misma instancia) → recursión infinita. Era el único binding mal apuntado.
+> **Fix:** se renombraron los 6 wrappers de `MoriMonchiProceduralAnimator` `Play*` → `Anim*` (`AnimIdle/AnimWalk/AnimAttack/AnimHit/AnimDeath/AnimVictory`) para matar la colisión de nombres con el combat visualizer, y se reescribió el cableado YAML del `MoriMonchiVisualizer.prefab` completo (8 bindings al animator + corrección del target de `OnAttack`). `PlayMMAnimation(enum)` (API core + botón Odin `Test ▶`) queda igual.
+
+> ### ✅ Fix — atacante hacía "las dos" (lance + retroceso) (S25)
+> `OnAttack` (windup, `FireWindup`) y `OnHitDealt` (impacto, `FireImpact`) son momentos distintos del mismo turno. `OnHitDealt`/`OnCritDealt` estaban cableados a animaciones de cuerpo del atacante (`AnimHit`/`AnimAttack`), duplicando el lance del `OnAttack`. **Fix:** se vaciaron los bindings de animación de `OnHitDealt` y `OnCritDealt` en el prefab (quedan libres para SFX/shake MMF). Reacción de cuerpo del atacante = solo `AnimAttack` vía `OnAttack`; del defensor = `AnimHit` vía `OnHitTaken`/`OnCritTaken`.
+
+> ### ✅ Fix — rewind se atoraba en la animación de muerte (S25)
+> Al retroceder, `Restore` reactivaba el GameObject del muerto pero el `MoriMonchiProceduralAnimator` seguía con `dead=true` → quedaba volcado. **Fix (idea de Juan: el estado de animación vive en la lista enlazada):** el Service cachea `animA`/`animB` (`GetComponent` en spawn) y `Restore` repone la pose desde el flag de muerte **del nodo** (`node.ADead`/`BDead`) vía `RestoreAnim`: vivo → `AnimIdle` (revive), muerto → `AnimDeath`. No dispara juice (respeta S23).
+
+> ### ✅ Stats en la barra de HP del Combat Visualizer (S25)
+> `MoriMonchiCombatVisualizerUITK`: nueva API `Bind(nombre, ataque, velocidad)` + `SetHp(actual, max)` (antes recibía un pct). La barra muestra `actual / max` **dentro** del track (animado con el lerp, estilo Pokémon), y una fila debajo con **ATK** (izq, naranja) y **VEL** (der, celeste). El Service computa `statsA`/`statsB` (`CombatService.GetEffectiveStats`) una vez en `BuildStates` y los pasa al `Bind`; `PushHp` manda `(hp, max)` reales.
+
+> ### ✅ Botón "Volver a GameScene" + scene manager aparte (S25)
+> Nuevo `CombatSceneManager` (responsabilidad única: navegación de escena) con `ReturnToGameScene()` + `gameSceneName` serializado (default `GameScene`); hace `Stop()` del Service antes de `SceneManager.LoadScene`. Botón "◀ Volver" arriba-izquierda en su **propio** UIDocument screen-space (`CombatTopBar.uxml`/`.uss`), independiente del panel de replay (que se oculta sin combate) → siempre visible. **Build Settings:** `GameScene` debe estar en Scenes In Build.
+
+> ### ✅ Color de género en el NameTag (S25)
+> El nombre del MoriMochi se colorea por género (azul claro macho / rosa hembra) reutilizando el helper existente `NameTag.GenderColor` (single source of truth, mismo color que el glyph ♂/♀). Se aplica en `Bind` junto al texto.
+
+**Diferencia async vs local (respondido a Juan, sin código):** el harness "🎲 MM al azar" a veces no simula por dos causas distintas (ver Consola): (1) **"El rival no está en el registro"** — el visualizer es local y reconstruye el modelo del rival buscándolo por `CustomName` en el registro; peleas **async contra otro jugador** (o rivales muertos/vendidos) no están → no se pueden visualizar; (2) **"Ningún MM tiene peleas con turnos"** — records de **formato viejo** con `Turns` vacío (filtrados por `HasTurns`). Fix real del caso async (FUTURO, no hecho): guardar el DNA del rival (`ToStringID`) en `CombatRecord` para reconstruir sin depender del registro (toca serialización + ambos motores + JS del server).
+
+**DEUDA aún abierta (de S24, NO tocada):** `MoriMonchiProceduralAnimator.autoLoopFromMovement` lee `NavMeshAgent.velocity` en `LateUpdate` (viola Regla 1/2). Forma limpia: que `MoriMochiAgent` (dueño del movimiento) empuje `AnimWalk()`/`AnimIdle()` desde su `IsMoving`. Pendiente para próxima sesión.
+
+**Files Created (.cs — input ScriptNodes):**
+- `Systems/CombatVisualizer/CombatSceneManager.cs` (NUEVO): navegación de escena; cablea el botón `btn-home` de su UIDocument → `ReturnToGameScene` (`Stop()` + `LoadScene(gameSceneName)`).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `World/Creatures/MoriMonchiProceduralAnimator.cs`: wrappers `Play*` → `Anim*` (sin colisión con el combat visualizer).
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: cachea `animA`/`animB` + `RestoreAnim` (rewind revive desde el nodo); `statsA`/`statsB` (`EffectiveStats`); `Bind(nombre,atk,vel)` y `PushHp` → `SetHp(hp,max)`.
+- `UI/MoriMonchiCombatVisualizerUITK.cs`: API `Bind(nombre,atk,vel)` + `SetHp(actual,max)`; labels `hp-value`/`atk`/`spd`; número animado con el lerp.
+- `World/Creatures/NameTag.cs`: nombre coloreado por género en `Bind` (reusa `GenderColor`).
+
+**Files Touched (no-ScriptNode — UXML/USS/prefab):**
+- `Resources/Prefabs/MoriMonchiVisualizer.prefab`: recableado completo de los UnityEvents del `MoriMonchiCombatVisualizer` (8 bindings al animator `Anim*`, `OnAttack` deja de auto-apuntarse, `OnHitDealt`/`OnCritDealt` vaciados).
+- `UI Toolkit/CombatHpBar.uxml`/`.uss`: `hp-value` dentro del track + fila `stats` (ATK izq / VEL der).
+- `UI Toolkit/CombatTopBar.uxml`/`.uss` (NUEVOS): overlay del botón Volver.
+
+**ScriptNodes a actualizar (cierre S25 — agente Haiku):**
+- `CombatSceneManager.md` — CREAR.
+- `MoriMonchiProceduralAnimator.md` — actualizar (wrappers `Anim*`).
+- `CombatVisualizerService.md` — actualizar (`animA`/`animB`+`RestoreAnim`, `statsA`/`statsB`, `Bind`/`SetHp`).
+- `MoriMonchiCombatVisualizerUITK.md` — actualizar (`Bind(nombre,atk,vel)`, `SetHp(actual,max)`, labels atk/spd/hp-value).
+- `NameTag.md` — actualizar (nombre coloreado por género).
+
+**Next session:**
+1. DEUDA: desacoplar `autoLoopFromMovement` (mover el disparo Walk/Idle a `MoriMochiAgent`).
+2. (Opcional/futuro) `OpponentDnaId` en `CombatRecord` para replays async.
+
+---
+
+**Session:** 2026-06-25 (Session 24 — Animación procedural del MoriMonchi: `MoriMonchiProceduralAnimator` idle/walk + reacciones) — **✅ RESUELTA EN S25 (era 🟡 bug de cableado abierto)**
 **Focus:** Teorizar e implementar animación procedural para que el MoriMonchi se mueva (idle/walk + reacciones de combate), reutilizable en GameScene y escena de combate. Las animaciones se ven bien en Play; falta destrabar el cableado a los UnityEvents.
 
 > ### ✅ Animación procedural — FUNCIONA en idle/walk (S24). 🟡 reacciones pendientes de cablear (bug abajo).

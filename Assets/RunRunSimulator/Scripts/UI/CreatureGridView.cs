@@ -70,9 +70,12 @@ public class CreatureGridView : MonoBehaviour
         [ReadOnly, TableColumnWidth(140)] public string Name;
         [ReadOnly, TableColumnWidth(55, Resizable = false)] public Color Color;
         [ReadOnly, TableColumnWidth(70, Resizable = false)] public CreatureGender Gender;
-        [ReadOnly, TableColumnWidth(45, Resizable = false)] public float HP;
+        [ReadOnly, TableColumnWidth(45, Resizable = false)] public float CON;
         [ReadOnly, TableColumnWidth(45, Resizable = false)] public float ATK;
         [ReadOnly, TableColumnWidth(45, Resizable = false)] public float SPD;
+        [ReadOnly, TableColumnWidth(45, Resizable = false)] public float DEF;
+        [ReadOnly, TableColumnWidth(45, Resizable = false)] public float LCK;
+        [ReadOnly, TableColumnWidth(45, Resizable = false)] public float EVA;
         [ReadOnly, TableColumnWidth(70, Resizable = false), LabelText("Fights (W)")] public string Fights;
         [ReadOnly, TableColumnWidth(55, Resizable = false)] public int Breeds;
         [ReadOnly, TableColumnWidth(120)] public string Mother;
@@ -85,9 +88,12 @@ public class CreatureGridView : MonoBehaviour
             Name   = string.IsNullOrEmpty(d.CustomName) ? d.ToStringID() : d.CustomName,
             Color  = d.BaseColor,
             Gender = d.Gender,
-            HP     = d.BaseHP,
+            CON    = d.BaseConstitution,
             ATK    = d.BaseAttack,
             SPD    = d.BaseSpeed,
+            DEF    = d.BaseDefense,
+            LCK    = d.BaseLuck,
+            EVA    = d.BaseEvasion,
             Fights = $"{d.FightCount} ({d.WinCount})",
             Breeds = d.BreedCount,
             Mother = ParentName(d.MotherID, registry),

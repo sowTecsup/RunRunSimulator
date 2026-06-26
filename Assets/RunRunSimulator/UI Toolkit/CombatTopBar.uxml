@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="CombatTopBar.uss" />
+    <ui:VisualElement name="root" class="topbar-root">
+        <ui:Button name="btn-home" text="◀ Volver" class="topbar-home" />
+    </ui:VisualElement>
+</ui:UXML>

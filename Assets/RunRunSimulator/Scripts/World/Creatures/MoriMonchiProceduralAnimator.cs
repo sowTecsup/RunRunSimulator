@@ -121,12 +121,12 @@ public class MoriMonchiProceduralAnimator : MonoBehaviour
         }
     }
 
-    public void PlayIdle()    => PlayMMAnimation(MMAnimationType.Idle);
-    public void PlayWalk()    => PlayMMAnimation(MMAnimationType.Walk);
-    public void PlayAttack()  => PlayMMAnimation(MMAnimationType.Attack);
-    public void PlayHit()     => PlayMMAnimation(MMAnimationType.Hit);
-    public void PlayDeath()   => PlayMMAnimation(MMAnimationType.Death);
-    public void PlayVictory() => PlayMMAnimation(MMAnimationType.Victory);
+    public void AnimIdle()    => PlayMMAnimation(MMAnimationType.Idle);
+    public void AnimWalk()    => PlayMMAnimation(MMAnimationType.Walk);
+    public void AnimAttack()  => PlayMMAnimation(MMAnimationType.Attack);
+    public void AnimHit()     => PlayMMAnimation(MMAnimationType.Hit);
+    public void AnimDeath()   => PlayMMAnimation(MMAnimationType.Death);
+    public void AnimVictory() => PlayMMAnimation(MMAnimationType.Victory);
 
     private void LateUpdate()
     {

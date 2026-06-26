@@ -13,8 +13,14 @@ public class CombatManagerSO : SerializedScriptableObject
     [LabelWidth(160)] public float DeathChance     = 0.15f;
 
     [Title("Hit Settings")]
-    [LabelWidth(160)] public float CritChance     = 0.20f;
+    [LabelWidth(160)] public float CritChance     = 0.10f;
     [LabelWidth(160)] public float CritMultiplier = 3f;
+
+    [Title("Derived Stat Coefficients")]
+    [InfoBox("Por punto de stat (0–1). LCK: +crit. DEF: -daño recibido. EVA: chance de esquivar.")]
+    [LabelWidth(160)] public float LuckCritPerPoint      = 0.03f;
+    [LabelWidth(160)] public float DefenseReductionPerPoint = 0.08f;
+    [LabelWidth(160)] public float EvasionPerPoint       = 0.10f;
 
     [Title("Safety")]
     [LabelWidth(160)] public int MaxRounds    = 50;

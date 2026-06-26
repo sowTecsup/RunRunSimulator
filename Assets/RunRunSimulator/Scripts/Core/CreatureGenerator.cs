@@ -4,6 +4,10 @@ namespace MoriMonchiSimulator
 
 public static class CreatureGenerator
 {
+    public const int StatBudget = 18;
+    public const int StatMin    = 1;
+    public const int StatMax    = 10;
+
     public static CreatureDNA GenerateRandom(CreatureDatabaseSO database, RarityOddsTableSO oddsTable = null)
     {
         if (database == null)
@@ -42,6 +46,20 @@ public static class CreatureGenerator
     {
         var values = System.Enum.GetValues(typeof(Personality));
         return (Personality)values.GetValue(Random.Range(0, values.Length));
+    }
+
+    public static (float hp, float atk, float spd) RandomBaseStats()
+    {
+        int[] stats     = { StatMin, StatMin, StatMin };
+        int   remaining = StatBudget - StatMin * stats.Length;
+        while (remaining > 0)
+        {
+            int i = Random.Range(0, stats.Length);
+            if (stats[i] >= StatMax) continue;
+            stats[i]++;
+            remaining--;
+        }
+        return (stats[0], stats[1], stats[2]);
     }
 
     // Each slot rolls its own rarity independently.

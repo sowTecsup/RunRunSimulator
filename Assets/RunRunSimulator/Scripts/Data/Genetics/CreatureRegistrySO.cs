@@ -67,6 +67,23 @@ public class CreatureRegistrySO : SerializedScriptableObject
         Debug.Log($"[CreatureRegistrySO] {creatures.Count} personalidades randomizadas. " +
                   "Pulsá 'Push to Cloud' en CloudSyncService para subir a Cloud Save.");
     }
+
+    [Button("Wipe Registry (DEV)", ButtonSizes.Large), GUIColor(1f, 0.45f, 0.45f)]
+    [PropertyTooltip("Borra TODAS las criaturas. Guarda JSON local vacío + refresca escena. Subí con 'Push to Cloud' (CloudSyncService) para limpiar también la nube.")]
+    private void WipeRegistry()
+    {
+        int had = creatures.Count;
+        creatures = new Dictionary<string, CreatureDNA>();
+
+        MarkDirty();
+        SaveSystem.SaveDatabase(this);
+
+        if (Application.isPlaying)
+            GameEvents.RegistryReloaded(this);
+
+        Debug.Log($"[CreatureRegistrySO] Registro borrado ({had} criaturas). " +
+                  "Pulsá 'Push to Cloud' en CloudSyncService para limpiar Cloud Save.");
+    }
 #endif
 
     // ── Public Methods ────────────────────────────────────────────

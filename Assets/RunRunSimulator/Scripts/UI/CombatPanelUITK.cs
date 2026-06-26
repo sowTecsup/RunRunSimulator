@@ -238,6 +238,6 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
 
     private CombatService.EffectiveStats StatsOf(CreatureDNA dna) =>
         database != null ? CombatService.GetEffectiveStats(dna, database)
-                         : new CombatService.EffectiveStats(dna.BaseHP, dna.BaseAttack, dna.BaseSpeed);
+                         : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
 }
 }

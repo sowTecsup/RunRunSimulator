@@ -70,9 +70,9 @@ public static class BreedingService
             Personality  = CreatureGenerator.RandomPersonality(),   // random, not inherited
             MotherID     = motherID,
             FatherID     = fatherID,
-            BaseHP       = InheritStat(mother.BaseHP,     father.BaseHP),
-            BaseAttack   = InheritStat(mother.BaseAttack, father.BaseAttack),
-            BaseSpeed    = InheritStat(mother.BaseSpeed,  father.BaseSpeed),
+            BaseConstitution = InheritStat(mother.BaseConstitution, father.BaseConstitution),
+            BaseAttack       = InheritStat(mother.BaseAttack,       father.BaseAttack),
+            BaseSpeed        = InheritStat(mother.BaseSpeed,        father.BaseSpeed),
         };
 
         mother.BreedCount++;
@@ -167,12 +167,12 @@ public static class BreedingService
     };
 
     // 50/50 inherit from mother or father, then apply a random delta of -1, 0, or +1.
-    // Result is clamped to a minimum of 1.
+    // Result is clamped to [StatMin, StatMax] — same ceiling as a minted creature.
     private static float InheritStat(float motherStat, float fatherStat)
     {
         float inherited = Random.value < 0.5f ? motherStat : fatherStat;
-        int   delta     = Random.Range(-1, 2);   // -1, 0, or +1 with equal probability
-        return Mathf.Max(1f, inherited + delta);
+        int   delta     = Random.Range(-1, 2);
+        return Mathf.Clamp(inherited + delta, CreatureGenerator.StatMin, CreatureGenerator.StatMax);
     }
 }
 }

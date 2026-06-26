@@ -6,11 +6,11 @@ tags: [script, ui]
 
 **Ruta:** `UI/MoriMonchiCombatVisualizerUITK.cs`
 
-**Responsabilidad:** Barra de HP world-space de UN combatiente del visualizer. Componente HIJO del prefab del peleador (NO la raíz, para que el billboard no gire el modelo), con un `UIDocument` que apunta a `CombatHpBar.uxml` (elementos `name` y `fill`).
+**Responsabilidad:** Barra de HP world-space de UN combatiente del visualizer. Componente HIJO del prefab del peleador (NO la raíz, para que el billboard no gire el modelo), con un `UIDocument` que apunta a `CombatHpBar.uxml` (elementos `name`, `hp-value`, `atk`, `spd` y `fill`).
 
 **Driven por el Service (sin `side`):** ya no se filtra por lado. El `CombatVisualizerService` la maneja por referencia directa:
-- `Bind(string displayName)`: fija el nombre y resetea el HP a 100%.
-- `SetHp(float pct)`: fija el % objetivo; `Update` interpola el `fill` con `fillLerpSeconds`.
+- `Bind(string displayName, float attack, float speed)`: fija el nombre (coloreado según género si aplica), ATK y VEL, y resetea el HP a 100%.
+- `SetHp(float current, float max)`: fija los valores reales de HP; `Update` interpola el `fill` con `fillLerpSeconds` y actualiza el label `hp-value` (mostrando "actual / max").
 
 **Binding resiliente + fix de árbol huérfano:** `EnsureRefs()` detecta cuando el `UIDocument` reconstruye su árbol (al reactivar el GameObject tras una muerte → `Back`) comparando `docRoot != root`; re-resuelve los elementos y re-marca el nombre para reescribirlo. El nombre/HP se guardan como datos y se reaplican en `Update` hasta que las refs existan (a prueba de timing del re-spawn). Sin esto, al retroceder la barra quedaba apuntando al árbol viejo y "desaparecía".
 

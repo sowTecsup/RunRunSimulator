@@ -10,6 +10,12 @@ const POOL_KEY    = "instant_pool";
 const RESULTS_KEY = "combat_results";
 const POOL_TTL_MS = 86400000;  // 24 h
 
+const CRIT_CHANCE              = 0.10;
+const CRIT_MULT                = 3;
+const LUCK_CRIT_PER_POINT      = 0.03;
+const DEF_REDUCTION_PER_POINT  = 0.08;
+const EVASION_PER_POINT        = 0.10;
+
 module.exports = async ({ params, context, logger }) => {
     const { creatureId, customName, creatureJson, playerName } = params;
 
@@ -113,11 +119,13 @@ const tierInt = t => {
 
 function computeStats(dna) {
     const b = t => tierInt(t) - 1;
-    // Base HP scaled ×5 entering combat (mirrors C# CombatService.BaseHpCombatMultiplier).
     return {
-        hp:  (dna.BaseHP     || 5) * 5 + b(dna.BodyTier)  + b(dna.ArmTier),
-        atk: (dna.BaseAttack || 5) + b(dna.ArmTier)   + b(dna.MouthTier),
-        spd: (dna.BaseSpeed  || 5) + b(dna.EyeTier)   + b(dna.MouthTier),
+        hp:  (dna.BaseConstitution || 5) * 5 + b(dna.BodyTier)  + b(dna.ArmTier),
+        atk: (dna.BaseAttack       || 5) + b(dna.ArmTier)   + b(dna.MouthTier),
+        spd: (dna.BaseSpeed        || 5) + b(dna.EyeTier)   + b(dna.MouthTier),
+        def: dna.BaseDefense  || 0,
+        lck: dna.BaseLuck     || 0,
+        eva: dna.BaseEvasion  || 0,
     };
 }
 
@@ -134,13 +142,13 @@ function simulateCombat(dnaA, nameA, dnaB, nameB) {
         const aFirst = sA.spd !== sB.spd ? sA.spd > sB.spd : Math.random() < 0.5;
 
         if (aFirst) {
-            hpB -= strike(sA.atk, nameA, nameB, true,  hpB, round, log, turns);
+            hpB -= strike(sA.atk, nameA, nameB, true,  hpB, round, log, turns, sA.lck, sB.def, sB.eva);
             if (hpB <= 0) break;
-            hpA -= strike(sB.atk, nameB, nameA, false, hpA, round, log, turns);
+            hpA -= strike(sB.atk, nameB, nameA, false, hpA, round, log, turns, sB.lck, sA.def, sA.eva);
         } else {
-            hpA -= strike(sB.atk, nameB, nameA, false, hpA, round, log, turns);
+            hpA -= strike(sB.atk, nameB, nameA, false, hpA, round, log, turns, sB.lck, sA.def, sA.eva);
             if (hpA <= 0) break;
-            hpB -= strike(sA.atk, nameA, nameB, true,  hpB, round, log, turns);
+            hpB -= strike(sA.atk, nameA, nameB, true,  hpB, round, log, turns, sA.lck, sB.def, sB.eva);
         }
 
         if (hpA <= 0 || hpB <= 0) break;
@@ -164,10 +172,26 @@ function simulateCombat(dnaA, nameA, dnaB, nameB) {
 }
 
 // Field names (PascalCase) MUST match C# CombatTurn so it deserializes with no remap.
-function strike(atk, attackerName, defenderName, attackerIsA, defenderHp, round, log, turns) {
-    const crit    = Math.random() < 0.2;
-    const dmg     = crit ? atk * 3 : atk;
-    const hpAfter = Math.max(0, defenderHp - dmg);
+function strike(atk, attackerName, defenderName, attackerIsA, defenderHp, round, log, turns, attackerLck, defenderDef, defenderEva) {
+    if (Math.random() < defenderEva * EVASION_PER_POINT) {
+        log.push(`${attackerName} → ${defenderName}: DODGE`);
+        turns.push({
+            TurnNumber:      round,
+            AttackerName:    attackerName,
+            DefenderName:    defenderName,
+            AttackerIsA:     attackerIsA,
+            Damage:          0,
+            WasCrit:         false,
+            DefenderHpAfter: defenderHp,
+        });
+        return 0;
+    }
+    const critChance = CRIT_CHANCE + attackerLck * LUCK_CRIT_PER_POINT;
+    const crit       = Math.random() < critChance;
+    const raw        = crit ? atk * CRIT_MULT : atk;
+    const reduction  = Math.min(1, defenderDef * DEF_REDUCTION_PER_POINT);
+    const dmg        = raw * (1 - reduction);
+    const hpAfter    = Math.max(0, defenderHp - dmg);
     log.push(`${attackerName} → ${defenderName}: ${dmg}${crit ? " [CRIT]" : ""}`);
     turns.push({
         TurnNumber:      round,
