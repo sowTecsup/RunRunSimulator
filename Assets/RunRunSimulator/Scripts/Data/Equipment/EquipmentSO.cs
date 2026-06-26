@@ -30,6 +30,14 @@ public class EquipmentSO : SerializedScriptableObject
     [GUIColor(nameof(GetRarityColor))]
     public Rarity Rarity;
 
+    [VerticalGroup("Header/Info"), LabelWidth(55)]
+    [Tooltip("Color del ícono cuando el ítem todavía no tiene sprite asignado.")]
+    public Color IconColor = new Color(0.45f, 0.45f, 0.55f);
+
+    [Title("Descripción")]
+    [HideLabel, MultiLineProperty(3)]
+    public string Description;
+
     [Title("Effects")]
     [OdinSerialize]
     [ListDrawerSettings(DefaultExpandedState = true)]
@@ -40,6 +48,21 @@ public class EquipmentSO : SerializedScriptableObject
         Effects == null || Effects.Count == 0
             ? "—"
             : string.Join("\n", Effects.Where(e => e != null).Select(e => $"• {e.Summary()}"));
+
+    [Title("Modifiers")]
+    [Tooltip("Referencias livianas (efecto + tier) que se resuelven contra el EquipmentModifierDatabaseSO. La data concreta vive en esa base de datos, no acá.")]
+    [ListDrawerSettings(DefaultExpandedState = true)]
+    public List<EquipmentModifierRef> Modifiers = new List<EquipmentModifierRef>();
+
+#if UNITY_EDITOR
+    [ShowInInspector, ReadOnly, MultiLineProperty(3), LabelText("Resumen mods")]
+    private string ModifiersSummary =>
+        Modifiers == null || Modifiers.Count == 0
+            ? "—"
+            : EquipmentModifierDatabaseSO.Editor == null
+                ? "(sin EquipmentModifierDatabaseSO en el proyecto)"
+                : string.Join("\n", Modifiers.Select(m => $"• {EquipmentModifierDatabaseSO.Editor.Summary(m)}"));
+#endif
 
     private Color GetRarityColor() => BodyPart.RarityColor(Rarity);
 }

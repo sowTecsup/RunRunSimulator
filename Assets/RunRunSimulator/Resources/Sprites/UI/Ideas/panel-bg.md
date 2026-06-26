@@ -3,13 +3,14 @@
 - **PNG destino:** `Resources/Sprites/UI/equip_panel_bg.png`
 - **Tamaño:** 1280×720 (16:9)
 - **Aspect:** 16:9
-- **Alfa:** opcional (puede ser opaco)
+- **Key:** none
+- **Alfa:** no — fondo opaco (no se le hace chroma key)
 - **9-slice:** NO (imagen completa, o stretch). Centro limpio/oscuro para que se lea el contenido encima.
 - **Uso:** fondo de la tab Equipo. Aporta las "cajas de esquina" y la grilla que matan la monotonía.
 
 ## Prompt
 
-> 1980s outrun/synthwave HUD background panel. Dark purple-to-black vertical gradient with a faint neon perspective grid on the floor and a distant glowing horizon line (retro sun vibe), CRT scanlines across the whole panel, glowing chunky neon corner brackets in the four corners (magenta and cyan). Central area kept clean, dark and uncluttered for UI content on top. No characters, no text, seamless, 1280x720, 16:9.
+> A simple dark UI background panel. Near-flat deep purple-to-black, a faint low-poly perspective grid only across the lower third, and one small simple stylized sun low near the bottom horizon. Four minimal neon corner brackets (cyan and magenta). Large empty dark central area kept clean for UI content on top. Minimal, not busy, no characters, no text, 16:9.
 
 ## Notas
 

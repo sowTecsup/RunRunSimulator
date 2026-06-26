@@ -3,13 +3,14 @@
 - **PNG destino:** `Resources/Sprites/UI/equip_portrait_frame.png`
 - **Tamaño:** 768×768
 - **Aspect:** 1:1
-- **Alfa:** sí — centro transparente (ahí va el swatch/sprite del MoriMochi)
+- **Key:** green
+- **Alfa:** vía chroma key — fondo + centro en verde puro `#00FF00`, lo vuelve transparente `key-transparency.ps1` (ahí va el swatch/sprite del MoriMochi)
 - **9-slice:** borde uniforme (centro vacío estirable)
 - **Uso:** enmarca el portrait central del panel Equipo. Más vistoso que los slots.
 
 ## Prompt
 
-> Retro-1980s synthwave HUD portrait frame, chamfered/rounded-square chunky neon-tube border glowing cyan with magenta accents and a soft baked bloom, hollow fully-transparent center, a subtle outrun sun-and-grid motif along the bottom edge of the frame, small tech corner notches, CRT scanline hint on the border. Front view, centered, symmetrical, transparent background PNG with alpha, no text, 768x768. Uniform border thickness for 9-slicing.
+> A larger square portrait frame, same family as the slot frames. Chunky beveled border with a clean neon edge accent and a small simple sun-and-grid mark centered along the bottom edge, hollow center, minimal corner marks. Front view, centered, symmetrical, no text, 768x768. Fill EVERYTHING that should be transparent — the outer background AND the hollow center — with flat uniform pure green #00FF00 (chroma key color); no checkerboard, no gradient, no shading inside the green areas. The frame itself uses the cyan/magenta palette only. Uniform border thickness for 9-slicing.
 
 ## Notas
 

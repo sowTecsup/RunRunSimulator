@@ -17,8 +17,12 @@ tags: [script, equipment, asset]
 | `Name` | `string` | Nombre display (ej: "Espada del Fuego"). |
 | `Slot` | `EquipmentSlot` | Dónde se equipa (Weapon / Armor / Amulet). |
 | `Rarity` | `Rarity` | Rareza visual (Common/Uncommon/Rare/Epic/Legendary). |
+| `IconColor` | `Color` | Color del ícono cuando el ítem no tiene sprite asignado (default gris). |
+| `Description` | `string` | Descripción multilínea del ítem, mostrada en la card de equipo en la tab Equipo. |
 | `Effects` | `List<EquipmentEffectBase>` | Lista polimórfica de efectos (stat mods + futuros procs). |
 | `EffectsSummary` | `string` (show-only) | Resumen de todos los efectos (`Summary()` de cada uno). |
+| `Modifiers` | `List<EquipmentModifierRef>` | Referencias livianas (Kind + Tier) que se resuelven contra `EquipmentModifierDatabaseSO`. La data concreta vive en esa BD, no acá. |
+| `ModifiersSummary` | `string` (show-only, editor-only) | Resumen de los modificadores traducido al español (resolved vía `EquipmentModifierDatabaseSO.Editor`). |
 
 **Métodos**
 
@@ -28,4 +32,4 @@ tags: [script, equipment, asset]
 
 **Vinculado a:** [[Index/04 - Combat]] (sistema de modificadores)
 
-**Conexiones:** [[EquipmentDatabaseSO]], [[CreatureDNA]], [[EquipmentEffectBase]], [[Enums]], [[BodyPart]]
+**Conexiones:** [[EquipmentDatabaseSO]], [[EquipmentModifierDatabaseSO]], [[EquipmentModifier]], [[CreatureDNA]], [[EquipmentEffectBase]], [[Enums]], [[BodyPart]]

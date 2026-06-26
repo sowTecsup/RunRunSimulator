@@ -33,12 +33,12 @@ $root     = Split-Path -Parent $PSScriptRoot
 $ideasDir = Join-Path $root "Assets/RunRunSimulator/Resources/Sprites/UI/Ideas"
 $outDir   = Join-Path $root "Assets/RunRunSimulator/Resources/Sprites/UI"
 
-# Extrae el blockquote (líneas '>') bajo el encabezado "## Prompt".
-function Get-PromptText {
-    param([string[]] $Lines)
+# Extrae el blockquote (líneas '>') bajo un encabezado "## <Heading>".
+function Get-Section {
+    param([string[]] $Lines, [string] $Heading)
     $start = -1
     for ($i = 0; $i -lt $Lines.Count; $i++) {
-        if ($Lines[$i] -match '^\s*##\s*Prompt') { $start = $i + 1; break }
+        if ($Lines[$i] -match "^\s*##\s*$Heading\b") { $start = $i + 1; break }
     }
     if ($start -lt 0) { return $null }
     $buf = @()
@@ -49,14 +49,19 @@ function Get-PromptText {
     return ($buf -join ' ').Trim()
 }
 
+# Dirección de arte compartida (Ideas/_style.md → "## Style"), antepuesta a cada prompt.
+$styleFile = Join-Path $ideasDir "_style.md"
+$style = if (Test-Path $styleFile) { Get-Section -Lines (Get-Content -LiteralPath $styleFile) -Heading 'Style' } else { "" }
+
 function Invoke-Idea {
     param([string] $Path)
 
     $lines = Get-Content -LiteralPath $Path
     $text  = $lines -join "`n"
 
-    $prompt = Get-PromptText -Lines $lines
+    $prompt = Get-Section -Lines $lines -Heading 'Prompt'
     if ([string]::IsNullOrWhiteSpace($prompt)) { Write-Warning "Sin sección '## Prompt' en $Path"; return }
+    if (-not [string]::IsNullOrWhiteSpace($style)) { $prompt = "$style`n`n$prompt" }
 
     $dest = [regex]::Match($text, 'Resources/Sprites/UI/([A-Za-z0-9_\-]+\.png)')
     if (-not $dest.Success) { Write-Warning "Sin 'PNG destino' en $Path"; return }
@@ -76,8 +81,20 @@ function Invoke-Idea {
     $uri = "https://generativelanguage.googleapis.com/v1beta/models/${Model}:generateContent"
     Write-Host "-> $([IO.Path]::GetFileName($Path))  ($aspect)  => $outName" -ForegroundColor Cyan
 
-    $resp = Invoke-RestMethod -Uri $uri -Method Post -ContentType 'application/json' `
-        -Headers @{ 'x-goog-api-key' = $key } -Body $body
+    $bytes = [Text.Encoding]::UTF8.GetBytes($body)
+    try {
+        $resp = Invoke-RestMethod -Uri $uri -Method Post -ContentType 'application/json; charset=utf-8' `
+            -Headers @{ 'x-goog-api-key' = $key } -Body $bytes
+    }
+    catch {
+        $r = $_.Exception.Response
+        if ($r) {
+            $sr = New-Object IO.StreamReader($r.GetResponseStream())
+            Write-Warning ("API HTTP $([int]$r.StatusCode): " + $sr.ReadToEnd())
+        }
+        else { Write-Warning $_.Exception.Message }
+        return
+    }
 
     $parts = $resp.candidates[0].content.parts
     $img   = $parts | Where-Object { $_.inlineData -or $_.inline_data } | Select-Object -First 1
@@ -92,6 +109,12 @@ function Invoke-Idea {
     $outPath = Join-Path $outDir $outName
     [IO.File]::WriteAllBytes($outPath, [Convert]::FromBase64String($data))
     Write-Host "   OK $outPath" -ForegroundColor Green
+
+    # Post-proceso: si el .md pide chroma key (**Key:** green), volver el verde en alfa.
+    $keyFlag = [regex]::Match($text, '\*\*Key:\*\*\s*(\S+)')
+    if ($keyFlag.Success -and $keyFlag.Groups[1].Value -notmatch '^(none|no)$') {
+        & (Join-Path $PSScriptRoot 'key-transparency.ps1') -Path $outPath
+    }
 }
 
 if ($All) {

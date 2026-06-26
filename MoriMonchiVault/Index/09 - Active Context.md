@@ -4,6 +4,89 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-26 (Session 28 — Equipamiento: sistema de **Modificadores** (combat procs) como referencia liviana `(enum Kind + enum Tier)` resuelta contra una DB local de catálogo. Etapa inicial = data + display, SIN combate) — **🟡 CÓDIGO HECHO, TESTEO PENDIENTE (sin tiempo; se prueba próxima sesión)**
+**Focus:** Extender `EquipmentSO` para que, aparte de `Effects` (mods de stat inline), contenga `Modifiers` que son combat procs (regresar daño / curar / aplicar estado N turnos). Etapa inicial: crear, conservar info y mostrarlo en la card del detail panel. Integración con combate = etapa siguiente.
+
+> ### 🟡 Diseño (conversado con Juan) — DB local + referencia liviana `(Kind, Tier)`
+> Se descartaron SO polimórficas y SO declarativo único → se adoptó el **mismo patrón que `EquipmentDatabaseSO`/ID en el DNA**: el equipo guarda solo una referencia liviana y la data concreta vive en una DB. Estructura final: `Tier` es **enum** `ModifierTier {I..V}`; el catálogo es **`Dictionary<ModifierEffectKind, Dictionary<ModifierTier, ModifierTierDef>>`** (efecto → tier → struct de tuning).
+
+> ### 🧭 Análisis de arquitectura (decisión clave, escrita para Et.2)
+> El backbone es **correcto para este juego** precisamente porque el combate es **async/server-authoritative/replayable**: el JS debe espejar el efecto de forma determinista → un **catálogo cerrado de efectos (enum) + tuning por tier** es lo idiomático (SO polimórficos con lógica libre morderían acá: el server no corre C#). Tres ejes separados: **Identidad/behavior = `ModifierEffectKind`**, **escala = `ModifierTier`**, **números = `ModifierTierDef` (data en la DB)**; lo que viaja (save/cloud/JS) = **`(Kind, Tier)`**, contrato estable. **Regla para Et.2 (no romper): `Kind` es el ÚNICO punto de dispatch del behavior** (un handler por Kind), el struct solo lleva tuning numérico. Techo futuro: NO ensanchar el struct con columnas que casi nadie usa → cuando un Kind pida params estructurados, darle un **payload tipado por Kind**. **Stacking por cantidad (estilo RoR) = decisión abierta**, no construir aún (hoy el poder sale del Tier autorado).
+
+> ### ✅ Persistencia gratis
+> `Modifiers` vive en el asset `EquipmentSO` (la **plantilla**), NO en `CreatureDNA`. La criatura ya guarda el ID del equipo → al resolverlo aparecen sus modifiers. No se tocó save/cloud ni `GameEvents`.
+
+**Files Created (.cs — input ScriptNodes):**
+- `Data/Equipment/EquipmentModifier.cs` (NUEVO): structs `ModifierTierDef` (tuning por tier: Label/Magnitude/DurationTurns/Status) + `EquipmentModifierRef` (referencia liviana `{Kind, Tier}`).
+- `Data/Databases/EquipmentModifierDatabaseSO.cs` (NUEVO): catálogo dict anidado (Odin `[OdinSerialize]`); `TryResolve(ref/kind+tier)`, `Summary(ref)`, `KindLabel` estático, `KindCount`, `Editor` estático (resuelve sin GameManager vivo, como `EquipmentDatabaseSO.Editor`).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Core/Enums.cs`: + `ModifierEffectKind {ReturnDamage, Heal, ApplyStatus}`, + `StatusEffect {None, Poison, Burn, Stun, Regen}`, + `ModifierTier {I, II, III, IV, V}`.
+- `Data/Equipment/EquipmentSO.cs`: + `List<EquipmentModifierRef> Modifiers` (add por enum+tier) + "Resumen mods" editor (resuelve vía `EquipmentModifierDatabaseSO.Editor`).
+- `Core/GameManager.cs`: + campo `equipmentModifierDatabase` + accessor `EquipmentModifierDatabase`.
+- `UI/MorimonchiDetailInfoUITK.cs`: + ref serializada `modifierDatabase` (fallback a GameManager) + `ModifiersText(item)` + label `equip-card__mods` en la card (debajo de los efectos).
+
+**Files Touched (no-ScriptNode):**
+- `UI Toolkit/MorimonchiDetailInfoUITKStyle.uss`: + `.equip-card__mods` (tinte ámbar, distinto del verde de `equip-card__effects`).
+
+**WIRING UNITY (Juan — PENDIENTE, bloqueante para Play):**
+1. Crear asset: Create → RunRunSimulator/Databases/Equipment Modifier Database.
+2. Poblar el catálogo: por cada `ModifierEffectKind`, sus tiers (I–V) con valores (ej. `ReturnDamage` I `{Magnitude:0.15}`; `ApplyStatus` I `{Status:Poison, DurationTurns:3, Magnitude:2}`).
+3. Asignarlo en `GameManager` (campo *Equipment Modifier Database*) y en `MorimonchiDetailInfoUITK` (campo *Modifier Database*).
+4. Agregar `Modifiers` (Kind+Tier) a algún `EquipmentSO`; el "Resumen mods" del inspector confirma la resolución.
+5. Play: abrir la card de un MM con ese equipo → ver las líneas ámbar `◆ …`.
+
+**ScriptNodes a crear/actualizar (cierre S28 — agente Haiku):** CREAR `EquipmentModifier.md`, `EquipmentModifierDatabaseSO.md`; ACTUALIZAR `EquipmentSO.md` (+`Modifiers`), `GameManager.md` (+`EquipmentModifierDatabase`), `MorimonchiDetailInfoUITK.md` (+modifiers en la card vía DB), `Enums.md` (si existe: +ModifierEffectKind/StatusEffect/ModifierTier).
+
+**Next session (S29):**
+1. **Testear** la etapa inicial de modifiers en Play (wiring de arriba).
+2. Si OK → **Etapa 2 = behavior**: handler por `Kind` (`IModifierBehavior` resuelto por Kind), aplicar procs en el pipeline de combate + `StatSheet`/hooks, **paridad JS** (espejo del catálogo). Llenar la mitad diagonal de la card con los efectos. Respetar la regla "Kind = dispatch".
+
+---
+
+**Session:** 2026-06-26 (Session 27 — Equipamiento Etapa 1 cerrada: DISPLAY del equipo (StatSheet de display, tab Stats en MoriMochiAgent, tab Equipo minimalista con cards/diagonal/paleta) + pipeline de arte Gemini (pausado)) — **✅ CERRADA (probado en Play por Juan)**
+**Focus:** Cerrar los pendientes de Et.1 (S26): que el equipo se VEA. (1) Capa que aplica los `StatModifier` del equipo a los stats (el "StatSheet", solo display). (2) Vista rápida de stats en el inspector del agente. (3) Tab Equipo del detail panel. Se exploró un look cyberpunk con sprites (+ se montó un pipeline de generación de imágenes con Gemini) pero se descartó por no pegar con el vibe cozy/low-poly → se volvió a UI minimalista.
+
+> ### ✅ Bloque A — `EquipmentStats.Apply` (el StatSheet, solo display)
+> Nuevo `Systems/Combat/EquipmentStats.cs` (clase estática pura). `Apply(EffectiveStats base, dna, EquipmentDatabaseSO)` junta los `StatModifier` de los ítems equipados y aplica por stat **Flat → PercentAdd (Σ%) → PercentMult (compuesto)**, piso 0. **Solo conectado al DISPLAY** (no al pipeline de combate — eso es Fase 2). Reutilizable por combate + espejo JS cuando llegue.
+
+> ### ✅ Bloque B — Tab "Stats" Odin en `MoriMochiAgent`
+> En `MoriMochiAgent.Tuning.cs`, `[TabGroup("Tuning","Stats")]` (mismo patrón live-readout que la tab Needs): por stat muestra `Base (con partes) → Final (con equipo)` con el delta. Solo en Play (cuando `dna` está inyectado). Resuelve DBs vía `GameManager.Instance.Database`/`EquipmentDatabase`.
+
+> ### ✅ Bloque C — Tab Equipo del detail panel (MINIMALISTA, tras descartar cyberpunk)
+> Reescrita en `MorimonchiDetailInfoUITK` (+uxml/uss). 2 columnas: **Izq** = cards (iteran el enum `EquipmentSlot` → escalan a 6 slots solas, dentro de un `ScrollView`): ícono + nombre (color por rareza) + `slot · rareza` + `Description` + efectos; **acento de borde-izq por slot** + **cuña diagonal a la MITAD pintada con `Painter2D` en el color de la rareza** (alpha 0.5, espacio reservado para los efectos de Fase 2); slot vacío = card atenuada sin diagonal. **Der** = imagen grande del MM (swatch `BaseColor`) + desglose de stats `Base → Final` (delta verde/rojo). La tab **Info** también aplica `EquipmentStats.Apply` ahora (stats reflejan el equipo). Fix recurrente: flechitas ◄► del `TabView` ocultadas en USS (`.unity-repeat-button`/`.unity-button` dentro del header-container).
+
+> ### ✅ Bloque D — `EquipmentPaletteSO` + campos de `EquipmentSO`
+> Nuevo `EquipmentPaletteSO` (Odin): `rareza→color (pastel)` + `slot→color`, con botón **"Seteo base (pastel)"** que precarga ambos (fallbacks: rareza→`BodyPart.RarityColor`, slot→defaults). `EquipmentSO` ganó **`Description`** (multilínea, se muestra en la card) + **`IconColor`** (color del ícono cuando no hay sprite). El panel resuelve colores vía la paleta (con fallback si no está asignada).
+
+> ### 🎨 Bloque E — Pipeline de arte Gemini (workflow nuevo, generación PAUSADA)
+> Montado y probado: `Tools/gen-image.ps1` lee prompts `.md` de `Resources/Sprites/UI/Ideas/` (con `_style.md` compartido = dirección de arte), llama a Gemini (`gemini-3.1-flash-image-preview`/Nano Banana), guarda el PNG. `Tools/key-transparency.ps1` hace chroma **verde→alfa** (Nano Banana NO entrega alfa real — confirmado, devuelve 24bpp opaco). Key en `Tools/gemini.key` (gitignored vía `Tools/*.key`) o env `GEMINI_API_KEY`. **Pausado** porque se volvió a UI minimalista; los PNG generados (`equip_*.png`) quedan sin uso por la UI.
+
+**WIRING UNITY (Juan):** crear el asset `EquipmentPalette` (Create → RunRunSimulator/Equipment/Equipment Palette) + botón "Seteo base"; asignarlo al campo `Equipment Palette` del `MorimonchiDetailInfoUITK` (y confirmar `Equipment Database` ya asignado). Opcional: `Description`/`IconColor` por `EquipmentSO`.
+
+**Files Created (.cs — input ScriptNodes):**
+- `Systems/Combat/EquipmentStats.cs` (NUEVO): resolver puro de modificadores (Flat→PercentAdd→PercentMult), el "StatSheet" de display.
+- `Data/Equipment/EquipmentPaletteSO.cs` (NUEVO): rareza→color + slot→color (Odin), botón seteo base pastel.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `World/AI/MoriMochiAgent.Tuning.cs`: + tab Odin "Stats" (Base→Final con equipo, live-readout play-mode).
+- `UI/MorimonchiDetailInfoUITK.cs`: stats de Info con equipo; tab Equipo reescrita (cards por enum + ScrollView + acento slot + diagonal Painter2D + portrait + stats Base→Final); helpers `RarityColor`/`SlotColor`/`PaintDiagonal`; campos `equipmentDatabase`/`equipmentPalette`.
+- `Data/Equipment/EquipmentSO.cs`: + `Description` (multilínea) + `IconColor`.
+
+**Files Touched (no-ScriptNode):**
+- `UI Toolkit/MorimonchiDetailInfoUITK.uxml`/`.uss`: tab Equipo layout 2 columnas + estilos minimalistas + fix flechitas TabView.
+- `Tools/gen-image.ps1`, `Tools/key-transparency.ps1` (NUEVOS), `.gitignore` (+`Tools/*.key`), `Resources/Sprites/UI/Ideas/*.md` (prompts + `_style.md` + `_README.md`), PNGs generados.
+
+**ScriptNodes a actualizar/crear (cierre S27 — agente Haiku):** CREAR `EquipmentStats.md`, `EquipmentPaletteSO.md`; ACTUALIZAR `MoriMochiAgent.md` (tab Stats), `MorimonchiDetailInfoUITK.md` (tab Equipo minimalista + Info con equipo), `EquipmentSO.md` (+Description/+IconColor).
+
+**Next session (S28) — FASE 2: Sistema de modificadores en COMBATE:**
+1. Conectar `EquipmentStats.Apply` (o un `StatSheet`) al pipeline real: `CombatService.ComputeStats`/`Strike` deben usar los stats con equipo.
+2. Hooks polimórficos en `EquipmentEffectBase` (OnHitDealt/OnHitReceived/OnTurnEnd) + procs concretos (lifesteal/thorns/DoT) sobre un `CombatContext` efímero.
+3. Llenar la **mitad diagonal** de la card con esos efectos.
+4. **Paridad JS** (`run-combat.js`/`process-matchmaking.js`). Et.3 = Combat Visualizer.
+
+---
+
 **Session:** 2026-06-26 (Session 26 — Justicia de stats base (point-buy) + 3 stats nuevos DEF/LCK/EVA con rename HP→CON + Sistema de Equipamiento Etapa 1 (data/persistencia/drag-drop)) — **🟡 CÓDIGO HECHO, TESTEO PARCIAL (sigue mañana)**
 **Focus:** (1) Auditar `MintRandomCreature` y volver justos los stats base. (2) Diseñar e implementar 3 stats adicionales derivados del equipo (DEF/LCK/EVA) + rename HP→CON. (3) Conversar y arrancar el gran Sistema de Equipamiento (SO + efectos polimórficos Odin) — Etapa 1 de 3.
 

@@ -17216,6 +17216,7 @@ MonoBehaviour:
   partVisualBank: {fileID: 11400000, guid: 0f4abf5f11f4e7a468321e65eea303fe, type: 2}
   furTypeDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
+  equipmentModifierDatabase: {fileID: 0}
   cloudSync: {fileID: 1443145214}
 --- !u!4 &1046970363
 Transform:
@@ -18223,6 +18224,8 @@ MonoBehaviour:
   panel: 2
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
+  equipmentPalette: {fileID: 11400000, guid: 52152e99c2aa6924f92727b5f41fbf38, type: 2}
+  modifierDatabase: {fileID: 0}
   sortingOrder: 100
 --- !u!114 &1218711427
 MonoBehaviour:

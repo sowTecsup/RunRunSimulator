@@ -87,4 +87,6 @@ MonoBehaviour:
   ID: EQ1
   Name: Sword
   Slot: 1
-  Rarity: 0
+  Rarity: 1
+  IconColor: {r: 0.6830188, g: 0.20366009, b: 0.1791313, a: 1}
+  Description: Is a sword

@@ -344,4 +344,38 @@ public enum EquipmentSlot
     Armor  = 1,
     Amulet = 2,
 }
+
+// What a configurable equipment modifier does in combat (Stage 2 wires the real
+// procs). The concrete numbers per kind/tier live in EquipmentModifierDatabaseSO;
+// equipment stores only the light (Kind, Tier) reference. Closed catalog so the
+// async JS motor mirrors it.
+public enum ModifierEffectKind
+{
+    ReturnDamage = 0,
+    Heal         = 1,
+    ApplyStatus  = 2,
+}
+
+// Power tier of a modifier effect. Each (Kind, Tier) pair resolves to one configured
+// ModifierTierDef in EquipmentModifierDatabaseSO. Capped at five — the tuning axis,
+// not the behavior axis (that is Kind).
+public enum ModifierTier
+{
+    I   = 0,
+    II  = 1,
+    III = 2,
+    IV  = 3,
+    V   = 4,
+}
+
+// Status a modifier can inflict for a number of turns (ApplyStatus kind). Closed and
+// declarative for async parity. Extend as new statuses appear.
+public enum StatusEffect
+{
+    None   = 0,
+    Poison = 1,
+    Burn   = 2,
+    Stun   = 3,
+    Regen  = 4,
+}
 }

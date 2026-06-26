@@ -88,3 +88,5 @@ MonoBehaviour:
   Name: Sword
   Slot: 0
   Rarity: 0
+  IconColor: {r: 0.20857947, g: 0.20857947, b: 0.81886786, a: 1}
+  Description: Is a plane

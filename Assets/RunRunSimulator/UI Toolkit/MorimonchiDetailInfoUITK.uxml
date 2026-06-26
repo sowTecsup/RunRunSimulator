@@ -69,29 +69,12 @@
                 </ui:Tab>
 
                 <ui:Tab label="Equipo" name="tab-team">
-                    <ui:VisualElement name="equip-body" class="equip-body">
-                        <ui:VisualElement name="equip-stage" class="equip-stage">
-                            <ui:VisualElement name="equip-link-left" class="equip-link equip-link--h equip-link--left" />
-                            <ui:VisualElement name="equip-link-right" class="equip-link equip-link--h equip-link--right" />
-                            <ui:VisualElement name="equip-link-bottom" class="equip-link equip-link--v equip-link--bottom" />
+                    <ui:VisualElement class="equip-body">
+                        <ui:ScrollView name="equip-cards" class="equip-cards" mode="Vertical" />
+                        <ui:VisualElement class="equip-right">
                             <ui:VisualElement name="equip-portrait" class="equip-portrait" />
-                            <ui:VisualElement name="slot-weapon" class="equip-slot equip-slot--weapon">
-                                <ui:VisualElement name="slot-weapon-icon" class="equip-slot__icon" />
-                                <ui:Label text="ARMA" class="equip-slot__label" />
-                            </ui:VisualElement>
-                            <ui:VisualElement name="slot-armor" class="equip-slot equip-slot--armor">
-                                <ui:VisualElement name="slot-armor-icon" class="equip-slot__icon" />
-                                <ui:Label text="ARMADURA" class="equip-slot__label" />
-                            </ui:VisualElement>
-                            <ui:VisualElement name="slot-amulet" class="equip-slot equip-slot--amulet">
-                                <ui:VisualElement name="slot-amulet-icon" class="equip-slot__icon" />
-                                <ui:Label text="AMULETO" class="equip-slot__label" />
-                            </ui:VisualElement>
-                        </ui:VisualElement>
-                        <ui:VisualElement name="equip-tooltip" class="equip-tooltip">
-                            <ui:Label name="tip-name" class="tip-name" />
-                            <ui:Label name="tip-meta" class="tip-meta" />
-                            <ui:Label name="tip-effects" class="tip-effects" />
+                            <ui:Label text="Stats" class="section-title" />
+                            <ui:VisualElement name="equip-stats" class="equip-stats" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:Tab>

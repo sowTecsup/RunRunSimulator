@@ -82,10 +82,14 @@
     display: none;
 }
 
-/* Belt-and-suspenders: also hide any scroller/scroll-buttons inside the header. */
+/* Belt-and-suspenders: also hide any scroller/scroll-buttons/arrows inside the
+   header (the ◄ ► appear as repeat-buttons in some Unity versions). The tabs
+   themselves are .unity-tab__header (not buttons), so they stay. */
 .detail-tabs .unity-tab-view__header-container .unity-scroller,
 .detail-tabs .unity-tab-view__header-container .unity-scroller__low-button,
-.detail-tabs .unity-tab-view__header-container .unity-scroller__high-button {
+.detail-tabs .unity-tab-view__header-container .unity-scroller__high-button,
+.detail-tabs .unity-tab-view__header-container .unity-repeat-button,
+.detail-tabs .unity-tab-view__header-container .unity-button {
     display: none;
 }
 
@@ -279,99 +283,130 @@
     -unity-text-align: middle-center;
 }
 
-/* ── Equipo tab: cyberpunk character sheet ───────────────────────────
-   Central MoriMochi portrait framed in neon, three equipment slots wired
-   out to it, and a cursor-following tooltip with the item's details. */
+/* ── Equipo tab: minimalist (left = item cards, right = portrait + stats) ── */
 .equip-body {
-    position: relative;
+    flex-direction: row;
     flex-grow: 1;
-    min-height: 480px;
-    margin-top: 8px;
+    padding-top: 8px;
+}
+
+/* Left column: one card per equipment slot. */
+.equip-cards {
+    width: 56%;
+    margin-right: 12px;
+}
+
+.equip-card {
+    flex-direction: row;
+    background-color: rgb(40, 40, 52);
     border-radius: 8px;
-    background-color: rgb(16, 18, 28);
+    border-left-width: 4px;
+    border-left-color: rgb(90, 90, 110);
+    padding: 10px;
+    margin-bottom: 8px;
     overflow: hidden;
 }
 
-.equip-stage {
+/* Right-side diagonal accent, painted in code (Painter2D) with the rarity color.
+   Reserved space for equipment effects (next session). */
+.equip-card__diag {
     position: absolute;
     left: 0;
-    right: 0;
     top: 0;
+    right: 0;
     bottom: 0;
 }
 
-.equip-portrait {
-    position: absolute;
-    width: 220px;
-    height: 220px;
-    left: 50%;
-    top: 42%;
-    translate: -50% -50%;
-    border-radius: 10px;
-    background-color: rgb(120, 120, 120);
-    border-width: 2px;
-    border-color: rgb(0, 220, 255);
+.equip-card--empty {
+    background-color: rgb(30, 30, 38);
+    opacity: 0.7;
 }
 
-.equip-slot {
-    position: absolute;
-    width: 108px;
-    align-items: center;
-    padding: 7px;
-    border-radius: 8px;
-    background-color: rgb(24, 26, 40);
-    border-width: 2px;
-    border-color: rgb(58, 62, 92);
-}
-
-.equip-slot--weapon { left: 7%;  top: 42%; translate: 0 -50%; }
-.equip-slot--armor  { right: 7%; top: 42%; translate: 0 -50%; }
-.equip-slot--amulet { left: 50%; bottom: 5%; translate: -50% 0; }
-
-.equip-slot__icon {
-    width: 74px;
-    height: 74px;
+.equip-card__icon {
+    width: 64px;
+    height: 64px;
     border-radius: 6px;
-    margin-bottom: 4px;
-    background-color: rgb(14, 16, 26);
+    margin-right: 10px;
+    background-color: rgb(22, 22, 30);
     -unity-background-scale-mode: scale-to-fit;
 }
 
-.equip-slot__label {
-    font-size: 12px;
+.equip-card__info {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.equip-card__name {
+    font-size: 16px;
     -unity-font-style: bold;
-    color: rgb(120, 130, 160);
-    -unity-text-align: middle-center;
+    color: rgb(228, 228, 234);
+    white-space: normal;
 }
 
-.equip-slot--filled {
-    border-color: rgb(255, 70, 180);
-    background-color: rgb(40, 26, 44);
+.equip-card__meta {
+    font-size: 12px;
+    color: rgb(150, 150, 165);
+    margin-bottom: 4px;
 }
 
-.equip-slot--filled .equip-slot__label { color: rgb(245, 170, 215); }
+.equip-card__desc {
+    font-size: 13px;
+    color: rgb(205, 205, 215);
+    white-space: normal;
+    margin-bottom: 3px;
+}
 
-.equip-slot:hover { border-color: rgb(0, 230, 255); }
+.equip-card__effects {
+    font-size: 13px;
+    color: rgb(150, 210, 170);
+    white-space: normal;
+}
 
-/* Neon connectors from the portrait out to each slot. */
-.equip-link { position: absolute; opacity: 0.5; background-color: rgb(0, 180, 220); }
-.equip-link--h { height: 2px; top: 42%; width: 20%; }
-.equip-link--left  { left: 22%; }
-.equip-link--right { right: 22%; }
-.equip-link--v { width: 2px; left: 50%; bottom: 15%; height: 14%; translate: -50% 0; }
+.equip-card__mods {
+    font-size: 13px;
+    color: rgb(225, 195, 130);
+    white-space: normal;
+    margin-top: 2px;
+}
 
-/* Hover tooltip — neon card following the cursor (picking ignored in code). */
-.equip-tooltip {
-    position: absolute;
-    width: 250px;
-    padding: 10px;
+/* Right column: big MoriMochi image + stats breakdown. */
+.equip-right {
+    width: 42%;
+    flex-direction: column;
+}
+
+.equip-portrait {
+    width: 100%;
+    height: 240px;
     border-radius: 8px;
-    background-color: rgba(10, 12, 22, 0.96);
-    border-width: 1px;
-    border-color: rgb(0, 220, 255);
-    display: none;
+    margin-bottom: 8px;
+    background-color: rgb(120, 120, 120);
 }
 
-.tip-name { font-size: 17px; -unity-font-style: bold; color: rgb(235, 235, 240); margin-bottom: 2px; white-space: normal; }
-.tip-meta { font-size: 13px; color: rgb(150, 160, 190); margin-bottom: 6px; }
-.tip-effects { font-size: 13px; color: rgb(210, 220, 235); white-space: normal; }
+.equip-stats {
+    flex-direction: column;
+}
+
+.equip-stat {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(50, 50, 62);
+}
+
+.equip-stat__name {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(170, 170, 185);
+}
+
+.equip-stat__val {
+    font-size: 14px;
+    color: rgb(225, 225, 230);
+}
+
+.equip-stat__val--up   { color: rgb(120, 220, 130); }
+.equip-stat__val--down { color: rgb(235, 120, 110); }

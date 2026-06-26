@@ -30,6 +30,12 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     [Tooltip("Resolves equipped item IDs to their EquipmentSO (icon, rarity, effects) for the Equipo tab.")]
     [SerializeField] private EquipmentDatabaseSO equipmentDatabase;
 
+    [Tooltip("Colores por rareza (pastel, nombre del ítem) y por slot (acento de la card).")]
+    [SerializeField] private EquipmentPaletteSO equipmentPalette;
+
+    [Tooltip("Resuelve las referencias (efecto + tier) de los modificadores del ítem para mostrarlas en la card. Fallback: GameManager.")]
+    [SerializeField] private EquipmentModifierDatabaseSO modifierDatabase;
+
     [Tooltip("Draw order; higher keeps this modal above the grid panel.")]
     [SerializeField] private int sortingOrder = 100;
 
@@ -42,10 +48,9 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     private Button closeButton;
     private bool wired;
 
-    // Equipo tab (cyberpunk sheet): portrait + 3 slots + the cursor-following tooltip.
-    private VisualElement teamPortrait, equipTooltip;
-    private VisualElement slotWeapon, slotArmor, slotAmulet, iconWeapon, iconArmor, iconAmulet;
-    private Label tipName, tipMeta, tipEffects;
+    // Equipo tab: portrait swatch + left card list + right stats breakdown.
+    private VisualElement teamPortrait, equipStats;
+    private ScrollView equipCards;
 
     // Kept from the latest Show() so the Combate/Linaje tabs can resolve opponents
     // and ancestors by ID (the event carries it — the panel never touches the grid).
@@ -123,21 +128,8 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         tabs             = root.Q<TabView>("tabs");
 
         teamPortrait = root.Q<VisualElement>("equip-portrait");
-        slotWeapon   = root.Q<VisualElement>("slot-weapon");
-        slotArmor    = root.Q<VisualElement>("slot-armor");
-        slotAmulet   = root.Q<VisualElement>("slot-amulet");
-        iconWeapon   = root.Q<VisualElement>("slot-weapon-icon");
-        iconArmor    = root.Q<VisualElement>("slot-armor-icon");
-        iconAmulet   = root.Q<VisualElement>("slot-amulet-icon");
-        equipTooltip = root.Q<VisualElement>("equip-tooltip");
-        tipName      = root.Q<Label>("tip-name");
-        tipMeta      = root.Q<Label>("tip-meta");
-        tipEffects   = root.Q<Label>("tip-effects");
-
-        if (equipTooltip != null) equipTooltip.pickingMode = PickingMode.Ignore;
-        RegisterSlotHover(slotWeapon, EquipmentSlot.Weapon);
-        RegisterSlotHover(slotArmor,  EquipmentSlot.Armor);
-        RegisterSlotHover(slotAmulet, EquipmentSlot.Amulet);
+        equipCards   = root.Q<ScrollView>("equip-cards");
+        equipStats   = root.Q<VisualElement>("equip-stats");
 
         closeButton = root.Q<Button>("close-button");
         if (closeButton != null) closeButton.clicked += OnClose;
@@ -199,28 +191,128 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         BuildEquipment(dna);
     }
 
-    // ── Equipo tab (cyberpunk sheet) ──────────────────────────────
+    // ── Equipo tab (left = item cards, right = portrait + stats) ──
 
     private void BuildEquipment(CreatureDNA dna)
     {
         if (teamPortrait != null) teamPortrait.style.backgroundColor = dna.BaseColor;
-        FillSlot(slotWeapon, iconWeapon, dna, EquipmentSlot.Weapon);
-        FillSlot(slotArmor,  iconArmor,  dna, EquipmentSlot.Armor);
-        FillSlot(slotAmulet, iconAmulet, dna, EquipmentSlot.Amulet);
-        HideTip();
+        BuildEquipCards(dna);
+        BuildEquipStats(dna);
     }
 
-    private void FillSlot(VisualElement slot, VisualElement icon, CreatureDNA dna, EquipmentSlot slotType)
+    private void BuildEquipCards(CreatureDNA dna)
     {
-        if (slot == null) return;
-        var item = ResolveEquip(dna, slotType);
-        slot.userData = item;
-        slot.EnableInClassList("equip-slot--filled", item != null);
+        if (equipCards == null) return;
+        equipCards.Clear();
+        foreach (EquipmentSlot slot in System.Enum.GetValues(typeof(EquipmentSlot)))
+            AddEquipCard(dna, slot);
+    }
 
-        if (icon == null) return;
-        bool hasIcon = item != null && item.Icon != null;
-        icon.style.display = hasIcon ? DisplayStyle.Flex : DisplayStyle.None;
-        if (hasIcon) icon.style.backgroundImage = new StyleBackground(Background.FromSprite(item.Icon));
+    private void AddEquipCard(CreatureDNA dna, EquipmentSlot slot)
+    {
+        var item = ResolveEquip(dna, slot);
+
+        var card = new VisualElement();
+        card.AddToClassList("equip-card");
+        if (item == null) card.AddToClassList("equip-card--empty");
+        card.style.borderLeftColor = SlotColor(slot);
+
+        // Diagonal accent (behind content) in the rarity color — added first so the
+        // icon/info draw on top. Empty slots get no accent.
+        if (item != null)
+        {
+            var diag = new VisualElement();
+            diag.AddToClassList("equip-card__diag");
+            diag.pickingMode = PickingMode.Ignore;
+            var dc = RarityColor(item.Rarity);
+            dc.a = 0.5f;
+            diag.generateVisualContent += ctx => PaintDiagonal(ctx, dc);
+            card.Add(diag);
+        }
+
+        var icon = new VisualElement();
+        icon.AddToClassList("equip-card__icon");
+        if (item != null && item.Icon != null)
+            icon.style.backgroundImage = new StyleBackground(Background.FromSprite(item.Icon));
+        else if (item != null)
+            icon.style.backgroundColor = item.IconColor;
+        card.Add(icon);
+
+        var info = new VisualElement();
+        info.AddToClassList("equip-card__info");
+
+        var name = new Label(item != null
+            ? (string.IsNullOrEmpty(item.Name) ? item.ID : item.Name)
+            : $"{SlotName(slot)}: vacío");
+        name.AddToClassList("equip-card__name");
+        if (item != null) name.style.color = RarityColor(item.Rarity);
+        info.Add(name);
+
+        var meta = new Label(item != null ? $"{SlotName(item.Slot)} · {item.Rarity}" : "Sin equipar");
+        meta.AddToClassList("equip-card__meta");
+        info.Add(meta);
+
+        if (item != null && !string.IsNullOrEmpty(item.Description))
+        {
+            var desc = new Label(item.Description);
+            desc.AddToClassList("equip-card__desc");
+            info.Add(desc);
+        }
+
+        if (item != null)
+        {
+            var eff = new Label(EffectsText(item));
+            eff.AddToClassList("equip-card__effects");
+            info.Add(eff);
+
+            var modsText = ModifiersText(item);
+            if (!string.IsNullOrEmpty(modsText))
+            {
+                var mods = new Label(modsText);
+                mods.AddToClassList("equip-card__mods");
+                info.Add(mods);
+            }
+        }
+
+        card.Add(info);
+        equipCards.Add(card);
+    }
+
+    private void BuildEquipStats(CreatureDNA dna)
+    {
+        if (equipStats == null) return;
+        equipStats.Clear();
+
+        var baseEff = database != null
+            ? CombatService.GetEffectiveStats(dna, database)
+            : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+        var finalEff = EquipmentStats.Apply(baseEff, dna, equipmentDatabase);
+
+        AddStatRow("CON", baseEff.Constitution, finalEff.Constitution);
+        AddStatRow("ATK", baseEff.Attack,       finalEff.Attack);
+        AddStatRow("SPD", baseEff.Speed,        finalEff.Speed);
+        AddStatRow("DEF", baseEff.Defense,      finalEff.Defense);
+        AddStatRow("LCK", baseEff.Luck,         finalEff.Luck);
+        AddStatRow("EVA", baseEff.Evasion,      finalEff.Evasion);
+    }
+
+    private void AddStatRow(string name, float baseVal, float finalVal)
+    {
+        var row = new VisualElement();
+        row.AddToClassList("equip-stat");
+
+        var n = new Label(name);
+        n.AddToClassList("equip-stat__name");
+        row.Add(n);
+
+        float d = finalVal - baseVal;
+        var v = new Label(Mathf.Approximately(d, 0f) ? $"{finalVal:0.#}" : $"{baseVal:0.#} → {finalVal:0.#}");
+        v.AddToClassList("equip-stat__val");
+        if (d > 0f)      v.AddToClassList("equip-stat__val--up");
+        else if (d < 0f) v.AddToClassList("equip-stat__val--down");
+        row.Add(v);
+
+        equipStats.Add(row);
     }
 
     private EquipmentSO ResolveEquip(CreatureDNA dna, EquipmentSlot slot)
@@ -229,52 +321,34 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         return dna.Equipped.TryGetValue(slot, out var id) ? equipmentDatabase.GetByID(id) : null;
     }
 
-    private void RegisterSlotHover(VisualElement slot, EquipmentSlot slotType)
+    // Draws the right-side diagonal wedge filled with the rarity color. Slants 45°
+    // (bottom reaches further left), leaving the left side for the icon/text.
+    private static void PaintDiagonal(MeshGenerationContext ctx, Color color)
     {
-        if (slot == null) return;
-        slot.RegisterCallback<PointerEnterEvent>(_ => ShowTip(slot, slotType));
-        slot.RegisterCallback<PointerMoveEvent>(MoveTip);
-        slot.RegisterCallback<PointerLeaveEvent>(_ => HideTip());
+        var rect = ctx.visualElement.contentRect;
+        float w = rect.width, h = rect.height;
+        if (w <= 0f || h <= 0f) return;
+
+        // Diagonal crosses the card's center → splits it into two equal halves.
+        float topX = w * 0.5f - h * 0.5f;
+        float botX = topX + h;
+
+        var p = ctx.painter2D;
+        p.fillColor = color;
+        p.BeginPath();
+        p.MoveTo(new Vector2(w - topX, 0f));
+        p.LineTo(new Vector2(w, 0f));
+        p.LineTo(new Vector2(w, h));
+        p.LineTo(new Vector2(w - botX, h));
+        p.ClosePath();
+        p.Fill();
     }
 
-    private void ShowTip(VisualElement slot, EquipmentSlot slotType)
-    {
-        if (equipTooltip == null) return;
-        var item = slot.userData as EquipmentSO;
+    private Color RarityColor(Rarity r) =>
+        equipmentPalette != null ? equipmentPalette.RarityColor(r) : BodyPart.RarityColor(r);
 
-        if (item == null)
-        {
-            if (tipName != null)    { tipName.text = "Vacío"; tipName.style.color = new Color(0.6f, 0.6f, 0.68f); }
-            if (tipMeta != null)    tipMeta.text = SlotName(slotType);
-            if (tipEffects != null) tipEffects.text = "Sin equipar";
-        }
-        else
-        {
-            if (tipName != null)    { tipName.text = string.IsNullOrEmpty(item.Name) ? item.ID : item.Name; tipName.style.color = BodyPart.RarityColor(item.Rarity); }
-            if (tipMeta != null)    tipMeta.text = $"{SlotName(item.Slot)} · {item.Rarity}";
-            if (tipEffects != null) tipEffects.text = EffectsText(item);
-        }
-
-        equipTooltip.style.display = DisplayStyle.Flex;
-    }
-
-    private void MoveTip(PointerMoveEvent evt)
-    {
-        if (equipTooltip == null || equipTooltip.style.display == DisplayStyle.None) return;
-        var host = equipTooltip.parent;
-        if (host == null) return;
-
-        Vector2 local = host.WorldToLocal((Vector2)evt.position);
-        float w = host.resolvedStyle.width;
-        float h = host.resolvedStyle.height;
-        equipTooltip.style.left = Mathf.Clamp(local.x + 18f, 0f, Mathf.Max(0f, w - 270f));
-        equipTooltip.style.top  = Mathf.Clamp(local.y + 18f, 0f, Mathf.Max(0f, h - 130f));
-    }
-
-    private void HideTip()
-    {
-        if (equipTooltip != null) equipTooltip.style.display = DisplayStyle.None;
-    }
+    private Color SlotColor(EquipmentSlot s) =>
+        equipmentPalette != null ? equipmentPalette.SlotColor(s) : new Color(0.35f, 0.35f, 0.43f);
 
     private static string EffectsText(EquipmentSO item)
     {
@@ -287,6 +361,19 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
             sb.Append("• ").Append(e.Summary());
         }
         return sb.Length == 0 ? "Sin efectos" : sb.ToString();
+    }
+
+    private string ModifiersText(EquipmentSO item)
+    {
+        if (item.Modifiers == null || item.Modifiers.Count == 0) return null;
+        var db = modifierDatabase != null ? modifierDatabase : GameManager.Instance?.EquipmentModifierDatabase;
+        var sb = new System.Text.StringBuilder();
+        foreach (var m in item.Modifiers)
+        {
+            if (sb.Length > 0) sb.Append('\n');
+            sb.Append("◆ ").Append(db != null ? db.Summary(m) : EquipmentModifierDatabaseSO.KindLabel(m.Kind));
+        }
+        return sb.Length == 0 ? null : sb.ToString();
     }
 
     private static string SlotName(EquipmentSlot s) => s switch
