@@ -9,98 +9,84 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3fec32a13e909c40a9b70823e698025, type: 3}
-  m_Name: CreatureLifeStageTable
-  m_EditorClassIdentifier: Assembly-CSharp::CreatureLifeStageTableSO
+  m_Script: {fileID: 11500000, guid: a5b86185506f7b84c9deb69bfdd441b4, type: 3}
+  m_Name: EquipmentDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.EquipmentDatabaseSO
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
-    ReferencedUnityObjects: []
+    ReferencedUnityObjects:
+    - {fileID: 11400000, guid: 1823e41c8b57d4f4685756e790f3bdae, type: 2}
+    - {fileID: 11400000, guid: 2c1f253ed3d7fd642807d09c432ddbda, type: 2}
+    - {fileID: 11400000, guid: 920051a44d63b6845911211937f3611c, type: 2}
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes:
-    - Name: entryDayThreshold
+    - Name: equipment
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.LifeStage,
-        Assembly-CSharp],[System.Int32, mscorlib]], mscorlib
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[MoriMonchiSimulator.EquipmentSO,
+        Assembly-CSharp]], mscorlib
     - Name: comparer
       Entry: 7
-      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.LifeStage,
-        Assembly-CSharp]], mscorlib
+      Data: 1|System.Collections.Generic.GenericEqualityComparer`1[[System.String,
+        mscorlib]], mscorlib
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: EQ0
+    - Name: $v
+      Entry: 10
       Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: EQ1
+    - Name: $v
+      Entry: 10
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: EQ2
+    - Name: $v
+      Entry: 10
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
     - Name: 
       Entry: 8
       Data: 
+    - Name: dropBuffer
+      Entry: 7
+      Data: 2|System.Collections.Generic.List`1[[MoriMonchiSimulator.EquipmentSO,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
-      Data: 5
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
       Data: 0
-    - Name: $v
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
-      Data: 1
-    - Name: $v
-      Entry: 3
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
-      Data: 2
-    - Name: $v
-      Entry: 3
-      Data: 3
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
-      Data: 3
-    - Name: $v
-      Entry: 3
-      Data: 7
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
-      Data: 4
-    - Name: $v
-      Entry: 3
-      Data: 20
-    - Name: 
-      Entry: 8
-      Data: 
     - Name: 
       Entry: 13
       Data: 

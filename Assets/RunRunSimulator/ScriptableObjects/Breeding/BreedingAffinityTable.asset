@@ -23,13 +23,14 @@ MonoBehaviour:
     SerializationNodes:
     - Name: affinities
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[System.ValueTuple`2[[Personality,
-        Assembly-CSharp],[Personality, Assembly-CSharp]], mscorlib],[System.Single,
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.ValueTuple`2[[MoriMonchiSimulator.Personality,
+        Assembly-CSharp],[MoriMonchiSimulator.Personality, Assembly-CSharp]], mscorlib],[System.Single,
         mscorlib]], mscorlib
     - Name: comparer
       Entry: 7
-      Data: 1|System.Collections.Generic.GenericEqualityComparer`1[[System.ValueTuple`2[[Personality,
-        Assembly-CSharp],[Personality, Assembly-CSharp]], mscorlib]], mscorlib
+      Data: 1|System.Collections.Generic.GenericEqualityComparer`1[[System.ValueTuple`2[[MoriMonchiSimulator.Personality,
+        Assembly-CSharp],[MoriMonchiSimulator.Personality, Assembly-CSharp]], mscorlib]],
+        mscorlib
     - Name: 
       Entry: 8
       Data: 
@@ -41,8 +42,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 0
@@ -63,8 +64,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 0
@@ -85,8 +86,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 0
@@ -107,8 +108,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 0
@@ -129,8 +130,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 0
@@ -151,8 +152,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 0
@@ -173,8 +174,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 1
@@ -195,8 +196,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 1
@@ -217,8 +218,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 1
@@ -239,8 +240,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 1
@@ -261,8 +262,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 1
@@ -283,8 +284,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 2
@@ -305,8 +306,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 2
@@ -327,8 +328,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 2
@@ -349,8 +350,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 2
@@ -371,8 +372,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 3
@@ -393,8 +394,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 3
@@ -415,8 +416,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 3
@@ -437,8 +438,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 4
@@ -459,8 +460,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 4
@@ -481,8 +482,8 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 7
-      Data: System.ValueTuple`2[[Personality, Assembly-CSharp],[Personality, Assembly-CSharp]],
-        mscorlib
+      Data: System.ValueTuple`2[[MoriMonchiSimulator.Personality, Assembly-CSharp],[MoriMonchiSimulator.Personality,
+        Assembly-CSharp]], mscorlib
     - Name: Item1
       Entry: 3
       Data: 5

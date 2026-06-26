@@ -34,7 +34,277 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS2-A0-E0-M0-32A60F-639180516855183732
+    - Name: $v
+      Entry: 7
+      Data: 2|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS2
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M0
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.196078435
+    - Name: 
+      Entry: 4
+      Data: 0.6509804
+    - Name: 
+      Entry: 4
+      Data: 0.05882353
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SecondaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.181668118
+    - Name: 
+      Entry: 4
+      Data: 0.800980449
+    - Name: 
+      Entry: 4
+      Data: 0.33538878
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 3
+    - Name: CustomName
+      Entry: 1
+      Data: Gooey Nibble
+    - Name: Timestamp
+      Entry: 3
+      Data: 639180516855183732
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250866535282571636
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: 
+    - Name: FatherID
+      Entry: 1
+      Data: 
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 3|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
       Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 4
+    - Name: FightCount
+      Entry: 3
+      Data: 0
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseConstitution
+      Entry: 4
+      Data: 7
+    - Name: BaseAttack
+      Entry: 4
+      Data: 9
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 2
+    - Name: BaseDefense
+      Entry: 4
+      Data: 0
+    - Name: BaseLuck
+      Entry: 4
+      Data: 0
+    - Name: BaseEvasion
+      Entry: 4
+      Data: 0
+    - Name: CombatHistory
+      Entry: 7
+      Data: 4|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 5|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 80.1462
+    - Name: Energy
+      Entry: 4
+      Data: 82.9816
+    - Name: Affect
+      Entry: 4
+      Data: 0.146162733
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: LocationKey
+      Entry: 1
+      Data: 
+    - Name: LocationSlot
+      Entry: 3
+      Data: -1
+    - Name: Equipped
+      Entry: 7
+      Data: 6|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
+        Assembly-CSharp],[System.String, mscorlib]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 7|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.EquipmentSlot,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 0
+    - Name: $v
+      Entry: 1
+      Data: EQ0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 1
+      Data: EQ1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 1
+      Data: EQ2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 

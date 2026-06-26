@@ -12,6 +12,8 @@ tags: [script, combat]
 
 **Slots fijos: A = tu MM (`self`), B = oponente.** No hay swap. Cada turno se orienta con `attackerIsSelf = (turn.AttackerIsA == record.SelfWasA)` (cada pelea se guarda en ambas criaturas con su POV; sin este mapeo el replay saldría espejado). El nombre del oponente sale de `record.OpponentName` (autoritativo, coincide con el log).
 
+**Cálculo de HP máximo:** `hpMax = Constitution × CombatService.BaseHpCombatMultiplier` (5f). Este pool amplificado hace que los combates duren varios turnos. Los stats efectivos se extraen de `CombatService.GetEffectiveStats()` (suma base + bonos de partes + tier).
+
 **API de control (la llama el panel / DEV harness):**
 - `Play(self, opponent, record)`: construye estados y arranca **en pausa** en `head`.
 - `TogglePlay()` / `SetAuto(bool)`: modo auto (avanza solo respetando `playbackSpeed`). Si estaba al final, reinicia desde `head`.
@@ -37,4 +39,4 @@ tags: [script, combat]
 
 **Vinculado a:** [[Index/03 - Combat]]
 
-**Conexiones:** [[CombatVisualEvents]], [[CombatRecord]], [[CombatTurn]], [[CreatureDNA]], [[MoriMonchiVisualizer]], [[MoriMonchiCombatVisualizer]], [[MoriMonchiCombatVisualizerUITK]], [[CombatVisualizerPanelUITK]], [[CombatService]], [[GameManager]]
+**Conexiones:** [[CombatVisualEvents]], [[CombatRecord]], [[CombatTurn]], [[CreatureDNA]], [[MoriMonchiVisualizer]], [[MoriMonchiCombatVisualizer]], [[MoriMonchiCombatVisualizerUITK]], [[CombatVisualizerPanelUITK]], [[CombatService]], [[GameManager]], [[CreatureDatabaseSO]], [[PartVisualBankSO]], [[FurTypeDatabaseSO]]

@@ -40,6 +40,9 @@ public class GameManager : MonoBehaviour
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private FurTypeDatabaseSO furTypeDatabase;
 
+    [AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private EquipmentDatabaseSO equipmentDatabase;
+
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
 
@@ -165,6 +168,7 @@ public class GameManager : MonoBehaviour
     public PersonalityProfileSO   PersonalityProfiles  => personalityProfiles;
     public PartVisualBankSO       PartVisualBank       => partVisualBank;
     public FurTypeDatabaseSO      FurTypeDatabase      => furTypeDatabase;
+    public EquipmentDatabaseSO    EquipmentDatabase    => equipmentDatabase;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures"), BoxGroup("Registry")]
     public int RegistryCount => creatureRegistry?.Count ?? 0;

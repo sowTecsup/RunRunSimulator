@@ -94,6 +94,37 @@ public class CreatureDNA
     public string LocationKey  = "";   // furniture cell key ("x_y") of the place this creature is anchored to (pen / shelf / corral); "" = free roamer (cannon)
     public int    LocationSlot = -1;   // fixed slot index inside that place; -1 = unassigned
 
+    // ── Equipment (typed slots; stores EquipmentSO IDs, resolved vs EquipmentDatabaseSO) ─
+    // Metadata like Gender/Personality — NOT part of the genetic string. Persists with
+    // the DNA (local + cloud) as light IDs. Edited via the typed slot fields below
+    // (hidden raw so the drag-drop slots are the single edit surface).
+    [HideInInspector]
+    public Dictionary<EquipmentSlot, string> Equipped = new Dictionary<EquipmentSlot, string>();
+
+#if UNITY_EDITOR
+    [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.BoxGroup("Equipment"), Sirenix.OdinInspector.AssetsOnly, Sirenix.OdinInspector.LabelText("Weapon")]
+    private EquipmentSO WeaponSlotEditor { get => ResolveSlot(EquipmentSlot.Weapon); set => AssignSlot(EquipmentSlot.Weapon, value); }
+    [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.BoxGroup("Equipment"), Sirenix.OdinInspector.AssetsOnly, Sirenix.OdinInspector.LabelText("Armor")]
+    private EquipmentSO ArmorSlotEditor  { get => ResolveSlot(EquipmentSlot.Armor);  set => AssignSlot(EquipmentSlot.Armor, value); }
+    [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.BoxGroup("Equipment"), Sirenix.OdinInspector.AssetsOnly, Sirenix.OdinInspector.LabelText("Amulet")]
+    private EquipmentSO AmuletSlotEditor { get => ResolveSlot(EquipmentSlot.Amulet); set => AssignSlot(EquipmentSlot.Amulet, value); }
+
+    private EquipmentSO ResolveSlot(EquipmentSlot slot) =>
+        Equipped != null && Equipped.TryGetValue(slot, out var id) ? EquipmentDatabaseSO.Editor?.GetByID(id) : null;
+
+    private void AssignSlot(EquipmentSlot slot, EquipmentSO so)
+    {
+        Equipped ??= new Dictionary<EquipmentSlot, string>();
+        if (so == null) { Equipped.Remove(slot); return; }
+        if (so.Slot != slot)
+        {
+            Debug.LogWarning($"[CreatureDNA] '{so.Name}' es de slot {so.Slot}, no encaja en {slot}.");
+            return;
+        }
+        Equipped[slot] = so.ID;
+    }
+#endif
+
     // Whole days lived since BirthDate (UTC). Drives the NameTag life stage; 0 until stamped.
     public int AgeDays => BirthDate == default ? 0 : Mathf.Max(0, (int)(DateTime.UtcNow - BirthDate).TotalDays);
 

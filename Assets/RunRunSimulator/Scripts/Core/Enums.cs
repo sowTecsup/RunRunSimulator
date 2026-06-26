@@ -314,4 +314,34 @@ public enum MMAnimationType
     Death   = 4,
     Victory = 5,
 }
+
+// The six tunable stats a StatModifier can target. Mirrors the base stat fields of
+// CreatureDNA so equipment modifiers can address any of them generically.
+public enum StatType
+{
+    Constitution = 0,
+    Attack       = 1,
+    Speed        = 2,
+    Defense      = 3,
+    Luck         = 4,
+    Evasion      = 5,
+}
+
+// How a StatModifier stacks. Applied in order: all Flat, then PercentAdd (summed),
+// then each PercentMult (compounded). Classic RPG modifier pipeline.
+public enum ModifierType
+{
+    Flat        = 0,
+    PercentAdd  = 1,
+    PercentMult = 2,
+}
+
+// Typed equipment slots. A MoriMochi holds at most one item per slot; each
+// EquipmentSO declares which slot it occupies. Extend as new gear kinds appear.
+public enum EquipmentSlot
+{
+    Weapon = 0,
+    Armor  = 1,
+    Amulet = 2,
+}
 }

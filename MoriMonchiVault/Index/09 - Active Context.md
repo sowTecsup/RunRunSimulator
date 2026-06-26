@@ -4,6 +4,57 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-26 (Session 26 — Justicia de stats base (point-buy) + 3 stats nuevos DEF/LCK/EVA con rename HP→CON + Sistema de Equipamiento Etapa 1 (data/persistencia/drag-drop)) — **🟡 CÓDIGO HECHO, TESTEO PARCIAL (sigue mañana)**
+**Focus:** (1) Auditar `MintRandomCreature` y volver justos los stats base. (2) Diseñar e implementar 3 stats adicionales derivados del equipo (DEF/LCK/EVA) + rename HP→CON. (3) Conversar y arrancar el gran Sistema de Equipamiento (SO + efectos polimórficos Odin) — Etapa 1 de 3.
+
+> ### ✅ Bloque A — Stats base justos (point-buy)
+> `MintRandomCreature` tiraba 3 stats independientes 1–10 (suma 3–30, lotería). Decisión de Juan: **presupuesto compartido**. `CreatureGenerator.RandomBaseStats()` reparte `StatBudget=18` entre CON/ATK/SPD (min 1, max 10) → mismo poder total, perfil variado. Además el breeding (`InheritStat`) no tenía techo (solo piso 1) → power-creep infinito; ahora `Mathf.Clamp(.., StatMin, StatMax)` con `CreatureGenerator.StatMax=10` (fuente única del tope, mint y breed simétricos). `BaseHpCombatMultiplier ×5` queda igual (decisión de Juan).
+
+> ### ✅ Bloque B — 3 stats nuevos DEF/LCK/EVA + rename HP→CON
+> Stats con 3 letras: **CON** (antes HP), ATK, SPD, **DEF**, **LCK**, **EVA**. `BaseHP`→`BaseConstitution`; nuevos `BaseDefense/BaseLuck/BaseEvasion` nacen en **0** (los llenará el equipo). Fórmulas (en `CombatManagerSO`, tuneables): HP pool=`CON×5`; crit=`CritChance(0.10)+LCK×LuckCritPerPoint(0.03)`; daño=`ATK×(crit?×3)×(1-DEF×DefenseReductionPerPoint(0.08))` (máx 80%); evasión=`EVA×EvasionPerPoint(0.10)` → esquiva (daño 0). Orden en `Strike`: evasión→crit→daño→reducción DEF. `EffectiveStats` pasó de 3 a **6 campos** (toca toda la UI). `CombatService.BaseHpCombatMultiplier` ahora público (lo usa el visualizer). **JS server sincronizado** (`run-combat.js`/`process-matchmaking.js`) con las mismas fórmulas (constantes hardcodeadas, deuda vieja: el JS no suma stats de partes). **RESET requerido** por el rename → botón nuevo **"Wipe Registry (DEV)"** en `CreatureRegistrySO`. **Pendiente Juan: desplegar los .js a UGS.**
+
+> ### 🟡 Bloque C — Sistema de Equipamiento, ETAPA 1 (data + persistencia + drag-drop)
+> Conversado largo con Juan. Decisiones: **slots tipados** (Weapon/Armor/Amulet), **plantilla por ID** (DNA guarda IDs, resuelve vs DB), **hooks polimórficos** (no eventbus) para los procs de Etapa 2, **diseñar para paridad async** → efectos = **catálogo cerrado y declarativo** (StatModifier, y en Et.2 Lifesteal/Thorns/ApplyStatus parametrizados) para que el JS los espeje. Implementado: enums `StatType/ModifierType/EquipmentSlot`; `StatModifier` (struct); `EquipmentEffectBase`(abstracta Odin)+`StatModifierEffect`; `EquipmentSO` (slot + `[OdinSerialize] List<EquipmentEffectBase>`); `EquipmentDatabaseSO` (espejo `PartDatabaseSO`, prefijo "EQ"); `CreatureDNA.Equipped` (`Dictionary<EquipmentSlot,string>`, fuera del genetic string) con **drag-drop Odin editor por slot** (resuelve/estampa ID vía `EquipmentDatabaseSO.Editor`); `GameManager.EquipmentDatabase`. Persistencia **gratis** (IDs en JSON via `StringEnumConverter`, local+cloud; saves viejos cargan vacío). NO se tocó combate ni `GameEvents` (por pedido).
+
+> ### ⚠️ PENDIENTES de Et.1 detectados en testeo de Juan (PRIMER FOCO MAÑANA)
+> 1. **Targeting del grid:** puse la columna Equip + 6 stats en `CreatureGridView` (TableList **dev** de Odin, componente suelto en GameScene — por eso Juan "no halló referencia"). El grid que ve el JUGADOR es **`CreatureGridUITK`** (cartas, `CreatureCardUITK.uxml`): su `BindCard` solo pinta nombre/color/estado, **nunca** stats ni equipo. Mover el display de equipo (y stats) ahí.
+> 2. **Stats modificadas no se ven:** esperado — `StatModifier` NO está conectado al cálculo de stats todavía (falta un `StatSheet`/capa en `GetEffectiveStats`). Es Et.2 (o adelantarlo si Juan quiere verlo en display).
+> 3. **Tab de equipo:** no existe. Crear (en `MorimonchiDetailInfoUITK` tabs o panel propio).
+
+**Files Created (.cs — input ScriptNodes):**
+- `Data/Equipment/StatModifier.cs` (NUEVO): struct átomo `{StatType, ModifierType, float}`.
+- `Data/Equipment/EquipmentEffectBase.cs` (NUEVO): base abstracta Odin polimórfica + `StatModifierEffect` (lista de StatModifier). Hooks de combate llegan en Et.2.
+- `Data/Equipment/EquipmentSO.cs` (NUEVO): objeto equipable (slot + lista de efectos + resumen).
+- `Data/Databases/EquipmentDatabaseSO.cs` (NUEVO): dict por ID, prefijo "EQ", Populate/Sync/GetByID/GetBySlot, `Editor` static para el drag-drop del DNA.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Core/Enums.cs`: + `StatType`, `ModifierType`, `EquipmentSlot`.
+- `Core/CreatureGenerator.cs`: consts StatBudget/StatMin/StatMax + `RandomBaseStats()` (point-buy).
+- `Core/GameManager.cs`: `RandomBaseStats()` en Mint; ref `EquipmentDatabase`.
+- `Data/Genetics/CreatureDNA.cs`: rename `BaseHP`→`BaseConstitution`; + `BaseDefense/Luck/Evasion`; + `Equipped` dict + drag-drop editor por slot.
+- `Data/Genetics/CreatureRegistrySO.cs`: botón "Wipe Registry (DEV)".
+- `Data/Combat/CombatManagerSO.cs`: CritChance 0.20→0.10 + `LuckCritPerPoint`/`DefenseReductionPerPoint`/`EvasionPerPoint`.
+- `Systems/Combat/CombatService.cs`: `EffectiveStats` 6 campos; `ComputeStats`/`AccumulatePart` (con); pool=CON×5; `Strike` evasión→crit(LCK)→daño→reducción(DEF); mult público.
+- `Systems/Breeding/BreedingService.cs`: `InheritStat` clamp [StatMin,StatMax]; `BaseConstitution`.
+- `Systems/Customers/ValuationHandler.cs`: suma los 6 stats.
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: `hpMax = Constitution × mult`.
+- `UI/MorimonchiDetailInfoUITK.cs`, `UI/CombatPanelUITK.cs`, `UI/CombatPanelUITK.Tabs.cs`, `UI/BreedingPanelUITK.Content.cs`: `EffectiveStats` 6 args, labels CON/ATK/SPD/DEF/LCK/EVA (ya pasados por Haiku a mitad de sesión).
+- `UI/CreatureGridView.cs`: 6 columnas de stats + columna Equip (TableList dev — ver pendiente #1).
+
+**Files Touched (no-ScriptNode):**
+- `CloudCode/run-combat.js`, `CloudCode/process-matchmaking.js`: fórmulas DEF/LCK/EVA + crit nuevo (constantes hardcodeadas).
+- `UI Toolkit/MorimonchiDetailInfoUITK.uxml`/`.uss`: stat-con/def/lck/eva + colores.
+
+**ScriptNodes a actualizar/crear (cierre S26 — agente Haiku):** CREAR `StatModifier.md`, `EquipmentEffectBase.md`, `EquipmentSO.md`, `EquipmentDatabaseSO.md`; ACTUALIZAR `CreatureGenerator.md`, `GameManager.md`, `CreatureDNA.md`, `CreatureRegistrySO.md`, `CombatManagerSO.md`, `CombatService.md`, `BreedingService.md`, `ValuationHandler.md`, `CombatVisualizerService.md`, `CreatureGridView.md`.
+
+**Next session (S27):**
+1. **PENDIENTES Et.1** (arriba): equipo en `CreatureGridUITK` (cartas) + tab de equipo + (opcional) `StatSheet` para ver stats modificadas en display.
+2. **Etapa 2 — Equipamiento en combate (logs):** `CombatContext` efímero, `Combatant`, hooks polimórficos (OnHitDealt/OnHitReceived/OnTurnEnd), procs concretos (Lifesteal/Thorns/ApplyStatus DoT), `StatSheet` aplicando StatModifier al pipeline. Solo logs.
+3. **Etapa 3 — Equipamiento en el Combat Visualizer** (estructurar procs en `CombatRecord`/`Turns`, reproducir feedbacks).
+4. Wiring + deploy de los .js a UGS (Bloque B). Reset de progreso (Wipe Registry).
+
+---
+
 **Session:** 2026-06-25 (Session 25 — Cierre del bug S24 (StackOverflow), fixes del Combat Visualizer (rewind/muerte, doble animación), stats en la barra de HP, botón Volver a GameScene, color de género en el NameTag) — **✅ CERRADA (probado en Play por Juan)**
 **Focus:** Resolver los pendientes de S24 y pulir el Combat Visualizer con UI y un fix cosmético del NameTag.
 

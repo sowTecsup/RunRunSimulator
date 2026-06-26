@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3fec32a13e909c40a9b70823e698025, type: 3}
-  m_Name: CreatureLifeStageTable
-  m_EditorClassIdentifier: Assembly-CSharp::CreatureLifeStageTableSO
+  m_Script: {fileID: 11500000, guid: a2397731b2e79f74dac2bfac0ccee2a1, type: 3}
+  m_Name: Equipment1
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.EquipmentSO
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
@@ -21,83 +21,50 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes:
-    - Name: entryDayThreshold
+    - Name: Effects
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.LifeStage,
-        Assembly-CSharp],[System.Int32, mscorlib]], mscorlib
-    - Name: comparer
-      Entry: 7
-      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.LifeStage,
+      Data: 0|System.Collections.Generic.List`1[[MoriMonchiSimulator.EquipmentEffectBase,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 1
     - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
+      Entry: 7
+      Data: 1|MoriMonchiSimulator.StatModifierEffect, Assembly-CSharp
+    - Name: Modifiers
+      Entry: 7
+      Data: 2|System.Collections.Generic.List`1[[MoriMonchiSimulator.StatModifier,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
-      Data: 5
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
-      Data: 0
-    - Name: $v
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
-      Data: 1
-    - Name: $v
-      Entry: 3
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
       Data: 2
-    - Name: $v
+    - Name: 
+      Entry: 7
+      Data: MoriMonchiSimulator.StatModifier, Assembly-CSharp
+    - Name: Stat
       Entry: 3
-      Data: 3
+      Data: 0
+    - Name: Type
+      Entry: 3
+      Data: 0
+    - Name: Value
+      Entry: 4
+      Data: 1
     - Name: 
       Entry: 8
       Data: 
     - Name: 
       Entry: 7
-      Data: 
-    - Name: $k
+      Data: MoriMonchiSimulator.StatModifier, Assembly-CSharp
+    - Name: Stat
       Entry: 3
-      Data: 3
-    - Name: $v
+      Data: 1
+    - Name: Type
       Entry: 3
-      Data: 7
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
-      Data: 4
-    - Name: $v
-      Entry: 3
-      Data: 20
+      Data: 0
+    - Name: Value
+      Entry: 4
+      Data: 1
     - Name: 
       Entry: 8
       Data: 
@@ -107,3 +74,17 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+  Icon: {fileID: 0}
+  ID: EQ0
+  Name: Sword
+  Slot: 0
+  Rarity: 0

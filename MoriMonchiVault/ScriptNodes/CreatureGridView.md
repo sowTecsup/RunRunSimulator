@@ -6,35 +6,45 @@ tags: [script, ui]
 
 **Ruta:** `UI/CreatureGridView.cs`
 
-**Responsabilidad:** Grid read-only de criaturas (Odin TableList). Impulsado por eventos `GameEvents.OnRegistryChanged/OnRegistryReloaded`. Muestra tabla de rows con stats base (6 campos: CON/ATK/SPD/DEF/LCK/EVA), genética, estado, combates, crianzas.
+**Responsabilidad:** Herramienta dev de inspector (Odin TableList), NO el grid de cartas del jugador que es [[CreatureGridUITK]]. Grid read-only de todas las criaturas registradas. Impulsado por eventos `GameEvents.OnRegistryChanged/OnRegistryReloaded`. Reconstruye cada cambio. Muestra tabla de rows con: nombre, color swatch, género, 6 stats base (CON/ATK/SPD/DEF/LCK/EVA), columna Equip (items equipados resueltos desde EquipmentDatabaseSO), combates, crianzas, padres, estado, fecha de nacimiento.
+
+**Campos principales**
+
+| Campo | Tipo | Propósito |
+|-------|------|----------|
+| `equipmentDb` | `EquipmentDatabaseSO` | Ref para resolver items equipados a nombres. |
+| `source` | `CreatureRegistrySO` | Último registry recibido vía evento (caché para Refresh manual). |
+| `rows` | `List<CreatureRow>` | Filas de la tabla (read-only TableList de Odin). |
 
 **Vinculado a:** [[Index/05 - UI System]]
 
-**Conexiones:** [[CreatureRegistrySO]], [[GameEvents]], [[CreatureDNA]], [[CreatureGridUITK]]
+**Conexiones:** [[CreatureRegistrySO]], [[GameEvents]], [[CreatureDNA]], [[CreatureGridUITK]], [[EquipmentDatabaseSO]], [[EquipmentSO]]
 
 **CreatureRow struct (inner class):**
-```csharp
-[Serializable]
-private class CreatureRow
-{
-    public string Name;          // CustomName o ToStringID()
-    public Color Color;          // BaseColor (swatch)
-    public CreatureGender Gender;
-    public float CON;            // BaseConstitution
-    public float ATK;            // BaseAttack
-    public float SPD;            // BaseSpeed
-    public float DEF;            // BaseDefense
-    public float LCK;            // BaseLuck
-    public float EVA;            // BaseEvasion
-    public string Fights;        // "X (Y)" = FightCount (WinCount)
-    public int Breeds;           // BreedCount
-    public string Mother;        // CustomName del MotherID o "—" / "???"
-    public string Father;        // CustomName del FatherID o "—" / "???"
-    public string State;         // "SOLD" / "DEAD" / "Breeding" / "In Queue" / "Free"
-    public string Born;          // "dd/MM/yyyy HH:mm" o "—"
-}
-```
 
-**Static From():** construye CreatureRow desde CreatureDNA (resuelve nombres de padres vía registry)
+| Campo | Tipo | Propósito |
+|-------|------|----------|
+| `Name` | string | CustomName o ToStringID(). |
+| `Color` | Color | BaseColor (swatch visual). |
+| `Gender` | CreatureGender | Género. |
+| `CON` | float | BaseConstitution. |
+| `ATK` | float | BaseAttack. |
+| `SPD` | float | BaseSpeed. |
+| `DEF` | float | BaseDefense. |
+| `LCK` | float | BaseLuck. |
+| `EVA` | float | BaseEvasion. |
+| `Equip` | string | Resumen de items equipados (nombres resueltos o IDs). |
+| `Fights` | string | "X (Y)" = FightCount (WinCount). |
+| `Breeds` | int | BreedCount. |
+| `Mother` | string | CustomName del MotherID o "—" / "???". |
+| `Father` | string | CustomName del FatherID o "—" / "???". |
+| `State` | string | "SOLD" / "DEAD" / "Breeding" / "In Queue" / "Free". |
+| `Born` | string | "dd/MM/yyyy HH:mm" o "—". |
 
-**Método Rebuild():** ordena por BirthDate descendente (más recientes primero), crea TableList vía Odin
+**Métodos principales**
+
+| Método | Retorna | Propósito |
+|--------|---------|----------|
+| `From(dna, registry, equipmentDb)` | `CreatureRow` | Constructor estático; resuelve padre/madre/equipo vía referencias. |
+| `Rebuild()` | void | Reconstruye lista desde `source`; ordena por BirthDate descendente. |
+| `RefreshGrid(registry)` | void | Event handler; cachea fuente + llamea Rebuild(). |
