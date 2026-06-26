@@ -278,3 +278,100 @@
     color: rgb(150, 150, 165);
     -unity-text-align: middle-center;
 }
+
+/* ── Equipo tab: cyberpunk character sheet ───────────────────────────
+   Central MoriMochi portrait framed in neon, three equipment slots wired
+   out to it, and a cursor-following tooltip with the item's details. */
+.equip-body {
+    position: relative;
+    flex-grow: 1;
+    min-height: 480px;
+    margin-top: 8px;
+    border-radius: 8px;
+    background-color: rgb(16, 18, 28);
+    overflow: hidden;
+}
+
+.equip-stage {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.equip-portrait {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    left: 50%;
+    top: 42%;
+    translate: -50% -50%;
+    border-radius: 10px;
+    background-color: rgb(120, 120, 120);
+    border-width: 2px;
+    border-color: rgb(0, 220, 255);
+}
+
+.equip-slot {
+    position: absolute;
+    width: 108px;
+    align-items: center;
+    padding: 7px;
+    border-radius: 8px;
+    background-color: rgb(24, 26, 40);
+    border-width: 2px;
+    border-color: rgb(58, 62, 92);
+}
+
+.equip-slot--weapon { left: 7%;  top: 42%; translate: 0 -50%; }
+.equip-slot--armor  { right: 7%; top: 42%; translate: 0 -50%; }
+.equip-slot--amulet { left: 50%; bottom: 5%; translate: -50% 0; }
+
+.equip-slot__icon {
+    width: 74px;
+    height: 74px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background-color: rgb(14, 16, 26);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.equip-slot__label {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: rgb(120, 130, 160);
+    -unity-text-align: middle-center;
+}
+
+.equip-slot--filled {
+    border-color: rgb(255, 70, 180);
+    background-color: rgb(40, 26, 44);
+}
+
+.equip-slot--filled .equip-slot__label { color: rgb(245, 170, 215); }
+
+.equip-slot:hover { border-color: rgb(0, 230, 255); }
+
+/* Neon connectors from the portrait out to each slot. */
+.equip-link { position: absolute; opacity: 0.5; background-color: rgb(0, 180, 220); }
+.equip-link--h { height: 2px; top: 42%; width: 20%; }
+.equip-link--left  { left: 22%; }
+.equip-link--right { right: 22%; }
+.equip-link--v { width: 2px; left: 50%; bottom: 15%; height: 14%; translate: -50% 0; }
+
+/* Hover tooltip — neon card following the cursor (picking ignored in code). */
+.equip-tooltip {
+    position: absolute;
+    width: 250px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(10, 12, 22, 0.96);
+    border-width: 1px;
+    border-color: rgb(0, 220, 255);
+    display: none;
+}
+
+.tip-name { font-size: 17px; -unity-font-style: bold; color: rgb(235, 235, 240); margin-bottom: 2px; white-space: normal; }
+.tip-meta { font-size: 13px; color: rgb(150, 160, 190); margin-bottom: 6px; }
+.tip-effects { font-size: 13px; color: rgb(210, 220, 235); white-space: normal; }

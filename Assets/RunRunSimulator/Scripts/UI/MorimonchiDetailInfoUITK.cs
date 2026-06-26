@@ -27,6 +27,9 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     [Tooltip("Resolves part names/sets/rarity and effective stats. Shared SO asset.")]
     [SerializeField] private CreatureDatabaseSO database;
 
+    [Tooltip("Resolves equipped item IDs to their EquipmentSO (icon, rarity, effects) for the Equipo tab.")]
+    [SerializeField] private EquipmentDatabaseSO equipmentDatabase;
+
     [Tooltip("Draw order; higher keeps this modal above the grid panel.")]
     [SerializeField] private int sortingOrder = 100;
 
@@ -38,6 +41,11 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     private TabView tabs;
     private Button closeButton;
     private bool wired;
+
+    // Equipo tab (cyberpunk sheet): portrait + 3 slots + the cursor-following tooltip.
+    private VisualElement teamPortrait, equipTooltip;
+    private VisualElement slotWeapon, slotArmor, slotAmulet, iconWeapon, iconArmor, iconAmulet;
+    private Label tipName, tipMeta, tipEffects;
 
     // Kept from the latest Show() so the Combate/Linaje tabs can resolve opponents
     // and ancestors by ID (the event carries it — the panel never touches the grid).
@@ -114,6 +122,23 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         breedEmpty       = root.Q<Label>("breed-empty");
         tabs             = root.Q<TabView>("tabs");
 
+        teamPortrait = root.Q<VisualElement>("equip-portrait");
+        slotWeapon   = root.Q<VisualElement>("slot-weapon");
+        slotArmor    = root.Q<VisualElement>("slot-armor");
+        slotAmulet   = root.Q<VisualElement>("slot-amulet");
+        iconWeapon   = root.Q<VisualElement>("slot-weapon-icon");
+        iconArmor    = root.Q<VisualElement>("slot-armor-icon");
+        iconAmulet   = root.Q<VisualElement>("slot-amulet-icon");
+        equipTooltip = root.Q<VisualElement>("equip-tooltip");
+        tipName      = root.Q<Label>("tip-name");
+        tipMeta      = root.Q<Label>("tip-meta");
+        tipEffects   = root.Q<Label>("tip-effects");
+
+        if (equipTooltip != null) equipTooltip.pickingMode = PickingMode.Ignore;
+        RegisterSlotHover(slotWeapon, EquipmentSlot.Weapon);
+        RegisterSlotHover(slotArmor,  EquipmentSlot.Armor);
+        RegisterSlotHover(slotAmulet, EquipmentSlot.Amulet);
+
         closeButton = root.Q<Button>("close-button");
         if (closeButton != null) closeButton.clicked += OnClose;
 
@@ -144,10 +169,11 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         if (portrait != null)
             portrait.style.backgroundColor = dna.BaseColor;
 
-        // Final stat with its (base + bonus-from-parts/tier) breakdown.
-        var eff = database != null
+        // Final stat with its (base + bonus-from-parts/tier/equipment) breakdown.
+        var baseEff = database != null
             ? CombatService.GetEffectiveStats(dna, database)
             : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+        var eff = EquipmentStats.Apply(baseEff, dna, equipmentDatabase);
 
         SetStat(statCon, "CON", eff.Constitution, dna.BaseConstitution);
         SetStat(statAtk, "ATK", eff.Attack,       dna.BaseAttack);
@@ -170,7 +196,106 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         BuildCombatHistory(dna);
         BuildLineage(dna);
         BuildBreed(dna);
+        BuildEquipment(dna);
     }
+
+    // ── Equipo tab (cyberpunk sheet) ──────────────────────────────
+
+    private void BuildEquipment(CreatureDNA dna)
+    {
+        if (teamPortrait != null) teamPortrait.style.backgroundColor = dna.BaseColor;
+        FillSlot(slotWeapon, iconWeapon, dna, EquipmentSlot.Weapon);
+        FillSlot(slotArmor,  iconArmor,  dna, EquipmentSlot.Armor);
+        FillSlot(slotAmulet, iconAmulet, dna, EquipmentSlot.Amulet);
+        HideTip();
+    }
+
+    private void FillSlot(VisualElement slot, VisualElement icon, CreatureDNA dna, EquipmentSlot slotType)
+    {
+        if (slot == null) return;
+        var item = ResolveEquip(dna, slotType);
+        slot.userData = item;
+        slot.EnableInClassList("equip-slot--filled", item != null);
+
+        if (icon == null) return;
+        bool hasIcon = item != null && item.Icon != null;
+        icon.style.display = hasIcon ? DisplayStyle.Flex : DisplayStyle.None;
+        if (hasIcon) icon.style.backgroundImage = new StyleBackground(Background.FromSprite(item.Icon));
+    }
+
+    private EquipmentSO ResolveEquip(CreatureDNA dna, EquipmentSlot slot)
+    {
+        if (equipmentDatabase == null || dna.Equipped == null) return null;
+        return dna.Equipped.TryGetValue(slot, out var id) ? equipmentDatabase.GetByID(id) : null;
+    }
+
+    private void RegisterSlotHover(VisualElement slot, EquipmentSlot slotType)
+    {
+        if (slot == null) return;
+        slot.RegisterCallback<PointerEnterEvent>(_ => ShowTip(slot, slotType));
+        slot.RegisterCallback<PointerMoveEvent>(MoveTip);
+        slot.RegisterCallback<PointerLeaveEvent>(_ => HideTip());
+    }
+
+    private void ShowTip(VisualElement slot, EquipmentSlot slotType)
+    {
+        if (equipTooltip == null) return;
+        var item = slot.userData as EquipmentSO;
+
+        if (item == null)
+        {
+            if (tipName != null)    { tipName.text = "Vacío"; tipName.style.color = new Color(0.6f, 0.6f, 0.68f); }
+            if (tipMeta != null)    tipMeta.text = SlotName(slotType);
+            if (tipEffects != null) tipEffects.text = "Sin equipar";
+        }
+        else
+        {
+            if (tipName != null)    { tipName.text = string.IsNullOrEmpty(item.Name) ? item.ID : item.Name; tipName.style.color = BodyPart.RarityColor(item.Rarity); }
+            if (tipMeta != null)    tipMeta.text = $"{SlotName(item.Slot)} · {item.Rarity}";
+            if (tipEffects != null) tipEffects.text = EffectsText(item);
+        }
+
+        equipTooltip.style.display = DisplayStyle.Flex;
+    }
+
+    private void MoveTip(PointerMoveEvent evt)
+    {
+        if (equipTooltip == null || equipTooltip.style.display == DisplayStyle.None) return;
+        var host = equipTooltip.parent;
+        if (host == null) return;
+
+        Vector2 local = host.WorldToLocal((Vector2)evt.position);
+        float w = host.resolvedStyle.width;
+        float h = host.resolvedStyle.height;
+        equipTooltip.style.left = Mathf.Clamp(local.x + 18f, 0f, Mathf.Max(0f, w - 270f));
+        equipTooltip.style.top  = Mathf.Clamp(local.y + 18f, 0f, Mathf.Max(0f, h - 130f));
+    }
+
+    private void HideTip()
+    {
+        if (equipTooltip != null) equipTooltip.style.display = DisplayStyle.None;
+    }
+
+    private static string EffectsText(EquipmentSO item)
+    {
+        if (item.Effects == null || item.Effects.Count == 0) return "Sin efectos";
+        var sb = new System.Text.StringBuilder();
+        foreach (var e in item.Effects)
+        {
+            if (e == null) continue;
+            if (sb.Length > 0) sb.Append('\n');
+            sb.Append("• ").Append(e.Summary());
+        }
+        return sb.Length == 0 ? "Sin efectos" : sb.ToString();
+    }
+
+    private static string SlotName(EquipmentSlot s) => s switch
+    {
+        EquipmentSlot.Weapon => "Arma",
+        EquipmentSlot.Armor  => "Armadura",
+        EquipmentSlot.Amulet => "Amuleto",
+        _                    => s.ToString(),
+    };
 
     private static void SetStat(Label label, string name, float final, float baseVal)
     {

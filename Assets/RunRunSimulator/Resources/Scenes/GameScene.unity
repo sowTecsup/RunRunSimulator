@@ -18222,6 +18222,7 @@ MonoBehaviour:
   document: {fileID: 937280821}
   panel: 2
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
+  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
   sortingOrder: 100
 --- !u!114 &1218711427
 MonoBehaviour:
