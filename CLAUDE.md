@@ -20,9 +20,9 @@
 4. **Leer script nodes**: abrir `MoriMonchiVault/ScriptNodes/NombreScript.md` (responsabilidad, conexiones)
 5. **Planear con Opus**: disenar la solucion antes de picar codigo. Evaluar alternativas, invariantes, impacto en otros sistemas.
 6. **Solo entonces leer `.cs`**: ya sabes que hace cada script y como se conecta. Confirmar que el plan encaja.
-7. **Generar sub-agentes Sonnet**: delegar tareas concretas a sub-agentes (uno por archivo o responsabilidad). Cada sub-agente recibe el plan, la ruta del archivo, y las reglas de codigo.
+7. **Generar sub-agentes Sonnet**: delegar tareas concretas al sub-agente registrado `morimonchi-coder` (Agent tool, `subagent_type: morimonchi-coder`, uno por archivo o responsabilidad). Las reglas de codigo y la regla de oro tecnica ya viven en su system prompt — pasarle solo el plan, la ruta del archivo, y la responsabilidad puntual. Fallback si la sesion no la registro todavia (recien creada/editada): `subagent_type: general-purpose` + pegar el contenido de `.claude/agents/morimonchi-coder.md` despues del frontmatter.
 8. **Cerrar sesion**: actualizar `09 - Active Context.md` con lo tocado y siguiente paso.
-9. **Disparar agente de vault** *(autorizado por Juan, ejecutar siempre al cierre)*: invocar un sub-agente **Haiku** (Agent tool, `model: haiku`) para actualizar ScriptNodes. Ver seccion **Agente de Vault**.
+9. **Disparar agente de vault** *(autorizado por Juan, ejecutar siempre al cierre)*: invocar el sub-agente registrado `vault-documenter` (Agent tool, `subagent_type: vault-documenter`) para actualizar ScriptNodes. Ver seccion **Agente de Vault**.
 10. **Cada mensaje** empieza con "Juan:" seguido del contenido
 
 ---
@@ -97,9 +97,9 @@ Eventos UI viven en `UIManager` como `static event Action`. Detalle en [[MoriMon
 
 | Capa | Dueno | Cuando |
 |------|-------|--------|
-| **Notion** (diseno) | Juan | Decision de diseno nueva, pregunta resuelta. Yo NO toco Notion. |
+| **Notion** (diseno) | Juan | Decision de diseno nueva, pregunta resuelta. Yo NO toco Notion **salvo** que Juan autorice puntualmente al sub-agente `notion-documenter` (nunca automatico, ver seccion **Agente de Notion**). |
 | **MoriMonchiVault/Index/** (implementacion) | IA (a pedido) | Cambio contrato publico, quirk tecnico nuevo, sub-etapa cerrada. |
-| **MoriMonchiVault/ScriptNodes/** | Sub-agente Haiku | Automatico al cierre de sesion si hubo scripts tocados. |
+| **MoriMonchiVault/ScriptNodes/** | Sub-agente `vault-documenter` (Haiku) | Automatico al cierre de sesion si hubo scripts tocados. |
 | **CLAUDE.md** (nucleo) | IA (a pedido) | Regla nueva, cambio de stack, roadmap status flip, nuevo archivo top-level del vault. |
 | **09 - Active Context** | IA (cada sesion) | Apertura y cierre de sesion. |
 
@@ -111,31 +111,37 @@ Bug menor sin cambiar contratos → no actualizar vault (git log basta).
 
 ---
 
-## Agente de Vault (Haiku via sub-agente de Claude Code)
+## Agente de Vault (sub-agente registrado `vault-documenter`, Haiku)
 
 **Proposito**: actualizar `ScriptNodes/` al cierre de sesion sin gastar tokens de Opus/Sonnet en documentacion mecanica.
 
-**Mecanismo** (ejecutado por Claude Code al paso 9): invocar un sub-agente con la **Agent tool** y `model: haiku`, pasandole el prompt de handoff. No usa CLI externo (se reemplazo el viejo `opencode run` de Deepseek).
-
-**Formato del prompt de handoff** (autocontenido, el sub-agente no tiene contexto del proyecto):
+**Mecanismo** (ejecutado por Claude Code al paso 9): el agente vive como definicion propia en `.claude/agents/vault-documenter.md` (frontmatter `model: haiku`, tools `Read, Write, Glob, Grep`, system prompt con las instrucciones completas). Invocar con la **Agent tool**, `subagent_type: vault-documenter`, pasandole solo la lista de scripts tocados:
 ```
-Eres un agente de documentacion para un proyecto Unity C#.
-Tu unica tarea: actualizar los ScriptNodes del vault de Obsidian.
-
-RUTA DEL VAULT: C:/Users/Docente/Desktop/UnityProyects/RunRunSimulator/MoriMonchiVault/ScriptNodes/
-
 SCRIPTS TOCADOS EN ESTA SESION:
 - [ruta relativa al script] → [NUEVO | MODIFICADO] → ScriptNodes/[NombreScript].md
-
-INSTRUCCIONES:
-1. Lee cada script .cs listado arriba.
-2. Para MODIFICADO: actualiza el .md existente (responsabilidad, campos publicos, conexiones con otros sistemas).
-3. Para NUEVO: crea el .md siguiendo el formato de cualquier nodo existente en ScriptNodes/.
-4. No toques ningun otro archivo.
-5. No agregues comentarios ni explicaciones fuera del .md.
 ```
+No usa CLI externo (se reemplazo el viejo `opencode run` de Deepseek).
+
+**Fallback si el sub-agente no aparece en la lista de la Agent tool**: los sub-agentes definidos en disco solo se cargan al inicio de sesion. Si `vault-documenter.md` se creo o edito durante la sesion actual, no va a estar disponible hasta reiniciar. En ese caso, usar `subagent_type: general-purpose` + `model: haiku`, pegando el contenido completo de `.claude/agents/vault-documenter.md` (la parte despues del frontmatter) como prompt.
 
 **Reglas de ejecucion**:
 - Ejecutar **solo** si hubo scripts `.cs` tocados en la sesion (bug cosmético sin cambio de contrato → omitir).
 - Si el agente falla, Claude lo reporta a Juan y lo registra en `09 - Active Context` como pendiente.
 - Juan tiene **autorizado** este paso sin confirmacion adicional por sesion.
+
+---
+
+## Agente de Notion (sub-agente registrado `notion-documenter`, Haiku)
+
+**Proposito**: reflejar en el Notion Wiki de diseno el impacto que tuvieron decisiones tomadas durante la implementacion (cosas que se definieron "en el codigo" pero que afectan diseno), y mantener al dia la seccion de preguntas de diseno abiertas.
+
+**Diferencia clave con `vault-documenter`**: este agente **NO tiene autorizacion permanente**. `vault-documenter` corre automatico al cierre de toda sesion con scripts tocados. `notion-documenter` corre **solo cuando Juan lo autoriza explicitamente esa vez puntual** (cierre de fase, sesion de consolidacion semanal, etc.). Nunca disparar este agente por iniciativa propia al cierre de sesion.
+
+**Mecanismo**: antes de invocarlo, el orquestador (yo) prepara un resumen de que decisiones de diseno surgieron de la implementacion reciente y que preguntas de diseno abiertas quedaron resueltas — el sub-agente NO decide eso, solo lo refleja en Notion en el lugar correcto (busca con `notion-search`/`notion-fetch` antes de escribir, no crea paginas nuevas si ya existe una relevante). Invocar con la **Agent tool**, `subagent_type: notion-documenter`, pasandole ese resumen.
+
+**Fallback si el sub-agente no aparece en la lista de la Agent tool** (recien creado/editado en la sesion actual): usar `subagent_type: general-purpose` + `model: haiku`, pegando el contenido de `.claude/agents/notion-documenter.md` (la parte despues del frontmatter) como prompt, mas el resumen.
+
+**Reglas de ejecucion**:
+- Ejecutar **solo** con autorizacion explicita de Juan en esa sesion — nunca por defecto.
+- El Notion esta actualmente desactualizado respecto al codigo; Juan va a hacer una sesion de consolidacion antes de depender de este agente para uso regular.
+- Si el agente encuentra una inconsistencia grande entre Notion y el codigo que excede el resumen que se le dio, no la corrige por su cuenta: la reporta para que Juan decida.
