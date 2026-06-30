@@ -85,7 +85,7 @@ MonoBehaviour:
       Data: 2
     - Name: ProcChance
       Entry: 3
-      Data: 50
+      Data: 100
     - Name: DurationTurns
       Entry: 3
       Data: 2

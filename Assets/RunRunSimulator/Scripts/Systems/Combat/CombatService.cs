@@ -135,8 +135,9 @@ public static class CombatService
     // Returns true if combat should end (someone reached 0 HP).
     private static bool TakeTurn(Combatant atk, Combatant def, CombatManagerSO config, CombatResult result, int round, Resolver r)
     {
+        result.Log.Add($"  » Turno de {atk.Name}");
         TickStatuses(atk, result);
-        if (atk.Hp <= 0f) { result.Log.Add($"  [{atk.Name}] succumbs to its afflictions."); return true; }
+        if (atk.Hp <= 0f) { result.Log.Add($"    [{atk.Name}] succumbs to its afflictions."); return true; }
 
         FireProcs(atk, def, TriggerType.Passive, result, r, true);
         if (atk.Hp <= 0f || def.Hp <= 0f) return true;
@@ -144,32 +145,37 @@ public static class CombatService
         if (atk.StunTurns > 0)
         {
             atk.StunTurns--;
-            result.Log.Add($"  [{atk.Name}] is stunned — skips turn ({atk.StunTurns} left)");
+            result.Log.Add($"    [{atk.Name}] is stunned — skips turn ({atk.StunTurns} left)");
             return false;
         }
 
         var armed = new List<CombatProcEffect>();
         foreach (var p in atk.Procs)
-            if (p.Trigger == TriggerType.Offensive && UnityEngine.Random.value < p.ProcChance / 100f)
+            if (p.Trigger == TriggerType.Offensive && RollProc(p, atk, result))
                 armed.Add(p);
 
-        bool  dodged = UnityEngine.Random.value < def.Evasion * config.EvasionPerPoint;
-        bool  crit   = false;
-        float damage = 0f;
+        float evaChance = def.Evasion * config.EvasionPerPoint;
+        float evaRoll   = UnityEngine.Random.value;
+        bool  dodged    = evaRoll < evaChance;
+        bool  crit       = false;
+        float critChance = 0f;
+        float critRoll   = 1f;
+        float damage     = 0f;
         if (!dodged)
         {
-            float critChance = config.CritChance + atk.Luck * config.LuckCritPerPoint;
-            crit             = UnityEngine.Random.value < critChance;
-            float raw        = atk.Attack * (crit ? config.CritMultiplier : 1f);
-            float reduction  = Mathf.Clamp01(def.Defense * config.DefenseReductionPerPoint);
-            damage           = raw * (1f - reduction);
-            def.Hp           = Mathf.Max(0f, def.Hp - damage);
+            critChance      = config.CritChance + atk.Luck * config.LuckCritPerPoint;
+            critRoll        = UnityEngine.Random.value;
+            crit            = critRoll < critChance;
+            float raw       = atk.Attack * (crit ? config.CritMultiplier : 1f);
+            float reduction = Mathf.Clamp01(def.Defense * config.DefenseReductionPerPoint);
+            damage          = raw * (1f - reduction);
+            def.Hp          = Mathf.Max(0f, def.Hp - damage);
         }
 
         string dir = atk.IsA ? "A→B" : "B→A";
         result.Log.Add(dodged
-            ? $"  [{dir}] DODGE! {def.Name} HP:{def.Hp:F1}"
-            : $"  [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}  {def.Name} HP:{def.Hp:F1}");
+            ? $"    [{dir}] DODGE!  {def.Name} HP:{def.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}%)"
+            : $"    [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}  {def.Name} HP:{def.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}% · crit {critRoll * 100f:F0} vs {critChance * 100f:F0}%)");
 
         result.Turns.Add(new CombatTurn
         {
@@ -182,7 +188,7 @@ public static class CombatService
             DefenderHpAfter = def.Hp,
         });
 
-        if (!dodged)
+        if (!dodged && def.Hp > 0f)
         {
             foreach (var p in armed) { r.Self = atk; r.Opponent = def; p.Apply(r); }
             FireProcs(def, atk, TriggerType.Defensive, result, r, true);
@@ -195,17 +201,18 @@ public static class CombatService
     {
         for (int i = c.Active.Count - 1; i >= 0; i--)
         {
-            var a = c.Active[i];
+            var a    = c.Active[i];
+            int left = a.RemainingTurns - 1;
             switch (a.Kind)
             {
                 case ModifierEffectKind.Poison:
                 case ModifierEffectKind.Burn:
                     c.Hp = Mathf.Max(0f, c.Hp - a.Magnitude);
-                    result.Log.Add($"  [{a.Kind}] {c.Name} -{a.Magnitude} → {c.Hp:F1}");
+                    result.Log.Add($"    [{a.Kind}] {c.Name} takes {a.Magnitude} {a.Kind} damage → {c.Hp:F1} ({left}t left)");
                     break;
                 case ModifierEffectKind.Regen:
                     c.Hp = Mathf.Min(c.MaxHp, c.Hp + a.Magnitude);
-                    result.Log.Add($"  [Regen] {c.Name} +{a.Magnitude} → {c.Hp:F1}");
+                    result.Log.Add($"    [Regen] {c.Name} regenerates {a.Magnitude} HP → {c.Hp:F1} ({left}t left)");
                     break;
             }
             if (--a.RemainingTurns <= 0) c.Active.RemoveAt(i);
@@ -217,12 +224,28 @@ public static class CombatService
         foreach (var p in owner.Procs)
         {
             if (p.Trigger != trigger) continue;
-            if (roll && UnityEngine.Random.value >= p.ProcChance / 100f) continue;
+            if (roll && !RollProc(p, owner, result)) continue;
             r.Self     = owner;
             r.Opponent = opponent;
             p.Apply(r);
         }
     }
+
+    private static bool RollProc(CombatProcEffect p, Combatant owner, CombatResult result)
+    {
+        float roll = UnityEngine.Random.value;
+        bool  pass = roll < p.ProcChance / 100f;
+        result.Log.Add($"    [roll] {owner.Name} {p.Kind} ({TriggerLabel(p.Trigger)}, {p.ProcChance}%) → {roll * 100f:F0}: {(pass ? "PROC" : "no proc")}");
+        return pass;
+    }
+
+    private static string TriggerLabel(TriggerType t) => t switch
+    {
+        TriggerType.Offensive => "on hit",
+        TriggerType.Defensive => "when hit",
+        TriggerType.Passive   => "passive",
+        _                     => "",
+    };
 
     // ── Combatant model ────────────────────────────────────────────
 
@@ -259,13 +282,13 @@ public static class CombatService
         public void DamageOpponent(float amount, string source)
         {
             Opponent.Hp = Mathf.Max(0f, Opponent.Hp - amount);
-            Result.Log.Add($"  [{source}] {Opponent.Name} -{amount:F1} → {Opponent.Hp:F1}");
+            Result.Log.Add($"    [{source}] {Opponent.Name} -{amount:F1} → {Opponent.Hp:F1}");
         }
 
         public void HealSelf(float amount, string source)
         {
             Self.Hp = Mathf.Min(Self.MaxHp, Self.Hp + amount);
-            Result.Log.Add($"  [{source}] {Self.Name} +{amount:F1} → {Self.Hp:F1}");
+            Result.Log.Add($"    [{source}] {Self.Name} +{amount:F1} → {Self.Hp:F1}");
         }
 
         public void ApplyStatusToOpponent(ModifierEffectKind kind, int turns, int magnitude, string source) =>
@@ -277,7 +300,7 @@ public static class CombatService
         public void StunOpponent(int turns)
         {
             if (turns > Opponent.StunTurns) Opponent.StunTurns = turns;
-            Result.Log.Add($"  [stun] {Opponent.Name} stunned {turns} turn(s)");
+            Result.Log.Add($"    [stun] {Opponent.Name} stunned for {Opponent.StunTurns} turn(s)");
         }
 
         private void AddStatus(Combatant t, ModifierEffectKind kind, int turns, int magnitude, string source)
@@ -290,9 +313,10 @@ public static class CombatService
             }
             else
             {
-                t.Active.Add(new ActiveEffect { Kind = kind, RemainingTurns = turns, Magnitude = magnitude });
+                existing = new ActiveEffect { Kind = kind, RemainingTurns = turns, Magnitude = magnitude };
+                t.Active.Add(existing);
             }
-            Result.Log.Add($"  [{source}] {t.Name} gains {kind} ({magnitude}/turn, {turns}t)");
+            Result.Log.Add($"    [{source}] {t.Name} gains {kind} ({existing.Magnitude}/turn, {existing.RemainingTurns}t)");
         }
     }
 

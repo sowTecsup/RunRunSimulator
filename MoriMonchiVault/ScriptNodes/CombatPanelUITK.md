@@ -8,6 +8,8 @@ tags: [script, ui]
 
 **Responsabilidad:** Panel UI de combate (4 pestañas: Batalla Online, Combate Local, Resultados, Historial). Implementa `IUINavigable` (focus jerárquico). Obtiene config vía propiedad lazy `Config => CombatController.Instance?.Config`, registry de GameManager. Combate local vía `CombatService.Simulate()`, async vía `AsyncCombatService`. Muestra stats de 6 campos: CON/ATK/SPD/DEF/LCK/EVA.
 
+S29: En `DoLocalFight`, tras simular, imprime el log completo del combate a la Consola con `Debug.Log("[Combat]\n" + string.Join("\n", result.Log))` además del panel inline. El resto del flujo no cambió.
+
 **Vinculado a:** [[Index/05 - UI System]]
 
 **Conexiones:** [[UIManager]], [[CombatController]], [[CombatService]], [[AsyncCombatService]], [[GameManager]], [[CreatureDatabaseSO]]
@@ -22,5 +24,5 @@ Fallback con 6 args (sin database), devuelve `EffectiveStats` con campos: Consti
 
 **Organización (partial class):**
 - `CombatPanelUITK.cs` — núcleo/lifecycle/wiring/data/StatsOf
-- `CombatPanelUITK.Tabs.cs` — contenido de las 4 pestañas (MakeCandidate, UI building)
+- `CombatPanelUITK.Tabs.cs` — contenido de las 4 pestañas (MakeCandidate, UI building, DoLocalFight, DoRefresh, RebuildResults, RebuildHistory, etc.)
 - `CombatPanelUITK.Navigation.cs` — IUINavigable + foco

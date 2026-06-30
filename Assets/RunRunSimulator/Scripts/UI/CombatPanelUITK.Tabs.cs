@@ -140,6 +140,8 @@ public partial class CombatPanelUITK
         var result = CombatService.Simulate(fighterAId, fighterBId, registry, database, Config, GameManager.Instance?.EquipmentDatabase);
         if (result == null) return;
 
+        Debug.Log("[Combat]\n" + string.Join("\n", result.Log));
+
         GameEvents.CombatCompleted(result);
         GameEvents.RegistryChanged(registry);   // triggers RebuildAll (fighters changed)
 

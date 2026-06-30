@@ -100,7 +100,7 @@ MonoBehaviour:
       Data: 0
     - Name: ProcChance
       Entry: 3
-      Data: 20
+      Data: 39
     - Name: Amount
       Entry: 3
       Data: 5

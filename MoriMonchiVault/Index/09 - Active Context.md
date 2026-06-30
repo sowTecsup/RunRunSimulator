@@ -4,6 +4,42 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-30 (Session 30 — Testeo en Play del combate local con efectos (S29) + enriquecimiento del **log de combate** para legibilidad/observabilidad) — **✅ CERRADA (probado en Play por Juan)**
+**Focus:** Probar que se pueden seleccionar dos MMs desde la pantalla UITK del combate (Tab local) y que escupa el **log detallado**. El código de S29 (combate local con procs polimórficos inline) corrió SIN tocar nada — pasó la pasada de cordura previa (cero refs colgadas a lo borrado en S29, contratos externos `CombatManagerSO`/`EquipmentStats`/enums OK). Sobre eso, se enriqueció el log a pedido de Juan.
+
+> ### ✅ S29 validado en Play — el combate local con efectos FUNCIONA
+> Juan equipó procs (Poison/Burn/Stun/ReturnDamage con Trigger + Proc%) y peleó local. Confirmado: rolls de los 3 triggers, on-hit, ticks de DoT, stun, thorns, KO, evolución y muerte. El combate por `CombatProcEffect` polimórficos inline en `EquipmentSO.Effects` anda.
+
+> ### ✅ Log de combate enriquecido
+> (1) **Rolls visibles**: cada proc rolado (ofensivo/pasivo/defensivo) loguea `[roll] {MM} {Kind} ({tipo}, {chance}%) → {dado}: PROC/no proc` — **incluidos los que fallan**. Helpers nuevos `RollProc` + `TriggerLabel`. (2) **Headers por turno** `» Turno de {MM}` + cuerpo indentado a 4 espacios (separa los dos turnos de cada ronda). (3) **Periódicos claros**: `takes N {Kind} damage → hp (Xt left)` / `regenerates N HP`; la línea `gains …` marca el momento del proc. (4) **Stun resultante** (`stunned for N`, no el valor intentado). (5) **Dados de crit/eva** en la línea del golpe: `(eva 81 vs 20% · crit 8 vs 13%)`. (6) **Print a consola** en `DoLocalFight` (`Debug.Log("[Combat]\n"+...)`) → no más imágenes.
+
+> ### ✅ Cambio de comportamiento — no proquear sobre muerto
+> `TakeTurn`: los procs on-connect (ofensivos armados + defensivos del defensor) ahora corren solo si `!dodged && def.Hp > 0f`. Antes se aplicaba veneno/burn/thorns sobre un MM ya en 0 (cosmético, ensuciaba el log).
+
+> ### ✅ AddStatus loguea estado resultante
+> `Resolver.AddStatus` ahora loguea magnitud/turnos **reales tras refrescar** (guarda ref `existing`), no los parámetros crudos (mismo patrón que el fix de stun). La lógica de merge por Kind NO cambió.
+
+> ### ⚠️ OBSERVACIÓN de balance (NO es bug) — stun-lock pasivo
+> En el último test ambos MMs llevaban **Stun passive 100% / 2 turnos**: cada uno re-aturde al otro todos los turnos antes de poder pegar → deadlock → DRAW a 10 rounds. El código simula correctamente esas reglas; el problema es **tuning** (un passive stun 100%/2t mutuo es degenerado). Va a la **fase de sinergias/balance**. NO construir restricción ahora.
+
+> ### 🧠 Decisión confirmada — stacking de estados = futuro (fase de sinergias)
+> Dos procs del mismo Kind (ej. dos Burns) HOY se **mergean** (refresh por Kind: último gana magnitud, máximo de turnos). Juan quiere que **se stackeen** (instancias acumulables) y que cada N stacks dispare efectos extra → eso es la fase de sinergias, no se construye ahora. El log honesto (AddStatus resultante) refleja el merge interino.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Systems/Combat/CombatService.cs` (MODIFICADO): log enriquecido (helpers nuevos `RollProc`/`TriggerLabel`, headers de turno + indent, dados crit/eva, ticks/stun/AddStatus más claros); guard `def.Hp > 0f` en procs on-connect; `AddStatus` loguea estado resultante. **Contrato público (`Simulate`/`EffectiveStats`/`GetEffectiveStats`) sin cambios.**
+- `UI/CombatPanelUITK.Tabs.cs` (MODIFICADO): `DoLocalFight` imprime el log completo a consola (`Debug.Log("[Combat]\n"+...)`). Cambio menor.
+
+**Files Touched (no-script — wiring de testeo de Juan):** assets `Equipment1`/`Equipment2`, `New Creature Registry SO`, `New Furniture Registry SO` — datos de prueba, no tocan código.
+
+**Next session (S31):**
+1. Enganche de los procs con el **Combat Visualizer**: extender `CombatTurn` con eventos de proc (hoy solo captura el golpe directo) para dramatizarlos.
+2. **Seed determinista + online** (decisión macro S29): seed + snapshots de DNA, sim C# puro en ambos clientes, retiro del JS de combate.
+3. **Fase de sinergias / balance**: stacking real de estados (instancias acumulables, N stacks → efectos extra) + tuning de procs (resolver el stun-lock pasivo).
+
+**ScriptNodes (cierre S30 — agente Haiku):** ACTUALIZAR `CombatService.md` (log enriquecido + guard no-proc-sobre-muerto + `AddStatus` resultante; helpers `RollProc`/`TriggerLabel`); `CombatPanelUITK.md` (`DoLocalFight` imprime el log a consola).
+
+---
+
 **Session:** 2026-06-30 (Session 29 — Equipamiento: rediseño del sistema de **procs de combate** a efectos polimórficos INLINE + **levantado del combate local con efectos** (resolver, solo log)) — **🟡 CÓDIGO HECHO, SIN PROBAR EN PLAY (cerrada por tiempo)**
 **Focus:** Tras varias iteraciones de diseño con Juan, se descartó el catálogo `(Kind,Tier)` de S28 y se volvió al plan original de S26: los combat procs son **subclases de `EquipmentEffectBase` inline en `EquipmentSO.Effects`**. Luego se levantó el combate LOCAL con esos efectos funcionando (resolver con triggers), solo log de texto. Seed/online + visualizer = próxima sesión.
 

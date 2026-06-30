@@ -34,13 +34,13 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 4
     - Name: 
       Entry: 7
       Data: 
     - Name: $k
       Entry: 1
-      Data: BS2-A0-E0-M0-32A60F-639180516855183732
+      Data: BS2-A2-E0-M2-3ADA75-639184526754260211
     - Name: $v
       Entry: 7
       Data: 2|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
@@ -49,25 +49,25 @@ MonoBehaviour:
       Data: BS2
     - Name: ArmID
       Entry: 1
-      Data: A0
+      Data: A2
     - Name: EyeID
       Entry: 1
       Data: E0
     - Name: MouthID
       Entry: 1
-      Data: M0
+      Data: M2
     - Name: BaseColor
       Entry: 7
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.196078435
+      Data: 0.227450982
     - Name: 
       Entry: 4
-      Data: 0.6509804
+      Data: 0.854901969
     - Name: 
       Entry: 4
-      Data: 0.05882353
+      Data: 0.458823532
     - Name: 
       Entry: 4
       Data: 1
@@ -79,13 +79,13 @@ MonoBehaviour:
       Data: UnityEngine.Color, UnityEngine.CoreModule
     - Name: 
       Entry: 4
-      Data: 0.181668118
+      Data: 0.3761468
     - Name: 
       Entry: 4
-      Data: 0.800980449
+      Data: 1
     - Name: 
       Entry: 4
-      Data: 0.33538878
+      Data: 0.9056423
     - Name: 
       Entry: 4
       Data: 1
@@ -94,19 +94,19 @@ MonoBehaviour:
       Data: 
     - Name: FurType
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: CustomName
       Entry: 1
-      Data: Gooey Nibble
+      Data: Smelly Niblet
     - Name: Timestamp
       Entry: 3
-      Data: 639180516855183732
+      Data: 639184526754260211
     - Name: BirthDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250866535282571636
+      Data: 5250870545181648115
     - Name: 
       Entry: 8
       Data: 
@@ -136,7 +136,7 @@ MonoBehaviour:
       Data: 4
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: WinCount
       Entry: 3
       Data: 0
@@ -157,13 +157,13 @@ MonoBehaviour:
       Data: 1
     - Name: BaseConstitution
       Entry: 4
-      Data: 7
+      Data: 4
     - Name: BaseAttack
       Entry: 4
-      Data: 9
+      Data: 7
     - Name: BaseSpeed
       Entry: 4
-      Data: 2
+      Data: 7
     - Name: BaseDefense
       Entry: 4
       Data: 0
@@ -179,7 +179,134 @@ MonoBehaviour:
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 5|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870546791258508
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: true
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 6|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 7|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Smelly Niblet
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 6.44
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 28.56
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 8|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: DefenderName
+      Entry: 1
+      Data: Smelly Niblet
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 10
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 9|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: DefenderName
+      Entry: 1
+      Data: Smelly Niblet
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
       Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -188,19 +315,19 @@ MonoBehaviour:
       Data: 
     - Name: IsDead
       Entry: 5
-      Data: false
+      Data: true
     - Name: Needs
       Entry: 7
-      Data: 5|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+      Data: 10|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 31.96714
+      Data: 35.23813
     - Name: Energy
       Entry: 4
-      Data: 67.5409
+      Data: 5.044084
     - Name: Affect
       Entry: 4
-      Data: 19.250267
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -239,11 +366,11 @@ MonoBehaviour:
       Data: -1
     - Name: Equipped
       Entry: 7
-      Data: 6|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
+      Data: 11|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
         Assembly-CSharp],[System.String, mscorlib]], mscorlib
     - Name: comparer
       Entry: 7
-      Data: 7|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.EquipmentSlot,
+      Data: 12|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.EquipmentSlot,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
@@ -254,6 +381,1684 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS0-A1-E0-M1-61B51D-639184526774426464
+    - Name: $v
+      Entry: 7
+      Data: 13|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS0
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M1
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.380392164
+    - Name: 
+      Entry: 4
+      Data: 0.709803939
+    - Name: 
+      Entry: 4
+      Data: 0.113725491
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SecondaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.246065408
+    - Name: 
+      Entry: 4
+      Data: 0.8598039
+    - Name: 
+      Entry: 4
+      Data: 0.266092718
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: Timestamp
+      Entry: 3
+      Data: 639184526774426464
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870545201814368
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: 
+    - Name: FatherID
+      Entry: 1
+      Data: 
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 14|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 0
+    - Name: FightCount
+      Entry: 3
+      Data: 3
+    - Name: WinCount
+      Entry: 3
+      Data: 3
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 3
+    - Name: MouthTier
+      Entry: 3
+      Data: 2
+    - Name: BaseConstitution
+      Entry: 4
+      Data: 6
+    - Name: BaseAttack
+      Entry: 4
+      Data: 9
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 3
+    - Name: BaseDefense
+      Entry: 4
+      Data: 0
+    - Name: BaseLuck
+      Entry: 4
+      Data: 0
+    - Name: BaseEvasion
+      Entry: 4
+      Data: 0
+    - Name: CombatHistory
+      Entry: 7
+      Data: 15|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 16|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Smelly Niblet
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870546791258508
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Eye
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 17|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 18|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Smelly Niblet
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 6.44
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 28.56
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 19|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: DefenderName
+      Entry: 1
+      Data: Smelly Niblet
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 10
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 20|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: DefenderName
+      Entry: 1
+      Data: Smelly Niblet
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 10
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 21|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870556983751293
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Eye
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 22|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 8
+    - Name: 
+      Entry: 7
+      Data: 23|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 0
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 40
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 24|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 0
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 40
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 25|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 3
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7.36
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 32.64
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 26|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 4
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7.36
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 22.2799988
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 27|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 5
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 0
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 14.2799988
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 28|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 5
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: DefenderName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 30.36
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 14.6399994
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 29|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 6
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7.36
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 3.91999865
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 30|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 6
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: DefenderName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 10.12
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 1.5199995
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 31|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870557248745925
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Mouth
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 32|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 33|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 7.36
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 37.64
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 34|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: DefenderName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 33.12
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 11.8800011
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 35|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: DefenderName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 11.04
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 36|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 0
+    - Name: Energy
+      Entry: 4
+      Data: 0
+    - Name: Affect
+      Entry: 4
+      Data: -100
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: LocationKey
+      Entry: 1
+      Data: 
+    - Name: LocationSlot
+      Entry: 3
+      Data: -1
+    - Name: Equipped
+      Entry: 7
+      Data: 37|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
+        Assembly-CSharp],[System.String, mscorlib]], mscorlib
+    - Name: comparer
+      Entry: 9
+      Data: 12
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 0
+    - Name: $v
+      Entry: 1
+      Data: EQ0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 1
+      Data: EQ1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 1
+      Data: EQ2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS0-A1-E2-M0-54D76F-639184526779630619
+    - Name: $v
+      Entry: 7
+      Data: 38|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS0
+    - Name: ArmID
+      Entry: 1
+      Data: A1
+    - Name: EyeID
+      Entry: 1
+      Data: E2
+    - Name: MouthID
+      Entry: 1
+      Data: M0
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.329411775
+    - Name: 
+      Entry: 4
+      Data: 0.843137264
+    - Name: 
+      Entry: 4
+      Data: 0.435294122
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SecondaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.4787845
+    - Name: 
+      Entry: 4
+      Data: 0.99313724
+    - Name: 
+      Entry: 4
+      Data: 0.831685364
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 0
+    - Name: CustomName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: Timestamp
+      Entry: 3
+      Data: 639184526779630619
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870545207018523
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: 
+    - Name: FatherID
+      Entry: 1
+      Data: 
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 39|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 1
+    - Name: Personality
+      Entry: 3
+      Data: 2
+    - Name: FightCount
+      Entry: 3
+      Data: 4
+    - Name: WinCount
+      Entry: 3
+      Data: 2
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 2
+    - Name: EyeTier
+      Entry: 3
+      Data: 2
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseConstitution
+      Entry: 4
+      Data: 6
+    - Name: BaseAttack
+      Entry: 4
+      Data: 5
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 7
+    - Name: BaseDefense
+      Entry: 4
+      Data: 0
+    - Name: BaseLuck
+      Entry: 4
+      Data: 0
+    - Name: BaseEvasion
+      Entry: 4
+      Data: 0
+    - Name: CombatHistory
+      Entry: 7
+      Data: 40|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 7
+      Data: 41|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870546222954171
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Arm
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 42|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 43|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 5.52
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 19.48
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 44|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 6
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 5.52
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 45|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870547869241273
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Eye
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 46|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 47|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 19.32
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 5.68000031
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 48|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870556983751293
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 9
+      Data: 22
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 49|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Neon Sprout
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870557248745925
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 9
+      Data: 32
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: false
+    - Name: Needs
+      Entry: 7
+      Data: 50|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 0
+    - Name: Energy
+      Entry: 4
+      Data: 0
+    - Name: Affect
+      Entry: 4
+      Data: -100
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: LocationKey
+      Entry: 1
+      Data: 
+    - Name: LocationSlot
+      Entry: 3
+      Data: -1
+    - Name: Equipped
+      Entry: 7
+      Data: 51|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
+        Assembly-CSharp],[System.String, mscorlib]], mscorlib
+    - Name: comparer
+      Entry: 9
+      Data: 12
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 0
+    - Name: $v
+      Entry: 1
+      Data: EQ0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 1
+      Data: EQ1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 1
+      Data: EQ2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: BS1-A0-E0-M3-3A30B1-639184526785731070
+    - Name: $v
+      Entry: 7
+      Data: 52|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
+    - Name: BodyShapeID
+      Entry: 1
+      Data: BS1
+    - Name: ArmID
+      Entry: 1
+      Data: A0
+    - Name: EyeID
+      Entry: 1
+      Data: E0
+    - Name: MouthID
+      Entry: 1
+      Data: M3
+    - Name: BaseColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.227450982
+    - Name: 
+      Entry: 4
+      Data: 0.1882353
+    - Name: 
+      Entry: 4
+      Data: 0.694117665
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SecondaryColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.612734
+    - Name: 
+      Entry: 4
+      Data: 0.321193874
+    - Name: 
+      Entry: 4
+      Data: 0.844117641
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: FurType
+      Entry: 3
+      Data: 1
+    - Name: CustomName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: Timestamp
+      Entry: 3
+      Data: 639184526785731070
+    - Name: BirthDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870545213118974
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: MotherID
+      Entry: 1
+      Data: 
+    - Name: FatherID
+      Entry: 1
+      Data: 
+    - Name: ChildrenIDs
+      Entry: 7
+      Data: 53|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Gender
+      Entry: 3
+      Data: 2
+    - Name: Personality
+      Entry: 3
+      Data: 4
+    - Name: FightCount
+      Entry: 3
+      Data: 2
+    - Name: WinCount
+      Entry: 3
+      Data: 0
+    - Name: BreedCount
+      Entry: 3
+      Data: 0
+    - Name: BodyTier
+      Entry: 3
+      Data: 1
+    - Name: ArmTier
+      Entry: 3
+      Data: 1
+    - Name: EyeTier
+      Entry: 3
+      Data: 1
+    - Name: MouthTier
+      Entry: 3
+      Data: 1
+    - Name: BaseConstitution
+      Entry: 4
+      Data: 4
+    - Name: BaseAttack
+      Entry: 4
+      Data: 8
+    - Name: BaseSpeed
+      Entry: 4
+      Data: 6
+    - Name: BaseDefense
+      Entry: 4
+      Data: 0
+    - Name: BaseLuck
+      Entry: 4
+      Data: 0
+    - Name: BaseEvasion
+      Entry: 4
+      Data: 0
+    - Name: CombatHistory
+      Entry: 7
+      Data: 54|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 55|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870546222954171
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 56|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 57|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 5.52
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 19.48
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 58|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 6
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 5.52
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 59|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250870547869241273
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: true
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 60|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 61|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Bubbly Chunk
+    - Name: DefenderName
+      Entry: 1
+      Data: Gooey Gloop
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 19.32
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 5.68000031
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: IsDead
+      Entry: 5
+      Data: true
+    - Name: Needs
+      Entry: 7
+      Data: 62|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+    - Name: Health
+      Entry: 4
+      Data: 10.3831339
+    - Name: Energy
+      Entry: 4
+      Data: 51.44602
+    - Name: Affect
+      Entry: 4
+      Data: -94.6171951
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BusyState
+      Entry: 3
+      Data: 0
+    - Name: QueuedAt
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: SaleDate
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: BreedReadyAt
+      Entry: 3
+      Data: 0
+    - Name: BreedPartnerID
+      Entry: 1
+      Data: 
+    - Name: LocationKey
+      Entry: 1
+      Data: 
+    - Name: LocationSlot
+      Entry: 3
+      Data: -1
+    - Name: Equipped
+      Entry: 7
+      Data: 63|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
+        Assembly-CSharp],[System.String, mscorlib]], mscorlib
+    - Name: comparer
+      Entry: 9
+      Data: 12
     - Name: 
       Entry: 12
       Data: 3
