@@ -137,7 +137,7 @@ public partial class CombatPanelUITK
         if (fighterAId == fighterBId) { Debug.LogWarning("[CombatPanel] Pick two DIFFERENT fighters."); return; }
         if (Config == null) { Debug.LogError("[CombatPanel] No CombatManager config."); return; }
 
-        var result = CombatService.Simulate(fighterAId, fighterBId, registry, database, Config);
+        var result = CombatService.Simulate(fighterAId, fighterBId, registry, database, Config, GameManager.Instance?.EquipmentDatabase);
         if (result == null) return;
 
         GameEvents.CombatCompleted(result);

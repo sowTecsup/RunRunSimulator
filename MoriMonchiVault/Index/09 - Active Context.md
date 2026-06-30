@@ -4,6 +4,59 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-06-30 (Session 29 — Equipamiento: rediseño del sistema de **procs de combate** a efectos polimórficos INLINE + **levantado del combate local con efectos** (resolver, solo log)) — **🟡 CÓDIGO HECHO, SIN PROBAR EN PLAY (cerrada por tiempo)**
+**Focus:** Tras varias iteraciones de diseño con Juan, se descartó el catálogo `(Kind,Tier)` de S28 y se volvió al plan original de S26: los combat procs son **subclases de `EquipmentEffectBase` inline en `EquipmentSO.Effects`**. Luego se levantó el combate LOCAL con esos efectos funcionando (resolver con triggers), solo log de texto. Seed/online + visualizer = próxima sesión.
+
+> ### 🧭 Decisión macro — combate por SEMILLA determinista (fijada, implementación futura)
+> El server pasará a emitir una **seed + snapshots de ambos DNA**; ambos clientes corren el MISMO sim C# puro → mismo record. **JS de combate se retira.** Mata la paridad C#↔JS (dolor recurrente) y libera el behavior a C# polimórfico (deroga la regla S28 "catálogo cerrado para que el JS lo espeje"). Por eso pudimos volver a efectos polimórficos con lógica. Detalle en memoria [[project-combat-seed-architecture]]. Implementación = próxima sesión (esta usa el `UnityEngine.Random` actual, sin seedear).
+
+> ### ✅ Rediseño modifiers → procs polimórficos inline
+> Se BORRÓ el catálogo de S28/S29 (`EquipmentModifier.cs`, `ModifierEffectSO.cs`, `EquipmentModifierDatabaseSO.cs`, enums `ModifierTier`/`StatusEffect`, campo+accessor en GameManager, bloque `Modifiers` en EquipmentSO). Reemplazo: `CombatProcEffect : EquipmentEffectBase` (abstracto: `Trigger` + `ProcChance` + `Kind` tag + `Apply(ICombatContext)`) con leaves `ReturnDamageEffect`/`HealEffect`/`StunEffect` y base `PeriodicProcEffect` → `PoisonEffect`/`BurnEffect`/`RegenEffect`. **Valores FLAT.** Viven en `EquipmentSO.Effects` (misma lista que `StatModifierEffect`). `ModifierEffectKind` queda como **tag de runtime** (`{ReturnDamage,Heal,Poison,Burn,Stun,Regen}`; `ApplyStatus` eliminado, statuses promovidos a kinds para que el arma elija cuál).
+
+> ### ✅ Trigger configurable por efecto (ofensivo/defensivo/pasivo)
+> Enum `TriggerType {Offensive, Defensive, Passive}`, campo en `CombatProcEffect`, mostrado en el `Summary` (`[on hit]`/`[when hit]`/`[passive]`). Un mismo efecto (ej. Regen) puede ser pasivo, ofensivo (lifesteal) o defensivo. **Los 3 triggers rolean `ProcChance`** (incl. Passive: se rolea solo al inicio del turno, sin depender de un golpe, pero puede fallar). Condición "defensivo solo si <X vida" = futuro.
+
+> ### ✅ Combat resolver LOCAL (solo log) — el "nuevo combate local"
+> `CombatService.Simulate` reescrito: param nuevo `EquipmentDatabaseSO`; `Combatant` (mutable: hp/maxhp/stats CON EQUIPO vía `EquipmentStats.Apply` + `List<CombatProcEffect> Procs` + `List<ActiveEffect> Active` + `StunTurns`). Flujo de turno: tick DoT/HoT → fire pasivos → si stun saltea → **roll ofensivo al inicio del turno** → ataque (evasión→crit→DEF) → **on connect: ofensivos armados + defensivos del defensor** (rolled al ser golpeado). Los efectos NO mutan estado: emiten acciones vía `ICombatContext` (`Resolver` nested) — **seam para el stack Yu-Gi-Oh** futuro. `ActiveEffect` tickea Poison/Burn (daño) y Regen (cura). Todo va al log; el `CombatTurn` estructurado sigue capturando solo el golpe directo (procs en el visualizer = próxima sesión).
+
+> ### ✅ Visual — procs en la columna derecha de la card
+> Procs (ámbar `◆`) movidos a `.equip-card__procs` (40%, derecha) sobre la cuña diagonal (reservada desde S27); stat mods (verde `•`) a la izquierda. `EffectsText`/`ModifiersText` filtran `item.Effects` por tipo.
+
+**Files Created (.cs — input ScriptNodes):**
+- `Data/Equipment/CombatProcEffect.cs` (NUEVO): base + leaves ReturnDamage/Heal/Stun + `PeriodicProcEffect`→Poison/Burn/Regen.
+- `Data/Combat/ICombatContext.cs` (NUEVO): interfaz del resolver (DamageOpponent/HealSelf/ApplyStatusTo*/StunOpponent).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Core/Enums.cs`: `ModifierEffectKind` split; + `TriggerType`; borrados `ModifierTier` y `StatusEffect`.
+- `Systems/Combat/CombatService.cs`: REESCRITO (Combatant/ActiveEffect/Resolver, equipDb, stats con equipo + procs, flujo con triggers, tick).
+- `Data/Equipment/EquipmentSO.cs`: borrado bloque `Modifiers`/`ModifiersSummary`.
+- `UI/MorimonchiDetailInfoUITK.cs`: borrado `modifierDatabase`; `EffectsText`/`ModifiersText` por tipo; procs a la derecha.
+- `Core/GameManager.cs`: borrado campo+accessor `EquipmentModifierDatabase`.
+- `Systems/Combat/CombatController.cs`, `UI/CombatPanelUITK.Tabs.cs`: `Simulate(...)` +param equipDb.
+
+**Files Deleted (.cs — borrar su ScriptNode):**
+- `Data/Equipment/EquipmentModifier.cs`, `Data/Equipment/ModifierEffectSO.cs`, `Data/Databases/EquipmentModifierDatabaseSO.cs`.
+
+**Files Touched (no-ScriptNode):**
+- `UI Toolkit/MorimonchiDetailInfoUITKStyle.uss`: + `.equip-card__procs` + `.equip-card__mods` a la derecha.
+
+**WIRING UNITY (Juan):**
+1. ✅ Assets huérfanos borrados (Juan, 2026-06-30): `EquipmentModifierDatabase.asset` + `Effect_*.asset`.
+1b. 🔴 **PENDIENTE S30 (primer foco): TESTEAR el combate local con efectos en Play (log)** — no se llegó a probar esta sesión.
+2. NO hace falta Wipe Registry (procs viven en assets de equipo, no en saves).
+3. Agregar procs a `EquipmentSO.Effects` (Trigger + Proc %).
+4. Play → pelea local → revisar el **log**: rolls, on-hit, ticks, stun, thorns.
+
+**Next session (S30):**
+1. Testear el combate local con efectos en Play (log).
+2. Enganche con el Combat Visualizer (extender `CombatTurn` con eventos de proc).
+3. Seed determinista + online (retiro del JS de combate).
+4. Synergias (multiplicadores x1.5 / x0.5 sobre los `ActiveEffect`).
+
+**ScriptNodes (cierre S29 — agente Haiku):** CREAR `CombatProcEffect.md`, `ICombatContext.md`; ACTUALIZAR `CombatService.md`, `Enums.md`, `EquipmentSO.md`, `MorimonchiDetailInfoUITK.md`, `GameManager.md`, `CombatController.md`, `CombatPanelUITK.md`; BORRAR `EquipmentModifier.md`, `ModifierEffectSO.md`, `EquipmentModifierDatabaseSO.md`.
+
+---
+
 **Session:** 2026-06-26 (Session 28 — Equipamiento: sistema de **Modificadores** (combat procs) como referencia liviana `(enum Kind + enum Tier)` resuelta contra una DB local de catálogo. Etapa inicial = data + display, SIN combate) — **🟡 CÓDIGO HECHO, TESTEO PENDIENTE (sin tiempo; se prueba próxima sesión)**
 **Focus:** Extender `EquipmentSO` para que, aparte de `Effects` (mods de stat inline), contenga `Modifiers` que son combat procs (regresar daño / curar / aplicar estado N turnos). Etapa inicial: crear, conservar info y mostrarlo en la card del detail panel. Integración con combate = etapa siguiente.
 

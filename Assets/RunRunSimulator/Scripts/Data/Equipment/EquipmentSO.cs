@@ -49,20 +49,6 @@ public class EquipmentSO : SerializedScriptableObject
             ? "—"
             : string.Join("\n", Effects.Where(e => e != null).Select(e => $"• {e.Summary()}"));
 
-    [Title("Modifiers")]
-    [Tooltip("Referencias livianas (efecto + tier) que se resuelven contra el EquipmentModifierDatabaseSO. La data concreta vive en esa base de datos, no acá.")]
-    [ListDrawerSettings(DefaultExpandedState = true)]
-    public List<EquipmentModifierRef> Modifiers = new List<EquipmentModifierRef>();
-
-#if UNITY_EDITOR
-    [ShowInInspector, ReadOnly, MultiLineProperty(3), LabelText("Resumen mods")]
-    private string ModifiersSummary =>
-        Modifiers == null || Modifiers.Count == 0
-            ? "—"
-            : EquipmentModifierDatabaseSO.Editor == null
-                ? "(sin EquipmentModifierDatabaseSO en el proyecto)"
-                : string.Join("\n", Modifiers.Select(m => $"• {EquipmentModifierDatabaseSO.Editor.Summary(m)}"));
-#endif
 
     private Color GetRarityColor() => BodyPart.RarityColor(Rarity);
 }

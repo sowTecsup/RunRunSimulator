@@ -6,7 +6,7 @@ tags: [script, equipment, asset]
 
 **Ruta:** `Data/Equipment/EquipmentSO.cs`
 
-**Responsabilidad:** ScriptableObject de un item equipable. Lleva sprite icon, nombre display, `EquipmentSlot` (Weapon/Armor/Amulet), rareza visual, y lista polimórfica `[OdinSerialize] List<EquipmentEffectBase> Effects` que mezcla modificadores pasivos (StatModifierEffect) y (en Etapa 2) procs de combate. Su `ID` es asignado por `EquipmentDatabaseSO` al poblarse (ej: "EQ0", "EQ1"…). Las criaturas lo equipan guardando el `ID` en `CreatureDNA.Equipped[Slot]`.
+**Responsabilidad:** ScriptableObject de un item equipable. Lleva sprite icon, nombre display, `EquipmentSlot` (Weapon/Armor/Amulet), rareza visual, descripción, y lista polimórfica `[OdinSerialize] List<EquipmentEffectBase> Effects` que mezcla modificadores pasivos (StatModifierEffect, heredan de EquipmentEffectBase) y procs de combate (CombatProcEffect con trigger/procChance/Apply). Su `ID` es asignado por `EquipmentDatabaseSO` al poblarse (ej: "EQ0", "EQ1"…). Las criaturas lo equipan guardando el `ID` en `CreatureDNA.Equipped[Slot]`.
 
 ## Campos principales
 
@@ -19,10 +19,8 @@ tags: [script, equipment, asset]
 | `Rarity` | `Rarity` | Rareza visual (Common/Uncommon/Rare/Epic/Legendary). |
 | `IconColor` | `Color` | Color del ícono cuando el ítem no tiene sprite asignado (default gris). |
 | `Description` | `string` | Descripción multilínea del ítem, mostrada en la card de equipo en la tab Equipo. |
-| `Effects` | `List<EquipmentEffectBase>` | Lista polimórfica de efectos (stat mods + futuros procs). |
+| `Effects` | `List<EquipmentEffectBase>` | Lista polimórfica de efectos (stat mods StatModifierEffect + procs CombatProcEffect). |
 | `EffectsSummary` | `string` (show-only) | Resumen de todos los efectos (`Summary()` de cada uno). |
-| `Modifiers` | `List<EquipmentModifierRef>` | Referencias livianas (Kind + Tier) que se resuelven contra `EquipmentModifierDatabaseSO`. La data concreta vive en esa BD, no acá. |
-| `ModifiersSummary` | `string` (show-only, editor-only) | Resumen de los modificadores traducido al español (resolved vía `EquipmentModifierDatabaseSO.Editor`). |
 
 **Métodos**
 
@@ -32,4 +30,4 @@ tags: [script, equipment, asset]
 
 **Vinculado a:** [[Index/04 - Combat]] (sistema de modificadores)
 
-**Conexiones:** [[EquipmentDatabaseSO]], [[EquipmentModifierDatabaseSO]], [[EquipmentModifier]], [[CreatureDNA]], [[EquipmentEffectBase]], [[Enums]], [[BodyPart]]
+**Conexiones:** [[EquipmentDatabaseSO]], [[CreatureDNA]], [[EquipmentEffectBase]], [[StatModifierEffect]], [[CombatProcEffect]], [[Enums]], [[BodyPart]]

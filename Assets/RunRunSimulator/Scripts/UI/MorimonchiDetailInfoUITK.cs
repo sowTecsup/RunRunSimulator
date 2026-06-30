@@ -33,9 +33,6 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     [Tooltip("Colores por rareza (pastel, nombre del ítem) y por slot (acento de la card).")]
     [SerializeField] private EquipmentPaletteSO equipmentPalette;
 
-    [Tooltip("Resuelve las referencias (efecto + tier) de los modificadores del ítem para mostrarlas en la card. Fallback: GameManager.")]
-    [SerializeField] private EquipmentModifierDatabaseSO modifierDatabase;
-
     [Tooltip("Draw order; higher keeps this modal above the grid panel.")]
     [SerializeField] private int sortingOrder = 100;
 
@@ -261,20 +258,33 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
         if (item != null)
         {
-            var eff = new Label(EffectsText(item));
-            eff.AddToClassList("equip-card__effects");
-            info.Add(eff);
-
-            var modsText = ModifiersText(item);
-            if (!string.IsNullOrEmpty(modsText))
+            var effText = EffectsText(item);
+            if (!string.IsNullOrEmpty(effText))
             {
-                var mods = new Label(modsText);
-                mods.AddToClassList("equip-card__mods");
-                info.Add(mods);
+                var eff = new Label(effText);
+                eff.AddToClassList("equip-card__effects");
+                info.Add(eff);
             }
         }
 
         card.Add(info);
+
+        if (item != null)
+        {
+            var modsText = ModifiersText(item);
+            if (!string.IsNullOrEmpty(modsText))
+            {
+                var procs = new VisualElement();
+                procs.AddToClassList("equip-card__procs");
+                procs.pickingMode = PickingMode.Ignore;
+
+                var mods = new Label(modsText);
+                mods.AddToClassList("equip-card__mods");
+                procs.Add(mods);
+
+                card.Add(procs);
+            }
+        }
         equipCards.Add(card);
     }
 
@@ -352,26 +362,27 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
     private static string EffectsText(EquipmentSO item)
     {
-        if (item.Effects == null || item.Effects.Count == 0) return "Sin efectos";
+        if (item.Effects == null) return null;
         var sb = new System.Text.StringBuilder();
         foreach (var e in item.Effects)
         {
-            if (e == null) continue;
+            if (!(e is StatModifierEffect)) continue;
             if (sb.Length > 0) sb.Append('\n');
             sb.Append("• ").Append(e.Summary());
         }
-        return sb.Length == 0 ? "Sin efectos" : sb.ToString();
+        return sb.Length == 0 ? null : sb.ToString();
     }
 
-    private string ModifiersText(EquipmentSO item)
+    private static string ModifiersText(EquipmentSO item)
     {
-        if (item.Modifiers == null || item.Modifiers.Count == 0) return null;
-        var db = modifierDatabase != null ? modifierDatabase : GameManager.Instance?.EquipmentModifierDatabase;
+        if (item.Effects == null) return null;
         var sb = new System.Text.StringBuilder();
-        foreach (var m in item.Modifiers)
+        foreach (var e in item.Effects)
         {
+            if (!(e is CombatProcEffect proc)) continue;
             if (sb.Length > 0) sb.Append('\n');
-            sb.Append("◆ ").Append(db != null ? db.Summary(m) : EquipmentModifierDatabaseSO.KindLabel(m.Kind));
+            string chance = proc.ProcChance >= 100 ? "" : $" · {proc.ProcChance}% proc";
+            sb.Append("◆ ").Append(proc.Summary()).Append(chance);
         }
         return sb.Length == 0 ? null : sb.ToString();
     }

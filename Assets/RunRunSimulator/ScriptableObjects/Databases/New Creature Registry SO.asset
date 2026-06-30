@@ -194,13 +194,13 @@ MonoBehaviour:
       Data: 5|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 56.29597
+      Data: 31.96714
     - Name: Energy
       Entry: 4
-      Data: 83.886
+      Data: 67.5409
     - Name: Affect
       Entry: 4
-      Data: 48.57908
+      Data: 19.250267
     - Name: 
       Entry: 8
       Data: 

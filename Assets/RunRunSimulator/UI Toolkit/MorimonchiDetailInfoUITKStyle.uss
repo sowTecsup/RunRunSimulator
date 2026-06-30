@@ -362,11 +362,19 @@
     white-space: normal;
 }
 
+.equip-card__procs {
+    width: 40%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    padding-left: 8px;
+}
+
 .equip-card__mods {
     font-size: 13px;
     color: rgb(225, 195, 130);
     white-space: normal;
-    margin-top: 2px;
+    -unity-text-align: middle-right;
 }
 
 /* Right column: big MoriMochi image + stats breakdown. */

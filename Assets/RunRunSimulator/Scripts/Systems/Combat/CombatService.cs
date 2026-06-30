@@ -6,27 +6,22 @@ namespace MoriMonchiSimulator
 
 // Stateless turn-based combat simulator.
 // Attack order: highest Speed attacks first each round.
-// Critical hit: CritChance probability → damage × CritMultiplier.
-// Post-combat: winner may evolve a random part (Tier1/2 only); loser may die.
-// Draw: if neither creature reaches 0 HP before MaxRounds → no consequences, FightCount++ for both.
-//
-// Besides the string Log (for inline display), it builds a structured list of
-// CombatTurn (A = dnaA) and writes a CombatRecord onto BOTH fighters' DNA history
-// (CreatureDNA.CombatHistory) — the persistent, replayable record the future
-// Combat Visualizer reads. The async server motors emit the same shape.
+// Per turn: tick the attacker's active statuses → fire passive procs → (if not stunned)
+// roll offensive procs at turn start → attack (evasion → crit → DEF) → on connect apply
+// the rolled offensive procs plus the defender's defensive procs. Combat procs come from
+// equipment (CombatProcEffect) and act through ICombatContext so a future stack can
+// intercept. Local-only for now; seed + online parity land next.
 public static class CombatService
 {
-    // Combat HP is intentionally swingier than the raw stat: Constitution is scaled ×5
-    // entering a fight so battles last several rounds. Other stats are untouched.
-    // The cloud motors (process-matchmaking.js / run-combat.js) apply the same ×5.
     public const float BaseHpCombatMultiplier = 5f;
 
     public static CombatResult Simulate(
-        string             idA,
-        string             idB,
-        CreatureRegistrySO registry,
-        CreatureDatabaseSO db,
-        CombatManagerSO    config)
+        string              idA,
+        string              idB,
+        CreatureRegistrySO  registry,
+        CreatureDatabaseSO  db,
+        CombatManagerSO     config,
+        EquipmentDatabaseSO equipDb)
     {
         if (!registry.TryGet(idA, out var dnaA))
         {
@@ -60,63 +55,45 @@ public static class CombatService
         }
 
         var result = new CombatResult();
-        var statsA = ComputeStats(dnaA, db);
-        var statsB = ComputeStats(dnaB, db);
+        var A = BuildCombatant(dnaA, db, equipDb, true);
+        var B = BuildCombatant(dnaB, db, equipDb, false);
 
-        float hpA = statsA.Constitution * BaseHpCombatMultiplier;
-        float hpB = statsB.Constitution * BaseHpCombatMultiplier;
+        result.Log.Add("=== COMBAT START ===");
+        result.Log.Add($"[A] \"{A.Name}\"  {Clip(idA)}  HP:{A.MaxHp:F1}  ATK:{A.Attack:F1}  SPD:{A.Speed:F1}  DEF:{A.Defense:F0}  LCK:{A.Luck:F0}  EVA:{A.Evasion:F0}");
+        result.Log.Add($"[B] \"{B.Name}\"  {Clip(idB)}  HP:{B.MaxHp:F1}  ATK:{B.Attack:F1}  SPD:{B.Speed:F1}  DEF:{B.Defense:F0}  LCK:{B.Luck:F0}  EVA:{B.Evasion:F0}");
 
-        result.Log.Add($"=== COMBAT START ===");
-        result.Log.Add($"[A] \"{dnaA.CustomName}\"  {Clip(idA)}  HP:{hpA:F1}  ATK:{statsA.Attack:F1}  SPD:{statsA.Speed:F1}  DEF:{statsA.Defense:F0}  LCK:{statsA.Luck:F0}  EVA:{statsA.Evasion:F0}");
-        result.Log.Add($"[B] \"{dnaB.CustomName}\"  {Clip(idB)}  HP:{hpB:F1}  ATK:{statsB.Attack:F1}  SPD:{statsB.Speed:F1}  DEF:{statsB.Defense:F0}  LCK:{statsB.Luck:F0}  EVA:{statsB.Evasion:F0}");
-
-        // ── Turn simulation ───────────────────────────────────────
-
+        var resolver = new Resolver { Result = result };
         bool someoneKO = false;
+
         for (int round = 1; round <= config.MaxRounds; round++)
         {
-            bool aFirst = statsA.Speed > statsB.Speed ||
-                          (Mathf.Approximately(statsA.Speed, statsB.Speed) && UnityEngine.Random.value < 0.5f);
+            bool aFirst = A.Speed > B.Speed ||
+                          (Mathf.Approximately(A.Speed, B.Speed) && UnityEngine.Random.value < 0.5f);
 
             result.Log.Add($"--- Round {round} (first: {(aFirst ? "A" : "B")}) ---");
 
-            if (aFirst)
-            {
-                hpB -= Strike(dnaA.CustomName, dnaB.CustomName, true,  statsA.Attack, statsA.Luck, hpB, statsB.Defense, statsB.Evasion, config, result, round);
-                if (hpB <= 0f) { someoneKO = true; break; }
+            var first  = aFirst ? A : B;
+            var second = aFirst ? B : A;
 
-                hpA -= Strike(dnaB.CustomName, dnaA.CustomName, false, statsB.Attack, statsB.Luck, hpA, statsA.Defense, statsA.Evasion, config, result, round);
-                if (hpA <= 0f) { someoneKO = true; break; }
-            }
-            else
-            {
-                hpA -= Strike(dnaB.CustomName, dnaA.CustomName, false, statsB.Attack, statsB.Luck, hpA, statsA.Defense, statsA.Evasion, config, result, round);
-                if (hpA <= 0f) { someoneKO = true; break; }
-
-                hpB -= Strike(dnaA.CustomName, dnaB.CustomName, true,  statsA.Attack, statsA.Luck, hpB, statsB.Defense, statsB.Evasion, config, result, round);
-                if (hpB <= 0f) { someoneKO = true; break; }
-            }
+            if (TakeTurn(first,  second, config, result, round, resolver)) { someoneKO = true; break; }
+            if (TakeTurn(second, first,  config, result, round, resolver)) { someoneKO = true; break; }
         }
-
-        // ── Draw: MaxRounds reached with no KO ───────────────────
 
         if (!someoneKO)
         {
-            result.IsDraw   = true;
+            result.IsDraw = true;
             dnaA.FightCount++;
             dnaB.FightCount++;
-            result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. A:{hpA:F1}HP  B:{hpB:F1}HP ===");
+            result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. A:{A.Hp:F1}HP  B:{B.Hp:F1}HP ===");
             result.Log.Add("[DRAW] No consequences for either fighter.");
-            result.Log.Add($"=== COMBAT END === DRAW");
+            result.Log.Add("=== COMBAT END === DRAW");
 
-            RecordHistory(dnaA, dnaB, CombatOutcome.Draw, died: false, evolvedSlot: null, selfIsA: true,  result.Turns);
-            RecordHistory(dnaB, dnaA, CombatOutcome.Draw, died: false, evolvedSlot: null, selfIsA: false, result.Turns);
+            RecordHistory(dnaA, dnaB, CombatOutcome.Draw, false, null, true,  result.Turns);
+            RecordHistory(dnaB, dnaA, CombatOutcome.Draw, false, null, false, result.Turns);
             return result;
         }
 
-        // ── Determine winner ──────────────────────────────────────
-
-        bool aWins  = hpA > 0f;   // whoever survived the KO check wins
+        bool aWins  = A.Hp > 0f;
         var  winner = aWins ? dnaA : dnaB;
         var  loser  = aWins ? dnaB : dnaA;
 
@@ -125,15 +102,11 @@ public static class CombatService
         result.WinnerName = winner.CustomName;
         result.LoserName  = loser.CustomName;
         string winnerLabel = aWins ? $"A \"{dnaA.CustomName}\"" : $"B \"{dnaB.CustomName}\"";
-        result.Log.Add($"=== KO === {winnerLabel} wins | A:{Mathf.Max(0, hpA):F1}HP  B:{Mathf.Max(0, hpB):F1}HP ===");
-
-        // ── Update combat stats ───────────────────────────────────
+        result.Log.Add($"=== KO === {winnerLabel} wins | A:{Mathf.Max(0f, A.Hp):F1}HP  B:{Mathf.Max(0f, B.Hp):F1}HP ===");
 
         winner.FightCount++;
         winner.WinCount++;
         loser.FightCount++;
-
-        // ── Evolution (winner) — always triggers, random slot ────────
 
         result.EvolvedSlot   = TryEvolveRandomSlot(winner);
         result.WinnerEvolved = result.EvolvedSlot != null;
@@ -141,11 +114,9 @@ public static class CombatService
             ? $"[EVOLUTION] \"{winner.CustomName}\" — {result.EvolvedSlot} evolved to Tier{GetSlotTier(winner, result.EvolvedSlot)}!"
             : $"[EVOLUTION] \"{winner.CustomName}\" — all parts already at max Tier.");
 
-        // ── Death (loser) ─────────────────────────────────────────
-
         if (UnityEngine.Random.value < config.DeathChance)
         {
-            loser.IsDead    = true;
+            loser.IsDead     = true;
             result.LoserDied = true;
             result.Log.Add("[DEATH] Loser has perished permanently.");
         }
@@ -153,19 +124,216 @@ public static class CombatService
         string evolvedLine = result.WinnerEvolved ? $" | Evolved: {result.EvolvedSlot} → Tier{GetSlotTier(winner, result.EvolvedSlot)}" : "";
         result.Log.Add($"=== COMBAT END === Winner: \"{winner.CustomName}\"  {winner.UniqueID}{evolvedLine}");
 
-        // ── Persistent per-creature history (replayable) ──────────
-
-        RecordHistory(
-            winner, loser, CombatOutcome.Won,
-            died: false, evolvedSlot: result.EvolvedSlot, selfIsA: aWins, result.Turns);
-        RecordHistory(
-            loser, winner, CombatOutcome.Lost,
-            died: result.LoserDied, evolvedSlot: null, selfIsA: !aWins, result.Turns);
+        RecordHistory(winner, loser,  CombatOutcome.Won,  false,            result.EvolvedSlot, aWins,  result.Turns);
+        RecordHistory(loser,  winner, CombatOutcome.Lost, result.LoserDied, null,               !aWins, result.Turns);
 
         return result;
     }
 
-    // ── Private helpers ───────────────────────────────────────────
+    // ── Turn ───────────────────────────────────────────────────────
+
+    // Returns true if combat should end (someone reached 0 HP).
+    private static bool TakeTurn(Combatant atk, Combatant def, CombatManagerSO config, CombatResult result, int round, Resolver r)
+    {
+        TickStatuses(atk, result);
+        if (atk.Hp <= 0f) { result.Log.Add($"  [{atk.Name}] succumbs to its afflictions."); return true; }
+
+        FireProcs(atk, def, TriggerType.Passive, result, r, true);
+        if (atk.Hp <= 0f || def.Hp <= 0f) return true;
+
+        if (atk.StunTurns > 0)
+        {
+            atk.StunTurns--;
+            result.Log.Add($"  [{atk.Name}] is stunned — skips turn ({atk.StunTurns} left)");
+            return false;
+        }
+
+        var armed = new List<CombatProcEffect>();
+        foreach (var p in atk.Procs)
+            if (p.Trigger == TriggerType.Offensive && UnityEngine.Random.value < p.ProcChance / 100f)
+                armed.Add(p);
+
+        bool  dodged = UnityEngine.Random.value < def.Evasion * config.EvasionPerPoint;
+        bool  crit   = false;
+        float damage = 0f;
+        if (!dodged)
+        {
+            float critChance = config.CritChance + atk.Luck * config.LuckCritPerPoint;
+            crit             = UnityEngine.Random.value < critChance;
+            float raw        = atk.Attack * (crit ? config.CritMultiplier : 1f);
+            float reduction  = Mathf.Clamp01(def.Defense * config.DefenseReductionPerPoint);
+            damage           = raw * (1f - reduction);
+            def.Hp           = Mathf.Max(0f, def.Hp - damage);
+        }
+
+        string dir = atk.IsA ? "A→B" : "B→A";
+        result.Log.Add(dodged
+            ? $"  [{dir}] DODGE! {def.Name} HP:{def.Hp:F1}"
+            : $"  [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}  {def.Name} HP:{def.Hp:F1}");
+
+        result.Turns.Add(new CombatTurn
+        {
+            TurnNumber      = round,
+            AttackerName    = atk.Name,
+            DefenderName    = def.Name,
+            AttackerIsA     = atk.IsA,
+            Damage          = damage,
+            WasCrit         = crit,
+            DefenderHpAfter = def.Hp,
+        });
+
+        if (!dodged)
+        {
+            foreach (var p in armed) { r.Self = atk; r.Opponent = def; p.Apply(r); }
+            FireProcs(def, atk, TriggerType.Defensive, result, r, true);
+        }
+
+        return atk.Hp <= 0f || def.Hp <= 0f;
+    }
+
+    private static void TickStatuses(Combatant c, CombatResult result)
+    {
+        for (int i = c.Active.Count - 1; i >= 0; i--)
+        {
+            var a = c.Active[i];
+            switch (a.Kind)
+            {
+                case ModifierEffectKind.Poison:
+                case ModifierEffectKind.Burn:
+                    c.Hp = Mathf.Max(0f, c.Hp - a.Magnitude);
+                    result.Log.Add($"  [{a.Kind}] {c.Name} -{a.Magnitude} → {c.Hp:F1}");
+                    break;
+                case ModifierEffectKind.Regen:
+                    c.Hp = Mathf.Min(c.MaxHp, c.Hp + a.Magnitude);
+                    result.Log.Add($"  [Regen] {c.Name} +{a.Magnitude} → {c.Hp:F1}");
+                    break;
+            }
+            if (--a.RemainingTurns <= 0) c.Active.RemoveAt(i);
+        }
+    }
+
+    private static void FireProcs(Combatant owner, Combatant opponent, TriggerType trigger, CombatResult result, Resolver r, bool roll)
+    {
+        foreach (var p in owner.Procs)
+        {
+            if (p.Trigger != trigger) continue;
+            if (roll && UnityEngine.Random.value >= p.ProcChance / 100f) continue;
+            r.Self     = owner;
+            r.Opponent = opponent;
+            p.Apply(r);
+        }
+    }
+
+    // ── Combatant model ────────────────────────────────────────────
+
+    private class Combatant
+    {
+        public CreatureDNA Dna;
+        public string      Name;
+        public bool        IsA;
+        public float       Hp;
+        public float       MaxHp;
+        public float       Attack;
+        public float       Speed;
+        public float       Defense;
+        public float       Luck;
+        public float       Evasion;
+        public int         StunTurns;
+        public List<CombatProcEffect> Procs  = new List<CombatProcEffect>();
+        public List<ActiveEffect>     Active = new List<ActiveEffect>();
+    }
+
+    private class ActiveEffect
+    {
+        public ModifierEffectKind Kind;
+        public int RemainingTurns;
+        public int Magnitude;
+    }
+
+    private class Resolver : ICombatContext
+    {
+        public CombatResult Result;
+        public Combatant    Self;
+        public Combatant    Opponent;
+
+        public void DamageOpponent(float amount, string source)
+        {
+            Opponent.Hp = Mathf.Max(0f, Opponent.Hp - amount);
+            Result.Log.Add($"  [{source}] {Opponent.Name} -{amount:F1} → {Opponent.Hp:F1}");
+        }
+
+        public void HealSelf(float amount, string source)
+        {
+            Self.Hp = Mathf.Min(Self.MaxHp, Self.Hp + amount);
+            Result.Log.Add($"  [{source}] {Self.Name} +{amount:F1} → {Self.Hp:F1}");
+        }
+
+        public void ApplyStatusToOpponent(ModifierEffectKind kind, int turns, int magnitude, string source) =>
+            AddStatus(Opponent, kind, turns, magnitude, source);
+
+        public void ApplyStatusToSelf(ModifierEffectKind kind, int turns, int magnitude, string source) =>
+            AddStatus(Self, kind, turns, magnitude, source);
+
+        public void StunOpponent(int turns)
+        {
+            if (turns > Opponent.StunTurns) Opponent.StunTurns = turns;
+            Result.Log.Add($"  [stun] {Opponent.Name} stunned {turns} turn(s)");
+        }
+
+        private void AddStatus(Combatant t, ModifierEffectKind kind, int turns, int magnitude, string source)
+        {
+            var existing = t.Active.Find(a => a.Kind == kind);
+            if (existing != null)
+            {
+                if (turns > existing.RemainingTurns) existing.RemainingTurns = turns;
+                existing.Magnitude = magnitude;
+            }
+            else
+            {
+                t.Active.Add(new ActiveEffect { Kind = kind, RemainingTurns = turns, Magnitude = magnitude });
+            }
+            Result.Log.Add($"  [{source}] {t.Name} gains {kind} ({magnitude}/turn, {turns}t)");
+        }
+    }
+
+    private static Combatant BuildCombatant(CreatureDNA dna, CreatureDatabaseSO db, EquipmentDatabaseSO equipDb, bool isA)
+    {
+        var s   = ComputeStats(dna, db);
+        var eff = EquipmentStats.Apply(
+            new EffectiveStats(s.Constitution, s.Attack, s.Speed, s.Defense, s.Luck, s.Evasion), dna, equipDb);
+
+        var c = new Combatant
+        {
+            Dna     = dna,
+            Name    = dna.CustomName,
+            IsA     = isA,
+            MaxHp   = eff.Constitution * BaseHpCombatMultiplier,
+            Attack  = eff.Attack,
+            Speed   = eff.Speed,
+            Defense = eff.Defense,
+            Luck    = eff.Luck,
+            Evasion = eff.Evasion,
+            Procs   = CollectProcs(dna, equipDb),
+        };
+        c.Hp = c.MaxHp;
+        return c;
+    }
+
+    private static List<CombatProcEffect> CollectProcs(CreatureDNA dna, EquipmentDatabaseSO equipDb)
+    {
+        var list = new List<CombatProcEffect>();
+        if (equipDb == null || dna.Equipped == null) return list;
+        foreach (var id in dna.Equipped.Values)
+        {
+            var item = equipDb.GetByID(id);
+            if (item?.Effects == null) continue;
+            foreach (var e in item.Effects)
+                if (e is CombatProcEffect proc) list.Add(proc);
+        }
+        return list;
+    }
+
+    // ── Stats ──────────────────────────────────────────────────────
 
     private struct Stats
     {
@@ -177,9 +345,6 @@ public static class CombatService
         public float Evasion;
     }
 
-    // Effective stats for display (e.g. the detail window): base (DNA) plus each
-    // part's stat and its +(tier-1) bonus. Same math the combat sim uses. The combat
-    // HP pool is Constitution × BaseHpCombatMultiplier, derived where needed.
     public readonly struct EffectiveStats
     {
         public readonly float Constitution;
@@ -223,63 +388,12 @@ public static class CombatService
     private static void AccumulatePart(BodyPart part, Tier tier, ref float con, ref float atk, ref float spd)
     {
         if (part == null) return;
-        int bonus = (int)tier - 1;   // Tier1=0, Tier2=+1, Tier3=+2
+        int bonus = (int)tier - 1;
         con += part.HP     + bonus;
         atk += part.Attack + bonus;
         spd += part.Speed  + bonus;
     }
 
-    // Executes one attack. defenderHP is HP before the hit. Order: evasion (dodge →
-    // 0 dmg) → crit (CritChance + attacker LCK) → DEF reduction. Logs a line AND
-    // appends a structured CombatTurn (attackerIsA = the striker is combatant A).
-    private static float Strike(
-        string attackerName, string defenderName, bool attackerIsA,
-        float attack, float attackerLuck, float defenderHP, float defenderDef, float defenderEva,
-        CombatManagerSO config, CombatResult result, int round)
-    {
-        string dir = attackerIsA ? "A→B" : "B→A";
-
-        if (UnityEngine.Random.value < defenderEva * config.EvasionPerPoint)
-        {
-            result.Log.Add($"  [{dir}] DODGE! defender HP:{defenderHP:F1}");
-            result.Turns.Add(new CombatTurn
-            {
-                TurnNumber      = round,
-                AttackerName    = attackerName,
-                DefenderName    = defenderName,
-                AttackerIsA     = attackerIsA,
-                Damage          = 0f,
-                WasCrit         = false,
-                DefenderHpAfter = defenderHP,
-            });
-            return 0f;
-        }
-
-        float critChance = config.CritChance + attackerLuck * config.LuckCritPerPoint;
-        bool  isCrit     = UnityEngine.Random.value < critChance;
-        float raw        = attack * (isCrit ? config.CritMultiplier : 1f);
-        float reduction  = Mathf.Clamp01(defenderDef * config.DefenseReductionPerPoint);
-        float damage     = raw * (1f - reduction);
-        float hpAfter    = Mathf.Max(0f, defenderHP - damage);
-
-        result.Log.Add($"  [{dir}]{(isCrit ? " CRIT!" : "")} dmg:{damage:F1}  defender HP after:{hpAfter:F1}");
-
-        result.Turns.Add(new CombatTurn
-        {
-            TurnNumber      = round,
-            AttackerName    = attackerName,
-            DefenderName    = defenderName,
-            AttackerIsA     = attackerIsA,
-            Damage          = damage,
-            WasCrit         = isCrit,
-            DefenderHpAfter = hpAfter,
-        });
-        return damage;
-    }
-
-    // Appends one finished-combat record to a creature's persistent history (POV of
-    // 'self'). The Turns list is shared with the opponent's record (the replay is
-    // symmetric); selfIsA tells the visualizer which side "self" was.
     private static void RecordHistory(
         CreatureDNA self, CreatureDNA opponent, CombatOutcome outcome,
         bool died, string evolvedSlot, bool selfIsA, List<CombatTurn> turns)
@@ -288,7 +402,7 @@ public static class CombatService
         self.CombatHistory.Add(new CombatRecord
         {
             OpponentName       = opponent.CustomName,
-            OpponentPlayerName = "",                       // local combat — same player
+            OpponentPlayerName = "",
             Date               = DateTime.UtcNow,
             Outcome            = outcome,
             Died               = died,
@@ -298,8 +412,6 @@ public static class CombatService
         });
     }
 
-    // Picks a random slot not already at Tier3 and advances it by one.
-    // Returns the slot name, or null if all slots are maxed.
     private static string TryEvolveRandomSlot(CreatureDNA dna)
     {
         var eligible = new List<string>();
