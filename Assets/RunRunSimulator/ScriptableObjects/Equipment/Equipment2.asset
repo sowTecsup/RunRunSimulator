@@ -80,6 +80,9 @@ MonoBehaviour:
     - Name: 
       Entry: 7
       Data: 3|MoriMonchiSimulator.StunEffect, Assembly-CSharp
+    - Name: Trigger
+      Entry: 3
+      Data: 2
     - Name: ProcChance
       Entry: 3
       Data: 50

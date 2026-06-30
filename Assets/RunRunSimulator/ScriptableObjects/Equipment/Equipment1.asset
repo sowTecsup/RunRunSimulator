@@ -37,7 +37,7 @@ MonoBehaviour:
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
-      Data: 2
+      Data: 3
     - Name: 
       Entry: 7
       Data: MoriMonchiSimulator.StatModifier, Assembly-CSharp
@@ -59,6 +59,21 @@ MonoBehaviour:
     - Name: Stat
       Entry: 3
       Data: 1
+    - Name: Type
+      Entry: 3
+      Data: 0
+    - Name: Value
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: MoriMonchiSimulator.StatModifier, Assembly-CSharp
+    - Name: Stat
+      Entry: 3
+      Data: 5
     - Name: Type
       Entry: 3
       Data: 0
@@ -80,6 +95,9 @@ MonoBehaviour:
     - Name: 
       Entry: 7
       Data: 3|MoriMonchiSimulator.ReturnDamageEffect, Assembly-CSharp
+    - Name: Trigger
+      Entry: 3
+      Data: 0
     - Name: ProcChance
       Entry: 3
       Data: 20
@@ -92,6 +110,9 @@ MonoBehaviour:
     - Name: 
       Entry: 7
       Data: 4|MoriMonchiSimulator.PoisonEffect, Assembly-CSharp
+    - Name: Trigger
+      Entry: 3
+      Data: 0
     - Name: ProcChance
       Entry: 3
       Data: 100
@@ -107,6 +128,9 @@ MonoBehaviour:
     - Name: 
       Entry: 7
       Data: 5|MoriMonchiSimulator.BurnEffect, Assembly-CSharp
+    - Name: Trigger
+      Entry: 3
+      Data: 0
     - Name: ProcChance
       Entry: 3
       Data: 20
@@ -122,6 +146,9 @@ MonoBehaviour:
     - Name: 
       Entry: 7
       Data: 6|MoriMonchiSimulator.StunEffect, Assembly-CSharp
+    - Name: Trigger
+      Entry: 3
+      Data: 0
     - Name: ProcChance
       Entry: 3
       Data: 40
