@@ -24,7 +24,15 @@ public struct CombatVisualHit
     public bool             Crit;
 }
 
-public enum CombatVisualLogKind { Versus, Hit, Crit, Death, Result }
+public struct CombatVisualPopup
+{
+    public CombatVisualSide Side;
+    public Vector3          Position;
+    public CombatPopupKind  Kind;
+    public float            Amount;
+}
+
+public enum CombatVisualLogKind { Versus, Hit, Crit, Death, Result, Proc }
 
 public struct CombatVisualLogLine
 {
@@ -65,6 +73,9 @@ public static class CombatVisualEvents
 
     public static event Action<CombatVisualHit> OnHit;
     public static void Hit(CombatVisualHit hit) => OnHit?.Invoke(hit);
+
+    public static event Action<CombatVisualPopup> OnPopup;
+    public static void Popup(CombatVisualPopup p) => OnPopup?.Invoke(p);
 
     public static event Action<CombatVisualHit> OnCrit;
     public static void Crit(CombatVisualHit hit) => OnCrit?.Invoke(hit);

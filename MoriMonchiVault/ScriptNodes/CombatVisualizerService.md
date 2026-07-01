@@ -1,42 +1,164 @@
 ---
-tags: [script, combat]
+tags: [combat, visualization, service, replay, ui]
 ---
 
-# CombatVisualizerService.cs
+# CombatVisualizerService
 
-**Ruta:** `Systems/CombatVisualizer/CombatVisualizerService.cs`
+MonoBehaviour singleton que orquesta la visualización local de un `CombatRecord`, construyendo un árbol de nodos doblemente enlazados y generando la secuencia de animaciones turno-a-turno. Maneja playback manual (fwd/back) y automático, mapea datos de sim a visual (HP, muerte, popups).
 
-**Responsabilidad:** Singleton apex que reproduce visualmente un `CombatRecord` en escena (replay local, no simula). Dueño de la vida/destrucción de los dos combatientes visuales y del estado de reproducción.
+## Responsabilidad
 
-**Arquitectura por lista doblemente enlazada:** `BuildStates()` precomputa una cadena de `CombatNode` (uno por estado del combate), cada uno con `Prev`/`Next`, el `CombatTurn` que llevó a él, HP A/B, vivos/muertos, nº de turno y el log acumulado. Navegar = mover el puntero `current`. `head` = estado inicial (100%). El último nodo es el final (`IsEnd`).
+Transformar `CombatRecord` en una reproducción visual: armar los nodos de replay, animar cada turno en secuencia, aplicar procs visualmente, rasurar popups y log, sincronizar HP bars, disparar eventos visuales via `CombatVisualEvents`.
 
-**Slots fijos: A = tu MM (`self`), B = oponente.** No hay swap. Cada turno se orienta con `attackerIsSelf = (turn.AttackerIsA == record.SelfWasA)` (cada pelea se guarda en ambas criaturas con su POV; sin este mapeo el replay saldría espejado). El nombre del oponente sale de `record.OpponentName` (autoritativo, coincide con el log).
+## Propiedades Públicas
 
-**Cálculo de HP máximo:** `hpMax = Constitution × CombatService.BaseHpCombatMultiplier` (5f). Este pool amplificado hace que los combates duren varios turnos. Los stats efectivos se extraen de `CombatService.GetEffectiveStats()` (suma base + bonos de partes + tier).
+| Propiedad | Tipo | Descripción |
+|-----------|------|-------------|
+| `Instance` | `CombatVisualizerService` | Singleton |
+| `IsPlaying` | `bool` | Si hay un replay activo |
+| `IsAuto` | `bool` | Si playback está en automático |
+| `Speed` | `float` | Multiplicador de velocidad (clamped 0.01-max) |
 
-**API de control (la llama el panel / DEV harness):**
-- `Play(self, opponent, record)`: construye estados y arranca **en pausa** en `head`.
-- `TogglePlay()` / `SetAuto(bool)`: modo auto (avanza solo respetando `playbackSpeed`). Si estaba al final, reinicia desde `head`.
-- `Next()` / `Back()`: paso manual (pausan el auto). `Back` revive al derrotado (reconstruye el estado del nodo previo).
-- `SetSpeed(float)`: 0.25x–4x; divide los timings (windup/impacto/entre-turnos/pausa de muerte).
-- `Stop()`: corta coroutines y despawnea.
+## Métodos Públicos
 
-**Forward vs Restore:** `ForwardRoutine` = transición con juice (windup → hit/crit → HP tween → muerte) disparando los eventos granulares. `Restore(node)` = estado puro (para `Back`/seek): fija visibilidad + HP + log sin juice. `busy` bloquea inputs durante la animación.
+| Método | Descripción |
+|--------|-------------|
+| `Play(CreatureDNA self, CreatureDNA opponent, CombatRecord record)` | Inicia replay de un record |
+| `Stop()` | Detiene playback y limpia estado |
+| `TogglePlay()` | Toggle automático |
+| `SetAuto(bool value)` | Setea playback automático |
+| `Next()` | Avanza un turno (manual) |
+| `Back()` | Retrocede un turno (manual) |
+| `SetSpeed(float value)` | Setea velocidad de playback |
 
-**Muerte estilo Pokémon:** al llegar a 0 el defensor, tras `deathPauseSeconds` se hace `SetActive(false)` (desaparece); al final queda el ganador. `Back` lo reactiva.
+## Métodos Privados
 
-**Feel Juice via CombatNode:** La lista doblemente enlazada de `CombatNode` ahora dispara los feedbacks Feel del peleador. Cada nodo tiene `FireWindup(a, b)` (atacante `PlayAttack`), `FireImpact(a, b, maxA, maxB)` (golpeado/crítico de ataque y defensa, luego `PlayHpChanged`), y `FireDeath(a, b)` (defensor `PlayDead`). El Service resuelve `hooksA`/`hooksB` (instancias `MoriMonchiCombatVisualizer` derivadas, vía `as`) al spawnear, dispara `PlayCombatStart` en todos en `BeginRoutine`, dispara `PlayVictory` del ganador al final de `ForwardRoutine`. El rewind (`Restore`) NO dispara juice, solo actualiza estado puro.
+### Construcción y Estado
 
-**Caché de animadores:** guarda `animA`/`animB` (MoriMonchiProceduralAnimator) en `SpawnFighters` para poder restaurar la pose de animación sin juice en el rewind (`Restore`). Helper privado `RestoreAnim(anim, dead)` repone AnimIdle si vivo, AnimDeath si muerto.
+| Método | Descripción |
+|--------|-------------|
+| `BuildStates()` | Construye árbol de nodos `CombatNode` desde `CombatRecord.Turns` |
+| `Restore(CombatNode node)` | Restituye escena a un nodo (jump a turno, restore HP/vivos) |
 
-**Barras por referencia directa:** guarda `barA`/`barB` (no por evento de side). `Bind(nombre, ataque, velocidad)` establece el nombre y stats en la barra; `PushHp(side, hp, max)` empuja los valores reales de HP (no porcentaje) a la barra correcta y además dispara `OnHpChanged` para los hooks. Los nombres y stats se bindean tras 2 frames (cuando el UIDocument ya construyó su árbol). En `BeginRoutine`: `barA?.Bind(selfDna.CustomName, statsA.Attack, statsA.Speed)` y similar para barB (statsA/statsB vienen de `BuildStates`).
+### Animación
 
-**DBs por `GameManager.Instance`** (`Database`/`PartVisualBank`/`FurTypeDatabase`); las únicas refs de inspector son `visualizerPrefab` + `slotA`/`slotB` + timings + `playbackSpeed`.
+| Método | Descripción |
+|--------|-------------|
+| `BeginRoutine()` | Corrutina de setup inicial (spawn, bind UI) |
+| `AutoRoutine()` | Corrutina de playback automático (loop Next + wait) |
+| `ForwardRoutine()` | Corrutina de un turno: procs before, golpe, procs after, muerte |
+| `PlayProc(CombatProcEvent pe)` | Corrutina de un proc: popup, HP delta, wait |
 
-**Log coloreado:** construye `CombatVisualLogLine` con rich-text — nombre local azul (`#5AA0FF`), oponente rojo (`#FF6B6B`), daño rojo (`#FF3B3B`).
+### Mapeando Sim → Visual
 
-**DEV — Test Harness (Odin, solo Play):** dropdowns Combatiente A / Pelea (sin Rival B: se autoresuelve por `record.OpponentName`), "🎲 MM al azar con pelea", "▶ Simular" y fila ◀/▶❚❚/▶▶.
+| Método | Descripción |
+|--------|-------------|
+| `SimToVisual(bool simIsA)` | Convierte `simIsA` en `CombatVisualSide` basado en `SelfWasA` |
+| `FighterPos(CombatVisualSide side)` | Retorna posición mundo del fighter |
+| `ProcPopupKind(ModifierEffectKind k)` | Mapea tipo de proc a `CombatPopupKind` |
+| `ProcText(CombatProcEvent pe, string who, float delta)` | Genera texto descriptivo del proc |
+| `RaiseProcPopup(CombatProcEvent pe, CombatVisualSide side, float delta)` | Dispara evento popup (con lógica especial para Stun) |
 
-**Vinculado a:** [[Index/03 - Combat]]
+### Utilidades
 
-**Conexiones:** [[CombatVisualEvents]], [[CombatRecord]], [[CombatTurn]], [[CreatureDNA]], [[MoriMonchiVisualizer]], [[MoriMonchiCombatVisualizer]], [[MoriMonchiCombatVisualizerUITK]], [[CombatVisualizerPanelUITK]], [[CombatService]], [[GameManager]], [[CreatureDatabaseSO]], [[PartVisualBankSO]], [[FurTypeDatabaseSO]]
+| Método | Descripción |
+|--------|-------------|
+| `Publish()` | Publica estado actual via `CombatVisualEvents.PanelState()` |
+| `PushHp(CombatVisualSide side, float hp, float max)` | Sincroniza HP visual + barra + tracking |
+| `SetFighterActive(CombatVisualSide side, bool active)` | Activa/desactiva GameObject del fighter |
+| `SpawnFighters(CreatureDNA dnaA, CreatureDNA dnaB)` | Instancia prefabs visuales |
+| `DespawnFighters()` | Destruye instancias visuales |
+
+### DEV Test Harness
+
+| Método | Descripción |
+|--------|-------------|
+| `DevPickRandom()` | Elige criatura + pelea al azar con turnos |
+| `DevSimulate()` | Dispara replay de creature/fight seleccionada |
+| `DevBack()`, `DevTogglePlay()`, `DevNext()` | Atajos de botones |
+
+## Clases Internas
+
+### CombatNode
+
+Nodo doblemente enlazado en árbol de replay.
+
+**Campos:**
+- `bool HasTurn` — si este nodo representa un turno real (false para cabeza)
+- `CombatTurn Turn` — el turno (null si !HasTurn)
+- `float HpA, HpB` — HP acumulado tras este turno
+- `bool ADead, BDead` — si A/B han muerto
+- `bool ADiedHere, BDiedHere` — si A/B murieron EN este turno
+- `int TurnNumber` — número de turno
+- `CombatVisualSide Attacker, Defender`
+- `bool Crit` — si golpe fue crítico
+- `List<CombatVisualLogLine> Log` — líneas acumuladas hasta aquí
+- `CombatNode Prev, Next` — enlaces
+
+**Métodos:**
+- `FireWindup(a, b)` — anima windup (si !NoAttack)
+- `FireImpact(a, b, maxA, maxB)` — anima impacto + daño visual (si !NoAttack)
+- `FireDeath(a, b)` — anima muerte si ocurrió
+
+## Campos Privados
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `instanceA`, `instanceB` | `MoriMonchiVisualizer` | Prefabs instanciados |
+| `hooksA`, `hooksB` | `MoriMonchiCombatVisualizer` | Refs a hooks de animación |
+| `barA`, `barB` | `MoriMonchiCombatVisualizerUITK` | Refs a UI bars |
+| `animA`, `animB` | `MoriMonchiProceduralAnimator` | Refs a animadores |
+| `selfDna`, `oppDna` | `CreatureDNA` | DNAs actual |
+| `activeRecord` | `CombatRecord` | Record en replay |
+| `head`, `current` | `CombatNode` | Nodos de árbol (head = inicio, current = posición) |
+| `totalTurns` | `int` | Cantidad de turnos |
+| `hpMaxA`, `hpMaxB` | `float` | HP máx calculado |
+| `shownHpA`, `shownHpB` | `float` | HP mostrado actualmente (para delta en popup) |
+| `statsA`, `statsB` | `CombatService.EffectiveStats` | Stats finales |
+| `endIsDraw`, `endWinner` | `bool`, `CombatVisualSide` | Resultado final |
+| `isAuto`, `busy` | `bool` | Estados de playback |
+| Corrutinas | `Coroutine` | `beginRoutine`, `autoRoutine`, `fwdRoutine` |
+
+## Cambios Sesión 31
+
+**MODIFICADO:** `BuildStates()`, `ForwardRoutine()`, métodos de helpers de proc
+
+1. **BuildStates():** Ahora procesa `Turn.Procs` aplicando before-strike y after-strike en HP acumulado; genera lineas de log tipo `Proc`
+2. **CombatNode:** Nuevos campos `ADiedHere`, `BDiedHere` (no solo ADead/BDead); `FireWindup`/`FireImpact` respetan `Turn.NoAttack`
+3. **ForwardRoutine():** Reescrito para animar before procs → golpe (si !NoAttack) → after procs; llama `PlayProc()` para cada proc
+4. **PlayProc():** Nueva corrutina; anima popup + HP delta
+5. **Helpers nuevos:**
+   - `SimToVisual()` — convierte bool simIsA a side
+   - `ProcPopupKind()` — mapea ModifierEffectKind → CombatPopupKind
+   - `ProcText()` — genera texto descriptivo
+   - `RaiseProcPopup()` — dispara evento popup con lógica especial
+   - `FighterPos()` — posición mundo para popups
+6. **PushHp():** Trackea `shownHpA`/`shownHpB` para calcular delta en procs
+
+Backward compatible: records viejos sin procs animan normalmente (listas vacías).
+
+## Vinculado a
+
+- [[CombatRecord]] — lee `Turn` y `Turn.Procs`
+- [[CombatService]] — cálculos de stats via `GetEffectiveStats()`
+- [[CombatVisualEvents]] — publisher de todos los eventos
+- [[CombatDamageNumbers]] — consumidor de `OnPopup`
+- [[MoriMonchiVisualizer]] — prefab a instanciar
+- [[MoriMonchiCombatVisualizer]] — hooks de animación
+
+## Conexiones
+
+**Entrada:**
+- `Play(self, opponent, record)` — llamado desde UI/test
+
+**Salida:**
+- `CombatVisualEvents.OnVisualCombatStart`, `.OnTurnStart`, `.OnHit`, `.OnPopup`, `.OnDead`, etc.
+- Referencias a fighters: instancias y animadores
+
+## Notas
+
+- **Árbol de nodos:** Doubly linked list permite jump fwd/back eficientemente
+- **HP tracking:** `shownHpA/B` para calcular delta en proctext; `PushHp()` sincroniza barra
+- **NoAttack:** Turnos sin golpe (stun-skip, muerte por status) saltan animación windup/impact
+- **Popups:** Levantados vía `RaiseProcPopup()` que filtra por delta pequeño (Stun siempre popup)
+- **Sincronización:** Restore() salta a nodo arbitrario, respaldando animadores a estado muerto/vivo

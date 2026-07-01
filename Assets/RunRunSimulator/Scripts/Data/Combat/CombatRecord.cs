@@ -42,5 +42,7 @@ public class CombatTurn
     public float  Damage;
     public bool   WasCrit;
     public float  DefenderHpAfter;    // defender HP remaining after this hit
+    public bool                  NoAttack;
+    public List<CombatProcEvent> Procs = new List<CombatProcEvent>();
 }
 }

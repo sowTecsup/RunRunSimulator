@@ -38,6 +38,8 @@ public class CombatVisualizerService : MonoBehaviour
         public float                     HpB;
         public bool                      ADead;
         public bool                      BDead;
+        public bool                      ADiedHere;
+        public bool                      BDiedHere;
         public int                       TurnNumber;
         public CombatVisualSide          Attacker;
         public CombatVisualSide          Defender;
@@ -52,27 +54,25 @@ public class CombatVisualizerService : MonoBehaviour
 
         public void FireWindup(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b)
         {
-            if (!HasTurn) return;
+            if (Turn == null || Turn.NoAttack) return;
             Pick(Attacker, a, b)?.PlayAttack();
         }
 
         public void FireImpact(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b, float maxA, float maxB)
         {
-            if (!HasTurn) return;
+            if (Turn == null || Turn.NoAttack) return;
             var atk = Pick(Attacker, a, b);
             var def = Pick(Defender, a, b);
             if (Crit) { atk?.PlayCritDealt(); def?.PlayCritTaken(); }
             else      { atk?.PlayHitDealt();  def?.PlayHitTaken(); }
-            float defHp  = Defender == CombatVisualSide.A ? HpA : HpB;
             float defMax = Defender == CombatVisualSide.A ? maxA : maxB;
-            def?.PlayHpChanged(defHp, defMax);
+            def?.PlayHpChanged(Turn.DefenderHpAfter, defMax);
         }
 
         public void FireDeath(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b)
         {
-            if (!HasTurn) return;
-            bool dead = Defender == CombatVisualSide.A ? ADead : BDead;
-            if (dead) Pick(Defender, a, b)?.PlayDead();
+            if (ADiedHere) a?.PlayDead();
+            if (BDiedHere) b?.PlayDead();
         }
     }
 
@@ -93,6 +93,8 @@ public class CombatVisualizerService : MonoBehaviour
     private int          totalTurns;
     private float        hpMaxA;
     private float        hpMaxB;
+    private float        shownHpA;
+    private float        shownHpB;
     private CombatService.EffectiveStats statsA;
     private CombatService.EffectiveStats statsB;
     private bool         endIsDraw;
@@ -216,28 +218,47 @@ public class CombatVisualizerService : MonoBehaviour
             foreach (var t in activeRecord.Turns)
             {
                 bool attackerIsSelf = t.AttackerIsA == activeRecord.SelfWasA;
-                string atk = Colored(t.AttackerName, attackerIsSelf ? SelfColor : OppColor);
-                string def = Colored(t.DefenderName, attackerIsSelf ? OppColor : SelfColor);
-                string dmg = Colored($"{t.Damage:F0}", DamageColor);
-                log.Add(t.WasCrit
-                    ? Line(CombatVisualLogKind.Crit, $"¡CRÍTICO! {atk} → {def} · {dmg} de daño")
-                    : Line(CombatVisualLogKind.Hit,  $"{atk} golpea a {def} · {dmg} de daño"));
+                void ApplyProc(CombatProcEvent pe)
+                {
+                    bool isA = pe.TargetIsA == activeRecord.SelfWasA;
+                    float before = isA ? hpA : hpB;
+                    float after  = pe.TargetHpAfter;
+                    if (isA) hpA = after; else hpB = after;
 
-                if (attackerIsSelf)
-                {
-                    hpB = t.DefenderHpAfter;
-                    if (hpB <= 0f && !bDead) { bDead = true; log.Add(Line(CombatVisualLogKind.Death, $"{def} cae derrotado")); }
+                    string who = Colored(isA ? selfDna.CustomName : activeRecord.OpponentName, isA ? SelfColor : OppColor);
+                    log.Add(Line(CombatVisualLogKind.Proc, ProcText(pe, who, after - before)));
                 }
-                else
+
+                if (t.Procs != null)
+                    foreach (var pe in t.Procs)
+                        if (pe.BeforeStrike) ApplyProc(pe);
+
+                if (!t.NoAttack)
                 {
-                    hpA = t.DefenderHpAfter;
-                    if (hpA <= 0f && !aDead) { aDead = true; log.Add(Line(CombatVisualLogKind.Death, $"{def} cae derrotado")); }
+                    string atk = Colored(t.AttackerName, attackerIsSelf ? SelfColor : OppColor);
+                    string def = Colored(t.DefenderName, attackerIsSelf ? OppColor : SelfColor);
+                    string dmg = Colored($"{t.Damage:F0}", DamageColor);
+                    log.Add(t.WasCrit
+                        ? Line(CombatVisualLogKind.Crit, $"¡CRÍTICO! {atk} → {def} · {dmg} de daño")
+                        : Line(CombatVisualLogKind.Hit,  $"{atk} golpea a {def} · {dmg} de daño"));
+
+                    if (attackerIsSelf) hpB = t.DefenderHpAfter;
+                    else                hpA = t.DefenderHpAfter;
                 }
+
+                if (t.Procs != null)
+                    foreach (var pe in t.Procs)
+                        if (!pe.BeforeStrike) ApplyProc(pe);
+
+                bool aDiedHere = false, bDiedHere = false;
+                if (hpA <= 0f && !aDead) { aDead = true; aDiedHere = true; log.Add(Line(CombatVisualLogKind.Death, $"{Colored(selfDna.CustomName, SelfColor)} cae derrotado")); }
+                if (hpB <= 0f && !bDead) { bDead = true; bDiedHere = true; log.Add(Line(CombatVisualLogKind.Death, $"{Colored(activeRecord.OpponentName, OppColor)} cae derrotado")); }
 
                 var next = new CombatNode
                 {
                     HasTurn = true, Turn = t,
                     HpA = hpA, HpB = hpB, ADead = aDead, BDead = bDead,
+                    ADiedHere = aDiedHere, BDiedHere = bDiedHere,
                     TurnNumber = t.TurnNumber, Log = new List<CombatVisualLogLine>(log),
                     Attacker = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B,
                     Defender = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A,
@@ -310,46 +331,62 @@ public class CombatVisualizerService : MonoBehaviour
         Publish();
 
         var target = current.Next;
-        var t       = target.Turn;
+        var t      = target.Turn;
         bool attackerIsSelf = t.AttackerIsA == activeRecord.SelfWasA;
         var attacker = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B;
         var defender = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A;
 
         CombatVisualEvents.TurnStart(t);
-        CombatVisualEvents.Attack(attacker);
-        target.FireWindup(hooksA, hooksB);
-        yield return new WaitForSeconds(windupSeconds / Speed);
 
-        var hit = new CombatVisualHit { Attacker = attacker, Defender = defender, Damage = t.Damage, Crit = t.WasCrit };
-        CombatVisualEvents.Hit(hit);
-        target.FireImpact(hooksA, hooksB, hpMaxA, hpMaxB);
-        if (t.WasCrit)
+        if (t.Procs != null)
+            foreach (var pe in t.Procs)
+                if (pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe));
+
+        if (!t.NoAttack)
         {
-            CombatVisualEvents.Crit(hit);
-            CombatVisualEvents.Log($"¡CRÍTICO! {t.AttackerName} → {t.DefenderName} · {t.Damage:F0} de daño");
-        }
-        else
-        {
-            CombatVisualEvents.Log($"{t.AttackerName} golpea a {t.DefenderName} · {t.Damage:F0} de daño");
+            CombatVisualEvents.Attack(attacker);
+            target.FireWindup(hooksA, hooksB);
+            yield return new WaitForSeconds(windupSeconds / Speed);
+
+            var hit = new CombatVisualHit { Attacker = attacker, Defender = defender, Damage = t.Damage, Crit = t.WasCrit };
+            CombatVisualEvents.Hit(hit);
+            target.FireImpact(hooksA, hooksB, hpMaxA, hpMaxB);
+            if (t.WasCrit)
+            {
+                CombatVisualEvents.Crit(hit);
+                CombatVisualEvents.Log($"¡CRÍTICO! {t.AttackerName} → {t.DefenderName} · {t.Damage:F0} de daño");
+            }
+            else
+            {
+                CombatVisualEvents.Log($"{t.AttackerName} golpea a {t.DefenderName} · {t.Damage:F0} de daño");
+            }
+
+            float defMax = defender == CombatVisualSide.A ? hpMaxA : hpMaxB;
+            PushHp(defender, t.DefenderHpAfter, defMax);
+            if (t.Damage >= 0.5f)
+                CombatVisualEvents.Popup(new CombatVisualPopup
+                {
+                    Side = defender, Position = FighterPos(defender),
+                    Kind = t.WasCrit ? CombatPopupKind.Crit : CombatPopupKind.Hit, Amount = t.Damage,
+                });
+            yield return new WaitForSeconds(impactSeconds / Speed);
         }
 
-        float defHp  = defender == CombatVisualSide.A ? target.HpA : target.HpB;
-        float defMax = defender == CombatVisualSide.A ? hpMaxA : hpMaxB;
-        PushHp(defender, defHp, defMax);
+        if (t.Procs != null)
+            foreach (var pe in t.Procs)
+                if (!pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe));
 
         current = target;
         Publish();
 
-        yield return new WaitForSeconds(impactSeconds / Speed);
-
-        bool defenderDead = defender == CombatVisualSide.A ? target.ADead : target.BDead;
-        if (defenderDead)
+        if (target.ADiedHere || target.BDiedHere)
         {
-            CombatVisualEvents.Dead(defender);
             target.FireDeath(hooksA, hooksB);
-            CombatVisualEvents.Log($"{t.DefenderName} cae derrotado");
+            if (target.ADiedHere) CombatVisualEvents.Dead(CombatVisualSide.A);
+            if (target.BDiedHere) CombatVisualEvents.Dead(CombatVisualSide.B);
             yield return new WaitForSeconds(deathPauseSeconds / Speed);
-            SetFighterActive(defender, false);
+            if (target.ADiedHere) SetFighterActive(CombatVisualSide.A, false);
+            if (target.BDiedHere) SetFighterActive(CombatVisualSide.B, false);
         }
 
         CombatVisualEvents.TurnEnd(t);
@@ -363,6 +400,89 @@ public class CombatVisualizerService : MonoBehaviour
         busy       = false;
         fwdRoutine = null;
         Publish();
+    }
+
+    private IEnumerator PlayProc(CombatProcEvent pe)
+    {
+        var side = SimToVisual(pe.TargetIsA);
+        float before = side == CombatVisualSide.A ? shownHpA : shownHpB;
+        float max    = side == CombatVisualSide.A ? hpMaxA : hpMaxB;
+        RaiseProcPopup(pe, side, pe.TargetHpAfter - before);
+        PushHp(side, pe.TargetHpAfter, max);
+        yield return new WaitForSeconds(impactSeconds / Speed);
+    }
+
+    private CombatVisualSide SimToVisual(bool simIsA)
+        => simIsA == activeRecord.SelfWasA ? CombatVisualSide.A : CombatVisualSide.B;
+
+    private void RaiseProcPopup(CombatProcEvent pe, CombatVisualSide side, float delta)
+    {
+        if (pe.Kind == ModifierEffectKind.Stun)
+        {
+            CombatVisualEvents.Popup(new CombatVisualPopup
+            {
+                Side = side, Position = FighterPos(side),
+                Kind = CombatPopupKind.Stun, Amount = pe.Amount,
+            });
+            return;
+        }
+        if (Mathf.Abs(delta) < 0.5f) return;
+        CombatVisualEvents.Popup(new CombatVisualPopup
+        {
+            Side = side, Position = FighterPos(side),
+            Kind = ProcPopupKind(pe.Kind), Amount = Mathf.Abs(delta),
+        });
+    }
+
+    private static CombatPopupKind ProcPopupKind(ModifierEffectKind k) => k switch
+    {
+        ModifierEffectKind.Poison       => CombatPopupKind.Poison,
+        ModifierEffectKind.Burn         => CombatPopupKind.Burn,
+        ModifierEffectKind.ReturnDamage => CombatPopupKind.Thorns,
+        ModifierEffectKind.Heal         => CombatPopupKind.Heal,
+        ModifierEffectKind.Regen        => CombatPopupKind.Regen,
+        ModifierEffectKind.Stun         => CombatPopupKind.Stun,
+        _                               => CombatPopupKind.Hit,
+    };
+
+    private Vector3 FighterPos(CombatVisualSide side)
+    {
+        var inst = side == CombatVisualSide.A ? instanceA : instanceB;
+        if (inst != null) return inst.transform.position;
+        var slot = side == CombatVisualSide.A ? slotA : slotB;
+        return slot != null ? slot.position : Vector3.zero;
+    }
+
+    private static string ProcText(CombatProcEvent pe, string who, float delta)
+    {
+        if (Mathf.Approximately(delta, 0f))
+        {
+            return pe.Kind switch
+            {
+                ModifierEffectKind.Poison => $"{who} es envenenado",
+                ModifierEffectKind.Burn   => $"{who} se incendia",
+                ModifierEffectKind.Regen  => $"{who} entra en regeneración",
+                ModifierEffectKind.Stun   => $"{who} queda aturdido {pe.Amount:F0}t",
+                _                         => $"{who} — {pe.Kind}",
+            };
+        }
+        string mag = $"{Mathf.Abs(delta):F0}";
+        if (delta < 0f)
+        {
+            return pe.Kind switch
+            {
+                ModifierEffectKind.Poison       => $"{who} sufre {Colored(mag, DamageColor)} de veneno",
+                ModifierEffectKind.Burn         => $"{who} sufre {Colored(mag, DamageColor)} de quemadura",
+                ModifierEffectKind.ReturnDamage => $"{who} recibe {Colored(mag, DamageColor)} de espinas",
+                _                               => $"{who} pierde {Colored(mag, DamageColor)}",
+            };
+        }
+        return pe.Kind switch
+        {
+            ModifierEffectKind.Regen => $"{who} regenera {mag}",
+            ModifierEffectKind.Heal  => $"{who} se cura {mag}",
+            _                        => $"{who} recupera {mag}",
+        };
     }
 
     private void Restore(CombatNode node)
@@ -434,6 +554,7 @@ public class CombatVisualizerService : MonoBehaviour
         CombatVisualEvents.HpChanged(side, hp, max);
         var bar = side == CombatVisualSide.A ? barA : barB;
         if (bar != null) bar.SetHp(hp, max);
+        if (side == CombatVisualSide.A) shownHpA = hp; else shownHpB = hp;
     }
 
     private void SetFighterActive(CombatVisualSide side, bool active)

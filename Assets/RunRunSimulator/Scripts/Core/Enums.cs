@@ -358,6 +358,18 @@ public enum ModifierEffectKind
     Regen        = 5,
 }
 
+public enum CombatPopupKind
+{
+    Hit,
+    Crit,
+    Poison,
+    Burn,
+    Thorns,
+    Heal,
+    Regen,
+    Stun,
+}
+
 // When a combat proc rolls — all three roll ProcChance. Offensive = rolled at the start
 // of the owner's turn, applies if the attack connects. Defensive = rolled when the owner
 // is hit. Passive = rolled on its own at the start of the owner's turn (no hit needed).

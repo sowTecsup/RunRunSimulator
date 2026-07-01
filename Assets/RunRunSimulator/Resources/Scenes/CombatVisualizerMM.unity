@@ -381,6 +381,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cdb3e8f493a83047825db0b705171c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureGridView
+  equipmentDb: {fileID: 0}
   rows: []
 --- !u!114 &775259541
 MonoBehaviour:
@@ -402,6 +403,7 @@ MonoBehaviour:
   inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
   partVisualBank: {fileID: 11400000, guid: 0f4abf5f11f4e7a468321e65eea303fe, type: 2}
   furTypeDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
+  equipmentDatabase: {fileID: 0}
   cloudSync: {fileID: 1337864046}
 --- !u!4 &775259542
 Transform:
@@ -1259,6 +1261,7 @@ GameObject:
   - component: {fileID: 1755152919}
   - component: {fileID: 1755152917}
   - component: {fileID: 1755152916}
+  - component: {fileID: 1755152920}
   m_Layer: 0
   m_Name: CombatVisualizer
   m_TagString: Untagged
@@ -1337,6 +1340,21 @@ MonoBehaviour:
   betweenTurnsSeconds: 0.55
   deathPauseSeconds: 0.6
   playbackSpeed: 1
+--- !u!114 &1755152920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1755152914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fe34d4a966b8374989d0bc88c2214cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatDamageNumbers
+  palette: {fileID: 11400000, guid: 1d6e815ca56db584ab429a99defb1384, type: 2}
+  numberPrefab: {fileID: 4972166875381407948, guid: dd051134e5afa2c499a0ba2c46cf6537, type: 3}
+  spawnOffset: {x: 0, y: 1.5, z: 0}
 --- !u!1 &1892223481
 GameObject:
   m_ObjectHideFlags: 0

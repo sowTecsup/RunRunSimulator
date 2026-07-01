@@ -135,17 +135,33 @@ public static class CombatService
     // Returns true if combat should end (someone reached 0 HP).
     private static bool TakeTurn(Combatant atk, Combatant def, CombatManagerSO config, CombatResult result, int round, Resolver r)
     {
+        var procs = new List<CombatProcEvent>();
+        r.TurnProcs = procs;
+
         result.Log.Add($"  » Turno de {atk.Name}");
-        TickStatuses(atk, result);
-        if (atk.Hp <= 0f) { result.Log.Add($"    [{atk.Name}] succumbs to its afflictions."); return true; }
+
+        r.BeforeStrike = true;
+        TickStatuses(atk, result, r);
+        if (atk.Hp <= 0f)
+        {
+            result.Log.Add($"    [{atk.Name}] succumbs to its afflictions.");
+            EmitTurn(result, round, atk, def, true, 0f, false, def.Hp, procs);
+            return true;
+        }
 
         FireProcs(atk, def, TriggerType.Passive, result, r, true);
-        if (atk.Hp <= 0f || def.Hp <= 0f) return true;
+        if (atk.Hp <= 0f || def.Hp <= 0f)
+        {
+            EmitTurn(result, round, atk, def, true, 0f, false, def.Hp, procs);
+            return true;
+        }
 
         if (atk.StunTurns > 0)
         {
             atk.StunTurns--;
             result.Log.Add($"    [{atk.Name}] is stunned — skips turn ({atk.StunTurns} left)");
+            r.Record(ModifierEffectKind.Stun, atk, atk.StunTurns + 1);
+            EmitTurn(result, round, atk, def, true, 0f, false, def.Hp, procs);
             return false;
         }
 
@@ -171,12 +187,27 @@ public static class CombatService
             damage          = raw * (1f - reduction);
             def.Hp          = Mathf.Max(0f, def.Hp - damage);
         }
+        float defHpAfterStrike = def.Hp;
 
         string dir = atk.IsA ? "A→B" : "B→A";
         result.Log.Add(dodged
             ? $"    [{dir}] DODGE!  {def.Name} HP:{def.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}%)"
             : $"    [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}  {def.Name} HP:{def.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}% · crit {critRoll * 100f:F0} vs {critChance * 100f:F0}%)");
 
+        r.BeforeStrike = false;
+        if (!dodged && def.Hp > 0f)
+        {
+            foreach (var p in armed) { r.Self = atk; r.Opponent = def; p.Apply(r); }
+            FireProcs(def, atk, TriggerType.Defensive, result, r, true);
+        }
+
+        EmitTurn(result, round, atk, def, false, damage, crit, defHpAfterStrike, procs);
+        return atk.Hp <= 0f || def.Hp <= 0f;
+    }
+
+    private static void EmitTurn(CombatResult result, int round, Combatant atk, Combatant def,
+        bool noAttack, float damage, bool crit, float defHp, List<CombatProcEvent> procs)
+    {
         result.Turns.Add(new CombatTurn
         {
             TurnNumber      = round,
@@ -185,19 +216,13 @@ public static class CombatService
             AttackerIsA     = atk.IsA,
             Damage          = damage,
             WasCrit         = crit,
-            DefenderHpAfter = def.Hp,
+            DefenderHpAfter = defHp,
+            NoAttack        = noAttack,
+            Procs           = procs,
         });
-
-        if (!dodged && def.Hp > 0f)
-        {
-            foreach (var p in armed) { r.Self = atk; r.Opponent = def; p.Apply(r); }
-            FireProcs(def, atk, TriggerType.Defensive, result, r, true);
-        }
-
-        return atk.Hp <= 0f || def.Hp <= 0f;
     }
 
-    private static void TickStatuses(Combatant c, CombatResult result)
+    private static void TickStatuses(Combatant c, CombatResult result, Resolver r)
     {
         for (int i = c.Active.Count - 1; i >= 0; i--)
         {
@@ -209,10 +234,12 @@ public static class CombatService
                 case ModifierEffectKind.Burn:
                     c.Hp = Mathf.Max(0f, c.Hp - a.Magnitude);
                     result.Log.Add($"    [{a.Kind}] {c.Name} takes {a.Magnitude} {a.Kind} damage → {c.Hp:F1} ({left}t left)");
+                    r.Record(a.Kind, c, a.Magnitude);
                     break;
                 case ModifierEffectKind.Regen:
                     c.Hp = Mathf.Min(c.MaxHp, c.Hp + a.Magnitude);
                     result.Log.Add($"    [Regen] {c.Name} regenerates {a.Magnitude} HP → {c.Hp:F1} ({left}t left)");
+                    r.Record(a.Kind, c, a.Magnitude);
                     break;
             }
             if (--a.RemainingTurns <= 0) c.Active.RemoveAt(i);
@@ -278,17 +305,21 @@ public static class CombatService
         public CombatResult Result;
         public Combatant    Self;
         public Combatant    Opponent;
+        public List<CombatProcEvent> TurnProcs;
+        public bool                  BeforeStrike;
 
         public void DamageOpponent(float amount, string source)
         {
             Opponent.Hp = Mathf.Max(0f, Opponent.Hp - amount);
             Result.Log.Add($"    [{source}] {Opponent.Name} -{amount:F1} → {Opponent.Hp:F1}");
+            Record(ModifierEffectKind.ReturnDamage, Opponent, amount);
         }
 
         public void HealSelf(float amount, string source)
         {
             Self.Hp = Mathf.Min(Self.MaxHp, Self.Hp + amount);
             Result.Log.Add($"    [{source}] {Self.Name} +{amount:F1} → {Self.Hp:F1}");
+            Record(ModifierEffectKind.Heal, Self, amount);
         }
 
         public void ApplyStatusToOpponent(ModifierEffectKind kind, int turns, int magnitude, string source) =>
@@ -301,6 +332,7 @@ public static class CombatService
         {
             if (turns > Opponent.StunTurns) Opponent.StunTurns = turns;
             Result.Log.Add($"    [stun] {Opponent.Name} stunned for {Opponent.StunTurns} turn(s)");
+            Record(ModifierEffectKind.Stun, Opponent, turns);
         }
 
         private void AddStatus(Combatant t, ModifierEffectKind kind, int turns, int magnitude, string source)
@@ -317,7 +349,17 @@ public static class CombatService
                 t.Active.Add(existing);
             }
             Result.Log.Add($"    [{source}] {t.Name} gains {kind} ({existing.Magnitude}/turn, {existing.RemainingTurns}t)");
+            Record(kind, t, magnitude);
         }
+
+        public void Record(ModifierEffectKind kind, Combatant target, float amount)
+            => TurnProcs?.Add(new CombatProcEvent
+            {
+                Kind = kind, TargetIsA = target.IsA, Amount = amount,
+                TargetHpAfter = target.Hp, BeforeStrike = BeforeStrike,
+            });
+
+        public void Record(ModifierEffectKind kind, Combatant target) => Record(kind, target, 0f);
     }
 
     private static Combatant BuildCombatant(CreatureDNA dna, CreatureDatabaseSO db, EquipmentDatabaseSO equipDb, bool isA)

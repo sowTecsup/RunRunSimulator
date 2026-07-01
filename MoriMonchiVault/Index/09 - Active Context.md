@@ -4,6 +4,51 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-01 (Session 31 — Enganche de los **procs de combate con el Combat Visualizer**: `CombatTurn` transporta proc events + replay honesto (ticks/thorns/heal/regen/stun) + **números flotantes DamageNumbersPro** coloreados y etiquetados por fuente) — **🟢 Etapa 1+2 PROBADO en Play (Juan) · Etapa 3 floaters funcionando; labels+stun recién agregados (a probar)**
+**Focus:** Que el visualizer dramatice los procs (hoy solo capturaba el golpe directo) y que aparezcan popups de daño/elemento. Tres etapas: (1) data — `CombatTurn` gana proc events + `NoAttack`; (2) replay — el visualizer consume los procs (barras HP exactas, turnos sin golpe, muerte por proc); (3) juice — DamageNumbersPro coloreado + texto por fuente vía SO de paleta.
+
+> ### ✅ Etapa 1 — `CombatTurn` transporta los procs (data)
+> Nuevo `CombatProcEvent` (`Kind`/`TargetIsA`/`Amount`/`TargetHpAfter`/`BeforeStrike`) + `CombatTurn` gana `List<CombatProcEvent> Procs` + `bool NoAttack` (aditivo, backward-compatible: records viejos/async deserializan con lista vacía). El `Resolver` (seam de `ICombatContext`) y `TickStatuses` graban un event en cada mutación (thorns/heal/stun/apply-status/tick DoT-HoT) vía `Resolver.Record`. `TakeTurn` reestructurado: emite **siempre** un turno (con `NoAttack` en stun-skip / muerte-por-aflicción / muerte-por-passive) vía helper `EmitTurn`.
+
+> ### ✅ Etapa 2 — el visualizer replica los procs (PROBADO en Play)
+> `BuildStates`/`ForwardRoutine`/`CombatNode` consumen `t.Procs`: barras HP exactas por `TargetHpAfter` (mapeo sim→visual `TargetIsA == SelfWasA`), turnos `NoAttack` sin lunge fantasma, muerte por proc en **cualquier** lado (`ADiedHere`/`BDiedHere`, no solo el defensor), líneas de log de proc (`+ CombatVisualLogKind.Proc`; texto por delta: apply/tick/heal). **Fix de review (Opus):** muerte derivada del **HP final del turno** + golpe gateado solo por `NoAttack` (confía en el sim; evita divergencias veneno-revive-regen y lifesteal-remata). Juan confirmó en Play: "funciona, veo que baja".
+
+> ### 🟢 Etapa 3 — DamageNumbersPro (floaters coloreados por fuente)
+> Bus visual `+ CombatVisualPopup` DTO + evento `OnPopup`. El Service raisea un popup en cada golpe (Hit/Crit) y cada proc que **mueve HP** (usa el delta real contra `shownHp`; apply-status no popea). Presenter nuevo `CombatDamageNumbers` (suscribe OnEnable/OnDisable) hace `Spawn` del `DamageNumber` en la pos del peleador + `SetColor` por `CombatPopupPaletteSO` (Odin, dict `CombatPopupKind→Color`, botón "Seteo base"). **Nunca popea desde `Restore`/`Back`.** `DamageNumbersPro.asmdef` es `autoReferenced` → Assembly-CSharp lo ve sin refs.
+
+> ### ✅ Etapa 3b — texto descriptivo + stun visible (a pedido de Juan)
+> Cada popup escribe la fuente en `topText`: Golpe / ¡Crítico! / Veneno / Quemadura / Espinas / Cura / Regeneración / Aturdido. El **stun** ahora se muestra: `+ CombatPopupKind.Stun`, el turno de stun-skip graba un proc event `Stun` (`CombatService`), y `RaiseProcPopup` lo popea como texto (sin exigir baja de HP; `enableNumber=false`). El "Aturdido" aparece al aplicar el stun y en el turno saltado (decisión abierta: dejarlo en uno solo si es ruidoso).
+
+> ### ⚠️ WIRING UNITY (Juan)
+> Paleta `CombatPopupPalette.asset` creada; **re-apretar "Seteo base"** para tomar la entrada `Stun` nueva (si se creó antes de S31b sale blanca). Prefab `DefaultDamageNumberPo` + componente `CombatDamageNumbers` en la escena `CombatVisualizerMM` (asignar paleta + prefab + `spawnOffset`). Para 3D: prefab con `enable3DGame`/`faceCameraView`.
+
+**Files Created (.cs — input ScriptNodes):**
+- `Data/Combat/CombatProcEvent.cs` (NUEVO): DTO serializable de un proc dentro de un turno.
+- `Data/Combat/CombatPopupPaletteSO.cs` (NUEVO): SO Odin `CombatPopupKind→Color` + botón "Seteo base".
+- `Systems/CombatVisualizer/CombatDamageNumbers.cs` (NUEVO): presenter que suscribe `OnPopup` y escupe floaters (color + topText por fuente; stun sin número).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Data/Combat/CombatRecord.cs`: `CombatTurn` + `NoAttack` + `List<CombatProcEvent> Procs`.
+- `Systems/Combat/CombatService.cs`: `Resolver` graba proc events (`Record` +2 sobrecargas, `TurnProcs`/`BeforeStrike`); `TickStatuses(+r)` graba ticks; `TakeTurn` emite siempre turno (`EmitTurn`, `NoAttack`); stun-skip graba event `Stun`.
+- `Systems/CombatVisualizer/CombatVisualEvents.cs`: `+ CombatVisualLogKind.Proc`; `+ CombatVisualPopup` DTO; `+ OnPopup`/`Popup`.
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: `BuildStates`/`ForwardRoutine`/`CombatNode` consumen procs; `shownHp`; helpers `PlayProc`/`RaiseProcPopup`/`ProcPopupKind`/`FighterPos`/`SimToVisual`; muerte por HP final.
+- `Core/Enums.cs`: `+ CombatPopupKind {Hit,Crit,Poison,Burn,Thorns,Heal,Regen,Stun}`.
+
+**Files Touched (no-ScriptNode):** import package `DamageNumbersPro/`; escenas `CombatVisualizerMM.unity`/`GameScene.unity` (wiring); assets `CombatPopupPalette`/`DefaultDamageNumberPo.prefab` (Juan); `Examples/TestDamageNumberPro.cs` (test suelto de Juan, sin ScriptNode); registries de prueba + `EmojiOne.asset` (side effects del package).
+
+**Next session (S32):**
+1. Probar en Play los floaters con etiquetas + stun (Etapa 3b). Ajustar labels / campo de texto (top vs bottom/left) y decidir si el "Aturdido" queda en uno o dos momentos.
+2. (Opcional) refinar juice: "+" en curas, escala en críticos, follow-transform del popup.
+3. **Seed determinista + online** (retiro del JS de combate) — foco macro pendiente.
+4. **Fase de sinergias / balance** — hitos a tratar:
+   - Stacking real de estados (instancias acumulables, N stacks → efectos extra; hoy se mergean por Kind).
+   - Tuning de procs (multiplicadores de sinergia sobre los `ActiveEffect`).
+   - **HITO nuevo (pedido Juan, S31): resolver el permastun y evitar softbloqueos.** Un passive/proc de stun mutuo o recurrente (visto en S30: ambos MMs con Stun passive 100%/2t) aturde en loop → deadlock → DRAW a MaxRounds. Diseñar salvaguarda para que **ningún combate quede sin progreso**: p.ej. diminishing returns del stun, inmunidad/resistencia temporal post-stun, cap de turnos aturdido consecutivos, o no re-aplicar stun mientras dura. Es problema de diseño/tuning, no bug. Ver memoria [[project_combat_synergies_balance]].
+
+**ScriptNodes (cierre S31 — agente Haiku):** CREAR `CombatProcEvent.md`, `CombatPopupPaletteSO.md`, `CombatDamageNumbers.md`; ACTUALIZAR `CombatRecord.md` (CombatTurn +NoAttack/+Procs), `CombatService.md` (graba proc events + NoAttack + stun record), `CombatVisualEvents.md` (+Proc kind, +CombatVisualPopup, +OnPopup), `CombatVisualizerService.md` (consume procs + popups + muerte por proc), `Enums.md` (+CombatPopupKind).
+
+---
+
 **Session:** 2026-06-30 (Session 30 — Testeo en Play del combate local con efectos (S29) + enriquecimiento del **log de combate** para legibilidad/observabilidad) — **✅ CERRADA (probado en Play por Juan)**
 **Focus:** Probar que se pueden seleccionar dos MMs desde la pantalla UITK del combate (Tab local) y que escupa el **log detallado**. El código de S29 (combate local con procs polimórficos inline) corrió SIN tocar nada — pasó la pasada de cordura previa (cero refs colgadas a lo borrado en S29, contratos externos `CombatManagerSO`/`EquipmentStats`/enums OK). Sobre eso, se enriqueció el log a pedido de Juan.
 

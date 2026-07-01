@@ -1,34 +1,130 @@
 ---
-tags: [script, combat]
+tags: [combat, core, stateless, simulation]
 ---
 
-# CombatService.cs
+# CombatService
 
-**Ruta:** `Systems/Combat/CombatService.cs`
+Servicio estático stateless que simula un combate por turnos local, completamente determinista. Orquesta el flujo: orden de ataque por Speed, tick de status, procs defensivos/ofensivos, cálculos de daño (evasión, crit, defensa), emite record simétrico de turnos.
 
-**Responsabilidad:** Simulación local turn-based. Reescrito S28: nuevo parámetro `EquipmentDatabaseSO equipDb`; usa clases internas `Combatant` (stats + procs + efectos activos + stun turns) y `Resolver` (implementa ICombatContext). Flujo de turno: tick de estados periódicos → fire pasivos → roll ofensivos si no aturdido → ataque (evasión → crit → DEF) → apply ofensivos + defensivos on-hit si conecta. Procs vienen de `EquipmentSO.Effects` (CombatProcEffect polimórficos) resueltos contra equipDb. Genera `CombatTurn`s, determina ganador. Dispara `GameEvents.OnCombatCompleted`. Calcula stats efectivos incluyendo bonos de partes + equipo. HP pool = Constitution × `BaseHpCombatMultiplier` (5f).
+## Responsabilidad
 
-S29 (actual): Log de combate enriquecido. Dos helpers privados nuevos: `RollProc(CombatProcEffect, Combatant, CombatResult)` (rolea un proc y loguea la tirada con tipo/%, dado y PROC/no proc, devuelve bool) y `TriggerLabel(TriggerType)` (mapea Offensive→"on hit", Defensive→"when hit", Passive→"passive"). TakeTurn ahora emite header por turno (`» Turno de {atk.Name}`) con cuerpo del turno indentado a 4 espacios; headers de ronda sin indent. Línea del golpe muestra dados de evasión y crítico: `(eva {roll}% vs {chance}% · crit {roll}% vs {chance}%)`. Cambio de comportamiento: procs on-connect (ofensivos armados + defensivos del defensor) solo aplican si `!dodged && def.Hp > 0f` (antes corrían aunque defensor quedara en 0 HP). TickStatuses loguea daño/cura de estados periódicos con turnos restantes. StunOpponent loguea el stun resultante (max), no el valor pedido. Resolver.AddStatus loguea magnitud/turnos RESULTANTES tras refrescar (guarda ref `existing`), no parámetros crudos.
+Ser la única autoridad de simulación local: validar combatientes, ejecutar el loop de rondas, aplicar modificadores (equipment, statuses), grabar cada turno en `CombatRecord` para replay/persistencia. Contrato público sin cambios (backward compatible). Emit todos los procs vía `Resolver.Record()` para captura en `CombatTurn.Procs`.
+
+## Métodos Públicos
+
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `Simulate(idA, idB, registry, db, config, equipDb)` | `CombatResult` | Simula pelea full, retorna result + turns + log |
+| `GetEffectiveStats(dna, db)` | `EffectiveStats` | Calcula stats finales de una criatura (sin equipment aún) |
+
+## Métodos Privados (Statics)
+
+| Método | Descripción |
+|--------|-------------|
+| `TakeTurn(atk, def, config, result, round, r)` | bool | Resuelve un turno de un combatiente; retorna true si alguien llegó a 0 HP |
+| `EmitTurn(result, round, atk, def, noAttack, damage, crit, defHp, procs)` | void | Crea `CombatTurn` con todos los campos y lo agrega a `result.Turns` |
+| `TickStatuses(c, result, r)` | void | Aplica daño/curación por status activo (Poison/Burn/Regen), graba procs |
+| `FireProcs(owner, opponent, trigger, result, r, roll)` | void | Itera procs del tipo trigger, los aplica via `ICombatContext` |
+| `RollProc(p, owner, result)` | bool | Tira chance proc, loguea roll |
+| `BuildCombatant(dna, db, equipDb, isA)` | `Combatant` | Construye modelo interno de combatiente con stats/procs |
+| `CollectProcs(dna, equipDb)` | `List<CombatProcEffect>` | Recolecta todos los procs del equipment equipado |
+| `ComputeStats(dna, db)` | `Stats` | Calcula stats base + acumulación de partes |
+| `AccumulatePart(part, tier, ref con, ref atk, ref spd)` | void | Suma bonificación de parte a stats |
+| `RecordHistory(self, opponent, outcome, died, evolvedSlot, selfIsA, turns)` | void | Crea `CombatRecord` e inserta en `self.CombatHistory` |
+| `TryEvolveRandomSlot(dna)` | string | Elige slot aleatorio no-Tier3 y lo evoluciona; retorna nombre del slot o null |
+| `GetSlotTier(dna, slot)` | int | Retorna tier actual del slot |
+| `Clip(id)` | string | Trunca ID a 14 chars para logging |
+
+## Clases Internas
+
+### Resolver : ICombatContext
+
+Implementa el contexto de aplicación de procs. Mantiene referencias a combatientes y buffer de `CombatProcEvent`.
+
+**Campos:**
+- `CombatResult Result`
+- `Combatant Self`, `Opponent`
+- `List<CombatProcEvent> TurnProcs` — buffer acumulado durante turno
+- `bool BeforeStrike` — true si estamos en fase pre-ataque
+
+**Métodos (ICombatContext):**
+- `DamageOpponent(amount, source)` — daña opponent, graba proc ReturnDamage
+- `HealSelf(amount, source)` — cura self, graba proc Heal
+- `ApplyStatusToOpponent(kind, turns, mag, source)` → `AddStatus()`
+- `ApplyStatusToSelf(kind, turns, mag, source)` → `AddStatus()`
+- `StunOpponent(turns)` — seteea turns de stun, graba proc Stun
+- `Record(kind, target, amount)` — crea `CombatProcEvent` e inserta en `TurnProcs`
+
+### Combatant (interna)
+
+Modelo de combatiente durante simulación.
+
+**Campos:**
+- `CreatureDNA Dna`
+- `string Name`
+- `bool IsA`
+- `float Hp, MaxHp`
+- `float Attack, Speed, Defense, Luck, Evasion`
+- `int StunTurns`
+- `List<CombatProcEffect> Procs`
+- `List<ActiveEffect> Active` — statuses activos
+
+### ActiveEffect (interna)
+
+Estado de un status en proceso.
+
+**Campos:**
+- `ModifierEffectKind Kind`
+- `int RemainingTurns`
+- `int Magnitude`
 
 ## Constantes
 
-| Constante | Valor | Propósito |
-|-----------|-------|----------|
-| `BaseHpCombatMultiplier` | 5.0 | Constitution se multiplica por 5 para pool de HP en combate. |
+| Constante | Valor | Uso |
+|-----------|-------|-----|
+| `BaseHpCombatMultiplier` | 5f | HP en combate = Constitution * 5 |
 
-## Tipos públicos
+## Vinculado a
 
-| Tipo | Propósito |
-|------|----------|
-| `EffectiveStats` (readonly struct) | 6 campos: Constitution, Attack, Speed, Defense, Luck, Evasion. Display + combat. |
+- [[Enums]] — `ModifierEffectKind`, `CombatOutcome`, `Tier`
+- [[CreatureDNA]] — fuente de verdad de stats
+- [[CreatureDatabaseSO]] — resuelve partes por ID
+- [[CombatManagerSO]] — config (MaxRounds, CritChance, DEF reduction, etc.)
+- [[EquipmentDatabaseSO]] — resuelve items equipados
+- [[EquipmentStats]] — aplica modifiers estatales
+- [[CombatRecord]] — estructura de salida
+- [[CombatProcEvent]] — DTO de procs
+- [[GameEvents]] — (no dispara directo, GameManager orquesta persistencia)
 
-## Métodos públicos
+## Conexiones
 
-| Método | Retorna | Propósito |
-|--------|---------|----------|
-| `Simulate(idA, idB, registry, db, config, equipDb)` | `CombatResult` | Simula un combate local, devuelve resultado + turnos. Nuevo parámetro `equipDb` para resolver procs. |
-| `GetEffectiveStats(dna, db)` | `EffectiveStats` | Calcula los 6 stats efectivos (base + partes, sin equipo). |
+**Entrada:**
+- `CombatManagerSO` (config)
+- `CreatureRegistrySO` (búsqueda DNAs por ID)
+- `CreatureDatabaseSO` (partes)
+- `EquipmentDatabaseSO` (items equipados → procs)
 
-**Vinculado a:** [[Index/03 - Combat]]
+**Salida:**
+- `CombatResult` — contiene `Turns` (lista de `CombatTurn`)
+- `CombatRecord` — inserto en `CreatureDNA.CombatHistory` (persistencia)
 
-**Conexiones:** [[CombatManagerSO]], [[CreatureDNA]], [[CombatRecord]], [[CombatTurn]], [[GameEvents]], [[CombatController]], [[CreatureDatabaseSO]], [[EquipmentDatabaseSO]], [[EquipmentSO]], [[CombatProcEffect]], [[ICombatContext]], [[EquipmentStats]], [[Enums]]
+## Cambios Sesión 31
+
+**MODIFICADO:** `TakeTurn()` y helpers relacionados
+
+1. Nuevo buffer `procs = List<CombatProcEvent>()` por turno
+2. `Resolver.TurnProcs = procs` antes de lógica de turno
+3. `Resolver.BeforeStrike = true/false` para marcar fase
+4. Cada mutacion (damage, heal, stun, status) ahora graba `Resolver.Record(kind, target, amount)`
+5. `TickStatuses()` firma cambia a `(c, result, r)` y graba procs via `r.Record()`
+6. `EmitTurn()` nueva firma con `noAttack` y `procs` parámetros
+7. Turnos sin golpe (`NoAttack=true`): muerte por aflicción, muerte por passive, stun-skip
+
+**Backward compatible:** Contrato público `Simulate()`/`GetEffectiveStats()` sin cambios. El `CombatResult` siempre emite `Turns` bien formados.
+
+## Notas
+
+- **Determinismo:** Usa `UnityEngine.Random` (no seedeable aún; roadmap etapa 2.2)
+- **Stats:** Constitution → HP, resto aplicados directamente (DEF/LCK/EVA suman de equipment)
+- **Procs:** Ordenados before-strike, golpe (si !NoAttack), after-strike (visible en visualizador)
+- **Logging:** `result.Log` contiene trazas debug de todo (rolls, daños, evaciones, statuses)
