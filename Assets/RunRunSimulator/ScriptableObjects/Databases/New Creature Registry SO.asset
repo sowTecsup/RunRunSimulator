@@ -272,6 +272,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -315,6 +321,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -357,6 +369,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -696,6 +714,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -739,6 +763,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -781,6 +811,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -886,6 +922,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -928,6 +970,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -972,6 +1020,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1014,6 +1068,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -1058,6 +1118,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1100,6 +1166,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -1144,6 +1216,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1186,6 +1264,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -1291,6 +1375,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1334,6 +1424,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1376,6 +1472,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -1481,6 +1583,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1584,6 +1692,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -1733,6 +1847,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1776,6 +1896,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -1818,6 +1944,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -2183,6 +2315,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2225,6 +2363,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -2330,6 +2474,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2434,6 +2584,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2476,6 +2632,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -2520,6 +2682,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2562,6 +2730,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -2606,6 +2780,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2648,6 +2828,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -2692,6 +2878,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2734,6 +2926,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -2839,6 +3037,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2882,6 +3086,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -2924,6 +3134,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -3028,6 +3244,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -3393,6 +3615,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -3435,6 +3663,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -3539,6 +3773,12 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -3826,13 +4066,13 @@ MonoBehaviour:
       Data: 137|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 26.6696377
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 24.9673042
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: -73.330246
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -3878,7 +4118,43 @@ MonoBehaviour:
       Data: 15
     - Name: 
       Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
       Data: 0
+    - Name: $v
+      Entry: 1
+      Data: EQ0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 1
+      Data: EQ1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 1
+      Data: EQ2
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -3992,10 +4268,10 @@ MonoBehaviour:
       Data: 3
     - Name: FightCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: WinCount
       Entry: 3
-      Data: 0
+      Data: 1
     - Name: BreedCount
       Entry: 3
       Data: 0
@@ -4004,7 +4280,7 @@ MonoBehaviour:
       Data: 1
     - Name: ArmTier
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: EyeTier
       Entry: 3
       Data: 1
@@ -4035,7 +4311,546 @@ MonoBehaviour:
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 142|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250872077532628382
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
       Data: 0
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 1
+      Data: Arm
+    - Name: SelfStats
+      Entry: 7
+      Data: 143|MoriMonchiSimulator.CombatFighterSnapshot, Assembly-CSharp
+    - Name: MaxHp
+      Entry: 4
+      Data: 45
+    - Name: Attack
+      Entry: 4
+      Data: 6
+    - Name: Speed
+      Entry: 4
+      Data: 6
+    - Name: Defense
+      Entry: 4
+      Data: 1
+    - Name: Luck
+      Entry: 4
+      Data: 1
+    - Name: Evasion
+      Entry: 4
+      Data: 2
+    - Name: BodyTier
+      Entry: 3
+      Data: 0
+    - Name: ArmTier
+      Entry: 3
+      Data: 0
+    - Name: EyeTier
+      Entry: 3
+      Data: 0
+    - Name: MouthTier
+      Entry: 3
+      Data: 0
+    - Name: ColorHex
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OpponentStats
+      Entry: 7
+      Data: 144|MoriMonchiSimulator.CombatFighterSnapshot, Assembly-CSharp
+    - Name: MaxHp
+      Entry: 4
+      Data: 30
+    - Name: Attack
+      Entry: 4
+      Data: 7
+    - Name: Speed
+      Entry: 4
+      Data: 7
+    - Name: Defense
+      Entry: 4
+      Data: 0
+    - Name: Luck
+      Entry: 4
+      Data: 0
+    - Name: Evasion
+      Entry: 4
+      Data: 1
+    - Name: BodyTier
+      Entry: 3
+      Data: 0
+    - Name: ArmTier
+      Entry: 3
+      Data: 0
+    - Name: EyeTier
+      Entry: 3
+      Data: 0
+    - Name: MouthTier
+      Entry: 3
+      Data: 0
+    - Name: ColorHex
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Seed
+      Entry: 3
+      Data: 1627930801
+    - Name: OpponentDnaId
+      Entry: 1
+      Data: BS0-A0-E2-M0-4E20F8-639185934757630932
+    - Name: OpponentPlayerId
+      Entry: 1
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: true
+    - Name: Turns
+      Entry: 7
+      Data: 145|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 7
+      Data: 146|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: DefenderName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 6.44
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 38.56
+    - Name: NoAttack
+      Entry: 5
+      Data: false
+    - Name: Procs
+      Entry: 7
+      Data: 147|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 148|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 38.56
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 149|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 18
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 12
+    - Name: NoAttack
+      Entry: 5
+      Data: false
+    - Name: Procs
+      Entry: 7
+      Data: 150|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 6
+    - Name: 
+      Entry: 7
+      Data: 151|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 35.56
+    - Name: BeforeStrike
+      Entry: 5
+      Data: true
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 152|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 153|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 154|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 155|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 6
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 156|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 6
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 10
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 2
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 157|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: DefenderName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 6.44
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 29.12
+    - Name: NoAttack
+      Entry: 5
+      Data: false
+    - Name: Procs
+      Entry: 7
+      Data: 158|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 159|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 29.12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 160|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: NoAttack
+      Entry: 5
+      Data: false
+    - Name: Procs
+      Entry: 7
+      Data: 161|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 162|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 26.12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: true
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 163|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 23.12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: true
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -4047,16 +4862,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 142|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+      Data: 164|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 28.1700287
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 48.9415054
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: -76.8297653
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -4095,14 +4910,50 @@ MonoBehaviour:
       Data: -1
     - Name: Equipped
       Entry: 7
-      Data: 143|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
+      Data: 165|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
         Assembly-CSharp],[System.String, mscorlib]], mscorlib
     - Name: comparer
       Entry: 9
       Data: 15
     - Name: 
       Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
       Data: 0
+    - Name: $v
+      Entry: 1
+      Data: EQ0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 1
+      Data: EQ1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 1
+      Data: EQ2
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -4123,7 +4974,7 @@ MonoBehaviour:
       Data: BS0-A0-E2-M0-4E20F8-639185934757630932
     - Name: $v
       Entry: 7
-      Data: 144|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
+      Data: 166|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
     - Name: BodyShapeID
       Entry: 1
       Data: BS0
@@ -4198,7 +5049,7 @@ MonoBehaviour:
       Data: 
     - Name: ChildrenIDs
       Entry: 7
-      Data: 145|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+      Data: 167|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
@@ -4216,7 +5067,7 @@ MonoBehaviour:
       Data: 1
     - Name: FightCount
       Entry: 3
-      Data: 1
+      Data: 2
     - Name: WinCount
       Entry: 3
       Data: 0
@@ -4255,14 +5106,14 @@ MonoBehaviour:
       Data: 0
     - Name: CombatHistory
       Entry: 7
-      Data: 146|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
+      Data: 168|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatRecord,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 2
     - Name: 
       Entry: 7
-      Data: 147|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+      Data: 169|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
     - Name: OpponentName
       Entry: 1
       Data: Neon Sprout
@@ -4307,14 +5158,14 @@ MonoBehaviour:
       Data: false
     - Name: Turns
       Entry: 7
-      Data: 148|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+      Data: 170|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 4
     - Name: 
       Entry: 7
-      Data: 149|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+      Data: 171|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -4341,7 +5192,7 @@ MonoBehaviour:
       Data: false
     - Name: Procs
       Entry: 7
-      Data: 150|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+      Data: 172|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
@@ -4352,12 +5203,18 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
     - Name: 
       Entry: 7
-      Data: 151|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+      Data: 173|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 1
@@ -4384,14 +5241,14 @@ MonoBehaviour:
       Data: false
     - Name: Procs
       Entry: 7
-      Data: 152|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+      Data: 174|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 5
     - Name: 
       Entry: 7
-      Data: 153|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+      Data: 175|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
     - Name: Kind
       Entry: 3
       Data: 2
@@ -4412,7 +5269,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 154|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+      Data: 176|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
     - Name: Kind
       Entry: 3
       Data: 2
@@ -4433,7 +5290,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 155|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+      Data: 177|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
     - Name: Kind
       Entry: 3
       Data: 2
@@ -4454,7 +5311,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 156|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+      Data: 178|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
     - Name: Kind
       Entry: 3
       Data: 6
@@ -4475,7 +5332,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 157|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+      Data: 179|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
     - Name: Kind
       Entry: 3
       Data: 6
@@ -4500,12 +5357,18 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
     - Name: 
       Entry: 7
-      Data: 158|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+      Data: 180|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -4532,7 +5395,7 @@ MonoBehaviour:
       Data: false
     - Name: Procs
       Entry: 7
-      Data: 159|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+      Data: 181|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
@@ -4543,12 +5406,18 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
     - Name: 
       Entry: 8
       Data: 
     - Name: 
       Entry: 7
-      Data: 160|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+      Data: 182|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
     - Name: TurnNumber
       Entry: 3
       Data: 2
@@ -4575,7 +5444,7 @@ MonoBehaviour:
       Data: false
     - Name: Procs
       Entry: 7
-      Data: 161|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+      Data: 183|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
@@ -4585,6 +5454,551 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 184|MoriMonchiSimulator.CombatRecord, Assembly-CSharp
+    - Name: OpponentName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: OpponentPlayerName
+      Entry: 1
+      Data: 
+    - Name: Date
+      Entry: 7
+      Data: System.DateTime, mscorlib
+    - Name: 
+      Entry: 3
+      Data: 5250872077532628382
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Outcome
+      Entry: 3
+      Data: 1
+    - Name: Died
+      Entry: 5
+      Data: false
+    - Name: EvolvedSlot
+      Entry: 6
+      Data: 
+    - Name: SelfStats
+      Entry: 7
+      Data: 185|MoriMonchiSimulator.CombatFighterSnapshot, Assembly-CSharp
+    - Name: MaxHp
+      Entry: 4
+      Data: 30
+    - Name: Attack
+      Entry: 4
+      Data: 7
+    - Name: Speed
+      Entry: 4
+      Data: 7
+    - Name: Defense
+      Entry: 4
+      Data: 0
+    - Name: Luck
+      Entry: 4
+      Data: 0
+    - Name: Evasion
+      Entry: 4
+      Data: 1
+    - Name: BodyTier
+      Entry: 3
+      Data: 0
+    - Name: ArmTier
+      Entry: 3
+      Data: 0
+    - Name: EyeTier
+      Entry: 3
+      Data: 0
+    - Name: MouthTier
+      Entry: 3
+      Data: 0
+    - Name: ColorHex
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: OpponentStats
+      Entry: 7
+      Data: 186|MoriMonchiSimulator.CombatFighterSnapshot, Assembly-CSharp
+    - Name: MaxHp
+      Entry: 4
+      Data: 45
+    - Name: Attack
+      Entry: 4
+      Data: 6
+    - Name: Speed
+      Entry: 4
+      Data: 6
+    - Name: Defense
+      Entry: 4
+      Data: 1
+    - Name: Luck
+      Entry: 4
+      Data: 1
+    - Name: Evasion
+      Entry: 4
+      Data: 2
+    - Name: BodyTier
+      Entry: 3
+      Data: 0
+    - Name: ArmTier
+      Entry: 3
+      Data: 0
+    - Name: EyeTier
+      Entry: 3
+      Data: 0
+    - Name: MouthTier
+      Entry: 3
+      Data: 0
+    - Name: ColorHex
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Seed
+      Entry: 3
+      Data: 1627930801
+    - Name: OpponentDnaId
+      Entry: 1
+      Data: BS2-A0-E0-M1-21A403-639185934753617990
+    - Name: OpponentPlayerId
+      Entry: 1
+      Data: 
+    - Name: SelfWasA
+      Entry: 5
+      Data: false
+    - Name: Turns
+      Entry: 7
+      Data: 187|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatTurn,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 7
+      Data: 188|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: DefenderName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 6.44
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 38.56
+    - Name: NoAttack
+      Entry: 5
+      Data: false
+    - Name: Procs
+      Entry: 7
+      Data: 189|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 190|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 38.56
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 191|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 1
+    - Name: AttackerName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 18
+    - Name: WasCrit
+      Entry: 5
+      Data: true
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 12
+    - Name: NoAttack
+      Entry: 5
+      Data: false
+    - Name: Procs
+      Entry: 7
+      Data: 192|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 6
+    - Name: 
+      Entry: 7
+      Data: 193|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 35.56
+    - Name: BeforeStrike
+      Entry: 5
+      Data: true
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 194|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 195|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 196|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 197|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 6
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 198|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 6
+    - Name: TargetIsA
+      Entry: 5
+      Data: false
+    - Name: Amount
+      Entry: 4
+      Data: 10
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 2
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 199|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: DefenderName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: AttackerIsA
+      Entry: 5
+      Data: false
+    - Name: Damage
+      Entry: 4
+      Data: 6.44
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 29.12
+    - Name: NoAttack
+      Entry: 5
+      Data: false
+    - Name: Procs
+      Entry: 7
+      Data: 200|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 201|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 29.12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: false
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 202|MoriMonchiSimulator.CombatTurn, Assembly-CSharp
+    - Name: TurnNumber
+      Entry: 3
+      Data: 2
+    - Name: AttackerName
+      Entry: 1
+      Data: Clammy Munch
+    - Name: DefenderName
+      Entry: 1
+      Data: Greasy Goober
+    - Name: AttackerIsA
+      Entry: 5
+      Data: true
+    - Name: Damage
+      Entry: 4
+      Data: 6
+    - Name: WasCrit
+      Entry: 5
+      Data: false
+    - Name: DefenderHpAfter
+      Entry: 4
+      Data: 0
+    - Name: NoAttack
+      Entry: 5
+      Data: false
+    - Name: Procs
+      Entry: 7
+      Data: 203|System.Collections.Generic.List`1[[MoriMonchiSimulator.CombatProcEvent,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 204|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 26.12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: true
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 205|MoriMonchiSimulator.CombatProcEvent, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 2
+    - Name: TargetIsA
+      Entry: 5
+      Data: true
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: TargetHpAfter
+      Entry: 4
+      Data: 23.12
+    - Name: BeforeStrike
+      Entry: 5
+      Data: true
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: StatusA
+      Entry: 6
+      Data: 
+    - Name: StatusB
+      Entry: 6
       Data: 
     - Name: 
       Entry: 8
@@ -4609,16 +6023,16 @@ MonoBehaviour:
       Data: false
     - Name: Needs
       Entry: 7
-      Data: 162|MoriMonchiSimulator.NeedsState, Assembly-CSharp
+      Data: 206|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 28.1700287
+      Data: 0
     - Name: Energy
       Entry: 4
       Data: 0
     - Name: Affect
       Entry: 4
-      Data: -81.8299
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -4657,14 +6071,26 @@ MonoBehaviour:
       Data: -1
     - Name: Equipped
       Entry: 7
-      Data: 163|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
+      Data: 207|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
         Assembly-CSharp],[System.String, mscorlib]], mscorlib
     - Name: comparer
       Entry: 9
       Data: 15
     - Name: 
       Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
       Data: 0
+    - Name: $v
+      Entry: 1
+      Data: EQ0
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 

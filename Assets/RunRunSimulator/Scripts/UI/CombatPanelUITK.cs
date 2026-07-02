@@ -55,6 +55,7 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     private DropdownField historyFilter;
     private ScrollView historyList, histLines;
     private Label historyEmpty, histOpponent, histDate, histOutcome;
+    private Button histReplayBtn;
 
     // ── State ──
     private CreatureRegistrySO registry;
@@ -83,6 +84,7 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     private int lastClockSecond = -1;
 
     private struct HistItem { public CreatureDNA Self; public CombatRecord Rec; }
+    private HistItem histCurrent;
 
     // ── Lifecycle ─────────────────────────────────────────────────
 

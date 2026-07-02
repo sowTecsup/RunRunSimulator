@@ -80,7 +80,7 @@ public class DevToolsConsole : MonoBehaviour
             Debug.LogWarning("[DevToolsConsole] asigna un EquipmentSO con ID.");
             return;
         }
-        inventory.AddEquipment(devEquipmentItem.ID);
+        inventory.AddEquipment(devEquipmentItem.Slot, devEquipmentItem.ID);
         GameEvents.InventoryChanged(inventory);
         Debug.Log($"[DevToolsConsole] +1 {devEquipmentItem.Name} ({devEquipmentItem.ID})");
     }
@@ -93,7 +93,11 @@ public class DevToolsConsole : MonoBehaviour
         if (inventory == null) { Debug.LogWarning("[DevToolsConsole] No inventory assigned."); return; }
         if (equipmentDatabase == null) { Debug.LogWarning("[DevToolsConsole] No equipment database assigned."); return; }
         var ids = equipmentDatabase.GetAllIDs();
-        foreach (var id in ids) inventory.AddEquipment(id);
+        foreach (var id in ids)
+        {
+            var item = equipmentDatabase.GetByID(id);
+            if (item != null) inventory.AddEquipment(item.Slot, item.ID);
+        }
         GameEvents.InventoryChanged(inventory);
         Debug.Log($"[DevToolsConsole] Added {ids.Count} equipment items from catalog.");
     }

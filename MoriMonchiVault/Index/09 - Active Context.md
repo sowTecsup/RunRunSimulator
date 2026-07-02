@@ -4,6 +4,108 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-02 (Session 34 — **PERFILADO DEL COMBAT VISUALIZER**: juice de popups DNP (follow-transform + presets por tipo + "+" en curas + escala en críticos + posición baja) + **efectos activos en la barra HP** (iniciales V/Q/R/A/E×N desde snapshot por turno del sim) + **REPLAY CROSS-ESCENA** (`CombatReplayRequest` NUEVO: botón ▶ en tarjeta del detail + "▶ Ver replay" en historial del Combat Panel → flush → carga `CombatVisualizerMM` → Play → Volver ya existía) + **tarjeta de combate rediseñada** (swatch color genético + tiers + dueño + comentario) + fix duplicado `devNoConsume` mochila) — **🔴 TODO SIN PROBAR EN PLAY · WIRING DIFERIDO A S35 (emergencia de Juan, cierre abrupto)**
+**Focus:** Plan S34 decidido al cierre de S33 + feedback de Juan al abrir: (1) popups salían muy arriba y sin variedad → follow al MM, offset bajo, presets por tipo, "+" en curas, escala en críticos; (2) barra de vida extendida con los efectos activos del momento (iniciales); (3) conexión de escenas para reproducir un combate desde el record (tarjeta e historial) con vuelta; (4) tarjeta de combate más simple según imagen de referencia (mini-imagen color, stats comprimidas, partes mejoradas, dueño, comentario, ▶); (5) fix del duplicado de equipo en modo dev.
+
+> ### ✅ Snapshots aditivos del sim (cero RNG, backward-compatible)
+> `CombatTurn` gana `StatusA/StatusB` (`List<CombatStatusMark> {Kind, Stacks}` — estado de efectos de ambos lados SIM al cierre de cada turno; `EmitTurn` los puebla vía `StatusMarks(Combatant)`: conteo de `Active` por Kind en orden de enum + mark `Stun` con `StunTurns` al final). `CombatFighterSnapshot` gana `BodyTier/ArmTier/EyeTier/MouthTier` (int; 0 = snapshot pre-S34, `Tier1 = 1`) y `ColorHex` (RRGGBB del `BaseColor`, "" = viejo) — `Snapshot(Combatant)` los setea (pre-combate, correcto). Orden de rolls intacto; puro output.
+
+> ### ✅ Popups — `CombatDamageNumbers` (DamageNumbersPro)
+> `CombatVisualPopup` gana `Transform Follow` (el service lo setea en los 4 raises vía `FighterTransform(side)`) → `SetFollowedTarget`. `prefabOverrides` (`List<KindPrefabOverride>` serializada) para presets DNP distintos por `CombatPopupKind`. "+" en Heal/Regen (**quirk DNP: exige `enableLeftText = true` — los overloads numéricos de `Spawn` no lo activan** — + `UpdateText()` idempotente por el reuso de pool). `critScale` (knob, default 1.35) vía `SetScale`. Default de `spawnOffset` bajado a (0, 0.6, 0) — **el valor serializado en escena lo pisa: ajustar a mano en el wiring**.
+
+> ### ✅ Barra HP con efectos activos — `MoriMonchiCombatVisualizerUITK`
+> Nueva API `SetStatus(List<CombatStatusMark>)` (driven por el service como `SetHp`). Fila `effects` creada programáticamente si el UXML no la trae (sin tocar `CombatHpBar.uxml`); chips con iniciales V(eneno)/Q(uemadura)/R(egen)/A(turdido)/E(spinas) + "×N", color por `palette` opcional (`CombatPopupPaletteSO`, fallback blanco). Patrón dirty + re-render al rebuild del árbol (mismo seam que el fix de árbol huérfano). El service: `CombatNode` gana `StatusA/StatusB` (lado VISUAL, mapeados con `SelfWasA`, null-tolerantes) y `PushStatus(node)` corre en `Restore` y en `ForwardRoutine` tras `current = target`.
+
+> ### ✅ Replay cross-escena — `CombatReplayRequest` (NUEVO) + `CombatSceneManager` + `GameManager`
+> Estática: `Request(self, rec)` guarda `SelfId`/`FightIndex`, llama `GameManager.FlushForSceneChange()` (**método público nuevo** = patrón quit: `CollectLooseWorldProps` + `FlushToCloud`) y `LoadScene("CombatVisualizerMM")`. `CanReplay`/`ResolveOpponent` (por `OpponentDnaId` → fallback `CustomName`, patrón del DEV harness). `CombatSceneManager.Start` consume el request con corrutina tolerante (**GameManager NO persiste entre escenas — la escena de combate tiene el suyo que carga de disco**; espera Instance/Registry + TryGet con timeout 3s) → `CombatVisualizerService.Play`. La vuelta (`btn-home`) ya existía. **Rivales async fuera del registry → botón deshabilitado (v1)**; guardar el DNA string del rival en el record queda como decisión futura.
+
+> ### ✅ Tarjeta de combate rediseñada (detail) + botón en historial (Combat Panel)
+> `BuildCombatCard(dna, rec)` (ya no static): header igual (badge+fecha); "vs {rival} · de {jugador}|local"; cuerpo 2 columnas Tú/Rival con **swatch 28×28** (`ColorHex` del snapshot → fallback `dna.BaseColor`/gris), stats en 2 líneas compactas (HP·ATK·SPD / DEF·LCK·EVA), **chips de tiers >1** ("Brazo T2"); línea de comentario ("Se mejoró {parte}" / "Victoria — sin mejora" / "Regresó derrotado" / "Murió en combate" / "Empate — sin consecuencias"); **▶ abajo-derecha** (`SetEnabled(CanReplay)`). Newest first. `BuildStatsColumn`/`AddCombatStatLabel` eliminados (verificado sin refs); USS `combat-card__*` reescrito (chips viejos eliminados, + swatch/body/colstats/comment/footer/play). Combat Panel tab 4: `ShowHistory` gana botón lazy "▶ Ver replay" (`histReplayBtn`/`histCurrent` en el partial core; `.cbt-replay-btn` en su USS; NO participa de la navegación por teclado).
+
+> ### ✅ Fix mochila (modo dev, decidido con Juan: SIMÉTRICO)
+> Bug: `devNoConsume` guardaba el consumo al equipar pero el desequipar (celda None) devolvía el item incondicional → duplicado. Fix: la devolución + `InventoryChanged` del desequipar quedaron bajo `if (!devNoConsume)`; `RegistryChanged` + `Rebuild` siempre corren. Swap al equipar ya estaba correcto; moves internos de grilla no tocan DNA. (El botón "vaciar inventario" pedido ya existía: "Clear Equipment" del box Equipment (DEV) — Juan no lo había visto.)
+
+> ### ⚠️ WIRING S35 (Juan — NADA de S34 probado en Play)
+> 1. **Build Settings: agregar la escena `CombatVisualizerMM`** (y confirmar `GameScene`) — sin esto `LoadScene` falla. 2. Recompilar (`CombatReplayRequest.cs` nuevo sin .meta). 3. `CombatDamageNumbers` (escena de combate): **bajar `spawnOffset` serializado a (0, 0.6, 0)**; opcional `prefabOverrides` por tipo + `critScale`. 4. Prefab del peleador → `MoriMonchiCombatVisualizerUITK`: asignar `palette` (CombatPopupPalette.asset) para iniciales coloreadas.
+
+> ### 📋 Quirks / notas de la sesión
+> 1. Records pre-S34: barra sin chips (turnos sin Status), swatch fallback y sin chips de tier; los de S33 tienen stats pero tiers=0/ColorHex="" → la UI los trata como desconocidos. 2. `FlushForSceneChange` es best-effort en el push (igual que quit). 3. Review del orquestador: sin bugs cross-archivo esta vez; solo se removió un comentario explicativo (regla 3). 4. Pendiente de S31 sigue abierto: decidir "Aturdido" en 1 o 2 momentos (se decide viéndolo en Play).
+
+**Files Created (.cs — input ScriptNodes):**
+- `Systems/CombatVisualizer/CombatReplayRequest.cs` (NUEVO): servicio estático de replay cross-escena (Request/CanReplay/ResolveOpponent/Clear).
+
+**Files Touched (.cs — input ScriptNodes; el working tree arrastra ADEMÁS los de S33 sin commitear — DevToolsConsole, PlayerInventorySO, CreatureGridUITK y parte de EquipmentBackpackUITK/MorimonchiDetailInfoUITK):**
+- `Data/Combat/CombatRecord.cs`: + `CombatStatusMark`; `CombatTurn` + `StatusA/StatusB`; `CombatFighterSnapshot` + 4 tiers + `ColorHex`.
+- `Systems/Combat/CombatService.cs`: `Snapshot` extendido (tiers+color); + `StatusMarks(Combatant)`; `EmitTurn` puebla StatusA/B. Cero RNG.
+- `Systems/CombatVisualizer/CombatVisualEvents.cs`: `CombatVisualPopup` + `Transform Follow`.
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: + `FighterTransform`; Follow en los 4 popups; `CombatNode` + StatusA/B (mapeo SelfWasA); + `PushStatus` (Restore + ForwardRoutine).
+- `Systems/CombatVisualizer/CombatDamageNumbers.cs`: + `prefabOverrides`/`ResolvePrefab`; + follow; + "+" curas (`enableLeftText`+`UpdateText`); + `critScale`; offset default 0.6.
+- `Systems/CombatVisualizer/CombatSceneManager.cs`: + corrutina `ConsumeReplayRequest` (espera GameManager/registry, resuelve y Play).
+- `Core/GameManager.cs`: + `FlushForSceneChange()` público.
+- `UI/MoriMonchiCombatVisualizerUITK.cs`: + `SetStatus` + fila `effects` programática + `palette` opcional + helpers iniciales/mapeo.
+- `UI/MorimonchiDetailInfoUITK.cs`: tab Combate rediseñada (`BuildCombatCard(dna, rec)`, `BuildCombatColumn`, `SnapshotColor`, `AddTierChips`, `CommentText`, `PartEs`, botón ▶; `BuildStatsColumn`/`AddCombatStatLabel` eliminados).
+- `UI/CombatPanelUITK.cs`: + campos `histReplayBtn`/`histCurrent`.
+- `UI/CombatPanelUITK.Tabs.cs`: `ShowHistory` + botón lazy "▶ Ver replay".
+- `UI/EquipmentBackpackUITK.cs`: fix devNoConsume simétrico en el desequipar.
+
+**Files Touched (no-ScriptNode):** `UI Toolkit/CombatPanelUITKStyle.uss` (+`.cbt-replay-btn`); `UI Toolkit/MorimonchiDetailInfoUITKStyle.uss` (bloque `combat-card__*` reescrito).
+
+**Next session (S35) — wiring + UNA pasada de Play con todo lo acumulado:**
+1. Wiring de arriba (Build Settings es bloqueante) y probar: mochila rework S33 (None / drop en huecos / swap / página en drag / sin duplicados dev) + tarjetas nuevas (pide combate nuevo para swatch/tiers) + popups (posición/follow/"+"/escala/presets) + barra de efectos + replay ida-vuelta desde tarjeta e historial.
+2. Decisión S31 pendiente: "Aturdido" en 1 o 2 momentos; validar popup "¡Sinergia!" en replay.
+3. Juice restante: hooks Feel/MMF reales (`MMF_Players` vía `CombatVisualHooks`).
+4. Diferidos: test online async end-to-end, tuning/recetas multi-elemento + UI de recetas, refactor composición Fases 6-9, retirar `EvolutionChance`, ¿DNA string del rival en el record para replay async completo?
+
+**ScriptNodes (cierre S34):** CREAR `CombatReplayRequest.md`; ACTUALIZAR `CombatRecord.md`, `CombatService.md`, `CombatVisualEvents.md`, `CombatVisualizerService.md`, `CombatDamageNumbers.md`, `CombatSceneManager.md`, `GameManager.md`, `MoriMonchiCombatVisualizerUITK.md`, `MorimonchiDetailInfoUITK.md`, `CombatPanelUITK.md`, `CombatPanelUITK.Tabs.md`, `EquipmentBackpackUITK.md`.
+
+---
+
+**Session:** 2026-07-02 (Session 33 — **Sinergias PROBADAS en Play + deploy JS hecho** (cierre de la 2ª mitad de S32) + **TARJETAS de historial de combate** (snapshot de stats en el record) + **MOCHILA DE EQUIPO** (`EquipmentBackpackUITK` + inventario de equipo free-placement en `PlayerInventorySO`)) — **🟢 sinergias / determinismo-con-tabla / deploy OK (Juan) · 🟢 mochila v1 probada por Juan → rework por feedback (huecos+None) 🟡 a probar · 🟡 tarjetas a probar (pide combate nuevo) · test online DIFERIDO por decisión de Juan**
+**Focus:** (1) cerrar la 2ª mitad de S32: wiring de sinergias, test en Play, re-verificación de determinismo con tabla, deploy de los 2 JS (dashboard); (2) dos features de accesibilidad pedidos por Juan: historial de combate legible (tarjetas con las stats de AMBOS peleadores al momento de la pelea) y equipar sin drag-drop de editor (mochila UI desde la tab Equipo del detail panel); (3) decisión de UX tras probar la v1: el inventario de equipo pasa de lista compacta a **grilla por slot con huecos (free placement)**.
+
+> ### ✅ PROBADO por Juan (1ª mitad — cierre S32)
+> Explosión tóxica detona en Play (`[synergy] ¡Explosión tóxica!`, quema FIFO de 3 stacks, daño aplicado), fix de barras/stats del visualizer con equipo OK, **"Verify Determinism (seed)" → OK con la tabla de sinergias asignada**, y **deploy de `run-combat.js` + `process-matchmaking.js` hecho vía dashboard**. El test online async end-to-end queda DIFERIDO (decisión Juan: primero completar el flujo local).
+
+> ### ✅ Tarjetas de historial de combate (data + UI)
+> **Data (aditivo, backward-compatible):** nueva clase serializable `CombatFighterSnapshot` (MaxHp/Attack/Speed/Defense/Luck/Evasion, vive en CombatRecord.cs junto a CombatTurn). `CombatResult` gana `StatsA`/`StatsB` — `SimulateCore` los setea desde los `Combatant` recién construidos (stats efectivos CON equipo; puro output, **cero consumo de RNG** → determinismo intacto). `CombatRecord` gana `SelfStats`/`OpponentStats` (`BuildRecord` copia por POV; **null = record viejo**, la UI lo tolera). **UI:** tab Combate de `MorimonchiDetailInfoUITK` reescrita — los foldouts con turnos se reemplazan por tarjetas (badge Victoria/Derrota/Empate coloreado, fecha, "vs rival" (+jugador si async), chips "evolucionó X"/"murió", dos columnas Tú/Rival con las 6 stats; records viejos → "Combate antiguo — sin stats registradas"). El detalle turno-a-turno se retiró de la tab (el replay vive en el Combat Visualizer). USS: bloque `combat-fold/meta/turn` eliminado (verificado sin otros usos), set `combat-card__*` nuevo.
+
+> ### ✅ Inventario de equipo del jugador (PlayerInventorySO, 3er namespace)
+> **NO se creó SO nuevo** (decisión: `PlayerInventorySO` ya es el inventario único con furniture "F#" + world props "I#" y su pipeline `OnInventoryChanged` → GameManager → `SaveSystem.SaveInventory` local). Nuevo namespace `equipmentGrids`: `Dictionary<EquipmentSlot, List<string>>` — **grilla por slot con huecos** (entrada null/empty = celda vacía, índice de lista = índice de celda; free placement pedido por Juan tras probar la v1 compacta donde soltar en celda vacía "no hacía nada"). API: `AddEquipment(slot, id)` (primer hueco o append), `RemoveEquipmentAt(slot, i)` (deja hueco, no desplaza, trim de nulls finales), `MoveEquipment(slot, from, to)` (a hueco = mueve, a ocupada = SWAP, pad con nulls si `to` excede), `GetEquipment(slot)` (puede contener nulls), `ClearEquipmentOwned()`. Persistencia: `InventoryData.EquipmentGrids` (campo JSON **nuevo a propósito** — los `inventory.json` de la v1 del mismo día se ignoran sin romper; mochila arranca vacía, se repuebla con dev). El SO NO dispara eventos: el caller dispara `GameEvents.InventoryChanged`. **DevToolsConsole** gana box "Equipment (DEV)": Add Equipment Item / Add Full Equipment Catalog / Clear Equipment (refs: `devEquipmentItem` + `equipmentDatabase`).
+
+> ### ✅ Mochila de equipo (`EquipmentBackpackUITK` NUEVO + su .uss propio)
+> Popup estilo tooltip **anclado a la equip-card clickeada en la tab Equipo del detail panel** (corrección de Juan a mitad de sesión: NO en las cartas del grid — ahí los 3 íconos de slots quedaron **display-only**, cerrando de paso el pendiente S27 de ver el equipo en las cartas; click en ícono del grid abre el detail normal). API: `Open(dna, slot, anchor, registry)` / `Close()` — construye su VisualElement en el root del panel del anchor (funciona en cualquier UIDocument), stylesheet serializada attacheada al popup Y al ghost. Header solo con el nombre del slot (sin DEV/Quitar/✕ — feedback Juan). Grilla 3×3 por página, pestañas si hace falta (siempre ≥1 celda libre al final: pageCount con +2). **Celda 0 = "None"**: click desequipa (el item vuelve al primer hueco). Click en item = equipar: `dna.Equipped[slot] = id` + consumo `RemoveEquipmentAt` + swap-back del anterior con `AddEquipment` (cae exactamente en la celda recién vaciada) → `InventoryChanged` + `RegistryChanged` + Rebuild (queda abierto). **Drag & drop free placement**: drop en hueco = el item queda en ESA celda; drop sobre ocupada = intercambio; drop en None/fuera = cancela; arrastrar sobre una pestaña cambia de página (**hit-test manual en PointerMove — con pointer capture los PointerEnter de las pestañas NO disparan**, bug cazado en review). Cierra con click afuera (PointerDown TrickleDown en el root). `devNoConsume` serializado (inspector, sección Dev): equipar no consume el item — modo testing n-copias pedido por Juan. **MorimonchiDetailInfoUITK** ahora también escucha `GameEvents.OnRegistryChanged` → re-`Populate(current)` (al equipar se refrescan la card del slot y las stats Base→Final sin cerrar el panel; suscripción simétrica OnEnable/OnDisable) y su X cierra el popup.
+
+> ### 📌 Quirks / decisiones de la sesión
+> 1. `EffectiveStats` (readonly struct con ctor posicional) NO sirve para (de)serializar en el record con Newtonsoft → DTO propio `CombatFighterSnapshot` (clase → null gratis como marcador de record viejo). 2. Dos bugs cazados en review del orquestador sobre el trabajo de sub-agentes: ghost del drag sin stylesheet (los `styleSheets` attacheados al popup no aplican a un hijo de root) y cambio de página por PointerEnter muerto bajo captura de pointer. 3. Las cartas del grid ganaron ~24px de fila de equipo → `cardSize` (knob inspector) puede necesitar ~120×175. 4. Juan commiteó a mitad de sesión (`5d922c3 Update`, incluye la v1); el rework (huecos+None+pulido) quedó en working tree al cierre.
+
+> ### ⚠️ WIRING (Juan — ya hecho en Play salvo recompilar el rework)
+> Componente `EquipmentBackpackUITK` en el objeto UIManager: `inventory` (PlayerInventory.asset) + `equipmentDatabase` + `equipmentPalette` + `styleSheet` (`EquipmentBackpackUITK.uss`). Ref `backpack` en `MorimonchiDetailInfoUITK` (campo Data). `equipmentDatabase` (+`devEquipmentItem` opcional) en `DevToolsConsole`. Tras el rework la mochila arranca vacía (campo JSON renombrado) → "Add Full Equipment Catalog (DEV)".
+
+**Files Created (.cs — input ScriptNodes):**
+- `UI/EquipmentBackpackUITK.cs` (NUEVO): popup mochila — grilla 3×3 free-placement por slot, celda None, drag&drop, equipar/swap, devNoConsume.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Data/Combat/CombatRecord.cs`: + clase `CombatFighterSnapshot` + campos `SelfStats`/`OpponentStats` (null = record viejo).
+- `Data/Combat/CombatResult.cs`: + `StatsA`/`StatsB` (CombatFighterSnapshot).
+- `Systems/Combat/CombatService.cs`: `SimulateCore` setea StatsA/B (helper `Snapshot(Combatant)`); `BuildRecord` copia por POV. Cero cambio en orden de rolls.
+- `UI/MorimonchiDetailInfoUITK.cs`: tab Combate → tarjetas (`BuildCombatCard`/`BuildStatsColumn`/`BadgeText`; `OutcomeShort` eliminado); + ref `backpack`, campo `current`, suscripción `OnRegistryChanged` → re-Populate, click en equip-card abre mochila, X cierra popup.
+- `Data/Player/PlayerInventorySO.cs`: 3er namespace `equipmentGrids` (dict por slot con huecos) + API nueva + `InventoryData.EquipmentGrids` (deep copy en GetData/LoadFrom).
+- `Core/DevToolsConsole.cs`: box "Equipment (DEV)" — add item / add full catalog / clear (API slot-aware).
+- `UI/CreatureGridUITK.cs`: cartas con fila de 3 íconos de equipo display-only (`BindEquipSlot`; refs `equipmentDatabase`/`equipmentPalette`; sin ref a backpack).
+
+**Files Touched (no-ScriptNode):** `UI Toolkit/EquipmentBackpackUITK.uss` (NUEVO); `UI Toolkit/CreatureCardUITK.uxml` (+equip-row); `UI Toolkit/CreatureGridUITKStyle.uss` (+card__equip-*); `UI Toolkit/MorimonchiDetailInfoUITKStyle.uss` (combat-fold→combat-card); escena/assets (wiring Juan: componente backpack, refs, CombatManager movido a Abilitys/, equipment assets).
+
+**Next session (S34) — decidido con Juan: PERFILAR EL COMBAT VISUALIZER MM (el test online espera al flujo local completo):**
+1. Probar en Play lo pendiente de hoy: rework mochila (None / drop en huecos / swap / cambio de página en drag) + tarjetas de historial (pide un combate nuevo para ver stats; records viejos → placeholder).
+2. **Foco visualizer:** probar Etapa 3b pendiente de S31 (floaters con etiquetas + stun; decidir si "Aturdido" queda en 1 o 2 momentos) + validar el popup violeta "¡Sinergia!" en el replay.
+3. Juice: "+" en curas, escala en críticos, follow-transform del popup, hooks Feel/MMF reales (MMF_Players).
+4. Candidato natural: botón "Replay" por tarjeta en la tab Combate (`CombatVisualizerService.Play`; `Seed`/`OpponentDnaId` ya viven en el record desde S32).
+5. Diferidos: test online async end-to-end (necesita 2º jugador en pool), tuning/recetas multi-elemento de sinergias + UI de recetas, refactor composición Fase 6/7, retirar `EvolutionChance`.
+
+**ScriptNodes (cierre S33):** CREAR `EquipmentBackpackUITK.md`; ACTUALIZAR `CombatRecord.md`, `CombatResult.md`, `CombatService.md`, `MorimonchiDetailInfoUITK.md`, `PlayerInventorySO.md`, `DevToolsConsole.md`, `CreatureGridUITK.md`.
+
+---
+
 **Session:** 2026-07-02 (Session 32 — **Seed determinista local+online** (retiro del combate JS) + **balance: anti-permastun + stacking** + **refactor de composición** (mini-managers) + **SISTEMA DE SINERGIAS** (`SynergyTableSO`, recetas de stacks que detonan y queman) + fix hpMax del visualizer) — **🟢 Determinismo PROBADO por Juan ("DETERMINISM OK", 2 corridas idénticas) · 🟡 sinergias + fix recién agregados (a probar) · deploy JS pendiente**
 **Focus:** Tres frentes decididos con Juan: (1) el sim de combate pasa a ser determinista por semilla y es EL MISMO camino en local y online — el server deja de simular (JS reducido a matchmaker que emite seed + snapshots; cada cliente corre el sim C# y deriva el MISMO record); (2) fase sinergias/balance: anti-permastun (no re-aplicar + inmunidad post-stun configurable) + stacking real de estados (instancias acumulables, stun binario); (3) la dirección de arquitectura cambia de partial-class a COMPOSICIÓN (mini-managers) — aplicada hoy a Systems/Combat, hoja de ruta del resto en [[11 - Technical Debt]] (Fases 6-9).
 

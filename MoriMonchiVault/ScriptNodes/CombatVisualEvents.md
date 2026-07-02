@@ -28,7 +28,7 @@ Transportar datos de replay (contexto, turnos, hits, popups, log) desde el visua
 | `Crit` | Golpe crítico |
 | `Death` | Muerte de combatiente |
 | `Result` | Resultado final (ganador/empate) |
-| `Proc` | **NUEVO S31** Evento de proc (status tick, daño status, curación, stun, etc.) |
+| `Proc` | **S31** Evento de proc (status tick, daño status, curación, stun, etc.) |
 
 ## Structs
 
@@ -59,14 +59,15 @@ Datos de un golpe.
 
 ### CombatVisualPopup
 
-**NUEVO S31** Datos de un popup flotante.
+**S31** Datos de un popup flotante. **S34** ahora puede seguir al luchador.
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `Side` | `CombatVisualSide` | Quién recibe el popup (A o B) |
-| `Position` | `Vector3` | Posición mundo donde aparecer |
+| `Position` | `Vector3` | Posición mundo donde aparecer (usado si Follow es null) |
 | `Kind` | `CombatPopupKind` | Tipo de popup (Hit, Crit, Poison, etc.) |
 | `Amount` | `float` | Magnitud (daño, curación, turnos stun) |
+| `Follow` | `Transform` | **S34** Transform del luchador para que popup lo siga; null = posición fija |
 
 ### CombatVisualLogLine
 
@@ -104,7 +105,7 @@ Estado de control del replay UI.
 | `OnTurnEnd` | `CombatTurn` | Termina animación de turno |
 | `OnAttack` | `CombatVisualSide` | Comienza windup de ataque |
 | `OnHit` | `CombatVisualHit` | Golpe conecta |
-| `OnPopup` | `CombatVisualPopup` | **NUEVO S31** Popup flotante a mostrar |
+| `OnPopup` | `CombatVisualPopup` | **S31** Popup flotante a mostrar |
 | `OnCrit` | `CombatVisualHit` | Crítico confirmado (duplicado de OnHit con crit=true) |
 | `OnHpChanged` | `CombatVisualSide, float, float` | HP cambió (side, current, max) |
 | `OnDead` | `CombatVisualSide` | Combatiente muere |
@@ -121,7 +122,7 @@ Estado de control del replay UI.
 | `TurnEnd` | `(CombatTurn turn)` | Dispara `OnTurnEnd` |
 | `Attack` | `(CombatVisualSide side)` | Dispara `OnAttack` |
 | `Hit` | `(CombatVisualHit hit)` | Dispara `OnHit` |
-| `Popup` | `(CombatVisualPopup p)` | **NUEVO S31** Dispara `OnPopup` |
+| `Popup` | `(CombatVisualPopup p)` | **S31** Dispara `OnPopup` |
 | `Crit` | `(CombatVisualHit hit)` | Dispara `OnCrit` |
 | `HpChanged` | `(CombatVisualSide side, float current, float max)` | Dispara `OnHpChanged` |
 | `Dead` | `(CombatVisualSide side)` | Dispara `OnDead` |
@@ -131,7 +132,7 @@ Estado de control del replay UI.
 ## Vinculado a
 
 - [[CombatVisualizerService]] — único publisher (levanta todos los eventos)
-- [[CombatDamageNumbers]] — suscriptor de `OnPopup`
+- [[CombatDamageNumbers]] — suscriptor de `OnPopup`, usa `Follow` para `SetFollowedTarget()`
 - [[MoriMonchiCombatVisualizer]] — suscriptor de OnHit/OnCrit/OnDead/OnHpChanged
 - [[MoriMonchiCombatVisualizerUITK]] — suscriptor de OnHpChanged/OnPanelState
 
@@ -143,7 +144,7 @@ Estado de control del replay UI.
 **Salida:**
 - Múltiples subscribers pasivos vía `event` estático
 
-## Cambios Sesión 31
+## Cambios S31
 
 **MODIFICADO:**
 1. Nuevo enum value `CombatVisualLogKind.Proc` para lines de log de eventos de status/procs
@@ -152,9 +153,13 @@ Estado de control del replay UI.
 
 Backward compatible: eventos viejos intactos, nuevos son aditivos.
 
+## Cambios S34
+
+**CombatVisualPopup extendido:** Nuevo campo `Follow` (Transform nulleable) permite que popups sigan al luchador. `CombatVisualizerService` asigna `FighterTransform(side)` en todos los 4 Popup raises. `CombatDamageNumbers` consume via `p.Follow != null ? dn.SetFollowedTarget(p.Follow) : <posición fija>`.
+
 ## Notas
 
 - **Event pattern:** `static event Action<T>` mantiene suscriptores vivos (leak potencial si se olvida desuscribir)
 - **Desuscripción:** `OnEnable` suscribe, `OnDisable` desuscribe (obligatorio para MonoBehaviours)
 - **Publisher único:** `CombatVisualizerService` es el único que dispara eventos
-- **Popups:** Levantados por visualizador via `Popup()`, transportan tipo+magnitud para `CombatDamageNumbers`
+- **Popups S34:** Ahora pueden seguir dinámicamente al combatiente con `Follow != null`; fallback a posición fija si null

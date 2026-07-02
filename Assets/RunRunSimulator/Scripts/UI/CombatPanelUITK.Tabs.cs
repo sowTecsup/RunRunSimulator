@@ -340,6 +340,7 @@ public partial class CombatPanelUITK
     {
         if (histLines == null) return;
         histLines.Clear();
+        histCurrent = it;
 
         var rec = it.Rec;
         string opp = string.IsNullOrEmpty(rec.OpponentPlayerName)
@@ -365,7 +366,22 @@ public partial class CombatPanelUITK
             histOutcome.text = OutcomeLong(rec.Outcome) + evolved + died;
             histOutcome.EnableInClassList("cbt-log-outcome--win",  rec.Outcome == CombatOutcome.Won);
             histOutcome.EnableInClassList("cbt-log-outcome--lose", rec.Outcome == CombatOutcome.Lost);
+
+            if (histReplayBtn == null)
+            {
+                histReplayBtn = new Button { text = "▶ Ver replay" };
+                histReplayBtn.AddToClassList("cbt-replay-btn");
+                histReplayBtn.clicked += () =>
+                {
+                    if (histCurrent.Self != null && CombatReplayRequest.CanReplay(histCurrent.Self, histCurrent.Rec, registry))
+                        CombatReplayRequest.Request(histCurrent.Self, histCurrent.Rec);
+                };
+                int idx = histOutcome.parent.IndexOf(histOutcome);
+                histOutcome.parent.Insert(idx + 1, histReplayBtn);
+            }
         }
+
+        histReplayBtn?.SetEnabled(CombatReplayRequest.CanReplay(it.Self, it.Rec, registry));
     }
 
     private static string OutcomeShort(CombatOutcome o, bool died) => o switch

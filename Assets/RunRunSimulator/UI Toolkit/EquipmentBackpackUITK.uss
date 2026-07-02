@@ -8,7 +8,7 @@
     border-radius: 8px;
     border-width: 1px;
     border-color: rgb(70, 70, 88);
-    background-color: rgba(30, 30, 38, 0.97);
+    background-color: rgb(30, 30, 38);
 }
 
 .backpack__header {
@@ -16,31 +16,6 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 6px;
-}
-
-.backpack__dev {
-    margin: 0;
-    font-size: 11px;
-    color: rgb(190, 190, 200);
-}
-
-.backpack__unequip,
-.backpack__close {
-    margin: 0;
-    padding-left: 8px;
-    padding-right: 8px;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    border-radius: 6px;
-    font-size: 12px;
-    -unity-font-style: bold;
-    color: rgb(230, 230, 236);
-    background-color: rgb(70, 70, 88);
-}
-
-.backpack__unequip:hover,
-.backpack__close:hover {
-    background-color: rgb(95, 95, 120);
 }
 
 .backpack__tabs {
@@ -87,8 +62,25 @@
 }
 
 .backpack__cell--empty {
-    opacity: 0.3;
+    opacity: 0.5;
     border-color: rgb(60, 60, 76);
+}
+
+.backpack__cell--none {
+    align-items: center;
+    justify-content: center;
+    border-color: rgb(90, 90, 110);
+    background-color: rgb(30, 30, 40);
+}
+
+.backpack__cell--none:hover {
+    border-color: rgb(140, 140, 165);
+}
+
+.backpack__cell--none Label {
+    font-size: 11px;
+    color: rgb(150, 150, 165);
+    -unity-text-align: middle-center;
 }
 
 .backpack__cell--dragging {

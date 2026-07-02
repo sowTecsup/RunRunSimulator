@@ -45,6 +45,8 @@ public class CombatVisualizerService : MonoBehaviour
         public CombatVisualSide          Defender;
         public bool                      Crit;
         public List<CombatVisualLogLine> Log;
+        public List<CombatStatusMark>    StatusA;
+        public List<CombatStatusMark>    StatusB;
         public CombatNode                Prev;
         public CombatNode                Next;
         public bool IsEnd => Next == null;
@@ -210,7 +212,7 @@ public class CombatVisualizerService : MonoBehaviour
         float hpA = hpMaxA, hpB = hpMaxB;
         bool aDead = false, bDead = false;
 
-        head = new CombatNode { HasTurn = false, HpA = hpA, HpB = hpB, TurnNumber = 0, Log = new List<CombatVisualLogLine>(log) };
+        head = new CombatNode { HasTurn = false, HpA = hpA, HpB = hpB, TurnNumber = 0, Log = new List<CombatVisualLogLine>(log), StatusA = new List<CombatStatusMark>(), StatusB = new List<CombatStatusMark>() };
         var node = head;
         totalTurns = 0;
 
@@ -264,6 +266,8 @@ public class CombatVisualizerService : MonoBehaviour
                     Attacker = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B,
                     Defender = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A,
                     Crit     = t.WasCrit,
+                    StatusA  = (activeRecord.SelfWasA ? t.StatusA : t.StatusB) ?? new List<CombatStatusMark>(),
+                    StatusB  = (activeRecord.SelfWasA ? t.StatusB : t.StatusA) ?? new List<CombatStatusMark>(),
                 };
                 node.Next = next; next.Prev = node; node = next;
                 totalTurns++;
@@ -367,7 +371,7 @@ public class CombatVisualizerService : MonoBehaviour
             if (t.Damage >= 0.5f)
                 CombatVisualEvents.Popup(new CombatVisualPopup
                 {
-                    Side = defender, Position = FighterPos(defender),
+                    Side = defender, Position = FighterPos(defender), Follow = FighterTransform(defender),
                     Kind = t.WasCrit ? CombatPopupKind.Crit : CombatPopupKind.Hit, Amount = t.Damage,
                 });
             yield return new WaitForSeconds(impactSeconds / Speed);
@@ -378,6 +382,7 @@ public class CombatVisualizerService : MonoBehaviour
                 if (!pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe));
 
         current = target;
+        PushStatus(target);
         Publish();
 
         if (target.ADiedHere || target.BDiedHere)
@@ -422,7 +427,7 @@ public class CombatVisualizerService : MonoBehaviour
         {
             CombatVisualEvents.Popup(new CombatVisualPopup
             {
-                Side = side, Position = FighterPos(side),
+                Side = side, Position = FighterPos(side), Follow = FighterTransform(side),
                 Kind = CombatPopupKind.Stun, Amount = pe.Amount,
             });
             return;
@@ -431,7 +436,7 @@ public class CombatVisualizerService : MonoBehaviour
         {
             CombatVisualEvents.Popup(new CombatVisualPopup
             {
-                Side = side, Position = FighterPos(side),
+                Side = side, Position = FighterPos(side), Follow = FighterTransform(side),
                 Kind = CombatPopupKind.Synergy, Amount = 0f,
             });
             return;
@@ -439,7 +444,7 @@ public class CombatVisualizerService : MonoBehaviour
         if (Mathf.Abs(delta) < 0.5f) return;
         CombatVisualEvents.Popup(new CombatVisualPopup
         {
-            Side = side, Position = FighterPos(side),
+            Side = side, Position = FighterPos(side), Follow = FighterTransform(side),
             Kind = ProcPopupKind(pe.Kind), Amount = Mathf.Abs(delta),
         });
     }
@@ -462,6 +467,13 @@ public class CombatVisualizerService : MonoBehaviour
         if (inst != null) return inst.transform.position;
         var slot = side == CombatVisualSide.A ? slotA : slotB;
         return slot != null ? slot.position : Vector3.zero;
+    }
+
+    private Transform FighterTransform(CombatVisualSide side)
+    {
+        var inst = side == CombatVisualSide.A ? instanceA : instanceB;
+        if (inst != null) return inst.transform;
+        return side == CombatVisualSide.A ? slotA : slotB;
     }
 
     private static string ProcText(CombatProcEvent pe, string who, float delta)
@@ -509,6 +521,7 @@ public class CombatVisualizerService : MonoBehaviour
 
         PushHp(CombatVisualSide.A, node.HpA, hpMaxA);
         PushHp(CombatVisualSide.B, node.HpB, hpMaxB);
+        PushStatus(node);
 
         if (node.IsEnd)
             CombatVisualEvents.VisualCombatEnd(endWinner, endIsDraw);
@@ -566,6 +579,12 @@ public class CombatVisualizerService : MonoBehaviour
         var bar = side == CombatVisualSide.A ? barA : barB;
         if (bar != null) bar.SetHp(hp, max);
         if (side == CombatVisualSide.A) shownHpA = hp; else shownHpB = hp;
+    }
+
+    private void PushStatus(CombatNode node)
+    {
+        barA?.SetStatus(node.StatusA);
+        barB?.SetStatus(node.StatusB);
     }
 
     private void SetFighterActive(CombatVisualSide side, bool active)

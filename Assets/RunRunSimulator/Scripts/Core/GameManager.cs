@@ -133,6 +133,12 @@ public class GameManager : MonoBehaviour
         PushToCloud();
     }
 
+    public void FlushForSceneChange()
+    {
+        CollectLooseWorldProps();
+        FlushToCloud();
+    }
+
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
     public void MintRandomCreature()
     {

@@ -266,41 +266,37 @@
     font-size: 13px;
     color: rgb(210, 210, 218);
     margin-top: 2px;
-    margin-bottom: 2px;
+    margin-bottom: 6px;
 }
 
-.combat-card__chips {
+.combat-card__body {
     flex-direction: row;
+    margin-top: 2px;
 }
 
-.combat-card__chip {
-    font-size: 11px;
-    padding-left: 6px;
-    padding-right: 6px;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    border-radius: 8px;
-    background-color: rgb(30, 30, 38);
-    margin-right: 6px;
-}
-
-.combat-card__chip--evo   { color: rgb(120, 220, 130); }
-.combat-card__chip--death { color: rgb(235, 120, 110); }
-
-.combat-card__stats {
-    flex-direction: row;
-    margin-top: 4px;
-}
-
-.combat-card__col {
+.combat-card__colstats {
     flex-grow: 1;
+    flex-direction: column;
+}
+
+.combat-card__colhead {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+.combat-card__swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background-color: rgb(90, 90, 100);
+    margin-right: 6px;
 }
 
 .combat-card__col-title {
     font-size: 12px;
     -unity-font-style: bold;
     color: rgb(170, 170, 185);
-    margin-bottom: 2px;
 }
 
 .combat-card__stat {
@@ -308,11 +304,62 @@
     color: rgb(210, 210, 218);
 }
 
+.combat-card__chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 3px;
+}
+
+.combat-card__tierchip {
+    font-size: 11px;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    border-radius: 8px;
+    background-color: rgb(30, 30, 38);
+    color: rgb(220, 190, 120);
+    margin-right: 4px;
+    margin-top: 2px;
+}
+
 .combat-card__nostats {
     font-size: 12px;
     -unity-font-style: italic;
     color: rgb(160, 160, 175);
     margin-top: 4px;
+}
+
+.combat-card__comment {
+    font-size: 12px;
+    -unity-font-style: italic;
+    color: rgb(180, 180, 195);
+    margin-top: 6px;
+}
+
+.combat-card__footer {
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.combat-card__play {
+    width: 32px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border-radius: 5px;
+    font-size: 12px;
+    color: rgb(225, 225, 232);
+    background-color: rgb(70, 70, 88);
+}
+
+.combat-card__play:hover {
+    background-color: rgb(95, 95, 120);
+}
+
+.combat-card__play:disabled {
+    opacity: 0.4;
 }
 
 /* ── Lineage tab: ancestor tree (self + parents + grandparents) ─── */

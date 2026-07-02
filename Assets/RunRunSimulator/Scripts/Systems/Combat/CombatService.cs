@@ -272,6 +272,8 @@ public static class CombatService
             DefenderHpAfter = defHp,
             NoAttack        = noAttack,
             Procs           = procs,
+            StatusA         = StatusMarks(atk.IsA ? atk : def),
+            StatusB         = StatusMarks(atk.IsA ? def : atk),
         });
     }
 
@@ -367,6 +369,35 @@ public static class CombatService
     private static string Clip(string id) => id[..Mathf.Min(14, id.Length)];
 
     private static CombatFighterSnapshot Snapshot(Combatant c) => new CombatFighterSnapshot
-    { MaxHp = c.MaxHp, Attack = c.Attack, Speed = c.Speed, Defense = c.Defense, Luck = c.Luck, Evasion = c.Evasion };
+    {
+        MaxHp     = c.MaxHp,
+        Attack    = c.Attack,
+        Speed     = c.Speed,
+        Defense   = c.Defense,
+        Luck      = c.Luck,
+        Evasion   = c.Evasion,
+        BodyTier  = (int)c.Dna.BodyTier,
+        ArmTier   = (int)c.Dna.ArmTier,
+        EyeTier   = (int)c.Dna.EyeTier,
+        MouthTier = (int)c.Dna.MouthTier,
+        ColorHex  = ColorUtility.ToHtmlStringRGB(c.Dna.BaseColor),
+    };
+
+    private static List<CombatStatusMark> StatusMarks(Combatant c)
+    {
+        var counts = new Dictionary<ModifierEffectKind, int>();
+        foreach (var a in c.Active)
+            counts[a.Kind] = counts.TryGetValue(a.Kind, out var n) ? n + 1 : 1;
+
+        var marks = new List<CombatStatusMark>();
+        foreach (ModifierEffectKind kind in System.Enum.GetValues(typeof(ModifierEffectKind)))
+            if (counts.TryGetValue(kind, out var stacks))
+                marks.Add(new CombatStatusMark { Kind = kind, Stacks = stacks });
+
+        if (c.StunTurns > 0)
+            marks.Add(new CombatStatusMark { Kind = ModifierEffectKind.Stun, Stacks = c.StunTurns });
+
+        return marks;
+    }
 }
 }

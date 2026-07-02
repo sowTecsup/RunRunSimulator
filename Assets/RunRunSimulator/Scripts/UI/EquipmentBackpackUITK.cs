@@ -7,10 +7,12 @@ namespace MoriMonchiSimulator
 {
 
 // Tooltip-style popup: equips items into a MoriMochi's slot from the player's
-// equipment backpack (drag to reorder, click to equip). Opened on demand by a
-// caller (e.g. CreatureGridUITK) via Open(dna, slot, anchor, registry); builds its
-// own VisualElement into the anchor's panel root and rebuilds it after every
-// mutation. Owns no persistence — mutates inventory/dna and fires GameEvents only.
+// equipment backpack (drag to reorder, click to equip, cell 0 "None" unequips).
+// Reads the slot's free-placement grid via PlayerInventorySO.GetEquipment (nulls =
+// empty cells). Opened on demand by a caller (e.g. CreatureGridUITK) via
+// Open(dna, slot, anchor, registry); builds its own VisualElement into the anchor's
+// panel root and rebuilds it after every mutation. Owns no persistence — mutates
+// inventory/dna and fires GameEvents only.
 [DisallowMultipleComponent]
 public class EquipmentBackpackUITK : MonoBehaviour
 {
@@ -40,13 +42,13 @@ public class EquipmentBackpackUITK : MonoBehaviour
     private CreatureRegistrySO registry;
 
     private int page;
-    private readonly List<(int GlobalIndex, EquipmentSO Item)> filtered = new List<(int, EquipmentSO)>();
+    private IReadOnlyList<string> cells;
     private readonly List<VisualElement> tabButtons = new List<VisualElement>();
 
     private bool pointerDown;
     private bool dragging;
     private Vector2 dragStart;
-    private int dragGlobalIndex;
+    private int dragStoredIndex;
     private EquipmentSO dragItem;
     private VisualElement dragOriginCell;
     private VisualElement dragTargetCell;
@@ -136,7 +138,10 @@ public class EquipmentBackpackUITK : MonoBehaviour
     {
         if (popup == null) return;
 
-        RebuildFiltered();
+        cells = inventory != null ? inventory.GetEquipment(slot) : null;
+        int pageCount = Mathf.Max(1, Mathf.CeilToInt(((cells?.Count ?? 0) + 2) / (float)GridSize));
+        page = Mathf.Clamp(page, 0, pageCount - 1);
+
         popup.Clear();
         BuildHeader();
         BuildTabs();
@@ -145,53 +150,18 @@ public class EquipmentBackpackUITK : MonoBehaviour
         ReapplyDragVisuals();
     }
 
-    private void RebuildFiltered()
-    {
-        filtered.Clear();
-        if (inventory == null || equipmentDatabase == null) return;
-
-        var owned = inventory.EquipmentOwned;
-        for (int i = 0; i < owned.Count; i++)
-        {
-            var item = equipmentDatabase.GetByID(owned[i]);
-            if (item != null && item.Slot == slot)
-                filtered.Add((i, item));
-        }
-
-        int maxPage = Mathf.Max(0, Mathf.CeilToInt(filtered.Count / (float)GridSize) - 1);
-        page = Mathf.Clamp(page, 0, maxPage);
-    }
-
     private void BuildHeader()
     {
         var header = new VisualElement();
         header.AddToClassList("backpack__header");
-
         header.Add(new Label(SlotName(slot)));
-
-        var devToggle = new Toggle("DEV") { value = devNoConsume };
-        devToggle.AddToClassList("backpack__dev");
-        devToggle.RegisterValueChangedCallback(evt => devNoConsume = evt.newValue);
-        header.Add(devToggle);
-
-        if (HasEquipped())
-        {
-            var unequip = new Button(OnUnequipClicked) { text = "Quitar" };
-            unequip.AddToClassList("backpack__unequip");
-            header.Add(unequip);
-        }
-
-        var close = new Button(Close) { text = "✕" };
-        close.AddToClassList("backpack__close");
-        header.Add(close);
-
         popup.Add(header);
     }
 
     private void BuildTabs()
     {
         tabButtons.Clear();
-        int pageCount = Mathf.CeilToInt(filtered.Count / (float)GridSize);
+        int pageCount = Mathf.Max(1, Mathf.CeilToInt(((cells?.Count ?? 0) + 2) / (float)GridSize));
         if (pageCount <= 1) return;
 
         var tabs = new VisualElement();
@@ -218,17 +188,30 @@ public class EquipmentBackpackUITK : MonoBehaviour
         int start = page * GridSize;
         for (int i = 0; i < GridSize; i++)
         {
-            int filteredIndex = start + i;
+            int displayIndex = start + i;
             var cell = new VisualElement();
             cell.AddToClassList("backpack__cell");
 
-            if (filteredIndex < filtered.Count)
+            if (displayIndex == 0)
             {
-                var (globalIndex, item) = filtered[filteredIndex];
+                cell.AddToClassList("backpack__cell--none");
+                cell.Add(new Label("None"));
+                cell.RegisterCallback<PointerDownEvent>(OnNoneCellPointerDown);
+                grid.Add(cell);
+                continue;
+            }
+
+            int storedIndex = displayIndex - 1;
+            EquipmentSO item = null;
+            if (cells != null && storedIndex < cells.Count && !string.IsNullOrEmpty(cells[storedIndex]))
+                item = equipmentDatabase.GetByID(cells[storedIndex]);
+
+            if (item != null)
+            {
                 ApplyRarityBorder(cell, item.Rarity);
                 ApplyIconVisual(cell, item);
 
-                cell.RegisterCallback<PointerDownEvent>(evt => OnCellPointerDown(evt, globalIndex, item, cell));
+                cell.RegisterCallback<PointerDownEvent>(evt => OnCellPointerDown(evt, storedIndex, item, cell));
                 cell.RegisterCallback<PointerEnterEvent>(_ => ShowName(item));
                 cell.RegisterCallback<PointerLeaveEvent>(_ => ShowName(null));
             }
@@ -254,23 +237,23 @@ public class EquipmentBackpackUITK : MonoBehaviour
     {
         if (!dragging || grid == null) return;
 
+        int displayIndex = dragStoredIndex + 1;
         int start = page * GridSize;
-        int filteredIndex = filtered.FindIndex(e => e.GlobalIndex == dragGlobalIndex);
-        if (filteredIndex < start || filteredIndex >= start + GridSize)
+        if (displayIndex < start || displayIndex >= start + GridSize)
         {
             dragOriginCell = null;
             return;
         }
 
-        var cells = grid.Children().ToList();
-        int cellIndex = filteredIndex - start;
-        if (cellIndex < 0 || cellIndex >= cells.Count) return;
+        var gridCells = grid.Children().ToList();
+        int cellIndex = displayIndex - start;
+        if (cellIndex < 0 || cellIndex >= gridCells.Count) return;
 
-        dragOriginCell = cells[cellIndex];
+        dragOriginCell = gridCells[cellIndex];
         dragOriginCell.AddToClassList("backpack__cell--dragging");
     }
 
-    private void EquipItem(int globalIndex, EquipmentSO item)
+    private void EquipItem(int storedIndex, EquipmentSO item)
     {
         if (item == null || dna == null) return;
 
@@ -280,9 +263,9 @@ public class EquipmentBackpackUITK : MonoBehaviour
 
         if (!devNoConsume)
         {
-            inventory.RemoveEquipmentAt(globalIndex);
+            inventory.RemoveEquipmentAt(slot, storedIndex);
             if (!string.IsNullOrEmpty(prev))
-                inventory.AddEquipment(prev);
+                inventory.AddEquipment(slot, prev);
             GameEvents.InventoryChanged(inventory);
         }
 
@@ -290,29 +273,32 @@ public class EquipmentBackpackUITK : MonoBehaviour
         Rebuild();
     }
 
-    private void OnUnequipClicked()
+    private void OnNoneCellPointerDown(PointerDownEvent evt)
     {
+        if (evt.button != 0) return;
         if (dna?.Equipped == null) return;
         if (!dna.Equipped.TryGetValue(slot, out var prev) || string.IsNullOrEmpty(prev)) return;
 
         dna.Equipped.Remove(slot);
-        inventory.AddEquipment(prev);
-        GameEvents.InventoryChanged(inventory);
+
+        if (!devNoConsume)
+        {
+            inventory.AddEquipment(slot, prev);
+            GameEvents.InventoryChanged(inventory);
+        }
+
         GameEvents.RegistryChanged(registry);
         Rebuild();
     }
 
-    private bool HasEquipped() =>
-        dna?.Equipped != null && dna.Equipped.TryGetValue(slot, out var id) && !string.IsNullOrEmpty(id);
-
-    private void OnCellPointerDown(PointerDownEvent evt, int globalIndex, EquipmentSO item, VisualElement cell)
+    private void OnCellPointerDown(PointerDownEvent evt, int storedIndex, EquipmentSO item, VisualElement cell)
     {
         if (evt.button != 0) return;
 
         pointerDown = true;
         dragging = false;
         dragStart = evt.position;
-        dragGlobalIndex = globalIndex;
+        dragStoredIndex = storedIndex;
         dragItem = item;
         dragOriginCell = cell;
 
@@ -356,7 +342,7 @@ public class EquipmentBackpackUITK : MonoBehaviour
             popup.ReleasePointer(evt.pointerId);
 
         bool wasDragging = dragging;
-        int fromGlobal = dragGlobalIndex;
+        int fromStored = dragStoredIndex;
         var clickedItem = dragItem;
         Vector2 pos = evt.position;
 
@@ -364,22 +350,25 @@ public class EquipmentBackpackUITK : MonoBehaviour
 
         if (!wasDragging)
         {
-            EquipItem(fromGlobal, clickedItem);
+            EquipItem(fromStored, clickedItem);
             return;
         }
 
-        int? dest = ResolveDropGlobalIndex(pos);
-        if (dest.HasValue && dest.Value != fromGlobal)
+        int? destDisplay = ResolveDropDisplayIndex(pos);
+        if (!destDisplay.HasValue || destDisplay.Value == 0) return;
+
+        int storedTo = destDisplay.Value - 1;
+        if (storedTo != fromStored)
         {
-            inventory.MoveEquipment(fromGlobal, dest.Value);
+            inventory.MoveEquipment(slot, fromStored, storedTo);
             GameEvents.InventoryChanged(inventory);
             Rebuild();
         }
     }
 
-    private int? ResolveDropGlobalIndex(Vector2 panelPos)
+    private int? ResolveDropDisplayIndex(Vector2 panelPos)
     {
-        if (grid == null || filtered.Count == 0) return null;
+        if (grid == null) return null;
 
         int cellIndex = -1;
         int i = 0;
@@ -390,11 +379,7 @@ public class EquipmentBackpackUITK : MonoBehaviour
         }
         if (cellIndex < 0) return null;
 
-        int filteredIndex = page * GridSize + cellIndex;
-        if (filteredIndex < filtered.Count)
-            return filtered[filteredIndex].GlobalIndex;
-
-        return filtered[filtered.Count - 1].GlobalIndex + 1;
+        return page * GridSize + cellIndex;
     }
 
     private void CreateGhost()

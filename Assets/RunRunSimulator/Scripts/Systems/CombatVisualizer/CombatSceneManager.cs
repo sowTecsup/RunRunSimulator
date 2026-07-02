@@ -1,3 +1,4 @@
+using System.Collections;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,6 +11,8 @@ public class CombatSceneManager : MonoBehaviour
     [SerializeField, Tooltip("Nombre de la escena a la que vuelve el botón (debe estar en Build Settings).")]
     private string gameSceneName = "GameScene";
 
+    private const float ReplayResolveTimeout = 3f;
+
     private Button homeButton;
 
     private void Start()
@@ -20,6 +23,59 @@ public class CombatSceneManager : MonoBehaviour
         if (root == null) return;
         homeButton = root.Q<Button>("btn-home");
         if (homeButton != null) homeButton.clicked += ReturnToGameScene;
+
+        if (CombatReplayRequest.Pending)
+            StartCoroutine(ConsumeReplayRequest());
+    }
+
+    private IEnumerator ConsumeReplayRequest()
+    {
+        float elapsed = 0f;
+        while ((GameManager.Instance == null || GameManager.Instance.Registry == null) && elapsed < ReplayResolveTimeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        if (GameManager.Instance == null || GameManager.Instance.Registry == null)
+        {
+            Debug.LogWarning("[CombatSceneManager] Timeout esperando GameManager/Registry para el replay.");
+            CombatReplayRequest.Clear();
+            yield break;
+        }
+
+        CreatureDNA self = null;
+        elapsed = 0f;
+        while (!GameManager.Instance.Registry.TryGet(CombatReplayRequest.SelfId, out self) && elapsed < ReplayResolveTimeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        if (self == null)
+        {
+            Debug.LogWarning($"[CombatSceneManager] No se encontró la criatura '{CombatReplayRequest.SelfId}' en el registro para el replay.");
+            CombatReplayRequest.Clear();
+            yield break;
+        }
+
+        int fightIndex = CombatReplayRequest.FightIndex;
+        if (self.CombatHistory == null || fightIndex < 0 || fightIndex >= self.CombatHistory.Count)
+        {
+            Debug.LogWarning("[CombatSceneManager] Índice de pelea inválido para el replay.");
+            CombatReplayRequest.Clear();
+            yield break;
+        }
+
+        var record   = self.CombatHistory[fightIndex];
+        var opponent = CombatReplayRequest.ResolveOpponent(record, self, GameManager.Instance.Registry);
+        if (opponent == null)
+        {
+            Debug.LogWarning("[CombatSceneManager] El rival no está en el registro. No se puede reproducir el combate.");
+            CombatReplayRequest.Clear();
+            yield break;
+        }
+
+        CombatReplayRequest.Clear();
+        CombatVisualizerService.Instance?.Play(self, opponent, record);
     }
 
     private void OnDisable()

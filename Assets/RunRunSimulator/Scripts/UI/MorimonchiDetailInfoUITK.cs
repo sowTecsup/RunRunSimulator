@@ -33,6 +33,9 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     [Tooltip("Colores por rareza (pastel, nombre del ítem) y por slot (acento de la card).")]
     [SerializeField] private EquipmentPaletteSO equipmentPalette;
 
+    [Tooltip("Popup mochila para equipar desde la tab Equipo.")]
+    [SerializeField] private EquipmentBackpackUITK backpack;
+
     [Tooltip("Draw order; higher keeps this modal above the grid panel.")]
     [SerializeField] private int sortingOrder = 100;
 
@@ -53,6 +56,10 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     // and ancestors by ID (the event carries it — the panel never touches the grid).
     private CreatureRegistrySO registry;
 
+    // The creature currently on display, so a registry change (e.g. equipping
+    // from the mochila) can re-run Populate and refresh the Equipo tab in place.
+    private CreatureDNA current;
+
     // ── Lifecycle ─────────────────────────────────────────────────
 
     private void Awake()
@@ -60,8 +67,17 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         if (document != null) document.sortingOrder = sortingOrder;
     }
 
-    private void OnEnable()  => UIManager.OnCreatureSelected += Show;
-    private void OnDisable() => UIManager.OnCreatureSelected -= Show;
+    private void OnEnable()
+    {
+        UIManager.OnCreatureSelected += Show;
+        GameEvents.OnRegistryChanged += OnRegistryChanged;
+    }
+
+    private void OnDisable()
+    {
+        UIManager.OnCreatureSelected -= Show;
+        GameEvents.OnRegistryChanged -= OnRegistryChanged;
+    }
 
     // Register as the focused-input handler in Start: UIManager subscribes to the
     // registration events in OnEnable, which always runs before any Start.
@@ -140,13 +156,26 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     private void Show(CreatureDNA dna, CreatureRegistrySO registry)
     {
         this.registry = registry;
+        current = dna;
         Wire();
         Populate(dna);
         if (tabs != null) tabs.selectedTabIndex = 0; // always open on the Info tab
         UIManager.RequestPanelSet(panel, true);
     }
 
-    private void OnClose() => UIManager.RequestPanelSet(panel, false);
+    private void OnClose()
+    {
+        UIManager.RequestPanelSet(panel, false);
+        backpack?.Close();
+    }
+
+    // Re-populates in place after any registry mutation (e.g. equipping an item
+    // from the mochila), so the Equipo tab's cards and Base→Final stats stay
+    // current. Populate never touches the selected tab, so the user stays put.
+    private void OnRegistryChanged(CreatureRegistrySO _)
+    {
+        if (current != null && wired) Populate(current);
+    }
 
     private void Populate(CreatureDNA dna)
     {
@@ -285,6 +314,12 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
                 card.Add(procs);
             }
         }
+
+        card.RegisterCallback<ClickEvent>(_ =>
+        {
+            if (backpack != null) backpack.Open(dna, slot, card, registry);
+        });
+
         equipCards.Add(card);
     }
 
@@ -436,9 +471,6 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
     // ── Combat tab ────────────────────────────────────────────────
 
-    // One card per finished fight, newest first. Reads the same stored
-    // CombatHistory the combat panel's Historial tab uses. Turn-by-turn detail
-    // is not shown here — that replay lives in the Combat Visualizer.
     private void BuildCombatHistory(CreatureDNA dna)
     {
         if (combatHistory == null) return;
@@ -449,10 +481,10 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         if (count == 0) return;
 
         for (int i = count - 1; i >= 0; i--)   // newest first
-            combatHistory.Add(BuildCombatCard(dna.CombatHistory[i]));
+            combatHistory.Add(BuildCombatCard(dna, dna.CombatHistory[i]));
     }
 
-    private static VisualElement BuildCombatCard(CombatRecord rec)
+    private VisualElement BuildCombatCard(CreatureDNA dna, CombatRecord rec)
     {
         bool won  = rec.Outcome == CombatOutcome.Won;
         bool draw = rec.Outcome == CombatOutcome.Draw;
@@ -475,43 +507,18 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
         card.Add(header);
 
-        string oppPlayer = string.IsNullOrEmpty(rec.OpponentPlayerName) ? "" : $" · {rec.OpponentPlayerName}";
-        var opponent = new Label($"vs {rec.OpponentName}{oppPlayer}");
+        string owner = string.IsNullOrEmpty(rec.OpponentPlayerName) ? " · local" : $" · de {rec.OpponentPlayerName}";
+        var opponent = new Label($"vs {rec.OpponentName}{owner}");
         opponent.AddToClassList("combat-card__opponent");
         card.Add(opponent);
 
-        bool hasEvo   = won && !string.IsNullOrEmpty(rec.EvolvedSlot);
-        bool hasDeath = rec.Died;
-        if (hasEvo || hasDeath)
-        {
-            var chips = new VisualElement();
-            chips.AddToClassList("combat-card__chips");
-
-            if (hasEvo)
-            {
-                var evo = new Label($"evolucionó {rec.EvolvedSlot}");
-                evo.AddToClassList("combat-card__chip");
-                evo.AddToClassList("combat-card__chip--evo");
-                chips.Add(evo);
-            }
-            if (hasDeath)
-            {
-                var death = new Label("murió");
-                death.AddToClassList("combat-card__chip");
-                death.AddToClassList("combat-card__chip--death");
-                chips.Add(death);
-            }
-
-            card.Add(chips);
-        }
-
         if (rec.SelfStats != null && rec.OpponentStats != null)
         {
-            var stats = new VisualElement();
-            stats.AddToClassList("combat-card__stats");
-            stats.Add(BuildStatsColumn("Tú", rec.SelfStats));
-            stats.Add(BuildStatsColumn("Rival", rec.OpponentStats));
-            card.Add(stats);
+            var body = new VisualElement();
+            body.AddToClassList("combat-card__body");
+            body.Add(BuildCombatColumn("Tú", rec.SelfStats, dna.BaseColor));
+            body.Add(BuildCombatColumn("Rival", rec.OpponentStats, new Color(0.22f, 0.22f, 0.28f)));
+            card.Add(body);
         }
         else
         {
@@ -520,34 +527,98 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
             card.Add(noStats);
         }
 
+        var comment = new Label(CommentText(rec));
+        comment.AddToClassList("combat-card__comment");
+        card.Add(comment);
+
+        var footer = new VisualElement();
+        footer.AddToClassList("combat-card__footer");
+
+        var play = new Button(() => CombatReplayRequest.Request(dna, rec)) { text = "▶" };
+        play.AddToClassList("combat-card__play");
+        play.SetEnabled(CombatReplayRequest.CanReplay(dna, rec, registry));
+        footer.Add(play);
+
+        card.Add(footer);
+
         return card;
     }
 
-    private static VisualElement BuildStatsColumn(string title, CombatFighterSnapshot s)
+    private static VisualElement BuildCombatColumn(string title, CombatFighterSnapshot s, Color fallbackColor)
     {
         var col = new VisualElement();
-        col.AddToClassList("combat-card__col");
+        col.AddToClassList("combat-card__colstats");
+
+        var head = new VisualElement();
+        head.AddToClassList("combat-card__colhead");
+
+        var swatch = new VisualElement();
+        swatch.AddToClassList("combat-card__swatch");
+        swatch.style.backgroundColor = SnapshotColor(s, fallbackColor);
+        head.Add(swatch);
 
         var titleLabel = new Label(title);
         titleLabel.AddToClassList("combat-card__col-title");
-        col.Add(titleLabel);
+        head.Add(titleLabel);
 
-        AddCombatStatLabel(col, $"HP {s.MaxHp:0.#}");
-        AddCombatStatLabel(col, $"ATK {s.Attack:0.#}");
-        AddCombatStatLabel(col, $"SPD {s.Speed:0.#}");
-        AddCombatStatLabel(col, $"DEF {s.Defense:0.#}");
-        AddCombatStatLabel(col, $"LCK {s.Luck:0.#}");
-        AddCombatStatLabel(col, $"EVA {s.Evasion:0.#}");
+        col.Add(head);
+
+        var line1 = new Label($"HP {s.MaxHp:0} · ATK {s.Attack:0} · SPD {s.Speed:0}");
+        line1.AddToClassList("combat-card__stat");
+        col.Add(line1);
+
+        var line2 = new Label($"DEF {s.Defense:0} · LCK {s.Luck:0} · EVA {s.Evasion:0}");
+        line2.AddToClassList("combat-card__stat");
+        col.Add(line2);
+
+        AddTierChips(col, s);
 
         return col;
     }
 
-    private static void AddCombatStatLabel(VisualElement col, string text)
+    private static Color SnapshotColor(CombatFighterSnapshot s, Color fallback) =>
+        !string.IsNullOrEmpty(s.ColorHex) && ColorUtility.TryParseHtmlString("#" + s.ColorHex, out var c)
+            ? c
+            : fallback;
+
+    private static void AddTierChips(VisualElement col, CombatFighterSnapshot s)
     {
-        var l = new Label(text);
-        l.AddToClassList("combat-card__stat");
-        col.Add(l);
+        var chips = new VisualElement();
+        chips.AddToClassList("combat-card__chips");
+
+        AddTierChip(chips, "Cuerpo", s.BodyTier);
+        AddTierChip(chips, "Brazo",  s.ArmTier);
+        AddTierChip(chips, "Ojo",    s.EyeTier);
+        AddTierChip(chips, "Boca",   s.MouthTier);
+
+        if (chips.childCount > 0) col.Add(chips);
     }
+
+    private static void AddTierChip(VisualElement chips, string partEs, int tier)
+    {
+        if (tier <= 1) return;
+        var chip = new Label($"{partEs} T{tier}");
+        chip.AddToClassList("combat-card__tierchip");
+        chips.Add(chip);
+    }
+
+    private static string CommentText(CombatRecord rec)
+    {
+        if (rec.Outcome == CombatOutcome.Won)
+            return string.IsNullOrEmpty(rec.EvolvedSlot) ? "Victoria — sin mejora" : $"Se mejoró {PartEs(rec.EvolvedSlot)}";
+        if (rec.Outcome == CombatOutcome.Lost)
+            return rec.Died ? "Murió en combate" : "Regresó derrotado";
+        return "Empate — sin consecuencias";
+    }
+
+    private static string PartEs(string slot) => slot switch
+    {
+        "Body"  => "Cuerpo",
+        "Arm"   => "Brazo",
+        "Eye"   => "Ojo",
+        "Mouth" => "Boca",
+        _       => slot,
+    };
 
     private static string BadgeText(CombatOutcome o) => o switch
     {

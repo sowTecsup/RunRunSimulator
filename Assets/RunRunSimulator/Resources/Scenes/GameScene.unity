@@ -18407,7 +18407,6 @@ MonoBehaviour:
   cardSize: {x: 360, y: 450}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
   equipmentPalette: {fileID: 11400000, guid: 52152e99c2aa6924f92727b5f41fbf38, type: 2}
-  backpack: {fileID: 1478376636}
 --- !u!114 &1218711426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18425,6 +18424,7 @@ MonoBehaviour:
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
   equipmentPalette: {fileID: 11400000, guid: 52152e99c2aa6924f92727b5f41fbf38, type: 2}
+  backpack: {fileID: 1478376636}
   sortingOrder: 100
 --- !u!114 &1218711427
 MonoBehaviour:

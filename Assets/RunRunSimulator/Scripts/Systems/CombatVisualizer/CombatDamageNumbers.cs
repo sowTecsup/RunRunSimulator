@@ -1,20 +1,32 @@
+using System.Collections.Generic;
 using DamageNumbersPro;
 using UnityEngine;
 namespace MoriMonchiSimulator
 {
 public class CombatDamageNumbers : MonoBehaviour
 {
+    [System.Serializable]
+    private struct KindPrefabOverride
+    {
+        public CombatPopupKind Kind;
+        public DamageNumber    Prefab;
+    }
+
     [SerializeField] private CombatPopupPaletteSO palette;
     [SerializeField] private DamageNumber numberPrefab;
-    [SerializeField] private Vector3 spawnOffset = new Vector3(0f, 1.5f, 0f);
+    [SerializeField] private List<KindPrefabOverride> prefabOverrides = new List<KindPrefabOverride>();
+    [SerializeField] private Vector3 spawnOffset = new Vector3(0f, 0.6f, 0f);
+    [SerializeField, Min(1f)] private float critScale = 1.35f;
 
     private void OnEnable()  => CombatVisualEvents.OnPopup += HandlePopup;
     private void OnDisable() => CombatVisualEvents.OnPopup -= HandlePopup;
 
     private void HandlePopup(CombatVisualPopup p)
     {
-        if (numberPrefab == null) return;
-        var dn = numberPrefab.Spawn(p.Position + spawnOffset, p.Amount);
+        var prefab = ResolvePrefab(p.Kind);
+        if (prefab == null) return;
+
+        var dn = prefab.Spawn(p.Position + spawnOffset, p.Amount);
         if (dn == null) return;
 
         dn.enableNumber  = p.Kind != CombatPopupKind.Stun && p.Amount >= 0.5f;
@@ -22,6 +34,25 @@ public class CombatDamageNumbers : MonoBehaviour
         dn.topText       = Label(p.Kind);
 
         if (palette != null) dn.SetColor(palette.GetColor(p.Kind));
+        if (p.Follow != null) dn.SetFollowedTarget(p.Follow);
+
+        if (p.Kind == CombatPopupKind.Heal || p.Kind == CombatPopupKind.Regen)
+        {
+            dn.enableLeftText = true;
+            dn.leftText       = "+";
+            dn.UpdateText();
+        }
+
+        if (p.Kind == CombatPopupKind.Crit) dn.SetScale(critScale);
+    }
+
+    private DamageNumber ResolvePrefab(CombatPopupKind kind)
+    {
+        foreach (var o in prefabOverrides)
+        {
+            if (o.Kind == kind && o.Prefab != null) return o.Prefab;
+        }
+        return numberPrefab;
     }
 
     private static string Label(CombatPopupKind kind) => kind switch

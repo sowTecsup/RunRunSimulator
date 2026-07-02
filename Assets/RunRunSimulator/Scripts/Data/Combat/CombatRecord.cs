@@ -53,6 +53,9 @@ public class CombatTurn
     public float  DefenderHpAfter;    // defender HP remaining after this hit
     public bool                  NoAttack;
     public List<CombatProcEvent> Procs = new List<CombatProcEvent>();
+
+    public List<CombatStatusMark> StatusA = new List<CombatStatusMark>();
+    public List<CombatStatusMark> StatusB = new List<CombatStatusMark>();
 }
 
 // Effective stats (post-equipment) of one fighter at the moment of the combat.
@@ -66,5 +69,18 @@ public class CombatFighterSnapshot
     public float Defense;
     public float Luck;
     public float Evasion;
+
+    public int    BodyTier;
+    public int    ArmTier;
+    public int    EyeTier;
+    public int    MouthTier;
+    public string ColorHex = "";
+}
+
+[Serializable]
+public class CombatStatusMark
+{
+    public ModifierEffectKind Kind;
+    public int Stacks;
 }
 }

@@ -218,6 +218,20 @@
 .cbt-log-outcome--win  { color: rgb(110, 220, 120); }
 .cbt-log-outcome--lose { color: rgb(235, 110, 100); }
 
+.cbt-replay-btn {
+    align-self: flex-end;
+    margin-top: 8px;
+    padding-top: 6px; padding-bottom: 6px;
+    padding-left: 14px; padding-right: 14px;
+    border-radius: 8px;
+    font-size: 14px; -unity-font-style: bold;
+    color: rgb(245, 240, 245);
+    background-color: rgb(70, 130, 180);
+    border-width: 3px; border-color: rgba(0, 0, 0, 0);
+}
+.cbt-replay-btn:hover { background-color: rgb(90, 150, 200); }
+.cbt-replay-btn:disabled { background-color: rgb(90, 90, 100); color: rgb(180, 180, 185); }
+
 /* ── Tab 3 results: queue + local clock ── */
 .cbt-results-body { justify-content: center; }
 

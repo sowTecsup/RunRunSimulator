@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
@@ -16,9 +17,9 @@ namespace MoriMonchiSimulator
 //  worldPropsStored — "I#" ids (ItemDefinitionSO) of props sitting in the storage
 //                     box. World props are UNIQUE instances, so this is a LIST:
 //                     two brooms = the id "I3" appears twice.
-//  equipmentOwned   — "EQ#" ids (EquipmentSO). Items don't stack, so this is a LIST
-//                     (dupes = multiple instances); the ORDER is significant — it's
-//                     the backpack grid order shown in UI.
+//  equipmentGrids   — "EQ#" ids (EquipmentSO), one free-placement grid per
+//                     EquipmentSlot. A null/empty entry is an empty cell; the list
+//                     index IS the cell index (no compaction on remove).
 //  hotbarSlots      — "I#" ids the player put on the play-mode hotbar; persists so
 //                     the bar survives a reload. null = empty slot.
 [CreateAssetMenu(fileName = "PlayerInventory", menuName = "RunRunSimulator/Player/Player Inventory")]
@@ -34,9 +35,9 @@ public class PlayerInventorySO : SerializedScriptableObject
     [OdinSerialize, ReadOnly]
     private List<string> worldPropsStored = new List<string>();
 
-    [Title("Equipment owned (EQ# ids — list, dupes = multiple instances, order = backpack grid order)")]
+    [Title("Equipment grids (EQ# ids per slot — null entry = empty cell, index = cell)")]
     [OdinSerialize, ReadOnly]
-    private List<string> equipmentOwned = new List<string>();
+    private Dictionary<EquipmentSlot, List<string>> equipmentGrids = new Dictionary<EquipmentSlot, List<string>>();
 
     [Title("Hotbar (I# ids, 6 slots — persists)")]
     [OdinSerialize, ReadOnly]
@@ -90,36 +91,75 @@ public class PlayerInventorySO : SerializedScriptableObject
 
     // ── Equipment ─────────────────────────────────────────────────
 
-    // A list (not a set): each call adds one more physical instance. Order matters —
-    // it's the backpack grid order shown in UI.
-    public void AddEquipment(string id)
+    private List<string> GridFor(EquipmentSlot slot)
+    {
+        if (!equipmentGrids.TryGetValue(slot, out var list))
+        {
+            list = new List<string>();
+            equipmentGrids[slot] = list;
+        }
+        return list;
+    }
+
+    // Free placement: drops into the first empty cell, or appends a new one.
+    public void AddEquipment(EquipmentSlot slot, string id)
     {
         if (string.IsNullOrEmpty(id)) return;
-        equipmentOwned.Add(id);
+        var grid = GridFor(slot);
+        for (int i = 0; i < grid.Count; i++)
+        {
+            if (string.IsNullOrEmpty(grid[i]))
+            {
+                grid[i] = id;
+                MarkDirty();
+                return;
+            }
+        }
+        grid.Add(id);
         MarkDirty();
     }
 
-    // Removes the instance at the given grid slot (not by id — items don't stack).
-    public bool RemoveEquipmentAt(int index)
+    // Clears the cell — leaves a hole, does NOT shift the rest of the grid.
+    public bool RemoveEquipmentAt(EquipmentSlot slot, int index)
     {
-        if (index < 0 || index >= equipmentOwned.Count) return false;
-        equipmentOwned.RemoveAt(index);
+        var grid = GridFor(slot);
+        if (index < 0 || index >= grid.Count || string.IsNullOrEmpty(grid[index])) return false;
+        grid[index] = null;
+        TrimTrailing(grid);
         MarkDirty();
         return true;
     }
 
-    // Reorders the backpack grid (drag-drop between slots).
-    public void MoveEquipment(int from, int to)
+    // Free placement drag-drop: moves into an empty cell, swaps if the target is occupied.
+    public void MoveEquipment(EquipmentSlot slot, int from, int to)
     {
-        if (from < 0 || from >= equipmentOwned.Count) return;
+        var grid = GridFor(slot);
+        if (from < 0 || from >= grid.Count || string.IsNullOrEmpty(grid[from])) return;
         if (from == to) return;
-        var id = equipmentOwned[from];
-        equipmentOwned.RemoveAt(from);
-        equipmentOwned.Insert(Mathf.Clamp(to, 0, equipmentOwned.Count), id);
+        if (to >= grid.Count)
+        {
+            while (grid.Count <= to) grid.Add(null);
+        }
+        if (string.IsNullOrEmpty(grid[to]))
+        {
+            grid[to] = grid[from];
+            grid[from] = null;
+        }
+        else
+        {
+            (grid[from], grid[to]) = (grid[to], grid[from]);
+        }
+        TrimTrailing(grid);
         MarkDirty();
     }
 
-    public IReadOnlyList<string> EquipmentOwned => equipmentOwned;
+    public IReadOnlyList<string> GetEquipment(EquipmentSlot slot) => GridFor(slot);
+
+    private static void TrimTrailing(List<string> list)
+    {
+        while (list.Count > 0 && string.IsNullOrEmpty(list[list.Count - 1]))
+            list.RemoveAt(list.Count - 1);
+    }
 
     // ── Dabloons ──────────────────────────────────────────────────
 
@@ -162,7 +202,7 @@ public class PlayerInventorySO : SerializedScriptableObject
 
     public void ClearEquipmentOwned()
     {
-        equipmentOwned.Clear();
+        equipmentGrids.Clear();
         MarkDirty();
     }
 
@@ -197,7 +237,7 @@ public class PlayerInventorySO : SerializedScriptableObject
     {
         public List<string> FurnitureOwned   = new List<string>();
         public List<string> WorldPropsStored = new List<string>();
-        public List<string> EquipmentOwned   = new List<string>();
+        public Dictionary<EquipmentSlot, List<string>> EquipmentGrids = new Dictionary<EquipmentSlot, List<string>>();
         public string[]      HotbarSlots      = new string[HotbarSize];
         public int           Dabloons         = 0;
     }
@@ -206,7 +246,7 @@ public class PlayerInventorySO : SerializedScriptableObject
     {
         FurnitureOwned   = new List<string>(furnitureOwned),
         WorldPropsStored = new List<string>(worldPropsStored),
-        EquipmentOwned   = new List<string>(equipmentOwned),
+        EquipmentGrids   = equipmentGrids.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value)),
         HotbarSlots      = (string[])hotbarSlots.Clone(),
         Dabloons         = dabloons,
     };
@@ -215,7 +255,9 @@ public class PlayerInventorySO : SerializedScriptableObject
     {
         furnitureOwned   = data?.FurnitureOwned   ?? new List<string>();
         worldPropsStored = data?.WorldPropsStored ?? new List<string>();
-        equipmentOwned   = data?.EquipmentOwned   ?? new List<string>();
+        equipmentGrids   = data?.EquipmentGrids != null
+            ? data.EquipmentGrids.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value))
+            : new Dictionary<EquipmentSlot, List<string>>();
         hotbarSlots      = NormalizeHotbar(data?.HotbarSlots);
         dabloons         = data?.Dabloons ?? 0;
         MarkDirty();

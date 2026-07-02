@@ -30,6 +30,7 @@ public struct CombatVisualPopup
     public Vector3          Position;
     public CombatPopupKind  Kind;
     public float            Amount;
+    public Transform        Follow;
 }
 
 public enum CombatVisualLogKind { Versus, Hit, Crit, Death, Result, Proc }

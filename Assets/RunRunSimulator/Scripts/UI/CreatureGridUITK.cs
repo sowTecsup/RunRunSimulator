@@ -54,10 +54,6 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
     // Slot/rarity accent colors for the equip-row swatches.
     [SerializeField] private EquipmentPaletteSO equipmentPalette;
 
-    // The equipment backpack panel; a click on a swatch opens it for that
-    // creature/slot. Lives on the same always-active UI layer as this grid.
-    [SerializeField] private EquipmentBackpackUITK backpack;
-
     // USS class toggled on the currently selected card.
     private const string SelectedClass = "card--selected";
 
@@ -196,10 +192,9 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
         BindEquipSlot(card, dna, "equip-amulet", EquipmentSlot.Amulet);
     }
 
-    // Fills one equip-row swatch with the equipped item's icon/rarity border (or
-    // an empty look with the slot's accent color) and wires it to open the
-    // backpack for that creature/slot. Click never bubbles into the card's own
-    // click handler, so it opens the backpack instead of the detail panel.
+    // Fills one equip-row swatch with the equipped item's icon/rarity border, or
+    // an empty look with the slot's accent color. Display only — a click here
+    // behaves like a click anywhere else on the card and opens the detail panel.
     private void BindEquipSlot(VisualElement card, CreatureDNA dna, string elementName, EquipmentSlot slot)
     {
         var el = card.Q<VisualElement>(elementName);
@@ -231,12 +226,6 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
                 el.style.borderLeftColor = el.style.borderRightColor =
                     equipmentPalette != null ? equipmentPalette.SlotColor(slot) : new Color(0.35f, 0.35f, 0.43f);
         }
-
-        el.RegisterCallback<ClickEvent>(evt =>
-        {
-            evt.StopPropagation();
-            if (backpack != null) backpack.Open(dna, slot, el, currentRegistry);
-        });
     }
 
     // Highlights card[idx], clamped, and optionally scrolls it into view.
