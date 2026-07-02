@@ -24,6 +24,9 @@ public class CombatRecord
     public bool          Died;                          // this creature died in this fight
     public string        EvolvedSlot;                   // part this creature evolved on a win, or null
 
+    public CombatFighterSnapshot SelfStats;
+    public CombatFighterSnapshot OpponentStats;
+
     public int    Seed;
     public string OpponentDnaId    = "";
     public string OpponentPlayerId = "";
@@ -50,5 +53,18 @@ public class CombatTurn
     public float  DefenderHpAfter;    // defender HP remaining after this hit
     public bool                  NoAttack;
     public List<CombatProcEvent> Procs = new List<CombatProcEvent>();
+}
+
+// Effective stats (post-equipment) of one fighter at the moment of the combat.
+// Field names are PascalCase so they match the JSON contract, same as CombatTurn.
+[Serializable]
+public class CombatFighterSnapshot
+{
+    public float MaxHp;
+    public float Attack;
+    public float Speed;
+    public float Defense;
+    public float Luck;
+    public float Evasion;
 }
 }

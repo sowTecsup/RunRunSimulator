@@ -7,5 +7,10 @@
         <ui:Label name="name-label" text="Name" class="card__name" />
         <ui:VisualElement name="icon" class="card__icon" />
         <ui:Label name="state-label" text="Free" class="card__state" />
+        <ui:VisualElement name="equip-row" class="card__equip-row">
+            <ui:VisualElement name="equip-weapon" class="card__equip-slot" />
+            <ui:VisualElement name="equip-armor" class="card__equip-slot" />
+            <ui:VisualElement name="equip-amulet" class="card__equip-slot" />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

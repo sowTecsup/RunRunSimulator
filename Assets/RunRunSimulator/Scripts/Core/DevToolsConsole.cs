@@ -60,5 +60,53 @@ public class DevToolsConsole : MonoBehaviour
         GameEvents.InventoryChanged(inventory);
         Debug.Log("[DevToolsConsole] World props and hotbar cleared.");
     }
+
+    // ── Equipment (DEV) ──────────────────────────────────────────────
+
+    [BoxGroup("Equipment (DEV)"), SerializeField, AssetsOnly, LabelText("Item to add")]
+    private EquipmentSO devEquipmentItem;
+
+    [BoxGroup("Equipment (DEV)"), SerializeField, AssetsOnly]
+    private EquipmentDatabaseSO equipmentDatabase;
+
+    [Button("Add Equipment Item (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Equipment (DEV)")]
+    private void DevAddEquipmentItem()
+    {
+        if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
+        var inventory = gameManager.Inventory;
+        if (inventory == null) { Debug.LogWarning("[DevToolsConsole] No inventory assigned."); return; }
+        if (devEquipmentItem == null || string.IsNullOrEmpty(devEquipmentItem.ID))
+        {
+            Debug.LogWarning("[DevToolsConsole] asigna un EquipmentSO con ID.");
+            return;
+        }
+        inventory.AddEquipment(devEquipmentItem.ID);
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log($"[DevToolsConsole] +1 {devEquipmentItem.Name} ({devEquipmentItem.ID})");
+    }
+
+    [Button("Add Full Equipment Catalog (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Equipment (DEV)")]
+    private void DevAddFullEquipmentCatalog()
+    {
+        if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
+        var inventory = gameManager.Inventory;
+        if (inventory == null) { Debug.LogWarning("[DevToolsConsole] No inventory assigned."); return; }
+        if (equipmentDatabase == null) { Debug.LogWarning("[DevToolsConsole] No equipment database assigned."); return; }
+        var ids = equipmentDatabase.GetAllIDs();
+        foreach (var id in ids) inventory.AddEquipment(id);
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log($"[DevToolsConsole] Added {ids.Count} equipment items from catalog.");
+    }
+
+    [Button("Clear Equipment (DEV)", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.3f), BoxGroup("Equipment (DEV)")]
+    private void DevClearEquipment()
+    {
+        if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
+        var inventory = gameManager.Inventory;
+        if (inventory == null) { Debug.LogWarning("[DevToolsConsole] No inventory assigned."); return; }
+        inventory.ClearEquipmentOwned();
+        GameEvents.InventoryChanged(inventory);
+        Debug.Log("[DevToolsConsole] Equipment owned list cleared.");
+    }
 }
 }

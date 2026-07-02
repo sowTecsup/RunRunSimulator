@@ -79,16 +79,19 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 3|MoriMonchiSimulator.BurnEffect, Assembly-CSharp
+      Data: 3|MoriMonchiSimulator.PoisonEffect, Assembly-CSharp
+    - Name: Trigger
+      Entry: 3
+      Data: 0
     - Name: ProcChance
       Entry: 3
-      Data: 15
+      Data: 100
     - Name: DurationTurns
       Entry: 3
-      Data: 2
+      Data: 3
     - Name: Magnitude
       Entry: 3
-      Data: 1
+      Data: 3
     - Name: 
       Entry: 8
       Data: 

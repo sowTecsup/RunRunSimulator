@@ -436,8 +436,9 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
     // ── Combat tab ────────────────────────────────────────────────
 
-    // One collapsible foldout per finished fight, newest first. Reads the same
-    // stored CombatHistory the combat panel's Historial tab uses.
+    // One card per finished fight, newest first. Reads the same stored
+    // CombatHistory the combat panel's Historial tab uses. Turn-by-turn detail
+    // is not shown here — that replay lives in the Combat Visualizer.
     private void BuildCombatHistory(CreatureDNA dna)
     {
         if (combatHistory == null) return;
@@ -448,40 +449,110 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         if (count == 0) return;
 
         for (int i = count - 1; i >= 0; i--)   // newest first
-        {
-            var rec  = dna.CombatHistory[i];
-            bool won  = rec.Outcome == CombatOutcome.Won;
-            bool draw = rec.Outcome == CombatOutcome.Draw;
-
-            var fold = new Foldout { value = false };
-            fold.AddToClassList("combat-fold");
-            if (!draw) fold.AddToClassList(won ? "combat-fold--win" : "combat-fold--lose");
-            fold.text = $"{OutcomeShort(rec.Outcome, rec.Died)}  ·  vs {rec.OpponentName}";
-
-            string oppPlayer = string.IsNullOrEmpty(rec.OpponentPlayerName) ? "" : $"  ·  {rec.OpponentPlayerName}";
-            string evolved   = won && !string.IsNullOrEmpty(rec.EvolvedSlot) ? $"  ·  evolucionó {rec.EvolvedSlot}" : "";
-            string died      = rec.Died ? "  ·  murió" : "";
-            var meta = new Label($"{rec.Date.ToLocalTime():dd/MM/yyyy HH:mm}{oppPlayer}{evolved}{died}");
-            meta.AddToClassList("combat-meta");
-            fold.Add(meta);
-
-            if (rec.Turns != null)
-                foreach (var t in rec.Turns)
-                {
-                    var l = new Label(
-                        $"R{t.TurnNumber}  {t.AttackerName} → {t.DefenderName}  ·  {t.Damage:0}{(t.WasCrit ? " ¡CRIT!" : "")}  ·  HP {t.DefenderHpAfter:0}");
-                    l.AddToClassList("combat-turn");
-                    fold.Add(l);
-                }
-
-            combatHistory.Add(fold);
-        }
+            combatHistory.Add(BuildCombatCard(dna.CombatHistory[i]));
     }
 
-    private static string OutcomeShort(CombatOutcome o, bool died) => o switch
+    private static VisualElement BuildCombatCard(CombatRecord rec)
     {
-        CombatOutcome.Won  => "Ganó",
-        CombatOutcome.Lost => died ? "Murió" : "Perdió",
+        bool won  = rec.Outcome == CombatOutcome.Won;
+        bool draw = rec.Outcome == CombatOutcome.Draw;
+
+        var card = new VisualElement();
+        card.AddToClassList("combat-card");
+        card.AddToClassList(draw ? "combat-card--draw" : won ? "combat-card--win" : "combat-card--lose");
+
+        var header = new VisualElement();
+        header.AddToClassList("combat-card__header");
+
+        var badge = new Label(BadgeText(rec.Outcome));
+        badge.AddToClassList("combat-card__badge");
+        badge.AddToClassList(draw ? "combat-card__badge--draw" : won ? "combat-card__badge--win" : "combat-card__badge--lose");
+        header.Add(badge);
+
+        var date = new Label($"{rec.Date.ToLocalTime():dd/MM/yyyy HH:mm}");
+        date.AddToClassList("combat-card__date");
+        header.Add(date);
+
+        card.Add(header);
+
+        string oppPlayer = string.IsNullOrEmpty(rec.OpponentPlayerName) ? "" : $" · {rec.OpponentPlayerName}";
+        var opponent = new Label($"vs {rec.OpponentName}{oppPlayer}");
+        opponent.AddToClassList("combat-card__opponent");
+        card.Add(opponent);
+
+        bool hasEvo   = won && !string.IsNullOrEmpty(rec.EvolvedSlot);
+        bool hasDeath = rec.Died;
+        if (hasEvo || hasDeath)
+        {
+            var chips = new VisualElement();
+            chips.AddToClassList("combat-card__chips");
+
+            if (hasEvo)
+            {
+                var evo = new Label($"evolucionó {rec.EvolvedSlot}");
+                evo.AddToClassList("combat-card__chip");
+                evo.AddToClassList("combat-card__chip--evo");
+                chips.Add(evo);
+            }
+            if (hasDeath)
+            {
+                var death = new Label("murió");
+                death.AddToClassList("combat-card__chip");
+                death.AddToClassList("combat-card__chip--death");
+                chips.Add(death);
+            }
+
+            card.Add(chips);
+        }
+
+        if (rec.SelfStats != null && rec.OpponentStats != null)
+        {
+            var stats = new VisualElement();
+            stats.AddToClassList("combat-card__stats");
+            stats.Add(BuildStatsColumn("Tú", rec.SelfStats));
+            stats.Add(BuildStatsColumn("Rival", rec.OpponentStats));
+            card.Add(stats);
+        }
+        else
+        {
+            var noStats = new Label("Combate antiguo — sin stats registradas");
+            noStats.AddToClassList("combat-card__nostats");
+            card.Add(noStats);
+        }
+
+        return card;
+    }
+
+    private static VisualElement BuildStatsColumn(string title, CombatFighterSnapshot s)
+    {
+        var col = new VisualElement();
+        col.AddToClassList("combat-card__col");
+
+        var titleLabel = new Label(title);
+        titleLabel.AddToClassList("combat-card__col-title");
+        col.Add(titleLabel);
+
+        AddCombatStatLabel(col, $"HP {s.MaxHp:0.#}");
+        AddCombatStatLabel(col, $"ATK {s.Attack:0.#}");
+        AddCombatStatLabel(col, $"SPD {s.Speed:0.#}");
+        AddCombatStatLabel(col, $"DEF {s.Defense:0.#}");
+        AddCombatStatLabel(col, $"LCK {s.Luck:0.#}");
+        AddCombatStatLabel(col, $"EVA {s.Evasion:0.#}");
+
+        return col;
+    }
+
+    private static void AddCombatStatLabel(VisualElement col, string text)
+    {
+        var l = new Label(text);
+        l.AddToClassList("combat-card__stat");
+        col.Add(l);
+    }
+
+    private static string BadgeText(CombatOutcome o) => o switch
+    {
+        CombatOutcome.Won  => "Victoria",
+        CombatOutcome.Lost => "Derrota",
         _                  => "Empate",
     };
 

@@ -46,6 +46,18 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
     // they overflow. Tune here — this is the "decide the card size" knob.
     [SerializeField] private Vector2 cardSize = new Vector2(120f, 150f);
 
+    [Header("Equipment")]
+
+    // Resolves equipped item IDs (dna.Equipped[slot]) to their EquipmentSO.
+    [SerializeField] private EquipmentDatabaseSO equipmentDatabase;
+
+    // Slot/rarity accent colors for the equip-row swatches.
+    [SerializeField] private EquipmentPaletteSO equipmentPalette;
+
+    // The equipment backpack panel; a click on a swatch opens it for that
+    // creature/slot. Lives on the same always-active UI layer as this grid.
+    [SerializeField] private EquipmentBackpackUITK backpack;
+
     // USS class toggled on the currently selected card.
     private const string SelectedClass = "card--selected";
 
@@ -178,6 +190,53 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
         var stateLabel = card.Q<Label>("state-label");
         if (stateLabel != null)
             stateLabel.text = StateOf(dna);
+
+        BindEquipSlot(card, dna, "equip-weapon", EquipmentSlot.Weapon);
+        BindEquipSlot(card, dna, "equip-armor",  EquipmentSlot.Armor);
+        BindEquipSlot(card, dna, "equip-amulet", EquipmentSlot.Amulet);
+    }
+
+    // Fills one equip-row swatch with the equipped item's icon/rarity border (or
+    // an empty look with the slot's accent color) and wires it to open the
+    // backpack for that creature/slot. Click never bubbles into the card's own
+    // click handler, so it opens the backpack instead of the detail panel.
+    private void BindEquipSlot(VisualElement card, CreatureDNA dna, string elementName, EquipmentSlot slot)
+    {
+        var el = card.Q<VisualElement>(elementName);
+        if (el == null) return;
+
+        EquipmentSO item = dna.Equipped != null && dna.Equipped.TryGetValue(slot, out var id)
+            ? equipmentDatabase?.GetByID(id)
+            : null;
+
+        if (item != null)
+        {
+            el.RemoveFromClassList("card__equip-slot--empty");
+            if (item.Icon != null)
+                el.style.backgroundImage = new StyleBackground(Background.FromSprite(item.Icon));
+            else
+                el.style.backgroundColor = item.IconColor;
+
+            el.style.borderTopColor = el.style.borderBottomColor =
+                el.style.borderLeftColor = el.style.borderRightColor =
+                    equipmentPalette != null ? equipmentPalette.RarityColor(item.Rarity) : BodyPart.RarityColor(item.Rarity);
+        }
+        else
+        {
+            el.AddToClassList("card__equip-slot--empty");
+            el.style.backgroundImage = StyleKeyword.Null;
+            el.style.backgroundColor = StyleKeyword.Null;
+
+            el.style.borderTopColor = el.style.borderBottomColor =
+                el.style.borderLeftColor = el.style.borderRightColor =
+                    equipmentPalette != null ? equipmentPalette.SlotColor(slot) : new Color(0.35f, 0.35f, 0.43f);
+        }
+
+        el.RegisterCallback<ClickEvent>(evt =>
+        {
+            evt.StopPropagation();
+            if (backpack != null) backpack.Open(dna, slot, el, currentRegistry);
+        });
     }
 
     // Highlights card[idx], clamped, and optionally scrolls it into view.

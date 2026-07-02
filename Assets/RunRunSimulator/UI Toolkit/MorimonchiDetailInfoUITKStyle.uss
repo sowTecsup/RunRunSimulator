@@ -222,20 +222,98 @@
     white-space: normal;
 }
 
-/* ── Combat tab: one foldout per finished fight ────────────────── */
+/* ── Combat tab: one card per finished fight, newest first ───────
+   Turn-by-turn detail is not shown here — that replay lives in the
+   Combat Visualizer. */
 .combat-body { flex-grow: 1; padding-top: 8px; }
 .combat-history { flex-grow: 1; }
 
-.combat-fold { margin-bottom: 6px; }
-.combat-fold > .unity-foldout__toggle { margin-left: 0; }
-.combat-fold .unity-foldout__text {
-    font-size: 16px; -unity-font-style: bold; color: rgb(225, 225, 232);
+.combat-card {
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgb(40, 40, 52);
+    border-left-width: 4px;
+    border-left-color: rgb(90, 90, 110);
 }
-.combat-fold--win  .unity-foldout__text { color: rgb(120, 220, 130); }
-.combat-fold--lose .unity-foldout__text { color: rgb(235, 120, 110); }
 
-.combat-meta { font-size: 13px; color: rgb(160, 160, 175); margin-left: 18px; margin-bottom: 4px; }
-.combat-turn { font-size: 13px; color: rgb(210, 210, 218); white-space: normal; margin-left: 18px; margin-bottom: 1px; }
+.combat-card--win  { border-left-color: rgb(120, 220, 130); }
+.combat-card--lose { border-left-color: rgb(235, 120, 110); }
+.combat-card--draw { border-left-color: rgb(160, 160, 175); }
+
+.combat-card__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.combat-card__badge {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(225, 225, 232);
+}
+
+.combat-card__badge--win  { color: rgb(120, 220, 130); }
+.combat-card__badge--lose { color: rgb(235, 120, 110); }
+.combat-card__badge--draw { color: rgb(160, 160, 175); }
+
+.combat-card__date {
+    font-size: 12px;
+    color: rgb(160, 160, 175);
+}
+
+.combat-card__opponent {
+    font-size: 13px;
+    color: rgb(210, 210, 218);
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.combat-card__chips {
+    flex-direction: row;
+}
+
+.combat-card__chip {
+    font-size: 11px;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    border-radius: 8px;
+    background-color: rgb(30, 30, 38);
+    margin-right: 6px;
+}
+
+.combat-card__chip--evo   { color: rgb(120, 220, 130); }
+.combat-card__chip--death { color: rgb(235, 120, 110); }
+
+.combat-card__stats {
+    flex-direction: row;
+    margin-top: 4px;
+}
+
+.combat-card__col {
+    flex-grow: 1;
+}
+
+.combat-card__col-title {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: rgb(170, 170, 185);
+    margin-bottom: 2px;
+}
+
+.combat-card__stat {
+    font-size: 12px;
+    color: rgb(210, 210, 218);
+}
+
+.combat-card__nostats {
+    font-size: 12px;
+    -unity-font-style: italic;
+    color: rgb(160, 160, 175);
+    margin-top: 4px;
+}
 
 /* ── Lineage tab: ancestor tree (self + parents + grandparents) ─── */
 .lineage-body { flex-grow: 1; }

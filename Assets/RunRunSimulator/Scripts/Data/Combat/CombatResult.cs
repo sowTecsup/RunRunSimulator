@@ -14,6 +14,8 @@ public class CombatResult
     public bool         WinnerEvolved;
     public bool         IsDraw;
     public string       EvolvedSlot;       // "Body" | "Arm" | "Eye" | "Mouth" | null
+    public CombatFighterSnapshot StatsA;
+    public CombatFighterSnapshot StatsB;
     public List<string> Log = new List<string>();
 
     // Structured turn-by-turn data (A = dnaA). Mirrors what the server emits, and

@@ -1,0 +1,118 @@
+/* Equipment backpack popup (tooltip-style): equips items into a MoriMochi's slot
+   by clicking or dragging from a 3x3 grid of owned EquipmentSO instances. */
+
+.backpack {
+    position: absolute;
+    width: 240px;
+    padding: 8px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgb(70, 70, 88);
+    background-color: rgba(30, 30, 38, 0.97);
+}
+
+.backpack__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.backpack__dev {
+    margin: 0;
+    font-size: 11px;
+    color: rgb(190, 190, 200);
+}
+
+.backpack__unequip,
+.backpack__close {
+    margin: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-radius: 6px;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: rgb(230, 230, 236);
+    background-color: rgb(70, 70, 88);
+}
+
+.backpack__unequip:hover,
+.backpack__close:hover {
+    background-color: rgb(95, 95, 120);
+}
+
+.backpack__tabs {
+    flex-direction: row;
+    margin-bottom: 4px;
+}
+
+.backpack__tab {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    margin-right: 4px;
+    padding: 0;
+    border-radius: 5px;
+    font-size: 11px;
+    color: rgb(200, 200, 210);
+    background-color: rgb(40, 40, 52);
+}
+
+.backpack__tab:hover {
+    background-color: rgb(58, 58, 76);
+}
+
+.backpack__tab--active {
+    background-color: rgb(96, 74, 150);
+    color: rgb(235, 235, 240);
+}
+
+.backpack__grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 204px;
+}
+
+.backpack__cell {
+    width: 64px;
+    height: 64px;
+    margin: 2px;
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: rgb(60, 60, 76);
+    background-color: rgb(22, 22, 30);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.backpack__cell--empty {
+    opacity: 0.3;
+    border-color: rgb(60, 60, 76);
+}
+
+.backpack__cell--dragging {
+    opacity: 0.4;
+}
+
+.backpack__cell--drop-target {
+    border-color: rgb(255, 255, 255);
+}
+
+.backpack__ghost {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    opacity: 0.8;
+    background-color: rgb(22, 22, 30);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.backpack__name {
+    min-height: 16px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgb(225, 225, 230);
+    white-space: normal;
+}

@@ -25,4 +25,11 @@ MonoBehaviour:
   DeathChance: 0.15
   CritChance: 0.2
   CritMultiplier: 3
+  LuckCritPerPoint: 0.03
+  DefenseReductionPerPoint: 0.08
+  EvasionPerPoint: 0.1
   MaxRounds: 10
+  MaxFightCount: 5
+  StunImmunityTurns: 1
+  Synergies: {fileID: 11400000, guid: 4a51eeab968ee394483b0168d330cdf4, type: 2}
+  EnergyCostToQueue: 15

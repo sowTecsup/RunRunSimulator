@@ -90,6 +90,8 @@ public static class CombatService
         var result = new CombatResult();
         var A = BuildCombatant(dnaA, db, equipDb, true);
         var B = BuildCombatant(dnaB, db, equipDb, false);
+        result.StatsA = Snapshot(A);
+        result.StatsB = Snapshot(B);
 
         result.Log.Add("=== COMBAT START ===");
         result.Log.Add($"[A] \"{A.Name}\"  {Clip(dnaA.UniqueID)}  HP:{A.MaxHp:F1}  ATK:{A.Attack:F1}  SPD:{A.Speed:F1}  DEF:{A.Defense:F0}  LCK:{A.Luck:F0}  EVA:{A.Evasion:F0}");
@@ -172,6 +174,8 @@ public static class CombatService
             Outcome            = result.IsDraw ? CombatOutcome.Draw : (won ? CombatOutcome.Won : CombatOutcome.Lost),
             Died               = !won && !result.IsDraw && result.LoserDied,
             EvolvedSlot        = won ? result.EvolvedSlot : null,
+            SelfStats          = selfWasA ? result.StatsA : result.StatsB,
+            OpponentStats      = selfWasA ? result.StatsB : result.StatsA,
             SelfWasA           = selfWasA,
             Turns              = result.Turns,
         };
@@ -361,5 +365,8 @@ public static class CombatService
     }
 
     private static string Clip(string id) => id[..Mathf.Min(14, id.Length)];
+
+    private static CombatFighterSnapshot Snapshot(Combatant c) => new CombatFighterSnapshot
+    { MaxHp = c.MaxHp, Attack = c.Attack, Speed = c.Speed, Defense = c.Defense, Luck = c.Luck, Evasion = c.Evasion };
 }
 }

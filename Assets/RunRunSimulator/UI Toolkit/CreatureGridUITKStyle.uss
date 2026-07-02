@@ -118,3 +118,24 @@
     color: rgb(180, 180, 190);
     -unity-text-align: middle-center;
 }
+
+/* Equipment row — three clickable slot swatches (weapon/armor/amulet) below the
+   state label. Each slot opens the equipment backpack for that creature/slot. */
+.card__equip-row {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.card__equip-slot {
+    width: 22px;
+    height: 22px;
+    margin: 1px;
+    border-width: 1px;
+    border-radius: 4px;
+    background-color: rgba(30, 30, 40, 0.6);
+}
+
+.card__equip-slot--empty {
+    opacity: 0.35;
+}

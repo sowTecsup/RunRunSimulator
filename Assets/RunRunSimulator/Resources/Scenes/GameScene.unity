@@ -17366,6 +17366,7 @@ GameObject:
   - component: {fileID: 1046970363}
   - component: {fileID: 1046970362}
   - component: {fileID: 1046970364}
+  - component: {fileID: 1046970365}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -17435,6 +17436,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CreatureGridView
   equipmentDb: {fileID: 0}
   rows: []
+--- !u!114 &1046970365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1046970361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 694627de2ce30c34c931ea29ad587164, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.DevToolsConsole
+  gameManager: {fileID: 1046970362}
+  devDabloonsAmount: 500
+  devEquipmentItem: {fileID: 0}
+  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
 --- !u!1 &1047145380
 GameObject:
   m_ObjectHideFlags: 0
@@ -18177,6 +18194,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DevToolsConsole
   gameManager: {fileID: 1046970362}
   devDabloonsAmount: 500
+  devEquipmentItem: {fileID: 0}
+  equipmentDatabase: {fileID: 0}
 --- !u!1 &1218711422
 GameObject:
   m_ObjectHideFlags: 0
@@ -18229,6 +18248,7 @@ Transform:
   - {fileID: 1828995159}
   - {fileID: 1023503745}
   - {fileID: 464847835}
+  - {fileID: 1478376637}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1218711424
@@ -18385,6 +18405,9 @@ MonoBehaviour:
   panel: 1
   cardTemplate: {fileID: 9197481963319205126, guid: aa0ae336bdfff4a4ca138ba64184db18, type: 3}
   cardSize: {x: 360, y: 450}
+  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
+  equipmentPalette: {fileID: 11400000, guid: 52152e99c2aa6924f92727b5f41fbf38, type: 2}
+  backpack: {fileID: 1478376636}
 --- !u!114 &1218711426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19922,6 +19945,55 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1473995696}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1218711423}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1478376635
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1478376637}
+  - component: {fileID: 1478376636}
+  m_Layer: 0
+  m_Name: EquipmentBackpackUITK
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1478376636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1478376635}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0032a63f4ae6b24488f764200c9d643, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.EquipmentBackpackUITK
+  inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
+  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
+  equipmentPalette: {fileID: 11400000, guid: 52152e99c2aa6924f92727b5f41fbf38, type: 2}
+  styleSheet: {fileID: 7433441132597879392, guid: 636afbc14d186ce488475f459f193316, type: 3}
+  devNoConsume: 1
+--- !u!4 &1478376637
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1478376635}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
