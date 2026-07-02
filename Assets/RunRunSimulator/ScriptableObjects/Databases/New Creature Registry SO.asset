@@ -194,13 +194,13 @@ MonoBehaviour:
       Data: 5|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 40.0017052
+      Data: 25.5824165
     - Name: Energy
       Entry: 4
-      Data: 96.74753
+      Data: 88.0023
     - Name: Affect
       Entry: 4
-      Data: 67.057
+      Data: 99.93595
     - Name: 
       Entry: 8
       Data: 
@@ -464,13 +464,13 @@ MonoBehaviour:
       Data: 11|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 38.3094559
+      Data: 23.8901558
     - Name: Energy
       Entry: 4
-      Data: 40.58268
+      Data: 30.5520859
     - Name: Affect
       Entry: 4
-      Data: 15.837183
+      Data: 58.48656
     - Name: 
       Entry: 8
       Data: 
@@ -688,13 +688,13 @@ MonoBehaviour:
       Data: 16|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 39.80989
+      Data: 25.3906078
     - Name: Energy
       Entry: 4
-      Data: 49.701458
+      Data: 42.93534
     - Name: Affect
       Entry: 4
-      Data: 74.08815
+      Data: 9.668825
     - Name: 
       Entry: 8
       Data: 
@@ -960,6 +960,15 @@ MonoBehaviour:
       Data: false
     - Name: EvolvedSlot
       Entry: 6
+      Data: 
+    - Name: Seed
+      Entry: 3
+      Data: 0
+    - Name: OpponentDnaId
+      Entry: 1
+      Data: 
+    - Name: OpponentPlayerId
+      Entry: 1
       Data: 
     - Name: SelfWasA
       Entry: 5
@@ -2379,13 +2388,13 @@ MonoBehaviour:
       Data: 88|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 41.3297539
+      Data: 28.4134579
     - Name: Energy
       Entry: 4
-      Data: 36.5033951
+      Data: 31.2869263
     - Name: Affect
       Entry: 4
-      Data: -3.66770434
+      Data: 93.89239
     - Name: 
       Entry: 8
       Data: 
@@ -2639,13 +2648,13 @@ MonoBehaviour:
       Data: 93|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 41.3297539
+      Data: 28.4134579
     - Name: Energy
       Entry: 4
-      Data: 39.5454445
+      Data: 35.69963
     - Name: Affect
       Entry: 4
-      Data: 66.9067
+      Data: 15.9903574
     - Name: 
       Entry: 8
       Data: 
@@ -2863,13 +2872,13 @@ MonoBehaviour:
       Data: 98|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 42.832653
+      Data: 29.9163761
     - Name: Energy
       Entry: 4
-      Data: 53.54703
+      Data: 43.9021759
     - Name: Affect
       Entry: 4
-      Data: 63.5775261
+      Data: 13.6611471
     - Name: 
       Entry: 8
       Data: 
@@ -3087,13 +3096,13 @@ MonoBehaviour:
       Data: 103|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 44.3352
+      Data: 32.9215431
     - Name: Energy
       Entry: 4
-      Data: 43.9122047
+      Data: 38.0155449
     - Name: Affect
       Entry: 4
-      Data: 69.62897
+      Data: 88.63768
     - Name: 
       Entry: 8
       Data: 
@@ -3311,13 +3320,13 @@ MonoBehaviour:
       Data: 108|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 44.3352
+      Data: 32.9215431
     - Name: Energy
       Entry: 4
-      Data: 46.9080162
+      Data: 34.4417
     - Name: Affect
       Entry: 4
-      Data: 84.02169
+      Data: 54.6080742
     - Name: 
       Entry: 8
       Data: 
@@ -3535,13 +3544,13 @@ MonoBehaviour:
       Data: 113|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 45.84008
+      Data: 34.4264259
     - Name: Energy
       Entry: 4
-      Data: 23.8644238
+      Data: 98.92422
     - Name: Affect
       Entry: 4
-      Data: 73.77216
+      Data: 23.3584633
     - Name: 
       Entry: 8
       Data: 
@@ -3771,6 +3780,15 @@ MonoBehaviour:
       Data: false
     - Name: EvolvedSlot
       Entry: 6
+      Data: 
+    - Name: Seed
+      Entry: 3
+      Data: 0
+    - Name: OpponentDnaId
+      Entry: 1
+      Data: 
+    - Name: OpponentPlayerId
+      Entry: 1
       Data: 
     - Name: SelfWasA
       Entry: 5
@@ -4076,6 +4094,15 @@ MonoBehaviour:
     - Name: EvolvedSlot
       Entry: 6
       Data: 
+    - Name: Seed
+      Entry: 3
+      Data: 0
+    - Name: OpponentDnaId
+      Entry: 1
+      Data: 
+    - Name: OpponentPlayerId
+      Entry: 1
+      Data: 
     - Name: SelfWasA
       Entry: 5
       Data: true
@@ -4367,13 +4394,13 @@ MonoBehaviour:
       Data: 146|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 47.3502159
+      Data: 37.43762
     - Name: Energy
       Entry: 4
-      Data: 29.1015663
+      Data: 89.75773
     - Name: Affect
       Entry: 4
-      Data: 78.458725
+      Data: -26.453928
     - Name: 
       Entry: 8
       Data: 
@@ -4591,13 +4618,13 @@ MonoBehaviour:
       Data: 151|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 47.3502159
+      Data: 37.43762
     - Name: Energy
       Entry: 4
-      Data: 32.8195419
+      Data: 28.6028156
     - Name: Affect
       Entry: 4
-      Data: 69.16469
+      Data: -16.7479782
     - Name: 
       Entry: 8
       Data: 
@@ -4851,13 +4878,13 @@ MonoBehaviour:
       Data: 156|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 48.8604851
+      Data: 38.9478874
     - Name: Energy
       Entry: 4
-      Data: 42.2166977
+      Data: 37.7416
     - Name: Affect
       Entry: 4
-      Data: 76.9407349
+      Data: 26.0281124
     - Name: 
       Entry: 8
       Data: 
@@ -5123,6 +5150,15 @@ MonoBehaviour:
       Data: false
     - Name: EvolvedSlot
       Entry: 6
+      Data: 
+    - Name: Seed
+      Entry: 3
+      Data: 0
+    - Name: OpponentDnaId
+      Entry: 1
+      Data: 
+    - Name: OpponentPlayerId
+      Entry: 1
       Data: 
     - Name: SelfWasA
       Entry: 5
@@ -6542,13 +6578,13 @@ MonoBehaviour:
       Data: 228|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 50.362587
+      Data: 41.9546242
     - Name: Energy
       Entry: 4
-      Data: 48.56869
+      Data: 44.4681244
     - Name: Affect
       Entry: 4
-      Data: 79.11923
+      Data: 18.7112446
     - Name: 
       Entry: 8
       Data: 
@@ -6815,6 +6851,15 @@ MonoBehaviour:
     - Name: EvolvedSlot
       Entry: 1
       Data: Arm
+    - Name: Seed
+      Entry: 3
+      Data: 0
+    - Name: OpponentDnaId
+      Entry: 1
+      Data: 
+    - Name: OpponentPlayerId
+      Entry: 1
+      Data: 
     - Name: SelfWasA
       Entry: 5
       Data: false
@@ -7119,6 +7164,15 @@ MonoBehaviour:
     - Name: EvolvedSlot
       Entry: 1
       Data: Eye
+    - Name: Seed
+      Entry: 3
+      Data: 0
+    - Name: OpponentDnaId
+      Entry: 1
+      Data: 
+    - Name: OpponentPlayerId
+      Entry: 1
+      Data: 
     - Name: SelfWasA
       Entry: 5
       Data: false
@@ -7410,13 +7464,13 @@ MonoBehaviour:
       Data: 261|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 50.362587
+      Data: 41.9546242
     - Name: Energy
       Entry: 4
-      Data: 59.1015053
+      Data: 53.3177643
     - Name: Affect
       Entry: 4
-      Data: 80.14723
+      Data: 33.739254
     - Name: 
       Entry: 8
       Data: 
@@ -7634,13 +7688,13 @@ MonoBehaviour:
       Data: 266|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 51.86357
+      Data: 43.45561
     - Name: Energy
       Entry: 4
-      Data: 40.0376129
+      Data: 32.03891
     - Name: Affect
       Entry: 4
-      Data: 84.34221
+      Data: 50.93417
     - Name: 
       Entry: 8
       Data: 
