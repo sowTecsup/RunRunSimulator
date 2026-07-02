@@ -145,16 +145,16 @@ public partial class MoriMochiAgent
     [TabGroup("Tuning", "Stats")]
     [ShowInInspector, ReadOnly, LabelText("EVA")] private string StatEva => StatLine(StatType.Evasion);
 
-    private CombatService.EffectiveStats StatsBase()
+    private EffectiveStats StatsBase()
     {
         if (dna == null) return default;
         var db = GameManager.Instance != null ? GameManager.Instance.Database : null;
         return db != null
-            ? CombatService.GetEffectiveStats(dna, db)
-            : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+            ? CombatStats.GetEffectiveStats(dna, db)
+            : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
     }
 
-    private CombatService.EffectiveStats StatsFinal()
+    private EffectiveStats StatsFinal()
     {
         if (dna == null) return default;
         var equip = GameManager.Instance != null ? GameManager.Instance.EquipmentDatabase : null;
@@ -172,7 +172,7 @@ public partial class MoriMochiAgent
             : $"{b:0.#} → {f:0.#} ({(d > 0 ? "+" : "")}{d:0.#})";
     }
 
-    private static float StatValue(CombatService.EffectiveStats s, StatType t) => t switch
+    private static float StatValue(EffectiveStats s, StatType t) => t switch
     {
         StatType.Constitution => s.Constitution,
         StatType.Attack       => s.Attack,

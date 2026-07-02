@@ -26,6 +26,13 @@ public class CombatManagerSO : SerializedScriptableObject
     [LabelWidth(160)] public int MaxRounds    = 50;
     [LabelWidth(160)] public int MaxFightCount = 5;
 
+    [Title("Status / Balance")]
+    [InfoBox("Anti-permastun: un stun activo nunca se re-aplica, y al despertar el MoriMochi es inmune a nuevos stuns por N turnos propios.")]
+    [LabelWidth(160)] public int StunImmunityTurns = 1;
+
+    [InfoBox("Recetas de sinergia: al acumular las variedades de stacks requeridas, detonan sobre el portador (queman los stacks). Sin tabla asignada = sin sinergias.")]
+    [LabelWidth(160)] public SynergyTableSO Synergies;
+
     [Title("Needs")]
     [InfoBox("Energía que gasta un MoriMochi al encolarse para combate (NeedsState).")]
     [LabelWidth(160)] public float EnergyCostToQueue = 15f;

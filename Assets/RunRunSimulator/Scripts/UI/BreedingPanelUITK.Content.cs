@@ -34,8 +34,8 @@ public partial class BreedingPanelUITK
         row.userData = dna.UniqueID;
 
         var eff = database != null
-            ? CombatService.GetEffectiveStats(dna, database)
-            : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+            ? CombatStats.GetEffectiveStats(dna, database)
+            : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
 
         var l = new Label($"{dna.CustomName}  ·  CON {eff.Constitution:0} ATK {eff.Attack:0} SPD {eff.Speed:0} DEF {eff.Defense:0} LCK {eff.Luck:0} EVA {eff.Evasion:0}  ·  {dna.BreedCount}/{BreedingService.MaxBreedCount}");
         l.AddToClassList("breed-candidate-text");
@@ -159,8 +159,8 @@ public partial class BreedingPanelUITK
         col.Add(name);
 
         var eff = database != null
-            ? CombatService.GetEffectiveStats(dna, database)
-            : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+            ? CombatStats.GetEffectiveStats(dna, database)
+            : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
         var stats = new Label($"CON {eff.Constitution:0}   ATK {eff.Attack:0}   SPD {eff.Speed:0}   DEF {eff.Defense:0}   LCK {eff.Luck:0}   EVA {eff.Evasion:0}");
         stats.AddToClassList("preview-stats");
         col.Add(stats);

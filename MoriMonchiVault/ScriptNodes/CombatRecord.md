@@ -4,15 +4,15 @@ tags: [combat, data, persistence, history]
 
 # CombatRecord
 
-DTO [Serializable] que almacena el historial completo de una pelea terminada, persistido en `CreatureDNA.CombatHistory`. Es un record simétrico (los mismos turnos para ambos luchadores), estructurado turno-a-turno para replay local determinista. Serializa como JSON en cloud y almacenamiento local.
+**Ruta:** `Data/Combat/CombatRecord.cs`
 
-## Responsabilidad
+**Responsabilidad:** DTO serializable que persiste el historial completo y replayable de una pelea terminada. Vive en `CreatureDNA.CombatHistory` y se sincroniza via Cloud Save. Almacena turno-a-turno para que el visualizador local reproduzca el combate sin recomputar.
 
-Peristir el resultado y la secuencia de turnos de un combate completado, de forma que el visualizador local pueda reproducir el replay sin recomputar. Ambos motores (C# local y servidor JS) emiten la misma forma, pero solo el servidor es autoritario; el cliente lee y almacena.
+## Descripción General (S32)
+
+Un único motor C# seeded: el servidor (JS) ya no simula combates, solo proporciona seed + snapshots DNA de ambos combatientes. Ambos clientes corren `CombatService.SimulateCore` con idéntica seed y snapshots → idéntico resultado → idéntico record. El visualizador es 100% local y determinista.
 
 ## Campos Públicos
-
-### CombatRecord
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
@@ -21,47 +21,16 @@ Peristir el resultado y la secuencia de turnos de un combate completado, de form
 | `Date` | `DateTime` | Cuándo ocurrió (UTC) |
 | `Outcome` | `CombatOutcome` | Resultado desde POV de THIS creature (Won/Lost/Draw) |
 | `Died` | `bool` | Si esta criatura murió en la pelea |
-| `EvolvedSlot` | `string` | Slot que evolucionó si ganó (null si no evolucionó o perdió) |
+| `EvolvedSlot` | `string` | Slot que evolucionó si ganó (null si perdió o no evolucionó) |
+| `Seed` | `int` | **NUEVO S32** Seed usado para SimulateCore (reproducibilidad) |
+| `OpponentDnaId` | `string` | **NUEVO S32** UniqueID del rival (para búsqueda en async) |
+| `OpponentPlayerId` | `string` | **NUEVO S32** Player ID del rival (async only; "" para local) |
 | `SelfWasA` | `bool` | Si true, esta criatura era combatante A; false = era B |
 | `Turns` | `List<CombatTurn>` | Turnos de la pelea en orden |
 
-## Método Implícito
+## CombatTurn
 
-| Método | Retorna |
-|--------|---------|
-| (serialización JSON) | El objeto serializa como string para persistencia |
-
-## Vinculado a
-
-- [[CreatureDNA]] — `CombatHistory` es `List<CombatRecord>`
-- [[CombatService]] — emite via `RecordHistory()` (privado)
-- [[CombatVisualizerService]] — lee records para replay
-- [[CombatTurn]] — estructura interna
-
-## Conexiones
-
-**Entrada:**
-- `CombatService.RecordHistory()` — crea e inserta en `dna.CombatHistory`
-
-**Salida:**
-- `CombatVisualizerService.Play(self, opponent, record)` — ingiere record para construir replay
-- Persistencia via `GameManager` (Cloud Save) cuando `GameEvents.OnRegistryChanged` se dispara
-
-## Notas sobre Cambios (S31)
-
-**MODIFICADO:** `CombatTurn` gana dos campos nuevos:
-- `bool NoAttack` — true si el turno no tuvo golpe (stun-skip, muerte antes de pegar)
-- `List<CombatProcEvent> Procs` — lista de eventos de proc en orden (antes/después golpe)
-
-Backward compatible: records viejos sin estos campos deserializan con lista vacía y NoAttack=false.
-
----
-
-# CombatTurn
-
-DTO [Serializable] que representa un único ataque dentro de una pelea.
-
-## Campos Públicos
+Estructura interna que representa un único ataque dentro de un combate.
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
@@ -72,34 +41,42 @@ DTO [Serializable] que representa un único ataque dentro de una pelea.
 | `Damage` | `float` | Daño infligido (0 si fue dodgeado) |
 | `WasCrit` | `bool` | Si fue crítico |
 | `DefenderHpAfter` | `float` | HP resultante del defensor tras golpe |
-| `NoAttack` | `bool` | **NUEVO S31** Si true, no hubo golpe (stun-skip o muerte por aflicción) |
-| `Procs` | `List<CombatProcEvent>` | **NUEVO S31** Eventos de proc en este turno, en orden |
+| `NoAttack` | `bool` | Si true, no hubo golpe (stun-skip, muerte por aflicción) |
+| `Procs` | `List<CombatProcEvent>` | Eventos de proc en este turno, en orden |
 
-## Método Implícito
+## Backward Compatibility (S32)
 
-| Método | Retorna |
-|--------|---------|
-| (serialización JSON) | El objeto serializa como parte de `CombatRecord.Turns` |
+Los tres campos nuevos (`Seed`, `OpponentDnaId`, `OpponentPlayerId`) son aditivos:
+- Old records sin estos campos deserializan OK (valores por defecto: 0, "", "").
+- Visulizador tolera registros viejos sin Seed (no puede verificar determinismo, pero replay funciona).
+- Búsqueda async sin OpponentDnaId falla silenciosamente; nuevo código lo llena.
+
+## Serialización
+
+JSON con Newtonsoft.Json, `StringEnumConverter` para enums (`Outcome`). `Date` se serializa como ISO-8601 UTC.
 
 ## Vinculado a
 
-- [[CombatRecord]] — `CombatRecord.Turns` es `List<CombatTurn>`
-- [[CombatProcEvent]] — `Procs` es `List<CombatProcEvent>`
-- [[CombatService]] — emite via `EmitTurn()` (privado)
-- [[CombatVisualizerService]] — lee para construir replay
+- [[Index/03 - Combat]]
+- [[CreatureDNA]] — `CombatHistory` es `List<CombatRecord>`
+- [[CombatService]] — construye via `BuildRecord(result, self, opponent, selfWasA, oppPlayerName, oppPlayerId, seed, date)`
+- [[AsyncCombatService]] — popula desde `CloudMatchBlob`; lee y aplica
+- [[CombatVisualizerService]] — lee records para replay local
+- [[CombatTurn]] — estructura interna
 
 ## Conexiones
 
 **Entrada:**
-- `CombatService.EmitTurn()` — crea turn, llena campos, inserta en `result.Turns`
-- `CombatService.TakeTurn()` — acumula procs en `Resolver.TurnProcs` antes de emitir
+- `CombatService.Simulate()` → construye 2× `BuildRecord()` (uno por combatiente, perspectivas opuestas)
+- `AsyncCombatService.ApplyResult()` → construye via `CombatService.BuildRecord()`
 
 **Salida:**
-- `CombatVisualizerService.BuildStates()` — itera `Turn.Procs` y `Turn.NoAttack`
-- `CombatVisualizerService.ForwardRoutine()` — anima turnos basándose en fields
+- Persistencia via `GameManager.SaveDatabase()` cuando `GameEvents.OnRegistryChanged` se dispara
+- `CombatVisualizerService.Play(self, opponent, record)` — ingiere record, construye estados, anima
 
-## Notas sobre Campos Nuevos
+## Notas
 
-- `NoAttack` sirve para los visualizador saltar `FireWindup`/`FireImpact` si no hay ataque
-- `Procs` contiene todos los procs del turno con timestamp `BeforeStrike` para ordenar animación
-- Si `Procs == null`, visualizador trata como lista vacía (backward compat)
+- Historial simétrico: ambos combatientes guardan los mismos turnos (mismo ataque, mismo defensor).
+- `SelfWasA` dice al visualizador si "A" = "yo" o "ellos" en los turnos grabados.
+- En async, `Seed` + `OpponentDnaId` + `OpponentPlayerId` permiten reproducir y verificar la pelea.
+- Replay es puro local; no requiere servidor ni cómputo.

@@ -137,15 +137,12 @@ public partial class CombatPanelUITK
         if (fighterAId == fighterBId) { Debug.LogWarning("[CombatPanel] Pick two DIFFERENT fighters."); return; }
         if (Config == null) { Debug.LogError("[CombatPanel] No CombatManager config."); return; }
 
-        var result = CombatService.Simulate(fighterAId, fighterBId, registry, database, Config, GameManager.Instance?.EquipmentDatabase);
+        var result = CombatController.Instance != null ? CombatController.Instance.SimulateLocal(fighterAId, fighterBId) : null;
         if (result == null) return;
 
         Debug.Log("[Combat]\n" + string.Join("\n", result.Log));
 
-        GameEvents.CombatCompleted(result);
-        GameEvents.RegistryChanged(registry);   // triggers RebuildAll (fighters changed)
-
-        // Inline log (set AFTER the rebuild above so it isn't wiped).
+        // Inline log (set AFTER SimulateLocal's RegistryChanged-driven rebuild above so it isn't wiped).
         if (localLog != null)
         {
             localLog.Clear();

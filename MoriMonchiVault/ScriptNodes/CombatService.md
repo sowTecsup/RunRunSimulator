@@ -1,130 +1,109 @@
 ---
-tags: [combat, core, stateless, simulation]
+tags: [combat, core, deterministic, simulation]
 ---
 
 # CombatService
 
-Servicio estático stateless que simula un combate por turnos local, completamente determinista. Orquesta el flujo: orden de ataque por Speed, tick de status, procs defensivos/ofensivos, cálculos de daño (evasión, crit, defensa), emite record simétrico de turnos.
+**Ruta:** `Systems/Combat/CombatService.cs`
 
-## Responsabilidad
-
-Ser la única autoridad de simulación local: validar combatientes, ejecutar el loop de rondas, aplicar modificadores (equipment, statuses), grabar cada turno en `CombatRecord` para replay/persistencia. Contrato público sin cambios (backward compatible). Emit todos los procs vía `Resolver.Record()` para captura en `CombatTurn.Procs`.
+**Responsabilidad:** Servicio estático stateless que simula combate turn-based local, completamente determinista. Orquesta validación, simulación core pura (sin registry), construcción de records simétricos. Componedora de: `CombatRng` (inyectado por seed), `Combatant`, `CombatResolver`, `CombatStats`, `CombatEvolution`.
 
 ## Métodos Públicos
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
-| `Simulate(idA, idB, registry, db, config, equipDb)` | `CombatResult` | Simula pelea full, retorna result + turns + log |
-| `GetEffectiveStats(dna, db)` | `EffectiveStats` | Calcula stats finales de una criatura (sin equipment aún) |
+| `Simulate(idA, idB, registry, db, config, equipDb, seed)` | `CombatResult` | Wrapper local: valida, genera CombatRng(seed), llama SimulateCore, construye records para ambos, retorna result |
+| `SimulateCore(dnaA, dnaB, db, config, equipDb, rng)` | `CombatResult` | Puro determinista: sin registry, sin validación. Muta ambas DNAs. Retorna result con turnos |
+| `BuildRecord(result, self, opponent, selfWasA, oppPlayerName, oppPlayerId, seed, date)` | `CombatRecord` | Construye un CombatRecord desde la perspectiva de `self` |
 
-## Métodos Privados (Statics)
+## Header Actualizado (S32)
+
+**Un único motor C# seedeado, corriendo en ambos clientes (local y async):** el servidor ya no simula, solo proporciona seed + snapshots. Ambos clientes corren `SimulateCore` con la misma seed, derivan idéntico `CombatRecord`, y lo persisten.
+
+## Métodos Privados
 
 | Método | Descripción |
 |--------|-------------|
-| `TakeTurn(atk, def, config, result, round, r)` | bool | Resuelve un turno de un combatiente; retorna true si alguien llegó a 0 HP |
-| `EmitTurn(result, round, atk, def, noAttack, damage, crit, defHp, procs)` | void | Crea `CombatTurn` con todos los campos y lo agrega a `result.Turns` |
-| `TickStatuses(c, result, r)` | void | Aplica daño/curación por status activo (Poison/Burn/Regen), graba procs |
-| `FireProcs(owner, opponent, trigger, result, r, roll)` | void | Itera procs del tipo trigger, los aplica via `ICombatContext` |
-| `RollProc(p, owner, result)` | bool | Tira chance proc, loguea roll |
-| `BuildCombatant(dna, db, equipDb, isA)` | `Combatant` | Construye modelo interno de combatiente con stats/procs |
-| `CollectProcs(dna, equipDb)` | `List<CombatProcEffect>` | Recolecta todos los procs del equipment equipado |
-| `ComputeStats(dna, db)` | `Stats` | Calcula stats base + acumulación de partes |
-| `AccumulatePart(part, tier, ref con, ref atk, ref spd)` | void | Suma bonificación de parte a stats |
-| `RecordHistory(self, opponent, outcome, died, evolvedSlot, selfIsA, turns)` | void | Crea `CombatRecord` e inserta en `self.CombatHistory` |
-| `TryEvolveRandomSlot(dna)` | string | Elige slot aleatorio no-Tier3 y lo evoluciona; retorna nombre del slot o null |
-| `GetSlotTier(dna, slot)` | int | Retorna tier actual del slot |
+| `TakeTurn(atk, def, config, result, round, resolver, rng)` | bool | Resuelve turno de atacante; retorna true si alguien llegó a 0 HP. Muta Combatant y acumula procs |
+| `EmitTurn(result, round, atk, def, noAttack, damage, crit, defHp, procs)` | void | Crea CombatTurn y lo agrega a `result.Turns` |
+| `TickStatuses(c, result, resolver)` | void | Aplica daño/curación por status activo (Poison/Burn/Regen); graba procs via `resolver.Record()` |
+| `FireProcs(owner, opponent, trigger, result, resolver, roll, rng)` | void | Itera procs del tipo trigger, los aplica via `CombatProcEffect.Apply(ICombatContext)` |
+| `RollProc(p, owner, result, rng)` | bool | Tira chance proc con rng inyectado, loguea roll |
+| `BuildCombatant(dna, db, equipDb, isA)` | `Combatant` | Construye modelo de combatiente con stats efectivos y procs |
+| `CollectProcs(dna, equipDb)` | `List<CombatProcEffect>` | Recolecta todos los procs del equipment equipado, ordenados por slot |
 | `Clip(id)` | string | Trunca ID a 14 chars para logging |
 
-## Clases Internas
+## Ciclo de Determinismo (S32)
 
-### Resolver : ICombatContext
+1. **Local:** `CombatController.SimulateLocal(aID, bID)`
+   - Genera `seed = Guid.NewGuid().GetHashCode()`
+   - Llama `Simulate(aID, bID, ..., seed)`
+   - Valida registry, builds combatants, llama `SimulateCore(..., new CombatRng(seed))`
+   - Construye records, persistencia automática
 
-Implementa el contexto de aplicación de procs. Mantiene referencias a combatientes y buffer de `CombatProcEvent`.
+2. **Async:** Cloud Code (JS) matchea y emite `CloudMatchBlob { Seed, CreatureJsonA, CreatureJsonB, ... }`
+   - Cliente recibe blob, llama `ApplyResult()`
+   - Deserializa snapshots, llama `SimulateCore(..., new CombatRng(blob.Seed))`
+   - **Mismo seed + mismo DNA snapshots = resultado idéntico**
+   - Construye record desde perspectiva propia
 
-**Campos:**
-- `CombatResult Result`
-- `Combatant Self`, `Opponent`
-- `List<CombatProcEvent> TurnProcs` — buffer acumulado durante turno
-- `bool BeforeStrike` — true si estamos en fase pre-ataque
+## Flujo de Turno (TakeTurn)
 
-**Métodos (ICombatContext):**
-- `DamageOpponent(amount, source)` — daña opponent, graba proc ReturnDamage
-- `HealSelf(amount, source)` — cura self, graba proc Heal
-- `ApplyStatusToOpponent(kind, turns, mag, source)` → `AddStatus()`
-- `ApplyStatusToSelf(kind, turns, mag, source)` → `AddStatus()`
-- `StunOpponent(turns)` — seteea turns de stun, graba proc Stun
-- `Record(kind, target, amount)` — crea `CombatProcEvent` e inserta en `TurnProcs`
+**Orden determinista, por atacante cada round:**
+1. `TickStatuses()` — aplica daño/curación de status activos (Poison/Burn/Regen), graba en procs
+2. `FireProcs(..., Passive)` — dispara procs pasivos (siempre, sin roll)
+3. Stun check — si stunned, decrementa, grant inmunidad si expira, graba, **skip resto de turno**
+4. Decrementa `StunImmunityTurns` si > 0
+5. Arm procs ofensivos (roll cada uno, acumula armed list)
+6. Roll evasión (EVA * EvasionPerPoint)
+7. Roll crit (CritChance + LCK * LuckCritPerPoint)
+8. Aplica daño si hit (ATK * (crit ? CritMult : 1) * (1 - DEF_reduction))
+9. `FireProcs(..., Defensive)` — procs defensivos del defensor (al recibir golpe)
+10. `EmitTurn()` — registra todo en `CombatTurn` + `procs`
 
-### Combatant (interna)
+## Anti-Permastun & Stacking
 
-Modelo de combatiente durante simulación.
+- **Anti-permastun:** `CombatResolver.StunOpponent()` rechaza re-stun si ya stunned. Al despertar, otorga `StunImmunityTurns` (default 1 turno).
+- **Stacking:** `CombatResolver.AddStatus()` permite múltiples instancias del mismo `Kind`; cada una con su contador independiente. Se aplican todas en paralelo en `TickStatuses()`.
 
-**Campos:**
-- `CreatureDNA Dna`
-- `string Name`
-- `bool IsA`
-- `float Hp, MaxHp`
-- `float Attack, Speed, Defense, Luck, Evasion`
-- `int StunTurns`
-- `List<CombatProcEffect> Procs`
-- `List<ActiveEffect> Active` — statuses activos
+## Sinergias (S32)
 
-### ActiveEffect (interna)
+```csharp
+// En SimulateCore:
+var resolver = new CombatResolver { Result = result, Synergies = config.Synergies };
+```
 
-Estado de un status en proceso.
-
-**Campos:**
-- `ModifierEffectKind Kind`
-- `int RemainingTurns`
-- `int Magnitude`
-
-## Constantes
-
-| Constante | Valor | Uso |
-|-----------|-------|-----|
-| `BaseHpCombatMultiplier` | 5f | HP en combate = Constitution * 5 |
+La tabla de sinergias (`SynergyTableSO`) se pasa en la construcción del resolver. Cada vez que `CombatResolver.AddStatus()` agrega un efecto, llama `CheckSynergies()` automáticamente, que detona recetas satisfechas y aplica `SynergyEffectBase` polimórficamente.
 
 ## Vinculado a
 
-- [[Enums]] — `ModifierEffectKind`, `CombatOutcome`, `Tier`
-- [[CreatureDNA]] — fuente de verdad de stats
+- [[Index/03 - Combat]]
+- [[CreatureDNA]] — fuente de verdad, se muta si gana/muere
 - [[CreatureDatabaseSO]] — resuelve partes por ID
-- [[CombatManagerSO]] — config (MaxRounds, CritChance, DEF reduction, etc.)
-- [[EquipmentDatabaseSO]] — resuelve items equipados
-- [[EquipmentStats]] — aplica modifiers estatales
-- [[CombatRecord]] — estructura de salida
-- [[CombatProcEvent]] — DTO de procs
-- [[GameEvents]] — (no dispara directo, GameManager orquesta persistencia)
+- [[CombatManagerSO]] — config (MaxRounds, CritChance, DEF reduction, StunImmunityTurns, **Synergies**)
+- [[EquipmentDatabaseSO]] — resuelve items equipados → procs
+- [[EquipmentStats]] — aplica mods de equipment
+- [[CombatRng]] — RNG inyectado, determinista
+- [[Combatant]], [[CombatResolver]], [[CombatStats]], [[CombatEvolution]], [[EffectiveStats]] — clases extraídas
+- [[CombatRecord]], [[CombatTurn]], [[CombatProcEvent]] — DTO salida
+- [[SynergyTableSO]], [[SynergyRule]], [[SynergyEffectBase]] — motor de sinergias (S32)
+- [[GameEvents]] — (no dispara directo, GameManager/AsyncCombatService orquesta)
 
 ## Conexiones
 
 **Entrada:**
-- `CombatManagerSO` (config)
-- `CreatureRegistrySO` (búsqueda DNAs por ID)
-- `CreatureDatabaseSO` (partes)
-- `EquipmentDatabaseSO` (items equipados → procs)
+- `CombatController.SimulateLocal()` → `Simulate(idA, idB, registry, db, config, equipDb, seed)`
+- `AsyncCombatService.ApplyResult()` → `SimulateCore(dnaA, dnaB, db, config, equipDb, new CombatRng(seed))`
 
 **Salida:**
-- `CombatResult` — contiene `Turns` (lista de `CombatTurn`)
-- `CombatRecord` — inserto en `CreatureDNA.CombatHistory` (persistencia)
+- `CombatResult` — contiene `Turns` (list de `CombatTurn`), `Log`, outcome
+- `CombatRecord` — persistido en `CreatureDNA.CombatHistory` vía `GameManager`
 
-## Cambios Sesión 31
+## Notas (S32)
 
-**MODIFICADO:** `TakeTurn()` y helpers relacionados
-
-1. Nuevo buffer `procs = List<CombatProcEvent>()` por turno
-2. `Resolver.TurnProcs = procs` antes de lógica de turno
-3. `Resolver.BeforeStrike = true/false` para marcar fase
-4. Cada mutacion (damage, heal, stun, status) ahora graba `Resolver.Record(kind, target, amount)`
-5. `TickStatuses()` firma cambia a `(c, result, r)` y graba procs via `r.Record()`
-6. `EmitTurn()` nueva firma con `noAttack` y `procs` parámetros
-7. Turnos sin golpe (`NoAttack=true`): muerte por aflicción, muerte por passive, stun-skip
-
-**Backward compatible:** Contrato público `Simulate()`/`GetEffectiveStats()` sin cambios. El `CombatResult` siempre emite `Turns` bien formados.
-
-## Notas
-
-- **Determinismo:** Usa `UnityEngine.Random` (no seedeable aún; roadmap etapa 2.2)
-- **Stats:** Constitution → HP, resto aplicados directamente (DEF/LCK/EVA suman de equipment)
-- **Procs:** Ordenados before-strike, golpe (si !NoAttack), after-strike (visible en visualizador)
-- **Logging:** `result.Log` contiene trazas debug de todo (rolls, daños, evaciones, statuses)
+- **Backward compatible:** Contrato público `Simulate()` sin cambios; parámetro `config.Synergies` es null-safe.
+- **Clases extraídas:** `Combatant`, `CombatResolver`, `CombatStats`, `CombatEvolution`, `EffectiveStats` ahora son públicas, reutilizables.
+- **Determinismo total:** Cero UnityEngine.Random; todo vía `CombatRng` inyectado.
+- **Procs:** Colectados en orden de slot (Body→Arm→Eye→Mouth) en `CollectProcs()` para determinismo (orden lista != seed, pero orden iteración es fijo).
+- **Logging:** `result.Log` contiene trazas debug de rolls, daños, evasiones, statuses, sinergias, evolución, muerte.
+- **Sinergias:** Integradas en `CombatResolver`; se disparan automáticamente al agregar status. Cap 8 iteraciones previene loops infinitos.

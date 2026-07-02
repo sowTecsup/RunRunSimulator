@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Sirenix.OdinInspector;
 using UnityEngine;
 namespace MoriMonchiSimulator
@@ -92,6 +93,57 @@ public class CombatDevConsole : MonoBehaviour
 
         lastCombatResult = result.Summary;
         RefreshCombatInfo();
+    }
+
+    [Button("Verify Determinism (seed)"), GUIColor(0.4f, 1f, 0.6f), BoxGroup("Combat")]
+    private void VerifyDeterminismButton()
+    {
+        if (gameManager == null) { Debug.LogError("[CombatDevConsole] GameManager not assigned."); return; }
+        if (combatController == null) { Debug.LogError("[CombatDevConsole] CombatController not assigned."); return; }
+        var cfg = combatController.Config;
+        if (cfg == null) { Debug.LogError("[CombatDevConsole] No CombatManager assigned."); return; }
+
+        if (string.IsNullOrEmpty(combatAID) || string.IsNullOrEmpty(combatBID))
+        {
+            Debug.LogError("[CombatDevConsole] Fighter A/B UniqueID missing — fill both before verifying.");
+            return;
+        }
+        if (!gameManager.Registry.TryGet(combatAID, out var dnaA))
+        {
+            Debug.LogError($"[CombatDevConsole] Fighter A '{Clip(combatAID)}' not found in registry.");
+            return;
+        }
+        if (!gameManager.Registry.TryGet(combatBID, out var dnaB))
+        {
+            Debug.LogError($"[CombatDevConsole] Fighter B '{Clip(combatBID)}' not found in registry.");
+            return;
+        }
+
+        int seed = System.Guid.NewGuid().GetHashCode();
+
+        string Fingerprint(CombatResult r) => JsonConvert.SerializeObject(new { r.WinnerID, r.LoserID, r.IsDraw, r.LoserDied, r.EvolvedSlot, r.Turns });
+
+        var cloneA1 = SaveSystem.DeserializeCreature(SaveSystem.Serialize(dnaA));
+        var cloneB1 = SaveSystem.DeserializeCreature(SaveSystem.Serialize(dnaB));
+        var r1 = CombatService.SimulateCore(cloneA1, cloneB1, gameManager.Database, cfg, gameManager.EquipmentDatabase, new CombatRng(seed));
+
+        var cloneA2 = SaveSystem.DeserializeCreature(SaveSystem.Serialize(dnaA));
+        var cloneB2 = SaveSystem.DeserializeCreature(SaveSystem.Serialize(dnaB));
+        var r2 = CombatService.SimulateCore(cloneA2, cloneB2, gameManager.Database, cfg, gameManager.EquipmentDatabase, new CombatRng(seed));
+
+        string fp1 = Fingerprint(r1);
+        string fp2 = Fingerprint(r2);
+
+        if (fp1 == fp2)
+        {
+            Debug.Log($"[CombatDevConsole] DETERMINISM OK — seed {seed}: two runs produced identical records ({r1.Turns.Count} turns).");
+            lastCombatResult = "Determinism OK (seed " + seed + ")";
+        }
+        else
+        {
+            Debug.LogError($"[CombatDevConsole] DETERMINISM BROKEN — seed {seed}\nRun 1: {fp1}\nRun 2: {fp2}");
+            lastCombatResult = "DETERMINISM BROKEN — check log";
+        }
     }
 
     // ── Async Combat Buttons ──────────────────────────────────────

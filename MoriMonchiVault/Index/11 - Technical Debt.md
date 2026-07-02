@@ -96,7 +96,25 @@ Regla 11 codificada en `CLAUDE.md`: **partial solo por ventaja física de archiv
   - Paneles UITK (`CombatPanelUITK`, `BreedingPanelUITK`, `MorimonchiDetailInfoUITK`): comparten el árbol de `VisualElement` mutable (refs de elementos, listas de cards, índices).
   - `CloudSyncService` (.Auth/.Sync): comparten estado de sesión de red (`isSignedIn`, `playerID`, `registry`, meta). Sesión cohesiva.
   - `MoriMochiSpawner.Debug.cs`: botones dev atados a la config privada del cañón + `debugShots`; gizmos = visualización propia del componente (convención Unity). Extraer = exponer internals.
-- 🔮 **Backlog opcional** (revisitar solo si crecen): tabs de paneles UITK → sub-presenters por pestaña; decomponer FSM de `MoriMochiAgent` vía objeto-blackboard (tarea dedicada con testing en Play).
+- 🔮 **Backlog opcional** (revisitar solo si crecen): tabs de paneles UITK → sub-presenters por pestaña; decomponer FSM de `MoriMochiAgent` vía objeto-blackboard (tarea dedicada con testing en Play). *(→ promovido a Fases 7-8 por la decisión S32, abajo.)*
+
+### 🔄 DECISIÓN S32 (2026-07-02) — la dirección pasa a COMPOSICIÓN; la excepción pragmática se cierra
+
+Juan fijó la dirección definitiva: un script grande se divide en **mini-managers/colaboradores con estado propio** que COMPONEN el script (núcleo delgado coordinador), NO en partial classes. La "excepción pragmática" de arriba deja de ser un estado aceptable: los partials existentes pasan a **deuda activa** con hoja de ruta (Fases 6-9). Regla 11 de `CLAUDE.md` reescrita en consecuencia.
+
+**Patrón canónico aplicado (S32, Systems/Combat):** `CombatService` (513→366 líneas) quedó como orquestador delgado del loop; sus piezas salieron a unidades independientes: `CombatRng` (RNG determinista inyectable), `Combatant`+`ActiveEffect` (modelo runtime), `CombatResolver` (ICombatContext de procs + anti-permastun + stacking), `CombatStats` (stats base+partes; `EffectiveStats` promovido a struct top-level en Data/Combat), `CombatEvolution` (evolución de tiers, dedup con AsyncCombatService). CombatService no era partial — era monolito interno; el patrón de descomposición es el mismo para los partials de abajo.
+
+### Fase 6 — Descomponer `CloudSyncService` (.Auth/.Sync) 🔜
+Auth = mini-manager de identidad (dueño de `isSignedIn`/`playerID`/cuenta); Sync consume la identidad. Riesgo bajo-medio. Ojo: el combate async seed-based (S32) depende de auth — testear enqueue/poll tras partir.
+
+### Fase 7 — Paneles UITK → sub-presenters por pestaña 🔜
+Cada tab = clase propia con su raíz `VisualElement` y sus refs; el panel core compone y coordina. Piloto: `CombatPanelUITK` (.Tabs, 390) → 4 presenters. Luego `BreedingPanelUITK` (.Content) y `MorimonchiDetailInfoUITK` (.Trees). Riesgo medio (testing UI en Play por panel).
+
+### Fase 8 — Descomponer `MoriMochiAgent` (FSM) 🔴 el jefe final
+Blackboard `AgentContext` (dueño único del estado común: `state`/`agent`/`rb`/`dna`/timers) + mini-managers Brain/Physics/Confinement que lo reciben. La auditoría 2026-06-20 midió ~30 campos compartidos y llamadas cruzadas entre concerns → sesión DEDICADA con testing en Play exhaustivo (ragdoll, cortejo, confinamiento, rebake). `.Tuning` (los `[SerializeField]` del componente) probablemente se queda en el núcleo: moverlo a un config object resetearía los valores del prefab.
+
+### Fase 9 — `MoriMochiSpawner.Debug` 🟢 menor
+Dev tooling atado a la config privada del cañón; extraer con API interna o dejar como última pieza.
 
 ### Fase 4 — Unificar acceso a SO ✅ HECHO (2026-06-20)
 **Decisión de Juan: cascada de responsabilidad.** Cada dominio tiene un apex (controller) DUEÑO de las refs de su dominio; los hijos las piden al apex vía su singleton de servicio runtime `.Instance` (servicio runtime = permitido; el `static Current` de los SO se ELIMINA — perdía trazabilidad de dueño). Apexes cuelgan de GameManager. Eliminados los 5 `static Current`:
@@ -154,3 +172,7 @@ Regla 11 codificada en `CLAUDE.md`: **partial solo por ventaja física de archiv
 | 7 | Unificar convención de acceso a SO (cascada) ✅ | 4 | Estabilidad | Medio |
 | 8 | Deduplicar Async services (CloudEndpoint) ✅ | 5 | Arquitectura | Medio |
 | 10 | ✅ Orden de carga de data + colocación de breeders en frío (resuelto, confirmado Juan 2026-06-23) | — | Estabilidad | Alto |
+| 11 | Descomponer `CloudSyncService` (composición, Auth mini-manager) | 6 | Arquitectura | Medio |
+| 12 | Paneles UITK → sub-presenters por pestaña (piloto CombatPanelUITK) | 7 | Arquitectura | Medio |
+| 13 | Descomponer `MoriMochiAgent` (blackboard + mini-managers) | 8 | Arquitectura | Alto |
+| 14 | `MoriMochiSpawner.Debug` (extraer dev tooling) | 9 | Limpieza | Bajo |

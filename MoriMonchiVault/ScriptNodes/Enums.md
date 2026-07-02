@@ -253,15 +253,17 @@ Weapon = 0, Armor = 1, Amulet = 2
 Tipos de efectos de procs en combate.
 
 ```
-ReturnDamage = 0, Heal = 1, Poison = 2, Burn = 3, Stun = 4, Regen = 5
+ReturnDamage = 0, Heal = 1, Poison = 2, Burn = 3, Stun = 4, Regen = 5, Synergy = 6
 ```
+
+**ACTUALIZADO S32:** Agregado `Synergy = 6` para marcar daños/curación/status/stun provenientes de recetas de sinergias (no de procs de equipo). Se graba automáticamente en `CombatResolver.DamageBearer()`, `HealBearer()`, `AddStatusTo()`, `StunBearer()`.
 
 ### CombatPopupKind
 
-**NUEVO S31** Tipos de popups flotantes (visualización de replay).
+**S31+S32** Tipos de popups flotantes (visualización de replay).
 
 ```
-Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun
+Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun, Synergy
 ```
 
 **Propósito:** Mapea cada tipo de evento visual a un color/label en `CombatPopupPaletteSO` y `CombatDamageNumbers`. Es el intermediario entre `ModifierEffectKind` (simulación) y la visualización UI.
@@ -271,11 +273,13 @@ Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun
 - `Crit` — crítico
 - `Poison`, `Burn`, `Thorns`, `Heal`, `Regen` — procs de status/curación
 - `Stun` — aturdimiento (solo texto, sin número de daño)
+- `Synergy` — **(NUEVO S32)** receta de sinergia disparada (solo texto, sin número)
 
 **Consumido por:**
 - `CombatPopupPaletteSO.colors` — diccionario tipo → color
 - `CombatDamageNumbers.Label()` — genera texto descriptivo
 - `CombatVisualizerService.RaiseProcPopup()` — convierte ModifierEffectKind → CombatPopupKind
+- `CombatVisualizerService.ProcPopupKind()` — mapea Synergy
 
 ### TriggerType
 
@@ -294,6 +298,12 @@ Prácticamente todo el codebase. Los enums son la base de type-safety.
 **NUEVO:** `CombatPopupKind` enum con 8 valores (Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun). Es paralelo a `ModifierEffectKind` pero específico para visualización (UI popups), no simulación.
 
 **Sin cambios:** `ModifierEffectKind` sigue siendo la fuente de verdad de procs en combate (solo tiene 6 valores: ReturnDamage, Heal, Poison, Burn, Stun, Regen).
+
+## Cambios Sesión 32
+
+**NUEVO:** `ModifierEffectKind.Synergy = 6` — marca efectos provenientes de recetas de sinergias. Grabados automáticamente por `CombatResolver.DamageBearer()`, `HealBearer()`, `AddStatusTo()`, `StunBearer()`.
+
+**NUEVO:** `CombatPopupKind.Synergy` — mapeo visual para popups de sinergias disparadas (texto "¡Sinergia!", color violeta, sin número).
 
 ## Notas
 

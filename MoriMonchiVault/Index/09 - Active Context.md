@@ -4,6 +4,79 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-02 (Session 32 — **Seed determinista local+online** (retiro del combate JS) + **balance: anti-permastun + stacking** + **refactor de composición** (mini-managers) + **SISTEMA DE SINERGIAS** (`SynergyTableSO`, recetas de stacks que detonan y queman) + fix hpMax del visualizer) — **🟢 Determinismo PROBADO por Juan ("DETERMINISM OK", 2 corridas idénticas) · 🟡 sinergias + fix recién agregados (a probar) · deploy JS pendiente**
+**Focus:** Tres frentes decididos con Juan: (1) el sim de combate pasa a ser determinista por semilla y es EL MISMO camino en local y online — el server deja de simular (JS reducido a matchmaker que emite seed + snapshots; cada cliente corre el sim C# y deriva el MISMO record); (2) fase sinergias/balance: anti-permastun (no re-aplicar + inmunidad post-stun configurable) + stacking real de estados (instancias acumulables, stun binario); (3) la dirección de arquitectura cambia de partial-class a COMPOSICIÓN (mini-managers) — aplicada hoy a Systems/Combat, hoja de ruta del resto en [[11 - Technical Debt]] (Fases 6-9).
+
+> ### ✅ Sim determinista por semilla (local + async comparten el camino)
+> `CombatRng` nuevo (xorshift32 puro, inyectado por parámetro — nunca System.Random ni UnityEngine.Random). `CombatService.Simulate(...)` gana `int seed` (wrapper local: validaciones registry + records); nuevo núcleo público **`SimulateCore(dnaA, dnaB, db, config, equipDb, rng)`** SIN registry/validaciones/records — muta los DNA que recibe (vivos en local, snapshots efímeros en async). TODOS los rolls salen del rng en orden fijo documentado en el header (tie-break SPD, passives, eva, crit, procs, ticks, evolución, muerte). `CollectProcs` itera `Equipped` por `Enum.GetValues` (orden determinista de slots; antes `Dictionary.Values`, divergente entre clientes). Nuevo **`BuildRecord(result, self, opponent, selfWasA, ...)`** arma el CombatRecord por POV (reemplaza RecordHistory). `CombatRecord` gana `Seed` + `OpponentDnaId` (UniqueID del rival → habilita replay async sin registro, pendiente viejo de S25) + `OpponentPlayerId` (aditivo, backward-compatible). `SimulateLocal` genera la seed (`Guid.NewGuid().GetHashCode()`); `DoLocalFight` ahora pasa por `CombatController.Instance.SimulateLocal` (eliminada la llamada directa + eventos duplicados).
+
+> ### ✅ Online sin combate JS (server = matchmaker + oráculo de seed)
+> `run-combat.js` y `process-matchmaking.js` REESCRITOS: se borró TODA la simulación (fórmulas/strike/evolveRandom — estaban desactualizados vs C# desde S26; esa deuda de deploy muere sola). Al matchear emiten a `combat_results` de ambos jugadores un **match blob** `{CreatureId, Seed, SelfWasA, CreatureJsonA, CreatureJsonB, OpponentName, OpponentPlayerId, OpponentPlayerName, Date}` (los snapshots ya viajaban en el enqueue — pool intacto; enqueue/dequeue/get-queue-status sin cambios). `AsyncCombatService`: `CloudCombatResult` → `CloudMatchBlob`; `ApplyResult` deserializa ambos snapshots (**`SaveSystem.DeserializeCreature`** nuevo), corre `SimulateCore(new CombatRng(blob.Seed))` y aplica consecuencias al DNA VIVO (FightCount/WinCount/`CombatEvolution.AdvanceTier`/IsDead/record); el DRAW ahora existe en async (el JS viejo no lo contemplaba). Anti-cheat por consenso sigue DIFERIDO (decisión S29). Blobs de formato viejo pendientes en la nube → skip con warning (transición).
+
+> ### ✅ Balance: anti-permastun + stacking (ya sin espejo JS que mantener)
+> **Anti-permastun** (hito S31; decisión Juan: "no re-aplicar + inmunidad"): `CombatResolver.StunOpponent` no re-aplica sobre un objetivo ya aturdido NI sobre uno inmune (y NO graba proc event en esos casos — sin popup falso en el visualizer); al despertar (StunTurns llega a 0 en el stun-skip) el combatiente gana `StunImmunityTurns` (**nuevo en `CombatManagerSO`**, default 1, tuneable) que consume al actuar → siempre hay ventana de golpes; el deadlock de S30 (Stun passive 100%/2t mutuo) es imposible. **Stacking** (decisión Juan: DoT/HoT stackean, stun binario): `AddStatus` ya no mergea por Kind — cada aplicación es una instancia `ActiveEffect` independiente que tickea sola (log con `— xN stacks`). Los multiplicadores de tuning quedan para después; el "N stacks → efecto extra" se construyó en esta MISMA sesión (bloque siguiente) a pedido de Juan.
+
+> ### ✅ Sistema de SINERGIAS — recetas de stacks que detonan y queman (foco del juego, pedido Juan)
+> **Modelo**: `SynergyTableSO` (UN asset Odin autorable, patrón tabla única tipo `BreedingAffinityTableSO`) con `List<SynergyRule>`: cada regla = `Name` + `Requirements` (variedades: lista de `{Kind, Stacks}`, p.ej. Poison×2+Burn×2) + `Effects` (**polimórficos inline**, patrón `EquipmentSO.Effects`): `SynergyDamageEffect`/`SynergyHealEffect`/`SynergyStatusEffect`/`SynergyStunEffect` — agregar un efecto nuevo = una clase que hereda `SynergyEffectBase.Apply(CombatResolver, bearer)`. Botón "Receta ejemplo" (Explosión tóxica: Poison×3 → 10 daño) + readout de resúmenes. **Detonación**: en `CombatResolver.AddStatus` — al ganar el stack que completa una receta, detona sobre el PORTADOR: quema exactamente los stacks requeridos (FIFO, los más viejos primero, determinista) ANTES de aplicar efectos (los stacks que apliquen los efectos no se queman a sí mismos); loop con guard (cap 8) permite cadenas sin re-entrada recursiva (flag `resolvingSynergies`). **Sin roll**: umbral = detona siempre (determinista con la seed). El stun de sinergia respeta el anti-permastun (comparte `StunTarget`). **Cableado**: `CombatManagerSO.Synergies` (ref al SO) → viaja gratis a local y async sin cambiar firmas; sin tabla = sin sinergias. **Visualizer**: kind nuevo `ModifierEffectKind.Synergy`(=6) + `CombatPopupKind.Synergy` → popup violeta "¡Sinergia!" (textual en la detonación, con número en daño/cura); color en "Seteo base" de la paleta.
+
+> ### ✅ Fix — barras/stats del visualizer ahora aplican el EQUIPO
+> `CombatVisualizerService.BuildStates` pasaba `CombatStats.GetEffectiveStats` directo (sin equipo) a `statsA/statsB/hpMax` → barras y ATK/VEL desfasados vs el sim (que pelea con equipo). Ahora aplica `EquipmentStats.Apply` (propiedad `EquipDb` espejo de `Db`) — mismo pipeline que `BuildCombatant`.
+
+> ### ✅ Refactor de composición — Systems/Combat como patrón canónico (decisión de dirección)
+> Juan fijó la dirección: scripts grandes se dividen en **partes pequeñas que componen el todo (mini-managers)**, NO en partial classes. Aplicado hoy al sistema que estábamos tocando: `CombatService` (513→366) quedó orquestador delgado; piezas extraídas: `CombatRng` (RNG), `Combatant`+`ActiveEffect` (modelo, +StunImmunityTurns), `CombatResolver` (ICombatContext + anti-stun + stacking), `CombatStats` (stats base+partes; `EffectiveStats` ahora struct top-level en Data/Combat), `CombatEvolution` (tiers — dedup del switch duplicado en AsyncCombatService). **Regla 11 de CLAUDE.md REESCRITA** (composición sobre partial; la "excepción pragmática" pasa a deuda activa); hoja de ruta de los partials restantes en [[11 - Technical Debt]] Fases 6-9 (CloudSync → paneles UITK → MoriMochiAgent, una sesión dedicada por monstruo).
+
+> ### 🧪 Verificación de determinismo (gate antes de confiar el online)
+> `CombatDevConsole` gana botón **"Verify Determinism (seed)"**: clona A/B vía el MISMO pipeline de snapshots del online (`Serialize`→`DeserializeCreature`), corre `SimulateCore` 2× con la misma seed y compara huellas JSON (WinnerID/LoserID/IsDraw/LoserDied/EvolvedSlot/Turns) → OK o divergencia al log.
+
+> ### ✅ PROBADO por Juan (mitad de sesión)
+> Pelea local + **"Verify Determinism (seed)" → DETERMINISM OK** (2 corridas idénticas, 4 turns). El sim seedeado funciona; todo compila y corre.
+
+> ### ⚠️ WIRING/DEPLOY (Juan) — lo que queda para probar la 2ª mitad
+> 1. Unity recompila (sinergias: 3 .cs nuevos sin .meta aún). 2. **Crear el asset** Create → RunRunSimulator/Combat/**Synergy Table**, apretar "Receta ejemplo" (o autorar recetas propias) y **asignarlo al campo `Synergies` del asset CombatManager**. 3. **Re-apretar "Seteo base"** en `CombatPopupPalette` (toma el color violeta de `Synergy`). 4. Play: equipar procs de Poison a un MM, pelear hasta acumular 3 stacks → ver `[synergy] ¡Explosión tóxica!` en el log + popup "¡Sinergia!" en el visualizer + verificar que las barras ahora arrancan con el HP con equipo. 5. Re-correr **"Verify Determinism"** con la tabla asignada (valida que las sinergias son deterministas). 6. **Deploy de los 2 .js a UGS** (`run-combat` + `process-matchmaking`) + async instant end-to-end. 7. (Juan avisó: los resultados viejos en la nube no importan — demos; puede resetear desde el dev console.)
+
+> ### 📋 Observaciones / decisiones abiertas
+> 1. **`EvolutionChance` (config, 0.30) NUNCA se usa** — el ganador siempre intenta evolucionar. Juan (S32): "probablemente lo retiremos eventualmente" → NO construir el roll; candidato a borrar el campo en una limpieza futura. 2. El `CombatHistory` dentro de los snapshots infla el match blob (ya pasaba en el enqueue) — recortar el snapshot es optimización futura si pega el límite de Cloud Save. 3. Sinergias v1 sin cap de stacks ni ProcChance (detonación garantizada al umbral) — tuning de la fase de sinergias completa.
+
+**Files Created (.cs — input ScriptNodes):**
+- `Systems/Combat/CombatRng.cs` (NUEVO): RNG xorshift32 determinista inyectable del sim.
+- `Systems/Combat/Combatant.cs` (NUEVO): `Combatant` (+`StunImmunityTurns`) + `ActiveEffect` (extraídos de CombatService).
+- `Systems/Combat/CombatResolver.cs` (NUEVO): ICombatContext extraído + anti-permastun + stacking por instancias.
+- `Systems/Combat/CombatStats.cs` (NUEVO): stats base+partes + `BaseHpCombatMultiplier` (extraídos de CombatService).
+- `Systems/Combat/CombatEvolution.cs` (NUEVO): TryEvolveRandomSlot(rng)/AdvanceTier/GetSlotTier unificados.
+- `Data/Combat/EffectiveStats.cs` (NUEVO): struct top-level (antes anidado en CombatService).
+- `Data/Combat/SynergyEffectBase.cs` (NUEVO): base polimórfica + leaves Damage/Heal/Status/Stun (Apply(CombatResolver, bearer)).
+- `Data/Combat/SynergyRule.cs` (NUEVO): SynergyRule (Name/Requirements/Effects/Summary) + SynergyStackRequirement {Kind, Stacks}.
+- `Data/Combat/SynergyTableSO.cs` (NUEVO): tabla única autorable de recetas (Odin), botón "Receta ejemplo" + readout.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Core/Enums.cs`: + `ModifierEffectKind.Synergy = 6` + `CombatPopupKind.Synergy`.
+- `Data/Combat/CombatPopupPaletteSO.cs`: + color violeta `Synergy` en "Seteo base".
+- `Systems/CombatVisualizer/CombatDamageNumbers.cs`: label "¡Sinergia!"; `enableNumber` ahora también exige `Amount >= 0.5` (popups textuales sin número).
+- `Systems/Combat/CombatService.cs`: REESTRUCTURADO (513→366) — `Simulate(+seed)` wrapper, `SimulateCore` núcleo puro, `BuildRecord` por POV, rolls por CombatRng, CollectProcs determinista, inmunidad post-stun en TakeTurn; clases internas/stats/evolución extraídas; pasa `config.Synergies` al resolver.
+- `Systems/Combat/CombatResolver.cs` (además de su creación): motor de sinergias — `CheckSynergies` en AddStatus (detección + quema FIFO + efectos, guard anti-reentrada), métodos bearer `DamageBearer`/`HealBearer`/`StunBearer`/`AddStatusTo`, refactor `StunTarget` compartido.
+- `Data/Combat/CombatRecord.cs`: + `Seed`/`OpponentDnaId`/`OpponentPlayerId` (aditivo).
+- `Data/Combat/CombatManagerSO.cs`: + `StunImmunityTurns` + ref `Synergies` (SynergyTableSO) en Title "Status / Balance".
+- `Core/SaveSystem.cs`: + `DeserializeCreature(json)` (inverso de `Serialize(dna)`, mismo pipeline).
+- `Systems/Combat/CombatController.cs`: `SimulateLocal` genera la seed y la pasa.
+- `Systems/Combat/AsyncCombatService.cs`: `CloudMatchBlob` + `ApplyResult` simula client-side (SimulateCore + BuildRecord + CombatEvolution.AdvanceTier; el AdvanceTier local se borró).
+- `Systems/Combat/CombatDevConsole.cs`: + botón "Verify Determinism (seed)".
+- `UI/CombatPanelUITK.Tabs.cs`: `DoLocalFight` → `CombatController.Instance.SimulateLocal` (sin eventos duplicados).
+- `Systems/Combat/EquipmentStats.cs`, `UI/CombatPanelUITK.cs`, `UI/BreedingPanelUITK.Content.cs`, `UI/MorimonchiDetailInfoUITK.cs`, `World/AI/MoriMochiAgent.Tuning.cs`: rename mecánico `CombatService.EffectiveStats`→`EffectiveStats`, `GetEffectiveStats`/`BaseHpCombatMultiplier`→`CombatStats.*` (sin cambio de lógica).
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: rename CombatStats + FIX stats/hpMax con equipo (`EquipDb` + `EquipmentStats.Apply` en BuildStates) + popup Synergy (caso textual en `RaiseProcPopup` + mapeo en `ProcPopupKind`).
+
+**Files Touched (no-ScriptNode):** `CloudCode/run-combat.js` + `CloudCode/process-matchmaking.js` (matchmaker sin sim → match blob); `CLAUDE.md` (regla 11 reescrita); `Index/11 - Technical Debt` (decisión S32 + Fases 6-9).
+
+**Next session (S33):**
+1. Testear sinergias en Play (wiring de arriba) + deploy JS + async end-to-end.
+2. Tuning de sinergias con data real: autorar recetas multi-elemento, decidir cap de stacks, balance de magnitudes. UI: mostrar las recetas al jugador (¿tab/panel de sinergias?).
+3. Refactor de composición — siguiente monstruo por riesgo: `CloudSyncService` (Fase 6) o piloto de sub-presenters en `CombatPanelUITK` (Fase 7).
+4. Hook de consenso anti-cheat (server compara records subidos) cuando toque seguridad (Etapa 2.3). Limpieza: retirar `EvolutionChance` (decisión Juan pendiente de confirmar).
+5. Pendiente S31 si no se probó: floaters con etiquetas + stun (Etapa 3b) en Play.
+
+**ScriptNodes (cierre S32 — 2 tandas):** Tanda 1 (seed+refactor) ✅ YA CORRIDA por el vault-documenter a mitad de sesión (6 creados + 14 actualizados). Tanda 2 (sinergias+fix, corrida al cierre): CREAR `SynergyEffectBase.md`, `SynergyRule.md`, `SynergyTableSO.md`; ACTUALIZAR `CombatResolver.md` (motor de sinergias + bearer methods), `CombatManagerSO.md` (+Synergies), `CombatService.md` (pasa Synergies, menor), `Enums.md` (+Synergy ×2), `CombatPopupPaletteSO.md` (+color), `CombatVisualizerService.md` (fix equipo + popup Synergy), `CombatDamageNumbers.md` (label + enableNumber por Amount).
+
+---
+
 **Session:** 2026-07-01 (Session 31 — Enganche de los **procs de combate con el Combat Visualizer**: `CombatTurn` transporta proc events + replay honesto (ticks/thorns/heal/regen/stun) + **números flotantes DamageNumbersPro** coloreados y etiquetados por fuente) — **🟢 Etapa 1+2 PROBADO en Play (Juan) · Etapa 3 floaters funcionando; labels+stun recién agregados (a probar)**
 **Focus:** Que el visualizer dramatice los procs (hoy solo capturaba el golpe directo) y que aparezcan popups de daño/elemento. Tres etapas: (1) data — `CombatTurn` gana proc events + `NoAttack`; (2) replay — el visualizer consume los procs (barras HP exactas, turnos sin golpe, muerte por proc); (3) juice — DamageNumbersPro coloreado + texto por fuente vía SO de paleta.
 

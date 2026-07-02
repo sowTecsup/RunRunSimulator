@@ -1,33 +1,62 @@
 ---
-tags: [script, ui]
+tags: [script, ui, creature-detail]
 ---
 
-# MorimonchiDetailInfoUITK.md
+# MorimonchiDetailInfoUITK
 
 **Ruta:** `UI/MorimonchiDetailInfoUITK.cs`
 
-**Responsabilidad:** Panel de detalle de criatura modal (5 tabs: Info/Combate/Linaje/Descendencia/Equipo). Tabs Info: stats base (6: CON/ATK/SPD/DEF/LCK/EVA con bonus de partes), identidad, personalidad, partes, progresión. Tabs Combate/Linaje/Descendencia: historial + árbol genealógico. **Tab Equipo (Sesión 26-28)**: layout dos columnas — izquierda ScrollView con una card por slot equipable (itera enum `EquipmentSlot`), cada card muestra ícono (sprite o `IconColor` si no hay), nombre coloreado por rareza (vía `EquipmentPaletteSO.RarityColor()`), slot y rareza, descripción multilínea, y desglose de efectos (tanto StatModifierEffect como CombatProcEffect — Etapa 1 display solo); borde-izquierdo coloreado por slot (via `EquipmentPaletteSO.SlotColor()`), diagonal interior a la mitad en el color de rareza (pintada con `Painter2D`). Derecha: swatch del MM (BaseColor) + stats Base→Final (6 stats), mostrando deltas del equipo via `EquipmentStats.Apply()`. Tab Info también aplica `EquipmentStats.Apply()` para que los stats reflejen equipo. `IUINavigable` (A/D cambian tabs).
+**Responsabilidad:** Panel modal detalle de criatura (5 tabs: Info/Combate/Linaje/Descendencia/Equipo). **Tab Info:** stats base con bonus de partes (6: CON/ATK/SPD/DEF/LCK/EVA), identidad, personalidad, partes, progresión. **Combate/Linaje/Descendencia:** historial + árbol genealógico. **Tab Equipo (S26-28):** dos columnas — izquierda ScrollView con card por slot (itera enum `EquipmentSlot`), cada card muestra ícono/nombre colorido/rareza/efectos; borde-izquierdo por slot color (via `EquipmentPaletteSO`), diagonal interior por rareza color (Painter2D). Derecha: swatch MM + stats Base→Final (6 stats) con delta de equipo via `EquipmentStats.Apply()`. `IUINavigable` (A/D cambian tabs).
 
-**Vinculado a:** [[Index/05 - UI System]]
+## Tabs
 
-**Conexiones:** [[UIManager]], [[CreatureGridUITK]], [[CreatureDNA]], [[CreatureVisualUI]], [[CombatService]], [[EquipmentStats]], [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]], [[EquipmentSO]], [[EquipmentEffectBase]], [[StatModifierEffect]], [[CombatProcEffect]], [[GameManager]]
+| Tab | Contenido |
+|-----|----------|
+| **Info** | Stats (base+equipment), identidad, personalidad, partes, progresión |
+| **Combate** | Historial de combates (uno por foldout, más reciente primero) |
+| **Linaje** | Árbol genealógico (padres/abuelos) |
+| **Descendencia** | Árbol de crías |
+| **Equipo** | Slots equipables, stats Base→Final con delta |
 
-**Campos públicos / eventos:**
-- `OnCreatureSelected` (evento de UIManager): trae `CreatureDNA` + `CreatureRegistrySO`
-- Campos serializados: `database` (CreatureDatabaseSO), `equipmentDatabase` (EquipmentDatabaseSO), `equipmentPalette` (EquipmentPaletteSO), `sortingOrder`
-- Campos UI: `statCon`, `statAtk`, `statSpd`, `statDef`, `statLck`, `statEva` (Labels para los 6 stats)
-- `portrait` (VisualElement, fondo ColorBase)
-- `tabs` (TabView), `closeButton`
-- **Equipo tab**: `teamPortrait` (swatch MM), `equipCards` (ScrollView para las cards), `equipStats` (VisualElement con breakdown de stats)
+## Cambios S32
 
-**Lógica clave:**
-- `Wire()` busca elementos en UIDocument por `name`: stats ("stat-con", etc), tabs ("tabs"), equipo ("equip-portrait", "equip-cards", "equip-stats"), etc.
-- `Populate()` calcula stats base vía `CombatService.GetEffectiveStats(dna, database)` luego los finales con `EquipmentStats.Apply()`. Tab Info muestra estos stats finales (con bonus de partes+equipo).
-- `SetStat(label, name, final, baseVal)` mostrará `CON 45 (40 + 5)` con el bonus calculado
-- `BuildEquipment()` → `BuildEquipCards()` (itera slots, pinta cards con icon/rareza/descripción/efectos) + `BuildEquipStats()` (computa Base→Final con delta)
-- `AddEquipCard()` resuelve el item vía `ResolveEquip(dna, slot)` contra `equipmentDatabase`, pinta diagonal interior vía `PaintDiagonal(ctx, dc)` con el color de rareza, borde-izquierdo con color de slot. Muestra efectos (StatModifierEffect + CombatProcEffect polimórficos) vía `Summary()` de cada uno.
-- `BuildCombatHistory()` muestra combates en pestaña "Combate" (uno por foldout, más reciente primero)
+**Stats refs:** Cambio de `CombatService.GetEffectiveStats()` → `CombatStats.GetEffectiveStats()` y `CombatService.EffectiveStats` → `EffectiveStats` top-level. Usado en cálculo de stats finales (Info + Equipo tabs).
 
-**Organización (partial class):**
-- `MorimonchiDetailInfoUITK.cs` — núcleo + Info + Combat tab + SetStat
-- `MorimonchiDetailInfoUITK.Trees.cs` — tabs Linaje/Descendencia
+## Organización (partial class)
+
+| Archivo | Responsabilidad |
+|---------|-----------------|
+| `MorimonchiDetailInfoUITK.cs` | Núcleo, Info, Combat, SetStat |
+| `MorimonchiDetailInfoUITK.Trees.cs` | Tabs Linaje/Descendencia |
+
+## Campos Serializados
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `database` | `CreatureDatabaseSO` | Partes |
+| `equipmentDatabase` | `EquipmentDatabaseSO` | Items |
+| `equipmentPalette` | `EquipmentPaletteSO` | Colores rareza/slot |
+| `sortingOrder` | `int` | Orden de rendering |
+
+## Vinculado a
+
+- [[Index/05 - UI System]]
+- [[CreatureGridUITK]] — abre este panel
+- [[CreatureDNA]] — fuente de datos
+- [[CombatStats]] — calcula stats base (S32)
+- [[EffectiveStats]] — struct stats (S32)
+- [[EquipmentStats]] — aplica mods
+- [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]] — UI data
+
+## Conexiones
+
+**Entrada:**
+- `UIManager.OnCreatureSelected` evento → `Wire()` + `Populate()`
+
+**Salida:**
+- UI visual (5 tabs, cards, árboles, stats)
+
+## Notas
+
+- **Stats display:** Base (partes) + Final (con equipment mods) via `EquipmentStats.Apply()` (S32).
+- **Equipo cards:** Diagonal Painter2D para rareza, borde para slot.

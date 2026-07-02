@@ -54,6 +54,9 @@ public static class SaveSystem
     public static string Serialize(CreatureDNA dna) =>
         JsonConvert.SerializeObject(dna, Settings);
 
+    public static CreatureDNA DeserializeCreature(string json) =>
+        string.IsNullOrEmpty(json) ? null : JsonConvert.DeserializeObject<CreatureDNA>(json, Settings);
+
     public static Dictionary<string, CreatureDNA> Deserialize(string json) =>
         JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(json, Settings);
 

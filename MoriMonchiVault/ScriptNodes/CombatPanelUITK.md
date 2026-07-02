@@ -1,28 +1,65 @@
 ---
-tags: [script, ui]
+tags: [script, ui, combat]
 ---
 
-# CombatPanelUITK.md
+# CombatPanelUITK
 
 **Ruta:** `UI/CombatPanelUITK.cs`
 
-**Responsabilidad:** Panel UI de combate (4 pestañas: Batalla Online, Combate Local, Resultados, Historial). Implementa `IUINavigable` (focus jerárquico). Obtiene config vía propiedad lazy `Config => CombatController.Instance?.Config`, registry de GameManager. Combate local vía `CombatService.Simulate()`, async vía `AsyncCombatService`. Muestra stats de 6 campos: CON/ATK/SPD/DEF/LCK/EVA.
+**Responsabilidad:** Panel UI combate (4 pestañas: Batalla Online, Combate Local, Resultados, Historial). Implementa `IUINavigable` (foco jerárquico). Obtiene config vía `CombatController.Instance.Config`, registry de `GameManager.Instance`. Combate local vía `CombatController.SimulateLocal()`, async vía `AsyncCombatService`. Muestra stats de 6 campos: CON/ATK/SPD/DEF/LCK/EVA.
 
-S29: En `DoLocalFight`, tras simular, imprime el log completo del combate a la Consola con `Debug.Log("[Combat]\n" + string.Join("\n", result.Log))` además del panel inline. El resto del flujo no cambió.
+## Organización (partial class)
 
-**Vinculado a:** [[Index/05 - UI System]]
+| Archivo | Responsabilidad |
+|---------|-----------------|
+| `CombatPanelUITK.cs` | Núcleo, lifecycle, wiring, data, StatsOf |
+| `CombatPanelUITK.Tabs.cs` | Contenido de 4 pestañas (MakeCandidate, UI building, DoLocalFight, DoRefresh, etc.) |
+| `CombatPanelUITK.Navigation.cs` | `IUINavigable` + foco jerárquico |
 
-**Conexiones:** [[UIManager]], [[CombatController]], [[CombatService]], [[AsyncCombatService]], [[GameManager]], [[CreatureDatabaseSO]]
+## Pestañas
 
-**Método StatsOf():**
+1. **Batalla Online:** Pick criatura tuya, verla (stats+partes), enviarla a async (Instant o Timer)
+2. **Combate Local:** Pick dos criaturas, luchan localmente, log inline
+3. **Resultados:** Criaturas en cola / con resultados pendientes; right pane muestra log
+4. **Historial:** Todos los combates históricos, filtrable por criatura
+
+## Método StatsOf (S32)
+
 ```csharp
-private CombatService.EffectiveStats StatsOf(CreatureDNA dna) =>
-    database != null ? CombatService.GetEffectiveStats(dna, database)
-                     : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+private EffectiveStats StatsOf(CreatureDNA dna) =>
+    database != null ? CombatStats.GetEffectiveStats(dna, database)
+                     : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack,
+                                         dna.BaseSpeed, dna.BaseDefense,
+                                         dna.BaseLuck, dna.BaseEvasion);
 ```
-Fallback con 6 args (sin database), devuelve `EffectiveStats` con campos: Constitution, Attack, Speed, Defense, Luck, Evasion.
 
-**Organización (partial class):**
-- `CombatPanelUITK.cs` — núcleo/lifecycle/wiring/data/StatsOf
-- `CombatPanelUITK.Tabs.cs` — contenido de las 4 pestañas (MakeCandidate, UI building, DoLocalFight, DoRefresh, RebuildResults, RebuildHistory, etc.)
-- `CombatPanelUITK.Navigation.cs` — IUINavigable + foco
+**S32:** Cambio de referencias:
+- `CombatService.GetEffectiveStats()` → `CombatStats.GetEffectiveStats()` (clase extraída)
+- `CombatService.EffectiveStats` → `EffectiveStats` (struct público top-level)
+
+Fallback: sin database, construye `EffectiveStats` manualmente desde DNA base.
+
+## Vinculado a
+
+- [[Index/05 - UI System]]
+- [[CombatController]] — obtiene config
+- [[CombatService]] — simula combate local
+- [[AsyncCombatService]] — gestiona async
+- [[CombatStats]] — calcula stats (S32)
+- [[EffectiveStats]] — struct de retorno (S32)
+- [[GameManager]] — registry, database
+
+## Conexiones
+
+**Entrada:**
+- `GameEvents.OnRegistryChanged`, `OnRegistryReloaded`, `OnCombatLogged` — subscriptor
+- Botones UI → llamadas a `CombatController`/`AsyncCombatService`
+
+**Salida:**
+- UI visual (pestañas, cards, logs)
+- Llamadas a async combat
+
+## Notas
+
+- **Stats display:** CON/ATK/SPD/DEF/LCK/EVA viven en UI; cálculo via `StatsOf()`.
+- **S32:** Refactor extrajo `CombatStats` y `EffectiveStats` a clases públicas; panel actualizado.

@@ -403,7 +403,7 @@ MonoBehaviour:
   inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
   partVisualBank: {fileID: 11400000, guid: 0f4abf5f11f4e7a468321e65eea303fe, type: 2}
   furTypeDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
-  equipmentDatabase: {fileID: 0}
+  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
   cloudSync: {fileID: 1337864046}
 --- !u!4 &775259542
 Transform:

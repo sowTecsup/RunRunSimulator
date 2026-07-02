@@ -95,8 +95,8 @@ public class CombatVisualizerService : MonoBehaviour
     private float        hpMaxB;
     private float        shownHpA;
     private float        shownHpB;
-    private CombatService.EffectiveStats statsA;
-    private CombatService.EffectiveStats statsB;
+    private EffectiveStats statsA;
+    private EffectiveStats statsB;
     private bool         endIsDraw;
     private CombatVisualSide endWinner;
 
@@ -115,6 +115,7 @@ public class CombatVisualizerService : MonoBehaviour
     private bool CanBack    => current != null && current.Prev != null && !busy;
 
     private CreatureDatabaseSO Db => GameManager.Instance != null ? GameManager.Instance.Database : null;
+    private EquipmentDatabaseSO EquipDb => GameManager.Instance != null ? GameManager.Instance.EquipmentDatabase : null;
 
     private void Awake()
     {
@@ -196,10 +197,10 @@ public class CombatVisualizerService : MonoBehaviour
 
     private void BuildStates()
     {
-        statsA = CombatService.GetEffectiveStats(selfDna, Db);
-        statsB = CombatService.GetEffectiveStats(oppDna, Db);
-        hpMaxA = statsA.Constitution * CombatService.BaseHpCombatMultiplier;
-        hpMaxB = statsB.Constitution * CombatService.BaseHpCombatMultiplier;
+        statsA = EquipmentStats.Apply(CombatStats.GetEffectiveStats(selfDna, Db), selfDna, EquipDb);
+        statsB = EquipmentStats.Apply(CombatStats.GetEffectiveStats(oppDna, Db), oppDna, EquipDb);
+        hpMaxA = statsA.Constitution * CombatStats.BaseHpCombatMultiplier;
+        hpMaxB = statsB.Constitution * CombatStats.BaseHpCombatMultiplier;
 
         var log = new List<CombatVisualLogLine>
         {
@@ -426,6 +427,15 @@ public class CombatVisualizerService : MonoBehaviour
             });
             return;
         }
+        if (pe.Kind == ModifierEffectKind.Synergy && Mathf.Abs(delta) < 0.5f)
+        {
+            CombatVisualEvents.Popup(new CombatVisualPopup
+            {
+                Side = side, Position = FighterPos(side),
+                Kind = CombatPopupKind.Synergy, Amount = 0f,
+            });
+            return;
+        }
         if (Mathf.Abs(delta) < 0.5f) return;
         CombatVisualEvents.Popup(new CombatVisualPopup
         {
@@ -442,6 +452,7 @@ public class CombatVisualizerService : MonoBehaviour
         ModifierEffectKind.Heal         => CombatPopupKind.Heal,
         ModifierEffectKind.Regen        => CombatPopupKind.Regen,
         ModifierEffectKind.Stun         => CombatPopupKind.Stun,
+        ModifierEffectKind.Synergy      => CombatPopupKind.Synergy,
         _                               => CombatPopupKind.Hit,
     };
 

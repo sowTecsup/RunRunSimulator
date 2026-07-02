@@ -1,23 +1,12 @@
 ---
-tags: [combat, visualization, service, replay, ui]
+tags: [combat, visualization, replay, ui]
 ---
 
 # CombatVisualizerService
 
-MonoBehaviour singleton que orquesta la visualización local de un `CombatRecord`, construyendo un árbol de nodos doblemente enlazados y generando la secuencia de animaciones turno-a-turno. Maneja playback manual (fwd/back) y automático, mapea datos de sim a visual (HP, muerte, popups).
+**Ruta:** `Systems/CombatVisualizer/CombatVisualizerService.cs`
 
-## Responsabilidad
-
-Transformar `CombatRecord` en una reproducción visual: armar los nodos de replay, animar cada turno en secuencia, aplicar procs visualmente, rasurar popups y log, sincronizar HP bars, disparar eventos visuales via `CombatVisualEvents`.
-
-## Propiedades Públicas
-
-| Propiedad | Tipo | Descripción |
-|-----------|------|-------------|
-| `Instance` | `CombatVisualizerService` | Singleton |
-| `IsPlaying` | `bool` | Si hay un replay activo |
-| `IsAuto` | `bool` | Si playback está en automático |
-| `Speed` | `float` | Multiplicador de velocidad (clamped 0.01-max) |
+**Responsabilidad:** Orquesta visualización local de `CombatRecord`, construyendo árbol de nodos doblemente enlazados y generando secuencia de animaciones turno-a-turno. Playback manual (fwd/back) y automático, mapea datos sim → visual (HP, muerte, popups). **S32:** Aplica `EquipmentStats` a stats de visualización para que barras y ATK/VEL reflejen equipo.
 
 ## Métodos Públicos
 
@@ -26,125 +15,134 @@ Transformar `CombatRecord` en una reproducción visual: armar los nodos de repla
 | `Play(CreatureDNA self, CreatureDNA opponent, CombatRecord record)` | Inicia replay de un record |
 | `Stop()` | Detiene playback y limpia estado |
 | `TogglePlay()` | Toggle automático |
-| `SetAuto(bool value)` | Setea playback automático |
 | `Next()` | Avanza un turno (manual) |
 | `Back()` | Retrocede un turno (manual) |
 | `SetSpeed(float value)` | Setea velocidad de playback |
 
-## Métodos Privados
+## Construcción de Estados
 
-### Construcción y Estado
+**BuildStates()** construye árbol `CombatNode` desde `CombatRecord.Turns`:
 
-| Método | Descripción |
-|--------|-------------|
-| `BuildStates()` | Construye árbol de nodos `CombatNode` desde `CombatRecord.Turns` |
-| `Restore(CombatNode node)` | Restituye escena a un nodo (jump a turno, restore HP/vivos) |
+**Stats CON Equipment (S32):**
+```csharp
+statsA = EquipmentStats.Apply(CombatStats.GetEffectiveStats(selfDna, Db), selfDna, EquipDb);
+statsB = EquipmentStats.Apply(CombatStats.GetEffectiveStats(oppDna, Db), oppDna, EquipDb);
+hpMaxA = statsA.Constitution * CombatStats.BaseHpCombatMultiplier;
+hpMaxB = statsB.Constitution * CombatStats.BaseHpCombatMultiplier;
+```
 
-### Animación
+Las barras de HP y los stats mostrados (ATK, VEL) incluyen bonificaciones del equipo, paridad con la simulación.
 
-| Método | Descripción |
-|--------|-------------|
-| `BeginRoutine()` | Corrutina de setup inicial (spawn, bind UI) |
-| `AutoRoutine()` | Corrutina de playback automático (loop Next + wait) |
-| `ForwardRoutine()` | Corrutina de un turno: procs before, golpe, procs after, muerte |
-| `PlayProc(CombatProcEvent pe)` | Corrutina de un proc: popup, HP delta, wait |
+**Procesamiento Turns:**
+- Procesa `Turn.Procs`, aplicando before-strike y after-strike
+- Calcula HP acumulado tras cada turno
+- Rastrea muertes (`ADiedHere`, `BDiedHere`)
 
-### Mapeando Sim → Visual
+## Animación de Turnos
 
-| Método | Descripción |
-|--------|-------------|
-| `SimToVisual(bool simIsA)` | Convierte `simIsA` en `CombatVisualSide` basado en `SelfWasA` |
-| `FighterPos(CombatVisualSide side)` | Retorna posición mundo del fighter |
-| `ProcPopupKind(ModifierEffectKind k)` | Mapea tipo de proc a `CombatPopupKind` |
-| `ProcText(CombatProcEvent pe, string who, float delta)` | Genera texto descriptivo del proc |
-| `RaiseProcPopup(CombatProcEvent pe, CombatVisualSide side, float delta)` | Dispara evento popup (con lógica especial para Stun) |
+**ForwardRoutine()** anima un turno:
+1. Procs before-strike
+2. Golpe (si !NoAttack): windup → impact
+3. Procs after-strike
+4. Muerte (si ADiedHere/BDiedHere)
 
-### Utilidades
+**PlayProc()** anima un proc individual: popup + HP delta + wait.
 
-| Método | Descripción |
-|--------|-------------|
-| `Publish()` | Publica estado actual via `CombatVisualEvents.PanelState()` |
-| `PushHp(CombatVisualSide side, float hp, float max)` | Sincroniza HP visual + barra + tracking |
-| `SetFighterActive(CombatVisualSide side, bool active)` | Activa/desactiva GameObject del fighter |
-| `SpawnFighters(CreatureDNA dnaA, CreatureDNA dnaB)` | Instancia prefabs visuales |
-| `DespawnFighters()` | Destruye instancias visuales |
+## Mapeo Sim → Visual
 
-### DEV Test Harness
+- `SimToVisual(bool simIsA)` — convierte `simIsA` en `CombatVisualSide`
+- `FighterPos(CombatVisualSide side)` — posición para popups
+- `ProcPopupKind(ModifierEffectKind)` — mapea tipo a popup visual
+- `RaiseProcPopup()` — dispara evento popup
 
-| Método | Descripción |
-|--------|-------------|
-| `DevPickRandom()` | Elige criatura + pelea al azar con turnos |
-| `DevSimulate()` | Dispara replay de creature/fight seleccionada |
-| `DevBack()`, `DevTogglePlay()`, `DevNext()` | Atajos de botones |
+## RaiseProcPopup (S32)
+
+```csharp
+private void RaiseProcPopup(CombatProcEvent pe, CombatVisualSide side, float delta)
+{
+    // Stun: solo texto
+    if (pe.Kind == ModifierEffectKind.Stun)
+    {
+        CombatVisualEvents.Popup(new CombatVisualPopup
+        {
+            Side = side, Position = FighterPos(side),
+            Kind = CombatPopupKind.Stun, Amount = pe.Amount,
+        });
+        return;
+    }
+    // Synergy: solo texto si delta < 0.5
+    if (pe.Kind == ModifierEffectKind.Synergy && Mathf.Abs(delta) < 0.5f)
+    {
+        CombatVisualEvents.Popup(new CombatVisualPopup
+        {
+            Side = side, Position = FighterPos(side),
+            Kind = CombatPopupKind.Synergy, Amount = 0f,
+        });
+        return;
+    }
+    // Otros: ignorar si delta muy pequeño
+    if (Mathf.Abs(delta) < 0.5f) return;
+    // Mapear y disparar con número
+    CombatVisualEvents.Popup(new CombatVisualPopup
+    {
+        Side = side, Position = FighterPos(side),
+        Kind = ProcPopupKind(pe.Kind), Amount = Mathf.Abs(delta),
+    });
+}
+```
+
+**Lógica S32:** Si `Kind == Synergy` y delta HP < 0.5, dispara popup textual sin número (paridad con efectos Stun). Mapeo en `ProcPopupKind()` incluye `Synergy → CombatPopupKind.Synergy`.
+
+## ProcPopupKind Mapeo
+
+```csharp
+private static CombatPopupKind ProcPopupKind(ModifierEffectKind k) => k switch
+{
+    ModifierEffectKind.Poison       => CombatPopupKind.Poison,
+    ModifierEffectKind.Burn         => CombatPopupKind.Burn,
+    ModifierEffectKind.ReturnDamage => CombatPopupKind.Thorns,
+    ModifierEffectKind.Heal         => CombatPopupKind.Heal,
+    ModifierEffectKind.Regen        => CombatPopupKind.Regen,
+    ModifierEffectKind.Stun         => CombatPopupKind.Stun,
+    ModifierEffectKind.Synergy      => CombatPopupKind.Synergy,  // S32
+    _                               => CombatPopupKind.Hit,
+};
+```
 
 ## Clases Internas
 
-### CombatNode
-
-Nodo doblemente enlazado en árbol de replay.
+### CombatNode (nodo de árbol replay)
 
 **Campos:**
-- `bool HasTurn` — si este nodo representa un turno real (false para cabeza)
+- `bool HasTurn` — si representa turno real
 - `CombatTurn Turn` — el turno (null si !HasTurn)
-- `float HpA, HpB` — HP acumulado tras este turno
-- `bool ADead, BDead` — si A/B han muerto
-- `bool ADiedHere, BDiedHere` — si A/B murieron EN este turno
-- `int TurnNumber` — número de turno
-- `CombatVisualSide Attacker, Defender`
-- `bool Crit` — si golpe fue crítico
-- `List<CombatVisualLogLine> Log` — líneas acumuladas hasta aquí
+- `float HpA, HpB` — HP acumulado
+- `bool ADead, BDead` — estado actual
+- `bool ADiedHere, BDiedHere` — murió EN este turno
 - `CombatNode Prev, Next` — enlaces
 
 **Métodos:**
-- `FireWindup(a, b)` — anima windup (si !NoAttack)
-- `FireImpact(a, b, maxA, maxB)` — anima impacto + daño visual (si !NoAttack)
-- `FireDeath(a, b)` — anima muerte si ocurrió
+- `FireWindup()`, `FireImpact()` — animan golpe (si !NoAttack)
+- `FireDeath()` — anima muerte
 
-## Campos Privados
+## Cambios S32
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `instanceA`, `instanceB` | `MoriMonchiVisualizer` | Prefabs instanciados |
-| `hooksA`, `hooksB` | `MoriMonchiCombatVisualizer` | Refs a hooks de animación |
-| `barA`, `barB` | `MoriMonchiCombatVisualizerUITK` | Refs a UI bars |
-| `animA`, `animB` | `MoriMonchiProceduralAnimator` | Refs a animadores |
-| `selfDna`, `oppDna` | `CreatureDNA` | DNAs actual |
-| `activeRecord` | `CombatRecord` | Record en replay |
-| `head`, `current` | `CombatNode` | Nodos de árbol (head = inicio, current = posición) |
-| `totalTurns` | `int` | Cantidad de turnos |
-| `hpMaxA`, `hpMaxB` | `float` | HP máx calculado |
-| `shownHpA`, `shownHpB` | `float` | HP mostrado actualmente (para delta en popup) |
-| `statsA`, `statsB` | `CombatService.EffectiveStats` | Stats finales |
-| `endIsDraw`, `endWinner` | `bool`, `CombatVisualSide` | Resultado final |
-| `isAuto`, `busy` | `bool` | Estados de playback |
-| Corrutinas | `Coroutine` | `beginRoutine`, `autoRoutine`, `fwdRoutine` |
+**EquipmentStats.Apply():** BuildStates ahora aplica mods de equipo a los stats calculados. Las barras HP y stats mostrados (ATK, SPD) reflejan bonificadores de equipment, paridad total con la simulación.
 
-## Cambios Sesión 31
+**RaiseProcPopup():** Caso nuevo para `ModifierEffectKind.Synergy`: si delta HP < 0.5, dispara popup textual ("¡Sinergia!") sin número, análogo a Stun.
 
-**MODIFICADO:** `BuildStates()`, `ForwardRoutine()`, métodos de helpers de proc
-
-1. **BuildStates():** Ahora procesa `Turn.Procs` aplicando before-strike y after-strike en HP acumulado; genera lineas de log tipo `Proc`
-2. **CombatNode:** Nuevos campos `ADiedHere`, `BDiedHere` (no solo ADead/BDead); `FireWindup`/`FireImpact` respetan `Turn.NoAttack`
-3. **ForwardRoutine():** Reescrito para animar before procs → golpe (si !NoAttack) → after procs; llama `PlayProc()` para cada proc
-4. **PlayProc():** Nueva corrutina; anima popup + HP delta
-5. **Helpers nuevos:**
-   - `SimToVisual()` — convierte bool simIsA a side
-   - `ProcPopupKind()` — mapea ModifierEffectKind → CombatPopupKind
-   - `ProcText()` — genera texto descriptivo
-   - `RaiseProcPopup()` — dispara evento popup con lógica especial
-   - `FighterPos()` — posición mundo para popups
-6. **PushHp():** Trackea `shownHpA`/`shownHpB` para calcular delta en procs
-
-Backward compatible: records viejos sin procs animan normalmente (listas vacías).
+**ProcPopupKind():** Mapeo agregado `Synergy → CombatPopupKind.Synergy`.
 
 ## Vinculado a
 
-- [[CombatRecord]] — lee `Turn` y `Turn.Procs`
-- [[CombatService]] — cálculos de stats via `GetEffectiveStats()`
-- [[CombatVisualEvents]] — publisher de todos los eventos
-- [[CombatDamageNumbers]] — consumidor de `OnPopup`
-- [[MoriMonchiVisualizer]] — prefab a instanciar
-- [[MoriMonchiCombatVisualizer]] — hooks de animación
+- [[Index/03 - Combat]]
+- [[CombatRecord]] — lee Turns + Procs
+- [[CombatStats]] — calcula stats base
+- [[EquipmentStats]] — aplica mods de equipment (S32)
+- [[EffectiveStats]] — struct stats
+- [[CombatService]] — parámetros de sim
+- [[CombatVisualEvents]] — publisher de eventos
+- [[MoriMonchiVisualizer]] — prefab instanciado
 
 ## Conexiones
 
@@ -152,13 +150,11 @@ Backward compatible: records viejos sin procs animan normalmente (listas vacías
 - `Play(self, opponent, record)` — llamado desde UI/test
 
 **Salida:**
-- `CombatVisualEvents.OnVisualCombatStart`, `.OnTurnStart`, `.OnHit`, `.OnPopup`, `.OnDead`, etc.
-- Referencias a fighters: instancias y animadores
+- `CombatVisualEvents.On{Start,TurnStart,Hit,Popup,Dead}` — eventos visuals
 
 ## Notas
 
-- **Árbol de nodos:** Doubly linked list permite jump fwd/back eficientemente
-- **HP tracking:** `shownHpA/B` para calcular delta en proctext; `PushHp()` sincroniza barra
-- **NoAttack:** Turnos sin golpe (stun-skip, muerte por status) saltan animación windup/impact
-- **Popups:** Levantados vía `RaiseProcPopup()` que filtra por delta pequeño (Stun siempre popup)
-- **Sincronización:** Restore() salta a nodo arbitrario, respaldando animadores a estado muerto/vivo
+- **Árbol nodos:** Doubly linked list permite jump fwd/back eficiente.
+- **HP tracking:** `shownHpA/B` para delta en proc text.
+- **NoAttack:** Turnos sin golpe saltan windup/impact.
+- **S32:** Refactor extrajo `CombatStats` y agregó `EquipmentStats.Apply()` para paridad visual. RaiseProcPopup maneja Synergy textual.

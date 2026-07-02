@@ -17,7 +17,7 @@ public class CombatDamageNumbers : MonoBehaviour
         var dn = numberPrefab.Spawn(p.Position + spawnOffset, p.Amount);
         if (dn == null) return;
 
-        dn.enableNumber  = p.Kind != CombatPopupKind.Stun;
+        dn.enableNumber  = p.Kind != CombatPopupKind.Stun && p.Amount >= 0.5f;
         dn.enableTopText = true;
         dn.topText       = Label(p.Kind);
 
@@ -34,6 +34,7 @@ public class CombatDamageNumbers : MonoBehaviour
         CombatPopupKind.Heal   => "Cura",
         CombatPopupKind.Regen  => "Regeneración",
         CombatPopupKind.Stun   => "Aturdido",
+        CombatPopupKind.Synergy => "¡Sinergia!",
         _                      => "",
     };
 }

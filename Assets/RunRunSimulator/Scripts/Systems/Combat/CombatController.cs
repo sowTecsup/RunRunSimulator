@@ -37,7 +37,8 @@ public class CombatController : MonoBehaviour
     public CombatResult SimulateLocal(string aID, string bID)
     {
         if (config == null) { Debug.LogError("[CombatController] No CombatManager assigned."); return null; }
-        var result = CombatService.Simulate(aID, bID, registry, database, config, GameManager.Instance?.EquipmentDatabase);
+        int seed   = System.Guid.NewGuid().GetHashCode();
+        var result = CombatService.Simulate(aID, bID, registry, database, config, GameManager.Instance?.EquipmentDatabase, seed);
         if (result == null) return null;
         GameEvents.CombatCompleted(result);
         GameEvents.RegistryChanged(registry);

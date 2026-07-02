@@ -2,7 +2,7 @@ namespace MoriMonchiSimulator
 {
     public static class EquipmentStats
     {
-        public static CombatService.EffectiveStats Apply(CombatService.EffectiveStats baseStats, CreatureDNA dna, EquipmentDatabaseSO db)
+        public static EffectiveStats Apply(EffectiveStats baseStats, CreatureDNA dna, EquipmentDatabaseSO db)
         {
             if (db == null || dna?.Equipped == null || dna.Equipped.Count == 0) return baseStats;
 
@@ -33,7 +33,7 @@ namespace MoriMonchiSimulator
                 }
             }
 
-            return new CombatService.EffectiveStats(
+            return new EffectiveStats(
                 Resolve(baseStats.Constitution, StatType.Constitution, flat, add, mul),
                 Resolve(baseStats.Attack,       StatType.Attack,       flat, add, mul),
                 Resolve(baseStats.Speed,        StatType.Speed,        flat, add, mul),

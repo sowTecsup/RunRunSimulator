@@ -24,6 +24,7 @@ namespace MoriMonchiSimulator
                 { CombatPopupKind.Heal,   new Color(0.31f, 0.88f, 0.48f, 1f) },
                 { CombatPopupKind.Regen,  new Color(0.56f, 0.88f, 0.69f, 1f) },
                 { CombatPopupKind.Stun,   new Color(0.98f, 0.85f, 0.30f, 1f) },
+                { CombatPopupKind.Synergy, new Color(0.70f, 0.42f, 1f,    1f) },
             };
 
 #if UNITY_EDITOR

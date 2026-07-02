@@ -11,9 +11,15 @@ namespace MoriMonchiSimulator
 {
 
 // Orchestrates async combat: enqueues creatures via Cloud Code, polls Cloud Save for results.
+// Cloud Code scripts no longer simulate combat — they only match players and
+// write a match blob (seed + both DNA snapshots) to combat_results. Each client
+// runs the same deterministic CombatService.SimulateCore with that seed, so both
+// sides land on an identical result without trusting server-side formulas, then
+// applies the consequences to the live DNA in the registry.
 // Cloud Code scripts:
 //   - "enqueue-combat"      → called from here, adds creature to the global pool
-//   - "process-matchmaking" → scheduled trigger in Dashboard, pairs & simulates pool
+//   - "process-matchmaking" → scheduled trigger in Dashboard, pairs the pool and
+//                              writes the seeded match blob to both sides
 // Attach to same GameObject as GameManager and CombatController.
 // Resolves its registry from GameManager.Instance in Awake — no serialized
 // cross-references needed.
@@ -223,11 +229,11 @@ public class AsyncCombatService : MonoBehaviour
 
             if (!data.ContainsKey(RESULTS_KEY)) return new HashSet<string>();
 
-            var results = JsonConvert.DeserializeObject<List<CloudCombatResult>>(
+            var results = JsonConvert.DeserializeObject<List<CloudMatchBlob>>(
                 data[RESULTS_KEY].Value.GetAs<string>());
 
             return new HashSet<string>(
-                (results ?? new List<CloudCombatResult>()).ConvertAll(r => r.CreatureId));
+                (results ?? new List<CloudMatchBlob>()).ConvertAll(r => r.CreatureId));
         }
         catch (Exception e)
         {
@@ -246,7 +252,7 @@ public class AsyncCombatService : MonoBehaviour
 
         if (!data.ContainsKey(RESULTS_KEY)) return 0;
 
-        var results = JsonConvert.DeserializeObject<List<CloudCombatResult>>(
+        var results = JsonConvert.DeserializeObject<List<CloudMatchBlob>>(
             data[RESULTS_KEY].Value.GetAs<string>());
 
         if (results == null || results.Count == 0) return 0;
@@ -294,7 +300,7 @@ public class AsyncCombatService : MonoBehaviour
         return cleared;
     }
 
-    private bool ApplyResult(CloudCombatResult r, string myPlayerName)
+    private bool ApplyResult(CloudMatchBlob r, string myPlayerName)
     {
         if (!registry.TryGet(r.CreatureId, out var dna))
         {
@@ -302,44 +308,59 @@ public class AsyncCombatService : MonoBehaviour
             return false;
         }
 
-        dna.BusyState  = BusyReason.None;
-        dna.FightCount++;
-
-        if (r.Won)
+        var dnaA = SaveSystem.DeserializeCreature(r.CreatureJsonA);
+        var dnaB = SaveSystem.DeserializeCreature(r.CreatureJsonB);
+        if (dnaA == null || dnaB == null)
         {
-            dna.WinCount++;
-            if (!string.IsNullOrEmpty(r.EvolvedSlot))
-                AdvanceTier(dna, r.EvolvedSlot);
+            Debug.LogWarning($"[AsyncCombat] Malformed match blob for '{r.CreatureId}' (missing snapshots) — skipping.");
+            return false;
         }
 
-        if (r.Died) dna.IsDead = true;
-
-        // Persistent, replayable record (server is authoritative — we only store).
-        dna.CombatHistory ??= new List<CombatRecord>();
-        dna.CombatHistory.Add(new CombatRecord
+        var gm      = GameManager.Instance;
+        var config  = CombatController.Instance != null ? CombatController.Instance.Config : null;
+        var db      = gm != null ? gm.Database : null;
+        var equipDb = gm != null ? gm.EquipmentDatabase : null;
+        if (config == null || db == null)
         {
-            OpponentName       = r.OpponentName,
-            OpponentPlayerName = r.OpponentPlayerName ?? "",
-            Date               = ParseUtcOrNow(r.Date),
-            Outcome            = r.Won ? CombatOutcome.Won : CombatOutcome.Lost,
-            Died               = r.Died,
-            EvolvedSlot        = r.Won ? r.EvolvedSlot : null,
-            SelfWasA           = r.SelfWasA,
-            Turns              = r.Turns ?? new List<CombatTurn>(),
-        });
+            Debug.LogError("[AsyncCombat] Missing config/database — cannot simulate match.");
+            return false;
+        }
 
-        foreach (var line in r.Log)
+        var result = CombatService.SimulateCore(dnaA, dnaB, db, config, equipDb, new CombatRng(r.Seed));
+        if (result == null) return false;
+
+        var self = r.SelfWasA ? dnaA : dnaB;
+        var opp  = r.SelfWasA ? dnaB : dnaA;
+        bool won  = !result.IsDraw && result.WinnerID == self.UniqueID;
+        bool died = !won && !result.IsDraw && result.LoserDied;
+
+        dna.BusyState = BusyReason.None;
+        dna.FightCount++;
+        if (won)
+        {
+            dna.WinCount++;
+            if (!string.IsNullOrEmpty(result.EvolvedSlot)) CombatEvolution.AdvanceTier(dna, result.EvolvedSlot);
+        }
+        if (died) dna.IsDead = true;
+
+        // Persistent, replayable record (both clients derive it from the same
+        // seeded simulation — we only store).
+        dna.CombatHistory ??= new List<CombatRecord>();
+        dna.CombatHistory.Add(CombatService.BuildRecord(result, self, opp, r.SelfWasA,
+            r.OpponentPlayerName ?? "", r.OpponentPlayerId ?? "", r.Seed, ParseUtcOrNow(r.Date)));
+
+        foreach (var line in result.Log)
             Debug.Log($"[AsyncCombat] {line}");
 
         string myLabel       = $"{myPlayerName} => \"{dna.CustomName}\"";
         string opponentLabel = string.IsNullOrEmpty(r.OpponentPlayerName)
             ? $"\"{r.OpponentName}\""
             : $"\"{r.OpponentName}\" <= {r.OpponentPlayerName}";
-        string outcome = r.Won ? "¡Ganaste!" : "¡Perdiste!";
-        string evolved = r.Won && !string.IsNullOrEmpty(r.EvolvedSlot) ? $"  |  Evolved: {r.EvolvedSlot}" : "";
-        string died    = r.Died ? "  |  ¡Tu MoriMochi ha muerto permanentemente!" : "";
+        string outcome  = result.IsDraw ? "Empate" : won ? "¡Ganaste!" : "¡Perdiste!";
+        string evolved  = won && !string.IsNullOrEmpty(result.EvolvedSlot) ? $"  |  Evolved: {result.EvolvedSlot}" : "";
+        string diedLine = died ? "  |  ¡Tu MoriMochi ha muerto permanentemente!" : "";
 
-        Debug.Log($"[AsyncCombat]  {myLabel}  vs  {opponentLabel}  ——  {outcome}{evolved}{died}");
+        Debug.Log($"[AsyncCombat]  {myLabel}  vs  {opponentLabel}  ——  {outcome}{evolved}{diedLine}");
 
         // Surface a viewable log for the combat panel's Results tab (the cloud copy
         // is cleared right after this), from this creature's perspective.
@@ -350,9 +371,9 @@ public class AsyncCombatService : MonoBehaviour
             OpponentLabel = string.IsNullOrEmpty(r.OpponentPlayerName)
                 ? r.OpponentName
                 : $"{r.OpponentName} ({r.OpponentPlayerName})",
-            Lines = new List<string>(r.Log),
-            Won   = r.Won,
-            Died  = r.Died,
+            Lines = new List<string>(result.Log),
+            Won   = won,
+            Died  = died,
         });
 
         return true;
@@ -368,17 +389,6 @@ public class AsyncCombatService : MonoBehaviour
                 System.Globalization.DateTimeStyles.AssumeUniversal, out var dt))
             return dt;
         return DateTime.UtcNow;
-    }
-
-    private static void AdvanceTier(CreatureDNA dna, string slot)
-    {
-        switch (slot)
-        {
-            case "Body":  if (dna.BodyTier  < Tier.Tier3) dna.BodyTier  = (Tier)((int)dna.BodyTier  + 1); break;
-            case "Arm":   if (dna.ArmTier   < Tier.Tier3) dna.ArmTier   = (Tier)((int)dna.ArmTier   + 1); break;
-            case "Eye":   if (dna.EyeTier   < Tier.Tier3) dna.EyeTier   = (Tier)((int)dna.EyeTier   + 1); break;
-            case "Mouth": if (dna.MouthTier < Tier.Tier3) dna.MouthTier = (Tier)((int)dna.MouthTier + 1); break;
-        }
     }
 
     // Removes a creature from the matchmaking pool and clears its BusyState.
@@ -444,19 +454,17 @@ public class AsyncCombatService : MonoBehaviour
     }
 
     [Serializable]
-    private class CloudCombatResult
+    private class CloudMatchBlob
     {
-        public string           CreatureId;
-        public bool             Won;
-        public bool             Died;
-        public string           EvolvedSlot;
-        public string           Date;                            // ISO-8601 UTC of when the fight ran
-        public string           OpponentName;
-        public string           OpponentPlayerId;
-        public string           OpponentPlayerName;
-        public bool             SelfWasA;                        // which side our creature was (for the replay)
-        public List<string>     Log   = new List<string>();
-        public List<CombatTurn> Turns = new List<CombatTurn>(); // structured replay from the server
+        public string CreatureId;
+        public int    Seed;
+        public bool   SelfWasA;
+        public string CreatureJsonA;
+        public string CreatureJsonB;
+        public string OpponentName;
+        public string OpponentPlayerId;
+        public string OpponentPlayerName;
+        public string Date;
     }
 }
 }

@@ -8,10 +8,12 @@ namespace MoriMonchiSimulator
 // persistence (local JSON + Cloud Save push/pull) so it survives forever, and is
 // structured turn-by-turn so a future Combat Visualizer can replay the fight.
 //
-// Both motors emit it in the same shape: local CombatService (C#) and the async
-// server scripts (process-matchmaking.js / run-combat.js) — the server is
-// authoritative, the client only reads and stores. The visualizer is LOCAL and
-// feeds purely off this stored data.
+// Local and async combats are produced by the SAME engine: local CombatService (C#)
+// runs it synchronously, and async combat runs that exact sim seeded with a shared
+// Seed plus both fighters' DNA snapshots — every client that replays it (winner and
+// loser) derives an identical record. The server-side JS (process-matchmaking.js /
+// run-combat.js) only matches opponents and hands out the seed; it no longer
+// simulates the fight. The visualizer is LOCAL and feeds purely off this stored data.
 [Serializable]
 public class CombatRecord
 {
@@ -21,6 +23,10 @@ public class CombatRecord
     public CombatOutcome Outcome;                       // from THIS creature's POV
     public bool          Died;                          // this creature died in this fight
     public string        EvolvedSlot;                   // part this creature evolved on a win, or null
+
+    public int    Seed;
+    public string OpponentDnaId    = "";
+    public string OpponentPlayerId = "";
 
     // The replay is symmetric (same turns for both fighters). 'AttackerIsA' inside
     // each turn refers to combatant A of the simulation; 'SelfWasA' tells the

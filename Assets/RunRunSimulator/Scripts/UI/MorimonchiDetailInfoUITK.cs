@@ -160,8 +160,8 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
         // Final stat with its (base + bonus-from-parts/tier/equipment) breakdown.
         var baseEff = database != null
-            ? CombatService.GetEffectiveStats(dna, database)
-            : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+            ? CombatStats.GetEffectiveStats(dna, database)
+            : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
         var eff = EquipmentStats.Apply(baseEff, dna, equipmentDatabase);
 
         SetStat(statCon, "CON", eff.Constitution, dna.BaseConstitution);
@@ -294,8 +294,8 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         equipStats.Clear();
 
         var baseEff = database != null
-            ? CombatService.GetEffectiveStats(dna, database)
-            : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+            ? CombatStats.GetEffectiveStats(dna, database)
+            : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
         var finalEff = EquipmentStats.Apply(baseEff, dna, equipmentDatabase);
 
         AddStatRow("CON", baseEff.Constitution, finalEff.Constitution);

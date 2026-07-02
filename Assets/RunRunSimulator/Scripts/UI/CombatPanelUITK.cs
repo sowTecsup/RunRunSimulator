@@ -236,8 +236,8 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
 
     private int MaxFights() => Config != null ? Config.MaxFightCount : 5;
 
-    private CombatService.EffectiveStats StatsOf(CreatureDNA dna) =>
-        database != null ? CombatService.GetEffectiveStats(dna, database)
-                         : new CombatService.EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+    private EffectiveStats StatsOf(CreatureDNA dna) =>
+        database != null ? CombatStats.GetEffectiveStats(dna, database)
+                         : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
 }
 }
