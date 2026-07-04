@@ -102,8 +102,8 @@ public static class CombatService
 
         for (int round = 1; round <= config.MaxRounds; round++)
         {
-            bool aFirst = A.Speed > B.Speed ||
-                          (Mathf.Approximately(A.Speed, B.Speed) && rng.NextFloat() < 0.5f);
+            bool aFirst = A.EffSpeed > B.EffSpeed ||
+                          (Mathf.Approximately(A.EffSpeed, B.EffSpeed) && rng.NextFloat() < 0.5f);
 
             result.Log.Add($"--- Round {round} (first: {(aFirst ? "A" : "B")}) ---");
 
@@ -223,7 +223,7 @@ public static class CombatService
             if (p.Trigger == TriggerType.Offensive && RollProc(p, atk, result, rng))
                 armed.Add(p);
 
-        float evaChance = def.Evasion * config.EvasionPerPoint;
+        float evaChance = def.EffEvasion * config.EvasionPerPoint;
         float evaRoll   = rng.NextFloat();
         bool  dodged    = evaRoll < evaChance;
         bool  crit       = false;
@@ -236,7 +236,7 @@ public static class CombatService
             critRoll        = rng.NextFloat();
             crit            = critRoll < critChance;
             float raw       = atk.Attack * (crit ? config.CritMultiplier : 1f);
-            float reduction = Mathf.Clamp01(def.Defense * config.DefenseReductionPerPoint);
+            float reduction = Mathf.Clamp01(def.EffDefense * config.DefenseReductionPerPoint);
             damage          = raw * (1f - reduction);
             def.Hp          = Mathf.Max(0f, def.Hp - damage);
         }
@@ -248,6 +248,13 @@ public static class CombatService
             : $"    [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}  {def.Name} HP:{def.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}% · crit {critRoll * 100f:F0} vs {critChance * 100f:F0}%)");
 
         r.BeforeStrike = false;
+        if (!dodged && damage > 0f && atk.LifestealPercent > 0f)
+        {
+            float steal = damage * atk.LifestealPercent;
+            atk.Hp = Mathf.Min(atk.MaxHp, atk.Hp + steal);
+            result.Log.Add($"    [Lifesteal] {atk.Name} +{steal:F1} → {atk.Hp:F1}");
+            r.Record(ModifierEffectKind.Lifesteal, atk, steal);
+        }
         if (!dodged && def.Hp > 0f)
         {
             foreach (var p in armed) { r.Self = atk; r.Opponent = def; p.Apply(r); }
@@ -272,8 +279,8 @@ public static class CombatService
             DefenderHpAfter = defHp,
             NoAttack        = noAttack,
             Procs           = procs,
-            StatusA         = StatusMarks(atk.IsA ? atk : def),
-            StatusB         = StatusMarks(atk.IsA ? def : atk),
+            StatusA         = CombatResolver.StatusMarks(atk.IsA ? atk : def),
+            StatusB         = CombatResolver.StatusMarks(atk.IsA ? def : atk),
         });
     }
 
@@ -292,8 +299,9 @@ public static class CombatService
                     r.Record(a.Kind, c, a.Magnitude);
                     break;
                 case ModifierEffectKind.Regen:
+                case ModifierEffectKind.Pulse:
                     c.Hp = Mathf.Min(c.MaxHp, c.Hp + a.Magnitude);
-                    result.Log.Add($"    [Regen] {c.Name} regenerates {a.Magnitude} HP → {c.Hp:F1} ({left}t left)");
+                    result.Log.Add($"    [{a.Kind}] {c.Name} regenerates {a.Magnitude} HP → {c.Hp:F1} ({left}t left)");
                     r.Record(a.Kind, c, a.Magnitude);
                     break;
             }
@@ -383,21 +391,5 @@ public static class CombatService
         ColorHex  = ColorUtility.ToHtmlStringRGB(c.Dna.BaseColor),
     };
 
-    private static List<CombatStatusMark> StatusMarks(Combatant c)
-    {
-        var counts = new Dictionary<ModifierEffectKind, int>();
-        foreach (var a in c.Active)
-            counts[a.Kind] = counts.TryGetValue(a.Kind, out var n) ? n + 1 : 1;
-
-        var marks = new List<CombatStatusMark>();
-        foreach (ModifierEffectKind kind in System.Enum.GetValues(typeof(ModifierEffectKind)))
-            if (counts.TryGetValue(kind, out var stacks))
-                marks.Add(new CombatStatusMark { Kind = kind, Stacks = stacks });
-
-        if (c.StunTurns > 0)
-            marks.Add(new CombatStatusMark { Kind = ModifierEffectKind.Stun, Stacks = c.StunTurns });
-
-        return marks;
-    }
 }
 }

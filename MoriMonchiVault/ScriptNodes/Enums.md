@@ -253,17 +253,33 @@ Weapon = 0, Armor = 1, Amulet = 2
 Tipos de efectos de procs en combate.
 
 ```
-ReturnDamage = 0, Heal = 1, Poison = 2, Burn = 3, Stun = 4, Regen = 5, Synergy = 6
+ReturnDamage = 0, Heal = 1, Poison = 2, Burn = 3, Stun = 4, Regen = 5,
+Synergy = 6, Static = 7, Pulse = 8, Steel = 9, Mist = 10, Lifesteal = 11
 ```
 
-**ACTUALIZADO S32:** Agregado `Synergy = 6` para marcar daños/curación/status/stun provenientes de recetas de sinergias (no de procs de equipo). Se graba automáticamente en `CombatResolver.DamageBearer()`, `HealBearer()`, `AddStatusTo()`, `StunBearer()`.
+**Descripción por tipo:**
+- `ReturnDamage` — Espinas/thorns: daño al atacante
+- `Heal` — Curación de equipo
+- `Poison` — Daño periódico (veneno)
+- `Burn` — Daño periódico (quemadura)
+- `Stun` — Aturdimiento
+- `Regen` — Curación periódica
+- `Synergy` — Efectos de recetas de sinergias (S32)
+- `Static` — Reduce SPD rival vía stacks (S35)
+- `Pulse` — Cura por turno, estado emergente (S35)
+- `Steel` — Suma DEF, estado emergente (S35)
+- `Mist` — Suma EVA, estado emergente (S35)
+- `Lifesteal` — % del daño vuelve como cura, estado emergente (S35)
+
+**ACTUALIZADO S35:** 4 elementos nuevos (Static, Pulse, Steel, Mist) + Lifesteal como estado emergente. Se aplican como stacks vía equipment procs y se activan dinámicamente en Combatant properties (EffDefense, EffEvasion, EffSpeed, LifestealPercent).
 
 ### CombatPopupKind
 
-**S31+S32** Tipos de popups flotantes (visualización de replay).
+Tipos de popups flotantes (visualización de replay).
 
 ```
-Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun, Synergy
+Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun, Synergy,
+Static, Pulse, Steel, Mist, Lifesteal
 ```
 
 **Propósito:** Mapea cada tipo de evento visual a un color/label en `CombatPopupPaletteSO` y `CombatDamageNumbers`. Es el intermediario entre `ModifierEffectKind` (simulación) y la visualización UI.
@@ -273,13 +289,14 @@ Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun, Synergy
 - `Crit` — crítico
 - `Poison`, `Burn`, `Thorns`, `Heal`, `Regen` — procs de status/curación
 - `Stun` — aturdimiento (solo texto, sin número de daño)
-- `Synergy` — **(NUEVO S32)** receta de sinergia disparada (solo texto, sin número)
+- `Synergy` — receta de sinergia disparada (solo texto, S32)
+- `Static`, `Pulse`, `Steel`, `Mist`, `Lifesteal` — elementos nuevos (solo texto visual, S35)
 
 **Consumido por:**
 - `CombatPopupPaletteSO.colors` — diccionario tipo → color
 - `CombatDamageNumbers.Label()` — genera texto descriptivo
 - `CombatVisualizerService.RaiseProcPopup()` — convierte ModifierEffectKind → CombatPopupKind
-- `CombatVisualizerService.ProcPopupKind()` — mapea Synergy
+- `MoriMonchiCombatVisualizerUITK.MapKind()` — mapea para chips de estado
 
 ### TriggerType
 
@@ -304,6 +321,19 @@ Prácticamente todo el codebase. Los enums son la base de type-safety.
 **NUEVO:** `ModifierEffectKind.Synergy = 6` — marca efectos provenientes de recetas de sinergias. Grabados automáticamente por `CombatResolver.DamageBearer()`, `HealBearer()`, `AddStatusTo()`, `StunBearer()`.
 
 **NUEVO:** `CombatPopupKind.Synergy` — mapeo visual para popups de sinergias disparadas (texto "¡Sinergia!", color violeta, sin número).
+
+## Cambios Sesión 35
+
+**NUEVOS en ModifierEffectKind:** 4 elementos + 1 estado emergente:
+- `Static = 7` — reduce SPD rival (aplicado por ItemEquipped vía stack, se resta dinámicamente en Combatant.EffSpeed)
+- `Pulse = 8` — cura por turno (estado emergente de receta Regeneración: PUL×3+STE×1)
+- `Steel = 9` — suma DEF (estado emergente de receta Regeneración, sumado en Combatant.EffDefense)
+- `Mist = 10` — suma EVA (estado emergente de receta Cortocircuito, sumado en Combatant.EffEvasion)
+- `Lifesteal = 11` — % del daño a cura (estado emergente de receta Robo de vida: PUL×2+MIS×1, usado post-strike en CombatService)
+
+**NUEVOS en CombatPopupKind:** mismo set + 5 entradas de visualización (Static, Pulse, Steel, Mist, Lifesteal).
+
+**Impacto:** Los stacks de elementos no solo aplican daño/cura en turno, sino que actúan como modificadores dinámicos de stats durante la simulación. No hay rolls nuevos.
 
 ## Notas
 

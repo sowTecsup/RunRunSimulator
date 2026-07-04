@@ -22,6 +22,7 @@ public class CombatVisualizerService : MonoBehaviour
     [SerializeField, MinValue(0f)] private float impactSeconds       = 0.35f;
     [SerializeField, MinValue(0f)] private float betweenTurnsSeconds = 0.55f;
     [SerializeField, MinValue(0f)] private float deathPauseSeconds   = 0.6f;
+    [SerializeField, MinValue(0f)] private float synergyPopupDelay   = 0.6f;
 
     [Title("Playback")]
     [SerializeField, Range(0.25f, 4f)] private float playbackSpeed = 1f;
@@ -413,8 +414,11 @@ public class CombatVisualizerService : MonoBehaviour
         var side = SimToVisual(pe.TargetIsA);
         float before = side == CombatVisualSide.A ? shownHpA : shownHpB;
         float max    = side == CombatVisualSide.A ? hpMaxA : hpMaxB;
+        if (pe.Kind == ModifierEffectKind.Synergy)
+            yield return new WaitForSeconds(synergyPopupDelay / Speed);
         RaiseProcPopup(pe, side, pe.TargetHpAfter - before);
         PushHp(side, pe.TargetHpAfter, max);
+        if (pe.TargetStatusAfter != null) PushStatusSide(side, pe.TargetStatusAfter);
         yield return new WaitForSeconds(impactSeconds / Speed);
     }
 
@@ -458,6 +462,11 @@ public class CombatVisualizerService : MonoBehaviour
         ModifierEffectKind.Regen        => CombatPopupKind.Regen,
         ModifierEffectKind.Stun         => CombatPopupKind.Stun,
         ModifierEffectKind.Synergy      => CombatPopupKind.Synergy,
+        ModifierEffectKind.Static    => CombatPopupKind.Static,
+        ModifierEffectKind.Pulse     => CombatPopupKind.Pulse,
+        ModifierEffectKind.Steel     => CombatPopupKind.Steel,
+        ModifierEffectKind.Mist     => CombatPopupKind.Mist,
+        ModifierEffectKind.Lifesteal => CombatPopupKind.Lifesteal,
         _                               => CombatPopupKind.Hit,
     };
 
@@ -585,6 +594,12 @@ public class CombatVisualizerService : MonoBehaviour
     {
         barA?.SetStatus(node.StatusA);
         barB?.SetStatus(node.StatusB);
+    }
+
+    private void PushStatusSide(CombatVisualSide side, List<CombatStatusMark> marks)
+    {
+        var bar = side == CombatVisualSide.A ? barA : barB;
+        bar?.SetStatus(marks);
     }
 
     private void SetFighterActive(CombatVisualSide side, bool active)

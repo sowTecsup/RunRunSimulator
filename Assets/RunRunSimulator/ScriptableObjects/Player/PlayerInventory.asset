@@ -77,112 +77,16 @@ MonoBehaviour:
       Data: 4|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 35
+      Data: 3
     - Name: 
       Entry: 1
       Data: EQ0
     - Name: 
       Entry: 1
-      Data: EQ0
+      Data: EQ3
     - Name: 
       Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 1
-      Data: EQ0
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 1
-      Data: EQ0
+      Data: EQ4
     - Name: 
       Entry: 13
       Data: 
@@ -209,10 +113,10 @@ MonoBehaviour:
       Data: EQ1
     - Name: 
       Entry: 1
-      Data: EQ1
+      Data: EQ5
     - Name: 
       Entry: 1
-      Data: EQ1
+      Data: EQ6
     - Name: 
       Entry: 13
       Data: 
@@ -239,10 +143,10 @@ MonoBehaviour:
       Data: EQ2
     - Name: 
       Entry: 1
-      Data: EQ2
+      Data: EQ7
     - Name: 
       Entry: 1
-      Data: EQ2
+      Data: EQ8
     - Name: 
       Entry: 13
       Data: 

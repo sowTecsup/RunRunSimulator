@@ -4,6 +4,78 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-03 (Session 35 — **TESTING S34 EN PLAY (todo 🟢) + SISTEMA DE ELEMENTOS Y ESTADOS EMERGENTES** (decisión de diseño grande con Juan): 6 elementos **Poison/Burn/Static/Pulse/Steel/Mist** aplicados por ítems como stacks; **Regen/Stun/Lifesteal dejan de ser efectos base → EMERGENTES** vía recetas de sinergia; stats dinámicos por stack (Steel +DEF / Mist +EVA / Static −SPD); record granular por proc + secuencia "stacks ×3 visibles → delay → ¡Sinergia! → chips caen"; chips rediseñados estilo Pokémon (código 3 letras + ×N debajo)) — **🟢 S34 probado por Juan (mochila/tarjetas/popups/replay OK) · 🟢 SIM DE ELEMENTOS PROBADO EN PLAY (post-cierre, mismo día: wiring + ítems + combate local — log verificado) · 🟡 queda: receta Regeneración (combo 1+2+3), replay visual (chips granulares + delay), Verify Determinism con recetas nuevas**
+**Focus:** (1) pasada de Play de lo acumulado S33+S34 — todo verde; los dos "bugs" reportados de la barra de efectos resultaron no-bugs: el V×3 nunca visible era la Explosión tóxica quemando los stacks al instante (confirmado: popup "¡Sinergia!" aparecía), y el "desfase" era granularidad por turno (chips solo refrescaban al cierre); (2) diseño con Juan del sistema de elementos: nombres en inglés (elementos) / español (emergentes y sistema), elementos de ataque (Poison/Burn/Static-debuffer) vs soporte (Pulse cura / Steel +DEF / Mist +EVA), **el ítem decide el target** (leaf con campo Target); v1 con 3 recetas: Regeneración (PUL×3+STE×1), Cortocircuito (STA×2+MIS×1 sobre el rival), Robo de vida (PUL×2+MIS×1, % del daño vuelve como cura); (3) implementación en 3 fases (A sim/data, B contenido, C visualizer) + corrección a pedido de Juan: leaves por elemento en vez del genérico.
+
+> ### ✅ Fase A — Sim/Data (determinismo intacto: cero rolls nuevos)
+> `ModifierEffectKind` + `Static=7, Pulse=8, Steel=9, Mist=10, Lifesteal=11` (append-only, records viejos OK); `CombatPopupKind` espejado. `Combatant` gana **stats dinámicos**: `EffDefense/EffEvasion/EffSpeed` (base ± suma de `Magnitude` de stacks Steel/Mist/Static) + `LifestealPercent` (suma de Magnitude de stacks Lifesteal /100, cap 1) — `SimulateCore` usa `EffSpeed` en el orden de ronda y `TakeTurn` usa `EffEvasion`/`EffDefense` en las fórmulas. **Hook Lifesteal** post-strike (tras `BeforeStrike = false`, antes de armed procs): cura `daño × %` al atacante + `Record(Lifesteal)`. `TickStatuses`: Pulse comparte el case de cura con Regen (log `[{a.Kind}]`); Static/Steel/Mist/Lifesteal solo expiran (decremento común). **Record granular**: `CombatProcEvent` + `TargetStatusAfter` (`List<CombatStatusMark>`, null = record viejo) — `CombatResolver.Record` lo captura SIEMPRE; `StatusMarks(Combatant)` se movió de CombatService a **`CombatResolver` público estático**. En `CheckSynergies` el `Record(Synergy)` se movió a DESPUÉS de `ConsumeStacks` → el evento de detonación viaja con marks post-quema (el evento del stack que completa la receta viaja con los marks llenos, p.ej. Poison×3).
+
+> ### ✅ Fase B — Contenido
+> `CombatPopupPaletteSO` "Seteo base" + 5 colores (Static celeste eléctrico / Pulse rosa / Steel gris / Mist celeste pálido / Lifesteal carmesí). `CombatDamageNumbers.Label` + 5 (elementos en inglés: "Static"/"Pulse"/"Steel"/"Mist"; "Robo de vida" en español; **Poison/Burn siguen "Veneno"/"Quemadura" — decisión abierta**). `CombatVisualizerService.ProcPopupKind` + 5 mapeos. `SynergyTableSO` gana botón **"Recetas v1 (elementos)"**: Regeneración (Regen 4/turno ×3t), Cortocircuito (`SynergyStunEffect` 1t — respeta anti-permastun), Robo de vida (`SynergyStatusEffect` Lifesteal Magnitude=30 → 30%). Los leaves de sinergia existentes alcanzaron — cero engine nuevo.
+
+> ### ✅ Fase C — Visualizer (la secuencia pedida por Juan)
+> `CombatVisualizerService`: knob `synergyPopupDelay` (0.6s, `/Speed`) — `PlayProc` espera ese delay ANTES del popup si `Kind == Synergy`; tras popup+PushHp, si `pe.TargetStatusAfter != null` → `PushStatusSide(side, marks)` (helper nuevo) → **chips actualizados POR PROC** (se ve el ×3 formarse; al popup de sinergia los chips caen porque el evento trae marks post-quema). El `PushStatus(node)` por turno en ForwardRoutine/Restore quedó intacto (corrige drift + cubre records viejos con `TargetStatusAfter` null). `MoriMonchiCombatVisualizerUITK`: chip = mini-badge 2 filas (código 3 letras arriba coloreado por paleta, "×N" debajo si Stacks>1); `StatusText`/`StatusInitial` reemplazados por `StatusCode` (POI/BUR/STA/PUL/STE/MIS · REG/ATU/ESP/CUR/ROB); `MapKind` + 5 kinds.
+
+> ### ✅ Leaves por elemento (corrección de Juan a mitad de sesión)
+> El primer intento fue un leaf genérico `ElementStackEffect` (dropdown de elemento + target) — Juan pidió conformar al patrón del archivo (un leaf nombrado por efecto). Se ELIMINÓ el genérico (mismo día, cero assets lo referenciaban) y `CombatProcEffect.cs` ganó enum `ProcTarget {Opponent, Self}` a nivel de archivo + 4 leaves planos con Target default en su lado natural: `StaticEffect` (Opponent, −SPD), `PulseEffect` (Self, HP/turno), `SteelEffect` (Self, +DEF), `MistEffect` (Self, +EVA). Para Cortocircuito: ítem MistEffect con Target=Opponent. Los leaves viejos (Stun/Regen/etc.) quedan intactos — **el stun base muere por contenido** (re-autoría de ítems), no por código.
+
+> ### 🟢 Testeo post-cierre (mismo día — Juan hizo el wiring completo + ítems + combate local)
+> Log verificado por el orquestador, todo correcto con cuentas al decimal: **Robo de vida** detona (PUL×2+MIS×1) y el lifesteal cura 30% del daño (y **60% con 2 stacks vivos** — stacking de % OK, expiración OK); **Cortocircuito** detona 3 veces (Spray con Magnitude 0 = combustible puro, "Mist (0/turn)") con ciclo stun→skip→inmunidad→re-stun sin permastun; **EVA dinámica** visible (10%→20% con stacks de Mist, DODGE incluido); **DEF dinámica** correcta incluso en expiración (daño 9,0→8,3 = exactamente 1 stack de Steel vivo); **Pulse HoT** tickea; quema FIFO exacta (sobrantes quedan, Mist llegó a ×4); KO/evolución/record intactos. NO ejercitado aún: receta **Regeneración** (nadie juntó PUL×3+STE×1 en el mismo portador), el **replay visual** (chips granulares + delay ×3→¡Sinergia!) y re-correr **Verify Determinism** con las recetas asignadas.
+
+> ### ⚠️ WIRING S36 (lo que queda)
+> 1. ~~Recompilar~~ ✅ 2. **"Verify Determinism (seed)"** con las recetas nuevas asignadas. 3. ~~Paleta "Seteo base"~~ ✅ 4. ~~"Recetas v1 (elementos)"~~ ✅ 5. Knob `synergyPopupDelay` (ajustar a gusto viendo el replay). 6. ~~Autorar ítems~~ ✅ — falta la pelea de **Regeneración** (combo 1+2+3 en un MM) y mirar el **replay** de un combate con sinergias.
+
+> ### 🧪 Plan de testeo — 6 equipos (2 por slot, todos Proc 100%)
+> | # | Ítem | Slot | Effect | Trigger | Target | Turns | Mag |
+> |---|------|------|--------|---------|--------|-------|-----|
+> | 1 | Latido de Peluche | Arma | Pulse | Passive | Self | 3 | 2 |
+> | 2 | Amuleto de Pulso | Amuleto | Pulse | Defensive | Self | 3 | 2 |
+> | 3 | Caparazón de Lata | Armadura | Steel | Defensive | Self | 3 | 1 |
+> | 4 | Cable Pelado | Arma | Static | Offensive | Opponent | 3 | 1 |
+> | 5 | Spray Empañador | Amuleto | Mist | Offensive | **Opponent** | 3 | **0** (combustible puro; con 1 le sube EVA al rival = tradeoff) |
+> | 6 | Chaleco de Pelusa | Armadura | Mist | Defensive | Self | 3 | 1 |
+>
+> Peleas: **Regeneración** = 1+2+3 · **Cortocircuito** = 4+5+6 (mirar flip de orden de turnos por −SPD en el log "first:") · **Robo de vida** = 1+2+6 (la barra propia sube al pegar). Si un MM junta ingredientes de 2 recetas gana la primera en la lista de Rules.
+
+> ### 📋 Decisiones abiertas / quirks
+> 1. Labels de popup Poison/Burn siguen "Veneno"/"Quemadura" mientras chips dicen POI/BUR — ¿unificar a inglés? 2. Magnitude del Spray (0 vs 1, ver tabla). 3. Static debuffea SPD (alternativa −EVA como espejo de Mist — tuning). 4. Records ahora cargan `TargetStatusAfter` por proc → crecen (junto al CombatHistory en snapshots, optimización futura si pega el límite de Cloud Save). 5. Diseño de sinergias sigue ABIERTO por decisión de Juan: v1 solo Regen/Stun/Lifesteal (Zarza/Vapor y recetas de Burn quedaron en el tintero). 6. Review del orquestador: sin bugs de sub-agentes esta vez; solo se alineó un `MinValue(0f)` faltante. 7. Cerrado como no-bug: V×3 invisible = sinergia quemando stacks; "desfase" de chips = granularidad por turno (resuelto con chips por proc).
+
+**Files Created (.cs):** ninguno.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Core/Enums.cs`: `ModifierEffectKind` +5 (Static/Pulse/Steel/Mist/Lifesteal, 7-11); `CombatPopupKind` +5.
+- `Data/Combat/CombatProcEvent.cs`: + `TargetStatusAfter` (marks del objetivo al momento del proc; null = viejo).
+- `Systems/Combat/Combatant.cs`: + `EffDefense/EffEvasion/EffSpeed/LifestealPercent` + `StackSum` (stats dinámicos por stack).
+- `Systems/Combat/CombatResolver.cs`: `StatusMarks` movido acá (público estático); `Record` captura `TargetStatusAfter`; `Record(Synergy)` post-`ConsumeStacks`.
+- `Systems/Combat/CombatService.cs`: EffSpeed en orden de ronda; EffEvasion/EffDefense en fórmulas; hook Lifesteal post-strike; tick de Pulse (case compartido con Regen); `StatusMarks` privado eliminado.
+- `Data/Equipment/CombatProcEffect.cs`: + enum `ProcTarget` + leaves `StaticEffect`/`PulseEffect`/`SteelEffect`/`MistEffect` (campo Target, default lado natural); `ElementStackEffect` creado y eliminado en la misma sesión.
+- `Data/Combat/CombatPopupPaletteSO.cs`: +5 colores en "Seteo base".
+- `Data/Combat/SynergyTableSO.cs`: + botón "Recetas v1 (elementos)" (Regeneración/Cortocircuito/Robo de vida).
+- `Systems/CombatVisualizer/CombatDamageNumbers.cs`: +5 labels.
+- `Systems/CombatVisualizer/CombatVisualizerService.cs`: +5 mapeos `ProcPopupKind`; knob `synergyPopupDelay`; `PlayProc` con delay pre-popup de sinergia + push granular de marks; helper `PushStatusSide`.
+- `UI/MoriMonchiCombatVisualizerUITK.cs`: chip 2 filas (código+contador); `StatusCode` reemplaza `StatusText`/`StatusInitial`; `MapKind` +5.
+
+**Files Touched (no-ScriptNode):** assets de equipment (Juan: `Equipment1.asset` borrado, carpeta `MainWeapon/` nueva).
+
+> ### 🎯 FOCO S36 decidido al cierre — STORYTELLING DEL COMBATE (feedback de Juan con screenshot del replay)
+> Diagnóstico de Juan: el replay funciona pero "no transmite lo que está sucediendo" — el objetivo es que **alguien que no conoce el juego entienda la escena** y que cada combate sea memorable. Frentes concretos:
+> 1. **Barra de vida estilo juego de pelea (ghost bar)**: al recibir daño, la barra baja al instante pero deja un "trozo fantasma" marcado que se drena con delay (patrón Street Fighter). El trozo se TIÑE por la fuente del daño: golpe = rojo, Poison = morado, Burn = naranja; curas al revés (el trozo que se rellena en verde/rosa de Pulse). Implementación: segundo fill detrás del principal en `MoriMonchiCombatVisualizerUITK` + `SetHp` gana la fuente (`CombatPopupKind`) — el service ya sabe el kind en cada `PushHp`/`PlayProc`.
+> 2. **Popups más duraderos y expresivos**: aparecen en la posición correcta pero desaparecen rápido — más duración, más color, más texto. Vía `prefabOverrides` existente (prefabs DNP por familia con lifetime/fade mayores) + tuning de `impactSeconds`/`betweenTurnsSeconds` para dar aire a cada beat.
+> 3. **Paleta**: Poison pasa a MORADO (pedido explícito; ojo con diferenciarlo del violeta de Synergy — decidir tonos en el asset).
+> 4. **Banner de eventos clave** (candidato): anuncio grande en pantalla para los beats — "¡Sinergia: Robo de vida!", "¡CRÍTICO!", "K.O.", stun — driven por el bus visual existente (`CombatVisualEvents`); el log de cartas queda como registro, el banner como drama. Log más narrativo ("Clammy se cura 2 con Pulse" en vez de "— Pulse").
+> 5. **Fixes de layout vistos en el screenshot**: nombre del peleador cortado en el header (overflow del UXML) y chip de efectos (STE×2) flotando despegado del panel izquierdo — la fila `effects` programática cae fuera del contenedor en `CombatHpBar.uxml` (agregar la fila al UXML o anclarla al contenedor correcto).
+
+**Next session (S36) — storytelling del combate + cierre de testeo de elementos:**
+1. **Storytelling** (bloque de arriba): ghost bar teñida por fuente → popups duraderos → paleta Poison morado → banner de eventos → fixes de layout (nombre cortado + chip flotante).
+2. Cierre de testeo de elementos: receta **Regeneración** (combo 1+2+3), replay visual de un combate con sinergias (chips granulares + delay ×3→¡Sinergia!, calibrar `synergyPopupDelay`), re-correr **Verify Determinism** con recetas asignadas.
+3. Re-autoría de contenido: convertir ítems viejos de Stun/Regen a elementos (el stun base desaparece por contenido).
+4. Decisiones abiertas: labels Poison/Burn, Magnitude del Spray, Static −SPD vs −EVA. Tuning de magnitudes/duraciones/recetas con data real. UI de recetas para el jugador.
+5. Diferidos: test online async end-to-end, refactor composición Fases 6-9, retirar `EvolutionChance`.
+
+**ScriptNodes (cierre S35):** ACTUALIZAR `Enums.md`, `CombatProcEvent.md`, `Combatant.md`, `CombatResolver.md`, `CombatService.md`, `CombatProcEffect.md`, `CombatPopupPaletteSO.md`, `SynergyTableSO.md`, `CombatDamageNumbers.md`, `CombatVisualizerService.md`, `MoriMonchiCombatVisualizerUITK.md`.
+
+---
+
 **Session:** 2026-07-02 (Session 34 — **PERFILADO DEL COMBAT VISUALIZER**: juice de popups DNP (follow-transform + presets por tipo + "+" en curas + escala en críticos + posición baja) + **efectos activos en la barra HP** (iniciales V/Q/R/A/E×N desde snapshot por turno del sim) + **REPLAY CROSS-ESCENA** (`CombatReplayRequest` NUEVO: botón ▶ en tarjeta del detail + "▶ Ver replay" en historial del Combat Panel → flush → carga `CombatVisualizerMM` → Play → Volver ya existía) + **tarjeta de combate rediseñada** (swatch color genético + tiers + dueño + comentario) + fix duplicado `devNoConsume` mochila) — **🔴 TODO SIN PROBAR EN PLAY · WIRING DIFERIDO A S35 (emergencia de Juan, cierre abrupto)**
 **Focus:** Plan S34 decidido al cierre de S33 + feedback de Juan al abrir: (1) popups salían muy arriba y sin variedad → follow al MM, offset bajo, presets por tipo, "+" en curas, escala en críticos; (2) barra de vida extendida con los efectos activos del momento (iniciales); (3) conexión de escenas para reproducir un combate desde el record (tarjeta e historial) con vuelta; (4) tarjeta de combate más simple según imagen de referencia (mini-imagen color, stats comprimidas, partes mejoradas, dueño, comentario, ▶); (5) fix del duplicado de equipo en modo dev.
 

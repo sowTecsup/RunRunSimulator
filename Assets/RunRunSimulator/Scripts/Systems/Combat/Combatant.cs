@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace MoriMonchiSimulator
 {
@@ -21,6 +22,19 @@ public class Combatant
     public int         StunImmunityTurns;
     public List<CombatProcEffect> Procs  = new List<CombatProcEffect>();
     public List<ActiveEffect>     Active = new List<ActiveEffect>();
+
+    public float EffDefense => Defense + StackSum(ModifierEffectKind.Steel);
+    public float EffEvasion => Evasion + StackSum(ModifierEffectKind.Mist);
+    public float EffSpeed   => Mathf.Max(0f, Speed - StackSum(ModifierEffectKind.Static));
+    public float LifestealPercent => Mathf.Min(1f, StackSum(ModifierEffectKind.Lifesteal) / 100f);
+
+    private float StackSum(ModifierEffectKind kind)
+    {
+        float sum = 0f;
+        foreach (var a in Active)
+            if (a.Kind == kind) sum += a.Magnitude;
+        return sum;
+    }
 }
 
 public class ActiveEffect

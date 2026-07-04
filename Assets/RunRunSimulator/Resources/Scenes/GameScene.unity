@@ -18195,7 +18195,7 @@ MonoBehaviour:
   gameManager: {fileID: 1046970362}
   devDabloonsAmount: 500
   devEquipmentItem: {fileID: 0}
-  equipmentDatabase: {fileID: 0}
+  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
 --- !u!1 &1218711422
 GameObject:
   m_ObjectHideFlags: 0

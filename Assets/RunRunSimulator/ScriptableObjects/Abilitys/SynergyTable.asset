@@ -27,7 +27,7 @@ MonoBehaviour:
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 7
     - Name: 
       Entry: 7
       Data: 1|MoriMonchiSimulator.SynergyRule, Assembly-CSharp
@@ -72,6 +72,438 @@ MonoBehaviour:
     - Name: Amount
       Entry: 4
       Data: 10
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 6|MoriMonchiSimulator.SynergyRule, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: "Regeneraci\xF3n"
+    - Name: Requirements
+      Entry: 7
+      Data: 7|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyStackRequirement,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 8|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 8
+    - Name: Stacks
+      Entry: 3
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 9|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 9
+    - Name: Stacks
+      Entry: 3
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Effects
+      Entry: 7
+      Data: 10|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 11|MoriMonchiSimulator.SynergyStatusEffect, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 5
+    - Name: Turns
+      Entry: 3
+      Data: 3
+    - Name: Magnitude
+      Entry: 3
+      Data: 4
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 12|MoriMonchiSimulator.SynergyRule, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Cortocircuito
+    - Name: Requirements
+      Entry: 7
+      Data: 13|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyStackRequirement,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 14|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 7
+    - Name: Stacks
+      Entry: 3
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 15|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 10
+    - Name: Stacks
+      Entry: 3
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Effects
+      Entry: 7
+      Data: 16|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 17|MoriMonchiSimulator.SynergyStunEffect, Assembly-CSharp
+    - Name: Turns
+      Entry: 3
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 18|MoriMonchiSimulator.SynergyRule, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Robo de vida
+    - Name: Requirements
+      Entry: 7
+      Data: 19|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyStackRequirement,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 20|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 8
+    - Name: Stacks
+      Entry: 3
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 21|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 10
+    - Name: Stacks
+      Entry: 3
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Effects
+      Entry: 7
+      Data: 22|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 23|MoriMonchiSimulator.SynergyStatusEffect, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 11
+    - Name: Turns
+      Entry: 3
+      Data: 3
+    - Name: Magnitude
+      Entry: 3
+      Data: 30
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 24|MoriMonchiSimulator.SynergyRule, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: "Regeneraci\xF3n"
+    - Name: Requirements
+      Entry: 7
+      Data: 25|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyStackRequirement,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 26|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 8
+    - Name: Stacks
+      Entry: 3
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 27|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 9
+    - Name: Stacks
+      Entry: 3
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Effects
+      Entry: 7
+      Data: 28|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 29|MoriMonchiSimulator.SynergyStatusEffect, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 5
+    - Name: Turns
+      Entry: 3
+      Data: 3
+    - Name: Magnitude
+      Entry: 3
+      Data: 4
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 30|MoriMonchiSimulator.SynergyRule, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Cortocircuito
+    - Name: Requirements
+      Entry: 7
+      Data: 31|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyStackRequirement,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 32|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 7
+    - Name: Stacks
+      Entry: 3
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 33|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 10
+    - Name: Stacks
+      Entry: 3
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Effects
+      Entry: 7
+      Data: 34|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 35|MoriMonchiSimulator.SynergyStunEffect, Assembly-CSharp
+    - Name: Turns
+      Entry: 3
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 36|MoriMonchiSimulator.SynergyRule, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Robo de vida
+    - Name: Requirements
+      Entry: 7
+      Data: 37|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyStackRequirement,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 38|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 8
+    - Name: Stacks
+      Entry: 3
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 39|MoriMonchiSimulator.SynergyStackRequirement, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 10
+    - Name: Stacks
+      Entry: 3
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Effects
+      Entry: 7
+      Data: 40|System.Collections.Generic.List`1[[MoriMonchiSimulator.SynergyEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 41|MoriMonchiSimulator.SynergyStatusEffect, Assembly-CSharp
+    - Name: Kind
+      Entry: 3
+      Data: 11
+    - Name: Turns
+      Entry: 3
+      Data: 3
+    - Name: Magnitude
+      Entry: 3
+      Data: 30
     - Name: 
       Entry: 8
       Data: 

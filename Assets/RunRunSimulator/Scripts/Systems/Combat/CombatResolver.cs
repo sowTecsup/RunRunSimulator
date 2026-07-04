@@ -90,9 +90,27 @@ public class CombatResolver : ICombatContext
         {
             Kind = kind, TargetIsA = target.IsA, Amount = amount,
             TargetHpAfter = target.Hp, BeforeStrike = BeforeStrike,
+            TargetStatusAfter = StatusMarks(target),
         });
 
     public void Record(ModifierEffectKind kind, Combatant target) => Record(kind, target, 0f);
+
+    public static List<CombatStatusMark> StatusMarks(Combatant c)
+    {
+        var counts = new Dictionary<ModifierEffectKind, int>();
+        foreach (var a in c.Active)
+            counts[a.Kind] = counts.TryGetValue(a.Kind, out var n) ? n + 1 : 1;
+
+        var marks = new List<CombatStatusMark>();
+        foreach (ModifierEffectKind kind in System.Enum.GetValues(typeof(ModifierEffectKind)))
+            if (counts.TryGetValue(kind, out var stacks))
+                marks.Add(new CombatStatusMark { Kind = kind, Stacks = stacks });
+
+        if (c.StunTurns > 0)
+            marks.Add(new CombatStatusMark { Kind = ModifierEffectKind.Stun, Stacks = c.StunTurns });
+
+        return marks;
+    }
 
     private bool resolvingSynergies;
 
@@ -105,8 +123,8 @@ public class CombatResolver : ICombatContext
             var rule = FirstSatisfiedRule(bearer);
             if (rule == null) break;
             Result.Log.Add($"    [synergy] ¡{rule.Name}! detonates on {bearer.Name}");
-            Record(ModifierEffectKind.Synergy, bearer);
             ConsumeStacks(bearer, rule);
+            Record(ModifierEffectKind.Synergy, bearer);
             foreach (var e in rule.Effects)
                 if (e != null) e.Apply(this, bearer);
         }

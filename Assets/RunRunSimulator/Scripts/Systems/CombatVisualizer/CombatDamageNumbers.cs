@@ -66,6 +66,11 @@ public class CombatDamageNumbers : MonoBehaviour
         CombatPopupKind.Regen  => "Regeneración",
         CombatPopupKind.Stun   => "Aturdido",
         CombatPopupKind.Synergy => "¡Sinergia!",
+        CombatPopupKind.Static    => "Static",
+        CombatPopupKind.Pulse     => "Pulse",
+        CombatPopupKind.Steel     => "Steel",
+        CombatPopupKind.Mist      => "Mist",
+        CombatPopupKind.Lifesteal => "Robo de vida",
         _                      => "",
     };
 }

@@ -91,4 +91,90 @@ public class RegenEffect : PeriodicProcEffect
     public override void Apply(ICombatContext ctx) => ctx.ApplyStatusToSelf(ModifierEffectKind.Regen, DurationTurns, Magnitude, "regen");
     public override string Summary() => $"[{TriggerTag}] regen {Magnitude}/turn for {DurationTurns} turn(s)";
 }
+
+public enum ProcTarget { Opponent, Self }
+
+[Serializable]
+public class StaticEffect : CombatProcEffect
+{
+    [LabelText("Target")]
+    public ProcTarget Target = ProcTarget.Opponent;
+
+    [PropertyRange(1, 10), LabelText("Duration (turns)")]
+    public int DurationTurns = 3;
+
+    [MinValue(0), LabelText("-SPD (points)")]
+    public int Magnitude = 1;
+
+    public override ModifierEffectKind Kind => ModifierEffectKind.Static;
+    public override void Apply(ICombatContext ctx)
+    {
+        if (Target == ProcTarget.Self) ctx.ApplyStatusToSelf(ModifierEffectKind.Static, DurationTurns, Magnitude, "static");
+        else ctx.ApplyStatusToOpponent(ModifierEffectKind.Static, DurationTurns, Magnitude, "static");
+    }
+    public override string Summary() => $"[{TriggerTag}] static -{Magnitude} SPD for {DurationTurns} turn(s) on {(Target == ProcTarget.Self ? "self" : "opponent")}";
+}
+
+[Serializable]
+public class PulseEffect : CombatProcEffect
+{
+    [LabelText("Target")]
+    public ProcTarget Target = ProcTarget.Self;
+
+    [PropertyRange(1, 10), LabelText("Duration (turns)")]
+    public int DurationTurns = 3;
+
+    [MinValue(0), LabelText("Heal per turn (flat)")]
+    public int Magnitude = 2;
+
+    public override ModifierEffectKind Kind => ModifierEffectKind.Pulse;
+    public override void Apply(ICombatContext ctx)
+    {
+        if (Target == ProcTarget.Self) ctx.ApplyStatusToSelf(ModifierEffectKind.Pulse, DurationTurns, Magnitude, "pulse");
+        else ctx.ApplyStatusToOpponent(ModifierEffectKind.Pulse, DurationTurns, Magnitude, "pulse");
+    }
+    public override string Summary() => $"[{TriggerTag}] pulse {Magnitude} HP/turn for {DurationTurns} turn(s) on {(Target == ProcTarget.Self ? "self" : "opponent")}";
+}
+
+[Serializable]
+public class SteelEffect : CombatProcEffect
+{
+    [LabelText("Target")]
+    public ProcTarget Target = ProcTarget.Self;
+
+    [PropertyRange(1, 10), LabelText("Duration (turns)")]
+    public int DurationTurns = 3;
+
+    [MinValue(0), LabelText("+DEF (points)")]
+    public int Magnitude = 1;
+
+    public override ModifierEffectKind Kind => ModifierEffectKind.Steel;
+    public override void Apply(ICombatContext ctx)
+    {
+        if (Target == ProcTarget.Self) ctx.ApplyStatusToSelf(ModifierEffectKind.Steel, DurationTurns, Magnitude, "steel");
+        else ctx.ApplyStatusToOpponent(ModifierEffectKind.Steel, DurationTurns, Magnitude, "steel");
+    }
+    public override string Summary() => $"[{TriggerTag}] steel +{Magnitude} DEF for {DurationTurns} turn(s) on {(Target == ProcTarget.Self ? "self" : "opponent")}";
+}
+
+[Serializable]
+public class MistEffect : CombatProcEffect
+{
+    [LabelText("Target")]
+    public ProcTarget Target = ProcTarget.Self;
+
+    [PropertyRange(1, 10), LabelText("Duration (turns)")]
+    public int DurationTurns = 3;
+
+    [MinValue(0), LabelText("+EVA (points)")]
+    public int Magnitude = 1;
+
+    public override ModifierEffectKind Kind => ModifierEffectKind.Mist;
+    public override void Apply(ICombatContext ctx)
+    {
+        if (Target == ProcTarget.Self) ctx.ApplyStatusToSelf(ModifierEffectKind.Mist, DurationTurns, Magnitude, "mist");
+        else ctx.ApplyStatusToOpponent(ModifierEffectKind.Mist, DurationTurns, Magnitude, "mist");
+    }
+    public override string Summary() => $"[{TriggerTag}] mist +{Magnitude} EVA for {DurationTurns} turn(s) on {(Target == ProcTarget.Self ? "self" : "opponent")}";
+}
 }

@@ -357,6 +357,11 @@ public enum ModifierEffectKind
     Stun         = 4,
     Regen        = 5,
     Synergy      = 6,
+    Static       = 7,
+    Pulse        = 8,
+    Steel        = 9,
+    Mist         = 10,
+    Lifesteal    = 11,
 }
 
 public enum CombatPopupKind
@@ -370,6 +375,11 @@ public enum CombatPopupKind
     Regen,
     Stun,
     Synergy,
+    Static,
+    Pulse,
+    Steel,
+    Mist,
+    Lifesteal,
 }
 
 // When a combat proc rolls — all three roll ProcChance. Offensive = rolled at the start

@@ -6,12 +6,12 @@ tags: [script, ui, combat]
 
 **Ruta:** `UI/MoriMonchiCombatVisualizerUITK.cs`
 
-**Responsabilidad:** Barra de HP world-space + estado de efectos de UN combatiente del visualizer. Componente HIJO del prefab del peleador, con un `UIDocument` que apunta a `CombatHpBar.uxml` (elementos `name`, `hp-value`, `atk`, `spd`, `fill` y `effects`).
+**Responsabilidad:** Barra de HP world-space + chips de estado de UN combatiente del visualizer. Componente HIJO del prefab del peleador, con un `UIDocument` que apunta a `CombatHpBar.uxml` (elementos `name`, `hp-value`, `atk`, `spd`, `fill` y `effects`).
 
 **Driven por el Service (sin `side`):** El `CombatVisualizerService` la maneja por referencia directa:
 - `Bind(string displayName, float attack, float speed)`: fija nombre, ATK y VEL, resetea HP a 100%
 - `SetHp(float current, float max)`: interpola fill + actualiza hp-value label
-- **`SetStatus(List<CombatStatusMark>)`** ← **S34** actualiza chips de estado activo
+- **`SetStatus(List<CombatStatusMark>)`** — actualiza chips de estado activo
 
 **Binding resiliente + fix de árbol huérfano:** `EnsureRefs()` detecta cuando el `UIDocument` reconstruye su árbol comparando `docRoot != root`; re-resuelve elementos y marca dirty para reescribirlos. Sin esto, al retroceder (Back) la barra quedaría apuntando al árbol viejo.
 
@@ -23,7 +23,7 @@ tags: [script, ui, combat]
 |--------|-------------|
 | `Bind(string name, float atk, float spd)` | Fija nombre, stats, resetea HP a 100% |
 | `SetHp(float current, float max)` | Actualiza HP (interpola fill) |
-| `SetStatus(List<CombatStatusMark> marks)` | **S34** Setea estado de efectos activos |
+| `SetStatus(List<CombatStatusMark> marks)` | Setea estado de efectos activos |
 
 ## Campos Serializados
 
@@ -32,9 +32,9 @@ tags: [script, ui, combat]
 | `document` | `UIDocument` | Ref opcional (auto-resuelto si null) |
 | `fillLerpSeconds` | `float` | Duración interpolación HP (default 0.4s) |
 | `uprightOnly` | `bool` | Si true, solo rota Y (billboard uprightless) |
-| `palette` | `CombatPopupPaletteSO` | **S34** Paleta para colorear chips de estado |
+| `palette` | `CombatPopupPaletteSO` | Paleta para colorear chips de estado |
 
-## SetStatus Implementation — S34
+## SetStatus Implementation — S35
 
 ```csharp
 public void SetStatus(List<CombatStatusMark> marks)
@@ -44,16 +44,16 @@ public void SetStatus(List<CombatStatusMark> marks)
 }
 ```
 
-En Apply():
+En `Apply()`:
 ```csharp
 if (statusDirty && effectsRow != null)
 {
     effectsRow.Clear();
     foreach (var mark in desiredStatus)
     {
-        var chip = new Label(StatusText(mark));  // "V", "V×2", "A×3", etc.
-        chip.style.fontSize          = 10;
-        chip.style.unityFontStyleAndWeight = FontStyle.Bold;
+        var chip = new VisualElement();
+        chip.style.flexDirection     = FlexDirection.Column;
+        chip.style.alignItems        = Align.Center;
         chip.style.paddingTop        = 1;
         chip.style.paddingBottom     = 1;
         chip.style.paddingLeft       = 3;
@@ -64,7 +64,22 @@ if (statusDirty && effectsRow != null)
         chip.style.borderBottomLeftRadius  = 3;
         chip.style.borderBottomRightRadius = 3;
         chip.style.backgroundColor   = new Color(0f, 0f, 0f, 0.55f);
-        chip.style.color             = palette != null ? palette.GetColor(MapKind(mark.Kind)) : Color.white;
+
+        // Fila 1: código de 3 letras
+        var code = new Label(StatusCode(mark.Kind));
+        code.style.fontSize                 = 9;
+        code.style.unityFontStyleAndWeight  = FontStyle.Bold;
+        code.style.color                    = palette != null ? palette.GetColor(MapKind(mark.Kind)) : Color.white;
+        chip.Add(code);
+
+        // Fila 2: contador si Stacks > 1
+        if (mark.Stacks > 1)
+        {
+            var count = new Label($"×{mark.Stacks}");
+            count.style.fontSize = 8;
+            count.style.color    = new Color(1f, 1f, 1f, 0.85f);
+            chip.Add(count);
+        }
         effectsRow.Add(chip);
     }
     statusDirty = false;
@@ -73,50 +88,64 @@ if (statusDirty && effectsRow != null)
 
 **Lógica:**
 - Limpia `effectsRow` y recrea chips para cada mark
-- Texto = inicial + stack count (ej: "V", "V×2", "A", "A×3")
-- Color vía `palette.GetColor()` o fallback blanco
-- Estilos: bold, pequeño (10px), borde redondeado, fondo semitransparente
+- **Chip = VisualElement con FlexDirection.Column (2 filas):**
+  - Fila 1: código de 3 letras (ej: "POI", "STA", "PUL") en color vía paleta
+  - Fila 2: contador "×N" si Stacks > 1, en blanco semitransparente
+- Estilos: bold, tamaño 9/8px, borde redondeado 3px, fondo semitransparente (0, 0, 0, 0.55)
 
-## Status Helpers — S34
+## Status Helpers — S35
 
 ```csharp
-private static string StatusText(CombatStatusMark mark)
+private static string StatusCode(ModifierEffectKind kind)
 {
-    string initial = StatusInitial(mark.Kind);
-    return mark.Stacks > 1 ? $"{initial}×{mark.Stacks}" : initial;
-}
-
-private static string StatusInitial(ModifierEffectKind kind)
-{
-    return kind switch
+    switch (kind)
     {
-        ModifierEffectKind.Poison       => "V",   // Veneno
-        ModifierEffectKind.Burn         => "Q",   // Quemadura
-        ModifierEffectKind.Regen        => "R",   // Regeneracion
-        ModifierEffectKind.Stun         => "A",   // Aturdido
-        ModifierEffectKind.ReturnDamage => "E",   // Espinas
-        ModifierEffectKind.Heal         => "C",   // Cura
-        _                               => kind.ToString().Substring(0, 1),
-    };
+        case ModifierEffectKind.Poison:       return "POI";
+        case ModifierEffectKind.Burn:         return "BUR";
+        case ModifierEffectKind.Static:       return "STA";  // S35
+        case ModifierEffectKind.Pulse:        return "PUL";  // S35
+        case ModifierEffectKind.Steel:        return "STE";  // S35
+        case ModifierEffectKind.Mist:         return "MIS";  // S35
+        case ModifierEffectKind.Regen:        return "REG";
+        case ModifierEffectKind.Stun:         return "ATU";
+        case ModifierEffectKind.ReturnDamage: return "ESP";
+        case ModifierEffectKind.Heal:         return "CUR";
+        case ModifierEffectKind.Lifesteal:    return "ROB";  // S35
+        default: return kind.ToString().Substring(0, Mathf.Min(3, kind.ToString().Length)).ToUpperInvariant();
+    }
 }
 
 private static CombatPopupKind MapKind(ModifierEffectKind kind)
 {
-    return kind switch
+    switch (kind)
     {
-        ModifierEffectKind.Poison       => CombatPopupKind.Poison,
-        ModifierEffectKind.Burn         => CombatPopupKind.Burn,
-        ModifierEffectKind.Regen        => CombatPopupKind.Regen,
-        ModifierEffectKind.Stun         => CombatPopupKind.Stun,
-        ModifierEffectKind.ReturnDamage => CombatPopupKind.Thorns,
-        ModifierEffectKind.Heal         => CombatPopupKind.Heal,
-        ModifierEffectKind.Synergy      => CombatPopupKind.Synergy,
-        _                               => CombatPopupKind.Hit,
-    };
+        case ModifierEffectKind.Poison:       return CombatPopupKind.Poison;
+        case ModifierEffectKind.Burn:         return CombatPopupKind.Burn;
+        case ModifierEffectKind.Regen:        return CombatPopupKind.Regen;
+        case ModifierEffectKind.Stun:         return CombatPopupKind.Stun;
+        case ModifierEffectKind.ReturnDamage: return CombatPopupKind.Thorns;
+        case ModifierEffectKind.Heal:         return CombatPopupKind.Heal;
+        case ModifierEffectKind.Synergy:      return CombatPopupKind.Synergy;
+        case ModifierEffectKind.Static:       return CombatPopupKind.Static;       // S35
+        case ModifierEffectKind.Pulse:        return CombatPopupKind.Pulse;        // S35
+        case ModifierEffectKind.Steel:        return CombatPopupKind.Steel;        // S35
+        case ModifierEffectKind.Mist:         return CombatPopupKind.Mist;         // S35
+        case ModifierEffectKind.Lifesteal:    return CombatPopupKind.Lifesteal;    // S35
+        default:                              return CombatPopupKind.Hit;
+    }
 }
 ```
 
-## EnsureRefs — S34 Nota
+**StatusCode mappings (S35):**
+- Static = "STA" (reducción de velocidad)
+- Pulse = "PUL" (curación periódica)
+- Steel = "STE" (defensa aumentada)
+- Mist = "MIS" (evasión aumentada)
+- Lifesteal = "ROB" (robo de vida)
+
+**MapKind mappings (S35):** Trasladan ModifierEffectKind a CombatPopupKind para obtener el color vía paleta.
+
+## EnsureRefs — Resilience
 
 ```csharp
 if (effectsRow == null)
@@ -134,8 +163,19 @@ Si el UXML no trae `effectsRow`, se crea programáticamente. Fallback para compa
 ## Dirty Pattern
 
 - `staticDirty` — marca update de nombre/ATK/SPD
-- `statusDirty` — marca update de estado (S34)
-- `Update()` chequea flags y aplica cambios — patron dirty que **sobrevive rebuild** del árbol (EnsureRefs detecta cambio y re-crea)
+- `statusDirty` — marca update de estado
+- `Update()` chequea flags y aplica cambios — patrón dirty que **sobrevive rebuild** del árbol (EnsureRefs detecta cambio y re-crea)
+
+## Estructura de Chips (S35)
+
+**Cada chip es un `VisualElement` con `flexDirection: Column` y dos Label hijas:**
+
+1. **Código (fila 1):** Texto bold, tamaño 9, coloreado por `palette.GetColor()`
+2. **Contador (fila 2, si Stacks > 1):** Texto "×N", tamaño 8, blanco semitransparente
+
+Fondo: (0, 0, 0, 0.55) semitransparente, bordes redondeados 3px.
+
+Espaciado: padding 1-3 px internamente, margen-derecha 2px entre chips.
 
 ## Vinculado a
 
@@ -150,17 +190,29 @@ Si el UXML no trae `effectsRow`, se crea programáticamente. Fallback para compa
 **Entrada:**
 - `Bind(name, atk, spd)` — de CombatVisualizerService.BeginRoutine
 - `SetHp(current, max)` — de CombatVisualizerService.PushHp
-- `SetStatus(marks)` — de CombatVisualizerService.PushStatus ← S34
+- `SetStatus(marks)` — de CombatVisualizerService.PushStatus y PlayProc (S35)
 
 **Salida:**
-- UIElements visuales (HP fill interpolado, estado de efectos)
+- UIElements visuales (HP fill interpolado, chips de estado con código + contador)
+
+## Cambios S35
+
+**StatusCode reemplaza StatusText/StatusInitial:** Nueva función `StatusCode()` retorna códigos de 3 letras directamente (POI, BUR, STA, PUL, STE, MIS, REG, ATU, ESP, CUR, ROB).
+
+**Estructura de 2 filas:** Cada chip ahora es un VisualElement Column con:
+- Fila 1: Código colorido (pequeño, 9px, bold)
+- Fila 2: Contador "×N" (aún más pequeño, 8px, blanco) — solo si Stacks > 1
+
+**5 nuevos StatusCode:** STA (Static), PUL (Pulse), STE (Steel), MIS (Mist), ROB (Lifesteal).
+
+**MapKind actualizado:** 5 mapeos nuevos para los 4 elementos + Lifesteal.
 
 ## Notas
 
-- **S34:** Nuevo método `SetStatus()` para visualización de efectos activos por turno
-- **Iniciales:** V=Veneno, Q=Quemadura, R=Regeneracion, A=Aturdido, E=Espinas, C=Cura
-- **Stack display:** "V×3" si 3+ apilados de mismo tipo
-- **Color:** Via palette o blanco fallback
-- **Efectsrow optional:** Si UXML no lo trae, se crea en EnsureRefs
+- **Iniciales de 3 letras:** Más compactas que anteriores, espacio limitado en barra
+- **Stack display:** "×3" si 3+ apilados de mismo tipo
+- **Color:** Via palette MapKind o blanco fallback
+- **Effectsrow optional:** Si UXML no lo trae, se crea en EnsureRefs
 - **Null-tolerante:** Palette null → color white; StatusA/B null deserializan como listas vacías
 - **Dirty resilience:** El dirty pattern persiste cambios pendientes a través de re-creación de árbol
+- **Billboard:** LateUpdate rota solo Y si `uprightOnly=true`, manteniendo panel legible desde cualquier ángulo

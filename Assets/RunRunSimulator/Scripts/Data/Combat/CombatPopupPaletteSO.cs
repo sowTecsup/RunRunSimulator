@@ -25,6 +25,11 @@ namespace MoriMonchiSimulator
                 { CombatPopupKind.Regen,  new Color(0.56f, 0.88f, 0.69f, 1f) },
                 { CombatPopupKind.Stun,   new Color(0.98f, 0.85f, 0.30f, 1f) },
                 { CombatPopupKind.Synergy, new Color(0.70f, 0.42f, 1f,    1f) },
+                { CombatPopupKind.Static,    new Color(0.35f, 0.85f, 1f,    1f) },
+                { CombatPopupKind.Pulse,     new Color(1f,    0.55f, 0.75f, 1f) },
+                { CombatPopupKind.Steel,     new Color(0.62f, 0.68f, 0.78f, 1f) },
+                { CombatPopupKind.Mist,      new Color(0.72f, 0.87f, 0.95f, 1f) },
+                { CombatPopupKind.Lifesteal, new Color(0.85f, 0.25f, 0.45f, 1f) },
             };
 
 #if UNITY_EDITOR

@@ -104,9 +104,9 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
             effectsRow.Clear();
             foreach (var mark in desiredStatus)
             {
-                var chip = new Label(StatusText(mark));
-                chip.style.fontSize          = 10;
-                chip.style.unityFontStyleAndWeight = FontStyle.Bold;
+                var chip = new VisualElement();
+                chip.style.flexDirection     = FlexDirection.Column;
+                chip.style.alignItems        = Align.Center;
                 chip.style.paddingTop        = 1;
                 chip.style.paddingBottom     = 1;
                 chip.style.paddingLeft       = 3;
@@ -117,30 +117,42 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
                 chip.style.borderBottomLeftRadius  = 3;
                 chip.style.borderBottomRightRadius = 3;
                 chip.style.backgroundColor   = new Color(0f, 0f, 0f, 0.55f);
-                chip.style.color             = palette != null ? palette.GetColor(MapKind(mark.Kind)) : Color.white;
+
+                var code = new Label(StatusCode(mark.Kind));
+                code.style.fontSize                 = 9;
+                code.style.unityFontStyleAndWeight  = FontStyle.Bold;
+                code.style.color                    = palette != null ? palette.GetColor(MapKind(mark.Kind)) : Color.white;
+                chip.Add(code);
+
+                if (mark.Stacks > 1)
+                {
+                    var count = new Label($"×{mark.Stacks}");
+                    count.style.fontSize = 8;
+                    count.style.color    = new Color(1f, 1f, 1f, 0.85f);
+                    chip.Add(count);
+                }
                 effectsRow.Add(chip);
             }
             statusDirty = false;
         }
     }
 
-    private static string StatusText(CombatStatusMark mark)
-    {
-        string initial = StatusInitial(mark.Kind);
-        return mark.Stacks > 1 ? $"{initial}×{mark.Stacks}" : initial;
-    }
-
-    private static string StatusInitial(ModifierEffectKind kind)
+    private static string StatusCode(ModifierEffectKind kind)
     {
         switch (kind)
         {
-            case ModifierEffectKind.Poison:       return "V";
-            case ModifierEffectKind.Burn:         return "Q";
-            case ModifierEffectKind.Regen:        return "R";
-            case ModifierEffectKind.Stun:         return "A";
-            case ModifierEffectKind.ReturnDamage: return "E";
-            case ModifierEffectKind.Heal:         return "C";
-            default:                              return kind.ToString().Substring(0, 1);
+            case ModifierEffectKind.Poison:       return "POI";
+            case ModifierEffectKind.Burn:         return "BUR";
+            case ModifierEffectKind.Static:       return "STA";
+            case ModifierEffectKind.Pulse:        return "PUL";
+            case ModifierEffectKind.Steel:        return "STE";
+            case ModifierEffectKind.Mist:         return "MIS";
+            case ModifierEffectKind.Regen:        return "REG";
+            case ModifierEffectKind.Stun:         return "ATU";
+            case ModifierEffectKind.ReturnDamage: return "ESP";
+            case ModifierEffectKind.Heal:         return "CUR";
+            case ModifierEffectKind.Lifesteal:    return "ROB";
+            default: return kind.ToString().Substring(0, Mathf.Min(3, kind.ToString().Length)).ToUpperInvariant();
         }
     }
 
@@ -155,6 +167,11 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
             case ModifierEffectKind.ReturnDamage: return CombatPopupKind.Thorns;
             case ModifierEffectKind.Heal:         return CombatPopupKind.Heal;
             case ModifierEffectKind.Synergy:      return CombatPopupKind.Synergy;
+            case ModifierEffectKind.Static:       return CombatPopupKind.Static;
+            case ModifierEffectKind.Pulse:        return CombatPopupKind.Pulse;
+            case ModifierEffectKind.Steel:        return CombatPopupKind.Steel;
+            case ModifierEffectKind.Mist:         return CombatPopupKind.Mist;
+            case ModifierEffectKind.Lifesteal:    return CombatPopupKind.Lifesteal;
             default:                              return CombatPopupKind.Hit;
         }
     }
