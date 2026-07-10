@@ -22,6 +22,7 @@ namespace MoriMonchiSimulator
 //
 // Input map (Assets/InputSystem_Actions, "Player" map):
 //   Move → MoveChanged | Jump → Jumped | Interact → GrabReleaseToggled | Attack → ThrowPressed | Build → BuildToggled
+//   HotbarStep → HotbarScrolled | Drop → DropPressed
 public class PlayerInputs : MonoBehaviour
 {
     // Continuous — fired on every change (carries the value).
@@ -37,10 +38,6 @@ public class PlayerInputs : MonoBehaviour
     public static event Action DropPressed;          // Q — drop the active hotbar item
 
     private InputSystem_Actions actions;
-
-    // Mirrors whether the Player map is live (gated by UI focus) so the wheel read in
-    // Update is suspended in menus, just like the action-driven inputs.
-    private bool playerActive = true;
 
     [Tooltip("Minimum |scroll delta| to count as one hotbar step.")]
     [SerializeField] private float scrollThreshold = 0.1f;
@@ -61,6 +58,8 @@ public class PlayerInputs : MonoBehaviour
         actions.Player.Interact.canceled  += OnInteractCanceled;   // key up
         actions.Player.Attack.performed   += OnAttack;
         actions.Player.Build.performed    += OnBuild;
+        actions.Player.Drop.performed      += OnDrop;
+        actions.Player.HotbarStep.performed += OnHotbarStep;
 
         UIManager.OnUIFocusChanged += OnUIFocusChanged;
     }
@@ -75,6 +74,8 @@ public class PlayerInputs : MonoBehaviour
         actions.Player.Interact.canceled  -= OnInteractCanceled;
         actions.Player.Attack.performed   -= OnAttack;
         actions.Player.Build.performed    -= OnBuild;
+        actions.Player.Drop.performed      -= OnDrop;
+        actions.Player.HotbarStep.performed -= OnHotbarStep;
 
         UIManager.OnUIFocusChanged -= OnUIFocusChanged;
         actions.Player.Disable();
@@ -85,28 +86,8 @@ public class PlayerInputs : MonoBehaviour
     // Suspend gameplay input while a panel is focused; resume when it closes.
     private void OnUIFocusChanged(bool uiFocused)
     {
-        playerActive = !uiFocused;
         if (uiFocused) actions.Player.Disable();
         else           actions.Player.Enable();
-    }
-
-    // Mouse wheel → discrete hotbar steps. Read directly from the device (still Input
-    // System, still only this script) rather than a generated action, so no asset
-    // regeneration is needed. Gated by the same focus state as the action map.
-    private void Update()
-    {
-        if (!playerActive) return;
-        var mouse = Mouse.current;
-        if (mouse == null) return;
-
-        float scroll = mouse.scroll.ReadValue().y;
-        if (Mathf.Abs(scroll) >= scrollThreshold)
-            HotbarScrolled?.Invoke(scroll > 0 ? -1 : 1);   // wheel up = previous slot
-
-        // Q → drop the active hotbar item (direct device read, like the wheel).
-        var keyboard = Keyboard.current;
-        if (keyboard != null && keyboard.qKey.wasPressedThisFrame)
-            DropPressed?.Invoke();
     }
 
     // ── Raw Input System → static events ──────────────────────────
@@ -134,5 +115,14 @@ public class PlayerInputs : MonoBehaviour
     }
 
     private void OnBuild(InputAction.CallbackContext c) => BuildToggled?.Invoke();
+
+    private void OnDrop(InputAction.CallbackContext c) => DropPressed?.Invoke();
+
+    private void OnHotbarStep(InputAction.CallbackContext c)
+    {
+        float step = c.ReadValue<float>();
+        if (Mathf.Abs(step) >= scrollThreshold)
+            HotbarScrolled?.Invoke(step > 0 ? -1 : 1);   // wheel up = previous slot
+    }
 }
 }

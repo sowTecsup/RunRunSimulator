@@ -9,6 +9,7 @@
 | Notion Wiki | Diseno vivo, decisiones, preguntas abiertas. Cuando dudes de **diseno**, abre Notion. |
 | `MoriMonchiVault/` (Obsidian) | Detalle de **implementacion**, quirks tecnicos, archivos clave. Cuando dudes de **codigo**, lee del vault. |
 | `MoriMonchiVault/ScriptNodes/` | Un nodo `.md` por cada script `.cs`. Leer antes de abrir el codigo fuente. |
+| Unity MCP (editor en vivo) | Leer/editar escena, wirear SOs, correr C#, Play mode, consola, ProBuilder. **Verificar en el editor antes de declarar hecho.** How-to y quirks en [[MoriMonchiVault/Index/12 - Unity MCP]]. |
 
 ---
 
@@ -21,9 +22,10 @@
 5. **Planear con Opus**: disenar la solucion antes de picar codigo. Evaluar alternativas, invariantes, impacto en otros sistemas.
 6. **Solo entonces leer `.cs`**: ya sabes que hace cada script y como se conecta. Confirmar que el plan encaja.
 7. **Generar sub-agentes Sonnet**: delegar tareas concretas al sub-agente registrado `morimonchi-coder` (Agent tool, `subagent_type: morimonchi-coder`, uno por archivo o responsabilidad). Las reglas de codigo y la regla de oro tecnica ya viven en su system prompt — pasarle solo el plan, la ruta del archivo, y la responsabilidad puntual. Fallback si la sesion no la registro todavia (recien creada/editada): `subagent_type: general-purpose` + pegar el contenido de `.claude/agents/morimonchi-coder.md` despues del frontmatter.
-8. **Cerrar sesion**: actualizar `09 - Active Context.md` con lo tocado y siguiente paso.
-9. **Disparar agente de vault** *(autorizado por Juan, ejecutar siempre al cierre)*: invocar el sub-agente registrado `vault-documenter` (Agent tool, `subagent_type: vault-documenter`) para actualizar ScriptNodes. Ver seccion **Agente de Vault**.
-10. **Cada mensaje** empieza con "Juan:" seguido del contenido
+8. **Verificar en el editor (Unity MCP)**: tras compilar, confirmar con `read_console` (0 errores) y, cuando aplique, ejercitar en Play mode antes de declarar hecho. NO dejar "pendiente de tu lado" lo que el MCP puede verificar. Reglas y quirks en [[MoriMonchiVault/Index/12 - Unity MCP]]. Mutar escena/prefabs/assets requiere OK de Juan.
+9. **Cerrar sesion**: actualizar `09 - Active Context.md` con lo tocado y siguiente paso.
+10. **Disparar agente de vault** *(autorizado por Juan, ejecutar siempre al cierre)*: invocar el sub-agente registrado `vault-documenter` (Agent tool, `subagent_type: vault-documenter`) para actualizar ScriptNodes. Ver seccion **Agente de Vault**.
+11. **Cada mensaje** empieza con "Juan:" seguido del contenido
 
 ---
 
@@ -41,7 +43,7 @@ Simulador de tienda retro 3D (80s). Cria/pelea MoriMonchis (Gremlins + Furby + T
 ```
 MoriMonchiVault/
 ├── 00 - Index.md              ← Entry point IA (routing por tarea)
-├── Index/                     ← 11 notas principales por dominio (01-11)
+├── Index/                     ← 13 notas por dominio (01-11 dominios · 12 = Unity MCP · 13 = Combat Design Direction)
 └── ScriptNodes/               ← 95 nodos, uno por script .cs
 ```
 

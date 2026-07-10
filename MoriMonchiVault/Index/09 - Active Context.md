@@ -4,6 +4,45 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-10 (Session 36 — **ONBOARDING DE UNITY MCP + HIGIENE DE GAMESCENE + PlayerInputs 100% action-driven**. Sesión de tooling/infra, NO la de storytelling de combate que estaba planeada como "S36" — esa queda en cola.) — **🟢 todo verificado en editor/Play vía MCP**
+**Focus:** Juan instaló un MCP de Unity (editor en vivo). La sesión exploró la capacidad y la aplicó: (1) validar qué puede hacer el MCP en ESTE proyecto (lectura de escena, escritura a diccionarios Odin, edición de jerarquía, ProBuilder, Play); (2) auditar y reorganizar GameScene; (3) documentar el MCP para futuras sesiones; (4) arreglar un detalle de arquitectura de inputs.
+
+> ### ✅ Unity MCP validado + documentado
+> Dos instancias conectadas (`RunRunSimulator` + `FasterTheBetter`) → **fijar `unity_instance` siempre**. **Quirk Odin probado con smoke test**: `manage_scriptable_object` NO ve los blobs `[OdinSerialize]` (diccionarios/listas polimórficas de las databases) — para escribirlos hay que usar `execute_code` con la API C# real (`db.Equipment[id]=so` + SetDirty + SaveAssets) o los botones Populate/Sync del SO; la entrada sobrevive un ForceReimport (Odin re-deserializa del blob). `execute_code` cae a compilador **codedom (C# 6)** porque el assembly Roslyn está roto (warning pre-existente) → usar solo C# 6 ahí. Todo en [[Index/12 - Unity MCP]] (NOTA NUEVA). Nuevo **paso 8 del protocolo** en CLAUDE.md: verificar en editor antes de declarar hecho.
+
+> ### ✅ GameScene reorganizada (27 → 14 raíces)
+> Grupos nuevos: `WORLD` (Props/Markers/Furniture), `TEMPLATES` (MorimonchiAgent+NpcAgent inactivos), `POOLS` (DefaultDamageNumberPo). 2 nav surfaces sueltos consolidados en `NAVMESH_SURFACES` (4→6). Renames: `ChasRegister`→`CashRegister` (typo), `PanelUI (3)`→`StoragePanel`. Borradas 2 `Sphere` de test. Reparent con `Undo.SetTransformParent` (posición mundial preservada, subárboles intactos). **Seguro porque el código no usa `GameObject.Find`-por-nombre** (única búsqueda textual: `FindGameObjectWithTag("Player")` en SpawnBallistics). Escena guardada.
+
+> ### ✅ PlayerInputs 100% action-driven (fix de arquitectura)
+> Estaban las 2 últimas lecturas directas de device en `Update()` (rueda→`HotbarScrolled`, Q→`DropPressed`) salteando el Input Actions asset. Se agregaron al mapa Player del asset `InputSystem_Actions` dos acciones: `Drop` (Button, `<Keyboard>/q`) y `HotbarStep` (PassThrough/Axis, `<Mouse>/scroll/y`); wrapper C# regenerado por reimport. `PlayerInputs.cs`: suscribe `Drop.performed`/`HotbarStep.performed`, **borra `Update()` y el campo `playerActive`** (el gating por foco ahora es automático: las acciones viven en el mapa que se deshabilita en menús). Comportamiento idéntico (wheel up=−1, umbral `scrollThreshold`). **Verificado en Play**: Drop→q, HotbarStep→scroll/y, mapa habilitado, 0 errores. Los otros 5 inputs (Move/Jump/Interact/Attack/Build) YA estaban bien. (Acciones vestigiales `Previous`/`Next` del template quedaron sin tocar, fuera de scope.)
+
+> ### 📌 Corrección: anchors S21 ya estaban cerrados
+> La memoria/creencia "IAnchorPlace sin probar en Play (test S22)" era stale — el Active Context confirma **CERRADO y probado en Play en S23** (línea ~760). El plan original de "verificar anchors" era redundante; se pivoteó a la higiene de escena. Memoria corregida.
+
+**Files Created (.cs):** ninguno.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Player/PlayerInputs.cs`: rutea Drop/HotbarStep por el asset; borra `Update()` + campo `playerActive`; handlers `OnDrop`/`OnHotbarStep`; comentario de cabecera del input-map actualizado.
+
+**Files Touched (no-ScriptNode):**
+- `Assets/InputSystem_Actions.inputactions` (+ acciones `Drop`/`HotbarStep` + 2 bindings al mapa Player) → `Assets/InputSystem_Actions.cs` (wrapper) regenerado.
+- `Assets/RunRunSimulator/Resources/Scenes/GameScene.unity` (reorg jerarquía, guardada).
+- `CLAUDE.md` (fila MCP + paso 8 + "12 notas"), `MoriMonchiVault/00 - Index.md` (fila routing), `MoriMonchiVault/Index/12 - Unity MCP.md` (NUEVO).
+
+> ### 🎨 DECISIONES DE DISEÑO (cierre S36, con Juan) — ver [[Index/13 - Combat Design Direction]]
+> 1. **Combate = payoff autobattler estilo Pokémon Quest (3v3) + legibilidad Super Auto Pets.** Async determinista (S32) se queda. Cada MoriMonchi = UN rol legible; el equipo AMPLIFICA una característica para expresar ese rol (palanca del momento eureka). Sinergias se SIMPLIFICAN: de recetas opacas de stacks de elementos → sinergias de ROLES telegrafiadas. El motor (seed sim, leaves de efectos, pipeline de equipo, visualizer) SOBREVIVE y se retargetea; el contenido de elementos S35 queda EN REVISIÓN (repurpose/archivo). Lift grande = 1v1→3v3 (sim/records/matchmaking/visualizer). Pasada de diseño (set de roles + targeting) ANTES de tocar el sim.
+> 2. **Furniture = colocación FIJA + expansiones compradas por un objeto `PC` (UI).** Retira el free-build (BuildModeController/PlacementGrid/BuildingInputs/BuildBrowserUITK); se apoya en `AnchorRegistry` (S21) para los anchors fijos de corrales. Falta decidir: ¿retira TODO el free-build o se conserva para decoración libre?
+> 3. **Genética/equipo/sinergias confirmado como capa de agencia central** — no se toca, se le construye el payoff.
+> Herramienta validada: ProBuilder autora el mobiliario fijo desde una sola geometría (silueta 2D + extrude). Grupo `PROBUILDER_EVAL` de muestra dejado en escena SIN guardar para evaluación de Juan.
+
+**Decisiones abiertas (esperan a Juan):** (1) Furniture — ¿el placement fijo retira TODO el free-build o se conserva para decoración libre? (2) Próximo foco — ¿pasada de diseño de roles 3v3 o sistema de furniture fijo + PC? (3) `PROBUILDER_EVAL` — ¿conservar (guardar/prefabs) o descartar? (4) ¿Volcar diseño a Notion (autorización puntual)?
+
+**Next session:** (diseño primero) cerrar la pasada de roles/targeting 3v3 de [[Index/13 - Combat Design Direction]] antes de tocar el sim; y/o el sistema de furniture fijo + PC. El plan viejo de "storytelling del combat visualizer" (ghost bar, banner, popups) sigue vigente pero ahora al servicio de la legibilidad SAP (un beat por vez). Diferido: volcar el diseño a Notion (autorización puntual de Juan). Tooling opcional: renombrar los 2 nav surfaces ALL-CAPS; revisar el tag `Player`.
+
+**ScriptNodes (cierre S36):** ACTUALIZAR `PlayerInputs.md` (el nodo está desactualizado — lista eventos viejos como GrabPressed/HotbarSlotSelected/MouseDelta que ya no existen; los reales son MoveChanged/Jumped/InteractPressed/InteractReleased/ThrowPressed/BuildToggled/HotbarScrolled/DropPressed).
+
+---
+
 **Session:** 2026-07-03 (Session 35 — **TESTING S34 EN PLAY (todo 🟢) + SISTEMA DE ELEMENTOS Y ESTADOS EMERGENTES** (decisión de diseño grande con Juan): 6 elementos **Poison/Burn/Static/Pulse/Steel/Mist** aplicados por ítems como stacks; **Regen/Stun/Lifesteal dejan de ser efectos base → EMERGENTES** vía recetas de sinergia; stats dinámicos por stack (Steel +DEF / Mist +EVA / Static −SPD); record granular por proc + secuencia "stacks ×3 visibles → delay → ¡Sinergia! → chips caen"; chips rediseñados estilo Pokémon (código 3 letras + ×N debajo)) — **🟢 S34 probado por Juan (mochila/tarjetas/popups/replay OK) · 🟢 SIM DE ELEMENTOS PROBADO EN PLAY (post-cierre, mismo día: wiring + ítems + combate local — log verificado) · 🟡 queda: receta Regeneración (combo 1+2+3), replay visual (chips granulares + delay), Verify Determinism con recetas nuevas**
 **Focus:** (1) pasada de Play de lo acumulado S33+S34 — todo verde; los dos "bugs" reportados de la barra de efectos resultaron no-bugs: el V×3 nunca visible era la Explosión tóxica quemando los stacks al instante (confirmado: popup "¡Sinergia!" aparecía), y el "desfase" era granularidad por turno (chips solo refrescaban al cierre); (2) diseño con Juan del sistema de elementos: nombres en inglés (elementos) / español (emergentes y sistema), elementos de ataque (Poison/Burn/Static-debuffer) vs soporte (Pulse cura / Steel +DEF / Mist +EVA), **el ítem decide el target** (leaf con campo Target); v1 con 3 recetas: Regeneración (PUL×3+STE×1), Cortocircuito (STA×2+MIS×1 sobre el rival), Robo de vida (PUL×2+MIS×1, % del daño vuelve como cura); (3) implementación en 3 fases (A sim/data, B contenido, C visualizer) + corrección a pedido de Juan: leaves por elemento en vez del genérico.
 
