@@ -1661,8 +1661,10 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -1759,7 +1761,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.55, g: 0.42, b: 0.28, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.54999995, g: 0.41999996, b: 0.27999997, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
@@ -32127,8 +32129,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombatDevConsole
   gameManager: {fileID: 1046970362}
   combatController: {fileID: 1813964818}
-  combatAID: 
-  combatBID: 
+  teamAIds:
+  - BS1-A0-E0-M0-D10E65-639184748194578503
+  - BS1-A1-E2-M0-445AC4-639184748191594602
+  - BS0-A1-E0-M0-C07536-639184748200975572
+  teamBIds:
+  - BS1-A1-E0-M0-1E86AC-639184748205689652
+  - BS4-A1-E1-M0-46C98B-639184748196125070
+  - BS0-A0-E0-M1-50E3E4-639184748202493848
   asyncCreatureID: 
   dequeueIndex: 0
 --- !u!1 &1816910918
@@ -34907,6 +34915,7 @@ MonoBehaviour:
     ChildrenIDs: []
     Gender: 0
     Personality: 3
+    Role: 0
     FightCount: 0
     WinCount: 0
     BreedCount: 0
