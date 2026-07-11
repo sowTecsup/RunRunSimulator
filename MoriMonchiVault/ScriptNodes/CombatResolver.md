@@ -6,7 +6,7 @@ tags: [combat, resolver, context, equipment, synergy]
 
 **Ruta:** `Systems/Combat/CombatResolver.cs`
 
-**Responsabilidad:** Implementa `ICombatContext`, el contrato que los `CombatProcEffect` usan para aplicar acciones (daño, curación, status, stun). Centraliza salvaguardas anti-permastun (no re-stun si ya stunned, inmunidad post-despertar), stacking independiente de estados, y **detección/disparo de sinergias (S32):** cuando se agrega un status, CheckSynergies verifica recetas, quema stacks FIFO y aplica efectos de portadores. **S35:** Captura automática de `TargetStatusAfter` en cada proc.
+**Responsabilidad:** Implementa `ICombatContext`, el contrato que los `CombatProcEffect` usan para aplicar acciones (daño, curación, status, stun). Centraliza salvaguardas anti-permastun (no re-stun si ya stunned, inmunidad post-despertar), stacking independiente de estados, y **detección/disparo de sinergias (S32):** cuando se agrega un status, CheckSynergies verifica recetas, quema stacks FIFO y aplica efectos de portadores. **S35:** Captura automática de `TargetStatusAfter` en cada proc. **S37:** Captura `TargetIndex` en procs para soporte 3v3.
 
 ## Métodos Públicos (ICombatContext)
 
@@ -21,7 +21,7 @@ tags: [combat, resolver, context, equipment, synergy]
 | `DamageBearer(Combatant bearer, float amount, string source)` | **(S32)** Daño sobre portador, graba `Synergy` proc |
 | `HealBearer(Combatant bearer, float amount, string source)` | **(S32)** Curación sobre portador, graba `Synergy` proc |
 | `AddStatusTo(Combatant bearer, ModifierEffectKind kind, int turns, int magnitude, string source)` | **(S32)** Status sobre portador, delega a `AddStatus()` |
-| `Record(ModifierEffectKind, Combatant, float amount)` | Crea `CombatProcEvent` con snapshot de `TargetStatusAfter` y lo append a `TurnProcs` **(S35)** |
+| `Record(ModifierEffectKind, Combatant, float amount)` | Crea `CombatProcEvent` con snapshot de `TargetIndex` + `TargetStatusAfter` y lo append a `TurnProcs` **(S35+S37)** |
 | `Record(ModifierEffectKind, Combatant)` | Sobrecarga: graba sin amount (0f) |
 
 ## Campos Públicos
@@ -88,6 +88,24 @@ private void AddStatus(Combatant t, ModifierEffectKind kind, int turns, int magn
 ```
 
 Cada instancia es independiente, con su propio contador de turnos. Se procesan simultáneamente en `TickStatuses()`. Los Magnitude de stacks del mismo Kind se suman en propiedades dinámicas de Combatant (EffDefense, EffSpeed, etc.) — S35.
+
+## Record y Captura de Índice (S37)
+
+```csharp
+public void Record(ModifierEffectKind kind, Combatant target, float amount)
+    => TurnProcs?.Add(new CombatProcEvent
+    {
+        Kind = kind,
+        TargetIsA = target.IsA,
+        TargetIndex = target.Index,  // S37 NEW: índice dentro equipo 0..2
+        Amount = amount,
+        TargetHpAfter = target.Hp,
+        BeforeStrike = BeforeStrike,
+        TargetStatusAfter = StatusMarks(target),  // S35: snapshots post-proc
+    });
+```
+
+**S37:** Captura `TargetIndex` para identificar qué unit del equipo fue afectado en 3v3.
 
 ## Motor de Sinergias (S32)
 
@@ -195,10 +213,11 @@ Calcula counts de cada Kind en `c.Active`, luego itera todos los enums de Modifi
 ## Vinculado a
 
 - [[Index/03 - Combat]]
+- [[Index/13 - Combat Design Direction]]
 - [[ICombatContext]] — interfaz que implementa
 - [[CombatService]] — instancia un resolver por simulación, pasa `config.Synergies`
 - [[CombatProcEffect]] — recibe `this` (ICombatContext) en `Apply()`
-- [[CombatManagerSO]] — campo `Synergies: SynergyTableSO`
+- [[CombatManagerSO]] — campos `Synergies` (S32), acceso a `Roles` (S37)
 - [[SynergyTableSO]] — tabla de reglas
 - [[SynergyEffectBase]] — efectos polimórficos
 - [[CombatTurn]] — los procs grabados aquí terminan en `Turn.Procs`
@@ -212,26 +231,31 @@ Calcula counts de cada Kind en `c.Active`, luego itera todos los enums de Modifi
 
 **Salida:**
 - Mutaciones a `Self.Hp`, `Opponent.Hp`, `Opponent.StunTurns`, `Opponent.Active`
-- `CombatProcEvent` enumerados en `TurnProcs` → `CombatTurn.Procs` (incluye `ModifierEffectKind.Synergy` y `TargetStatusAfter`)
+- `CombatProcEvent` enumerados en `TurnProcs` → `CombatTurn.Procs` (incluye `ModifierEffectKind.Synergy`, `TargetIndex` S37, y `TargetStatusAfter` S35)
 
-## Cambios S32
+## Cambios por Sesión
 
+### S32
 - **Nuevos métodos públicos:** `StunBearer()`, `DamageBearer()`, `HealBearer()`, `AddStatusTo()` — acceso genérico para `SynergyEffectBase.Apply()`
 - **Refactor StunTarget():** Guard compartido extraído de `StunOpponent()`
 - **CheckSynergies loop:** Detección FIFO + cap 8 iteraciones + anti-reentrada
 - **Proc Synergy:** Graba `ModifierEffectKind.Synergy` cuando detona regla
-- **Backward compat:** Si `Synergies == null`, CheckSynergies retorna sin hacer nada — feature completamente deshabilitada sin tocar código
+- **Backward compat:** Si `Synergies == null`, CheckSynergies retorna sin hacer nada — feature completamente deshabilitada
 
-## Cambios S35
-
+### S35
 - **StatusMarks static method:** Calcula snapshot de stacks activos + stun para un Combatant
 - **Record() captura automática:** `TargetStatusAfter = StatusMarks(target)` en cada proc grabado
-- **CheckSynergies order:** ConsumeStacks ANTES de Record, para que `TargetStatusAfter` refleje estado post-quema (importante para sincronización de UI)
+- **CheckSynergies order:** ConsumeStacks ANTES de Record, para que `TargetStatusAfter` refleje estado post-quema
+
+### S37
+- **TargetIndex captura:** `TargetIndex = target.Index` poblado en `Record()` para identificar unit en equipo 3v3
+- **Backward compat:** Legacy 1v1 usa TargetIndex=0 (único unit)
 
 ## Notas
 
 - No es stateless: acumula `TurnProcs` durante el turno (se resetea cada turno).
-- El anti-permastun, stacking, **y ahora sinergias** viven aquí, no en el DNA o el equipment.
+- El anti-permastun, stacking, **sinergias (S32)** y **captura de índice 3v3 (S37)** viven aquí, no en el DNA o el equipment.
 - Todos los logs van a `Result.Log` para traza debug completa.
 - Método `DamageBearer()` graba `Synergy` (no `ReturnDamage`) porque estos daños vienen de sinergias, no de procs de equipo.
-- **S35:** La captura automática de `TargetStatusAfter` garantiza que el visualizador siempre tiene snapshots exactos del estado tras cada proc, sin gaps de sincronización.
+- **S35:** La captura automática de `TargetStatusAfter` garantiza que el visualizador siempre tiene snapshots exactos del estado tras cada proc.
+- **S37:** `TargetIndex` permite 3v3 visualizador identificar qué unit específico fue afectado en un turno.

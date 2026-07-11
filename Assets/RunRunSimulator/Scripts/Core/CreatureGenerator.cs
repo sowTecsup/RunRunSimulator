@@ -48,6 +48,12 @@ public static class CreatureGenerator
         return (Personality)values.GetValue(Random.Range(0, values.Length));
     }
 
+    public static Role RandomRole()
+    {
+        var values = System.Enum.GetValues(typeof(Role));
+        return (Role)values.GetValue(Random.Range(0, values.Length));
+    }
+
     public static (float hp, float atk, float spd) RandomBaseStats()
     {
         int[] stats     = { StatMin, StatMin, StatMin };

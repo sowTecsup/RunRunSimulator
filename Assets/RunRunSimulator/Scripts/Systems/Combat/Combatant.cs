@@ -11,8 +11,12 @@ public class Combatant
     public CreatureDNA Dna;
     public string      Name;
     public bool        IsA;
+    public Role        Role;
+    public CombatRow   Row;
+    public int         Index;
     public float       Hp;
     public float       MaxHp;
+    public float       Shield;
     public float       Attack;
     public float       Speed;
     public float       Defense;
@@ -23,6 +27,7 @@ public class Combatant
     public List<CombatProcEffect> Procs  = new List<CombatProcEffect>();
     public List<ActiveEffect>     Active = new List<ActiveEffect>();
 
+    public bool  IsAlive    => Hp > 0f;
     public float EffDefense => Defense + StackSum(ModifierEffectKind.Steel);
     public float EffEvasion => Evasion + StackSum(ModifierEffectKind.Mist);
     public float EffSpeed   => Mathf.Max(0f, Speed - StackSum(ModifierEffectKind.Static));

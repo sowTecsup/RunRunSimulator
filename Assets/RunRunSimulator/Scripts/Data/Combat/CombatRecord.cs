@@ -24,6 +24,7 @@ public class CombatRecord
     public bool          Died;                          // this creature died in this fight
     public string        EvolvedSlot;                   // part this creature evolved on a win, or null
 
+    // 1v1 legacy snapshot pair. Null on 3v3 team records (use SelfTeam/OpponentTeam instead).
     public CombatFighterSnapshot SelfStats;
     public CombatFighterSnapshot OpponentStats;
 
@@ -36,6 +37,12 @@ public class CombatRecord
     // visualizer whether THIS creature was A, so it can map "A" to "me" or "them".
     public bool             SelfWasA;
     public List<CombatTurn> Turns = new List<CombatTurn>();
+
+    // 3v3 team snapshots/ids (index = unit index within the team). Null on 1v1 legacy records.
+    public List<CombatFighterSnapshot> SelfTeam;
+    public List<CombatFighterSnapshot> OpponentTeam;
+    public List<string>                SelfTeamIds;
+    public List<string>                OpponentTeamIds;
 }
 
 // One attack within a combat — enough to drive a turn-by-turn replay (animate the
@@ -56,6 +63,15 @@ public class CombatTurn
 
     public List<CombatStatusMark> StatusA = new List<CombatStatusMark>();
     public List<CombatStatusMark> StatusB = new List<CombatStatusMark>();
+
+    // 3v3: attacker/defender unit index within their team; shield left on the defender
+    // after this hit. TeamStateA/TeamStateB (index = unit index) carry the full team
+    // state at the close of this turn; empty on 1v1 legacy records (use StatusA/StatusB).
+    public int   AttackerIndex;
+    public int   DefenderIndex;
+    public float DefenderShieldAfter;
+    public List<CombatUnitState> TeamStateA = new List<CombatUnitState>();
+    public List<CombatUnitState> TeamStateB = new List<CombatUnitState>();
 }
 
 // Effective stats (post-equipment) of one fighter at the moment of the combat.
@@ -75,6 +91,11 @@ public class CombatFighterSnapshot
     public int    EyeTier;
     public int    MouthTier;
     public string ColorHex = "";
+
+    // 3v3: identity/lineup metadata. Zero-valued on 1v1 legacy snapshots.
+    public string   Name = "";
+    public Role     Role;
+    public int      Row;
 }
 
 [Serializable]
@@ -82,5 +103,15 @@ public class CombatStatusMark
 {
     public ModifierEffectKind Kind;
     public int Stacks;
+}
+
+// Full state of ONE unit at the close of a turn, used by CombatTurn.TeamStateA/TeamStateB
+// to drive the 3v3 replay (index = unit index within its team).
+[Serializable]
+public class CombatUnitState
+{
+    public float Hp;
+    public float Shield;
+    public List<CombatStatusMark> Marks = new List<CombatStatusMark>();
 }
 }

@@ -68,6 +68,7 @@ public static class BreedingService
             FurType        = ColorGenetics.Inherit(mother.FurType, father.FurType),
             Gender       = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female,
             Personality  = CreatureGenerator.RandomPersonality(),   // random, not inherited
+            Role         = Random.value < 0.5f ? mother.Role : father.Role,
             MotherID     = motherID,
             FatherID     = fatherID,
             BaseConstitution = InheritStat(mother.BaseConstitution, father.BaseConstitution),

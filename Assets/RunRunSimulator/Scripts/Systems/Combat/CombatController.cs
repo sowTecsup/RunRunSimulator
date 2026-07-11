@@ -34,16 +34,19 @@ public class CombatController : MonoBehaviour
 
     // ── Public Methods ────────────────────────────────────────────
 
-    public CombatResult SimulateLocal(string aID, string bID)
+    public CombatResult SimulateLocal(List<string> teamA, List<string> teamB, List<int> rowsA = null, List<int> rowsB = null)
     {
         if (config == null) { Debug.LogError("[CombatController] No CombatManager assigned."); return null; }
         int seed   = System.Guid.NewGuid().GetHashCode();
-        var result = CombatService.Simulate(aID, bID, registry, database, config, GameManager.Instance?.EquipmentDatabase, seed);
+        var result = CombatService.Simulate(teamA, teamB, rowsA, rowsB, registry, database, config, GameManager.Instance?.EquipmentDatabase, seed);
         if (result == null) return null;
         GameEvents.CombatCompleted(result);
         GameEvents.RegistryChanged(registry);
         return result;
     }
+
+    public CombatResult SimulateLocal(string aID, string bID) =>
+        SimulateLocal(new List<string> { aID }, new List<string> { bID });
 
     public async Task EnqueueForAsyncCombat(string uniqueID, bool scheduled)
     {

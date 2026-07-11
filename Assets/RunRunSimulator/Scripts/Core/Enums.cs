@@ -250,6 +250,24 @@ public enum Personality
     Grumpy     = 5,  // Gruñón    — solitary, keeps its distance, retreats to Storage
 }
 
+// Combat role of a MoriMochi, inherited 50/50 from the parents at breed time
+// (random at mint), NOT part of the genetic string (metadata like Gender/Personality).
+// A RoleTableSO maps each value to concrete combat tuning.
+public enum Role
+{
+    Protector = 0,  // Tanque — +CON, escudos al equipo
+    Agresivo  = 1,  // Pegador — +ATK/+SPD, caza la backline
+    Empatico  = 2,  // Soporte — +SPD, convierte daño en cura
+}
+
+// The row a combatant occupies in the 2-3-2 grid of a 3v3 combat.
+public enum CombatRow
+{
+    Front = 0,
+    Mid   = 1,
+    Back  = 2,
+}
+
 // Player-facing read of what a MoriMochi is trying to do RIGHT NOW — the verb the
 // NameTag verbalizes above its head. Derived from the agent's internal AgentState
 // (+ its active proximity reaction and the need it's covering), NOT a stored field.
@@ -362,6 +380,7 @@ public enum ModifierEffectKind
     Steel        = 9,
     Mist         = 10,
     Lifesteal    = 11,
+    Shield       = 12,
 }
 
 public enum CombatPopupKind
@@ -380,6 +399,7 @@ public enum CombatPopupKind
     Steel,
     Mist,
     Lifesteal,
+    Shield,
 }
 
 // When a combat proc rolls — all three roll ProcChance. Offensive = rolled at the start

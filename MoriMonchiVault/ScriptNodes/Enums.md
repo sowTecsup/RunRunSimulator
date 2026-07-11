@@ -182,6 +182,19 @@ Arquetipo de comportamiento (asignado al azar en mint/hatch, metadata).
 Skittish = 0, Aggressive = 1, Lazy = 2, Curious = 3, Social = 4, Grumpy = 5
 ```
 
+### Role
+
+Rol de combate 3v3 heredable (50/50 padres en breeding, al azar en mint), NOT part of genetic string (metadata como Gender/Personality). Mapped 1:1 a RoleTableSO con modificadores de stats + efectos tácticos.
+
+```
+Protector = 0, Agresivo = 1, Empatico = 2
+```
+
+**Descripción:**
+- `Protector` — Tanque: +CON, escudos al equipo (Protector), +DEF playstyle
+- `Agresivo` — Pegador: +ATK/+SPD, caza la backline (rol ofensivo)
+- `Empatico` — Soporte: +SPD, convierte daño en cura (soporte defensivo)
+
 ### CreatureIntent
 
 Verbo visible en NameTag (lo que ESTÁ HACIENDO ahora).
@@ -215,6 +228,19 @@ Resultado de pelea (POV de criatura).
 ```
 Won = 0, Lost = 1, Draw = 2
 ```
+
+### CombatRow
+
+Fila que ocupa un combatiente en grid 2-3-2 de combate 3v3.
+
+```
+Front = 0, Mid = 1, Back = 2
+```
+
+**Descripción:**
+- `Front` — Primera línea (tanques, primera defensa)
+- `Mid` — Segunda línea (soporte, posición media)
+- `Back` — Tercera línea (atacantes, riesgo alto-recompensa)
 
 ### MMAnimationType
 
@@ -254,7 +280,7 @@ Tipos de efectos de procs en combate.
 
 ```
 ReturnDamage = 0, Heal = 1, Poison = 2, Burn = 3, Stun = 4, Regen = 5,
-Synergy = 6, Static = 7, Pulse = 8, Steel = 9, Mist = 10, Lifesteal = 11
+Synergy = 6, Static = 7, Pulse = 8, Steel = 9, Mist = 10, Lifesteal = 11, Shield = 12
 ```
 
 **Descripción por tipo:**
@@ -270,8 +296,11 @@ Synergy = 6, Static = 7, Pulse = 8, Steel = 9, Mist = 10, Lifesteal = 11
 - `Steel` — Suma DEF, estado emergente (S35)
 - `Mist` — Suma EVA, estado emergente (S35)
 - `Lifesteal` — % del daño vuelve como cura, estado emergente (S35)
+- `Shield` — Escudo al equipo, rol Protector (S37)
 
 **ACTUALIZADO S35:** 4 elementos nuevos (Static, Pulse, Steel, Mist) + Lifesteal como estado emergente. Se aplican como stacks vía equipment procs y se activan dinámicamente en Combatant properties (EffDefense, EffEvasion, EffSpeed, LifestealPercent).
+
+**ACTUALIZADO S37:** Nuevo `Shield = 12` para efectos de rol Protector (escudo por turno a aliado).
 
 ### CombatPopupKind
 
@@ -279,7 +308,7 @@ Tipos de popups flotantes (visualización de replay).
 
 ```
 Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun, Synergy,
-Static, Pulse, Steel, Mist, Lifesteal
+Static, Pulse, Steel, Mist, Lifesteal, Shield
 ```
 
 **Propósito:** Mapea cada tipo de evento visual a un color/label en `CombatPopupPaletteSO` y `CombatDamageNumbers`. Es el intermediario entre `ModifierEffectKind` (simulación) y la visualización UI.
@@ -291,6 +320,7 @@ Static, Pulse, Steel, Mist, Lifesteal
 - `Stun` — aturdimiento (solo texto, sin número de daño)
 - `Synergy` — receta de sinergia disparada (solo texto, S32)
 - `Static`, `Pulse`, `Steel`, `Mist`, `Lifesteal` — elementos nuevos (solo texto visual, S35)
+- `Shield` — escudo aplicado (solo texto visual, S37)
 
 **Consumido por:**
 - `CombatPopupPaletteSO.colors` — diccionario tipo → color
@@ -334,6 +364,20 @@ Prácticamente todo el codebase. Los enums son la base de type-safety.
 **NUEVOS en CombatPopupKind:** mismo set + 5 entradas de visualización (Static, Pulse, Steel, Mist, Lifesteal).
 
 **Impacto:** Los stacks de elementos no solo aplican daño/cura en turno, sino que actúan como modificadores dinámicos de stats durante la simulación. No hay rolls nuevos.
+
+## Cambios Sesión 37
+
+**NUEVOS enums:**
+- `Role = Protector | Agresivo | Empatico` — rol heredable de combate 3v3, metadata NO genética
+- `CombatRow = Front | Mid | Back` — filas del grid 2-3-2
+
+**NUEVOS en ModifierEffectKind:**
+- `Shield = 12` — escudo al equipo vía rol Protector (ShieldPerTurn)
+
+**NUEVOS en CombatPopupKind:**
+- `Shield` — visualización de escudo aplicado
+
+**Impacto:** Cambio de 1v1 → 3v3 team-based. Los enums Role y CombatRow son centrales al nuevo modelo de combate.
 
 ## Notas
 

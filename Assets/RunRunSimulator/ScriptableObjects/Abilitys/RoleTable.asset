@@ -1,0 +1,157 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 704861474ca49c840a499c9e4420fdaf, type: 3}
+  m_Name: RoleTable
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.RoleTableSO
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: Profiles
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.Role,
+        Assembly-CSharp],[MoriMonchiSimulator.RoleProfile, Assembly-CSharp]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.Role,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 0
+    - Name: $v
+      Entry: 7
+      Data: 2|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
+    - Name: ConMod
+      Entry: 4
+      Data: 4
+    - Name: AtkMod
+      Entry: 4
+      Data: -2
+    - Name: SpdMod
+      Entry: 4
+      Data: -2
+    - Name: ShieldPerTurn
+      Entry: 4
+      Data: 1
+    - Name: BacklineHitChance
+      Entry: 4
+      Data: 0
+    - Name: HealPercentOfDamage
+      Entry: 4
+      Data: 0
+    - Name: PriceModifier
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 7
+      Data: 3|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
+    - Name: ConMod
+      Entry: 4
+      Data: -3
+    - Name: AtkMod
+      Entry: 4
+      Data: 2
+    - Name: SpdMod
+      Entry: 4
+      Data: 1
+    - Name: ShieldPerTurn
+      Entry: 4
+      Data: 0
+    - Name: BacklineHitChance
+      Entry: 4
+      Data: 0.5
+    - Name: HealPercentOfDamage
+      Entry: 4
+      Data: 0
+    - Name: PriceModifier
+      Entry: 4
+      Data: -0.1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 7
+      Data: 4|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
+    - Name: ConMod
+      Entry: 4
+      Data: 1
+    - Name: AtkMod
+      Entry: 4
+      Data: -3
+    - Name: SpdMod
+      Entry: 4
+      Data: 2
+    - Name: ShieldPerTurn
+      Entry: 4
+      Data: 0
+    - Name: BacklineHitChance
+      Entry: 4
+      Data: 0
+    - Name: HealPercentOfDamage
+      Entry: 4
+      Data: 0.5
+    - Name: PriceModifier
+      Entry: 4
+      Data: 0.1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 

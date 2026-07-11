@@ -4,284 +4,544 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Deterministic turn-based combat simulator: same seed + same DNA snapshots
-// always produce the same CombatResult (and therefore the same CombatRecord)
-// on any client, local or async. All randomness is drawn from an injected
-// CombatRng — never UnityEngine.Random.
-// Fixed roll order, per attacker's turn, each round: tick active statuses →
+// Deterministic team-based combat simulator (3v3, tolerates 1..3 per side):
+// same seed + same DNA snapshots + same rows always produce the same
+// CombatResult (and therefore the same CombatRecord) on any client, local or
+// async. All randomness is drawn from an injected CombatRng — never
+// UnityEngine.Random.
+//
+// Fixed roll order, per round: one speed tiebreak roll PER ALIVE UNIT (both
+// teams, in fixed A0..An,B0..Bn order) BEFORE sorting the turn order — this
+// keeps rng consumption constant regardless of who is faster. Units then act
+// in (EffSpeed desc, tiebreak desc, side A-before-B, Index asc) order. Per
+// turn: tick active statuses → (Agresivo role: roll backline chance → pick
+// backline target if it lands, else pick frontline) / plain pick frontline →
 // fire passive procs → stun check (skip turn if stunned, grant wake-up
-// immunity when the stun just expired, otherwise consume one immunity turn)
-// → roll offensive procs → evasion → crit → on-connect resolves the rolled
-// offensive procs plus the defender's defensive procs. Both combatants take
-// their turn (higher Speed first) every round until someone reaches 0 HP,
-// then: evolution roll → death roll. Combat procs come from equipment
+// immunity when the stun just expired) → Protector role: pick an ally and
+// grant it Shield (no roll cost when ShieldPerTurn is 0) → roll offensive
+// procs → evasion roll → crit roll → on-connect damage, Shield absorbs first
+// → Empático role: heal the lowest-HP ally for a % of the damage dealt (no
+// roll) → lifesteal → on-connect resolves the rolled offensive procs plus
+// the defender's defensive procs. Every alive unit takes its turn once per
+// round until a team is fully wiped, then: pick one alive winner (uniform)
+// → CombatEvolution.TryEvolveRandomSlot roll → pick one loser unit (KO or
+// not, uniform) → DeathChance roll. Combat procs come from equipment
 // (CombatProcEffect) and act through ICombatContext / CombatResolver, which
 // also owns the anti-permastun guard (no re-stun while already stunned,
-// wake-up immunity window) and status stacking.
+// wake-up immunity window), status stacking and synergy detonation.
 // SimulateCore is the pure deterministic core: no registry, no validation, no
 // CombatRecord writes — it only mutates the CreatureDNA it's given, so async
 // combat can run it against ephemeral DNA snapshots on both clients and land
-// on an identical record. Simulate is the local wrapper: registry validation,
-// then SimulateCore, then BuildRecord appends a CombatRecord to both live
-// DNA's CombatHistory. BuildRecord is also used by the async flow to build
-// each side's record from the shared seeded result.
+// on an identical record. Simulate is the local wrapper: registry
+// validation + row-lineup validation, then SimulateCore, then BuildRecord
+// appends a CombatRecord to every live DNA's CombatHistory. BuildRecord is
+// also used by the async flow to build each side's record from the shared
+// seeded result.
 public static class CombatService
 {
+    private static readonly int[] DefaultLineup = { (int)CombatRow.Front, (int)CombatRow.Front, (int)CombatRow.Mid };
+
     public static CombatResult Simulate(
-        string              idA,
-        string              idB,
+        List<string>        idsA,
+        List<string>        idsB,
+        List<int>           rowsA,
+        List<int>           rowsB,
         CreatureRegistrySO  registry,
         CreatureDatabaseSO  db,
         CombatManagerSO     config,
         EquipmentDatabaseSO equipDb,
         int                 seed)
     {
-        if (!registry.TryGet(idA, out var dnaA))
+        if (idsA == null || idsB == null)
         {
-            Debug.LogError($"[CombatService] ID '{idA}' not found in registry.");
+            Debug.LogError("[CombatService] Team lists cannot be null.");
             return null;
         }
-        if (!registry.TryGet(idB, out var dnaB))
+        if (idsA.Count != idsB.Count)
         {
-            Debug.LogError($"[CombatService] ID '{idB}' not found in registry.");
+            Debug.LogError($"[CombatService] Both teams must have the same size (A:{idsA.Count} B:{idsB.Count}).");
             return null;
         }
-        if (dnaA.IsDead || dnaB.IsDead)
+        if (idsA.Count < 1 || idsA.Count > 3)
         {
-            Debug.LogError("[CombatService] Cannot simulate combat: one or both creatures are dead.");
+            Debug.LogError($"[CombatService] Team size must be 1-3, got {idsA.Count}.");
             return null;
         }
-        if (dnaA.IsBusy || dnaB.IsBusy)
+
+        var allIds = new List<string>(idsA);
+        allIds.AddRange(idsB);
+        var seenIds = new HashSet<string>();
+        foreach (var id in allIds)
         {
-            Debug.LogError("[CombatService] Cannot simulate combat: one or both creatures are busy (queued for async combat).");
-            return null;
+            if (!seenIds.Add(id))
+            {
+                Debug.LogError($"[CombatService] Duplicate creature ID '{id}' across the two teams.");
+                return null;
+            }
         }
-        if (dnaA.FightCount >= config.MaxFightCount)
-        {
-            Debug.LogError($"[CombatService] '{idA}' has no fights remaining ({dnaA.FightCount}/{config.MaxFightCount}).");
-            return null;
-        }
-        if (dnaB.FightCount >= config.MaxFightCount)
-        {
-            Debug.LogError($"[CombatService] '{idB}' has no fights remaining ({dnaB.FightCount}/{config.MaxFightCount}).");
-            return null;
-        }
+
+        var dnasA = new List<CreatureDNA>();
+        var dnasB = new List<CreatureDNA>();
+        if (!ValidateTeam(idsA, registry, config, dnasA)) return null;
+        if (!ValidateTeam(idsB, registry, config, dnasB)) return null;
+
+        if (!ResolveRows(idsA.Count, rowsA, out var resolvedRowsA)) return null;
+        if (!ResolveRows(idsB.Count, rowsB, out var resolvedRowsB)) return null;
 
         var rng    = new CombatRng(seed);
-        var result = SimulateCore(dnaA, dnaB, db, config, equipDb, rng);
+        var result = SimulateCore(dnasA, dnasB, resolvedRowsA, resolvedRowsB, db, config, equipDb, rng);
         if (result == null) return null;
 
-        var date = System.DateTime.UtcNow;
-        dnaA.CombatHistory ??= new List<CombatRecord>();
-        dnaB.CombatHistory ??= new List<CombatRecord>();
-        dnaA.CombatHistory.Add(BuildRecord(result, dnaA, dnaB, true,  "", "", seed, date));
-        dnaB.CombatHistory.Add(BuildRecord(result, dnaB, dnaA, false, "", "", seed, date));
+        var date = DateTime.UtcNow;
+        foreach (var dna in dnasA)
+        {
+            dna.CombatHistory ??= new List<CombatRecord>();
+            dna.CombatHistory.Add(BuildRecord(result, dnasA, dnasB, dna, true, "", "", seed, date));
+        }
+        foreach (var dna in dnasB)
+        {
+            dna.CombatHistory ??= new List<CombatRecord>();
+            dna.CombatHistory.Add(BuildRecord(result, dnasB, dnasA, dna, false, "", "", seed, date));
+        }
         return result;
     }
 
+    private static bool ValidateTeam(List<string> ids, CreatureRegistrySO registry, CombatManagerSO config, List<CreatureDNA> outDnas)
+    {
+        foreach (var id in ids)
+        {
+            if (!registry.TryGet(id, out var dna))
+            {
+                Debug.LogError($"[CombatService] ID '{id}' not found in registry.");
+                return false;
+            }
+            if (dna.IsDead)
+            {
+                Debug.LogError($"[CombatService] Cannot simulate combat: '{id}' is dead.");
+                return false;
+            }
+            if (dna.IsBusy)
+            {
+                Debug.LogError($"[CombatService] Cannot simulate combat: '{id}' is busy (queued for async combat).");
+                return false;
+            }
+            if (dna.FightCount >= config.MaxFightCount)
+            {
+                Debug.LogError($"[CombatService] '{id}' has no fights remaining ({dna.FightCount}/{config.MaxFightCount}).");
+                return false;
+            }
+            outDnas.Add(dna);
+        }
+        return true;
+    }
+
+    private static bool ResolveRows(int count, List<int> rows, out List<int> resolved)
+    {
+        resolved = new List<int>();
+        if (rows == null)
+        {
+            for (int i = 0; i < count; i++) resolved.Add(DefaultLineup[i]);
+            return true;
+        }
+        if (rows.Count != count)
+        {
+            Debug.LogError($"[CombatService] Row list size ({rows.Count}) must match team size ({count}).");
+            return false;
+        }
+
+        int front = 0, mid = 0, back = 0;
+        foreach (var r in rows)
+        {
+            switch ((CombatRow)r)
+            {
+                case CombatRow.Front: front++; break;
+                case CombatRow.Mid:   mid++;   break;
+                case CombatRow.Back:  back++;  break;
+            }
+            resolved.Add(r);
+        }
+        if (front > 2 || mid > 3 || back > 2)
+        {
+            Debug.LogError($"[CombatService] Row lineup exceeds grid capacity (Front≤2, Mid≤3, Back≤2). Got Front:{front} Mid:{mid} Back:{back}.");
+            return false;
+        }
+        return true;
+    }
+
     public static CombatResult SimulateCore(
-        CreatureDNA         dnaA,
-        CreatureDNA         dnaB,
+        List<CreatureDNA>   teamA,
+        List<CreatureDNA>   teamB,
+        List<int>           rowsA,
+        List<int>           rowsB,
         CreatureDatabaseSO  db,
         CombatManagerSO     config,
         EquipmentDatabaseSO equipDb,
         CombatRng           rng)
     {
         var result = new CombatResult();
-        var A = BuildCombatant(dnaA, db, equipDb, true);
-        var B = BuildCombatant(dnaB, db, equipDb, false);
-        result.StatsA = Snapshot(A);
-        result.StatsB = Snapshot(B);
+
+        var A = new List<Combatant>();
+        for (int i = 0; i < teamA.Count; i++)
+            A.Add(BuildCombatant(teamA[i], db, equipDb, true, i, (CombatRow)rowsA[i], config.Roles));
+        var B = new List<Combatant>();
+        for (int i = 0; i < teamB.Count; i++)
+            B.Add(BuildCombatant(teamB[i], db, equipDb, false, i, (CombatRow)rowsB[i], config.Roles));
+
+        foreach (var c in A) result.TeamA.Add(Snapshot(c));
+        foreach (var c in B) result.TeamB.Add(Snapshot(c));
 
         result.Log.Add("=== COMBAT START ===");
-        result.Log.Add($"[A] \"{A.Name}\"  {Clip(dnaA.UniqueID)}  HP:{A.MaxHp:F1}  ATK:{A.Attack:F1}  SPD:{A.Speed:F1}  DEF:{A.Defense:F0}  LCK:{A.Luck:F0}  EVA:{A.Evasion:F0}");
-        result.Log.Add($"[B] \"{B.Name}\"  {Clip(dnaB.UniqueID)}  HP:{B.MaxHp:F1}  ATK:{B.Attack:F1}  SPD:{B.Speed:F1}  DEF:{B.Defense:F0}  LCK:{B.Luck:F0}  EVA:{B.Evasion:F0}");
+        foreach (var c in A)
+            result.Log.Add($"[A{c.Index}] \"{c.Name}\" ({c.Role}, {c.Row})  HP:{c.MaxHp:F1}  ATK:{c.Attack:F1}  SPD:{c.Speed:F1}  DEF:{c.Defense:F0}  LCK:{c.Luck:F0}  EVA:{c.Evasion:F0}");
+        foreach (var c in B)
+            result.Log.Add($"[B{c.Index}] \"{c.Name}\" ({c.Role}, {c.Row})  HP:{c.MaxHp:F1}  ATK:{c.Attack:F1}  SPD:{c.Speed:F1}  DEF:{c.Defense:F0}  LCK:{c.Luck:F0}  EVA:{c.Evasion:F0}");
 
         var resolver = new CombatResolver { Result = result, Synergies = config.Synergies };
-        bool someoneKO = false;
+        bool wiped = false;
 
         for (int round = 1; round <= config.MaxRounds; round++)
         {
-            bool aFirst = A.EffSpeed > B.EffSpeed ||
-                          (Mathf.Approximately(A.EffSpeed, B.EffSpeed) && rng.NextFloat() < 0.5f);
+            var order = BuildTurnOrder(A, B, rng);
 
-            result.Log.Add($"--- Round {round} (first: {(aFirst ? "A" : "B")}) ---");
+            var orderLabels = new List<string>();
+            foreach (var c in order) orderLabels.Add($"{(c.IsA ? "A" : "B")}{c.Index}");
+            result.Log.Add($"--- Round {round} ---");
+            result.Log.Add($"    order: {string.Join(" ", orderLabels)}");
 
-            var first  = aFirst ? A : B;
-            var second = aFirst ? B : A;
+            foreach (var actor in order)
+            {
+                if (!actor.IsAlive) continue;
+                if (AllDead(A) || AllDead(B)) { wiped = true; break; }
 
-            if (TakeTurn(first,  second, config, result, round, resolver, rng)) { someoneKO = true; break; }
-            if (TakeTurn(second, first,  config, result, round, resolver, rng)) { someoneKO = true; break; }
+                var allies  = actor.IsA ? A : B;
+                var enemies = actor.IsA ? B : A;
+                TakeTurn(actor, allies, enemies, config, result, round, resolver, rng, A, B);
+
+                if (AllDead(A) || AllDead(B)) { wiped = true; break; }
+            }
+
+            if (wiped) break;
         }
 
-        if (!someoneKO)
+        if (!wiped)
         {
             result.IsDraw = true;
-            dnaA.FightCount++;
-            dnaB.FightCount++;
-            result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. A:{A.Hp:F1}HP  B:{B.Hp:F1}HP ===");
-            result.Log.Add("[DRAW] No consequences for either fighter.");
+            foreach (var dna in teamA) dna.FightCount++;
+            foreach (var dna in teamB) dna.FightCount++;
+            result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. {TeamHpSummary(A)} | {TeamHpSummary(B)} ===");
+            result.Log.Add("[DRAW] No consequences for either team.");
             result.Log.Add("=== COMBAT END === DRAW");
             return result;
         }
 
-        bool aWins  = A.Hp > 0f;
-        var  winner = aWins ? dnaA : dnaB;
-        var  loser  = aWins ? dnaB : dnaA;
+        result.TeamAWon = AllDead(B);
+        var winnerCombatants = result.TeamAWon ? A : B;
+        var loserCombatants  = result.TeamAWon ? B : A;
 
-        result.WinnerID   = winner.UniqueID;
-        result.LoserID    = loser.UniqueID;
-        result.WinnerName = winner.CustomName;
-        result.LoserName  = loser.CustomName;
-        string winnerLabel = aWins ? $"A \"{dnaA.CustomName}\"" : $"B \"{dnaB.CustomName}\"";
-        result.Log.Add($"=== KO === {winnerLabel} wins | A:{Mathf.Max(0f, A.Hp):F1}HP  B:{Mathf.Max(0f, B.Hp):F1}HP ===");
+        result.Log.Add($"=== WIPE === Team {(result.TeamAWon ? "A" : "B")} wins | {TeamHpSummary(A)} | {TeamHpSummary(B)} ===");
 
-        winner.FightCount++;
-        winner.WinCount++;
-        loser.FightCount++;
+        foreach (var dna in teamA) dna.FightCount++;
+        foreach (var dna in teamB) dna.FightCount++;
+        foreach (var dna in (result.TeamAWon ? teamA : teamB)) dna.WinCount++;
 
-        result.EvolvedSlot   = CombatEvolution.TryEvolveRandomSlot(winner, rng);
-        result.WinnerEvolved = result.EvolvedSlot != null;
-        result.Log.Add(result.WinnerEvolved
-            ? $"[EVOLUTION] \"{winner.CustomName}\" — {result.EvolvedSlot} evolved to Tier{CombatEvolution.GetSlotTier(winner, result.EvolvedSlot)}!"
-            : $"[EVOLUTION] \"{winner.CustomName}\" — all parts already at max Tier.");
-
-        if (rng.NextFloat() < config.DeathChance)
+        string evolvedLine = "";
+        var evoCandidates = new List<Combatant>();
+        foreach (var c in winnerCombatants) if (c.IsAlive) evoCandidates.Add(c);
+        if (evoCandidates.Count > 0)
         {
-            loser.IsDead     = true;
-            result.LoserDied = true;
-            result.Log.Add("[DEATH] Loser has perished permanently.");
+            var unit = evoCandidates[rng.Range(0, evoCandidates.Count)];
+            result.EvolvedSlot = CombatEvolution.TryEvolveRandomSlot(unit.Dna, rng);
+            if (result.EvolvedSlot != null)
+            {
+                result.EvolvedUnitId   = unit.Dna.UniqueID;
+                result.EvolvedUnitName = unit.Dna.CustomName;
+                evolvedLine = $" | Evolved: \"{unit.Name}\" {result.EvolvedSlot} → Tier{CombatEvolution.GetSlotTier(unit.Dna, result.EvolvedSlot)}";
+                result.Log.Add($"[EVOLUTION] \"{unit.Name}\" — {result.EvolvedSlot} evolved to Tier{CombatEvolution.GetSlotTier(unit.Dna, result.EvolvedSlot)}!");
+            }
+            else
+            {
+                result.Log.Add($"[EVOLUTION] \"{unit.Name}\" — all parts already at max Tier.");
+            }
         }
 
-        string evolvedLine = result.WinnerEvolved ? $" | Evolved: {result.EvolvedSlot} → Tier{CombatEvolution.GetSlotTier(winner, result.EvolvedSlot)}" : "";
-        result.Log.Add($"=== COMBAT END === Winner: \"{winner.CustomName}\"  {winner.UniqueID}{evolvedLine}");
+        string diedLine = "";
+        if (loserCombatants.Count > 0)
+        {
+            var unit = loserCombatants[rng.Range(0, loserCombatants.Count)];
+            if (rng.NextFloat() < config.DeathChance)
+            {
+                unit.Dna.IsDead     = true;
+                result.DiedUnitId   = unit.Dna.UniqueID;
+                result.DiedUnitName = unit.Dna.CustomName;
+                diedLine = $" | Died: \"{unit.Name}\"";
+                result.Log.Add($"[DEATH] \"{unit.Name}\" ha muerto permanentemente.");
+            }
+            else
+            {
+                result.Log.Add($"[DEATH] \"{unit.Name}\" survives the death roll.");
+            }
+        }
 
+        result.Log.Add($"=== COMBAT END === Winner: Team {(result.TeamAWon ? "A" : "B")}{evolvedLine}{diedLine}");
         return result;
     }
 
-    public static CombatRecord BuildRecord(CombatResult result, CreatureDNA self, CreatureDNA opponent,
-        bool selfWasA, string opponentPlayerName, string opponentPlayerId, int seed, System.DateTime date)
+    public static CombatRecord BuildRecord(
+        CombatResult       result,
+        List<CreatureDNA>  selfTeam,
+        List<CreatureDNA>  opponentTeam,
+        CreatureDNA        self,
+        bool               selfWasA,
+        string             opponentPlayerName,
+        string             opponentPlayerId,
+        int                seed,
+        DateTime           date)
     {
-        bool won = !result.IsDraw && result.WinnerID == self.UniqueID;
+        bool won = !result.IsDraw && (selfWasA == result.TeamAWon);
+
+        var opponentNames = new List<string>();
+        foreach (var dna in opponentTeam) opponentNames.Add(dna.CustomName);
+
+        var selfTeamIds = new List<string>();
+        foreach (var dna in selfTeam) selfTeamIds.Add(dna.UniqueID);
+        var opponentTeamIds = new List<string>();
+        foreach (var dna in opponentTeam) opponentTeamIds.Add(dna.UniqueID);
+
         return new CombatRecord
         {
-            OpponentName       = opponent.CustomName,
+            OpponentName       = string.Join(" · ", opponentNames),
             OpponentPlayerName = opponentPlayerName ?? "",
             OpponentPlayerId   = opponentPlayerId ?? "",
-            OpponentDnaId      = opponent.UniqueID,
+            OpponentDnaId      = "",
             Seed               = seed,
             Date               = date,
             Outcome            = result.IsDraw ? CombatOutcome.Draw : (won ? CombatOutcome.Won : CombatOutcome.Lost),
-            Died               = !won && !result.IsDraw && result.LoserDied,
-            EvolvedSlot        = won ? result.EvolvedSlot : null,
-            SelfStats          = selfWasA ? result.StatsA : result.StatsB,
-            OpponentStats      = selfWasA ? result.StatsB : result.StatsA,
+            Died               = result.DiedUnitId == self.UniqueID,
+            EvolvedSlot        = result.EvolvedUnitId == self.UniqueID ? result.EvolvedSlot : null,
+            SelfStats          = null,
+            OpponentStats      = null,
             SelfWasA           = selfWasA,
             Turns              = result.Turns,
+            SelfTeam           = selfWasA ? result.TeamA : result.TeamB,
+            OpponentTeam       = selfWasA ? result.TeamB : result.TeamA,
+            SelfTeamIds        = selfTeamIds,
+            OpponentTeamIds    = opponentTeamIds,
         };
+    }
+
+    // ── Turn order ─────────────────────────────────────────────────
+
+    private static List<Combatant> BuildTurnOrder(List<Combatant> A, List<Combatant> B, CombatRng rng)
+    {
+        var order = new List<Combatant>();
+        foreach (var c in A) if (c.IsAlive) order.Add(c);
+        foreach (var c in B) if (c.IsAlive) order.Add(c);
+
+        var tiebreak = new Dictionary<Combatant, float>();
+        foreach (var c in order) tiebreak[c] = rng.NextFloat();
+
+        order.Sort((x, y) =>
+        {
+            int cmp = y.EffSpeed.CompareTo(x.EffSpeed);
+            if (cmp != 0) return cmp;
+            cmp = tiebreak[y].CompareTo(tiebreak[x]);
+            if (cmp != 0) return cmp;
+            cmp = (x.IsA ? 0 : 1).CompareTo(y.IsA ? 0 : 1);
+            if (cmp != 0) return cmp;
+            return x.Index.CompareTo(y.Index);
+        });
+
+        return order;
+    }
+
+    private static bool AllDead(List<Combatant> team)
+    {
+        foreach (var c in team) if (c.IsAlive) return false;
+        return true;
+    }
+
+    private static Combatant FirstAlive(List<Combatant> team)
+    {
+        foreach (var c in team) if (c.IsAlive) return c;
+        return null;
+    }
+
+    private static string TeamHpSummary(List<Combatant> team)
+    {
+        var parts = new List<string>();
+        foreach (var c in team) parts.Add($"{(c.IsA ? "A" : "B")}{c.Index}:{Mathf.Max(0f, c.Hp):F1}HP");
+        return string.Join(" ", parts);
     }
 
     // ── Turn ───────────────────────────────────────────────────────
 
-    // Returns true if combat should end (someone reached 0 HP).
-    private static bool TakeTurn(Combatant atk, Combatant def, CombatManagerSO config, CombatResult result, int round, CombatResolver r, CombatRng rng)
+    private static void TakeTurn(Combatant actor, List<Combatant> allies, List<Combatant> enemies,
+        CombatManagerSO config, CombatResult result, int round, CombatResolver r, CombatRng rng,
+        List<Combatant> teamA, List<Combatant> teamB)
     {
         var procs = new List<CombatProcEvent>();
         r.TurnProcs = procs;
 
-        result.Log.Add($"  » Turno de {atk.Name}");
+        result.Log.Add($"  » Turno de {(actor.IsA ? "A" : "B")}{actor.Index} \"{actor.Name}\"");
 
         r.BeforeStrike = true;
-        TickStatuses(atk, result, r);
-        if (atk.Hp <= 0f)
+        TickStatuses(actor, result, r);
+        if (actor.Hp <= 0f)
         {
-            result.Log.Add($"    [{atk.Name}] succumbs to its afflictions.");
-            EmitTurn(result, round, atk, def, true, 0f, false, def.Hp, procs);
-            return true;
+            result.Log.Add($"    [{actor.Name}] succumbs to its afflictions.");
+            var fallbackTarget = FirstAlive(enemies);
+            EmitTurn(result, round, actor, fallbackTarget, true, 0f, false, fallbackTarget.Hp, fallbackTarget.Shield, procs, teamA, teamB);
+            return;
         }
 
-        FireProcs(atk, def, TriggerType.Passive, result, r, true, rng);
-        if (atk.Hp <= 0f || def.Hp <= 0f)
+        var profile = config.Roles != null ? config.Roles.GetProfile(actor.Role) : null;
+        Combatant target;
+        if (profile != null && profile.BacklineHitChance > 0f)
         {
-            EmitTurn(result, round, atk, def, true, 0f, false, def.Hp, procs);
-            return true;
+            float aggroRoll = rng.NextFloat();
+            if (aggroRoll < profile.BacklineHitChance)
+            {
+                var back = CombatTargeting.PickBacklineTarget(enemies, rng);
+                if (back != null)
+                {
+                    target = back;
+                    result.Log.Add($"    [Agresivo] {actor.Name} caza la backline");
+                }
+                else
+                {
+                    result.Log.Add("    [Agresivo] sin backline — comparte energía (sin efecto)");
+                    target = CombatTargeting.PickFrontTarget(enemies, rng);
+                }
+            }
+            else
+            {
+                target = CombatTargeting.PickFrontTarget(enemies, rng);
+            }
+        }
+        else
+        {
+            target = CombatTargeting.PickFrontTarget(enemies, rng);
         }
 
-        if (atk.StunTurns > 0)
+        r.Self = actor;
+        r.Opponent = target;
+        FireProcs(actor, target, TriggerType.Passive, result, r, true, rng);
+        if (actor.Hp <= 0f || target.Hp <= 0f)
         {
-            atk.StunTurns--;
-            if (atk.StunTurns == 0) atk.StunImmunityTurns = config.StunImmunityTurns;
-            result.Log.Add($"    [{atk.Name}] is stunned — skips turn ({atk.StunTurns} left)");
-            r.Record(ModifierEffectKind.Stun, atk, atk.StunTurns + 1);
-            EmitTurn(result, round, atk, def, true, 0f, false, def.Hp, procs);
-            return false;
+            EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
+            return;
         }
-        if (atk.StunImmunityTurns > 0) atk.StunImmunityTurns--;
+
+        if (actor.StunTurns > 0)
+        {
+            actor.StunTurns--;
+            if (actor.StunTurns == 0) actor.StunImmunityTurns = config.StunImmunityTurns;
+            result.Log.Add($"    [{actor.Name}] is stunned — skips turn ({actor.StunTurns} left)");
+            r.Record(ModifierEffectKind.Stun, actor, actor.StunTurns + 1);
+            EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
+            return;
+        }
+        if (actor.StunImmunityTurns > 0) actor.StunImmunityTurns--;
+
+        if (profile != null && profile.ShieldPerTurn > 0f)
+        {
+            var ally = CombatTargeting.PickAlly(allies, rng);
+            ally.Shield += profile.ShieldPerTurn;
+            result.Log.Add($"    [Protector] {actor.Name} escuda a {ally.Name} +{profile.ShieldPerTurn:F0} (escudo {ally.Shield:F0})");
+            r.Record(ModifierEffectKind.Shield, ally, profile.ShieldPerTurn);
+        }
 
         var armed = new List<CombatProcEffect>();
-        foreach (var p in atk.Procs)
-            if (p.Trigger == TriggerType.Offensive && RollProc(p, atk, result, rng))
+        foreach (var p in actor.Procs)
+            if (p.Trigger == TriggerType.Offensive && RollProc(p, actor, result, rng))
                 armed.Add(p);
 
-        float evaChance = def.EffEvasion * config.EvasionPerPoint;
+        float evaChance = target.EffEvasion * config.EvasionPerPoint;
         float evaRoll   = rng.NextFloat();
         bool  dodged    = evaRoll < evaChance;
-        bool  crit       = false;
-        float critChance = 0f;
-        float critRoll   = 1f;
-        float damage     = 0f;
+        bool  crit        = false;
+        float critChance  = 0f;
+        float critRoll    = 1f;
+        float damage      = 0f;
+        float absorbed    = 0f;
         if (!dodged)
         {
-            critChance      = config.CritChance + atk.Luck * config.LuckCritPerPoint;
+            critChance      = config.CritChance + actor.Luck * config.LuckCritPerPoint;
             critRoll        = rng.NextFloat();
-            crit            = critRoll < critChance;
-            float raw       = atk.Attack * (crit ? config.CritMultiplier : 1f);
-            float reduction = Mathf.Clamp01(def.EffDefense * config.DefenseReductionPerPoint);
+            crit             = critRoll < critChance;
+            float raw       = actor.Attack * (crit ? config.CritMultiplier : 1f);
+            float reduction = Mathf.Clamp01(target.EffDefense * config.DefenseReductionPerPoint);
             damage          = raw * (1f - reduction);
-            def.Hp          = Mathf.Max(0f, def.Hp - damage);
+            absorbed        = Mathf.Min(target.Shield, damage);
+            target.Shield  -= absorbed;
+            target.Hp       = Mathf.Max(0f, target.Hp - (damage - absorbed));
         }
-        float defHpAfterStrike = def.Hp;
+        float defHpAfterStrike    = target.Hp;
+        float defShieldAfterHit   = target.Shield;
 
-        string dir = atk.IsA ? "A→B" : "B→A";
+        string dir         = $"{(actor.IsA ? "A" : "B")}{actor.Index}→{(target.IsA ? "A" : "B")}{target.Index}";
+        string shieldNote  = absorbed > 0f ? $" (escudo -{absorbed:F1}, quedan {target.Shield:F1})" : "";
         result.Log.Add(dodged
-            ? $"    [{dir}] DODGE!  {def.Name} HP:{def.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}%)"
-            : $"    [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}  {def.Name} HP:{def.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}% · crit {critRoll * 100f:F0} vs {critChance * 100f:F0}%)");
+            ? $"    [{dir}] DODGE!  {target.Name} HP:{target.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}%)"
+            : $"    [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}{shieldNote}  {target.Name} HP:{target.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}% · crit {critRoll * 100f:F0} vs {critChance * 100f:F0}%)");
 
         r.BeforeStrike = false;
-        if (!dodged && damage > 0f && atk.LifestealPercent > 0f)
+
+        if (!dodged && damage > 0f && profile != null && profile.HealPercentOfDamage > 0f)
         {
-            float steal = damage * atk.LifestealPercent;
-            atk.Hp = Mathf.Min(atk.MaxHp, atk.Hp + steal);
-            result.Log.Add($"    [Lifesteal] {atk.Name} +{steal:F1} → {atk.Hp:F1}");
-            r.Record(ModifierEffectKind.Lifesteal, atk, steal);
-        }
-        if (!dodged && def.Hp > 0f)
-        {
-            foreach (var p in armed) { r.Self = atk; r.Opponent = def; p.Apply(r); }
-            FireProcs(def, atk, TriggerType.Defensive, result, r, true, rng);
+            var healTarget = CombatTargeting.LowestHpAlly(allies);
+            if (healTarget != null)
+            {
+                float heal = damage * profile.HealPercentOfDamage;
+                healTarget.Hp = Mathf.Min(healTarget.MaxHp, healTarget.Hp + heal);
+                result.Log.Add($"    [Empático] {actor.Name} cura a {healTarget.Name} +{heal:F1} → {healTarget.Hp:F1}");
+                r.Record(ModifierEffectKind.Heal, healTarget, heal);
+            }
         }
 
-        EmitTurn(result, round, atk, def, false, damage, crit, defHpAfterStrike, procs);
-        return atk.Hp <= 0f || def.Hp <= 0f;
+        if (!dodged && damage > 0f && actor.LifestealPercent > 0f)
+        {
+            float steal = damage * actor.LifestealPercent;
+            actor.Hp = Mathf.Min(actor.MaxHp, actor.Hp + steal);
+            result.Log.Add($"    [Lifesteal] {actor.Name} +{steal:F1} → {actor.Hp:F1}");
+            r.Record(ModifierEffectKind.Lifesteal, actor, steal);
+        }
+
+        if (!dodged && target.Hp > 0f)
+        {
+            foreach (var p in armed) { r.Self = actor; r.Opponent = target; p.Apply(r); }
+            FireProcs(target, actor, TriggerType.Defensive, result, r, true, rng);
+        }
+
+        EmitTurn(result, round, actor, target, false, damage, crit, defHpAfterStrike, defShieldAfterHit, procs, teamA, teamB);
     }
 
-    private static void EmitTurn(CombatResult result, int round, Combatant atk, Combatant def,
-        bool noAttack, float damage, bool crit, float defHp, List<CombatProcEvent> procs)
+    private static void EmitTurn(CombatResult result, int round, Combatant actor, Combatant target,
+        bool noAttack, float damage, bool crit, float defHpAfterStrike, float defShieldAfter,
+        List<CombatProcEvent> procs, List<Combatant> teamA, List<Combatant> teamB)
     {
-        result.Turns.Add(new CombatTurn
+        var turn = new CombatTurn
         {
-            TurnNumber      = round,
-            AttackerName    = atk.Name,
-            DefenderName    = def.Name,
-            AttackerIsA     = atk.IsA,
-            Damage          = damage,
-            WasCrit         = crit,
-            DefenderHpAfter = defHp,
-            NoAttack        = noAttack,
-            Procs           = procs,
-            StatusA         = CombatResolver.StatusMarks(atk.IsA ? atk : def),
-            StatusB         = CombatResolver.StatusMarks(atk.IsA ? def : atk),
-        });
+            TurnNumber          = round,
+            AttackerName        = actor.Name,
+            DefenderName        = target.Name,
+            AttackerIsA         = actor.IsA,
+            Damage              = damage,
+            WasCrit             = crit,
+            DefenderHpAfter     = defHpAfterStrike,
+            NoAttack            = noAttack,
+            Procs               = procs,
+            AttackerIndex       = actor.Index,
+            DefenderIndex       = target.Index,
+            DefenderShieldAfter = defShieldAfter,
+        };
+
+        foreach (var u in teamA)
+            turn.TeamStateA.Add(new CombatUnitState { Hp = Mathf.Max(0f, u.Hp), Shield = u.Shield, Marks = CombatResolver.StatusMarks(u) });
+        foreach (var u in teamB)
+            turn.TeamStateB.Add(new CombatUnitState { Hp = Mathf.Max(0f, u.Hp), Shield = u.Shield, Marks = CombatResolver.StatusMarks(u) });
+
+        result.Turns.Add(turn);
     }
 
     private static void TickStatuses(Combatant c, CombatResult result, CombatResolver r)
@@ -337,9 +597,10 @@ public static class CombatService
         _                     => "",
     };
 
-    private static Combatant BuildCombatant(CreatureDNA dna, CreatureDatabaseSO db, EquipmentDatabaseSO equipDb, bool isA)
+    private static Combatant BuildCombatant(CreatureDNA dna, CreatureDatabaseSO db, EquipmentDatabaseSO equipDb,
+        bool isA, int index, CombatRow row, RoleTableSO roles)
     {
-        var baseStats = CombatStats.GetEffectiveStats(dna, db);
+        var baseStats = CombatStats.GetEffectiveStats(dna, db, roles);
         var eff       = EquipmentStats.Apply(baseStats, dna, equipDb);
 
         var c = new Combatant
@@ -347,6 +608,10 @@ public static class CombatService
             Dna     = dna,
             Name    = dna.CustomName,
             IsA     = isA,
+            Role    = dna.Role,
+            Row     = row,
+            Index   = index,
+            Shield  = 0f,
             MaxHp   = eff.Constitution * CombatStats.BaseHpCombatMultiplier,
             Attack  = eff.Attack,
             Speed   = eff.Speed,
@@ -374,8 +639,6 @@ public static class CombatService
         return list;
     }
 
-    private static string Clip(string id) => id[..Mathf.Min(14, id.Length)];
-
     private static CombatFighterSnapshot Snapshot(Combatant c) => new CombatFighterSnapshot
     {
         MaxHp     = c.MaxHp,
@@ -389,6 +652,9 @@ public static class CombatService
         EyeTier   = (int)c.Dna.EyeTier,
         MouthTier = (int)c.Dna.MouthTier,
         ColorHex  = ColorUtility.ToHtmlStringRGB(c.Dna.BaseColor),
+        Name      = c.Name,
+        Role      = c.Role,
+        Row       = (int)c.Row,
     };
 
 }

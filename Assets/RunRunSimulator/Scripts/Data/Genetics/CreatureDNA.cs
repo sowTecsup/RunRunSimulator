@@ -40,6 +40,7 @@ public class CreatureDNA
     // Behavioral archetype — random at mint/hatch, NOT inherited, NOT in the
     // genetic string. Drives world movement (see MoriMochiAgent / PersonalityProfileSO).
     public Personality Personality = Personality.Curious;
+    public Role Role = Role.Protector;
 
     // ── Progression ───────────────────────────────────────────────
     public int FightCount = 0;

@@ -88,7 +88,7 @@ public class CombatResolver : ICombatContext
     public void Record(ModifierEffectKind kind, Combatant target, float amount)
         => TurnProcs?.Add(new CombatProcEvent
         {
-            Kind = kind, TargetIsA = target.IsA, Amount = amount,
+            Kind = kind, TargetIsA = target.IsA, TargetIndex = target.Index, Amount = amount,
             TargetHpAfter = target.Hp, BeforeStrike = BeforeStrike,
             TargetStatusAfter = StatusMarks(target),
         });

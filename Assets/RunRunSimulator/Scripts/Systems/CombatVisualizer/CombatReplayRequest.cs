@@ -20,9 +20,12 @@ public static class CombatReplayRequest
         return null;
     }
 
-    public static bool CanReplay(CreatureDNA self, CombatRecord rec, CreatureRegistrySO registry) =>
-        self != null && rec != null && rec.Turns != null && rec.Turns.Count > 0 &&
-        ResolveOpponent(rec, self, registry) != null;
+    public static bool CanReplay(CreatureDNA self, CombatRecord rec, CreatureRegistrySO registry)
+    {
+        if (rec != null && rec.SelfTeam != null) return false;
+        return self != null && rec != null && rec.Turns != null && rec.Turns.Count > 0 &&
+            ResolveOpponent(rec, self, registry) != null;
+    }
 
     public static void Request(CreatureDNA self, CombatRecord rec)
     {

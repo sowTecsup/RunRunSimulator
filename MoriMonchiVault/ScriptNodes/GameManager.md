@@ -6,9 +6,9 @@ tags: [script, core]
 
 **Ruta:** `Core/GameManager.cs`
 
-**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.OnRegistryChanged`, `OnFurnitureChanged`, `OnInventoryChanged` y ejecuta persistencia local/cloud. En AppQuit/AppPause, flush a cloud. **S34:** Nuevo método `FlushForSceneChange()` para flush antes de cambiar de escena sin perder estado. `MintRandomCreature()` genera partes/color/FurType, asigna personalidad y stats base, y registra. Dev tooling para inventario/genética vive en `GeneticsLabPreview`, `DevToolsConsole`. Getters actuales: `Registry`, `FurnitureRegistry`, `Inventory`, `Database`, `RarityOddsTable`, `PersonalityProfiles`, `PartVisualBank`, `FurTypeDatabase`, `EquipmentDatabase`.
+**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.OnRegistryChanged`, `OnFurnitureChanged`, `OnInventoryChanged` y ejecuta persistencia local/cloud. En AppQuit/AppPause, flush a cloud. **S34:** Nuevo método `FlushForSceneChange()` para flush antes de cambiar de escena sin perder estado. **S37:** `MintRandomCreature()` asigna `Role` aleatorio vía `CreatureGenerator.RandomRole()`. `MintRandomCreature()` genera partes/color/FurType, asigna personalidad y stats base, asigna role, y registra. Dev tooling para inventario/genética vive en `GeneticsLabPreview`, `DevToolsConsole`. Getters actuales: `Registry`, `FurnitureRegistry`, `Inventory`, `Database`, `RarityOddsTable`, `PersonalityProfiles`, `PartVisualBank`, `FurTypeDatabase`, `EquipmentDatabase`, `RoleProfiles` (S37).
 
-**Vinculado a:** [[Index/07 - Persistence & Identity]]
+**Vinculado a:** [[Index/07 - Persistence & Identity]], [[Index/13 - Combat Design Direction]]
 
 ## Métodos Públicos
 
@@ -17,7 +17,7 @@ tags: [script, core]
 | `PushToCloud()` | Fire-and-forget async push vía `CloudSyncService.PushAsync()` |
 | `FlushToCloud()` | Save local + push cloud; usado en `OnApplicationQuit/Pause` |
 | `FlushForSceneChange()` | **S34** Save local + push cloud ANTES de cambiar escena; patron identico a OnApplicationQuit |
-| `MintRandomCreature()` | Genera random creature, asigna stats, personalidad, nombre, registra |
+| `MintRandomCreature()` | **S37** Genera random creature, asigna stats, personalidad, **rol (S37)**, nombre, registra |
 
 ## Cambios S34 — FlushForSceneChange
 
@@ -33,7 +33,37 @@ public void FlushForSceneChange()
 
 **Uso:** `CombatReplayRequest.Request()` llama esto antes de `SceneManager.LoadScene(CombatSceneName)` para asegurar que el estado está sincronizado con cloud y disco antes de entrar a la escena de combate.
 
-**Patrón:** Identico a `OnApplicationQuit()` — recoge props sueltos y hace push. La escena de combate no necesita data de gameplay (solo CombatRecord ya persistido en CreatureDNA), pero el flush asegura que cualquier cambio reciente (equipo, inventario, etc.) no se pierda si algo falla durante el cambio.
+## Cambios S37 — MintRandomCreature con Role
+
+Actualizado para asignar rol aleatorio:
+
+```csharp
+public CreatureDNA MintRandomCreature()
+{
+    var dna = CreatureGenerator.GenerateRandom(Database, RarityOddsTable);
+    
+    // Stats base point-buy (18 puntos)
+    var (con, atk, spd) = CreatureGenerator.RandomBaseStats();
+    dna.BaseConstitution = con;
+    dna.BaseAttack = atk;
+    dna.BaseSpeed = spd;
+    
+    // Personalidad y rol no heredados, asignados al azar
+    dna.Personality = CreatureGenerator.RandomPersonality();
+    dna.Role = CreatureGenerator.RandomRole();  // **S37 NEW**
+    
+    // Nombre + registro
+    dna.CustomName = CreatureNameBank.GenerateName(dna, Database);
+    dna.Stamp();
+    Registry.Register(dna);
+    GameEvents.OnCreatureMinted(dna);
+    GameEvents.OnRegistryChanged(Registry);
+    
+    return dna;
+}
+```
+
+**Impacto:** Cada criatura mint tiene rol aleatorio 1/3. Role impacta stats (mods ConMod/AtkMod/SpdMod) durante combate vía BuildCombatant. Role es metadata (no genético), hereda en breeding.
 
 ## Métodos Privados
 
@@ -49,41 +79,24 @@ public void FlushForSceneChange()
 | `OnApplicationPause(bool)` | Same as quit si paused |
 | `CollectLooseWorldProps()` | Barre `WorldPropInstance` sueltos, devuelve al inventario |
 
-## Flujo de Persistencia
-
-1. **Gameplay cambia state** → emite `GameEvents.OnRegistryChanged` / `OnFurnitureChanged` / `OnInventoryChanged`
-2. **GameManager.Persist()** escucha → `SaveSystem.SaveDatabase()` (local) + `PushToCloud()` (cloud)
-3. **Cloud push:** vía `CloudSyncService.PushAsync()`, async, no bloquea
-4. **On quit/pause:** `FlushToCloud()` = `SaveSystem.SaveDatabase()` + `PushToCloud()` garantizado
-5. **On scene change:** **S34** `FlushForSceneChange()` = same como quit, defensivo antes de LoadScene
-
-## Getters Públicos
+## Getters Públicos (S37)
 
 | Getter | Tipo | Descripción |
 |--------|------|-------------|
-| `ServerNow` | `DateTime` | Hora servidor con offset local, fallback `DateTime.Now` |
-| `Registry` | `CreatureRegistrySO` | Criaturas vivas |
-| `FurnitureRegistry` | `FurnitureRegistrySO` | Muebles colocados |
-| `Inventory` | `PlayerInventorySO` | Items + creature parts sueltos |
-| `Database` | `CreatureDatabaseSO` | Stats/parts/rareza definitions |
-| `RarityOddsTable` | `RarityOddsTableSO` | Probabilidades de rareza por cría |
-| `PersonalityProfiles` | `PersonalityProfileSO` | Datos de personalidades |
-| `PartVisualBank` | `PartVisualBankSO` | Meshes/prefabs de partes |
-| `FurTypeDatabase` | `FurTypeDatabaseSO` | Tipos de pelaje |
-| `EquipmentDatabase` | `EquipmentDatabaseSO` | Items, stats, procs |
+| `RoleProfiles` | `RoleTableSO` | **S37 NEW** Ref a asset de perfiles de rol (Protector/Agresivo/Empático) |
 
-## Campos Serializados (via Odin)
+## Conexiones
 
-- `database`, `rarityOddsTable`, `personalityProfiles` — config
-- `creatureRegistry`, `furnitureRegistry`, `inventory` — state SO
-- `partVisualBank`, `furTypeDatabase`, `equipmentDatabase` — visual/combat data
-- `cloudSync` — servicio de sincronización
+Entrada:
+- `GameEvents.OnCreatureMinted()` — dispara registro automático
+- `CreatureGenerator` — genera partes/color/stats/personalidad/**role (S37)**
+
+Salida:
+- `GameEvents.OnCreatureMinted()` — notifica listeners
+- `GameEvents.OnRegistryChanged()` → `Persist()` → persistencia automática
 
 ## Notas
 
-- **Singleton:** Setea `Instance` en Awake; destruye duplicados
-- **Persistencia reactiva:** Eventos impulsan SaveSystem, no loops
-- **Cloud async:** PushAsync no bloquea; seguro desde cualquier contexto
-- **WorldProps collector:** Barre propiedades sueltas excepto hotbar activo (ya persistido via slot)
-- **S34 FlushForSceneChange:** Patrón defensivo para transiciones de escena; identico a OnApplicationQuit
-- **Server time:** Sincronizado con UGS; fallback offline
+- **Mint automático:** Cada criatura nueva recibe rol aleatorio al azar. No hay input del jugador en la asignación de rol (a diferencia de personalidad que podría ser seleccionable en futuro).
+- **Role herencia:** En breeding, el rol se asigna vía BreedingService (50/50 padres, no vía GameManager).
+- **S37:** El único cambio público es que MintRandomCreature ahora asigna Role (internamente llama CreatureGenerator.RandomRole()).

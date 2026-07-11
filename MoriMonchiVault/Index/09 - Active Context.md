@@ -4,6 +4,64 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-10 (Session 37 — **TESIS DE DISEÑO ROLES/ELEMENTOS (Juan) DOCUMENTADA + SIM 3V3 CORE IMPLEMENTADO, WIREADO Y VERIFICADO EN PLAY VÍA MCP**) — **🟢 compilación 0 errores · 🟢 pelea 3v3 real corrida · 🟢 DETERMINISM OK · 🟢 wiring de assets hecho por MCP con OK de Juan**
+**Focus:** (1) Juan trajo la tesis completa que baja a tierra el pivot autobattler de S36: 3 roles heredables que reemplazan Personality, 4 elementos innatos con reacciones por fuente (aliada/enemiga), grilla hex 2-3-2, estados de un uso, ítems con N usos — TODO documentado en [[Index/13 - Combat Design Direction]] v2 con 15 decisiones cerradas en sesión (energía=proc, marcas ofensivas=cada golpe recibido deja la marca del atacante, escudo=HP temporal persistente, Empático cura ALIADO adicional, mods de rol sobre hoja 1-10, 1 evolución/5% muerte, 1v1 muere, etc.); (2) implementación de la Fase 1 (sim 3v3 core, sin elementos) en 4 olas de sub-agentes; (3) wiring + testeo en editor vía Unity MCP.
+
+> ### ✅ Gen Rol (aditivo, SIN wipe de saves)
+> Enum `Role {Protector, Agresivo, Empatico}` + `CombatRow {Front, Mid, Back}` + `ModifierEffectKind.Shield=12` + `CombatPopupKind.Shield` (append-only). `CreatureDNA.Role` campo nuevo (metadata como Personality — NO en genetic string; el async viaja por JSON). Mint = `CreatureGenerator.RandomRole()`; cría = 50/50 padre/madre en `BreedingService.Breed`. **Personality queda INTACTA en esta fase** (la usan breeding affinity/mundo/UI) — la migración total es Fase 7 del roadmap. Saves viejos deserializan con Role=Protector; el registry actual (15 MMs) fue rerolleado en sesión: 5 Protector / 3 Agresivo / 7 Empático (persistido local+nube).
+
+> ### ✅ RoleTableSO + capa de rol en stats
+> `RoleTableSO` (SerializedScriptableObject, dict Odin `Role→RoleProfile {ConMod, AtkMod, SpdMod, ShieldPerTurn, BacklineHitChance, HealPercentOfDamage, PriceModifier}`, botón "Poblar v1": Protector +4/−2/−2 escudo 1 · Agresivo −3/+2/+1 backline 50% precio −10% · Empatico +1/−3/+2 cura 50% precio +10% — net-zero los tres). Cableado en `CombatManagerSO.Roles` (patrón Synergies). `CombatStats.GetEffectiveStats` gana sobrecarga con roles: mods planos sobre el trío nato clampeados [1,10] ANTES de partes/equipo (sobrecarga vieja delega con null — la UI de hoja de stats aún no muestra el rol, Fase 2/3). `DeathChance` default 0.15→0.05 (código + asset).
+
+> ### ✅ SimulateCore por EQUIPOS (1..3 por lado; gameplay = siempre 3v3)
+> Firmas nuevas: `Simulate(idsA, idsB, rowsA, rowsB, …)` (valida duplicados/tamaños/capacidad de grilla 2-3-2; lineup default {Front,Front,Mid}; fan-out de records a las 6 DNAs) · `SimulateCore(teamA, teamB, rowsA, rowsB, …)` · `BuildRecord(result, selfTeam, oppTeam, self, selfWasA, …)` POR UNIDAD. Las firmas 1v1 se ELIMINARON. **Orden de rolls determinista documentado en el header**: por ronda 1 tiebreak `NextFloat` POR unidad viva (consumo constante) → sort (EffSpeed desc, tiebreak, lado, índice — orden TOTAL, sin empates posibles) → por turno: tick → targeting (Agresivo: roll 50% → backline si existe / fallback "comparte energía" no-op → frontal) → procs pasivos → stun → escudo del Protector (`PickAlly` incluye self) → armado ofensivo → evasión → crit → daño con ESCUDO absorbiendo primero (solo daño de ataque; ticks/procs lo bypasean, v1) → cura del Empático (50% del daño al aliado vivo con menos HP, sin roll, incluye self) → lifesteal → procs armados + defensivos. Fin: wipe de equipo (wipe mutuo → gana A, sin evolución) → FightCount++ a los 6, WinCount++ al ganador → **1 unidad viva al azar del ganador evoluciona** → **1 unidad al azar del perdedor rollea 5% de muerte permanente**. `CombatTargeting` NUEVO (estática: FrontRow/PickFrontTarget/PickBacklineTarget/PickAlly/LowestHpAlly — picks siempre consumen rng si hay candidatos, incluso con 1). `Combatant` + Role/Row/Index/Shield/IsAlive. `CombatResolver.Record` + TargetIndex. Sinergias/procs de equipo viejos SIGUEN funcionando sobre el motor nuevo (verificado: Explosión tóxica + Robo de vida detonaron en la pelea de test).
+
+> ### ✅ DTOs (aditivos en lo persistido, reshape en lo transiente)
+> `CombatRecord` (persistido, backward-compatible): + `SelfTeam/OpponentTeam` (List<CombatFighterSnapshot>; null = record 1v1 viejo) + `SelfTeamIds/OpponentTeamIds`; en records 3v3 los legacy `SelfStats/OpponentStats` van null → la tarjeta actual muestra el placeholder "sin stats" (rediseño = Fase 4). `CombatTurn` + AttackerIndex/DefenderIndex/DefenderShieldAfter + `TeamStateA/TeamStateB` (List<CombatUnitState> {Hp, Shield, Marks} por unidad por turno; StatusA/StatusB legacy quedan vacíos en records nuevos). `CombatFighterSnapshot` + Name/Role/Row. `CombatProcEvent` + TargetIndex. `CombatResult` (transiente, reshape): fuera Winner*/Loser*/StatsA/B → `TeamAWon/EvolvedUnitId/EvolvedUnitName/DiedUnitId/DiedUnitName/TeamA/TeamB`.
+
+> ### ✅ Integración
+> `CombatController.SimulateLocal(teams, rows)` + **sobrecarga transicional** `SimulateLocal(a,b)` (equipos de 1 — la usa la tab local del Combat Panel hasta la UI 3v3; retirar en Fase 3). `AsyncCombatService.ApplyResult` = 1v1 transicional como equipos de 1 (el JS matchmaker de equipos es Fase 5). `CombatDevConsole`: box Combat → `teamAIds/teamBIds`, "Fill Random Teams (3v3)" (exige ≥6 elegibles), Verify Determinism por equipos (fingerprint {TeamAWon, IsDraw, EvolvedUnitId, EvolvedSlot, DiedUnitId, Turns}). `CombatReplayRequest.CanReplay` devuelve false si `SelfTeam != null` (**records 3v3 NO replayables hasta el visualizer 3v3, Fase 4**; los viejos siguen).
+
+> ### 🟢 Wiring + testeo EN EDITOR (vía Unity MCP, autorizado por Juan)
+> `RoleTable.asset` creado en `ScriptableObjects/Abilitys/` y poblado por `execute_code` (quirk Odin documentado en [[Index/12 - Unity MCP]]: dict via API C# + SetDirty + SaveAssets), asignado a `CombatManager.Roles`, DeathChance del asset → 0.05. En Play: reroll de roles del registry (persistido), **pelea 3v3 real** (11 turnos, ganó Team B, "Dizzy Plop" evolucionó Eye — consumió 1 fight de las 6 involucradas), **DETERMINISM OK** (2 corridas idénticas, fingerprint 15.740 chars), y 8 seeds sobre CLONES ejercitando todas las ramas: caza backline ×8, fallback sin-backline ×2, escudo absorbió ×26 (cuentas exactas en log), curas Empático ×100, muertes 5% ×0 (esperado).
+
+> ### 📋 Quirks / notas
+> 1. Los mods de rol se aplican al trío nato PRE-partes con clamp [1,10] — un Empático con ATK nato bajo queda clampeado a 1 (visto en test: ATK final 1). Tuning pendiente con data real. 2. Escudo v1 absorbe SOLO daño de ataque directo. 3. Wipe mutuo simultáneo → gana Team A por convención, sin evolución (guard sin crash). 4. Los 6 records de una pelea comparten la referencia a `Turns` (se serializa por copia — mismo patrón que el 1v1 con 2 records); los records 3v3 crecen ~3× por TeamState (optimización futura ya flaggeada). 5. `CombatService.Clip()` eliminado (sin uso). 6. Review del orquestador sobre las 4 olas: sin bugs; un detalle de spec (DefaultLineup duplicado como constante local en DevConsole porque el del service es private — aceptado).
+
+**Decisiones de diseño S37 (las 15) + ROADMAP de Fases 1-7: TODO en [[Index/13 - Combat Design Direction]]** (fuente canónica; no duplicar acá).
+
+**Files Created (.cs — input ScriptNodes):**
+- `Data/Combat/RoleTableSO.cs` (NUEVO): SO Odin de tuning de roles (RoleProfile por Role + GetProfile + Poblar v1).
+- `Systems/Combat/CombatTargeting.cs` (NUEVO): estática de targeting determinista 3v3 (fila frontal viva, backline, aliado azar, menor HP).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Core/Enums.cs`: + Role, + CombatRow, + ModifierEffectKind.Shield=12, + CombatPopupKind.Shield.
+- `Data/Genetics/CreatureDNA.cs`: + campo `Role` (metadata, no genetic string).
+- `Core/CreatureGenerator.cs`: + `RandomRole()`.
+- `Core/GameManager.cs`: mint asigna Role random.
+- `Systems/Breeding/BreedingService.cs`: hijo hereda Role 50/50.
+- `Data/Combat/CombatManagerSO.cs`: + `Roles` (RoleTableSO); DeathChance default 0.05.
+- `Systems/Combat/Combatant.cs`: + Role/Row/Index/Shield/IsAlive.
+- `Systems/Combat/CombatStats.cs`: sobrecarga GetEffectiveStats con capa de rol clampeada.
+- `Data/Combat/CombatRecord.cs`: + SelfTeam/OpponentTeam/SelfTeamIds/OpponentTeamIds; CombatTurn + índices/DefenderShieldAfter/TeamStateA-B; + CombatUnitState; snapshot + Name/Role/Row.
+- `Data/Combat/CombatResult.cs`: reshape a equipos (TeamAWon/Evolved*/Died*/TeamA/TeamB).
+- `Data/Combat/CombatProcEvent.cs`: + TargetIndex.
+- `Systems/Combat/CombatService.cs`: REFACTOR COMPLETO a equipos (ver bloque de arriba).
+- `Systems/Combat/CombatResolver.cs`: Record captura TargetIndex.
+- `Systems/Combat/CombatController.cs`: SimulateLocal por equipos + sobrecarga transicional 1v1.
+- `Systems/Combat/AsyncCombatService.cs`: ApplyResult como equipos de 1 (transicional).
+- `Systems/Combat/CombatDevConsole.cs`: box Combat 3v3 + Verify Determinism por equipos.
+- `UI/CombatPanelUITK.Tabs.cs`: línea de resultado local adaptada al result de equipos.
+- `Systems/CombatVisualizer/CombatReplayRequest.cs`: guard CanReplay para records 3v3.
+
+**Files Touched (no-ScriptNode):** `ScriptableObjects/Abilitys/RoleTable.asset` (NUEVO, poblado v1), `ScriptableObjects/Abilitys/CombatManager.asset` (Roles + DeathChance 0.05), `MoriMonchiVault/Index/13 - Combat Design Direction.md` (v2: tesis completa + 15 decisiones + roadmap Fases 1-7).
+
+**Next session (Fase 2 del roadmap — prioridad de Juan): UI DE POSICIONAMIENTO + FLUJO LOCAL COMPLETO.** Grilla hex 2-3-2 pre-pelea (elegir 3 MMs + colocarlos), lineup real a SimulateLocal, rediseño de la tab local del Combat Panel — todo el flujo local 3v3 desde UI sin dev console. Después: Fase 3 LIMPIEZA DE LEGACY (hard reset/migración de MMs antiguos, ítems que ya no proquean estados → sistema de N usos + regla de disparo, archivar recetas viejas de SynergyTable, retirar overload transicional). Roadmap completo de Fases 1-7 en [[Index/13 - Combat Design Direction]].
+
+**ScriptNodes (cierre S37):** CREAR `RoleTableSO.md`, `CombatTargeting.md`; ACTUALIZAR `Enums.md`, `CreatureDNA.md`, `CreatureGenerator.md`, `GameManager.md`, `BreedingService.md`, `CombatManagerSO.md`, `Combatant.md`, `CombatStats.md`, `CombatRecord.md`, `CombatResult.md`, `CombatProcEvent.md`, `CombatService.md`, `CombatResolver.md`, `CombatController.md`, `AsyncCombatService.md`, `CombatDevConsole.md`, `CombatPanelUITK.Tabs.md`, `CombatReplayRequest.md`.
+
+---
+
 **Session:** 2026-07-10 (Session 36 — **ONBOARDING DE UNITY MCP + HIGIENE DE GAMESCENE + PlayerInputs 100% action-driven**. Sesión de tooling/infra, NO la de storytelling de combate que estaba planeada como "S36" — esa queda en cola.) — **🟢 todo verificado en editor/Play vía MCP**
 **Focus:** Juan instaló un MCP de Unity (editor en vivo). La sesión exploró la capacidad y la aplicó: (1) validar qué puede hacer el MCP en ESTE proyecto (lectura de escena, escritura a diccionarios Odin, edición de jerarquía, ProBuilder, Play); (2) auditar y reorganizar GameScene; (3) documentar el MCP para futuras sesiones; (4) arreglar un detalle de arquitectura de inputs.
 

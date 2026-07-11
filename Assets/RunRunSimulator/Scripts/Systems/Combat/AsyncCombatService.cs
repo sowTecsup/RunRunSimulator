@@ -326,27 +326,31 @@ public class AsyncCombatService : MonoBehaviour
             return false;
         }
 
-        var result = CombatService.SimulateCore(dnaA, dnaB, db, config, equipDb, new CombatRng(r.Seed));
+        var result = CombatService.SimulateCore(
+            new List<CreatureDNA> { dnaA }, new List<CreatureDNA> { dnaB },
+            new List<int> { (int)CombatRow.Front }, new List<int> { (int)CombatRow.Front },
+            db, config, equipDb, new CombatRng(r.Seed));
         if (result == null) return false;
 
         var self = r.SelfWasA ? dnaA : dnaB;
         var opp  = r.SelfWasA ? dnaB : dnaA;
-        bool won  = !result.IsDraw && result.WinnerID == self.UniqueID;
-        bool died = !won && !result.IsDraw && result.LoserDied;
+        bool won  = !result.IsDraw && (r.SelfWasA == result.TeamAWon);
+        bool died = !won && !result.IsDraw && result.DiedUnitId == self.UniqueID;
 
         dna.BusyState = BusyReason.None;
         dna.FightCount++;
         if (won)
         {
             dna.WinCount++;
-            if (!string.IsNullOrEmpty(result.EvolvedSlot)) CombatEvolution.AdvanceTier(dna, result.EvolvedSlot);
+            if (result.EvolvedUnitId == self.UniqueID && !string.IsNullOrEmpty(result.EvolvedSlot))
+                CombatEvolution.AdvanceTier(dna, result.EvolvedSlot);
         }
         if (died) dna.IsDead = true;
 
         // Persistent, replayable record (both clients derive it from the same
         // seeded simulation — we only store).
         dna.CombatHistory ??= new List<CombatRecord>();
-        dna.CombatHistory.Add(CombatService.BuildRecord(result, self, opp, r.SelfWasA,
+        dna.CombatHistory.Add(CombatService.BuildRecord(result, new List<CreatureDNA> { self }, new List<CreatureDNA> { opp }, self, r.SelfWasA,
             r.OpponentPlayerName ?? "", r.OpponentPlayerId ?? "", r.Seed, ParseUtcOrNow(r.Date)));
 
         foreach (var line in result.Log)

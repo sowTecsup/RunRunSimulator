@@ -8,6 +8,8 @@ namespace MoriMonchiSimulator
 
 public class CombatDevConsole : MonoBehaviour
 {
+    private static readonly List<int> DefaultLineup = new List<int> { (int)CombatRow.Front, (int)CombatRow.Front, (int)CombatRow.Mid };
+
     // ── Setup ─────────────────────────────────────────────────────
 
     [BoxGroup("Setup"), Required]
@@ -19,12 +21,12 @@ public class CombatDevConsole : MonoBehaviour
     // ── Combat Fields ─────────────────────────────────────────────
 
     [BoxGroup("Combat")]
-    [SerializeField, LabelText("Fighter A — UniqueID")]
-    private string combatAID = "";
+    [SerializeField, LabelText("Team A — UniqueIDs (3)")]
+    private List<string> teamAIds = new List<string>();
 
     [BoxGroup("Combat")]
-    [SerializeField, LabelText("Fighter B — UniqueID")]
-    private string combatBID = "";
+    [SerializeField, LabelText("Team B — UniqueIDs (3)")]
+    private List<string> teamBIds = new List<string>();
 
     [ShowInInspector, ReadOnly, LabelText("Fighter A Info"), BoxGroup("Combat")]
     private string fighterAInfo = "---";
@@ -53,7 +55,7 @@ public class CombatDevConsole : MonoBehaviour
 
     // ── Combat Buttons ────────────────────────────────────────────
 
-    [Button("Fill Random Fighters"), GUIColor(1f, 0.65f, 0.5f), BoxGroup("Combat")]
+    [Button("Fill Random Teams (3v3)"), GUIColor(1f, 0.65f, 0.5f), BoxGroup("Combat")]
     private void FillRandomFighters()
     {
         if (combatController == null) { Debug.LogError("[CombatDevConsole] CombatController not assigned."); return; }
@@ -64,20 +66,17 @@ public class CombatDevConsole : MonoBehaviour
             .Where(d => !d.IsDead && !d.IsBusy && d.FightCount < cfg.MaxFightCount)
             .ToList();
 
-        if (eligible.Count < 2)
+        if (eligible.Count < 6)
         {
-            Debug.LogError("[CombatDevConsole] Not enough valid fighters — need at least 2 alive creatures under the fight limit.");
+            Debug.LogError("[CombatDevConsole] Not enough valid fighters — need at least 6 alive creatures under the fight limit.");
             return;
         }
 
-        int idxA = Random.Range(0, eligible.Count);
-        int idxB;
-        do { idxB = Random.Range(0, eligible.Count); } while (idxB == idxA);
-
-        combatAID = eligible[idxA].UniqueID;
-        combatBID = eligible[idxB].UniqueID;
+        var shuffled = eligible.OrderBy(_ => Random.value).ToList();
+        teamAIds = shuffled.Take(3).Select(d => d.UniqueID).ToList();
+        teamBIds = shuffled.Skip(3).Take(3).Select(d => d.UniqueID).ToList();
         RefreshCombatInfo();
-        Debug.Log($"[CombatDevConsole] Random fighters — A: {Clip(combatAID)} | B: {Clip(combatBID)}");
+        Debug.Log($"[CombatDevConsole] Random teams — A: [{string.Join(", ", teamAIds.Select(Clip))}] | B: [{string.Join(", ", teamBIds.Select(Clip))}]");
     }
 
     [Button("Simulate Combat", ButtonSizes.Large), GUIColor(1f, 0.45f, 0.45f), BoxGroup("Combat")]
@@ -85,7 +84,7 @@ public class CombatDevConsole : MonoBehaviour
     {
         if (combatController == null) { Debug.LogError("[CombatDevConsole] CombatController not assigned."); return; }
 
-        var result = combatController.SimulateLocal(combatAID, combatBID);
+        var result = combatController.SimulateLocal(teamAIds, teamBIds);
         if (result == null) return;
 
         foreach (var line in result.Log)
@@ -103,33 +102,38 @@ public class CombatDevConsole : MonoBehaviour
         var cfg = combatController.Config;
         if (cfg == null) { Debug.LogError("[CombatDevConsole] No CombatManager assigned."); return; }
 
-        if (string.IsNullOrEmpty(combatAID) || string.IsNullOrEmpty(combatBID))
+        if (teamAIds == null || teamBIds == null || teamAIds.Count < 1 || teamAIds.Count > 3 || teamBIds.Count < 1 || teamBIds.Count > 3)
         {
-            Debug.LogError("[CombatDevConsole] Fighter A/B UniqueID missing — fill both before verifying.");
+            Debug.LogError("[CombatDevConsole] Team A/B must each have 1-3 UniqueIDs — fill both before verifying.");
             return;
         }
-        if (!gameManager.Registry.TryGet(combatAID, out var dnaA))
+
+        var dnasA = new List<CreatureDNA>();
+        foreach (var id in teamAIds)
         {
-            Debug.LogError($"[CombatDevConsole] Fighter A '{Clip(combatAID)}' not found in registry.");
-            return;
+            if (!gameManager.Registry.TryGet(id, out var d)) { Debug.LogError($"[CombatDevConsole] Team A id '{Clip(id)}' not found in registry."); return; }
+            dnasA.Add(d);
         }
-        if (!gameManager.Registry.TryGet(combatBID, out var dnaB))
+        var dnasB = new List<CreatureDNA>();
+        foreach (var id in teamBIds)
         {
-            Debug.LogError($"[CombatDevConsole] Fighter B '{Clip(combatBID)}' not found in registry.");
-            return;
+            if (!gameManager.Registry.TryGet(id, out var d)) { Debug.LogError($"[CombatDevConsole] Team B id '{Clip(id)}' not found in registry."); return; }
+            dnasB.Add(d);
         }
 
         int seed = System.Guid.NewGuid().GetHashCode();
 
-        string Fingerprint(CombatResult r) => JsonConvert.SerializeObject(new { r.WinnerID, r.LoserID, r.IsDraw, r.LoserDied, r.EvolvedSlot, r.Turns });
+        string Fingerprint(CombatResult r) => JsonConvert.SerializeObject(new { r.TeamAWon, r.IsDraw, r.EvolvedUnitId, r.EvolvedSlot, r.DiedUnitId, r.Turns });
 
-        var cloneA1 = SaveSystem.DeserializeCreature(SaveSystem.Serialize(dnaA));
-        var cloneB1 = SaveSystem.DeserializeCreature(SaveSystem.Serialize(dnaB));
-        var r1 = CombatService.SimulateCore(cloneA1, cloneB1, gameManager.Database, cfg, gameManager.EquipmentDatabase, new CombatRng(seed));
+        List<int> RowsFor(int count) => DefaultLineup.Take(count).ToList();
 
-        var cloneA2 = SaveSystem.DeserializeCreature(SaveSystem.Serialize(dnaA));
-        var cloneB2 = SaveSystem.DeserializeCreature(SaveSystem.Serialize(dnaB));
-        var r2 = CombatService.SimulateCore(cloneA2, cloneB2, gameManager.Database, cfg, gameManager.EquipmentDatabase, new CombatRng(seed));
+        var cloneA1 = dnasA.Select(d => SaveSystem.DeserializeCreature(SaveSystem.Serialize(d))).ToList();
+        var cloneB1 = dnasB.Select(d => SaveSystem.DeserializeCreature(SaveSystem.Serialize(d))).ToList();
+        var r1 = CombatService.SimulateCore(cloneA1, cloneB1, RowsFor(cloneA1.Count), RowsFor(cloneB1.Count), gameManager.Database, cfg, gameManager.EquipmentDatabase, new CombatRng(seed));
+
+        var cloneA2 = dnasA.Select(d => SaveSystem.DeserializeCreature(SaveSystem.Serialize(d))).ToList();
+        var cloneB2 = dnasB.Select(d => SaveSystem.DeserializeCreature(SaveSystem.Serialize(d))).ToList();
+        var r2 = CombatService.SimulateCore(cloneA2, cloneB2, RowsFor(cloneA2.Count), RowsFor(cloneB2.Count), gameManager.Database, cfg, gameManager.EquipmentDatabase, new CombatRng(seed));
 
         string fp1 = Fingerprint(r1);
         string fp2 = Fingerprint(r2);
@@ -280,19 +284,25 @@ public class CombatDevConsole : MonoBehaviour
 
     private void RefreshCombatInfo()
     {
-        fighterAInfo = BuildFightInfo(combatAID);
-        fighterBInfo = BuildFightInfo(combatBID);
+        fighterAInfo = BuildFightInfo(teamAIds);
+        fighterBInfo = BuildFightInfo(teamBIds);
     }
 
-    private string BuildFightInfo(string id)
+    private string BuildFightInfo(List<string> ids)
     {
-        if (gameManager == null) return "---";
+        if (gameManager == null || ids == null || ids.Count == 0) return "---";
         var cfg = combatController != null ? combatController.Config : null;
-        if (string.IsNullOrEmpty(id) || !gameManager.Registry.TryGet(id, out var dna)) return "---";
-        if (dna.IsDead) return "DEAD — cannot fight";
         int maxFights = cfg?.MaxFightCount ?? 5;
-        int remaining = maxFights - dna.FightCount;
-        return $"\"{dna.CustomName}\"  Fights left: {remaining}/{maxFights}  (used: {dna.FightCount})";
+
+        var parts = new List<string>();
+        foreach (var id in ids)
+        {
+            if (string.IsNullOrEmpty(id) || !gameManager.Registry.TryGet(id, out var dna)) { parts.Add("---"); continue; }
+            parts.Add(dna.IsDead
+                ? $"\"{dna.CustomName}\" DEAD"
+                : $"\"{dna.CustomName}\" ({dna.Role}, {maxFights - dna.FightCount} left)");
+        }
+        return parts.Count == 0 ? "---" : string.Join("  |  ", parts);
     }
 
     private void RefreshQueueDisplay()

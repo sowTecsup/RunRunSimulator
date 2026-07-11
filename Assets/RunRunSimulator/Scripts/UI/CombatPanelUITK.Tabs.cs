@@ -156,7 +156,7 @@ public partial class CombatPanelUITK
         if (localOutcome != null)
             localOutcome.text = result.IsDraw
                 ? "Empate"
-                : $"Ganó {result.WinnerName}" + (result.LoserDied ? $"  ·  murió {result.LoserName}" : "");
+                : $"Ganó {(result.TeamAWon ? result.TeamA : result.TeamB)[0].Name}" + (string.IsNullOrEmpty(result.DiedUnitName) ? "" : $"  ·  murió {result.DiedUnitName}");
 
         RefreshSlots();
     }

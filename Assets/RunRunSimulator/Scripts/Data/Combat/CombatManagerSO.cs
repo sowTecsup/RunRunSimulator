@@ -10,7 +10,7 @@ public class CombatManagerSO : SerializedScriptableObject
     [InfoBox("EvolutionChance y DeathChance son valores 0–1 (ej: 0.3 = 30%).")]
 
     [LabelWidth(160)] public float EvolutionChance = 0.30f;
-    [LabelWidth(160)] public float DeathChance     = 0.15f;
+    [LabelWidth(160)] public float DeathChance     = 0.05f;
 
     [Title("Hit Settings")]
     [LabelWidth(160)] public float CritChance     = 0.10f;
@@ -32,6 +32,9 @@ public class CombatManagerSO : SerializedScriptableObject
 
     [InfoBox("Recetas de sinergia: al acumular las variedades de stacks requeridas, detonan sobre el portador (queman los stacks). Sin tabla asignada = sin sinergias.")]
     [LabelWidth(160)] public SynergyTableSO Synergies;
+
+    [InfoBox("Tabla de roles 3v3: mods de stats natos + tuning de traits (escudo/backline/cura). Sin tabla = roles sin efecto.")]
+    [LabelWidth(160)] public RoleTableSO Roles;
 
     [Title("Needs")]
     [InfoBox("Energía que gasta un MoriMochi al encolarse para combate (NeedsState).")]
