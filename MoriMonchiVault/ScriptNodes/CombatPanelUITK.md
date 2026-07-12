@@ -1,27 +1,50 @@
 ---
-tags: [script, ui, combat]
+tags: [script, ui, combat, partial]
 ---
 
 # CombatPanelUITK
 
 **Ruta:** `UI/CombatPanelUITK.cs`
 
-**Responsabilidad:** Panel UI combate (4 pestañas: Batalla Online, Combate Local, Resultados, Historial). Implementa `IUINavigable` (foco jerárquico). Obtiene config vía `CombatController.Instance.Config`, registry de `GameManager.Instance`. Combate local vía `CombatController.SimulateLocal()`, async vía `AsyncCombatService`. **S34:** Tab Historial muestra combates con boton replay (▶) lazy-creado.
+**Responsabilidad:** Panel UI combate **3 pestañas principales** (S37/S39): 
+- Tab 0: "Batalla Online" — pick 1 criatura tuya, verla (stats + partes), enviarla a async (Instant o Timer)
+- Tab 1: "Resultados" — criaturas en cola / con resultados pendientes; pane derecho muestra log
+- Tab 2: "Historial" — todos los combates históricos, filtrable por criatura, con boton replay (S34)
 
-## Organización (partial class)
+**Hermano:** `CombatLineupUITK` (componente sibling en mismo GameObject + UIDocument) maneja tab 3 "Equipo 3v3" (lineup drag&drop + combate local 3v3). 
+
+Implementa `IUINavigable` (foco jerárquico). Obtiene config vía `CombatController.Instance.Config`, registry de `GameManager.Instance`. Combate local vía `CombatController.SimulateLocal()`, async vía `AsyncCombatService`.
+
+## Cambios S37/S38/S39
+
+**Tab "Combate Local" eliminada (S37/S38):**
+- Antigua tab 1 desapareció. 
+- Lineup UI 3v3 ahora vive en CombatLineupUITK (componente sibling).
+- Tabs reindexadas: Online=0, Resultados=1, Historial=2.
+- Equipo 3v3 = tab manejada por sibling (entrada en TabView pero lógica separada).
+
+**Navegación teclado (S38):**
+- Tab Equipo 3v3 es navegable por teclado (A/D cambia, Espaço/Intro actúa).
+- Contenido es mouse-only (drag&drop).
+
+**S39:** Sin cambios de API en CombatPanelUITK. Sistema elemental integrado; Display de stats ya incluye 6 stats (CON/ATK/SPD/DEF/LCK/EVA).
+
+## Organización (partial class — Deuda Activa)
 
 | Archivo | Responsabilidad |
 |---------|-----------------|
 | `CombatPanelUITK.cs` | Núcleo, lifecycle, wiring, data, StatsOf |
-| `CombatPanelUITK.Tabs.cs` | Contenido de 4 pestañas (MakeCandidate, UI building, DoLocalFight, Historial con replay S34) |
-| `CombatPanelUITK.Navigation.cs` | `IUINavigable` + foco jerárquico |
+| `CombatPanelUITK.Tabs.cs` | Contenido de 3 pestañas (MakeCandidate, UI building, Historial con replay S34) |
+| `CombatPanelUITK.Navigation.cs` | `IUINavigable` + foco jerárquico (sin T2* legacy de Combate Local) |
 
-## Pestañas
+## Pestañas (Post-S37)
 
-1. **Batalla Online:** Pick criatura tuya, verla (stats+partes), enviarla a async (Instant o Timer)
-2. **Combate Local:** Pick dos criaturas, luchan localmente, log inline
-3. **Resultados:** Criaturas en cola / con resultados pendientes; right pane muestra log
-4. **Historial:** Todos los combates históricos, filtrable por criatura, **con boton replay (S34)**
+| Tab | Nombre | Contenido |
+|-----|--------|----------|
+| 0 | Batalla Online | Lista criaturas, selecciona 1, muestra stats+partes, envía a async (Instant/Timer) |
+| 1 | Resultados | Criaturas en cola (`QueuedForCombat`), countdown a próximo server tick |
+| 2 | Historial | Todos los combates históricos, filtrable por criatura, **boton replay** |
+| (3) | Equipo 3v3 | Manejado por **CombatLineupUITK** (sibling component) |
 
 ## Campos Serializados
 
@@ -33,22 +56,7 @@ tags: [script, ui, combat]
 | `database` | `CreatureDatabaseSO` | Stats/partes |
 | `asyncCombatService` | `AsyncCombatService` | Ref async service |
 
-## Campos Privados (S34 nuevos)
-
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `histReplayBtn` | `Button` | **S34** Boton "▶ Ver replay" creado lazy en ShowHistory |
-| `histCurrent` | `HistItem` | **S34** Struct (Self, Rec) del combate mostrado actualmente |
-
-## Struct HistItem (S34)
-
-```csharp
-private struct HistItem { public CreatureDNA Self; public CombatRecord Rec; }
-```
-
-Par (criatura, record) para manejo efficient del historial. Usado en `historyItems`, `historyRendered`, y `histCurrent` (para acceso rápido al combate mostrado en detail pane).
-
-## Método StatsOf (S32)
+## Método StatsOf (S32+)
 
 ```csharp
 private EffectiveStats StatsOf(CreatureDNA dna) =>
@@ -58,31 +66,19 @@ private EffectiveStats StatsOf(CreatureDNA dna) =>
                                          dna.BaseLuck, dna.BaseEvasion);
 ```
 
-**S32:** Cambio de referencias:
-- `CombatService.GetEffectiveStats()` → `CombatStats.GetEffectiveStats()` (clase extraída)
-- `CombatService.EffectiveStats` → `EffectiveStats` (struct público top-level)
-
-Fallback: sin database, construye `EffectiveStats` manualmente desde DNA base.
-
-## Cambios S34 (Tab 4 — Historial con Replay)
-
-Ver detalles completos en [[CombatPanelUITK.Tabs]].
-
-**Breve:**
-- Tab Historial ahora llama `CombatReplayRequest.Request()` en boton "▶ Ver replay"
-- Boton creado lazy en `ShowHistory()` si no existe
-- Habilitado/deshabilitado dinámicamente vía `CombatReplayRequest.CanReplay()`
+**S32 cambio:** Usa `CombatStats.GetEffectiveStats()` (clase extraída) en lugar de legacy `CombatService.GetEffectiveStats()`.
 
 ## Vinculado a
 
 - [[Index/05 - UI System]]
+- [[Index/13 - Combat Design Direction]]
 - [[CombatPanelUITK.Tabs]] — implementación de pestañas (S34)
+- [[CombatPanelUITK.Navigation]] — navegación (S38)
+- [[CombatLineupUITK]] — tab 3 (sibling component, S37)
 - [[CombatController]] — obtiene config
-- [[CombatService]] — simula combate local
 - [[AsyncCombatService]] — gestiona async
 - [[CombatStats]] — calcula stats (S32)
 - [[EffectiveStats]] — struct de retorno (S32)
-- [[CombatReplayRequest]] — S34 replay request
 - [[GameManager]] — registry, database
 
 ## Conexiones
@@ -93,13 +89,13 @@ Ver detalles completos en [[CombatPanelUITK.Tabs]].
 - `GameEvents.OnCombatLogged` — nuevo combate en historial
 
 **Salida:**
-- `CombatController.SimulateLocal()` — combate local
 - `AsyncCombatService.EnqueueInstantAsync/EnqueueScheduledAsync()` — async enqueue
-- `CombatReplayRequest.Request()` — replay request (S34)
+- Refs a CombatLineupUITK para navegación cruzada
 
 ## Notas
 
-- **Historial filtrable:** Dropdown por criatura; cada selección rebuildea lista
-- **Tab 4 layout:** Left = lista combates, right = detail pane con log + outcome + **boton replay (S34)**
-- **Lazy creation:** Boton replay se crea en ShowHistory si no existe; permite reutilizaciOn
-- **Registry validación:** CanReplay revalidado en cada ShowHistory para captar cambios (rival vendido, etc.)
+- **Partial class:** Deuda activa (Fase 8, refactor a componentes pequeños).
+- **S37 impacto:** Tab Combate Local removida. Lineup UI movida a sibling. Tabs reindexadas.
+- **S38 navegación:** Teclado puede acceder tab Equipo 3v3, pero contenido es mouse-only.
+- **Registry validación:** Cada rebuild de listas revalida elegibilidad (vivos, no busy, fights < max).
+- **Historial filtrable:** Dropdown por criatura; cada selección rebuildea lista.

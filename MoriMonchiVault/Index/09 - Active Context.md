@@ -4,6 +4,98 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-11/12 (Session 39 — **FASE 3 LIMPIEZA LEGACY + FASE 7 PERSONALITY→ROLE + FASE 6 CAPA ELEMENTAL CORE — TODO IMPLEMENTADO Y VERIFICADO EN PLAY VÍA MCP**) — **🟢 compilación 0 errores · 🟢 los 12 estados elementales observados funcionando por log · 🟢 DETERMINISM OK (misma semilla → log idéntico al hash) · 🟢 wiring de assets/escena por MCP · ⚠️ eventos elementales son LOG-ONLY (no van al record — prerequisito de Fase 4)**
+**Focus:** (1) Fase 3: retirar tab 1v1 + overload `SimulateLocal(a,b)` + TODOS los procs de ítems (`CombatProcEffect.cs` BORRADO) + recetas de SynergyTable archivadas + `EvolutionChance`/`TriggerType` fuera; (2) nuevo sistema de ítems `ItemUseEffect` (N usos + regla Always/SelfHpBelow, leaves `HealUseEffect`/`DamageUseEffect`, disparo determinista SIN rolls, usos runtime en `Combatant.Uses`); (3) Fase 7 adelantada: enum `Personality` y `PersonalityProfileSO` ELIMINADOS — `RoleWorldProfileSO` (3 perfiles de mundo), `BreedingAffinityTableSO` re-keyeada 3×3 por Role, NameTag/detail/containers por rol; (4) Fase 6 core adelantada: `Element {Agua,Fuego,Electricidad,Planta}` en DNA (campo plano, mint random, herencia 50/50 + `ElementMutationChance` 0.10 en InheritanceOddsTable), afinidad/energía (2 acciones→1 energía), marcas por fuente (enemiga cada golpe / aliada por trait con energía; máx 1 por elemento+fuente), 12 reacciones/estados de un uso en `CombatElements` (NUEVO, estática — DIVERGENCIA: no se usó el motor de SynergyTable) + integración en `CombatService`; (5) UI: chips de elemento reales en tab Equipo 3v3, sección "Rol y Elemento" en detail, tab Equipo 3v3 entró a navegación por teclado (índice 3).
+
+> ### 🔑 Decisiones S39 (Juan)
+> Hard reset EJECUTADO por Juan (local+nube) antes de la sesión · Element = campo plano FUERA del genetic string (como Role) · herencia 50/50 + mutación · marcas 1-por-elemento+fuente persistentes, mismo elemento no reacciona · orden del roadmap: visualizer y async AL FINAL. Decisiones del orquestador (revisables): Cleanse evaluado al aplicarse (purga 1 negativo o cura 20%) · Confuso falla la acción completa · Mareado 50%/3 fijo · Confuso/Mareado generan afinidad, stun no. **Tabla completa de estados implementada (efecto/consumo/knob): [[Index/13 - Combat Design Direction]] §6 (v3).**
+
+> ### 📋 Quirks / notas S39
+> 1. Los 8 knobs elementales viven en `CombatManager` → bloque "Elemental"; defaults v1 sin tuning real. 2. **Motor de sinergias RETIRADO COMPLETO** (decisión de Juan al cierre): `SynergyTableSO.cs`/`SynergyRule.cs`/`SynergyEffectBase.cs` BORRADOS, `CombatResolver` sin CheckSynergies/bearer-helpers, `CombatManagerSO` sin campo Synergies, `SynergyTable.asset` borrado; kinds `Synergy` del enum y mapeos del visualizer quedan (append-only, inertes); smoke test 3v3 post-retiro OK. 3. EQ0 tiene `HealUseEffect` (3 usos, HP<70%, cura 4) y EQ1 `DamageUseEffect` (2 usos, always, 5) como ítems de referencia; los demás ítems S35 quedaron solo-stats o vacíos. 4. Registry quedó con ~16 MMs de test (roles/elementos forzados en varios, fights consumidos). 5. **Quirk carga en frío post-wipe**: mints hechos apenas arranca Play se borraron cuando el pull de CloudSync (nube vacía, sin sesión) aterrizó después — los posteriores persisten. 6. Lifesteal/EffDefense/EffEvasion/EffSpeed por stacks viejos quedaron en `Combatant` (inofensivos, nada los aplica ya). 7. Names UXML renombrados: `personality`→`role-element` (detail), `personality-label`→`role-label` + `.tag__personality`→`.tag__role` (NameTag).
+
+**Files Created (.cs — input ScriptNodes):**
+- `Data/Equipment/ItemUseEffect.cs` (NUEVO): efectos activos de ítem — N usos + regla de disparo (UseRule), leaves HealUseEffect/DamageUseEffect vía ICombatContext.
+- `Systems/Combat/CombatElements.cs` (NUEVO): estática de marcas/reacciones elementales — ElementMark, tablas por fuente, ApplyState (instantáneos vs armados), IsNegative.
+- `Data/Genetics/RoleWorldProfileSO.cs` (NUEVO): perfiles de comportamiento de mundo por Role (reemplaza PersonalityProfileSO).
+
+**Files DELETED (.cs — remover ScriptNodes si existen):** `Data/Equipment/CombatProcEffect.cs`, `Data/Genetics/PersonalityProfileSO.cs`, `Data/Combat/SynergyTableSO.cs`, `Data/Combat/SynergyRule.cs`, `Data/Combat/SynergyEffectBase.cs`.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Core/Enums.cs`: − Personality, − TriggerType; + Element, + ElementalState (12).
+- `Data/Genetics/CreatureDNA.cs`: − campo Personality; + campo Element.
+- `Core/CreatureGenerator.cs`: − RandomPersonality; + RandomElement.
+- `Data/Genetics/CreatureRegistrySO.cs`: botón reroll ahora rerollea Role + Element.
+- `Core/GameManager.cs`: campo roleWorldProfiles (RoleWorldProfileSO); mint asigna Element random.
+- `Systems/Breeding/BreedingService.cs`: herencia Element 50/50 + mutación; − Personality random.
+- `Data/Breeding/BreedingAffinityTableSO.cs`: matriz re-keyeada (Role,Role) 3×3.
+- `Data/Breeding/InheritanceOddsTableSO.cs`: + ElementMutationChance (0.10).
+- `Systems/Breeding/BreedingController.cs`: GetAffinity por Role.
+- `World/Containers/BreedingContainer.cs`: afinidad/logs por Role.
+- `World/Containers/MoriMochiContainer.cs`: OccupantInfo.Role.
+- `World/AI/MoriMochiAgent.cs` + `.Tuning.cs`: perfil por Role (RoleWorldProfile).
+- `World/Spawning/MoriMochiSpawner.cs`: RoleWorldProfiles.
+- `World/Creatures/MoriMonchiController.cs`: params RoleWorldProfileSO.
+- `World/Creatures/NameTag.cs`: RoleText + query role-label.
+- `Systems/Combat/CombatService.cs`: − FireProcs/RollProc/procs; + paso ítems N usos + capa elemental completa (Energizado en orden, Confuso/Mareado, procs de trait con energía, Vaporizado/GolpePreciso/Boiling/Debilidad/Charcoal, marca enemiga on-connect, GainAffinity); header reescrito con el orden determinista nuevo.
+- `Systems/Combat/Combatant.cs`: Procs→Uses (ItemUseState); + Element/Affinity/Energy/Marks/States + HasState/ConsumeState.
+- `Systems/Combat/CombatController.cs`: − overload 1v1.
+- `Data/Combat/CombatManagerSO.cs`: − EvolutionChance; + bloque Elemental (8 knobs).
+- `Systems/Combat/CombatResolver.cs`: − Synergies/CheckSynergies/FirstSatisfiedRule/ConsumeStacks/StunBearer/DamageBearer/HealBearer/AddStatusTo (el motor de sinergias completo).
+- `UI/CombatPanelUITK.cs` + `.Tabs.cs` + `.Navigation.cs`: tab Combate Local RETIRADA; reindex (Resultados=1, Historial=2, Equipo 3v3=3 y DENTRO de la navegación); EnterContent para t=3 queda en TabBar (contenido mouse por CombatLineupUITK).
+- `UI/CombatLineupUITK.cs`: chips de elemento reales (ElementText).
+- `UI/MorimonchiDetailInfoUITK.cs`: RoleName/RoleDesc/ElementName ("Rol · Elemento"); ModifiersText itera ItemUseEffect; campo roleElementLabel.
+
+**Files Touched (no-ScriptNode):** `UI Toolkit/CombatPanelUITK.uxml/.uss` (− tab-local, − clases exclusivas), `UI Toolkit/MorimonchiDetailInfoUITK.uxml` (sección "Rol y Elemento", name role-element), `UI Toolkit/NameTagUITK.uxml` + `NameTagUITKStyle.uss` (role-label/.tag__role), assets: `RoleWorldProfileTable.asset` (NUEVO, poblado), `PersonalityProfileTable.asset` (BORRADO), `BreedingAffinityTable.asset` (reseed 3×3), `CombatManager.asset` (knobs), equipment assets (procs removidos; EQ0/EQ1 con use-effects de referencia), `SynergyTable.asset` (rules vaciadas), `GameScene.unity` (GameManager rewireado), `MoriMonchiVault/Index/13` (v3: tabla de estados implementada + divergencia + roadmap).
+
+**Next session (S40 — REFACTOR DE EXTENSIÓN, plan completo YA HECHO en [[Index/13 - Combat Design Direction]] sección "PLAN S40"):**
+0. **S40 entera = el refactor de extensión** (pedido de Juan, patrón EquipmentSO.Effects en todo): (a) `RoleTableSO` v2 — stats + listas polimórficas Passives/Actives por rol (leaves: ShieldAlly, HealLowestAllyOnHit, BacklineHunter); (b) `ElementTableSO` NUEVO — identidad de elementos, definiciones de estados (los 8 knobs se MUDAN acá), tabla de reacciones con efectos polimórficos (`ArmStateEffect` y compañía); `CombatElements` pasa a ejecutor del SO; (c) descomponer `CombatService`/`TakeTurn` en `CombatRoleHooks`/`CombatItems`/`CombatStrike` (regla 11, jamás partial). **Verificación = paridad**: log de pelea de referencia con semilla fija antes/después IDÉNTICO + Verify Determinism.
+Después (Fase 4 — VISUALIZER 3V3):
+1. **Paso 0 del visualizer: enriquecer el record** (los eventos elementales hoy son log-only): eventos de marca/reacción/estado/energía en `CombatProcEvent` (campos opcionales aditivos) o lista nueva por turno; `CombatUnitState` + marcas elementales/estados armados/energía. Todo backward-compatible.
+2. Replay 3v3: 6 unidades + grilla en `CombatVisualizerMM`, quitar guard `CanReplay`, tarjetas historial 3v3.
+3. Capa visual elemental: chips de marca por canal, popup de reacción, iconos de 12 estados, pips de energía; storytelling (ghost bar/banner).
+4. Después: Fase 5 async 3v3 (al final). Pendientes: tuning knobs, decisión motor sinergias, ítems con estados, economía F7.
+
+**ScriptNodes (cierre S39):** CREAR `ItemUseEffect.md`, `CombatElements.md`, `RoleWorldProfileSO.md`; BORRAR `CombatProcEffect.md`, `PersonalityProfileSO.md`; ACTUALIZAR `Enums.md`, `CreatureDNA.md`, `CreatureGenerator.md`, `CreatureRegistrySO.md`, `GameManager.md`, `BreedingService.md`, `BreedingAffinityTableSO.md`, `InheritanceOddsTableSO.md`, `BreedingController.md`, `BreedingContainer.md`, `MoriMochiContainer.md`, `MoriMochiAgent.md`, `MoriMochiSpawner.md`, `MoriMonchiController.md`, `NameTag.md`, `CombatService.md`, `Combatant.md`, `CombatController.md`, `CombatManagerSO.md`, `SynergyTableSO.md`, `CombatPanelUITK.md`, `CombatPanelUITK.Tabs.md`, `CombatPanelUITK.Navigation.md`, `CombatLineupUITK.md`, `MorimonchiDetailInfoUITK.md`.
+
+---
+
+**Session:** 2026-07-11 (Session 38 — **FASE 2 CORE COMPLETA: tab "Equipo 3v3" con grilla 2-3-2, drag & drop, y COMBATE LOCAL 3V3 REAL DESDE UI** — diseño iterado en vivo contra 5 mockups/screenshots de Juan, resultado final aprobado: "me encanta") — **🟢 compilación 0 errores · 🟢 flujo completo verificado en Play vía MCP (lineup custom → SimulateLocal → record con rows correctas) · 🟢 wiring de escena por MCP con OK de Juan · 🟢 UI aprobada como referencia de calidad**
+**Focus:** (1) UI de posicionamiento pre-pelea (el beat de agencia de Fase 2): tab nueva "Equipo 3v3" en el Combat Panel — carrusel de selección abajo, dos grillas hex 2-3-2 enfrentadas al centro, rosters laterales por equipo; (2) drag & drop runtime por punteros con slot exacto; (3) conexión del motor: botón "¡Pelear!" → `CombatController.SimulateLocal(idsA, idsB, rowsA, rowsB)` con el lineup REAL (adiós default {Front,Front,Mid} en el flujo de UI); (4) documentación del recetario UITK en [[Index/05 - UI System]] (pedido explícito de Juan).
+
+> ### ✅ Componentes nuevos (composición, regla 11 — cero cambios al partial del panel)
+> `CombatLineupBoard` (clase plana, NO Mono): renderiza UNA grilla 2-3-2 (7 slots = 2 Front/3 Mid/2 Back en 3 columnas centradas → offset hex), dueña de asignaciones DNA↔slot exacto (máx 3), espejable (`mirrored`: A front a la derecha, B a la izquierda → fronts cara a cara), API `Place/RemoveAt/CanPlace/SlotAtPosition/SetDropHighlight/SetSlotSize/Units/PlacedIds/RowOf`. `CombatLineupUITK` (Mono hermano de CombatPanelUITK, mismo GameObject, ref propia a `UIDocument` + `CreatureDatabaseSO` — patrón F3/DevConsoles): dueño de la tab — pool con exclusión (colocado = sale del carrusel), drag & drop (umbral 8px, ghost `PickingMode.Ignore`, highlight verde/rojo, drop fuera = vuelve a pool), click DERECHO = hoja de personaje (carrusel + rosters + slots ocupados; izquierdo solo drag), Auto-armar/Vaciar, rosters auto-ordenados por SPD efectiva desc, contador de peleas RESTANTES "n/x" en cards (no en slots), overlay de detalle (stats Base→Final con rol+equipo — pipeline EXACTO del sim: `GetEffectiveStats(dna,db,roles)` → `EquipmentStats.Apply`, mismo orden que CombatService — + ítems equipados), overlay de resultado (ganador A/B coloreado + evolucionó/murió + log completo), **sizing responsive** (GeometryChangedEvent → slot clamp [90,190] por alto/ancho disponible → inline style pisa USS; ghost matchea).
+
+> ### ✅ Combate real desde la UI (hito Fase 2)
+> `OnFight()`: recolecta ids+rows de ambos boards (`RowOf(slot)` → int) en el MISMO recorrido → `SimulateLocal(idsA, idsB, rowsA, rowsB)` → overlay de resultado. `RegistryChanged` sincrónico del controller ya prunea muertos/agotados de los boards y rebuildea pool ANTES del overlay. **Verificado en Play**: pelea con lineup custom (Mid/Back/Back) → el record persistido trae `SelfTeam` con esas rows exactas y el log del sim las imprime ("[A0] ... (Protector, Mid)"); FightCount consume, evolución/muerte aplican. La tab es índice 4 del TabView → fuera de la navegación por teclado (clamp 0..3 de Navigation) a propósito: WIP mouse-only, no toca `CombatPanelUITK.Navigation`.
+
+> ### ✅ Recetario UITK documentado (pedido de Juan)
+> Sección nueva en [[Index/05 - UI System]]: triple `flex-grow` del TabView (incluido `.unity-tab`, el que faltaba y causaba la banda muerta), `margin-top: auto` para anclar al fondo, el **feedback loop de auto-medición** (contenedor centrado sin width → `width: 100%`), sizing dinámico por GeometryChangedEvent (nunca px fijos pensando en una resolución), patrón completo de drag & drop runtime (**Unregister ANTES de ReleasePointer** o el PointerCaptureOut cancela el drop), click derecho, scrollbars custom, rueda→scroll horizontal, quirk de hot-reload USS en Play (huerfana el árbol, reiniciar Play), y la técnica de iterar diseño con screenshots del Game view vía MCP.
+
+> ### 🟢 Wiring + verificación por MCP (OK de Juan)
+> Componente `CombatLineupUITK` agregado al GameObject `UIManager` con `document` (UIDocument del CombatPanel) y `database` (CreatureDatabase.asset) — escena guardada. Verificación en Play por `execute_code` (abrir panel por reflection + OnAuto/OnFight) + screenshots de `manage_camera` en cada iteración de diseño (5 rondas contra mockups de Juan).
+
+> ### 📋 Quirks / notas
+> 1. Los 3 assets dev de equipo (EQ0/EQ1/EQ2 → Weapon1/Equipment2/Equipment3) se llaman TODOS "Sword" en su data — la UI resuelve bien; renombrar en inspector si molesta. 2. NREs de PlayerInputs/UIInputs/BuildingInputs en OnEnable tras recompilar con editor parado = artefacto de domain reload fuera de Play, NO reproduce en Play (vigilar). 3. El registry asset quedó tocado por las peleas de test en Play (FightCounts consumidos, una evolución, persistido local+nube). 4. `Assets/Screenshots/` acumuló capturas de verificación MCP (borrables). 5. El chip de Elemento en cards/detalle es placeholder "—" hasta la capa elemental (Fase 6).
+
+**Files Created (.cs — input ScriptNodes):**
+- `UI/CombatLineupBoard.cs` (NUEVO): widget grilla 2-3-2 (clase plana, estado+render, espejable, slot exacto, SetSlotSize).
+- `UI/CombatLineupUITK.cs` (NUEVO): tab Equipo 3v3 — carrusel/rosters/drag&drop/detalle/resultado + lanza `SimulateLocal` con lineup real.
+
+**Files Touched (.cs):** ninguno (todo el C# de la sesión vive en los 2 archivos nuevos).
+
+**Files Touched (no-ScriptNode):** `UI Toolkit/CombatPanelUITK.uxml` (tab-lineup: carrusel + rosters + overlays detalle/resultado + botón ¡Pelear!), `UI Toolkit/CombatPanelUITKStyle.uss` (bloque `cbt-lu-*` completo + fix `.unity-tab` flex-grow + scrollbar custom), `Resources/Scenes/GameScene.unity` (componente CombatLineupUITK en UIManager, wireado), registry asset (peleas de test), `MoriMonchiVault/Index/05 - UI System.md` (Recetario UITK S38 + 2 filas en Panel Controllers).
+
+**Next session (Fase 3 del roadmap — LIMPIEZA DE LEGACY, o lo que Juan priorice):**
+1. Retirar la tab "Combate Local" 1v1 vieja + la sobrecarga transicional `SimulateLocal(a,b)` (la tab Equipo 3v3 ya cubre el flujo local completo). Revisar Navigation al retirar (índices de tabs).
+2. Hard reset / migración de MMs antiguos (recomendación registrada: UN solo wipe coordinado con re-autoría de ítems a N usos; idealmente cerca del backfill de elemento de Fase 6).
+3. Ítems: retirar procs de elementos S35 → sistema de N usos + regla de disparo; archivar recetas viejas de SynergyTable.
+4. Pendientes menores S38: decidir si la tab Equipo 3v3 entra a la navegación por teclado cuando deje de ser WIP; tuning de textos/colores que pida Juan.
+Después: Fase 4 visualizer 3v3 (reusar CombatVisualizerMM, quitar guard CanReplay) → Fase 5 async de equipos.
+
+**ScriptNodes (cierre S38):** CREAR `CombatLineupBoard.md`, `CombatLineupUITK.md`.
+
+---
+
 **Session:** 2026-07-10 (Session 37 — **TESIS DE DISEÑO ROLES/ELEMENTOS (Juan) DOCUMENTADA + SIM 3V3 CORE IMPLEMENTADO, WIREADO Y VERIFICADO EN PLAY VÍA MCP**) — **🟢 compilación 0 errores · 🟢 pelea 3v3 real corrida · 🟢 DETERMINISM OK · 🟢 wiring de assets hecho por MCP con OK de Juan**
 **Focus:** (1) Juan trajo la tesis completa que baja a tierra el pivot autobattler de S36: 3 roles heredables que reemplazan Personality, 4 elementos innatos con reacciones por fuente (aliada/enemiga), grilla hex 2-3-2, estados de un uso, ítems con N usos — TODO documentado en [[Index/13 - Combat Design Direction]] v2 con 15 decisiones cerradas en sesión (energía=proc, marcas ofensivas=cada golpe recibido deja la marca del atacante, escudo=HP temporal persistente, Empático cura ALIADO adicional, mods de rol sobre hoja 1-10, 1 evolución/5% muerte, 1v1 muere, etc.); (2) implementación de la Fase 1 (sim 3v3 core, sin elementos) en 4 olas de sub-agentes; (3) wiring + testeo en editor vía Unity MCP.
 

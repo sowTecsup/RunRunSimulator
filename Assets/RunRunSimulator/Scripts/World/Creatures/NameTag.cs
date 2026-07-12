@@ -41,7 +41,7 @@ public class NameTag : MonoBehaviour
     private Label         intentLabel;
     private Label         petHintLabel;
     private Label         genderLabel;
-    private Label         personalityLabel;
+    private Label         roleLabel;
     private Label         stageLabel;
     private Label         breedLabel;
     private Label         heartLabel;
@@ -102,7 +102,7 @@ public class NameTag : MonoBehaviour
         intentLabel      = root.Q<Label>("intent-label");
         petHintLabel     = root.Q<Label>("pet-hint-label");
         genderLabel      = root.Q<Label>("gender-label");
-        personalityLabel = root.Q<Label>("personality-label");
+        roleLabel        = root.Q<Label>("role-label");
         stageLabel       = root.Q<Label>("stage-label");
         breedLabel       = root.Q<Label>("breed-label");
         heartLabel       = root.Q<Label>("heart-label");
@@ -164,7 +164,7 @@ public class NameTag : MonoBehaviour
         SetDisplay(intentLabel,      false);
         SetDisplay(petHintLabel,     false);
         SetDisplay(genderLabel,      false);
-        SetDisplay(personalityLabel, false);
+        SetDisplay(roleLabel, false);
         SetDisplay(stageLabel,       false);
         SetDisplay(breedLabel,       false);
         SetDisplay(heartLabel,       false);
@@ -194,10 +194,10 @@ public class NameTag : MonoBehaviour
             genderLabel.style.color = GenderColor(dna.Gender);
             SetDisplay(genderLabel, true);
         }
-        if (personalityLabel != null)
+        if (roleLabel != null)
         {
-            personalityLabel.text = PersonalityText(dna.Personality);
-            SetDisplay(personalityLabel, true);
+            roleLabel.text = RoleText(dna.Role);
+            SetDisplay(roleLabel, true);
         }
         if (stageLabel != null)
         {
@@ -220,7 +220,7 @@ public class NameTag : MonoBehaviour
     {
         SetDisplay(priceLabel,       false);
         SetDisplay(genderLabel,      false);
-        SetDisplay(personalityLabel, false);
+        SetDisplay(roleLabel, false);
         SetDisplay(breedLabel,       false);
         SetDisplay(heartLabel,       false);
         SetDisplay(timerLabel,       false);
@@ -322,15 +322,12 @@ public class NameTag : MonoBehaviour
         _                     => new Color(0.7f, 0.7f, 0.7f),
     };
 
-    private static string PersonalityText(Personality p) => p switch
+    private static string RoleText(Role r) => r switch
     {
-        Personality.Skittish   => "Asustadizo",
-        Personality.Aggressive => "Agresivo",
-        Personality.Lazy       => "Perezoso",
-        Personality.Curious    => "Curioso",
-        Personality.Social     => "Sociable",
-        Personality.Grumpy     => "Gruñón",
-        _                      => p.ToString(),
+        Role.Protector => "Protector",
+        Role.Agresivo  => "Agresivo",
+        Role.Empatico  => "Empático",
+        _              => r.ToString(),
     };
 
     private static string StageText(int ageDays)

@@ -6,7 +6,7 @@ tags: [combat, core, deterministic, simulation]
 
 **Ruta:** `Systems/Combat/CombatService.cs`
 
-**Responsabilidad:** Servicio estático stateless que simula combate turn-based **3v3 team-based** (tolerancia 1..3 por lado), completamente determinista. Orquesta validación de equipos, simulación core pura (sin registry), construcción de records simétricos. Componedora de: `CombatRng` (inyectado por seed), `Combatant`, `CombatResolver`, `CombatStats`, `CombatEvolution`, `CombatTargeting`, `RoleTableSO`. **S35:** Propiedades dinámicas de Combatant (EffSpeed, EffDefense, EffEvasion, LifestealPercent). **S37:** Equipos 3v3, filas (2-3-2 grid), efectos de rol (Protector escudo, Agresivo backline hit, Empático heal).
+**Responsabilidad:** Servicio estático stateless que simula combate turn-based **3v3 team-based** (tolerancia 1..3 por lado), completamente determinista. Orquesta validación de equipos, simulación core pura (sin registry), construcción de records simétricos. Componedora de: `CombatRng` (inyectado por seed), `Combatant`, `CombatResolver`, `CombatStats`, `CombatEvolution`, `CombatTargeting`, `RoleWorldProfileSO`, **`CombatElements` (S39)**. **S35:** Propiedades dinámicas de Combatant (EffSpeed, EffDefense, EffEvasion, LifestealPercent). **S37:** Equipos 3v3, filas (2-3-2 grid), efectos de rol (Protector escudo, Agresivo backline hit, Empático heal). **S39:** Marcas y reacciones elementales vía `CombatElements.AddMark()`.
 
 ## Métodos Públicos
 
@@ -128,12 +128,26 @@ public static CombatResult SimulateCore(
 13. Fire procs defensivos del defensor
 14. `EmitTurn()` — registra turno + TeamStateA/B
 
-### Header del Archivo
+## Cambios S39
 
-Documento actualizado al inicio describe:
-- Algoritmo de orden de turno: "one speed tiebreak roll PER ALIVE UNIT (both teams, fixed A0..An,B0..Bn order) BEFORE sorting" → determinismo
-- Efectos de rol: "(Agresivo roll backline chance → pick backline target if it lands) / plain pick frontline", "Protector: pick ally and grant Shield", "Empático: heal lowest-HP ally for % of damage dealt"
-- Paridad: Turn loop simétrico — ambos lados ven mismos turns (AttackerIsA/Index/DefenderIndex en CombatTurn)
+**Sistema de marcas elementales:**
+
+En el flujo de turno S37, el paso 13 (Fire procs defensivos) se extiende con:
+
+```csharp
+// (13) elemental mark — if the strike connected (not dodged, damage>0),
+// mark the target with the attacker's Element as an enemy-sourced mark;
+```
+
+**Integración:**
+- Después de que un golpe conecta (damage > 0), se llama `CombatElements.AddMark(target, attacker.Dna.Element, false, attacker, config, result, rng)`
+- El método AddMark maneja la lógica: impide duplicados (mismo Element+fuente), detecta pares de elementos distintos y detona reacciones
+- Reacciones instantáneas (Cleanse, OverGrow, Leech, PisoTierra) se resuelven inmediato
+- Reacciones armadas (Energizado, Vaporizado, etc.) se agregan a Combatant.States como estados single-use
+
+**Determinismo:** Todos los rolls de elemento vía CombatElements.ReactionFor() y ApplyState() son deterministas (sin rolls) o usan CombatRng inyectado (PisoTierra random mark removal).
+
+**Header del archivo actualizado:** Documenta que el paso 13 incluye marca elemental y reacción.
 
 ## Métodos Privados
 
@@ -141,25 +155,25 @@ Documento actualizado al inicio describe:
 |--------|---------|-------------|
 | `ValidateTeam(ids, registry, config, outDnas)` | `bool` | **S37** Valida team size, IDs vivos, no busy, fights restantes |
 | `ResolveRows(count, rows, outResolved)` | `bool` | **S37** Valida/resuelve fila list; default 2-3-2 si null |
-| `TakeTurn(atk, def, myTeam, oppTeam, config, result, round, resolver, rng)` | `bool` | **S37** Resuelve turno: role logic, targeting, damage, status, procs. Retorna true si kill |
+| `TakeTurn(atk, myTeam, oppTeam, config, result, round, resolver, rng, teamA, teamB)` | `void` | **S37/S39** Resuelve turno: role logic, targeting, damage, status, procs, marcas elementales. |
 | `EmitTurn(result, round, atk, def, myTeamA, myTeamB, noAttack, damage, crit, shieldAfter, procs)` | `void` | **S37** Crea CombatTurn con indices, TeamStateA/B |
 | `TickStatuses(c, result, resolver)` | `void` | Aplica daño/curación por status activo |
 | `FireProcs(owner, opponent, trigger, result, resolver, roll, rng)` | `void` | Itera procs del tipo trigger, aplica |
 | `RollProc(p, owner, result, rng)` | `bool` | Tira chance proc |
-| `BuildCombatant(dna, db, equipDb, isA, row, index)` | `Combatant` | **S37** Construye modelo con Row e Index |
+| `BuildCombatant(dna, db, equipDb, isA, index, row, roles)` | `Combatant` | **S37/S39** Construye modelo con Row e Index; aplica RoleTableSO mods |
 | `CollectProcs(dna, equipDb)` | `List<CombatProcEffect>` | Recolecta procs de equipment |
 | `Snapshot(Combatant)` | `CombatFighterSnapshot` | Extrae stats + tiers + color + nombre + role + row |
 | `StatusMarks(Combatant)` | `List<CombatStatusMark>` | Contea efectos activos |
 | `Clip(id)` | `string` | Trunca ID a 14 chars para logging |
 
-## Ciclo de Determinismo (S32 + S37)
+## Ciclo de Determinismo (S32 + S37 + S39)
 
 1. **Local:** `CombatController.SimulateLocal(idsA, idsB, rowsA, rowsB)`
    - Genera `seed = Guid.NewGuid().GetHashCode()`
    - Llama `Simulate(idsA, idsB, rowsA, rowsB, ..., seed)`
    - Valida registry, construye DNAs, construye Combatants, llama `SimulateCore(..., new CombatRng(seed))`
    - Construye records para cada unit
-   - Persiste automático via GameEvents.OnRegistryChanged
+   - Persiste automático via GameEvents.RegistryChanged
 
 2. **Async:** Cloud Code (JS v2) matchea y emite `CloudMatchBlob { Seed, CreatureJsonsA, CreatureJsonsB, RowsA, RowsB, ... }`
    - Cliente recibe blob
@@ -167,7 +181,7 @@ Documento actualizado al inicio describe:
    - **Mismo seed + mismo DNA snapshots + mismo rows = resultado idéntico**
    - Construye record desde perspectiva propia vía `BuildRecord(result, selfDnas, oppDnas, self, ...)`
 
-## Flujo de Turno Completo (S37)
+## Flujo de Turno Completo (S37/S39)
 
 ```
 Per round per unit in turn order (sorted by EffSpeed):
@@ -184,8 +198,9 @@ Per round per unit in turn order (sorted by EffSpeed):
   11. [Role Empatico] LowestHpAlly(myTeam).Hp += damage * profile.HealPercentOfDamage
   12. Lifesteal post-strike
   13. FireProcs(Defensive) from defender
-  14. EmitTurn() → record AttackerIndex/DefenderIndex, DefenderShieldAfter, TeamStateA/B
-  15. If either unit or team dead, break loop or flag round end
+  14. [S39] CombatElements.AddMark(target, attacker.Element, false, attacker, config, result, rng)
+  15. EmitTurn() → record AttackerIndex/DefenderIndex, DefenderShieldAfter, TeamStateA/B
+  16. If either unit or team dead, break loop or flag round end
 ```
 
 ## Orden de Rol (S37)
@@ -222,20 +237,21 @@ private static CombatFighterSnapshot Snapshot(Combatant c) => new CombatFighterS
 
 ## Vinculado a
 
+- [[Index/03 - Combat System]]
 - [[Index/13 - Combat Design Direction]]
 - [[CreatureDNA]] — fuente de verdad, se muta si gana/muere
 - [[CreatureDatabaseSO]] — resuelve partes por ID
-- [[CombatManagerSO]] — config (MaxRounds, CritChance, etc., Synergies, RoleProfiles)
+- [[CombatManagerSO]] — config (MaxRounds, CritChance, knobs Elemental, Roles)
 - [[EquipmentDatabaseSO]] — resuelve items equipados → procs
 - [[EquipmentStats]] — aplica mods de equipment
 - [[CombatRng]] — RNG inyectado, determinista
 - [[Combatant]], [[CombatResolver]], [[CombatStats]], [[CombatEvolution]], [[EffectiveStats]] — clases extraídas
 - [[CombatRecord]], [[CombatTurn]], [[CombatProcEvent]], [[CombatStatusMark]], [[CombatUnitState]] — DTO salida
 - [[CombatFighterSnapshot]] — snapshot stats + tiers + color + nombre + role + fila
-- [[SynergyTableSO]], [[SynergyRule]], [[SynergyEffectBase]] — motor de sinergias (S32)
+- [[CombatElements]] — marcas y reacciones elementales (S39; el motor de sinergias S32 fue retirado en S39)
 - [[GameEvents]] — (no dispara directo, GameManager/AsyncCombatService orquesta)
 - [[CombatTargeting]] — PickFrontTarget, PickBacklineTarget, PickAlly, LowestHpAlly (S37)
-- [[RoleTableSO]] — perfiles de rol (S37)
+- [[RoleWorldProfileSO]] — perfiles de rol (S37)
 
 ## Conexiones
 
@@ -248,15 +264,16 @@ private static CombatFighterSnapshot Snapshot(Combatant c) => new CombatFighterS
 - `CombatRecord` — poblado via `BuildRecord()` con SelfTeam/OpponentTeam/SelfTeamIds (S37) o SelfStats/OpponentStats (1v1 legacy), persistido en `CreatureDNA.CombatHistory`
 - `CombatTurn.TeamStateA/TeamStateB` — consumido por visualizador 3v3 (futuro Fase 4) para replay con HP/Shield/status por unit
 
-## Notas (S32-S37)
+## Notas (S32-S37-S39)
 
 - **Backward compatible (transicional S37):** Contrato público `Simulate()` cambiado a 3v3; sobrecarga transicional en CombatController para 1v1 local (equipos de 1)
 - **S35 Dynamic Properties:** Combatant.EffSpeed/EffDefense/EffEvasion/LifestealPercent se recalculan on-demand, transparentes
 - **S36 Backward Stats:** Snapshot captura stats BASE post-equipment, no dinámicos (simetría async)
 - **S37 Team Lineup:** Snapshots alineadas con indices en Turns (AttackerIndex/DefenderIndex mapean a TeamA[i]/TeamB[j])
 - **S37 Role Metadata:** Role incluido en snapshot para UI (chip de rol en card)
+- **S39 Elemental Marks:** Determinista, sin rolls (excepto PisoTierra que remueve marca random). Reacciones instantáneas vs armadas, múltiples disparos por turno posibles.
 - **Determinismo total:** Cero UnityEngine.Random; todo vía `CombatRng` inyectado
 - **Procs:** Colectados en orden de slot (Body→Arm→Eye→Mouth) para determinismo
-- **Logging:** `result.Log` contiene trazas debug de rolls, daños, evasiones, statuses, sinergias, evolución, muerte, efectos de rol
+- **Logging:** `result.Log` contiene trazas debug de rolls, daños, evasiones, statuses, sinergias, evolución, muerte, efectos de rol, marcas elementales
 - **Sinergias:** Integradas en `CombatResolver`; se disparan automáticamente al agregar status. Cap 8 iteraciones previene loops
 - **Anti-Permastun:** `CombatResolver` rechaza re-stun; grant inmunidad al despertar

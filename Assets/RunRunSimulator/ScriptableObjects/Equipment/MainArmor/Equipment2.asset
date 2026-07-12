@@ -79,19 +79,19 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 3|MoriMonchiSimulator.PoisonEffect, Assembly-CSharp
-    - Name: Trigger
+      Data: 3|MoriMonchiSimulator.DamageUseEffect, Assembly-CSharp
+    - Name: Uses
+      Entry: 3
+      Data: 2
+    - Name: Rule
       Entry: 3
       Data: 0
-    - Name: ProcChance
+    - Name: HpThresholdPercent
       Entry: 3
-      Data: 100
-    - Name: DurationTurns
+      Data: 50
+    - Name: Amount
       Entry: 3
-      Data: 3
-    - Name: Magnitude
-      Entry: 3
-      Data: 3
+      Data: 5
     - Name: 
       Entry: 8
       Data: 
@@ -103,7 +103,7 @@ MonoBehaviour:
       Data: 
   Icon: {fileID: 0}
   ID: EQ1
-  Name: Sword
+  Name: Eq2Test
   Slot: 1
   Rarity: 1
   IconColor: {r: 0.6830188, g: 0.20366009, b: 0.1791313, a: 1}

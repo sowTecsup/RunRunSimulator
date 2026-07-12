@@ -7,13 +7,13 @@ namespace MoriMonchiSimulator
 {
 
 // The runtime "brain" of one MoriMochi cube in the world. Drives a NavMeshAgent
-// through a small behavior state machine biased by the creature's Personality
-// (via PersonalityProfileSO), and hands off cleanly to physics when the player
+// through a small behavior state machine biased by the creature's Role
+// (via RoleWorldProfileSO), and hands off cleanly to physics when the player
 // grabs/throws it (IThrowable) — NavMeshAgent ⇄ Rigidbody, the one real technical
 // tension here.
 //
-// Behavior is data-driven: this script never switches on Personality directly, it
-// reads the resolved PersonalityProfile. The cube is spawned and wired by
+// Behavior is data-driven: this script never switches on Role directly, it
+// reads the resolved RoleWorldProfile. The cube is spawned and wired by
 // MoriMochiSpawner, which calls Initialize().
 //
 // Components: NavMeshAgent drives movement while the Rigidbody stays kinematic.
@@ -30,9 +30,9 @@ public partial class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private enum CourtRole { Tend, Orbit }
 
     // ── Injected ──────────────────────────────────────────────────
-    private CreatureDNA        dna;
-    private PersonalityProfile profile;
-    private Transform          player;
+    private CreatureDNA    dna;
+    private RoleWorldProfile profile;
+    private Transform       player;
    
 
     // ── Components / state ────────────────────────────────────────
@@ -124,11 +124,11 @@ public partial class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     }
 
     // Wired by the spawner. profileTable + player may be resolved here as a fallback.
-    public void Initialize(CreatureDNA creature, PersonalityProfileSO profileTable, Transform playerTransform)
+    public void Initialize(CreatureDNA creature, RoleWorldProfileSO profileTable, Transform playerTransform)
     {
         dna     = creature;
-        profile = profileTable?.GetProfile(creature.Personality)
-                  ?? PersonalityProfile.Neutral();
+        profile = profileTable?.GetProfile(creature.Role)
+                  ?? RoleWorldProfile.Neutral();
         player  = playerTransform;
 
         RestoreNavMeshControl();   // pooling: an instance reused from the pool keeps last life's state — reset it
@@ -148,10 +148,10 @@ public partial class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         EnterRoaming();
     }
 
-    public void Rebind(CreatureDNA creature, PersonalityProfileSO profileTable)
+    public void Rebind(CreatureDNA creature, RoleWorldProfileSO profileTable)
     {
         dna     = creature;
-        profile = profileTable?.GetProfile(creature.Personality) ?? PersonalityProfile.Neutral();
+        profile = profileTable?.GetProfile(creature.Role) ?? RoleWorldProfile.Neutral();
         if (nameTag != null) nameTag.Bind(creature, this);
     }
 
@@ -254,7 +254,7 @@ public partial class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
             Gizmos.DrawWireSphere(c, profile.FollowDistance);
         }
 
-        Gizmos.color = profile.Tint;                // personality color tag
+        Gizmos.color = profile.Tint;                // role color tag
         Gizmos.DrawSphere(c + Vector3.up * 1.2f, 0.12f);
 
         if (agent != null && agent.enabled && agent.isOnNavMesh && agent.hasPath)

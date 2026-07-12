@@ -20,11 +20,11 @@ public class MoriMonchiController : MonoBehaviour
     public MoriMochiAgent Agent => agent;
 
     public void Initialize(
-        CreatureDNA          dna,
-        PersonalityProfileSO profileTable,
-        Transform            player,
-        PartVisualBankSO     bank,
-        FurTypeDatabaseSO    furDb)
+        CreatureDNA        dna,
+        RoleWorldProfileSO profileTable,
+        Transform          player,
+        PartVisualBankSO   bank,
+        FurTypeDatabaseSO  furDb)
     {
         agent.Initialize(dna, profileTable, player);
 
@@ -35,7 +35,7 @@ public class MoriMonchiController : MonoBehaviour
         visualizer.Assemble(dna, bank);
     }
 
-    public void Rebind(CreatureDNA dna, PersonalityProfileSO profileTable, FurTypeDatabaseSO furDb)
+    public void Rebind(CreatureDNA dna, RoleWorldProfileSO profileTable, FurTypeDatabaseSO furDb)
     {
         agent.Rebind(dna, profileTable);
         visualizer.SetFurDatabase(furDb);

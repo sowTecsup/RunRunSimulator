@@ -42,14 +42,14 @@ public class MoriMochiContainer : MonoBehaviour, IAnchorPlace
     public bool    IsFull         => occupants.Count >= capacity;
     public IReadOnlyList<MoriMochiAgent> Occupants => occupants;
 
-    // A trimmed view of who's penned — just name, gender and personality (no full CreatureDNA dump).
+    // A trimmed view of who's penned — just name, gender and role (no full CreatureDNA dump).
     // LINQ projects each live occupant into a lightweight OccupantInfo; [ShowInInspector] surfaces it
     // read-only at runtime and re-evaluates every inspector repaint, so it tracks who's actually in.
     [ShowInInspector, ReadOnly, PropertyOrder(10)]
     [LabelText("Occupants"), TableList(IsReadOnly = true, ShowIndexLabels = true)]
     public List<OccupantInfo> OccupantInfos => occupants
         .Where(a => a != null && a.DNA != null)
-        .Select(a => new OccupantInfo { Name = a.DNA.CustomName, Gender = a.DNA.Gender, Personality = a.DNA.Personality })
+        .Select(a => new OccupantInfo { Name = a.DNA.CustomName, Gender = a.DNA.Gender, Role = a.DNA.Role })
         .ToList();
 
     // Display-only row for the occupants table.
@@ -57,7 +57,7 @@ public class MoriMochiContainer : MonoBehaviour, IAnchorPlace
     {
         [ReadOnly] public string         Name;
         [ReadOnly] public CreatureGender Gender;
-        [ReadOnly] public Personality    Personality;
+        [ReadOnly] public Role           Role;
     }
 
     private void Reset() => area = GetComponent<BoxCollider>();

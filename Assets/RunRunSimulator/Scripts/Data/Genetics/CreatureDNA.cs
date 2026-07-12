@@ -37,10 +37,11 @@ public class CreatureDNA
     // ── Social ────────────────────────────────────────────────────
     public CreatureGender Gender = CreatureGender.Unknown;
 
-    // Behavioral archetype — random at mint/hatch, NOT inherited, NOT in the
-    // genetic string. Drives world movement (see MoriMochiAgent / PersonalityProfileSO).
-    public Personality Personality = Personality.Curious;
     public Role Role = Role.Protector;
+
+    // Innate elemental affinity — heredado 50/50 con chance de mutación,
+    // metadata fuera del genetic string (igual que Role).
+    public Element Element = Element.Agua;
 
     // ── Progression ───────────────────────────────────────────────
     public int FightCount = 0;
@@ -96,7 +97,7 @@ public class CreatureDNA
     public int    LocationSlot = -1;   // fixed slot index inside that place; -1 = unassigned
 
     // ── Equipment (typed slots; stores EquipmentSO IDs, resolved vs EquipmentDatabaseSO) ─
-    // Metadata like Gender/Personality — NOT part of the genetic string. Persists with
+    // Metadata like Gender/Role — NOT part of the genetic string. Persists with
     // the DNA (local + cloud) as light IDs. Edited via the typed slot fields below
     // (hidden raw so the drag-drop slots are the single edit surface).
     [HideInInspector]

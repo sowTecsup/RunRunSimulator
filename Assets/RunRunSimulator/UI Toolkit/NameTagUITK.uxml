@@ -8,7 +8,7 @@
         <ui:Label name="gender-label"      text=""            class="tag__gender" />
         <ui:Label name="name-label"        text="Name"        class="tag__name" />
         <ui:Label name="price-label"       text=""            class="tag__price" />
-        <ui:Label name="personality-label" text=""            class="tag__personality" />
+        <ui:Label name="role-label"        text=""            class="tag__role" />
         <ui:Label name="stage-label"       text=""            class="tag__stage" />
         <ui:Label name="breed-label"       text=""            class="tag__breed" />
         <ui:Label name="heart-label"       text="❤"           class="tag__heart" />

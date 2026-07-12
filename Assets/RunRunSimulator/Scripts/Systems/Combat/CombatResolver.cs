@@ -3,11 +3,10 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Implementación de ICombatContext: los procs de equipamiento emiten acciones acá
+// Implementación de ICombatContext: los efectos de ítem emiten acciones acá
 // sin mutar el estado del combate directamente. Cada mutación se graba como
 // CombatProcEvent para el replay del Combat Visualizer. Aplica las salvaguardas
 // anti-permastun (StunOpponent) y el stacking por instancias independientes (AddStatus).
-// También detona recetas de sinergia (SynergyTableSO): quema stacks FIFO y aplica los SynergyEffectBase sobre el portador.
 public class CombatResolver : ICombatContext
 {
     public CombatResult Result;
@@ -15,7 +14,6 @@ public class CombatResolver : ICombatContext
     public Combatant    Opponent;
     public List<CombatProcEvent> TurnProcs;
     public bool                  BeforeStrike;
-    public SynergyTableSO        Synergies;
 
     public void DamageOpponent(float amount, string source)
     {
@@ -38,25 +36,6 @@ public class CombatResolver : ICombatContext
         AddStatus(Self, kind, turns, magnitude, source);
 
     public void StunOpponent(int turns) => StunTarget(Opponent, turns);
-
-    public void StunBearer(Combatant bearer, int turns) => StunTarget(bearer, turns);
-
-    public void DamageBearer(Combatant bearer, float amount, string source)
-    {
-        bearer.Hp = Mathf.Max(0f, bearer.Hp - amount);
-        Result.Log.Add($"    [{source}] {bearer.Name} -{amount:F1} → {bearer.Hp:F1}");
-        Record(ModifierEffectKind.Synergy, bearer, amount);
-    }
-
-    public void HealBearer(Combatant bearer, float amount, string source)
-    {
-        bearer.Hp = Mathf.Min(bearer.MaxHp, bearer.Hp + amount);
-        Result.Log.Add($"    [{source}] {bearer.Name} +{amount:F1} → {bearer.Hp:F1}");
-        Record(ModifierEffectKind.Synergy, bearer, amount);
-    }
-
-    public void AddStatusTo(Combatant bearer, ModifierEffectKind kind, int turns, int magnitude, string source) =>
-        AddStatus(bearer, kind, turns, magnitude, source);
 
     private void StunTarget(Combatant t, int turns)
     {
@@ -82,7 +61,6 @@ public class CombatResolver : ICombatContext
         foreach (var a in t.Active) if (a.Kind == kind) stacks++;
         Result.Log.Add($"    [{source}] {t.Name} gains {kind} ({magnitude}/turn, {turns}t){(stacks > 1 ? $" — x{stacks} stacks" : "")}");
         Record(kind, t, magnitude);
-        CheckSynergies(t);
     }
 
     public void Record(ModifierEffectKind kind, Combatant target, float amount)
@@ -112,54 +90,5 @@ public class CombatResolver : ICombatContext
         return marks;
     }
 
-    private bool resolvingSynergies;
-
-    private void CheckSynergies(Combatant bearer)
-    {
-        if (resolvingSynergies || Synergies == null || Synergies.Rules == null) return;
-        resolvingSynergies = true;
-        for (int guard = 0; guard < 8; guard++)
-        {
-            var rule = FirstSatisfiedRule(bearer);
-            if (rule == null) break;
-            Result.Log.Add($"    [synergy] ¡{rule.Name}! detonates on {bearer.Name}");
-            ConsumeStacks(bearer, rule);
-            Record(ModifierEffectKind.Synergy, bearer);
-            foreach (var e in rule.Effects)
-                if (e != null) e.Apply(this, bearer);
-        }
-        resolvingSynergies = false;
-    }
-
-    private SynergyRule FirstSatisfiedRule(Combatant bearer)
-    {
-        foreach (var rule in Synergies.Rules)
-        {
-            if (rule == null || rule.Requirements == null || rule.Requirements.Count == 0) continue;
-            bool satisfied = true;
-            foreach (var req in rule.Requirements)
-            {
-                int count = 0;
-                foreach (var a in bearer.Active) if (a.Kind == req.Kind) count++;
-                if (count < req.Stacks) { satisfied = false; break; }
-            }
-            if (satisfied) return rule;
-        }
-        return null;
-    }
-
-    private void ConsumeStacks(Combatant bearer, SynergyRule rule)
-    {
-        foreach (var req in rule.Requirements)
-        {
-            int toRemove = req.Stacks;
-            for (int i = 0; i < bearer.Active.Count && toRemove > 0; )
-            {
-                if (bearer.Active[i].Kind == req.Kind) { bearer.Active.RemoveAt(i); toRemove--; }
-                else i++;
-            }
-            Result.Log.Add($"    [synergy] consumed {req.Stacks}x {req.Kind} stacks");
-        }
-    }
 }
 }

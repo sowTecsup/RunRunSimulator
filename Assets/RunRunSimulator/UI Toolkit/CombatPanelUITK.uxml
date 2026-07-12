@@ -38,45 +38,7 @@
                     </ui:VisualElement>
                 </ui:Tab>
 
-                <!-- ── Tab 2: Combate Local ── -->
-                <ui:Tab label="Combate Local" name="tab-local">
-                    <ui:VisualElement class="cbt-body">
-
-                        <ui:VisualElement class="cbt-col-side">
-                            <ui:Label text="Luchador A" class="cbt-col-title" />
-                            <ui:ScrollView name="fa-list" class="cbt-list" mode="Vertical" />
-                        </ui:VisualElement>
-
-                        <ui:VisualElement class="cbt-col-center">
-                            <ui:VisualElement class="cbt-slots">
-                                <ui:VisualElement name="slot-a" class="cbt-slot">
-                                    <ui:Label text="Luchador A" class="cbt-slot-role" />
-                                    <ui:VisualElement name="slot-a-img" class="cbt-slot-img" />
-                                    <ui:Label name="slot-a-name" text="Vacío" class="cbt-slot-name" />
-                                </ui:VisualElement>
-                                <ui:Label text="VS" class="cbt-vs" />
-                                <ui:VisualElement name="slot-b" class="cbt-slot">
-                                    <ui:Label text="Luchador B" class="cbt-slot-role" />
-                                    <ui:VisualElement name="slot-b-img" class="cbt-slot-img" />
-                                    <ui:Label name="slot-b-name" text="Vacío" class="cbt-slot-name" />
-                                </ui:VisualElement>
-                            </ui:VisualElement>
-
-                            <ui:Button name="btn-fight" text="Pelear" class="cbt-action cbt-action--fight" />
-
-                            <ui:ScrollView name="local-log" class="cbt-local-log" mode="Vertical" />
-                            <ui:Label name="local-outcome" text="" class="cbt-outcome" />
-                        </ui:VisualElement>
-
-                        <ui:VisualElement class="cbt-col-side">
-                            <ui:Label text="Luchador B" class="cbt-col-title" />
-                            <ui:ScrollView name="fb-list" class="cbt-list" mode="Vertical" />
-                        </ui:VisualElement>
-
-                    </ui:VisualElement>
-                </ui:Tab>
-
-                <!-- ── Tab 3: Resultados (en cola + reloj al próximo tick) ── -->
+                <!-- ── Tab 2: Resultados (en cola + reloj al próximo tick) ── -->
                 <ui:Tab label="Resultados" name="tab-results">
                     <ui:VisualElement class="cbt-body cbt-results-body">
 
@@ -91,7 +53,7 @@
                     </ui:VisualElement>
                 </ui:Tab>
 
-                <!-- ── Tab 4: Historial (todos los combates pasados) ── -->
+                <!-- ── Tab 3: Historial (todos los combates pasados) ── -->
                 <ui:Tab label="Historial" name="tab-history">
                     <ui:VisualElement class="cbt-body">
 
@@ -106,6 +68,72 @@
                             <ui:Label name="hist-date" text="" class="cbt-hist-date" />
                             <ui:ScrollView name="hist-lines" class="cbt-log-lines" mode="Vertical" />
                             <ui:Label name="hist-outcome" text="" class="cbt-log-outcome" />
+                        </ui:VisualElement>
+
+                    </ui:VisualElement>
+                </ui:Tab>
+
+                <!-- ── Tab 4: Equipo 3v3 (lineup drag & drop) ── -->
+                <ui:Tab label="Equipo 3v3" name="tab-lineup">
+                    <ui:VisualElement class="cbt-lu-root">
+
+                        <ui:VisualElement class="cbt-lu-main">
+                            <ui:VisualElement class="cbt-lu-roster-wrap">
+                                <ui:Label text="Equipo A" class="cbt-col-title" />
+                                <ui:VisualElement name="lineup-roster-a" class="cbt-lu-roster" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="cbt-lu-center">
+                                <ui:VisualElement class="cbt-lu-actions">
+                                    <ui:Button name="lineup-auto" text="Auto-armar" class="cbt-action cbt-action--refresh" />
+                                    <ui:Button name="lineup-clear" text="Vaciar" class="cbt-action cbt-action--timer" />
+                                    <ui:Button name="lineup-fight" text="¡Pelear!" class="cbt-action cbt-action--fight" />
+                                </ui:VisualElement>
+                                <ui:VisualElement class="cbt-lu-battlefield">
+                                    <ui:VisualElement class="cbt-lu-team">
+                                        <ui:VisualElement name="lineup-board-a" class="cbt-lu-board" />
+                                        <ui:Label name="lineup-count-a" text="0/3" class="cbt-lu-count" />
+                                    </ui:VisualElement>
+                                    <ui:Label text="VS" class="cbt-vs" />
+                                    <ui:VisualElement class="cbt-lu-team">
+                                        <ui:VisualElement name="lineup-board-b" class="cbt-lu-board" />
+                                        <ui:Label name="lineup-count-b" text="0/3" class="cbt-lu-count" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:Label name="lineup-hint" text="Arrastrá un MoriMochi a un slot" class="cbt-lu-hint" />
+                            </ui:VisualElement>
+
+                            <ui:VisualElement class="cbt-lu-roster-wrap">
+                                <ui:Label text="Equipo B" class="cbt-col-title" />
+                                <ui:VisualElement name="lineup-roster-b" class="cbt-lu-roster" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+
+                        <ui:ScrollView name="lineup-pool" class="cbt-lu-carousel" mode="Horizontal" />
+
+                        <ui:VisualElement name="lineup-detail" class="cbt-lu-detail-backdrop">
+                            <ui:VisualElement class="cbt-lu-detail">
+                                <ui:VisualElement class="cbt-lu-detail-header">
+                                    <ui:Label name="lineup-detail-name" text="" class="cbt-lu-detail-name" />
+                                    <ui:Button name="lineup-detail-close" text="X" class="cbt-close" />
+                                </ui:VisualElement>
+                                <ui:VisualElement name="lineup-detail-chips" class="cbt-lu-detail-chips" />
+                                <ui:VisualElement class="cbt-lu-detail-body">
+                                    <ui:VisualElement name="lineup-detail-stats" class="cbt-lu-detail-stats" />
+                                    <ui:VisualElement name="lineup-detail-equip" class="cbt-lu-detail-equip" />
+                                </ui:VisualElement>
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+
+                        <ui:VisualElement name="lineup-result" class="cbt-lu-detail-backdrop">
+                            <ui:VisualElement class="cbt-lu-detail">
+                                <ui:VisualElement class="cbt-lu-detail-header">
+                                    <ui:Label name="lineup-result-outcome" text="" class="cbt-lu-result-outcome" />
+                                    <ui:Button name="lineup-result-close" text="X" class="cbt-close" />
+                                </ui:VisualElement>
+                                <ui:Label name="lineup-result-sub" text="" class="cbt-lu-result-sub" />
+                                <ui:ScrollView name="lineup-result-log" class="cbt-lu-result-log" mode="Vertical" />
+                            </ui:VisualElement>
                         </ui:VisualElement>
 
                     </ui:VisualElement>

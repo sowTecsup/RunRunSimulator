@@ -45,9 +45,6 @@ public class CombatController : MonoBehaviour
         return result;
     }
 
-    public CombatResult SimulateLocal(string aID, string bID) =>
-        SimulateLocal(new List<string> { aID }, new List<string> { bID });
-
     public async Task EnqueueForAsyncCombat(string uniqueID, bool scheduled)
     {
         if (!registry.TryGet(uniqueID, out var dna))

@@ -54,7 +54,7 @@ public class BreedingController : MonoBehaviour
 
     // ── Breeding services (requested by pens) ─────────────────────
 
-    public float GetAffinity(Personality a, Personality b) =>
+    public float GetAffinity(Role a, Role b) =>
         affinityTable?.GetAffinity(a, b) ?? 0.5f;
 
     // Async server-side breeding: a pen requests these instead of owning the service.

@@ -49,7 +49,7 @@
     white-space: nowrap;
 }
 
-/* Pen layout (gender glyph / personality / heart / timer) — hidden by default, shown
+/* Pen layout (gender glyph / role / heart / timer) — hidden by default, shown
    from code only while the creature is penned (BreedingContainer). Color of the gender
    glyph is set per-gender from code. */
 .tag__gender {
@@ -60,7 +60,7 @@
     white-space: nowrap;
 }
 
-.tag__personality {
+.tag__role {
     display: none;
     font-size: 20px;
     color: rgb(200, 200, 210);

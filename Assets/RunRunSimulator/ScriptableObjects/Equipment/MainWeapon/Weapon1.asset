@@ -94,19 +94,19 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 7
-      Data: 3|MoriMonchiSimulator.PoisonEffect, Assembly-CSharp
-    - Name: Trigger
-      Entry: 3
-      Data: 0
-    - Name: ProcChance
-      Entry: 3
-      Data: 100
-    - Name: DurationTurns
+      Data: 3|MoriMonchiSimulator.HealUseEffect, Assembly-CSharp
+    - Name: Uses
       Entry: 3
       Data: 3
-    - Name: Magnitude
+    - Name: Rule
       Entry: 3
-      Data: 3
+      Data: 1
+    - Name: HpThresholdPercent
+      Entry: 3
+      Data: 70
+    - Name: Amount
+      Entry: 3
+      Data: 4
     - Name: 
       Entry: 8
       Data: 

@@ -27,25 +27,56 @@ MonoBehaviour:
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
+      Data: 2
+    - Name: 
+      Entry: 7
+      Data: 1|MoriMonchiSimulator.HealUseEffect, Assembly-CSharp
+    - Name: Uses
+      Entry: 3
+      Data: 3
+    - Name: Rule
+      Entry: 3
+      Data: 0
+    - Name: HpThresholdPercent
+      Entry: 3
+      Data: 50
+    - Name: Amount
+      Entry: 3
+      Data: 5
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 2|MoriMonchiSimulator.StatModifierEffect, Assembly-CSharp
+    - Name: Modifiers
+      Entry: 7
+      Data: 3|System.Collections.Generic.List`1[[MoriMonchiSimulator.StatModifier,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 1|MoriMonchiSimulator.MistEffect, Assembly-CSharp
-    - Name: Trigger
+      Data: MoriMonchiSimulator.StatModifier, Assembly-CSharp
+    - Name: Stat
       Entry: 3
       Data: 0
-    - Name: ProcChance
-      Entry: 3
-      Data: 100
-    - Name: Target
+    - Name: Type
       Entry: 3
       Data: 0
-    - Name: DurationTurns
-      Entry: 3
-      Data: 3
-    - Name: Magnitude
-      Entry: 3
+    - Name: Value
+      Entry: 4
       Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 

@@ -30,22 +30,19 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 7
-      Data: 1|MoriMonchiSimulator.PulseEffect, Assembly-CSharp
-    - Name: Trigger
-      Entry: 3
-      Data: 1
-    - Name: ProcChance
-      Entry: 3
-      Data: 100
-    - Name: Target
-      Entry: 3
-      Data: 1
-    - Name: DurationTurns
+      Data: 1|MoriMonchiSimulator.HealUseEffect, Assembly-CSharp
+    - Name: Uses
       Entry: 3
       Data: 3
-    - Name: Magnitude
+    - Name: Rule
       Entry: 3
-      Data: 2
+      Data: 0
+    - Name: HpThresholdPercent
+      Entry: 3
+      Data: 50
+    - Name: Amount
+      Entry: 3
+      Data: 5
     - Name: 
       Entry: 8
       Data: 

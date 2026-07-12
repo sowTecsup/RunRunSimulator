@@ -23145,7 +23145,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
   rarityOddsTable: {fileID: 11400000, guid: a3afe6af2bf139b4e9e397193f27a2e0, type: 2}
-  personalityProfiles: {fileID: 11400000, guid: 17482f6255cdc6c4789dcacf427724fe, type: 2}
+  roleWorldProfiles: {fileID: 11400000, guid: 0586fed4ad76df049a3f4eee9985a287, type: 2}
   creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
   furnitureRegistry: {fileID: 11400000, guid: 065d7cb988feefa4db35e5ec9e276bd2, type: 2}
   inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
@@ -26166,6 +26166,7 @@ GameObject:
   - component: {fileID: 1218711433}
   - component: {fileID: 1218711434}
   - component: {fileID: 1218711435}
+  - component: {fileID: 1218711436}
   m_Layer: 0
   m_Name: UIManager
   m_TagString: Untagged
@@ -26521,6 +26522,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.TransactionPanelUITK
   document: {fileID: 464847834}
+--- !u!114 &1218711436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1218711422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5262e2e00167114dbff39816f3efa86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatLineupUITK
+  document: {fileID: 1051803674}
+  database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
 --- !u!1 &1224935784
 GameObject:
   m_ObjectHideFlags: 0
@@ -34914,8 +34929,8 @@ MonoBehaviour:
     FatherID: 
     ChildrenIDs: []
     Gender: 0
-    Personality: 3
     Role: 0
+    Element: 0
     FightCount: 0
     WinCount: 0
     BreedCount: 0

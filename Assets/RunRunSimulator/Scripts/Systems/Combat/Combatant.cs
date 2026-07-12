@@ -24,10 +24,17 @@ public class Combatant
     public float       Evasion;
     public int         StunTurns;
     public int         StunImmunityTurns;
-    public List<CombatProcEffect> Procs  = new List<CombatProcEffect>();
+    public Element     Element;
+    public int         Affinity;
+    public int         Energy;
+    public List<ItemUseState>     Uses   = new List<ItemUseState>();
     public List<ActiveEffect>     Active = new List<ActiveEffect>();
+    public List<ElementMark>      Marks  = new List<ElementMark>();
+    public List<ElementalState>   States = new List<ElementalState>();
 
     public bool  IsAlive    => Hp > 0f;
+    public bool  HasState(ElementalState s) => States.Contains(s);
+    public bool  ConsumeState(ElementalState s) => States.Remove(s);
     public float EffDefense => Defense + StackSum(ModifierEffectKind.Steel);
     public float EffEvasion => Evasion + StackSum(ModifierEffectKind.Mist);
     public float EffSpeed   => Mathf.Max(0f, Speed - StackSum(ModifierEffectKind.Static));
@@ -47,5 +54,11 @@ public class ActiveEffect
     public ModifierEffectKind Kind;
     public int RemainingTurns;
     public int Magnitude;
+}
+
+public class ItemUseState
+{
+    public ItemUseEffect Effect;
+    public int Remaining;
 }
 }

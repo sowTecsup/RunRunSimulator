@@ -40,7 +40,7 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     [SerializeField] private int sortingOrder = 100;
 
     // Queried once the document tree is built.
-    private Label titleLabel, statCon, statAtk, statSpd, statDef, statLck, statEva, identityLabel, progressionLabel, personalityLabel;
+    private Label titleLabel, statCon, statAtk, statSpd, statDef, statLck, statEva, identityLabel, progressionLabel, roleElementLabel;
     private VisualElement portrait, partsContainer, lineageTree, breedTree;
     private ScrollView combatHistory;
     private Label combatEmpty, lineageEmpty, breedEmpty;
@@ -129,7 +129,7 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         statLck          = root.Q<Label>("stat-lck");
         statEva          = root.Q<Label>("stat-eva");
         identityLabel    = root.Q<Label>("identity");
-        personalityLabel = root.Q<Label>("personality");
+        roleElementLabel = root.Q<Label>("role-element");
         partsContainer   = root.Q<VisualElement>("parts");
         progressionLabel = root.Q<Label>("progression");
         combatHistory    = root.Q<ScrollView>("combat-history");
@@ -203,8 +203,8 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         if (identityLabel != null)
             identityLabel.text = $"Género: {dna.Gender}\nEstado: {StateOf(dna)}\nNacimiento: {Born(dna)}";
 
-        if (personalityLabel != null)
-            personalityLabel.text = $"{PersonalityName(dna.Personality)}\n{PersonalityDesc(dna.Personality)}";
+        if (roleElementLabel != null)
+            roleElementLabel.text = $"{RoleName(dna.Role)} · {ElementName(dna.Element)}\n{RoleDesc(dna.Role)}";
 
         BuildParts(dna);
 
@@ -414,10 +414,9 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         var sb = new System.Text.StringBuilder();
         foreach (var e in item.Effects)
         {
-            if (!(e is CombatProcEffect proc)) continue;
+            if (!(e is ItemUseEffect use)) continue;
             if (sb.Length > 0) sb.Append('\n');
-            string chance = proc.ProcChance >= 100 ? "" : $" · {proc.ProcChance}% proc";
-            sb.Append("◆ ").Append(proc.Summary()).Append(chance);
+            sb.Append("◆ ").Append(use.Summary());
         }
         return sb.Length == 0 ? null : sb.ToString();
     }
@@ -627,28 +626,31 @@ public partial class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         _                  => "Empate",
     };
 
-    // ── Personality (Info tab) ────────────────────────────────────
+    // ── Role / Element (Info tab) ───────────────────────────────────
 
-    private static string PersonalityName(Personality p) => p switch
+    private static string RoleName(Role r) => r switch
     {
-        Personality.Skittish   => "Asustadizo",
-        Personality.Aggressive => "Agresivo",
-        Personality.Lazy       => "Perezoso",
-        Personality.Curious    => "Curioso",
-        Personality.Social     => "Sociable",
-        Personality.Grumpy     => "Gruñón",
-        _                      => p.ToString(),
+        Role.Protector => "Protector",
+        Role.Agresivo  => "Agresivo",
+        Role.Empatico  => "Empático",
+        _              => r.ToString(),
     };
 
-    private static string PersonalityDesc(Personality p) => p switch
+    private static string RoleDesc(Role r) => r switch
     {
-        Personality.Skittish   => "Ráfagas nerviosas; huye y se esconde en el Almacén.",
-        Personality.Aggressive => "Territorial; se acerca y vive en el bullicio del mostrador.",
-        Personality.Lazy       => "Apenas se mueve; descansa mucho en la Trastienda.",
-        Personality.Curious    => "Vaga por todos lados; se acerca al jugador y a los objetos.",
-        Personality.Social     => "Busca compañía; sigue al jugador por el mostrador.",
-        Personality.Grumpy     => "Solitario; mantiene distancia y se retira al Almacén.",
-        _                      => "",
+        Role.Protector => "Guardián calmo; escuda a sus aliados y vive tranquilo cerca del almacén.",
+        Role.Agresivo  => "Territorial; caza la retaguardia enemiga y vive en el bullicio del mostrador.",
+        Role.Empatico  => "Sociable; cura a sus aliados y sigue al jugador por el mostrador.",
+        _              => "",
+    };
+
+    private static string ElementName(Element e) => e switch
+    {
+        Element.Agua         => "Agua",
+        Element.Fuego        => "Fuego",
+        Element.Electricidad => "Electricidad",
+        Element.Planta       => "Planta",
+        _                    => e.ToString(),
     };
 
     private static string StateOf(CreatureDNA d) =>

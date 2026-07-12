@@ -33,8 +33,8 @@
                         <ui:ScrollView name="info-right" class="info-right" mode="Vertical">
                             <ui:Label text="Identidad" class="section-title" />
                             <ui:Label name="identity" class="info-block" />
-                            <ui:Label text="Personalidad" class="section-title" />
-                            <ui:Label name="personality" class="info-block" />
+                            <ui:Label text="Rol y Elemento" class="section-title" />
+                            <ui:Label name="role-element" class="info-block" />
                             <ui:Label text="Partes" class="section-title" />
                             <ui:VisualElement name="parts" class="parts" />
                             <ui:Label text="Progresión" class="section-title" />

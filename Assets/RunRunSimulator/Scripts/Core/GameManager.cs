@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private RarityOddsTableSO rarityOddsTable;
 
     [AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private PersonalityProfileSO personalityProfiles;
+    [SerializeField] private RoleWorldProfileSO roleWorldProfiles;
 
     [Required, AssetsOnly, BoxGroup("Setup")]
     [FormerlySerializedAs("_creatureRegistry")]
@@ -144,7 +144,7 @@ public class GameManager : MonoBehaviour
     {
         var dna        = CreatureGenerator.GenerateRandom(database, rarityOddsTable);
         dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
-        dna.Personality = CreatureGenerator.RandomPersonality();
+        dna.Element = CreatureGenerator.RandomElement();
         dna.Role = CreatureGenerator.RandomRole();
         (dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed) = CreatureGenerator.RandomBaseStats();
         dna.CustomName = CreatureNameBank.GetRandomName();
@@ -172,7 +172,7 @@ public class GameManager : MonoBehaviour
     public PlayerInventorySO      Inventory            => inventory;
     public CreatureDatabaseSO     Database             => database;
     public RarityOddsTableSO      RarityOddsTable      => rarityOddsTable;
-    public PersonalityProfileSO   PersonalityProfiles  => personalityProfiles;
+    public RoleWorldProfileSO     RoleWorldProfiles    => roleWorldProfiles;
     public PartVisualBankSO       PartVisualBank       => partVisualBank;
     public FurTypeDatabaseSO      FurTypeDatabase      => furTypeDatabase;
     public EquipmentDatabaseSO    EquipmentDatabase    => equipmentDatabase;

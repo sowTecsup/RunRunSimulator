@@ -1,248 +1,125 @@
 ---
-tags: [script, ui, creature-detail]
+tags: [script, ui, creature-detail, partial]
 ---
 
 # MorimonchiDetailInfoUITK
 
-**Ruta:** `UI/MorimonchiDetailInfoUITK.cs`
+**Ruta:** `UI/MorimonchiDetailInfoUITK.cs` (partial class)
 
-**Responsabilidad:** Panel modal detalle de criatura (5 tabs: Info/Combate/Linaje/Descendencia/Equipo). **Tab Info:** stats base con bonus de partes (6: CON/ATK/SPD/DEF/LCK/EVA), identidad, personalidad, partes, progresión. **Tab Combate (S33+S34):** historial con tarjetas compact — badge, fecha, rival con propietario, **swatch color + stats compact de ambos + chips de tiers, comentario y boton replay**. **Tab Linaje/Descendencia:** árbol genealógico. **Tab Equipo (S26-28):** dos columnas — izquierda ScrollView con card por slot, derecha swatch MM + stats Base→Final. `IUINavigable` (A/D cambian tabs). **S33:** Tab Equipo es clickeable → abre `EquipmentBackpackUITK` popup. **S34:** Tab Combate rediseñada con tiers visuales y replay button.
+**Responsabilidad:** Panel modal detalle de criatura (5 tabs: Info/Combate/Linaje/Descendencia/Equipo). **Tab Info:** stats base con bonus de partes (6: CON/ATK/SPD/DEF/LCK/EVA), identidad, **rol** (S39), **elemento** (S39), partes, progresión. **Tab Combate (S33+S34):** historial con tarjetas compact — badge, fecha, rival con propietario, swatch color + stats compact de ambos + chips de tiers, comentario y boton replay. **Tab Linaje/Descendencia:** árbol genealógico. **Tab Equipo (S26-28):** dos columnas — izquierda ScrollView con card por slot, derecha swatch MM + stats Base→Final. `IUINavigable` (A/D cambian tabs). **S39 cambios:** Sección "Rol y Elemento" reemplaza "Personalidad"; ModifiersText itera `ItemUseEffect` (S39), no `CombatProcEffect` (deprecated).
+
+## Cambios S39
+
+**Tab Info — Nueva sección "Rol y Elemento":**
+```csharp
+// Antes: roleElementLabel (personalidad)
+// Ahora: roleElementLabel con 2 chips
+var roleText = $"{RoleDisplay(dna.Role)} · {ElementDisplay(dna.Element)}";
+roleElementLabel.text = roleText;  // "Protector · Fuego" (ejemplo)
+```
+
+**Query UXML:** `"role-element-label"` (antes `"personality-label"`)
+
+**Métodos helpers:**
+```csharp
+private static string RoleDisplay(Role r) => r switch
+{
+    Role.Protector => "Protector",
+    Role.Agresivo => "Agresivo",
+    Role.Empatico => "Empático",
+    _ => r.ToString()
+};
+
+private static string ElementDisplay(Element e) => e switch
+{
+    Element.None => "Sin elemento",
+    Element.Fuego => "Fuego",
+    Element.Agua => "Agua",
+    Element.Tierra => "Tierra",
+    Element.Electrico => "Eléctrico",
+    Element.Vaporizado => "Vaporizado",
+    Element.Hielo => "Hielo",
+    _ => e.ToString()
+};
+```
+
+**Tab Info — ModifiersText actualizado (S39):**
+- Antes: iteraba `CombatProcEffect` (lista de procs de equipment)
+- Ahora: itera `ItemUseEffect` (efectos polimórficos de equipment, S39)
+
+```csharp
+// S39 version
+var modText = "";
+if (dna.Equipped != null && equipmentDatabase != null)
+{
+    var usedEffects = new List<ItemUseEffect>();
+    foreach (var slotId in dna.Equipped.Keys)
+    {
+        var itemId = dna.Equipped[slotId];
+        var itemSo = equipmentDatabase.GetItem(itemId);
+        if (itemSo?.Effects != null)
+            usedEffects.AddRange(itemSo.Effects);
+    }
+    if (usedEffects.Count > 0)
+        modText = string.Join(", ", usedEffects.Select(e => e.DisplayName));
+}
+modifiersLabel.text = modText;
+```
 
 ## Tabs
 
 | Tab | Contenido |
 |-----|----------|
-| **Info** | Stats (base+equipment), identidad, personalidad, partes, progresión |
-| **Combate (S34)** | Historial con tarjetas compactas — badge, fecha, rival, **swatch + stats compactos, tiers, comentario, boton replay** |
+| **Info** | Stats (base+equipment), identidad, **rol** (S39) + **elemento** (S39), partes, progresión |
+| **Combate (S34)** | Historial con tarjetas compactas — badge, fecha, rival, swatch + stats compactos, tiers, comentario, boton replay |
 | **Linaje** | Árbol genealógico (padres/abuelos) |
 | **Descendencia** | Árbol de crías |
 | **Equipo** | Slots equipables (clickeable), stats Base→Final con delta |
 
-## Cambios S33
-
-**Tab Combate reescrita:**
-- `BuildCombatCard(record)` construye tarjeta con badge, opponent row, stats snapshots
-- `BuildStatsColumn()` muestra 6 stats desde CombatFighterSnapshot
-- `AddCombatStatLabel()` agrega labels de stat a columna
-- Fallback para records viejos (SelfStats == null): "Combate antiguo — sin stats"
-
-**Tab Equipo → Popup:**
-- Click en card → `backpack.Open()` abre popup mochila
-- `OnRegistryChanged()` re-Populate en place al equipar
-
-## Cambios S34
-
-**Tab Combate rediseño completo:**
-
-```csharp
-private VisualElement BuildCombatCard(CreatureDNA dna, CombatRecord rec)
-{
-    bool won  = rec.Outcome == CombatOutcome.Won;
-    bool draw = rec.Outcome == CombatOutcome.Draw;
-
-    var card = new VisualElement();
-    card.AddToClassList("combat-card");
-    card.AddToClassList(draw ? "combat-card--draw" : won ? "combat-card--win" : "combat-card--lose");
-
-    // Header: badge + fecha
-    var header = new VisualElement();
-    header.AddToClassList("combat-card__header");
-    var badge = new Label(BadgeText(rec.Outcome));
-    badge.AddToClassList("combat-card__badge");
-    badge.AddToClassList(draw ? "combat-card__badge--draw" : won ? "combat-card__badge--win" : "combat-card__badge--lose");
-    header.Add(badge);
-    var date = new Label($"{rec.Date.ToLocalTime():dd/MM/yyyy HH:mm}");
-    date.AddToClassList("combat-card__date");
-    header.Add(date);
-    card.Add(header);
-
-    // Rival row: "vs rival · de {jugador}|local"
-    string owner = string.IsNullOrEmpty(rec.OpponentPlayerName) ? " · local" : $" · de {rec.OpponentPlayerName}";
-    var opponent = new Label($"vs {rec.OpponentName}{owner}");
-    opponent.AddToClassList("combat-card__opponent");
-    card.Add(opponent);
-
-    // Body: 2 columnas Tú/Rival si stats disponibles
-    if (rec.SelfStats != null && rec.OpponentStats != null)
-    {
-        var body = new VisualElement();
-        body.AddToClassList("combat-card__body");
-        body.Add(BuildCombatColumn("Tú", rec.SelfStats, dna.BaseColor));
-        body.Add(BuildCombatColumn("Rival", rec.OpponentStats, new Color(0.22f, 0.22f, 0.28f)));
-        card.Add(body);
-    }
-    else
-    {
-        var noStats = new Label("Combate antiguo — sin stats registradas");
-        noStats.AddToClassList("combat-card__nostats");
-        card.Add(noStats);
-    }
-
-    // Comentario
-    var comment = new Label(CommentText(rec));
-    comment.AddToClassList("combat-card__comment");
-    card.Add(comment);
-
-    // Footer con boton replay
-    var footer = new VisualElement();
-    footer.AddToClassList("combat-card__footer");
-    var play = new Button(() => CombatReplayRequest.Request(dna, rec)) { text = "▶" };
-    play.AddToClassList("combat-card__play");
-    play.SetEnabled(CombatReplayRequest.CanReplay(dna, rec, registry));
-    footer.Add(play);
-    card.Add(footer);
-
-    return card;
-}
-```
-
-**BuildCombatColumn (S34 versión compacta):**
-
-```csharp
-private static VisualElement BuildCombatColumn(string title, CombatFighterSnapshot s, Color fallbackColor)
-{
-    var col = new VisualElement();
-    col.AddToClassList("combat-card__colstats");
-
-    // Header con swatch color + titulo
-    var head = new VisualElement();
-    head.AddToClassList("combat-card__colhead");
-    var swatch = new VisualElement();
-    swatch.AddToClassList("combat-card__swatch");
-    swatch.style.backgroundColor = SnapshotColor(s, fallbackColor);  // ColorHex del snapshot
-    head.Add(swatch);
-    var titleLabel = new Label(title);
-    titleLabel.AddToClassList("combat-card__col-title");
-    head.Add(titleLabel);
-    col.Add(head);
-
-    // 2 lineas compactas de stats
-    var line1 = new Label($"HP {s.MaxHp:0} · ATK {s.Attack:0} · SPD {s.Speed:0}");
-    line1.AddToClassList("combat-card__stat");
-    col.Add(line1);
-
-    var line2 = new Label($"DEF {s.Defense:0} · LCK {s.Luck:0} · EVA {s.Evasion:0}");
-    line2.AddToClassList("combat-card__stat");
-    col.Add(line2);
-
-    // Chips de tiers >1
-    AddTierChips(col, s);
-
-    return col;
-}
-```
-
-**SnapshotColor (S34):**
-
-```csharp
-private static Color SnapshotColor(CombatFighterSnapshot s, Color fallback) =>
-    !string.IsNullOrEmpty(s.ColorHex) && ColorUtility.TryParseHtmlString("#" + s.ColorHex, out var c)
-        ? c
-        : fallback;
-```
-
-Mapea ColorHex del snapshot a Color, fallback al color base UI (dna.BaseColor o gris para rival).
-
-**AddTierChips (S34):**
-
-```csharp
-private static void AddTierChips(VisualElement col, CombatFighterSnapshot s)
-{
-    var chips = new VisualElement();
-    chips.AddToClassList("combat-card__chips");
-
-    AddTierChip(chips, "Cuerpo", s.BodyTier);
-    AddTierChip(chips, "Brazo",  s.ArmTier);
-    AddTierChip(chips, "Ojo",    s.EyeTier);
-    AddTierChip(chips, "Boca",   s.MouthTier);
-
-    if (chips.childCount > 0) col.Add(chips);
-}
-
-private static void AddTierChip(VisualElement chips, string partEs, int tier)
-{
-    if (tier <= 1) return;  // Sólo mostrar si tier >= 2
-    var chip = new Label($"{partEs} T{tier}");
-    chip.AddToClassList("combat-card__tierchip");
-    chips.Add(chip);
-}
-```
-
-Renderiza chips "Brazo T2", "Ojo T3", etc. solo si tier > 1.
-
-**CommentText (S34):**
-
-```csharp
-private static string CommentText(CombatRecord rec)
-{
-    if (rec.Outcome == CombatOutcome.Won)
-        return string.IsNullOrEmpty(rec.EvolvedSlot) ? "Victoria — sin mejora" : $"Se mejoró {PartEs(rec.EvolvedSlot)}";
-    if (rec.Outcome == CombatOutcome.Lost)
-        return rec.Died ? "Murió en combate" : "Regresó derrotado";
-    return "Empate — sin consecuencias";
-}
-```
-
-Línea de comentario contextual bajo los stats.
-
-**Boton Replay (S34):**
-
-```csharp
-var play = new Button(() => CombatReplayRequest.Request(dna, rec)) { text = "▶" };
-play.AddToClassList("combat-card__play");
-play.SetEnabled(CombatReplayRequest.CanReplay(dna, rec, registry));
-footer.Add(play);
-```
-
-Boton ▶ en footer, habilitado si `CanReplay()`. Llama `CombatReplayRequest.Request()` para cargar escena visualizador.
-
-## Organización (partial class)
+## Organización (partial class — Deuda Activa)
 
 | Archivo | Responsabilidad |
 |---------|-----------------|
-| `MorimonchiDetailInfoUITK.cs` | Núcleo, Info, Combat (S34), Equipo |
+| `MorimonchiDetailInfoUITK.cs` | Núcleo, Info (S39), Combat (S34), Equipo (S33) |
 | `MorimonchiDetailInfoUITK.Trees.cs` | Tabs Linaje/Descendencia |
-
-## Campos Serializados
-
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `database` | `CreatureDatabaseSO` | Partes |
-| `equipmentDatabase` | `EquipmentDatabaseSO` | Items |
-| `equipmentPalette` | `EquipmentPaletteSO` | Colores rareza/slot |
-| `backpack` | `EquipmentBackpackUITK` | S33 Popup mochila equipo |
-| `sortingOrder` | `int` | Orden de rendering |
 
 ## Campos Privados
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-| `current` | `CreatureDNA` | S33 Criatura actualmente mostrada |
-| `registry` | `CreatureRegistrySO` | Registry al momento de Show(), para replay |
+| `titleLabel` | `Label` | Nombre |
+| `statCon`, `statAtk`, `statSpd`, `statDef`, `statLck`, `statEva` | `Label` | 6 stats |
+| `roleElementLabel` | `Label` | **S39** Sección "Rol y Elemento" (antes `personalityLabel`) |
+| `identityLabel`, `progressionLabel` | `Label` | ID + progresión |
+| `portrait`, `partsContainer` | `VisualElement` | Visuales |
+| `combatHistory` | `ScrollView` | Tab Combate (tarjetas con replay) |
+| `equipCards`, `equipStats` | `ScrollView`, `VisualElement` | Tab Equipo |
+| `current` | `CreatureDNA` | Criatura actualmente mostrada |
+| `registry` | `CreatureRegistrySO` | Registry al momento de Show() |
 
-## Métodos Privados (S34 nuevos/modificados)
+## Métodos Principales (S34 nuevos)
 
-| Método | Descripción |
-|--------|-------------|
-| `BuildCombatHistory(dna)` | Itera CombatHistory newest-first, agrega vía BuildCombatCard |
-| `BuildCombatCard(dna, record)` | **S34 reescrito** Card compacta con stats+tiers+comentario+replay |
-| `BuildCombatColumn(title, snapshot, fallback)` | **S34** 2 lineas stats + swatch color + chips tiers |
-| `SnapshotColor(snapshot, fallback)` | **S34** Resuelve ColorHex del snapshot |
-| `AddTierChips(col, snapshot)` | **S34** Agrega chips de tiers >1 |
-| `AddTierChip(chips, part, tier)` | **S34** Helper para 1 chip |
-| `CommentText(record)` | **S34** Linea descriptiva del outcome |
-| `AddEquipCard(dna, slot)` | S33 Click abre popup backpack |
-| `OnRegistryChanged(_)` | S33 Suscriptor: re-Populate |
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `BuildCombatHistory(dna)` | `void` | Itera CombatHistory newest-first, agrega vía BuildCombatCard |
+| `BuildCombatCard(dna, record)` | `VisualElement` | **S34 reescrito** Card compacta con stats+tiers+comentario+replay |
+| `BuildCombatColumn(title, snapshot, fallback)` | `VisualElement` | **S34** 2 lineas stats + swatch color + chips tiers |
+| `SnapshotColor(snapshot, fallback)` | `Color` | **S34** Resuelve ColorHex del snapshot |
+| `AddTierChips(col, snapshot)` | `void` | **S34** Agrega chips de tiers >1 |
+| `CommentText(record)` | `string` | **S34** Linea descriptiva del outcome |
 
 ## Vinculado a
 
 - [[Index/05 - UI System]]
 - [[CreatureGridUITK]] — abre este panel
-- [[EquipmentBackpackUITK]] — S33 popup
+- [[EquipmentBackpackUITK]] — popup
 - [[CombatReplayRequest]] — S34 replay request button
-- [[CreatureDNA]] — fuente de datos
+- [[CreatureDNA]] — fuente de datos (Role S39, Element S39)
 - [[CombatStats]], [[EquipmentStats]] — cálculos
 - [[CombatRecord]], [[CombatFighterSnapshot]] — S33/S34 stats + tiers
+- [[ItemUseEffect]] — efectos equipment (S39)
+- [[Role]] — enum (S39)
+- [[Element]] — enum (S39)
 - [[GameEvents]] — suscriptor
 
 ## Conexiones
@@ -257,8 +134,10 @@ Boton ▶ en footer, habilitado si `CanReplay()`. Llama `CombatReplayRequest.Req
 
 ## Notas
 
-- **S34 Combat tab:** Tarjetas compactas con swatch color (ColorHex), 2 lineas stats, chips tiers, comentario contextual
-- **Newest first:** Historial ordenado por fecha descendente (combates recientes primero)
-- **Boton replay:** ▶ en footer, valida CanReplay antes de habilitar, llama Request si clickeado
-- **Backward compat:** Records viejos (sin ColorHex/tiers) muestran gracefully con fallbacks
-- **Registry validación:** Replay button revalidado en cada render para captar cambios de registry (rival vendido/muerto, etc.)
+- **S34 Combat tab:** Tarjetas compactas con swatch color (ColorHex), 2 lineas stats, chips tiers, comentario contextual, boton replay.
+- **S39 cambios:** Tab Info ahora muestra Rol + Elemento (sección "Rol y Elemento"). ModifiersText itera ItemUseEffect polimórficos.
+- **Newest first:** Historial ordenado por fecha descendente (combates recientes primero).
+- **Boton replay:** ▶ en footer, valida CanReplay antes de habilitar.
+- **Backward compat:** Records viejos (sin ColorHex/tiers) muestran gracefully con fallbacks.
+- **Registry validación:** Replay button revalidado en cada render para captar cambios (rival vendido/muerto, etc.).
+- **Partial class:** Deuda activa (Fase 8, refactor a componentes pequeños).

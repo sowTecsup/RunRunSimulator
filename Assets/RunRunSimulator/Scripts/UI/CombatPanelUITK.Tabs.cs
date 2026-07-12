@@ -16,17 +16,6 @@ public partial class CombatPanelUITK
             onlineList.Add(MakeCandidate(dna, onlineCards, SelectOnline));
     }
 
-    private void RebuildFighterLists()
-    {
-        if (faList == null || fbList == null) return;
-        faList.Clear(); fbList.Clear(); faCards.Clear(); fbCards.Clear();
-        foreach (var dna in Eligible())
-        {
-            faList.Add(MakeCandidate(dna, faCards, SelectFighterA));
-            fbList.Add(MakeCandidate(dna, fbCards, SelectFighterB));
-        }
-    }
-
     private VisualElement MakeCandidate(CreatureDNA dna, List<VisualElement> bucket, Action<string> onClick)
     {
         var row = new VisualElement();
@@ -105,60 +94,11 @@ public partial class CombatPanelUITK
 
         onlineSelectedId = "";
         SetCenter();
-        if (tabs != null) tabs.selectedTabIndex = 2;   // jump to Resultados
+        if (tabs != null) tabs.selectedTabIndex = 1;   // jump to Resultados
         region = Region.TabBar;
         ClearAllFocus();
         SetTabBarFocus(true);
         RebuildResults();
-    }
-
-    // ── Tab 2: local fight ────────────────────────────────────────
-
-    private void SelectFighterA(string id) { fighterAId = id; ClearFocus(faCards); region = Region.T2Center; t2Index = 0; RefreshSlots(); ApplyT2CenterFocus(); }
-    private void SelectFighterB(string id) { fighterBId = id; ClearFocus(fbCards); region = Region.T2Center; t2Index = 1; RefreshSlots(); ApplyT2CenterFocus(); }
-
-    private void RefreshSlots()
-    {
-        SetSlot(slotAName, slotAImg, fighterAId);
-        SetSlot(slotBName, slotBImg, fighterBId);
-    }
-
-    private void SetSlot(Label nameLabel, VisualElement img, string id)
-    {
-        CreatureDNA dna = null;
-        if (!string.IsNullOrEmpty(id) && registry != null) registry.TryGet(id, out dna);
-        if (nameLabel != null) nameLabel.text = dna != null ? dna.CustomName : "Vacío";
-        if (img != null) img.style.backgroundColor = dna != null ? dna.BaseColor : new Color(0.24f, 0.24f, 0.28f);
-    }
-
-    private void DoLocalFight()
-    {
-        if (string.IsNullOrEmpty(fighterAId) || string.IsNullOrEmpty(fighterBId)) { Debug.LogWarning("[CombatPanel] Pick two fighters."); return; }
-        if (fighterAId == fighterBId) { Debug.LogWarning("[CombatPanel] Pick two DIFFERENT fighters."); return; }
-        if (Config == null) { Debug.LogError("[CombatPanel] No CombatManager config."); return; }
-
-        var result = CombatController.Instance != null ? CombatController.Instance.SimulateLocal(fighterAId, fighterBId) : null;
-        if (result == null) return;
-
-        Debug.Log("[Combat]\n" + string.Join("\n", result.Log));
-
-        // Inline log (set AFTER SimulateLocal's RegistryChanged-driven rebuild above so it isn't wiped).
-        if (localLog != null)
-        {
-            localLog.Clear();
-            foreach (var line in result.Log)
-            {
-                var l = new Label(line);
-                l.AddToClassList("cbt-log-line");
-                localLog.Add(l);
-            }
-        }
-        if (localOutcome != null)
-            localOutcome.text = result.IsDraw
-                ? "Empate"
-                : $"Ganó {(result.TeamAWon ? result.TeamA : result.TeamB)[0].Name}" + (string.IsNullOrEmpty(result.DiedUnitName) ? "" : $"  ·  murió {result.DiedUnitName}");
-
-        RefreshSlots();
     }
 
     // ── Tab 3: results ────────────────────────────────────────────

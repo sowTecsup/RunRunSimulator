@@ -12,23 +12,45 @@ namespace MoriMonchiSimulator
 //
 // Fixed roll order, per round: one speed tiebreak roll PER ALIVE UNIT (both
 // teams, in fixed A0..An,B0..Bn order) BEFORE sorting the turn order — this
-// keeps rng consumption constant regardless of who is faster. Units then act
-// in (EffSpeed desc, tiebreak desc, side A-before-B, Index asc) order. Per
-// turn: tick active statuses → (Agresivo role: roll backline chance → pick
-// backline target if it lands, else pick frontline) / plain pick frontline →
-// fire passive procs → stun check (skip turn if stunned, grant wake-up
-// immunity when the stun just expired) → Protector role: pick an ally and
-// grant it Shield (no roll cost when ShieldPerTurn is 0) → roll offensive
-// procs → evasion roll → crit roll → on-connect damage, Shield absorbs first
-// → Empático role: heal the lowest-HP ally for a % of the damage dealt (no
-// roll) → lifesteal → on-connect resolves the rolled offensive procs plus
-// the defender's defensive procs. Every alive unit takes its turn once per
-// round until a team is fully wiped, then: pick one alive winner (uniform)
-// → CombatEvolution.TryEvolveRandomSlot roll → pick one loser unit (KO or
-// not, uniform) → DeathChance roll. Combat procs come from equipment
-// (CombatProcEffect) and act through ICombatContext / CombatResolver, which
-// also owns the anti-permastun guard (no re-stun while already stunned,
-// wake-up immunity window), status stacking and synergy detonation.
+// keeps rng consumption constant regardless of who is faster. Turn order
+// sorts (Energizado holders first desc, EffSpeed desc, tiebreak desc, side
+// A-before-B, Index asc).
+//
+// Per turn, in order: (1) tick active statuses — a unit that dies here
+// succumbs without acting and gains no Affinity; (2) targeting — (Agresivo
+// role: roll backline chance → pick backline target if it lands (grants an
+// elemental proc: spend 1 Energy to mark a random ally) else pick frontline
+// (no backline found: spend 1 Energy to give it to a random ally instead,
+// or log a no-op if no Energy)) / plain pick frontline; (3) if the actor had
+// Energizado, consume it and log priority; (4) stun check — skip turn if
+// stunned (no Affinity gained), grant wake-up immunity when the stun just
+// expired; (5) Confuso — consume it, the action fails, still gains Affinity,
+// turn ends; (6) Mareado — consume it, roll vs MareadoChance: on hit the
+// actor strikes a random ally (self included) for MareadoDamage and the
+// turn ends (Affinity gained), on resist the turn continues normally;
+// (7) Protector role: pick an ally and grant it Shield (no roll cost when
+// ShieldPerTurn is 0), then an elemental proc: spend 1 Energy to mark that
+// same ally; (8) equipped items with N uses (no roll — a use fires
+// deterministically once its rule matches, decrementing its remaining
+// count); (9) evasion roll — Vaporizado adds VaporizadoEvaBonus and is
+// consumed on a successful dodge; (10) crit roll — GolpePreciso adds
+// GolpePrecisoCritBonus and is consumed on a crit; (11) on-connect damage —
+// Debilidad zeroes DEF reduction and is consumed, Boiling multiplies the
+// final damage by (1+BoilingDamageBonus) and is consumed, Shield absorbs
+// first; (12) Charcoal — if the defender had it, reflect
+// CharcoalReflectPercent of the damage back onto the attacker and consume
+// it; (13) elemental mark — if the strike connected (not dodged, damage>0),
+// mark the target with the attacker's Element as an enemy-sourced mark;
+// (14) Empático role: heal the lowest-HP ally for a % of the damage dealt
+// (no roll), then an elemental proc: spend 1 Energy to mark that heal
+// target; (15) lifesteal; (16) GainAffinity(actor) — +1 Affinity, every 2
+// converts to +1 Energy. Every alive unit takes its turn once per round
+// until a team is fully wiped, then: pick one alive winner (uniform) →
+// CombatEvolution.TryEvolveRandomSlot roll → pick one loser unit (KO or
+// not, uniform) → DeathChance roll. Item effects come from equipment
+// (ItemUseEffect) and act through ICombatContext, which also owns status
+// stacking. CombatElements.AddMark owns elemental
+// reaction/state resolution and its own rng consumption when a mark lands.
 // SimulateCore is the pure deterministic core: no registry, no validation, no
 // CombatRecord writes — it only mutates the CreatureDNA it's given, so async
 // combat can run it against ephemeral DNA snapshots on both clients and land
@@ -196,7 +218,7 @@ public static class CombatService
         foreach (var c in B)
             result.Log.Add($"[B{c.Index}] \"{c.Name}\" ({c.Role}, {c.Row})  HP:{c.MaxHp:F1}  ATK:{c.Attack:F1}  SPD:{c.Speed:F1}  DEF:{c.Defense:F0}  LCK:{c.Luck:F0}  EVA:{c.Evasion:F0}");
 
-        var resolver = new CombatResolver { Result = result, Synergies = config.Synergies };
+        var resolver = new CombatResolver { Result = result };
         bool wiped = false;
 
         for (int round = 1; round <= config.MaxRounds; round++)
@@ -342,7 +364,9 @@ public static class CombatService
 
         order.Sort((x, y) =>
         {
-            int cmp = y.EffSpeed.CompareTo(x.EffSpeed);
+            int cmp = (y.HasState(ElementalState.Energizado) ? 1 : 0).CompareTo(x.HasState(ElementalState.Energizado) ? 1 : 0);
+            if (cmp != 0) return cmp;
+            cmp = y.EffSpeed.CompareTo(x.EffSpeed);
             if (cmp != 0) return cmp;
             cmp = tiebreak[y].CompareTo(tiebreak[x]);
             if (cmp != 0) return cmp;
@@ -406,10 +430,25 @@ public static class CombatService
                 {
                     target = back;
                     result.Log.Add($"    [Agresivo] {actor.Name} caza la backline");
+                    if (actor.Energy > 0)
+                    {
+                        actor.Energy--;
+                        CombatElements.AddMark(CombatTargeting.PickAlly(allies, rng), actor.Element, true, actor, config, result, rng);
+                    }
                 }
                 else
                 {
-                    result.Log.Add("    [Agresivo] sin backline — comparte energía (sin efecto)");
+                    if (actor.Energy > 0)
+                    {
+                        actor.Energy--;
+                        var mate = CombatTargeting.PickAlly(allies, rng);
+                        mate.Energy++;
+                        result.Log.Add($"    [Agresivo] {actor.Name} comparte energía con {mate.Name} (energía {mate.Energy})");
+                    }
+                    else
+                    {
+                        result.Log.Add("    [Agresivo] sin backline — comparte energía (sin efecto)");
+                    }
                     target = CombatTargeting.PickFrontTarget(enemies, rng);
                 }
             }
@@ -425,12 +464,9 @@ public static class CombatService
 
         r.Self = actor;
         r.Opponent = target;
-        FireProcs(actor, target, TriggerType.Passive, result, r, true, rng);
-        if (actor.Hp <= 0f || target.Hp <= 0f)
-        {
-            EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
-            return;
-        }
+
+        if (actor.ConsumeState(ElementalState.Energizado))
+            result.Log.Add($"    [estado] {actor.Name} consumió Energizado (actuó con prioridad)");
 
         if (actor.StunTurns > 0)
         {
@@ -443,22 +479,64 @@ public static class CombatService
         }
         if (actor.StunImmunityTurns > 0) actor.StunImmunityTurns--;
 
+        if (actor.ConsumeState(ElementalState.Confuso))
+        {
+            result.Log.Add($"    [estado] {actor.Name} está Confuso — su acción falla");
+            GainAffinity(actor, result);
+            EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
+            return;
+        }
+
+        if (actor.ConsumeState(ElementalState.Mareado))
+        {
+            float roll = rng.NextFloat();
+            if (roll < config.MareadoChance)
+            {
+                var victima = CombatTargeting.PickAlly(allies, rng);
+                victima.Hp = Mathf.Max(0f, victima.Hp - config.MareadoDamage);
+                result.Log.Add($"    [estado] {actor.Name} Mareado — se golpea a {victima.Name} -{config.MareadoDamage:F1} → {victima.Hp:F1}");
+                GainAffinity(actor, result);
+                EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
+                return;
+            }
+            result.Log.Add($"    [estado] {actor.Name} resiste el mareo");
+        }
+
         if (profile != null && profile.ShieldPerTurn > 0f)
         {
             var ally = CombatTargeting.PickAlly(allies, rng);
             ally.Shield += profile.ShieldPerTurn;
             result.Log.Add($"    [Protector] {actor.Name} escuda a {ally.Name} +{profile.ShieldPerTurn:F0} (escudo {ally.Shield:F0})");
             r.Record(ModifierEffectKind.Shield, ally, profile.ShieldPerTurn);
+            if (actor.Energy > 0)
+            {
+                actor.Energy--;
+                CombatElements.AddMark(ally, actor.Element, true, actor, config, result, rng);
+            }
         }
 
-        var armed = new List<CombatProcEffect>();
-        foreach (var p in actor.Procs)
-            if (p.Trigger == TriggerType.Offensive && RollProc(p, actor, result, rng))
-                armed.Add(p);
+        foreach (var u in actor.Uses)
+        {
+            if (u.Remaining <= 0) continue;
+            if (u.Effect.Rule == UseRule.SelfHpBelow && actor.Hp > actor.MaxHp * (u.Effect.HpThresholdPercent / 100f)) continue;
+            u.Remaining--;
+            r.Self = actor;
+            r.Opponent = target;
+            result.Log.Add($"    [item] {actor.Name} usa {u.Effect.Summary()} ({u.Remaining} restantes)");
+            u.Effect.Apply(r);
+        }
+        if (actor.Hp <= 0f || target.Hp <= 0f)
+        {
+            EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
+            return;
+        }
 
         float evaChance = target.EffEvasion * config.EvasionPerPoint;
+        evaChance      += target.HasState(ElementalState.Vaporizado) ? config.VaporizadoEvaBonus : 0f;
         float evaRoll   = rng.NextFloat();
         bool  dodged    = evaRoll < evaChance;
+        if (dodged && target.ConsumeState(ElementalState.Vaporizado))
+            result.Log.Add($"    [estado] Vaporizado consumido — {target.Name} esquivó");
         bool  crit        = false;
         float critChance  = 0f;
         float critRoll    = 1f;
@@ -467,14 +545,37 @@ public static class CombatService
         if (!dodged)
         {
             critChance      = config.CritChance + actor.Luck * config.LuckCritPerPoint;
+            critChance     += actor.HasState(ElementalState.GolpePreciso) ? config.GolpePrecisoCritBonus : 0f;
             critRoll        = rng.NextFloat();
             crit             = critRoll < critChance;
+            if (crit && actor.ConsumeState(ElementalState.GolpePreciso))
+                result.Log.Add($"    [estado] GolpePreciso consumido — {actor.Name} conecta un crítico");
             float raw       = actor.Attack * (crit ? config.CritMultiplier : 1f);
             float reduction = Mathf.Clamp01(target.EffDefense * config.DefenseReductionPerPoint);
+            if (target.ConsumeState(ElementalState.Debilidad))
+            {
+                reduction = 0f;
+                result.Log.Add("    [estado] Debilidad — el golpe ignora DEF");
+            }
             damage          = raw * (1f - reduction);
+            if (target.ConsumeState(ElementalState.Boiling))
+            {
+                damage *= (1f + config.BoilingDamageBonus);
+                result.Log.Add($"    [estado] Boiling — daño amplificado a {damage:F1}");
+            }
             absorbed        = Mathf.Min(target.Shield, damage);
             target.Shield  -= absorbed;
             target.Hp       = Mathf.Max(0f, target.Hp - (damage - absorbed));
+
+            if (target.ConsumeState(ElementalState.Charcoal))
+            {
+                float reflect = damage * config.CharcoalReflectPercent;
+                actor.Hp = Mathf.Max(0f, actor.Hp - reflect);
+                result.Log.Add($"    [estado] Charcoal — {target.Name} devuelve {reflect:F1} a {actor.Name} → {actor.Hp:F1}");
+            }
+
+            if (!dodged && damage > 0f)
+                CombatElements.AddMark(target, actor.Element, false, actor, config, result, rng);
         }
         float defHpAfterStrike    = target.Hp;
         float defShieldAfterHit   = target.Shield;
@@ -496,6 +597,11 @@ public static class CombatService
                 healTarget.Hp = Mathf.Min(healTarget.MaxHp, healTarget.Hp + heal);
                 result.Log.Add($"    [Empático] {actor.Name} cura a {healTarget.Name} +{heal:F1} → {healTarget.Hp:F1}");
                 r.Record(ModifierEffectKind.Heal, healTarget, heal);
+                if (actor.Energy > 0)
+                {
+                    actor.Energy--;
+                    CombatElements.AddMark(healTarget, actor.Element, true, actor, config, result, rng);
+                }
             }
         }
 
@@ -507,13 +613,20 @@ public static class CombatService
             r.Record(ModifierEffectKind.Lifesteal, actor, steal);
         }
 
-        if (!dodged && target.Hp > 0f)
-        {
-            foreach (var p in armed) { r.Self = actor; r.Opponent = target; p.Apply(r); }
-            FireProcs(target, actor, TriggerType.Defensive, result, r, true, rng);
-        }
+        GainAffinity(actor, result);
 
         EmitTurn(result, round, actor, target, false, damage, crit, defHpAfterStrike, defShieldAfterHit, procs, teamA, teamB);
+    }
+
+    private static void GainAffinity(Combatant actor, CombatResult result)
+    {
+        actor.Affinity++;
+        if (actor.Affinity >= 2)
+        {
+            actor.Affinity -= 2;
+            actor.Energy++;
+            result.Log.Add($"    [energía] {actor.Name} genera energía ({actor.Energy})");
+        }
     }
 
     private static void EmitTurn(CombatResult result, int round, Combatant actor, Combatant target,
@@ -569,34 +682,6 @@ public static class CombatService
         }
     }
 
-    private static void FireProcs(Combatant owner, Combatant opponent, TriggerType trigger, CombatResult result, CombatResolver r, bool roll, CombatRng rng)
-    {
-        foreach (var p in owner.Procs)
-        {
-            if (p.Trigger != trigger) continue;
-            if (roll && !RollProc(p, owner, result, rng)) continue;
-            r.Self     = owner;
-            r.Opponent = opponent;
-            p.Apply(r);
-        }
-    }
-
-    private static bool RollProc(CombatProcEffect p, Combatant owner, CombatResult result, CombatRng rng)
-    {
-        float roll = rng.NextFloat();
-        bool  pass = roll < p.ProcChance / 100f;
-        result.Log.Add($"    [roll] {owner.Name} {p.Kind} ({TriggerLabel(p.Trigger)}, {p.ProcChance}%) → {roll * 100f:F0}: {(pass ? "PROC" : "no proc")}");
-        return pass;
-    }
-
-    private static string TriggerLabel(TriggerType t) => t switch
-    {
-        TriggerType.Offensive => "on hit",
-        TriggerType.Defensive => "when hit",
-        TriggerType.Passive   => "passive",
-        _                     => "",
-    };
-
     private static Combatant BuildCombatant(CreatureDNA dna, CreatureDatabaseSO db, EquipmentDatabaseSO equipDb,
         bool isA, int index, CombatRow row, RoleTableSO roles)
     {
@@ -609,6 +694,7 @@ public static class CombatService
             Name    = dna.CustomName,
             IsA     = isA,
             Role    = dna.Role,
+            Element = dna.Element,
             Row     = row,
             Index   = index,
             Shield  = 0f,
@@ -618,15 +704,15 @@ public static class CombatService
             Defense = eff.Defense,
             Luck    = eff.Luck,
             Evasion = eff.Evasion,
-            Procs   = CollectProcs(dna, equipDb),
+            Uses    = CollectUses(dna, equipDb),
         };
         c.Hp = c.MaxHp;
         return c;
     }
 
-    private static List<CombatProcEffect> CollectProcs(CreatureDNA dna, EquipmentDatabaseSO equipDb)
+    private static List<ItemUseState> CollectUses(CreatureDNA dna, EquipmentDatabaseSO equipDb)
     {
-        var list = new List<CombatProcEffect>();
+        var list = new List<ItemUseState>();
         if (equipDb == null || dna.Equipped == null) return list;
         foreach (EquipmentSlot slot in System.Enum.GetValues(typeof(EquipmentSlot)))
         {
@@ -634,7 +720,7 @@ public static class CombatService
             var item = equipDb.GetByID(id);
             if (item?.Effects == null) continue;
             foreach (var e in item.Effects)
-                if (e is CombatProcEffect proc) list.Add(proc);
+                if (e is ItemUseEffect use) list.Add(new ItemUseState { Effect = use, Remaining = use.Uses });
         }
         return list;
     }

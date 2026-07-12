@@ -35,7 +35,7 @@ public partial class MoriMochiAgent
     [Tooltip("Half-angle of the camera cone (degrees) within which the player must be aiming at this creature for the pet hint to appear. 20° = ±20° from dead-center.")]
     [SerializeField, Range(5f, 60f)] private float petLookAngle = 20f;
 
-    [TabGroup("Tuning", "Movement"), Title("Personality radii (runtime — from PersonalityProfileSO)")]
+    [TabGroup("Tuning", "Movement"), Title("Role radii (runtime — from RoleWorldProfileSO)")]
     [ShowInInspector, ReadOnly] private float ProfileProximityRadius => profile?.ProximityRadius ?? 0f;
     [TabGroup("Tuning", "Movement")]
     [ShowInInspector, ReadOnly] private float ProfileRoamRadius      => profile?.RoamRadius      ?? 0f;

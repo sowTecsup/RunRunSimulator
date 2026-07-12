@@ -39,19 +39,16 @@ public static class CreatureGenerator
         };
     }
 
-    // Personality is assigned randomly at mint/hatch — never inherited, never part
-    // of the genetic string (metadata like Gender). Single source so Mint and Breed
-    // agree on the roll.
-    public static Personality RandomPersonality()
-    {
-        var values = System.Enum.GetValues(typeof(Personality));
-        return (Personality)values.GetValue(Random.Range(0, values.Length));
-    }
-
     public static Role RandomRole()
     {
         var values = System.Enum.GetValues(typeof(Role));
         return (Role)values.GetValue(Random.Range(0, values.Length));
+    }
+
+    public static Element RandomElement()
+    {
+        var values = System.Enum.GetValues(typeof(Element));
+        return (Element)values.GetValue(Random.Range(0, values.Length));
     }
 
     public static (float hp, float atk, float spd) RandomBaseStats()

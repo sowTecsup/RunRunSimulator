@@ -32,9 +32,6 @@ public partial class CombatPanelUITK
                 else if (v < 0) { ClearT1ActionsFocus(); region = Region.T1List; HighlightCards(onlineCards, onlineIndex); }
                 break;
 
-            case Region.T2Center: MoveT2Center(h + v); break;
-            case Region.T2ListA:  MoveCards(faCards, ref faIndex, h + v, faList, null); break;
-            case Region.T2ListB:  MoveCards(fbCards, ref fbIndex, h + v, fbList, null); break;
             case Region.T3List:   MoveT3(h + v); break;
             case Region.T4List:   MoveT4(h + v); break;
         }
@@ -57,15 +54,6 @@ public partial class CombatPanelUITK
 
             case Region.T1Actions: EnqueueOnline(t1ActionIndex == 0); break;
 
-            case Region.T2Center:
-                if      (t2Index == 0) OpenFighterList(true);
-                else if (t2Index == 1) OpenFighterList(false);
-                else                   DoLocalFight();
-                break;
-
-            case Region.T2ListA: if (InRange(faCards, faIndex)) SelectFighterA((string)faCards[faIndex].userData); break;
-            case Region.T2ListB: if (InRange(fbCards, fbIndex)) SelectFighterB((string)fbCards[fbIndex].userData); break;
-
             case Region.T3List:
                 if (t3Index == 0) DoRefresh();
                 break;
@@ -82,10 +70,7 @@ public partial class CombatPanelUITK
         switch (region)
         {
             case Region.T1Actions: ClearT1ActionsFocus(); region = Region.T1List; HighlightCards(onlineCards, onlineIndex); return true;
-            case Region.T2ListA:   ClearFocus(faCards); region = Region.T2Center; ApplyT2CenterFocus(); return true;
-            case Region.T2ListB:   ClearFocus(fbCards); region = Region.T2Center; ApplyT2CenterFocus(); return true;
             case Region.T1List:
-            case Region.T2Center:
             case Region.T3List:
             case Region.T4List:
                 ClearAllFocus(); region = Region.TabBar; SetTabBarFocus(true); return true;
@@ -99,18 +84,16 @@ public partial class CombatPanelUITK
 
     private void EnterContent()
     {
-        SetTabBarFocus(false);
         int t = tabs != null ? tabs.selectedTabIndex : 0;
+        if (t == 3) { SetTabBarFocus(true); return; }   // Equipo 3v3: mouse-driven by CombatLineupUITK
+
+        SetTabBarFocus(false);
         if (t == 0)
         {
             region = Region.T1List; onlineIndex = 0;
             if (onlineCards.Count > 0) { HighlightCards(onlineCards, 0); onlineList.ScrollTo(onlineCards[0]); }
         }
         else if (t == 1)
-        {
-            region = Region.T2Center; t2Index = 0; ApplyT2CenterFocus();
-        }
-        else if (t == 2)
         {
             region = Region.T3List; t3Index = 0; HighlightT3();
         }
@@ -131,14 +114,6 @@ public partial class CombatPanelUITK
         scroll?.ScrollTo(cards[idx]);
     }
 
-    private void MoveT2Center(int delta)
-    {
-        int next = t2Index + delta;
-        if (next < 0) { ClearT2CenterFocus(); region = Region.TabBar; SetTabBarFocus(true); return; }
-        t2Index = Mathf.Clamp(next, 0, 2);
-        ApplyT2CenterFocus();
-    }
-
     private void MoveT3(int delta)
     {
         if (t3Cards.Count == 0) return;
@@ -148,21 +123,6 @@ public partial class CombatPanelUITK
         HighlightT3();
         var el = t3Cards[t3Index];
         if (t3Index > 0) resultsList?.ScrollTo(el);
-    }
-
-    private void OpenFighterList(bool isA)
-    {
-        ClearT2CenterFocus();
-        if (isA)
-        {
-            region = Region.T2ListA; faIndex = 0;
-            if (faCards.Count > 0) { HighlightCards(faCards, 0); faList.ScrollTo(faCards[0]); }
-        }
-        else
-        {
-            region = Region.T2ListB; fbIndex = 0;
-            if (fbCards.Count > 0) { HighlightCards(fbCards, 0); fbList.ScrollTo(fbCards[0]); }
-        }
     }
 
     // ── Focus visuals ─────────────────────────────────────────────
@@ -182,14 +142,6 @@ public partial class CombatPanelUITK
         btnTimer?.EnableInClassList(Focus, t1ActionIndex == 1);
     }
     private void ClearT1ActionsFocus() { btnInstant?.RemoveFromClassList(Focus); btnTimer?.RemoveFromClassList(Focus); }
-
-    private void ApplyT2CenterFocus()
-    {
-        slotA?.EnableInClassList(Focus, t2Index == 0);
-        slotB?.EnableInClassList(Focus, t2Index == 1);
-        btnFight?.EnableInClassList(Focus, t2Index == 2);
-    }
-    private void ClearT2CenterFocus() { slotA?.RemoveFromClassList(Focus); slotB?.RemoveFromClassList(Focus); btnFight?.RemoveFromClassList(Focus); }
 
     private void HighlightT3()
     {
@@ -218,8 +170,8 @@ public partial class CombatPanelUITK
 
     private void ClearAllFocus()
     {
-        ClearFocus(onlineCards); ClearFocus(faCards); ClearFocus(fbCards);
-        ClearT1ActionsFocus(); ClearT2CenterFocus(); ClearT3Focus(); ClearT4Focus();
+        ClearFocus(onlineCards);
+        ClearT1ActionsFocus(); ClearT3Focus(); ClearT4Focus();
         SetTabBarFocus(false);
     }
 

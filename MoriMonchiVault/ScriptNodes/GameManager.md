@@ -6,7 +6,7 @@ tags: [script, core]
 
 **Ruta:** `Core/GameManager.cs`
 
-**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.OnRegistryChanged`, `OnFurnitureChanged`, `OnInventoryChanged` y ejecuta persistencia local/cloud. En AppQuit/AppPause, flush a cloud. **S34:** Nuevo método `FlushForSceneChange()` para flush antes de cambiar de escena sin perder estado. **S37:** `MintRandomCreature()` asigna `Role` aleatorio vía `CreatureGenerator.RandomRole()`. `MintRandomCreature()` genera partes/color/FurType, asigna personalidad y stats base, asigna role, y registra. Dev tooling para inventario/genética vive en `GeneticsLabPreview`, `DevToolsConsole`. Getters actuales: `Registry`, `FurnitureRegistry`, `Inventory`, `Database`, `RarityOddsTable`, `PersonalityProfiles`, `PartVisualBank`, `FurTypeDatabase`, `EquipmentDatabase`, `RoleProfiles` (S37).
+**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. En AppQuit/AppPause, flush a cloud. **S34:** Nuevo método `FlushForSceneChange()` para flush antes de cambiar de escena sin perder estado. **S37:** `MintRandomCreature()` asigna `Role` aleatorio vía `CreatureGenerator.RandomRole()`. **S39:** `MintRandomCreature()` asigna `Element` aleatorio vía `CreatureGenerator.RandomElement()`. `MintRandomCreature()` genera partes/color/FurType, asigna género, elemento, rol, stats base, y registra. Dev tooling para inventario/genética vive en `GeneticsLabPreview`, `DevToolsConsole`. Getters actuales: `Registry`, `FurnitureRegistry`, `Inventory`, `Database`, `RarityOddsTable`, `RoleWorldProfiles`, `PartVisualBank`, `FurTypeDatabase`, `EquipmentDatabase`.
 
 **Vinculado a:** [[Index/07 - Persistence & Identity]], [[Index/13 - Combat Design Direction]]
 
@@ -17,7 +17,7 @@ tags: [script, core]
 | `PushToCloud()` | Fire-and-forget async push vía `CloudSyncService.PushAsync()` |
 | `FlushToCloud()` | Save local + push cloud; usado en `OnApplicationQuit/Pause` |
 | `FlushForSceneChange()` | **S34** Save local + push cloud ANTES de cambiar escena; patron identico a OnApplicationQuit |
-| `MintRandomCreature()` | **S37** Genera random creature, asigna stats, personalidad, **rol (S37)**, nombre, registra |
+| `MintRandomCreature()` | **S37/S39** Genera random creature, asigna gender, **elemento (S39)**, rol (S37), stats, nombre, registra |
 
 ## Cambios S34 — FlushForSceneChange
 
@@ -38,32 +38,20 @@ public void FlushForSceneChange()
 Actualizado para asignar rol aleatorio:
 
 ```csharp
-public CreatureDNA MintRandomCreature()
-{
-    var dna = CreatureGenerator.GenerateRandom(Database, RarityOddsTable);
-    
-    // Stats base point-buy (18 puntos)
-    var (con, atk, spd) = CreatureGenerator.RandomBaseStats();
-    dna.BaseConstitution = con;
-    dna.BaseAttack = atk;
-    dna.BaseSpeed = spd;
-    
-    // Personalidad y rol no heredados, asignados al azar
-    dna.Personality = CreatureGenerator.RandomPersonality();
-    dna.Role = CreatureGenerator.RandomRole();  // **S37 NEW**
-    
-    // Nombre + registro
-    dna.CustomName = CreatureNameBank.GenerateName(dna, Database);
-    dna.Stamp();
-    Registry.Register(dna);
-    GameEvents.OnCreatureMinted(dna);
-    GameEvents.OnRegistryChanged(Registry);
-    
-    return dna;
-}
+dna.Role = CreatureGenerator.RandomRole();  // S37 NEW
 ```
 
 **Impacto:** Cada criatura mint tiene rol aleatorio 1/3. Role impacta stats (mods ConMod/AtkMod/SpdMod) durante combate vía BuildCombatant. Role es metadata (no genético), hereda en breeding.
+
+## Cambios S39 — MintRandomCreature con Element
+
+Actualizado para asignar elemento aleatorio:
+
+```csharp
+dna.Element = CreatureGenerator.RandomElement();  // S39 NEW
+```
+
+**Impacto:** Cada criatura mint tiene elemento aleatorio. Element es afinidad elemental que hereda 50/50 en breeding con chance de mutación. Conduce reacciones elementales en combate vía `CombatElements`.
 
 ## Métodos Privados
 
@@ -72,31 +60,40 @@ public CreatureDNA MintRandomCreature()
 | `Awake()` | Setea `Instance` |
 | `OnEnable()` | Suscribe a `GameEvents` |
 | `OnDisable()` | Desuscribe |
-| `Persist(CreatureRegistrySO)` | Listener de `OnRegistryChanged` → `SaveSystem.SaveDatabase()` + `PushToCloud()` |
-| `PersistFurniture(FurnitureRegistrySO)` | Listener de `OnFurnitureChanged` → `SaveSystem.SaveFurniture()` (local only) |
-| `PersistInventory(PlayerInventorySO)` | Listener de `OnInventoryChanged` → `SaveSystem.SaveInventory()` (local only) |
+| `Persist(CreatureRegistrySO)` | Listener de `RegistryChanged` → `SaveSystem.SaveDatabase()` + `PushToCloud()` |
+| `PersistFurniture(FurnitureRegistrySO)` | Listener de `FurnitureChanged` → `SaveSystem.SaveFurniture()` (local only) |
+| `PersistInventory(PlayerInventorySO)` | Listener de `InventoryChanged` → `SaveSystem.SaveInventory()` (local only) |
 | `OnApplicationQuit()` | `CollectLooseWorldProps()` + `FlushToCloud()` |
 | `OnApplicationPause(bool)` | Same as quit si paused |
 | `CollectLooseWorldProps()` | Barre `WorldPropInstance` sueltos, devuelve al inventario |
 
-## Getters Públicos (S37)
+## Getters Públicos
 
 | Getter | Tipo | Descripción |
 |--------|------|-------------|
-| `RoleProfiles` | `RoleTableSO` | **S37 NEW** Ref a asset de perfiles de rol (Protector/Agresivo/Empático) |
+| `Registry` | `CreatureRegistrySO` | Ref a creature registry |
+| `FurnitureRegistry` | `FurnitureRegistrySO` | Ref a furniture registry |
+| `Inventory` | `PlayerInventorySO` | Ref a player inventory |
+| `Database` | `CreatureDatabaseSO` | Ref a creature database |
+| `RarityOddsTable` | `RarityOddsTableSO` | Ref a rarity odds table |
+| `RoleWorldProfiles` | `RoleWorldProfileSO` | Ref a role world profiles (S37) |
+| `PartVisualBank` | `PartVisualBankSO` | Ref a part visual bank |
+| `FurTypeDatabase` | `FurTypeDatabaseSO` | Ref a fur type database |
+| `EquipmentDatabase` | `EquipmentDatabaseSO` | Ref a equipment database |
 
 ## Conexiones
 
 Entrada:
-- `GameEvents.OnCreatureMinted()` — dispara registro automático
-- `CreatureGenerator` — genera partes/color/stats/personalidad/**role (S37)**
+- `GameEvents.CreatureMinted()` — dispara registro automático
+- `CreatureGenerator` — genera partes/color/gender/element (S39)/role (S37)/stats/personalidad
 
 Salida:
-- `GameEvents.OnCreatureMinted()` — notifica listeners
-- `GameEvents.OnRegistryChanged()` → `Persist()` → persistencia automática
+- `GameEvents.CreatureMinted()` — notifica listeners
+- `GameEvents.RegistryChanged()` → `Persist()` → persistencia automática
 
 ## Notas
 
-- **Mint automático:** Cada criatura nueva recibe rol aleatorio al azar. No hay input del jugador en la asignación de rol (a diferencia de personalidad que podría ser seleccionable en futuro).
-- **Role herencia:** En breeding, el rol se asigna vía BreedingService (50/50 padres, no vía GameManager).
-- **S37:** El único cambio público es que MintRandomCreature ahora asigna Role (internamente llama CreatureGenerator.RandomRole()).
+- **Mint automático:** Cada criatura nueva recibe género, elemento y rol aleatorio. No hay input del jugador en la asignación (a diferencia de personalidad que podría ser seleccionable en futuro).
+- **Element herencia:** En breeding, el elemento se asigna vía BreedingService (50/50 padres con chance de mutación).
+- **Role herencia:** En breeding, el rol se asigna vía BreedingService (50/50 padres).
+- **S39:** Nuevo método `CreatureGenerator.RandomElement()` asigna afinidad elemental al mint.

@@ -11,14 +11,10 @@
             "id": "904556343679102e",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Index/13 - Combat Design Direction.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "13 - Combat Design Direction"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Vista gráfica"
             }
           }
         ]
@@ -171,6 +167,14 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
+    "Index/09 - Active Context.md.tmp.5648.0fc7c028e5e6",
+    "Index/13 - Combat Design Direction.md.tmp.5648.1af470baa000",
+    "Index/09 - Active Context.md.tmp.5648.655c7044364b",
+    "Index/13 - Combat Design Direction.md.tmp.5648.03e9bdd81c2c",
+    "ScriptNodes/CombatService.md.tmp.5648.53c026bcf256",
+    "ScriptNodes/CombatService.md.tmp.5648.d8f7d8b88808",
+    "ScriptNodes/CombatManagerSO.md.tmp.5648.b2e860718078",
+    "Index/13 - Combat Design Direction.md",
     "Archive - Fur Shaders (POC descartado)/FUR_02_Speckled.md",
     "ScriptNodes/NpcNameBank.md",
     "ScriptNodes/CustomerService.md",
@@ -181,13 +185,7 @@
     "Index/11 - Technical Debt.md.tmp.2824.8544ac3113df",
     "Index/11 - Technical Debt.md.tmp.2824.39ffccaf0b7e",
     "ScriptNodes/CloudSyncService.md.tmp.2824.7278870791c4",
-    "ScriptNodes/MoriMonchiVisualizer.md.tmp.2824.c62c87e195af",
-    "ScriptNodes/CreatureGenerator.md.tmp.2824.45d0e3ff2c6a",
-    "ScriptNodes/ColorGenetics.md.tmp.2824.699bee1ef4c6",
-    "ScriptNodes/CreatureDNA.md.tmp.2824.01d94573cd89",
-    "Index/09 - Active Context.md.tmp.2824.7ff788430757",
     "ScriptNodes/SpawnDiagnostics.md",
-    "ScriptNodes/SpawnDiagnostics.md.tmp.2824.c6f6747eab31",
     "Index/06 - Player & World.md",
     "Index/11 - Technical Debt.md",
     "Index/09 - Active Context.md",
@@ -205,8 +203,6 @@
     "FurShaders/FUR_02_Speckled.md",
     "Archive - Fur Shaders (POC descartado)/FUR_01_Smooth.md",
     "Archive - Fur Shaders (POC descartado)/00 - Fur Shaders Index.md",
-    "FurShaders/FUR_01_Smooth.md",
-    "FurShaders/00 - Fur Shaders Index.md",
     "Sin título.canvas",
     "ScriptsNodes/Sin título.canvas"
   ]

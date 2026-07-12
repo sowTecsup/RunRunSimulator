@@ -67,8 +67,10 @@ public static class BreedingService
             SecondaryColor = ColorGenetics.DeriveSecondary(childBase),
             FurType        = ColorGenetics.Inherit(mother.FurType, father.FurType),
             Gender       = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female,
-            Personality  = CreatureGenerator.RandomPersonality(),   // random, not inherited
             Role         = Random.value < 0.5f ? mother.Role : father.Role,
+            Element      = Random.value < odds.ElementMutationChance
+                ? CreatureGenerator.RandomElement()
+                : (Random.value < 0.5f ? mother.Element : father.Element),
             MotherID     = motherID,
             FatherID     = fatherID,
             BaseConstitution = InheritStat(mother.BaseConstitution, father.BaseConstitution),

@@ -6,7 +6,7 @@ tags: [combat, data, mutable-state]
 
 **Ruta:** `Systems/Combat/Combatant.cs`
 
-**Responsabilidad:** Modelo mutable de un combatiente *durante* la simulación 3v3. Almacena snapshot de DNA, stats finales (después de equipment + role mods), HP presente, escudo (S37), rol (S37), fila (S37), índice (S37), stun/immunity counters, y lista de procs/efectos activos. **S35:** Propiedades dinámicas (`EffDefense`, `EffEvasion`, `EffSpeed`, `LifestealPercent`) que suman stacks de elementos activos en tiempo real.
+**Responsabilidad:** Modelo mutable de un combatiente *durante* la simulación 3v3. Almacena snapshot de DNA, stats finales (después de equipment + role mods), HP presente, escudo (S37), rol (S37), fila (S37), índice (S37), elemento (S39), afinidad de elemento (S39), energía (S39), stun/immunity counters, y listas de usos de equipo y efectos activos. **S35:** Propiedades dinámicas (`EffDefense`, `EffEvasion`, `EffSpeed`, `LifestealPercent`) que suman stacks de elementos activos en tiempo real. **S39:** ItemUseState reemplaza CombatProcEffect; lista de `Marks` (ElementMark) y `States` (ElementalState) para sistema elemental.
 
 ## Estructura
 
@@ -32,12 +32,15 @@ tags: [combat, data, mutable-state]
 | `Evasion` | `float` | Evasión total base |
 | `StunTurns` | `int` | Turnos de stun activos (decrementa cada turno) |
 | `StunImmunityTurns` | `int` | Turnos de inmunidad a stun post-despertar (decrementa) |
-| `Procs` | `List<CombatProcEffect>` | Todos los procs del equipment equipado |
+| `Element` | `Element` | **S39** Elemento de la criatura (innato del DNA) |
+| `Affinity` | `int` | **S39** Afinidad de elemento (entero, rango depende de sistema) |
+| `Energy` | `int` | **S39** Energía acumulada del combatiente |
+| `Uses` | `List<ItemUseState>` | **S39** Todos los usos de equipment equipado (cada uno tiene Effect + Remaining) |
 | `Active` | `List<ActiveEffect>` | Estados en curso (Poison, Burn, Regen, Static, Pulse, Steel, Mist, Lifesteal, etc.) |
+| `Marks` | `List<ElementMark>` | **S39** Marcas elementales acumuladas |
+| `States` | `List<ElementalState>` | **S39** Estados elementales activos (enum: Quemado, Envenenado, etc.) |
 
-**Cambios S37:** Role, Row, Index, Shield son nuevos. IsA sigue siendo poblado (legacy 1v1 compat + identificación de equipo en 3v3).
-
-**Propiedades dinámicas (S35):**
+**Propiedades y métodos:**
 
 | Propiedad | Tipo | Descripción |
 |-----------|------|-------------|
@@ -46,6 +49,8 @@ tags: [combat, data, mutable-state]
 | `EffEvasion` | `float` | Evasion + suma de Magnitude de stacks Mist activos |
 | `EffSpeed` | `float` | Speed - suma de Magnitude de stacks Static, clamped a 0 |
 | `LifestealPercent` | `float` | Suma de Magnitude de stacks Lifesteal / 100f, clamped a 1 |
+| `HasState(ElementalState s)` | `bool` | Retorna si s está en la lista States |
+| `ConsumeState(ElementalState s)` | `bool` | Remueve s de States y retorna success |
 
 **Cálculo de propiedades dinámicas:**
 ```csharp
@@ -75,107 +80,41 @@ Estructura de un status activo durante combate.
 | `RemainingTurns` | `int` | Turnos restantes (decrementa) |
 | `Magnitude` | `int` | Daño/curación/bonus por turno o para cálculos dinámicos |
 
+### ItemUseState (clase interna, S39 nueva)
+
+Estructura de un uso de equipo durante combate, reemplazando CombatProcEffect.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `Effect` | `ItemUseEffect` | Referencia al efecto del item equipado |
+| `Remaining` | `int` | Usos restantes de este efecto (decrementa) |
+
 ## Ciclo de Vida (S37)
 
-1. `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia, carga DNA/equipment, asigna Role/Row/Index/Shield=0
+1. `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia, carga DNA/equipment, asigna Role/Row/Index/Shield=0, copia Element/Affinity/Energy del DNA
 2. `CombatService.SimulateCore()` — itera ambos equipos en orden de EffSpeed
-3. `TakeTurn()` muta: `Hp`, `Shield` (role Protector), `StunTurns`, `StunImmunityTurns`, `Active` (lista crece/shrinks)
+3. `TakeTurn()` muta: `Hp`, `Shield` (role Protector), `StunTurns`, `StunImmunityTurns`, `Active` (lista crece/shrinks), `States` (decrementa), `Marks` (acumula)
 4. Las propiedades dinámicas (`EffSpeed`, `EffDefense`, etc.) se leen durante orden de turno y en fórmulas de daño
 5. `EmitTurn()` captura estado final de `Hp`/`Shield`/`Active` en `CombatUnitState` (S37)
 6. Final de combate: si ganó/perdió, mutaciones vuelven al DNA persistente via `CombatEvolution.AdvanceTier()` o muerte
 
-## Cambios S37
+## Cambios S39
 
-**Nuevos campos:**
-- `Role` — determina efectos de rol (escudo Protector, backline Agresivo, heal Empático)
-- `Row` — fila del grid 2-3-2 (define quién es frontline/backline)
-- `Index` — posición en equipo (0..2, mapea a CombatTurn.AttackerIndex/DefenderIndex)
-- `Shield` — pool de escudo acumulado (aplicado vía Protector role, absorbido pre-HP)
+**ItemUseState (nuevo):**
+- `List<ItemUseState> Uses` reemplaza `List<CombatProcEffect> Procs`
+- Estructura: `{ Effect: ItemUseEffect, Remaining: int }`
+- Sistema elemental integrado: Equipment ahora lleva efectos polimórficos vía `ItemUseEffect` base
 
-**Cálculo de stats con role mods (S37):**
-En `BuildCombatant()`:
-```csharp
-var statsBefore = CombatStats.GetEffectiveStats(dna, db);  // Base + parts
-var profile = config.RoleProfiles.GetProfile(dna.Role);
-c.MaxHp   = (statsBefore.Constitution + profile.ConMod) * BaseHpCombatMultiplier;
-c.Attack  = statsBefore.Attack + profile.AtkMod;
-c.Speed   = statsBefore.Speed + profile.SpdMod;
-// Luego se aplican equipment stats (EquipmentStats.Apply) que modifican estos valores
-```
+**Campos elementales nuevos:**
+- `Element` — elemento innato del DNA (proviene de `CreatureDNA.Element`)
+- `Affinity` — afinidad de elemento (valor numérico)
+- `Energy` — energía acumulada (puede usarse para activar efectos)
+- `Marks` — lista de marcas elementales (ElementMark: tipo + stack count)
+- `States` — lista de estados elementales activos (Quemado, Envenenado, etc.)
 
-**Nota:** Role mods se aplican POST-acumulación de partes (via CombatStats) pero PRE-equipment. El pipeline es: DNA base → partes acumuladas → role mods → equipment mods → final stats.
-
-**Uso de Role/Row en TakeTurn (S37):**
-- `Protector`: `PickAlly(myTeam)` + `ShieldTarget(ally, profile.ShieldPerTurn)` → suma al `Shield` del aliado
-- `Agresivo`: si `rng.NextFloat() < profile.BacklineHitChance` → `PickBacklineTarget(oppTeam)`, else `PickFrontTarget(oppTeam)`
-- `Empático`: post-strike si golpea → `LowestHpAlly(myTeam).Hp += damage * profile.HealPercentOfDamage`
-
-## Uso de Propiedades Dinámicas
-
-### EffSpeed — Orden de turno (S37)
-
-En `CombatService.SimulateCore()`, orden de turnos:
-```csharp
-// Pre-sort: one speed tiebreak roll per unit (both teams)
-foreach (var c in teamA) c.TiebreakerRoll = rng.NextFloat();
-foreach (var c in teamB) c.TiebreakerRoll = rng.NextFloat();
-
-// Sort by: EffSpeed desc, TiebreakerRoll desc, team A-before-B, Index asc
-List<Combatant> turnOrder = units.OrderByDescending(c => c.EffSpeed)
-    .ThenByDescending(c => c.TiebreakerRoll)
-    .ThenBy(c => c.IsA ? 0 : 1)
-    .ThenBy(c => c.Index)
-    .ToList();
-```
-
-Static reduce Speed en tiempo real; un combatiente con Static×2 puede perder el orden si Speed es similar.
-
-### EffDefense — Mitigación de daño
-
-En `CombatService.TakeTurn()`:
-```csharp
-float reduction = Mathf.Clamp01(def.EffDefense * config.DefenseReductionPerPoint);
-damage          = raw * (1f - reduction);
-```
-
-Steel apila DEF dinámicamente, aumentando la mitigación.
-
-### EffEvasion — Evasión de golpes
-
-En `CombatService.TakeTurn()`:
-```csharp
-float evaChance = def.EffEvasion * config.EvasionPerPoint;
-bool  dodged    = evaRoll < evaChance;
-```
-
-Mist apila EVA dinámicamente, aumentando chance de esquivar.
-
-### LifestealPercent — Curación post-golpe
-
-En `CombatService.TakeTurn()`:
-```csharp
-if (!dodged && damage > 0f && atk.LifestealPercent > 0f)
-{
-    float steal = damage * atk.LifestealPercent;
-    atk.Hp = Mathf.Min(atk.MaxHp, atk.Hp + steal);
-    result.Log.Add($"    [Lifesteal] {atk.Name} +{steal:F1} → {atk.Hp:F1}");
-    r.Record(ModifierEffectKind.Lifesteal, atk, steal);
-}
-```
-
-El % de daño infligido vuelve como cura al atacante (solo si golpea y no es esquivado).
-
-### Shield — Absorción de daño (S37)
-
-En `CombatService.TakeTurn()`, post-daño:
-```csharp
-float absorbed = Mathf.Min(def.Shield, damage);
-def.Shield -= absorbed;
-damage -= absorbed;  // El remainder va a HP
-if (damage > 0f) def.Hp -= damage;
-```
-
-El escudo actúa como pool de absorción antes de HP. Acumulado vía Protector role (`ShieldPerTurn`), decrementa con daño recibido.
+**Métodos nuevos:**
+- `HasState(ElementalState s)` — chequea si un estado está activo
+- `ConsumeState(ElementalState s)` — consume un estado activo y retorna success
 
 ## Vinculado a
 
@@ -183,20 +122,26 @@ El escudo actúa como pool de absorción antes de HP. Acumulado vía Protector r
 - [[CombatService]] — construye y muta durante simulación
 - [[CombatResolver]] — accede para aplicar acciones
 - [[ActiveEffect]] — lista de efectos activos
+- [[ItemUseState]] — lista de usos de equipo (S39)
 - [[ModifierEffectKind]] — enum de tipos de efectos
 - [[Role]] — enum, determina comportamiento
 - [[CombatRow]] — enum, fila en grid
 - [[RoleTableSO]] — perfil de role, mods de stats
+- [[Element]] — enum de elementos (S39)
+- [[ElementMark]] — marca elemental (S39)
+- [[ElementalState]] — estado elemental (S39)
 
 ## Conexiones
 
 **Entrada:**
-- `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia con Role/Row/Index del DNA
+- `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia con Role/Row/Index del DNA y Element/Affinity/Energy
 - `CombatResolver.AddStatus()` — agrega a `Active` list
 - `CombatResolver.ShieldTarget()` — suma a `Shield` (role Protector)
+- `CombatResolver.ApplyMark()` — agrega a `Marks` (S39)
+- `CombatResolver.ApplyState()` — agrega a `States` (S39)
 
 **Salida:**
-- Cambios en `Hp`, `Shield`, stun counters, `Active` vía CombatResolver
+- Cambios en `Hp`, `Shield`, stun counters, `Active`, `Marks`, `States` vía CombatResolver
 - Las propiedades dinámicas se leen en Speed order, daño, evasión, lifesteal
 - Final de combat: mutation vuelve a DNA vía CombatEvolution (tiers) o CombatRecord (historia)
 
@@ -207,3 +152,4 @@ El escudo actúa como pool de absorción antes de HP. Acumulado vía Protector r
 - `StunImmunityTurns` implementa anti-permastun (ver `CombatManagerSO.StunImmunityTurns`).
 - **S35:** Las propiedades dinámicas permiten que stacks de elementos *en curso* modifiquen el comportamiento en tiempo real. No hay pre-cálculo; se leen on-demand cada turno.
 - **S37:** Role/Row/Index definen semántica 3v3. Shield es pool de absorción (Protector role). IsA se mantiene para backward compat + identificación de equipo.
+- **S39:** Element/Affinity/Energy/Marks/States integran el sistema elemental en cada combatiente. Los efectos del equipo usan `ItemUseState` en lugar de `CombatProcEffect`.

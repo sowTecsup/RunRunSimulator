@@ -27,6 +27,9 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
     [InfoBox("Solo display/referencia. La duración real está hardcoded en start-breeding.js (server-side).")]
     [LabelWidth(190)] public int BreedDurationMinutes = 30;
 
+    // ── Element inheritance ──────────────────────────────────────
+    [LabelWidth(190), Range(0f, 1f)] public float ElementMutationChance = 0.10f;
+
     // ── Roll ──────────────────────────────────────────────────────
     public Slot Roll()
     {

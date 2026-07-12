@@ -174,17 +174,51 @@ Bienestar derivado (no almacenado, computed).
 Healthy = 0, InNeed = 1, Sick = 2
 ```
 
-### Personality
+### Element
 
-Arquetipo de comportamiento (asignado al azar en mint/hatch, metadata).
+Afinidad elemental innata de un MoriMochi (S39). Hereda 50/50 de los padres en breeding (aleatorio en mint) con chance de mutación. NO es parte del genetic string (metadata como Gender/Role). Conduce reacciones elementales en combate.
 
 ```
-Skittish = 0, Aggressive = 1, Lazy = 2, Curious = 3, Social = 4, Grumpy = 5
+Agua = 0, Fuego = 1, Electricidad = 2, Planta = 3
 ```
+
+**Descripción:**
+- `Agua` — Afinidad acuática
+- `Fuego` — Afinidad ígnea
+- `Electricidad` — Afinidad eléctrica
+- `Planta` — Afinidad botánica
+
+**Uso en combate:** Las marcas elementales se aplican vía acciones de combate; dos elementos distintos de la misma fuente (aliada/enemiga) detonan reacciones vía `CombatElements.ReactionFor()`.
+
+### ElementalState
+
+Los 12 estados de reacción elemental únicos de un solo uso (S39). Estados positivos vienen de fuente aliada, negativos de fuente enemiga; todos se consumen una vez disparan su condición de trigger.
+
+```
+Energizado = 0, Cleanse = 1, Vaporizado = 2, GolpePreciso = 3,
+Charcoal = 4, OverGrow = 5, Boiling = 6, Debilidad = 7,
+Confuso = 8, Leech = 9, Mareado = 10, PisoTierra = 11
+```
+
+**Reacciones aliadas (fuente aliada):**
+- `Energizado` — Fuego × Electricidad: ataque potenciado
+- `Vaporizado` — Agua × Fuego: escape/reducción de daño
+- `GolpePreciso` — Agua × Electricidad: crítico garantizado
+- `Cleanse` — Agua × Planta: purga estado negativo O cura
+- `Charcoal` — Fuego × Planta: bloqueo/armadura
+- `OverGrow` — Electricidad × Planta: duplica escudo
+
+**Reacciones enemigas (fuente enemiga):**
+- `Boiling` — Agua × Fuego: daño periódico
+- `Confuso` — Agua × Electricidad: decisiones aleatorias
+- `Leech` — Agua × Planta: robo de HP al atacante
+- `Mareado` — Fuego × Electricidad: reducción de precisión
+- `Debilidad` — Fuego × Planta: daño amplificado
+- `PisoTierra` — Electricidad × Planta: elimina marca elemental aleatoria
 
 ### Role
 
-Rol de combate 3v3 heredable (50/50 padres en breeding, al azar en mint), NOT part of genetic string (metadata como Gender/Personality). Mapped 1:1 a RoleTableSO con modificadores de stats + efectos tácticos.
+Rol de combate 3v3 heredable (50/50 padres en breeding, al azar en mint), NOT part of genetic string (metadata como Gender/Personality). Mapped 1:1 a RoleWorldProfileSO con modificadores de stats + efectos tácticos.
 
 ```
 Protector = 0, Agresivo = 1, Empatico = 2
@@ -194,6 +228,19 @@ Protector = 0, Agresivo = 1, Empatico = 2
 - `Protector` — Tanque: +CON, escudos al equipo (Protector), +DEF playstyle
 - `Agresivo` — Pegador: +ATK/+SPD, caza la backline (rol ofensivo)
 - `Empatico` — Soporte: +SPD, convierte daño en cura (soporte defensivo)
+
+### CombatRow
+
+Fila que ocupa un combatiente en grid 2-3-2 de combate 3v3.
+
+```
+Front = 0, Mid = 1, Back = 2
+```
+
+**Descripción:**
+- `Front` — Primera línea (tanques, primera defensa)
+- `Mid` — Segunda línea (soporte, posición media)
+- `Back` — Tercera línea (atacantes, riesgo alto-recompensa)
 
 ### CreatureIntent
 
@@ -228,19 +275,6 @@ Resultado de pelea (POV de criatura).
 ```
 Won = 0, Lost = 1, Draw = 2
 ```
-
-### CombatRow
-
-Fila que ocupa un combatiente en grid 2-3-2 de combate 3v3.
-
-```
-Front = 0, Mid = 1, Back = 2
-```
-
-**Descripción:**
-- `Front` — Primera línea (tanques, primera defensa)
-- `Mid` — Segunda línea (soporte, posición media)
-- `Back` — Tercera línea (atacantes, riesgo alto-recompensa)
 
 ### MMAnimationType
 
@@ -328,14 +362,6 @@ Static, Pulse, Steel, Mist, Lifesteal, Shield
 - `CombatVisualizerService.RaiseProcPopup()` — convierte ModifierEffectKind → CombatPopupKind
 - `MoriMonchiCombatVisualizerUITK.MapKind()` — mapea para chips de estado
 
-### TriggerType
-
-Cuándo rollean los procs (Offensive, Defensive, Passive).
-
-```
-Offensive = 0, Defensive = 1, Passive = 2
-```
-
 ## Vinculado a
 
 Prácticamente todo el codebase. Los enums son la base de type-safety.
@@ -378,6 +404,14 @@ Prácticamente todo el codebase. Los enums son la base de type-safety.
 - `Shield` — visualización de escudo aplicado
 
 **Impacto:** Cambio de 1v1 → 3v3 team-based. Los enums Role y CombatRow son centrales al nuevo modelo de combate.
+
+## Cambios Sesión 39
+
+**NUEVOS enums:**
+- `Element = Agua | Fuego | Electricidad | Planta` — afinidad elemental innata (S39 core elemental system)
+- `ElementalState = Energizado | Cleanse | Vaporizado | ... | PisoTierra` — 12 estados de reacción elemental de un solo uso
+
+**Impacto:** Sistema de marcas elementales + reacciones 3v3. Cada acción de combate puede aplicar marca elemental via `CombatElements.AddMark()`; dos elementos distintos en la misma fuente detonan reacción que puede ser instantánea (Cleanse, OverGrow, Leech, PisoTierra) o armada (estado que se consume en trigger). Determinista: rolls vía CombatRng.
 
 ## Notas
 

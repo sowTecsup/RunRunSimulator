@@ -213,7 +213,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
         prewarmed.Clear();
 
         var all   = registry.GetAll();
-        var table = GameManager.Instance != null ? GameManager.Instance.PersonalityProfiles : null;
+        var table = GameManager.Instance != null ? GameManager.Instance.RoleWorldProfiles : null;
         var furDb = GameManager.Instance != null ? GameManager.Instance.FurTypeDatabase     : null;
 
         var stale = spawned.Keys
@@ -269,7 +269,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
         float startTime = Time.time;
 
         var all   = registry.GetAll();
-        var table = GameManager.Instance != null ? GameManager.Instance.PersonalityProfiles : null;
+        var table = GameManager.Instance != null ? GameManager.Instance.RoleWorldProfiles : null;
         var bank  = GameManager.Instance != null ? GameManager.Instance.PartVisualBank      : null;
         var furDb = GameManager.Instance != null ? GameManager.Instance.FurTypeDatabase     : null;
 
@@ -438,7 +438,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
     // Assemble) or cold (pool/fresh, full bank). Returns null only if a cold spawn can't be made.
     private MoriMonchiController Acquire(CreatureDNA dna, Vector3 navPoint)
     {
-        var table = GameManager.Instance != null ? GameManager.Instance.PersonalityProfiles : null;
+        var table = GameManager.Instance != null ? GameManager.Instance.RoleWorldProfiles : null;
         var bank  = GameManager.Instance != null ? GameManager.Instance.PartVisualBank      : null;
         var furDb = GameManager.Instance != null ? GameManager.Instance.FurTypeDatabase     : null;
 

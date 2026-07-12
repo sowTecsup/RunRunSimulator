@@ -275,11 +275,11 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         var motherDNA = females[UnityEngine.Random.Range(0, females.Count)];
         var fatherDNA = males[UnityEngine.Random.Range(0, males.Count)];
 
-        float affinity = controller.GetAffinity(motherDNA.Personality, fatherDNA.Personality);
+        float affinity = controller.GetAffinity(motherDNA.Role, fatherDNA.Role);
         float chance   = affinity * diceChance;
         float roll     = UnityEngine.Random.value;
 
-        string pair = $"\"{motherDNA.CustomName}\" ({motherDNA.Personality}) × \"{fatherDNA.CustomName}\" ({fatherDNA.Personality})";
+        string pair = $"\"{motherDNA.CustomName}\" ({motherDNA.Role}) × \"{fatherDNA.CustomName}\" ({fatherDNA.Role})";
         string math = $"afinidad {affinity:P0} × dado {diceChance:P0} = {chance:P0} | salió {roll:P0}";
 
         if (roll >= chance)
@@ -432,7 +432,7 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
                     !IsAdult(d)                                   ? "no adulto" :
                     cooldowns.ContainsKey(d.UniqueID)             ? $"cooldown {Mathf.CeilToInt(cooldowns[d.UniqueID] - now)}s" :
                                                                     "DISPONIBLE";
-                return $"\"{d.CustomName}\" ({d.Gender}, {d.Personality}): {why}";
+                return $"\"{d.CustomName}\" ({d.Gender}, {d.Role}): {why}";
             });
         return "Detalle → " + string.Join(" | ", lines);
     }

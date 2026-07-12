@@ -4,7 +4,7 @@ tags: [index, combat, design]
 
 # 13 - Combat Design Direction (norte de diseño)
 
-**Status:** v2 — TESIS DE DISEÑO de Juan (S37, 2026-07-10) que baja a tierra la dirección decidida al cierre de S36. Las 5 preguntas abiertas de la v1 quedaron RESPONDIDAS (ver "Decisiones cerradas"). Diseño canónico → Notion (pendiente de volcar); esta nota es la captura viva. La implementación actual (S32–S35) es la base técnica.
+**Status:** v3 — CAPA ELEMENTAL IMPLEMENTADA Y VERIFICADA EN PLAY (S39, 2026-07-11/12). La tesis S37 bajó a código: Fases 1-3 + 6 (core sim) + 7 (Personality→Role total) HECHAS; la tabla de estados de la sección 6 refleja la IMPLEMENTACIÓN REAL (efecto, consumo, knob). Falta: visualizer 3v3 (requiere enriquecer el record — los eventos elementales hoy son log-only) y async 3v3. Diseño canónico → Notion (pendiente de volcar).
 
 ## Referencias
 - **Pokémon Quest**: equipo de 3, combate auto-simulado.
@@ -108,27 +108,31 @@ Asimetría resultante (a propósito): las reacciones ofensivas detonan con frecu
 
 Canal resuelto (S37): la marca enemiga llega con **cada ataque recibido** (el golpe deja la marca del elemento del atacante en la víctima).
 
-## 6. Estados (todos DE UN USO — se consumen al detonar su condición)
+## 6. Estados — TABLA IMPLEMENTADA (S39, enum `ElementalState`, lógica en `CombatElements` + `CombatService`)
 
-### Positivos
-| Estado | Efecto |
-|---|---|
-| **Energizado** | Golpeará primero (prioridad de turno). |
-| **Cleanse** | Niega el siguiente estado negativo; si no tiene ninguno, cura el 20% de la vida. |
-| **Vaporizado** | El siguiente ataque que reciba: +30% de evasión. Se mantiene hasta que logre evadir un ataque. |
-| **Golpe Preciso** | El siguiente ataque tiene más chance de crítico. Se mantiene hasta que logre un crítico. |
-| **Charcoal** | El siguiente ataque que reciba devuelve la mitad del daño al agresor. |
-| **OverGrow** | Duplica el escudo del MoriMonchi. |
+Todos DE UN USO. "Inmediato" = se resuelve al detonar la reacción, nunca queda armado. "Armado" = vive en `Combatant.States` hasta su condición de consumo (sin duplicados: re-aplicar no hace nada). Knobs en `CombatManagerSO` → bloque **Elemental** (valores = default v1, tuning pendiente con data real).
 
-### Negativos
-| Estado | Efecto |
-|---|---|
-| **Boiling** | Vulnerable: el siguiente ataque que reciba hace más daño. Se mantiene hasta recibir un golpe. |
-| **Debilidad** | El siguiente ataque que reciba IGNORA defensa. Se mantiene hasta recibir un golpe. |
-| **Confuso** | La siguiente acción siempre falla. |
-| **Leech** | Se le sustrae algo de vida y se le da al MM que activó la reacción. |
-| **Mareado** | Chance de golpearse a sí mismo o a un aliado por una cantidad FIJA (no proquea nada — simple a propósito). |
-| **Piso Tierra** | Remueve una marca elemental al azar del MM. |
+### Positivos (reacción de fuente ALIADA → sobre el portador de las marcas)
+| Estado | Par | Efecto implementado | Consumo | Knob (default) |
+|---|---|---|---|---|
+| **Energizado** | Fuego × Electricidad | Actúa PRIMERO en el orden de la siguiente ronda (clave de sort previa a SPD). | Al actuar con prioridad. | — |
+| **Cleanse** | Agua × Planta | Al aplicarse: purga el primer estado negativo armado; si no tiene ninguno, cura % de MaxHp. | Inmediato. | `CleanseHealPercent` (0.20) |
+| **Vaporizado** | Agua × Fuego | Suma bonus plano de chance de evasión. | Al lograr esquivar un ataque. | `VaporizadoEvaBonus` (0.30) |
+| **GolpePreciso** | Agua × Electricidad | Suma bonus plano de chance de crítico. | Al conectar un crítico. | `GolpePrecisoCritBonus` (0.25) |
+| **Charcoal** | Fuego × Planta | Devuelve % del daño recibido al agresor (puede matarlo). | Al recibir un golpe conectado. | `CharcoalReflectPercent` (0.50) |
+| **OverGrow** | Electricidad × Planta | Duplica el escudo actual (`Shield *= 2`; 0 queda 0). | Inmediato. | — |
+
+### Negativos (reacción de fuente ENEMIGA → sobre la víctima; el "reactor" = quien aplicó la 2ª marca)
+| Estado | Par | Efecto implementado | Consumo | Knob (default) |
+|---|---|---|---|---|
+| **Boiling** | Agua × Fuego | El próximo golpe que reciba hace +% de daño (pre-escudo). | Al recibir un golpe conectado. | `BoilingDamageBonus` (0.30) |
+| **Debilidad** | Fuego × Planta | El próximo golpe que reciba IGNORA su DEF (reduction = 0). | Al recibir un golpe conectado. | — |
+| **Confuso** | Agua × Electricidad | Su próxima acción falla COMPLETA (no ataca, no traits, no ítems). SÍ genera afinidad (accionó y falló). | Al actuar. | — |
+| **Leech** | Agua × Planta | Drena HP fijo al instante y se lo da al reactor (caps: no baja de 0, no cura sobre MaxHp). | Inmediato. | `LeechAmount` (4) |
+| **Mareado** | Fuego × Electricidad | En su próxima acción: % de chance de golpearse a sí mismo o a un aliado (uniforme, incluye self) por daño FIJO en vez de atacar; si resiste el roll, actúa normal. Consume igual. Genera afinidad. | Al actuar. | `MareadoChance` (0.50) · `MareadoDamage` (3) |
+| **PisoTierra** | Electricidad × Planta | Remueve UNA marca al azar del portador (cualquier canal); sin marcas = no-op logueado (no consume rng). | Inmediato. | — |
+
+Nota Boiling+Debilidad: si la víctima tiene ambos armados, ambos aplican y se consumen en el mismo golpe.
 
 ## 7. Equipo (take S37 — simplificación de pasivas)
 
@@ -160,7 +164,7 @@ Abrirán **opciones de ataque** para los MoriMonchis. En esta update **siguen va
 
 ## Qué SOBREVIVE del motor (mapeo actualizado)
 - **Sim determinista por semilla (S32)** — se extiende a 3v3.
-- **Motor de stacks + recetas (`SynergyTableSO`, S32/S35)** — mapea casi 1:1: marca elemental = stack con dimensión nueva de FUENTE (aliada/enemiga); reacción = receta de 2 variedades que detona y quema; estados = leaves `SynergyEffectBase` nuevos. El engine de "variedades requeridas → detonan sobre el portador → queman FIFO → efecto polimórfico" es EXACTAMENTE lo que las reacciones necesitan.
+- ~~**Motor de stacks + recetas (`SynergyTableSO`)** para las reacciones~~ → **DIVERGENCIA S39**: las reacciones se implementaron en `CombatElements` (clase estática dedicada: marcas por fuente + tablas de pares + estados one-use en `Combatant.States`), NO sobre el motor de recetas. Más simple y legible que forzar el mapeo marca=stack. El motor de sinergias fue RETIRADO COMPLETO en el mismo S39 (decisión de Juan): clases, resolver hooks, campo de config y asset borrados.
 - **Pipeline de equipo** — stats quedan; las pasivas migran a "usos + regla de disparo" (evolución de `CombatProcEffect`).
 - **Motor del visualizer** (replay, nodos, barras, chips) — gana 6 combatientes + grilla.
 - **Record granular por proc (S35, `TargetStatusAfter`)** — sirve tal cual para narrar marcas → reacción.
@@ -172,15 +176,20 @@ Abrirán **opciones de ataque** para los MoriMonchis. En esta update **siguen va
 - **Escudo**: mecánica nueva del sim (Protector, OverGrow).
 - **Contenido S35** (ítems de elementos, recetas v1, labels): se archiva/re-autora.
 
-## Preguntas abiertas (S37+)
-1. **Herencia de ELEMENTO**: regla exacta (¿50/50 como el rol? ¿mutación?) — el rol ya quedó cerrado (decisión 14).
-2. **Marcas**: ¿persisten indefinidamente hasta reaccionar? ¿stackea el mismo elemento? ¿cap de marcas por unidad? ¿dos MMs del MISMO elemento nunca reaccionan entre sí (pares iguales no hacen nada)?
-3. **Cleanse**: el "si no tiene ningún estado negativo cura 20%" — ¿se evalúa al aplicarse o queda armado hasta el final?
-4. **Confuso**: "la siguiente acción" — ¿incluye el proc del trait o solo el ataque?
-5. **Magnitudes de tuning**: Boiling (+% daño), Leech (cantidad), Mareado (cantidad fija), Golpe Preciso (+% crit), cap del escudo, clamps de la hoja tras el mod de rol (¿[1,10]? ¿puede quedar <1?).
-6. **Compradores por arquetipo** (tabla invertida): ¿esta update o después?
-7. **Frontline del Agresivo**: si SOLO la fila frontal está ocupada, ¿el 50% falla, pega al front, o re-rollea?
-8. **Afinidad y ataque**: ¿el golpe del Agresivo a backline y la cura del Empático cuentan como "acción" para afinidad? (probable sí — toda acción genera 1).
+## Preguntas abiertas — RESUELTAS EN S39 (decisiones de Juan + implementación)
+1. ✅ **Herencia de ELEMENTO**: 50/50 padre/madre + MUTACIÓN (elemento random) — knob `ElementMutationChance` (0.10) en `InheritanceOddsTableSO`.
+2. ✅ **Marcas**: máx 1 por elemento+fuente por unidad (re-aplicar = no-op logueado); persisten hasta reaccionar o PisoTierra; mismo elemento nunca reacciona. Máx teórico 8 marcas por unidad.
+3. ✅ **Cleanse**: se evalúa AL APLICARSE (purga un negativo o cura 20% en el acto) — un beat, legible. Revisable si Juan prefiere que quede armado negando el próximo negativo.
+4. ✅ **Confuso**: falla la ACCIÓN COMPLETA del turno (ataque, trait e ítems); genera afinidad igual.
+5. 🟡 **Magnitudes de tuning**: defaults v1 en la tabla de arriba, todos knobs — tuning con data real pendiente. Cap del escudo sigue abierto; clamp de hoja post-rol se mantiene [1,10].
+6. ⏳ **Compradores por arquetipo** (tabla invertida): después (con PriceModifier, Fase economía).
+7. ✅ **Frontline del Agresivo sin backline**: el 50% acertado se convierte en COMPARTIR ENERGÍA (un aliado azar gana +1 energía, consume 1 del actor) — implementado y verificado.
+8. ✅ **Afinidad**: toda acción de turno genera 1 (incluye turnos de Confuso/Mareado); estuneado NO genera; muerte por tick NO genera.
+
+## Preguntas abiertas (S39+)
+1. ✅ **Motor de sinergias**: RETIRADO por decisión de Juan (mismo S39) — `SynergyTableSO`/`SynergyRule`/`SynergyEffectBase` borrados, `CheckSynergies` y los helpers bearer fuera de `CombatResolver`, campo `Synergies` fuera de `CombatManagerSO`, asset borrado. Los kinds `Synergy` del enum y los mapeos del visualizer quedan (append-only, inertes).
+2. **Cap del escudo** (OverGrow lo duplica — ¿hasta cuánto?).
+3. **Ítems que aplican estados/marcas** (la spec §7 los prevé): ¿se autoran ahora que existen los estados, o post-visualizer?
 
 ## ROADMAP de implementación (definido con Juan al cierre de S37)
 
@@ -191,20 +200,41 @@ Abrirán **opciones de ataque** para los MoriMonchis. En esta update **siguen va
 - Pasa el lineup real a `SimulateLocal(teams, rows)` (hoy solo el default {Front,Front,Mid}).
 - Rediseño de la tab local del Combat Panel: selección de equipo + grilla + lanzar combate. Que TODO el flujo local 3v3 corra desde UI sin dev console.
 
-**Fase 3 — LIMPIEZA DE LEGACY** (pedida por Juan):
+**✅ Fase 3 — LIMPIEZA DE LEGACY (S39, HECHA)** — tab 1v1 retirada (tabs: Online/Resultados/Historial/Equipo 3v3, la 3v3 entró a navegación por teclado), overload transicional `SimulateLocal(a,b)` eliminado, TODOS los procs de ítems retirados (`CombatProcEffect.cs` borrado) → nuevo sistema `ItemUseEffect` (N usos + regla Always/SelfHpBelow, leaves Heal/Damage, sin rolls), recetas de SynergyTable archivadas (asset vacío), `EvolutionChance`/`TriggerType` fuera. Hard reset: Juan wipeó local+nube antes de S39.
+
+**✅ Fase 6 — CAPA ELEMENTAL, CORE SIM (S39, ADELANTADA Y HECHA)** — `Element` en DNA (campo plano, mint random, herencia 50/50+mutación), afinidad/energía, marcas por fuente, 12 reacciones/estados (tabla implementada en §6), todo verificado por log en Play + Determinism OK. **Falta de F6**: eventos elementales al RECORD (hoy log-only — prerequisito del visualizer) y contenido de ítems que apliquen estados.
+
+**✅ Fase 7 — PERSONALITY→ROLE TOTAL (S39, ADELANTADA Y HECHA)** — enum `Personality` y `PersonalityProfileSO` eliminados; `RoleWorldProfileSO` (3 perfiles de mundo), `BreedingAffinityTableSO` re-keyeada 3×3 por Role, NameTag/UI/containers por rol. **Falta de F7**: PriceModifier en venta + arquetipos de comprador (economía).
+
+**Detalle original de Fase 3 (histórico):**
 - **Hard reset / migración de MMs antiguos**: decidir wipe registry vs botón de migración (roles ya rerolleados en S37; el elemento innato llegará con la capa elemental y necesitará su propio backfill).
 - **Items ya NO proquean estados**: retirar/re-autorar `CombatProcEffect` y los leaves de elementos S35 (Static/Pulse/Steel/Mist/etc. como procs de ítem) — nuevo diseño: ítem = mods de stats + **N usos con regla de disparo** (curar / dañar / aplicar estado, restricciones tipo "con menos de X% de vida").
 - Archivar recetas viejas de `SynergyTableSO` (Explosión tóxica, Robo de vida, Cortocircuito…) — las reacciones nuevas son elementales por fuente.
 - Retirar la sobrecarga transicional `SimulateLocal(a,b)` y el camino 1v1 del Combat Panel cuando la UI 3v3 exista.
 - Barrer referencias muertas (labels/popups de kinds retirados, EvolutionChance sin uso, etc.).
 
-**Fase 4 — VISUALIZER 3V3**: replay de 6 unidades + grilla en escena (reusar `CombatVisualizerMM` como escenario, decisión S37), quitar el guard de `CanReplay`, tarjetas de historial 3v3, storytelling (ghost bar/banner) al servicio del nuevo formato.
+**Fase 4 — VISUALIZER 3V3 (SIGUIENTE, orden de Juan)**: **paso 0 obligatorio = enriquecer el record** (el visualizer NO lee el log de texto): eventos elementales en `CombatProcEvent` (o lista nueva por turno) + `CombatUnitState` con marcas elementales/estados armados/energía — todo aditivo. Después: replay de 6 unidades + grilla en escena (reusar `CombatVisualizerMM`), quitar guard de `CanReplay`, tarjetas 3v3, chips de marca por canal, popups de reacción, iconos de los 12 estados, pips de energía, storytelling (ghost bar/banner).
 
-**Fase 5 — ASYNC 3V3**: enqueue de EQUIPO con lineup, JS matchmaker de equipos (blob con 6 snapshots + rows), `ApplyResult` de equipos, test online end-to-end.
+**Fase 5 — ASYNC 3V3 (AL FINAL, orden de Juan)**: enqueue de EQUIPO con lineup, JS matchmaker de equipos (blob con 6 snapshots + rows), `ApplyResult` de equipos, test online end-to-end.
 
-**Fase 6 — CAPA ELEMENTAL**: elemento innato en DNA + herencia + backfill, afinidad/energía, marcas por fuente (golpe recibido = marca enemiga / trait con energía = marca aliada), reacciones y los 12 estados de un uso (leaves nuevos sobre el motor de recetas).
+## PLAN S40 — REFACTOR DE EXTENSIÓN (planeado al cierre de S39, ejecutar la próxima sesión)
 
-**Fase 7 — MIGRACIÓN TOTAL PERSONALITY→ROLE + ECONOMÍA**: el Rol absorbe el comportamiento de mundo (PersonalityProfileSO→3 perfiles, breeding affinity, NameTag, UI), retirar el enum Personality (⚠️ rompe saves → coordinar con el hard reset de Fase 3), PriceModifier en venta + arquetipos de comprador con tabla invertida.
+**Meta de Juan**: poder tweakear desde assets, sin tocar código: los roles, sus stats, sus pasivas (y que un rol pueda tener pasivas distintas a futuro), sus activas de combate, la tabla de reacciones elementales y lo que hace cada reacción. **El patrón de referencia es la sección de ítems (`EquipmentSO.Effects`): lista polimórfica Odin con leaves cerrados parametrizados.**
+
+**A. `RoleTableSO` v2** — por rol: sección de stats fija (`ConMod/AtkMod/SpdMod/PriceModifier`) + `[OdinSerialize] List<RolePassiveBase> Passives` (leaves iniciales: `ShieldAllyPassive {AmountPerTurn}` Protector · `HealLowestAllyOnHitPassive {PercentOfDamage}` Empático; cada leaf declara su target de marca elemental) + `List<RoleActiveBase> Actives` (leaf inicial: `BacklineHunterActive {Chance}` Agresivo, con fallback de compartir energía). El sim consulta hooks (OnTurnStart / targeting override / OnDamageDealt) iterando las listas en orden — determinismo intacto. Botón "Poblar v2" reproduce el contenido actual EXACTO.
+
+**B. `ElementTableSO` (NUEVO)** — 3 secciones: (1) identidad de elementos (display name — string v1, key de localización a futuro — + color UI); (2) definiciones de estados (display name + descripción + magnitudes — **los 8 knobs elementales SE MUDAN acá** desde CombatManagerSO, cada estado con sus números); (3) tabla de reacciones: `List<ElementReaction> {ElementA, ElementB, Fuente} → List<ReactionEffectBase>` polimórfica (leaves: `ArmStateEffect {estado}`, `HealEffect`, `DamageEffect`, `RemoveMarkEffect`, `GrantEnergyEffect`, `DoubleShieldEffect`) — remapeable y componible. `CombatElements` pasa de dueño de tablas hardcodeadas a EJECUTOR del SO. Cableado: `CombatManagerSO.Elements` (patrón Roles). Botón "Poblar v1" reproduce las 12 reacciones actuales.
+
+**C. Descomposición de `CombatService`** (regla 11, jamás partial): `TakeTurn` se parte en colaboradores estáticos — `CombatRoleHooks` (pasivas/activas de rol), `CombatItems` (paso N usos), `CombatStrike` (evasión/crit/daño/escudo/Charcoal/marca enemiga). El service queda núcleo delgado: validación, orden de ronda, secuencia de pasos, consecuencias.
+
+**Verificación S40 (es un REFACTOR — cero cambio de gameplay)**: capturar log de una pelea de referencia con semilla fija ANTES; tras el refactor, misma semilla → log IDÉNTICO (paridad al hash) + Verify Determinism. Wiring de assets por MCP (crear/poblar ElementTable, re-poblar RoleTable v2, wirear CombatManager, retirar knobs viejos).
+
+**Contexto original del pedido (cierre S39):**
+1. **Tablas elementales a SO**: los pares→estado y la identidad de elementos/estados NO deben vivir hardcoded en `CombatElements.cs` — todo setting/contenido global = servicio respaldado por SO (tweaks, renames, ruteo a localización futura). Patrón: RoleTableSO.
+2. **Descomponer `CombatService`/`TakeTurn`** (creció monstruoso con la capa elemental): regla 11 — mini-managers con una responsabilidad coordinados por un núcleo delgado. Juan reafirmó rechazo TOTAL a `partial` (la remoción de partials existentes sigue en Index/11 Fases 6-9).
+3. **`RoleTableSO` extensible**: además de la sección de stats, listas polimórficas SEPARADAS de **Pasivas** y **Activas** por rol (patrón `EquipmentSO.Effects` con Odin), para agregar traits futuros sin tocar el sim. El diseño se construye PARA la extensión.
+
+**Pendientes menores**: economía de F7 (PriceModifier + arquetipos), ítems con estados, tuning de knobs con data real.
 
 ## Opinión del orquestador (registrada)
 La tesis es un buen aterrizaje: 3 roles net-zero legibles, elementos innatos con reacciones de 2 ingredientes por fuente (asimetría aliado/enemigo del mismo par = elegante y telegrafiable), y la grilla 2-3-2 como beat de agencia. El motor S32/S35 se retargetea casi 1:1 (marcas=stacks, reacciones=recetas, estados=leaves). El canal de marcas quedó cerrado con una asimetría sana: ofensivas fluyen con cada golpe (presión constante), aliadas ritmadas por energía (payoff legible). Orden acordado: **sim 3v3 core (roles+grilla+targeting) → capa elemental → contenido de estados**; la herencia de rol/elemento (pregunta #1) hay que cerrarla antes de tocar `CreatureDNA` porque puede tocar el genetic string (contrato de red).

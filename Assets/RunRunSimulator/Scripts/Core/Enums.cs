@@ -46,7 +46,7 @@ public enum LifeStage
 
 // Coat type of a MoriMochi. Maps 1:1 to a CartoonShader material in FurTypeDatabaseSO.
 // Inherited 50/50 from one parent at breed time. Stored in CreatureDNA, NOT part of
-// the genetic string (metadata like Gender/Personality). The material defines the look
+// the genetic string (metadata like Gender/Role). The material defines the look
 // (outline/shadow sizing, gradients); the per-creature colors ride on a MaterialPropertyBlock.
 public enum FurType
 {
@@ -234,24 +234,38 @@ public enum CreatureCondition
     Sick    = 2,  // Health critical — the survival emergency (permadeath precursor)
 }
 
-// Behavioral archetype of a MoriMochi. Assigned RANDOMLY at mint/hatch (NOT
-// inherited, NOT part of the genetic string — it's metadata like Gender) and
-// stored in CreatureDNA. Drives world movement and how it reacts to the player.
-// A PersonalityProfileSO maps each value to concrete tuning. Reserved hook for
-// future relevance (combat bias, breeding affinity) — read the profile, don't
-// scatter switch statements.
-public enum Personality
+// Innate elemental affinity of a MoriMochi, inherited 50/50 from the parents at
+// breed time (random at mint) with a chance of mutation, NOT part of the genetic
+// string (metadata like Gender/Role). Drives elemental reactions in combat.
+public enum Element
 {
-    Skittish   = 0,  // Asustadizo — fast nervous bursts, flees, hides in Storage
-    Aggressive = 1,  // Agresivo  — territorial, approaches, lives in the Front Desk bustle
-    Lazy       = 2,  // Perezoso  — barely moves, idles a lot, neutral Backroom
-    Curious    = 3,  // Curioso   — wanders wide, approaches the player and objects
-    Social     = 4,  // Sociable  — seeks company, follows the player, Front Desk
-    Grumpy     = 5,  // Gruñón    — solitary, keeps its distance, retreats to Storage
+    Agua         = 0,
+    Fuego        = 1,
+    Electricidad = 2,
+    Planta       = 3,
+}
+
+// The 12 one-use elemental reaction states. Positive states come from an allied
+// source, negative states from an enemy source; all consume themselves once
+// their trigger condition fires.
+public enum ElementalState
+{
+    Energizado   = 0,
+    Cleanse      = 1,
+    Vaporizado   = 2,
+    GolpePreciso = 3,
+    Charcoal     = 4,
+    OverGrow     = 5,
+    Boiling      = 6,
+    Debilidad    = 7,
+    Confuso      = 8,
+    Leech        = 9,
+    Mareado      = 10,
+    PisoTierra   = 11,
 }
 
 // Combat role of a MoriMochi, inherited 50/50 from the parents at breed time
-// (random at mint), NOT part of the genetic string (metadata like Gender/Personality).
+// (random at mint), NOT part of the genetic string (metadata like Gender/Element).
 // A RoleTableSO maps each value to concrete combat tuning.
 public enum Role
 {
@@ -363,9 +377,9 @@ public enum EquipmentSlot
     Amulet = 2,
 }
 
-// Lightweight runtime tag identifying a combat proc. The effect itself lives inline
-// on the EquipmentSO as a CombatProcEffect; this tag is for synergy queries, UI and
-// the replay.
+// Lightweight runtime tag identifying a combat effect or status. Used for synergy
+// queries, UI and the replay. Existing kinds are kept append-only for compatibility
+// with old combat records.
 public enum ModifierEffectKind
 {
     ReturnDamage = 0,
@@ -400,16 +414,5 @@ public enum CombatPopupKind
     Mist,
     Lifesteal,
     Shield,
-}
-
-// When a combat proc rolls — all three roll ProcChance. Offensive = rolled at the start
-// of the owner's turn, applies if the attack connects. Defensive = rolled when the owner
-// is hit. Passive = rolled on its own at the start of the owner's turn (no hit needed).
-// Configurable per effect on the item.
-public enum TriggerType
-{
-    Offensive = 0,
-    Defensive = 1,
-    Passive   = 2,
 }
 }

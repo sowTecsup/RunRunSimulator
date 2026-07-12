@@ -7,9 +7,8 @@ namespace MoriMonchiSimulator
 public class CombatManagerSO : SerializedScriptableObject
 {
     [Title("Combat Settings")]
-    [InfoBox("EvolutionChance y DeathChance son valores 0–1 (ej: 0.3 = 30%).")]
+    [InfoBox("DeathChance es un valor 0–1 (ej: 0.3 = 30%).")]
 
-    [LabelWidth(160)] public float EvolutionChance = 0.30f;
     [LabelWidth(160)] public float DeathChance     = 0.05f;
 
     [Title("Hit Settings")]
@@ -30,11 +29,19 @@ public class CombatManagerSO : SerializedScriptableObject
     [InfoBox("Anti-permastun: un stun activo nunca se re-aplica, y al despertar el MoriMochi es inmune a nuevos stuns por N turnos propios.")]
     [LabelWidth(160)] public int StunImmunityTurns = 1;
 
-    [InfoBox("Recetas de sinergia: al acumular las variedades de stacks requeridas, detonan sobre el portador (queman los stacks). Sin tabla asignada = sin sinergias.")]
-    [LabelWidth(160)] public SynergyTableSO Synergies;
-
     [InfoBox("Tabla de roles 3v3: mods de stats natos + tuning de traits (escudo/backline/cura). Sin tabla = roles sin efecto.")]
     [LabelWidth(160)] public RoleTableSO Roles;
+
+    [Title("Elemental")]
+    [InfoBox("Estados elementales de un uso; valores 0–1 son porcentajes.")]
+    [LabelWidth(160)] public float VaporizadoEvaBonus     = 0.30f;
+    [LabelWidth(160)] public float GolpePrecisoCritBonus  = 0.25f;
+    [LabelWidth(160)] public float BoilingDamageBonus     = 0.30f;
+    [LabelWidth(160)] public float CharcoalReflectPercent = 0.50f;
+    [LabelWidth(160)] public float CleanseHealPercent     = 0.20f;
+    [LabelWidth(160)] public float LeechAmount            = 4f;
+    [LabelWidth(160)] public float MareadoChance          = 0.50f;
+    [LabelWidth(160)] public float MareadoDamage          = 3f;
 
     [Title("Needs")]
     [InfoBox("Energía que gasta un MoriMochi al encolarse para combate (NeedsState).")]

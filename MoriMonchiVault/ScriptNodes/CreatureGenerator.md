@@ -6,7 +6,7 @@ tags: [script, genetics]
 
 **Ruta:** `Core/CreatureGenerator.cs`
 
-**Responsabilidad:** Generador estático de criaturas aleatorias. Crea `CreatureDNA` con partes aleatorias por slot (cada uno con su propio roll de rareza), color base aleatorio via `ColorGenetics.RandomBase()`, color secundario derivado deterministico via `ColorGenetics.DeriveSecondary(baseColor)`, `FurType` aleatorio. `RandomPersonality()` asigna personalidad no heredada (metadata, misma fuente para Mint y Breed). `RandomRole()` asigna rol no heredado (metadata, 1/3 aleatorio). `RandomBaseStats()` genera los 3 stats iniciales (Constitution/Attack/Speed) via point-buy: distribuye `StatBudget` (18 points) entre 3 stats, clampeados a [StatMin..StatMax] (1..10).
+**Responsabilidad:** Generador estático de criaturas aleatorias. Crea `CreatureDNA` con partes aleatorias por slot (cada uno con su propio roll de rareza), color base aleatorio via `ColorGenetics.RandomBase()`, color secundario derivado deterministico via `ColorGenetics.DeriveSecondary(baseColor)`, `FurType` aleatorio. `RandomRole()` asigna rol no heredado (metadata, 1/3 aleatorio). `RandomElement()` asigna elemento no heredado (metadata, 1/4 aleatorio) para mint. `RandomBaseStats()` genera los 3 stats iniciales (Constitution/Attack/Speed) via point-buy: distribuye `StatBudget` (18 points) entre 3 stats, clampeados a [StatMin..StatMax] (1..10).
 
 ## Constantes
 
@@ -21,8 +21,8 @@ tags: [script, genetics]
 | Método | Retorna | Propósito |
 |--------|---------|----------|
 | `GenerateRandom(CreatureDatabaseSO, RarityOddsTableSO)` | `CreatureDNA` | Partes + color base/secundario + FurType aleatorios (sin stats base). |
-| `RandomPersonality()` | `Personality` | Personality aleatoria no heredada (1/6). |
 | `RandomRole()` | `Role` | **S37** Role aleatorio no heredado (1/3). |
+| `RandomElement()` | `Element` | **S39** Element aleatorio no heredado (1/4). |
 | `RandomBaseStats()` | `(float, float, float)` | Point-buy: distribuye 18 puntos entre CON/ATK/SPD, cada uno 1–10. |
 
 ## Cambios S37
@@ -44,6 +44,25 @@ public static Role RandomRole()
 - `GameManager.MintRandomCreature()` → llama `GenerateRandom()` + asigna stats base + **llama `RandomRole()`** → popula `Dna.Role`
 - `BreedingService.Breed()` → hereda role 50/50 de padres (no llama RandomRole)
 
-**Vinculado a:** [[Index/02 - Genetics & Breeding]], [[Index/13 - Combat Design Direction]]
+## Cambios S39
 
-**Conexiones:** [[CreatureDNA]], [[PartDatabaseSO]], [[RarityOddsTableSO]], [[CreatureNameBank]], [[PersonalityProfileSO]], [[GameManager]], [[ColorGenetics]], [[FurType]], [[Enums]], [[Role]], [[RoleTableSO]]
+**Nuevo método `RandomElement()`:**
+```csharp
+public static Element RandomElement()
+{
+    var values = System.Enum.GetValues(typeof(Element));
+    return (Element)values.GetValue(Random.Range(0, values.Length));
+}
+```
+
+**Propósito:** Asigna afinidad elemental aleatoria 1/4 (Agua, Fuego, Electricidad, Planta) en mint. En breeding, el elemento hereda 50/50 de padres vía `BreedingService` con chance de mutación.
+
+**Metadata:** Element es metadata (no genético), como Gender/Role. Se asigna al azar en mint; se hereda en breeding con chance de mutación.
+
+**Consumo:**
+- `GameManager.MintRandomCreature()` → llama `GenerateRandom()` + **llama `RandomElement()`** → popula `Dna.Element`
+- `BreedingService.Breed()` → hereda element 50/50 de padres con mutación (no llama RandomElement)
+
+**Vinculado a:** [[Index/02 - Genetics & Breeding]], [[Index/03 - Combat System]], [[Index/13 - Combat Design Direction]]
+
+**Conexiones:** [[CreatureDNA]], [[PartDatabaseSO]], [[RarityOddsTableSO]], [[GameManager]], [[ColorGenetics]], [[FurType]], [[Enums]], [[Role]], [[Element]], [[BreedingService]]

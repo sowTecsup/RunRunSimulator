@@ -6,12 +6,14 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// In-game combat screen (UI Toolkit), modal, with three tabs:
+// In-game combat screen (UI Toolkit), modal. This component owns three tabs:
 //   • "Batalla Online" — pick one of yours, see it (stats + parts), send it to async
 //                        combat (Instant or Timer). Right column = team (placeholder).
-//   • "Combate Local"  — pick two of yours; they fight locally; the log shows inline.
 //   • "Resultados"     — your creatures in queue / with results; the right pane shows
 //                        the battle log (opponent · turns · big win/lose).
+//   • "Historial"      — every past combat, replayable.
+// A fourth tab, "Equipo 3v3", lives in the same TabView but is owned end-to-end by
+// the sibling component CombatLineupUITK (local 3v3 lineup combat, drag & drop).
 //
 // Lives on the always-active UIManager object, fills its own UIDocument. Action
 // controller (like CombatController): reaches registry/config via GameManager and
@@ -29,7 +31,7 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private CreatureDatabaseSO database;
     [SerializeField] private AsyncCombatService asyncCombatService;
 
-    private enum Region { TabBar, T1List, T1Actions, T2Center, T2ListA, T2ListB, T3List, T4List }
+    private enum Region { TabBar, T1List, T1Actions, T3List, T4List }
     private Region region = Region.TabBar;
 
     private const string Focus = "cbt-focus";
@@ -42,11 +44,6 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     private VisualElement onlineImg, onlineParts;
     private Label onlineName, onlineStats;
     private Button btnInstant, btnTimer;
-    // Tab 2
-    private ScrollView faList, fbList, localLog;
-    private VisualElement slotA, slotB, slotAImg, slotBImg;
-    private Label slotAName, slotBName, localOutcome;
-    private Button btnFight;
     // Tab 3 (Resultados: cola + reloj al próximo tick)
     private Button btnRefresh;
     private ScrollView resultsList;
@@ -62,17 +59,14 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     private CombatManagerSO Config => CombatController.Instance != null ? CombatController.Instance.Config : null;
 
     private string onlineSelectedId = "";
-    private string fighterAId = "", fighterBId = "";
 
     private readonly List<VisualElement> onlineCards = new List<VisualElement>();
-    private readonly List<VisualElement> faCards = new List<VisualElement>();
-    private readonly List<VisualElement> fbCards = new List<VisualElement>();
     private readonly List<VisualElement> resultCards = new List<VisualElement>();
     private readonly List<Label> resultTimeLabels = new List<Label>();          // per-row countdown
     private readonly List<VisualElement> t3Cards = new List<VisualElement>();   // refresh + entries
     private readonly List<VisualElement> historyCards = new List<VisualElement>();
     private readonly List<HistItem> historyRendered = new List<HistItem>();   // parallel to historyCards
-    private int onlineIndex, faIndex, fbIndex, t1ActionIndex, t2Index, t3Index, t4Index;
+    private int onlineIndex, t1ActionIndex, t3Index, t4Index;
 
     // Flattened, date-sorted view of every creature's CombatHistory (newest first).
     private readonly List<HistItem> historyItems = new List<HistItem>();
@@ -122,7 +116,7 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     // Tick the queue countdown only while the Resultados tab is visible.
     private void Update()
     {
-        if (wired && tabs != null && tabs.selectedTabIndex == 2) UpdateClock();
+        if (wired && tabs != null && tabs.selectedTabIndex == 1) UpdateClock();
     }
 
     private void OnDestroy()
@@ -130,7 +124,6 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
         if (closeButton != null) closeButton.clicked -= OnClose;
         if (btnInstant  != null) btnInstant.clicked  -= OnInstant;
         if (btnTimer    != null) btnTimer.clicked    -= OnTimer;
-        if (btnFight    != null) btnFight.clicked     -= DoLocalFight;
         if (btnRefresh  != null) btnRefresh.clicked   -= DoRefresh;
         UIManager.UnregisterNavigable(panel);
     }
@@ -154,18 +147,6 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
         btnInstant  = root.Q<Button>("btn-instant");
         btnTimer    = root.Q<Button>("btn-timer");
 
-        faList      = root.Q<ScrollView>("fa-list");
-        fbList      = root.Q<ScrollView>("fb-list");
-        localLog    = root.Q<ScrollView>("local-log");
-        slotA       = root.Q<VisualElement>("slot-a");
-        slotB       = root.Q<VisualElement>("slot-b");
-        slotAImg    = root.Q<VisualElement>("slot-a-img");
-        slotBImg    = root.Q<VisualElement>("slot-b-img");
-        slotAName   = root.Q<Label>("slot-a-name");
-        slotBName   = root.Q<Label>("slot-b-name");
-        localOutcome = root.Q<Label>("local-outcome");
-        btnFight    = root.Q<Button>("btn-fight");
-
         btnRefresh  = root.Q<Button>("btn-refresh");
         resultsList = root.Q<ScrollView>("results-list");
         queueClock  = root.Q<Label>("queue-clock");
@@ -185,10 +166,7 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
         if (closeButton != null) closeButton.clicked += OnClose;
         if (btnInstant  != null) btnInstant.clicked  += OnInstant;
         if (btnTimer    != null) btnTimer.clicked    += OnTimer;
-        if (btnFight    != null) btnFight.clicked     += DoLocalFight;
         if (btnRefresh  != null) btnRefresh.clicked   += DoRefresh;
-        slotA?.RegisterCallback<ClickEvent>(_ => OpenFighterList(true));
-        slotB?.RegisterCallback<ClickEvent>(_ => OpenFighterList(false));
 
         wired = true;
         RebuildAll();
@@ -223,11 +201,9 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     private void RebuildAll()
     {
         RebuildOnlineList();
-        RebuildFighterLists();
         RebuildResults();
         RebuildHistory();
         SetCenter();
-        RefreshSlots();
     }
 
     private IEnumerable<CreatureDNA> Eligible() =>
