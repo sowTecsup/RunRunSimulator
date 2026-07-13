@@ -59,18 +59,44 @@ MonoBehaviour:
     - Name: SpdMod
       Entry: 4
       Data: -2
-    - Name: ShieldPerTurn
-      Entry: 4
-      Data: 1
-    - Name: BacklineHitChance
-      Entry: 4
-      Data: 0
-    - Name: HealPercentOfDamage
-      Entry: 4
-      Data: 0
     - Name: PriceModifier
       Entry: 4
       Data: 0
+    - Name: Passives
+      Entry: 7
+      Data: 3|System.Collections.Generic.List`1[[MoriMonchiSimulator.RolePassiveBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 4|MoriMonchiSimulator.ShieldAllyPassive, Assembly-CSharp
+    - Name: AmountPerTurn
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Actives
+      Entry: 7
+      Data: 5|System.Collections.Generic.List`1[[MoriMonchiSimulator.RoleActiveBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -85,7 +111,7 @@ MonoBehaviour:
       Data: 1
     - Name: $v
       Entry: 7
-      Data: 3|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
+      Data: 6|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
     - Name: ConMod
       Entry: 4
       Data: -3
@@ -95,18 +121,44 @@ MonoBehaviour:
     - Name: SpdMod
       Entry: 4
       Data: 1
-    - Name: ShieldPerTurn
-      Entry: 4
-      Data: 0
-    - Name: BacklineHitChance
-      Entry: 4
-      Data: 0.5
-    - Name: HealPercentOfDamage
-      Entry: 4
-      Data: 0
     - Name: PriceModifier
       Entry: 4
       Data: -0.1
+    - Name: Passives
+      Entry: 7
+      Data: 7|System.Collections.Generic.List`1[[MoriMonchiSimulator.RolePassiveBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Actives
+      Entry: 7
+      Data: 8|System.Collections.Generic.List`1[[MoriMonchiSimulator.RoleActiveBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 9|MoriMonchiSimulator.BacklineHunterActive, Assembly-CSharp
+    - Name: Chance
+      Entry: 4
+      Data: 0.5
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -121,7 +173,7 @@ MonoBehaviour:
       Data: 2
     - Name: $v
       Entry: 7
-      Data: 4|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
+      Data: 10|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
     - Name: ConMod
       Entry: 4
       Data: 1
@@ -131,18 +183,44 @@ MonoBehaviour:
     - Name: SpdMod
       Entry: 4
       Data: 2
-    - Name: ShieldPerTurn
-      Entry: 4
-      Data: 0
-    - Name: BacklineHitChance
-      Entry: 4
-      Data: 0
-    - Name: HealPercentOfDamage
-      Entry: 4
-      Data: 0.5
     - Name: PriceModifier
       Entry: 4
       Data: 0.1
+    - Name: Passives
+      Entry: 7
+      Data: 11|System.Collections.Generic.List`1[[MoriMonchiSimulator.RolePassiveBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 12|MoriMonchiSimulator.HealLowestAllyOnHitPassive, Assembly-CSharp
+    - Name: PercentOfDamage
+      Entry: 4
+      Data: 0.5
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Actives
+      Entry: 7
+      Data: 13|System.Collections.Generic.List`1[[MoriMonchiSimulator.RoleActiveBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 

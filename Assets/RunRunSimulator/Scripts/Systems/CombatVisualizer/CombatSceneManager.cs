@@ -65,17 +65,10 @@ public class CombatSceneManager : MonoBehaviour
             yield break;
         }
 
-        var record   = self.CombatHistory[fightIndex];
-        var opponent = CombatReplayRequest.ResolveOpponent(record, self, GameManager.Instance.Registry);
-        if (opponent == null)
-        {
-            Debug.LogWarning("[CombatSceneManager] El rival no está en el registro. No se puede reproducir el combate.");
-            CombatReplayRequest.Clear();
-            yield break;
-        }
+        var record = self.CombatHistory[fightIndex];
 
         CombatReplayRequest.Clear();
-        CombatVisualizerService.Instance?.Play(self, opponent, record);
+        CombatVisualizerService.Instance?.Play(self, record);
     }
 
     private void OnDisable()

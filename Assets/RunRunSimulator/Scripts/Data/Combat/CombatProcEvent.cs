@@ -12,5 +12,12 @@ public class CombatProcEvent
     public float              TargetHpAfter;
     public bool               BeforeStrike;
     public List<CombatStatusMark> TargetStatusAfter;
+
+    public ElementEventKind ElementEvent;
+    public Element          Element;
+    public Element          ElementB;
+    public bool             AllySource;
+    public ElementalState   State;
+    public string           ReactionName;
 }
 }

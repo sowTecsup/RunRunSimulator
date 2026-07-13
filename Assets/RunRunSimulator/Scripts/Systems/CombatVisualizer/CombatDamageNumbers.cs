@@ -31,9 +31,10 @@ public class CombatDamageNumbers : MonoBehaviour
 
         dn.enableNumber  = p.Kind != CombatPopupKind.Stun && p.Amount >= 0.5f;
         dn.enableTopText = true;
-        dn.topText       = Label(p.Kind);
+        dn.topText       = string.IsNullOrEmpty(p.Text) ? Label(p.Kind) : p.Text;
 
-        if (palette != null) dn.SetColor(palette.GetColor(p.Kind));
+        if (p.HasOverrideColor) dn.SetColor(p.OverrideColor);
+        else if (palette != null) dn.SetColor(palette.GetColor(p.Kind));
         if (p.Follow != null) dn.SetFollowedTarget(p.Follow);
 
         if (p.Kind == CombatPopupKind.Heal || p.Kind == CombatPopupKind.Regen)
@@ -71,6 +72,7 @@ public class CombatDamageNumbers : MonoBehaviour
         CombatPopupKind.Steel     => "Steel",
         CombatPopupKind.Mist      => "Mist",
         CombatPopupKind.Lifesteal => "Robo de vida",
+        CombatPopupKind.Reaction => "¡Reacción!",
         _                      => "",
     };
 }

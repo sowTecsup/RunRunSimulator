@@ -6,7 +6,7 @@ tags: [scriptable-object, combat, config]
 
 **Ruta:** `Data/Combat/CombatManagerSO.cs`
 
-**Responsabilidad:** Configuración inmutable de combate: fórmulas, chances, límites, balance, tablas de sinergias y roles, y parámetros elementales. Instancia única referenciada por `CombatService`, `CombatController`, `AsyncCombatService`. `SerializedScriptableObject` sin static; lo expone `CombatController.Config`. **S37:** Nuevo campo `Roles` (tabla de perfiles 3v3). **S39:** Nuevo bloque "Elemental" con 8 knobs de balance elemental.
+**Responsabilidad:** Configuración inmutable de combate: fórmulas, chances, límites, balance, tablas de roles y tablas elementales. Instancia única referenciada por `CombatService`, `CombatController`, `AsyncCombatService`. `SerializedScriptableObject` sin static; lo expone `CombatController.Config`. **S37:** Nuevo campo `Roles` (tabla de perfiles 3v3). **S40:** Eliminación de 8 knobs elementales hardcoded; nuevo campo `Elements` apunta a `ElementTableSO` (tabla centralizada de identidades, estados, reacciones).
 
 ## Campos Públicos
 
@@ -45,20 +45,11 @@ tags: [scriptable-object, combat, config]
 | `StunImmunityTurns` | `int` | 1 | Turnos de inmunidad a stun tras despertar. Anti-permastun: cuando StunTurns llega a 0, se asigna este valor para impedir re-stun inmediato |
 | `Roles` | `RoleTableSO` | null | **(S37)** Ref a tabla de perfiles de rol 3v3. Sin tabla asignada = roles sin efecto (stats base sin mods). Mapeada por `CreatureDNA.Role` (enum). |
 
-> S39: el campo `Synergies` (SynergyTableSO) fue RETIRADO junto con el motor de sinergias completo.
-
-### Elemental (S39)
+### Elemental (S40)
 
 | Campo | Tipo | Default | Descripción |
 |-------|------|---------|-------------|
-| `VaporizadoEvaBonus` | `float` | 0.30 | Bonus de evasión en estado Vaporizado (0–1) |
-| `GolpePrecisoCritBonus` | `float` | 0.25 | Bonus de crit en estado Golpe Preciso (0–1) |
-| `BoilingDamageBonus` | `float` | 0.30 | Bonus de daño en estado Hirviendo (0–1) |
-| `CharcoalReflectPercent` | `float` | 0.50 | Porcentaje de daño reflejado en estado Carbón (0–1) |
-| `CleanseHealPercent` | `float` | 0.20 | Porcentaje de HP curado por Limpiar (0–1) |
-| `LeechAmount` | `float` | 4f | Cantidad fija de robo de vida por turno |
-| `MareadoChance` | `float` | 0.50 | Chance de que Mareado active (0–1) |
-| `MareadoDamage` | `float` | 3f | Daño causado por Mareado |
+| `Elements` | `ElementTableSO` | null | **(S40)** Ref a tabla elemental centralizada: identidades de elementos, definiciones de estados (Percent/Amount), y 12 reacciones con efectos polimórficos. Sin tabla = sin reacciones ni bonus de estados. Reemplaza los 8 knobs individuales. |
 
 ### Needs
 
@@ -73,17 +64,31 @@ tags: [scriptable-object, combat, config]
 - **Crit chance:** CritChance + Luck × LuckCritPerPoint
 - **Evasión:** Evasion × EvasionPerPoint
 
-## Cambios S39
+## Cambios S40
 
-**Nuevo bloque "Elemental":**
-- 8 knobs de balance para efectos elementales
-- Valores 0–1 son porcentajes, excepto LeechAmount y MareadoDamage que son magnitudes fijas
-- Aplicados por CombatResolver cuando resuelve transiciones de estado elemental
+**Eliminación de 8 knobs individuales:**
+- Antes: `VaporizadoEvaBonus`, `GolpePrecisoCritBonus`, `BoilingDamageBonus`, `CharcoalReflectPercent`, `CleanseHealPercent`, `LeechAmount`, `MareadoChance`, `MareadoDamage`
+- Ahora: Centralizados en `ElementTableSO.States` (dict por ElementalState)
 
-**Eliminado (S39):**
-- `EvolutionChance` fue eliminado (no mencionado en cambios de S37/S38, fue deprecated sin reemplazo)
+**Nuevo campo Elements:**
+```csharp
+[Title("Elemental")]
+[InfoBox("Tabla elemental: identidad de elementos, estados y reacciones...")]
+public ElementTableSO Elements;
+```
 
-## Consumo en CombatService (S37 + S39)
+**Acceso en tiempo de ejecución:**
+```csharp
+// En CombatStrike.Execute():
+evaChance += target.HasState(ElementalState.Vaporizado) 
+    ? (config.Elements != null ? config.Elements.StatePercent(ElementalState.Vaporizado) : 0f) 
+    : 0f;
+
+// En CombatElements.AddMark():
+var reaction = config.Elements != null ? config.Elements.FindReaction(otherElement, element, allySource) : null;
+```
+
+## Consumo en CombatService (S37 + S40)
 
 ```csharp
 // En BuildCombatant (S37):
@@ -104,20 +109,32 @@ if (!result.IsDraw && rng.NextFloat() < config.DeathChance)
     result.DiedUnitId = loserTeam[loserIdx].Dna.UniqueID;
 }
 
-// En CombatResolver (S39):
-// Usa config.VaporizadoEvaBonus, .GolpePrecisoCritBonus, etc. al resolver estados
+// En CombatStrike (S40):
+float evaChance = target.EffEvasion * config.EvasionPerPoint;
+evaChance += target.HasState(ElementalState.Vaporizado) 
+    ? (config.Elements != null ? config.Elements.StatePercent(ElementalState.Vaporizado) : 0f) 
+    : 0f;
+
+// En CombatElements.AddMark (S40):
+var reaction = config.Elements != null ? config.Elements.FindReaction(...) : null;
+if (reaction != null)
+{
+    foreach (var e in reaction.Effects) e.Apply(...);
+}
 ```
 
 ## Vinculado a
 
 - [[Index/03 - Combat]]
 - [[Index/13 - Combat Design Direction]]
-- [[CombatService]] — usa todos los fields de fórmulas + aplica `Roles` en BuildCombatant; los knobs `Elemental` los consume vía CombatElements/TakeTurn
+- [[CombatService]] — usa todos los fields de fórmulas + aplica `Roles` en BuildCombatant; accede `Elements` vía `CombatStrike`/`CombatElements`
 - [[CombatController]] — serializa como componente
 - [[AsyncCombatService]] — usa para validación
-- [[CombatElements]] — consume los knobs Elemental (S39)
+- [[CombatStrike]] — consume `config.Elements.StatePercent()` para magnitudes de estado (S40)
+- [[CombatElements]] — consume `config.Elements.FindReaction()` para reacciones (S40)
+- [[ElementTableSO]] — tabla centralizada (S40)
 - [[RoleTableSO]] — tabla de perfiles (S37)
-- [[CombatResolver]] — grabación de procs (ya no recibe config, S39)
+- [[CombatResolver]] — grabación de procs (ya no recibe config)
 
 ## Conexiones
 
@@ -127,13 +144,13 @@ if (!result.IsDraw && rng.NextFloat() < config.DeathChance)
 **Salida:**
 - Pasado a `CombatService.Simulate()` y `SimulateCore()`
 - `config.Roles` → usado en `BuildCombatant()` (S37)
-- `config.[VaporizadoEvaBonus|...]` → usado en `CombatService.TakeTurn` y `CombatElements.ApplyState` (S39)
+- `config.Elements` → usado en `CombatStrike.Execute()` (S40) y `CombatElements.AddMark()` (S40)
 - Accedido por `CombatController.Config` getter
 
-## Notas (S32 + S37 + S39)
+## Notas (S32 + S37 + S39 + S40)
 
-- **Backward compatible:** `Roles` tiene default null (sin tabla = roles sin efecto). Elemental knobs tienen defaults balanceados.
+- **Backward compatible:** `Roles` tiene default null (sin tabla = roles sin efecto). `Elements` tiene default null (sin tabla = sin reacciones ni bonus de estados).
 - **S37 DeathChance:** 5% de probabilidad de que 1 unit del equipo perdedor muera (no garantizado).
-- **S39 Elemental:** Los 8 knobs tunean el sistema elemental sin cambiar código; los consumen `CombatService.TakeTurn` (consumo de estados) y `CombatElements.ApplyState` (instantáneos).
-- **S39 Synergies:** el campo y su tabla fueron retirados junto con el motor completo.
+- **S40 Elemental:** Centralización de config en `ElementTableSO` vs. knobs individuales. `StatePercent()` y `StateAmount()` abstraen acceso a magnitudes.
 - **Odin:** Sections con `[Title()]`, `[InfoBox()]`, `[LabelWidth()]` para UI inspector.
+- **Editor-safe:** PopulateV1/PopulateV2 buttons en ElementTableSO/RoleTableSO permiten defaults sin edición manual.

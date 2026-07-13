@@ -6,100 +6,111 @@ tags: [script, combat, visualizer, replay, utility]
 
 **Ruta:** `Systems/CombatVisualizer/CombatReplayRequest.cs`
 
-**Responsabilidad:** Servicio estático cross-escena para solicitar el replay de un combate. Almacena transitoriamente el ID del luchador y el índice del combate, coordinando con `CombatSceneManager` para cargar la escena de visualización, esperar a que `GameManager` esté disponible, y delegar a `CombatVisualizerService.Play()`. **S37:** Retorna false en `CanReplay()` para records 3v3 hasta que el visualizador 3v3 esté listo (Fase 4).
+**Responsabilidad:** Servicio estático cross-escena para solicitar el replay de un combate 3v3. Almacena transitoriamente el ID del luchador y el índice del combate, coordinando con `CombatSceneManager` para cargar la escena de visualización. **S41:** Firma de `CanReplay()` INVERTIDA — ahora **EXIGE record 3v3** (SelfTeam != null) + valida los 6 IDs resolubles en registry. **ResolveOpponent() BORRADO** (deprecated, equipos resueltos por CombatVisualizerService).
 
-## Descripción General (S34 + S37)
+## Descripción General (S37 + S41)
 
-Permite al usuario solicitar el replay de un combate desde cualquier punto de la aplicación (detail panel o historial) sin pasar datos de combate complejos entre escenas. En su lugar, almacena referencias simples (UniqueID, FightIndex) en propiedades estáticas, carga la escena de combate, y deja que `CombatSceneManager.ConsumeReplayRequest()` resuelva los datos cuando se inicie. **S37:** Bloquea automáticamente replays 3v3 (SelfTeam != null).
+Permite al usuario solicitar el replay de un combate desde cualquier punto (detail panel o historial) sin pasar datos complejos entre escenas. Almacena referencias simples (UniqueID, FightIndex) en propiedades estáticas, carga la escena de combate, y deja que `CombatSceneManager.ConsumeReplayRequest()` resuelva e inicie el replay. **S41:** Bloquea 1v1 legacy (SelfTeam == null); requiere 3v3 (SelfTeam != null).
 
 ## Campos Públicos
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-| `CombatSceneName` | `const string` | Nombre de la escena de visualización de combates (`"CombatVisualizerMM"`) |
-| `Pending` | `bool` | Si true, hay un replay solicitado listo para consumir |
-| `SelfId` | `string` | UniqueID del luchador cuyo combate se va a reproducir |
-| `FightIndex` | `int` | Índice en el `CombatHistory` del combate a reproducir |
+| `CombatSceneName` | `const string` | Nombre de la escena (`"CombatVisualizerMM"`) |
+| `Pending` | `bool` | Si true, hay replay solicitado |
+| `SelfId` | `string` | UniqueID del luchador |
+| `FightIndex` | `int` | Índice en CombatHistory |
 
 ## Métodos Públicos
 
-### `ResolveOpponent(CombatRecord rec, CreatureDNA self, CreatureRegistrySO registry) → CreatureDNA`
-
-Busca el rival en el registro:
-1. Primero intenta por `OpponentDnaId`
-2. Si no encuentra, busca por `OpponentName`
-3. Retorna null si no resuelve
-
 ### `CanReplay(CreatureDNA self, CombatRecord rec, CreatureRegistrySO registry) → bool`
 
-**S37 - Actualizado:** Valida si es posible reproducir un combate:
-- `self != null`
-- `rec != null`
-- `rec.Turns` no nulo y con al menos 1 turno
-- El rival es resoluble via `ResolveOpponent()`
-- **S37 NUEVO:** `rec.SelfTeam == null` — **retorna false si es record 3v3** (SelfTeam != null = equipo, visualizador 1v1 no soporta)
+**S41 — INVERTIDO:** Valida si es posible reproducir un combate:
+- `self != null` && `rec != null` && `registry != null`
+- `rec.Turns != null && rec.Turns.Count > 0`
+- **`rec.SelfTeam != null` — EXIGE record 3v3** (S41 cambio)
+- **`rec.SelfTeamIds != null && rec.OpponentTeamIds != null`** (S41 nuevo)
+- **Todos los 6 IDs (3 self + 3 opponent) resolubles en registry** (S41 nuevo)
 
-**Raciónale S37:** Records 1v1 legacy (SelfStats != null, SelfTeam == null) siguen siendo replayables en visualizador 1v1. Records 3v3 nuevos (SelfTeam != null, SelfStats puede ser null) quedan bloqueados hasta que el visualizador 3v3 esté listo (Fase 4).
+```csharp
+public static bool CanReplay(CreatureDNA self, CombatRecord rec, CreatureRegistrySO registry)
+{
+    if (self == null || rec == null || registry == null) return false;
+    if (rec.Turns == null || rec.Turns.Count == 0) return false;
+    
+    // S41: EXIGE 3v3
+    if (rec.SelfTeam == null || rec.SelfTeamIds == null || rec.OpponentTeamIds == null) return false;
+    
+    // S41: valida los 6 IDs
+    foreach (var id in rec.SelfTeamIds)
+        if (!registry.TryGet(id, out _)) return false;
+    foreach (var id in rec.OpponentTeamIds)
+        if (!registry.TryGet(id, out _)) return false;
+    
+    return true;
+}
+```
+
+**Raciónale S41:** Tras hard-reset no existen records 1v1 legacy. Todos los combates ahora son 3v3. El bloqueo de S37 se INVIERTE: 1v1 legacy son NO replayables, 3v3 nuevos EXIGEN 6 IDs resolubles.
 
 ### `Request(CreatureDNA self, CombatRecord rec)`
 
 Solicita un replay:
 1. Almacena `self.UniqueID` en `SelfId` y el índice del record en `FightIndex`
 2. Marca `Pending = true`
-3. Llama `GameManager.Instance.FlushForSceneChange()` (flush local + cloud)
-4. Carga la escena `CombatSceneName` via `SceneManager.LoadScene()`
-
-**Nota:** Si el record no está en `self.CombatHistory` o `CanReplay()` retorna false, logea warning y marca `Pending = false`.
+3. Valida que el record esté en `self.CombatHistory`; si no, logea warning, marca `Pending = false`, retorna
+4. Llama `GameManager.Instance.FlushForSceneChange()` (flush local + cloud)
+5. Carga escena via `SceneManager.LoadScene(CombatSceneName)`
 
 ### `Clear()`
 
-Limpia el estado:
+Limpia state:
 - `Pending = false`
 - `SelfId = null`
 - `FightIndex = -1`
 
-## Cambios S37
+## Cambios S41
 
-**Método `CanReplay()` — Bloqueo de 3v3:**
+**CanReplay() INVERTIDO:**
 ```csharp
-// S37 check: bloquea records 3v3 hasta visualizador 3v3
-if (rec.SelfTeam != null)
-{
-    Debug.LogWarning($"[CombatReplayRequest] Record 3v3 no soportado en visualizador 1v1. Pendiente Fase 4 (visualizador 3v3).");
+// S41: bloquea records 1v1 legacy, exige 3v3 + 6 IDs resolubles
+if (rec.SelfTeam == null || rec.SelfTeamIds == null || rec.OpponentTeamIds == null)
     return false;
-}
+
+// Valida los 6 IDs
+foreach (var id in rec.SelfTeamIds)
+    if (!registry.TryGet(id, out _)) return false;
+foreach (var id in rec.OpponentTeamIds)
+    if (!registry.TryGet(id, out _)) return false;
 ```
 
-**Impacto:** Usuarios que completan combates 3v3 no pueden ver el replay desde la UI. Los records se guardan (CombatHistory), pero CanReplay() los bloquea hasta que el visualizador 3v3 sea implementado.
+**ResolveOpponent() ELIMINADO:** Deprecated. El equippo oponente se resuelve internamente en `CombatVisualizerService.Play()` vía `record.OpponentTeamIds`.
 
-**Timeline:** Fase 4 (futuro) implementará `CombatVisualizerService` para 3v3, entonces se removerá este check.
+**Impacto:** Usuarios que tenían records 1v1 legacy no pueden replayarlos. Post-hard-reset no existen, así que no es problema práctico. Todos los nuevos combates son 3v3 y replayables si los 6 IDs están en registry.
 
 ## Conexiones
 
 **Entrada:**
-- `MorimonchiDetailInfoUITK.BuildCombatCard()` → botón ▶ llama `CombatReplayRequest.Request(dna, rec)` si `CanReplay()`
-- `CombatPanelUITK.Tabs.ShowHistory()` → botón "▶ Ver replay" llama `CombatReplayRequest.Request()` si `CanReplay()`
+- `MorimonchiDetailInfoUITK.BuildCombatCard()` → botón ▶ llama `Request()` si `CanReplay()`
+- `CombatPanelUITK.Tabs.ShowHistory()` → botón "▶ Ver replay" llama `Request()` si `CanReplay()`
 
 **Salida:**
-- `CombatSceneManager.ConsumeReplayRequest()` — consumidor principal, resuelve self + opponent + record, llama `CombatVisualizerService.Play()` (1v1 only)
-- `GameManager.FlushForSceneChange()` — asegura que el estado se persista antes de cambiar escena
+- `CombatSceneManager.ConsumeReplayRequest()` — consumidor principal, resuelve self + record, llama `CombatVisualizerService.Play(self, record)`
+- `GameManager.FlushForSceneChange()` — persist antes de LoadScene
 
 ## Vinculado a
 
-- [[Index/03 - Combat]]
+- [[Index/03 - Combat System]]
 - [[Index/13 - Combat Design Direction]]
-- [[CombatRecord]] — almacena qué replay se solicita (1v1 legacy vía SelfStats, 3v3 vía SelfTeam)
-- [[CombatService]] — simula el combate que se va a reproducir
-- [[CombatSceneManager]] — consume el request en Start()
-- [[CombatVisualizerService]] — ejecuta el replay (1v1 only)
-- [[GameManager]] — `FlushForSceneChange()` persist antes de LoadScene
-- [[MorimonchiDetailInfoUITK]] — abre replay desde detail panel
-- [[CombatPanelUITK.Tabs]] — abre replay desde historial
+- [[CombatRecord]] — almacena qué replay (S41: 3v3 only)
+- [[CombatService]] — simula el combate
+- [[CombatSceneManager]] — consume el request
+- [[CombatVisualizerService]] — ejecuta replay (S41: 3v3)
+- [[GameManager]] — `FlushForSceneChange()`
 
 ## Notas
 
-- **Estado transitorio:** Pensado para sobrevivir el cambio de escena sin serializar a disco. Si el usuario cierra la app durante una LoadScene, el Pending se pierde (recomendable como es).
-- **S37 Bloqueo:** Records 3v3 se persisten normalmente pero no pueden ser replayados. No es error, es bloqueo preventivo (visualizador no está listo).
-- **Backward compat:** Records 1v1 legacy (SelfStats != null, SelfTeam == null) siguen siendo replayables sin cambios. Solo 3v3 nuevos son bloqueados.
-- **Validación en CombatSceneManager:** `ConsumeReplayRequest()` revalida selfId + FightIndex + rival antes de intentar Play, con timeout de 3s esperando a GameManager.
-- **Sin persistencia:** A diferencia de CombatRecord, este es puro in-memory, no se guarda en JSON.
+- **State transitorio:** In-memory, no se persiste. Si app cierra durante LoadScene, Pending se pierde.
+- **S41 Cambio radical:** De "bloquea 3v3" a "exige 3v3". Records 1v1 legacy YA NO replayables.
+- **6 IDs:** self[0..2] + opponent[0..2] deben estar todos en registry. Si uno fue vendido/eliminado, CanReplay retorna false.
+- **Sin validación en Request():** `CanReplay()` se llama en la UI antes de Request; Request asume que el record es válido.

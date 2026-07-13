@@ -216,6 +216,45 @@ Confuso = 8, Leech = 9, Mareado = 10, PisoTierra = 11
 - `Debilidad` — Fuego × Planta: daño amplificado
 - `PisoTierra` — Electricidad × Planta: elimina marca elemental aleatoria
 
+### ElementEventKind
+
+**S41:** Tipos de eventos elementales que se graban en `CombatProcEvent.ElementEvent` dentro de `CombatTurn.Procs`. Cada evento elemental captura el tipo de acción (marca aplicada, reacción, estado consumido, etc.) y sus parámetros asociados (Element, ElementB, AllySource, State, etc.). Los campos del evento solo son significativos si `ElementEvent != None` (campos None quedan en default). La mayoría de eventos ocupan CombatProcEvent que antes llevaba `ModifierEffectKind` (lo cual sigue vigente para procs de equipo/rol).
+
+```
+None = 0, MarkApplied = 1, MarkRemoved = 2, Reaction = 3,
+StateArmed = 4, StateConsumed = 5, StateRemoved = 6,
+Heal = 7, Damage = 8, ShieldDoubled = 9,
+AffinityGained = 10, EnergyGained = 11, EnergySpent = 12
+```
+
+**Descripción:**
+- `None` — No es evento elemental (proc clásico, usa ModifierEffectKind)
+- `MarkApplied` — Marca elemental aplicada al portador (Element + AllySource)
+- `MarkRemoved` — Marca elemental removida (por PisoTierra random o reacción)
+- `Reaction` — Reacción elemental detonada (ElementA × ElementB, ReactionName)
+- `StateArmed` — Estado elemental armado (State + reactionName)
+- `StateConsumed` — Estado elemental consumido por trigger (State)
+- `StateRemoved` — Estado elemental removido (State)
+- `Heal` — Curación por reacción (Amount)
+- `Damage` — Daño por reacción (Amount)
+- `ShieldDoubled` — Escudo duplicado (Amount = escudo resultante)
+- `AffinityGained` — Afinidad ganada (Amount = afinidad total resultante)
+- `EnergyGained` — Energía ganada (Amount = energía total resultante)
+- `EnergySpent` — Energía gastada por acción de rol (Amount = energía restante)
+
+**Campos de CombatProcEvent (S41):**
+```csharp
+public ElementEventKind ElementEvent;   // enum event type
+public Element Element;                 // primer elemento (o único)
+public Element ElementB;                // segundo elemento (en reacciones)
+public bool AllySource;                 // true = marca aliada, false = marca enemiga
+public ElementalState State;            // estado elemental (armado, consumido, removido)
+public string ReactionName;             // nombre de reacción (p.ej. "Vaporizado")
+// + campos legacy: Kind (ModifierEffectKind), TargetIsA, TargetIndex, Amount, TargetHpAfter, BeforeStrike, TargetStatusAfter
+```
+
+**Convención de Amount:** Afinidad/Energía → TOTAL resultante; Heal/Damage → magnitud; ShieldDoubled → escudo resultante; Consumo de estado → magnitud de impacto (p.ej. Boiling daño amplificado).
+
 ### Role
 
 Rol de combate 3v3 heredable (50/50 padres en breeding, al azar en mint), NOT part of genetic string (metadata como Gender/Personality). Mapped 1:1 a RoleWorldProfileSO con modificadores de stats + efectos tácticos.
@@ -338,11 +377,11 @@ Synergy = 6, Static = 7, Pulse = 8, Steel = 9, Mist = 10, Lifesteal = 11, Shield
 
 ### CombatPopupKind
 
-Tipos de popups flotantes (visualización de replay).
+**S42 ACTUALIZADO:** Tipos de popups flotantes (visualización de replay) con `Reaction` append-only para eventos elementales.
 
 ```
 Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun, Synergy,
-Static, Pulse, Steel, Mist, Lifesteal, Shield
+Static, Pulse, Steel, Mist, Lifesteal, Shield, Reaction
 ```
 
 **Propósito:** Mapea cada tipo de evento visual a un color/label en `CombatPopupPaletteSO` y `CombatDamageNumbers`. Es el intermediario entre `ModifierEffectKind` (simulación) y la visualización UI.
@@ -355,11 +394,13 @@ Static, Pulse, Steel, Mist, Lifesteal, Shield
 - `Synergy` — receta de sinergia disparada (solo texto, S32)
 - `Static`, `Pulse`, `Steel`, `Mist`, `Lifesteal` — elementos nuevos (solo texto visual, S35)
 - `Shield` — escudo aplicado (solo texto visual, S37)
+- `Reaction` — **S42 NUEVO** reacción elemental con ReactionName custom + color del elemento (EventElementKind.Reaction)
 
 **Consumido por:**
 - `CombatPopupPaletteSO.colors` — diccionario tipo → color
-- `CombatDamageNumbers.Label()` — genera texto descriptivo
+- `CombatDamageNumbers.Label()` — genera texto descriptivo (S42: ReactionName si Reaction)
 - `CombatVisualizerService.RaiseProcPopup()` — convierte ModifierEffectKind → CombatPopupKind
+- `CombatVisualizerService.PlayProc()` — **S42 NUEVO** popup elemental con ReactionName + OverrideColor
 - `MoriMonchiCombatVisualizerUITK.MapKind()` — mapea para chips de estado
 
 ## Vinculado a
@@ -412,6 +453,20 @@ Prácticamente todo el codebase. Los enums son la base de type-safety.
 - `ElementalState = Energizado | Cleanse | Vaporizado | ... | PisoTierra` — 12 estados de reacción elemental de un solo uso
 
 **Impacto:** Sistema de marcas elementales + reacciones 3v3. Cada acción de combate puede aplicar marca elemental via `CombatElements.AddMark()`; dos elementos distintos en la misma fuente detonan reacción que puede ser instantánea (Cleanse, OverGrow, Leech, PisoTierra) o armada (estado que se consume en trigger). Determinista: rolls vía CombatRng.
+
+## Cambios Sesión 41
+
+**NUEVO enum:**
+- `ElementEventKind = None | MarkApplied | MarkRemoved | Reaction | StateArmed | StateConsumed | StateRemoved | Heal | Damage | ShieldDoubled | AffinityGained | EnergyGained | EnergySpent` — tipos de eventos elementales grabados en CombatProcEvent (S41 paso 0). Cada evento lleva parámetros específicos (Element, ElementB, AllySource, State, ReactionName); los campos son significativos SOLO si ElementEvent != None.
+
+**Impacto:** Paso 0 de F4 (visualizer 3v3) — eventos elementales dejan de ser log-only y se graban en el CombatRecord de manera aditiva (coexisten con procs clásicos en Turn.Procs, el lector gatea por ElementEvent para diferenciar). Backward-compatible: records viejos quedan sin eventos elementales.
+
+## Cambios Sesión 42
+
+**NUEVO en CombatPopupKind:**
+- `Reaction` — **append-only** para popups de reacciones elementales (ElementEventKind.Reaction). Lleva ReactionName custom (p.ej. "¡Vaporizado!") + OverrideColor del elemento de la reacción, sin número de daño.
+
+**Impacto:** S42 Fase 4 capa visual — popups flotantes de reacciones elementales con narración de nombre + color distintivo del elemento. Integrado en CombatDamageNumbers.Label() para renderizar ReactionName en lugar de números.
 
 ## Notas
 

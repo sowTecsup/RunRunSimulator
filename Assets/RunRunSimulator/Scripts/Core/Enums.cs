@@ -414,5 +414,26 @@ public enum CombatPopupKind
     Mist,
     Lifesteal,
     Shield,
+    Reaction,
+}
+
+// Kind of elemental event recorded into CombatTurn.Procs for the 3v3 replay
+// (CombatProcEvent.ElementEvent). None = classic proc event (pre-F4 records
+// and item/role procs keep using ModifierEffectKind).
+public enum ElementEventKind
+{
+    None           = 0,
+    MarkApplied    = 1,
+    MarkRemoved    = 2,
+    Reaction       = 3,
+    StateArmed     = 4,
+    StateConsumed  = 5,
+    StateRemoved   = 6,
+    Heal           = 7,
+    Damage         = 8,
+    ShieldDoubled  = 9,
+    AffinityGained = 10,
+    EnergyGained   = 11,
+    EnergySpent    = 12,
 }
 }

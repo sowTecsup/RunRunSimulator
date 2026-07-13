@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 namespace MoriMonchiSimulator
 {
@@ -14,6 +15,12 @@ public struct CombatVisualContext
     public Transform   SlotA;
     public Transform   SlotB;
     public int         TotalTurns;
+    public List<CreatureDNA> TeamA;
+    public List<CreatureDNA> TeamB;
+    public float[]     HpMaxTeamA;
+    public float[]     HpMaxTeamB;
+    public List<CombatFighterSnapshot> SnapsA;
+    public List<CombatFighterSnapshot> SnapsB;
 }
 
 public struct CombatVisualHit
@@ -22,6 +29,8 @@ public struct CombatVisualHit
     public CombatVisualSide Defender;
     public float            Damage;
     public bool             Crit;
+    public int              AttackerIndex;
+    public int              DefenderIndex;
 }
 
 public struct CombatVisualPopup
@@ -31,6 +40,24 @@ public struct CombatVisualPopup
     public CombatPopupKind  Kind;
     public float            Amount;
     public Transform        Follow;
+    public string Text;
+    public Color  OverrideColor;
+    public bool   HasOverrideColor;
+}
+
+public struct ElementChipData
+{
+    public string Label;
+    public Color  Color;
+    public bool   AllySource;
+}
+
+public struct CombatOrderEntry
+{
+    public CombatVisualSide Side;
+    public int              Index;
+    public bool             Alive;
+    public CombatUnitState  State;
 }
 
 public enum CombatVisualLogKind { Versus, Hit, Crit, Death, Result, Proc }
@@ -87,10 +114,25 @@ public static class CombatVisualEvents
     public static event Action<CombatVisualSide> OnDead;
     public static void Dead(CombatVisualSide side) => OnDead?.Invoke(side);
 
+    public static event Action<CombatVisualSide, int, float, float> OnUnitHpChanged;
+    public static void UnitHpChanged(CombatVisualSide side, int index, float current, float max) => OnUnitHpChanged?.Invoke(side, index, current, max);
+
+    public static event Action<CombatVisualSide, int> OnUnitDead;
+    public static void UnitDead(CombatVisualSide side, int index) => OnUnitDead?.Invoke(side, index);
+
     public static event Action<string> OnLog;
     public static void Log(string line) => OnLog?.Invoke(line);
 
     public static event Action<CombatVisualPanelState> OnPanelState;
     public static void PanelState(CombatVisualPanelState st) => OnPanelState?.Invoke(st);
+
+    public static event Action<List<CombatOrderEntry>> OnActionOrder;
+    public static void ActionOrder(List<CombatOrderEntry> order) => OnActionOrder?.Invoke(order);
+
+    public static event Action<CombatVisualSide, int, int, int> OnUnitAffinity;
+    public static void UnitAffinity(CombatVisualSide side, int index, int affinity, int energy) => OnUnitAffinity?.Invoke(side, index, affinity, energy);
+
+    public static event Action<CombatVisualSide, int> OnActiveUnit;
+    public static void ActiveUnit(CombatVisualSide side, int index) => OnActiveUnit?.Invoke(side, index);
 }
 }

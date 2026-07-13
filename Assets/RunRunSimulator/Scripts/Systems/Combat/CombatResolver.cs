@@ -73,6 +73,14 @@ public class CombatResolver : ICombatContext
 
     public void Record(ModifierEffectKind kind, Combatant target) => Record(kind, target, 0f);
 
+    public void RecordElement(ElementEventKind ev, Combatant target, float amount = 0f, Element element = default, Element elementB = default, bool allySource = false, ElementalState state = default, string reactionName = null)
+        => TurnProcs?.Add(new CombatProcEvent
+        {
+            ElementEvent = ev, TargetIsA = target.IsA, TargetIndex = target.Index, Amount = amount,
+            TargetHpAfter = target.Hp, BeforeStrike = BeforeStrike,
+            Element = element, ElementB = elementB, AllySource = allySource, State = state, ReactionName = reactionName,
+        });
+
     public static List<CombatStatusMark> StatusMarks(Combatant c)
     {
         var counts = new Dictionary<ModifierEffectKind, int>();

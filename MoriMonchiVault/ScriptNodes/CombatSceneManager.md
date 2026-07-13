@@ -1,16 +1,16 @@
 ---
-tags: [script, ui, combat, scene, replay]
+tags: [script, ui, combat, scene, replay, 3v3]
 ---
 
 # CombatSceneManager.cs
 
 **Ruta:** `Systems/CombatVisualizer/CombatSceneManager.cs`
 
-**Responsabilidad:** Gestor de navegación de escena en la escena de combate. Singleton implícito (el GameObject persiste en la escena). Cablea el botón "Volver" y navega de vuelta a la escena de juego. **S34:** Consume replay requests cross-escena (`CombatReplayRequest`), resolviendo datos con timeout defensivo antes de delegar a `CombatVisualizerService.Play()`.
+**Responsabilidad:** Gestor de navegación de la escena de combate (CombatVisualizerMM). Cables el botón "Volver" para regresar al juego. Consume replay requests cross-escena (`CombatReplayRequest`), resolviendo datos con timeout defensivo. **S41:** Firma cambió — `ConsumeReplayRequest()` ya NO resuelve rival. Solo resuelve `self` + obtiene `record`, luego llama `CombatVisualizerService.Play(self, record)` directamente (el service resuelve equipos vía registry).
 
 ## Setup
 
-Requiere un `UIDocument` con acceso a `btn-home` (botón volver). En Start resuelve la raíz visual y busca el botón; al clickearlo llama `ReturnToGameScene()`. OnDisable desuscribe para evitar memory leaks.
+Requiere un `UIDocument` con botón `btn-home`. En Start resuelve la raíz visual, busca botón, suscribe click a `ReturnToGameScene()`. OnDisable desuscribe para evitar memory leaks.
 
 ## Métodos Públicos
 
@@ -22,17 +22,17 @@ Requiere un `UIDocument` con acceso a `btn-home` (botón volver). En Start resue
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-| `document` | `UIDocument` | UIDocument de la escena de combate |
-| `gameSceneName` | `string` | Nombre de la escena de juego principal (default: "GameScene") |
+| `document` | `UIDocument` | UIDocument de la escena |
+| `gameSceneName` | `string` | Nombre escena juego (default: "GameScene") |
 
-## Cambios S34 — ConsumeReplayRequest Corrutina
+## ConsumeReplayRequest Corrutina (S41 SIMPLIFICADA)
 
-Nuevo comportamiento en Start: si `CombatReplayRequest.Pending` es true, inicia corrutina `ConsumeReplayRequest()` que:
+Iniciada en Start si `CombatReplayRequest.Pending` es true. Workflow:
 
 1. **Espera GameManager.Instance/Registry** (timeout 3s)
    - GameManager NO persiste entre escenas
-   - La escena de combate tiene su propio GameManager que carga de disco
-   - Retries cada frame hasta timeout
+   - La escena carga su propio GameManager desde disco
+   - Reintentos cada frame hasta timeout
 
 2. **Resuelve SelfId** via `registry.TryGet(CombatReplayRequest.SelfId)`
    - Timeout 3s, reintentos
@@ -42,16 +42,16 @@ Nuevo comportamiento en Start: si `CombatReplayRequest.Pending` es true, inicia 
    - Revisa `self.CombatHistory != null && 0 <= FightIndex < Count`
    - Falla = logea warning, limpia Pending, retorna
 
-4. **Resuelve rival** via `CombatReplayRequest.ResolveOpponent(record, self, registry)`
-   - Busca por OpponentDnaId o OpponentName
-   - Falla = logea warning, limpia Pending, retorna
+4. **Obtiene record**
+   - `var record = self.CombatHistory[fightIndex]`
 
-5. **Limpia y delega** via `CombatReplayRequest.Clear()` + `CombatVisualizerService.Play(self, opponent, record)`
+5. **Limpia y delega** via `CombatReplayRequest.Clear()` + `CombatVisualizerService.Play(self, record)` — **S41 NUEVO SIGNATURE**
 
-**Código:**
+**Código S41:**
 ```csharp
 private IEnumerator ConsumeReplayRequest()
 {
+    // Espera GameManager + Registry
     float elapsed = 0f;
     while ((GameManager.Instance == null || GameManager.Instance.Registry == null) 
            && elapsed < ReplayResolveTimeout)
@@ -66,6 +66,7 @@ private IEnumerator ConsumeReplayRequest()
         yield break;
     }
 
+    // Resuelve self
     CreatureDNA self = null;
     elapsed = 0f;
     while (!GameManager.Instance.Registry.TryGet(CombatReplayRequest.SelfId, out self) 
@@ -76,54 +77,57 @@ private IEnumerator ConsumeReplayRequest()
     }
     if (self == null)
     {
-        Debug.LogWarning($"[CombatSceneManager] No se encontró la criatura '{CombatReplayRequest.SelfId}' en el registro para el replay.");
+        Debug.LogWarning($"[CombatSceneManager] No encontré '{CombatReplayRequest.SelfId}'.");
         CombatReplayRequest.Clear();
         yield break;
     }
 
+    // Valida FightIndex
     int fightIndex = CombatReplayRequest.FightIndex;
     if (self.CombatHistory == null || fightIndex < 0 || fightIndex >= self.CombatHistory.Count)
     {
-        Debug.LogWarning("[CombatSceneManager] Índice de pelea inválido para el replay.");
+        Debug.LogWarning("[CombatSceneManager] Índice de pelea inválido.");
         CombatReplayRequest.Clear();
         yield break;
     }
 
-    var record   = self.CombatHistory[fightIndex];
-    var opponent = CombatReplayRequest.ResolveOpponent(record, self, GameManager.Instance.Registry);
-    if (opponent == null)
-    {
-        Debug.LogWarning("[CombatSceneManager] El rival no está en el registro. No se puede reproducir el combate.");
-        CombatReplayRequest.Clear();
-        yield break;
-    }
-
+    // S41: obtiene record y delega directo a Play(self, record)
+    var record = self.CombatHistory[fightIndex];
     CombatReplayRequest.Clear();
-    CombatVisualizerService.Instance?.Play(self, opponent, record);
+    CombatVisualizerService.Instance?.Play(self, record);  // S41 NEW: firma cambió
 }
 ```
 
+## Cambios S41
+
+**Firma ConsumeReplayRequest():**
+- S37: `Play(self, opponent, record)` — resolvía rival localmente
+- **S41: `Play(self, record)` — rival resuelto en CombatVisualizerService** (simplificación, el service ya necesita resolver equipos vía registry para 3v3)
+
+**Lógica eliminada:** Línea que resolvía rival vía `CombatReplayRequest.ResolveOpponent()`. Ahora es solo: obtener self + record + delegar.
+
 ## Vinculado a
 
-- [[Index/03 - Combat]]
-- [[CombatReplayRequest]] — S34, servicio cross-escena de replay
-- [[CombatVisualizerService]] — ejecuta el replay una vez resueltos los datos
-- [[GameManager]] — acceso a Registry post-carga de escena
+- [[Index/03 - Combat System]]
+- [[Index/13 - Combat Design Direction]]
+- [[CombatReplayRequest]] — servicio cross-escena (S41: firma Play cambió)
+- [[CombatVisualizerService]] — ejecuta replay (S41: firma Play nueva)
+- [[GameManager]] — acceso Registry post-carga
 - [[CreatureDNA]], [[CombatRecord]] — datos persistidos
 
 ## Conexiones
 
 **Entrada:**
-- `CombatReplayRequest.Pending` — flag de solicitud cross-escena
-- `GameManager.Instance.Registry` — acceso a criatura y rival
+- `CombatReplayRequest.Pending` — flag solicitud cross-escena
+- `GameManager.Instance.Registry` — acceso a self + record
 
 **Salida:**
-- `CombatVisualizerService.Play()` — delegación tras resolver
+- `CombatVisualizerService.Play(self, record)` — delegación directo (S41)
 - Scene load via `SceneManager.LoadScene()` en `ReturnToGameScene()`
 
 ## Notas
 
-- **Timeout defensivo:** 3s esperando GameManager en cada paso, evita hang infinito si escena no carga
+- **Timeout defensivo:** 3s esperando GameManager en cada step, evita hang infinito
 - **Null-tolerante:** Todos los checks incluyen fallbacks con logging
-- **CombatReplayRequest.Clear():** Se llama al inicio de Play o si falla validación, para limpiar state transitorio
-- **Registro dinámico:** CreatureDNA/rival pueden no estar en el nuevo GameManager si fueron vendidos o eliminados; se valida en tiempo real
+- **CombatReplayRequest.Clear():** Se llama antes de Play para limpiar state transitorio
+- **S41 Simplificación:** Menos resoluciones (solo self), el visualizer se encarga de equipos

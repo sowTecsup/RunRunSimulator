@@ -13,9 +13,12 @@ public class CombatVisualizerService : MonoBehaviour
     [Title("Scene Refs")]
     [Required, SerializeField] private MoriMonchiVisualizer visualizerPrefab;
 
-    [Title("Slots")]
-    [Required, SerializeField] private Transform slotA;
-    [Required, SerializeField] private Transform slotB;
+    [Title("Boards")]
+    [Required, SerializeField] private Transform boardA;
+    [Required, SerializeField] private Transform boardB;
+
+    [Title("Elemental")]
+    [SerializeField] private ElementTableSO elementTable;
 
     [Title("Timing (seconds, divided by speed)")]
     [SerializeField, MinValue(0f)] private float windupSeconds       = 0.35f;
@@ -35,71 +38,30 @@ public class CombatVisualizerService : MonoBehaviour
     {
         public bool                      HasTurn;
         public CombatTurn                Turn;
-        public float                     HpA;
-        public float                     HpB;
-        public bool                      ADead;
-        public bool                      BDead;
-        public bool                      ADiedHere;
-        public bool                      BDiedHere;
         public int                       TurnNumber;
-        public CombatVisualSide          Attacker;
-        public CombatVisualSide          Defender;
+        public int                       ActionIndex;
+        public List<CombatUnitState>     StateA;
+        public List<CombatUnitState>     StateB;
+        public bool[]                    DiedHereA;
+        public bool[]                    DiedHereB;
+        public CombatVisualSide          AttackerSide;
+        public int                       AttackerIndex;
+        public int                       DefenderIndex;
         public bool                      Crit;
         public List<CombatVisualLogLine> Log;
-        public List<CombatStatusMark>    StatusA;
-        public List<CombatStatusMark>    StatusB;
         public CombatNode                Prev;
         public CombatNode                Next;
         public bool IsEnd => Next == null;
-
-        private static MoriMonchiCombatVisualizer Pick(CombatVisualSide side, MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b)
-            => side == CombatVisualSide.A ? a : b;
-
-        public void FireWindup(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b)
-        {
-            if (Turn == null || Turn.NoAttack) return;
-            Pick(Attacker, a, b)?.PlayAttack();
-        }
-
-        public void FireImpact(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b, float maxA, float maxB)
-        {
-            if (Turn == null || Turn.NoAttack) return;
-            var atk = Pick(Attacker, a, b);
-            var def = Pick(Defender, a, b);
-            if (Crit) { atk?.PlayCritDealt(); def?.PlayCritTaken(); }
-            else      { atk?.PlayHitDealt();  def?.PlayHitTaken(); }
-            float defMax = Defender == CombatVisualSide.A ? maxA : maxB;
-            def?.PlayHpChanged(Turn.DefenderHpAfter, defMax);
-        }
-
-        public void FireDeath(MoriMonchiCombatVisualizer a, MoriMonchiCombatVisualizer b)
-        {
-            if (ADiedHere) a?.PlayDead();
-            if (BDiedHere) b?.PlayDead();
-        }
     }
 
-    private MoriMonchiVisualizer instanceA;
-    private MoriMonchiVisualizer instanceB;
-    private MoriMonchiCombatVisualizer hooksA;
-    private MoriMonchiCombatVisualizer hooksB;
-    private MoriMonchiCombatVisualizerUITK barA;
-    private MoriMonchiCombatVisualizerUITK barB;
-    private MoriMonchiProceduralAnimator   animA;
-    private MoriMonchiProceduralAnimator   animB;
+    private readonly CombatVisualUnits units = new CombatVisualUnits();
+    private List<CreatureDNA> teamSelf;
+    private List<CreatureDNA> teamOpp;
 
-    private CreatureDNA  selfDna;
-    private CreatureDNA  oppDna;
     private CombatRecord activeRecord;
     private CombatNode   head;
     private CombatNode   current;
     private int          totalTurns;
-    private float        hpMaxA;
-    private float        hpMaxB;
-    private float        shownHpA;
-    private float        shownHpB;
-    private EffectiveStats statsA;
-    private EffectiveStats statsB;
     private bool         endIsDraw;
     private CombatVisualSide endWinner;
 
@@ -117,9 +79,6 @@ public class CombatVisualizerService : MonoBehaviour
     private bool CanForward => current != null && current.Next != null && !busy;
     private bool CanBack    => current != null && current.Prev != null && !busy;
 
-    private CreatureDatabaseSO Db => GameManager.Instance != null ? GameManager.Instance.Database : null;
-    private EquipmentDatabaseSO EquipDb => GameManager.Instance != null ? GameManager.Instance.EquipmentDatabase : null;
-
     private void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -131,9 +90,9 @@ public class CombatVisualizerService : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
-    public void Play(CreatureDNA self, CreatureDNA opponent, CombatRecord record)
+    public void Play(CreatureDNA self, CombatRecord record)
     {
-        if (self == null || opponent == null || record == null)
+        if (self == null || record == null)
         {
             Debug.LogError("[CombatVisualizer] Play called with null DNA or record.");
             return;
@@ -143,10 +102,32 @@ public class CombatVisualizerService : MonoBehaviour
             Debug.LogError("[CombatVisualizer] No GameManager in scene — cannot resolve visual databases.");
             return;
         }
+        if (record.SelfTeam == null || record.SelfTeamIds == null || record.OpponentTeamIds == null)
+        {
+            Debug.LogWarning("[CombatVisualizer] record sin datos 3v3");
+            return;
+        }
+
+        var reg = GameManager.Instance.Registry;
+        var resolvedSelf = new List<CreatureDNA>();
+        foreach (var id in record.SelfTeamIds)
+        {
+            if (!reg.TryGet(id, out var dna))
+            { Debug.LogWarning($"[CombatVisualizer] No encontré al MoriMochi \"{id}\" del equipo propio."); return; }
+            resolvedSelf.Add(dna);
+        }
+        var resolvedOpp = new List<CreatureDNA>();
+        foreach (var id in record.OpponentTeamIds)
+        {
+            if (!reg.TryGet(id, out var dna))
+            { Debug.LogWarning($"[CombatVisualizer] No encontré al MoriMochi \"{id}\" del equipo rival."); return; }
+            resolvedOpp.Add(dna);
+        }
+
         Stop();
-        selfDna      = self;
-        oppDna       = opponent;
         activeRecord = record;
+        teamSelf     = resolvedSelf;
+        teamOpp      = resolvedOpp;
         BuildStates();
         if (head == null) { Debug.LogWarning("[CombatVisualizer] No states built."); return; }
         beginRoutine = StartCoroutine(BeginRoutine());
@@ -163,7 +144,7 @@ public class CombatVisualizerService : MonoBehaviour
         busy         = false;
         head         = null;
         current      = null;
-        DespawnFighters();
+        units.DespawnAll();
     }
 
     public void TogglePlay() => SetAuto(!isAuto);
@@ -198,39 +179,71 @@ public class CombatVisualizerService : MonoBehaviour
         Publish();
     }
 
+    private static List<CombatUnitState> BuildInitialState(List<CombatFighterSnapshot> snaps)
+    {
+        var list = new List<CombatUnitState>(snaps.Count);
+        foreach (var s in snaps) list.Add(new CombatUnitState { Hp = s.MaxHp, Shield = 0f });
+        return list;
+    }
+
+    private static string NamesColored(List<CombatFighterSnapshot> team, string hex)
+        => Colored(string.Join(" · ", team.Select(s => s.Name)), hex);
+
     private void BuildStates()
     {
-        statsA = EquipmentStats.Apply(CombatStats.GetEffectiveStats(selfDna, Db), selfDna, EquipDb);
-        statsB = EquipmentStats.Apply(CombatStats.GetEffectiveStats(oppDna, Db), oppDna, EquipDb);
-        hpMaxA = statsA.Constitution * CombatStats.BaseHpCombatMultiplier;
-        hpMaxB = statsB.Constitution * CombatStats.BaseHpCombatMultiplier;
+        var snapsA = activeRecord.SelfTeam;
+        var snapsB = activeRecord.OpponentTeam;
 
         var log = new List<CombatVisualLogLine>
         {
-            Line(CombatVisualLogKind.Versus,
-                $"{Colored(selfDna.CustomName, SelfColor)}   VS   {Colored(activeRecord.OpponentName, OppColor)}"),
+            Line(CombatVisualLogKind.Versus, $"{NamesColored(snapsA, SelfColor)}   VS   {NamesColored(snapsB, OppColor)}"),
         };
-        float hpA = hpMaxA, hpB = hpMaxB;
-        bool aDead = false, bDead = false;
 
-        head = new CombatNode { HasTurn = false, HpA = hpA, HpB = hpB, TurnNumber = 0, Log = new List<CombatVisualLogLine>(log), StatusA = new List<CombatStatusMark>(), StatusB = new List<CombatStatusMark>() };
+        head = new CombatNode
+        {
+            HasTurn    = false,
+            StateA     = BuildInitialState(snapsA),
+            StateB     = BuildInitialState(snapsB),
+            DiedHereA  = new bool[snapsA.Count],
+            DiedHereB  = new bool[snapsB.Count],
+            TurnNumber = 0,
+            Log        = new List<CombatVisualLogLine>(log),
+        };
         var node = head;
         totalTurns = 0;
+
+        var aliveA = new bool[snapsA.Count];
+        var aliveB = new bool[snapsB.Count];
+        for (int i = 0; i < aliveA.Length; i++) aliveA[i] = true;
+        for (int i = 0; i < aliveB.Length; i++) aliveB[i] = true;
+
+        var hpA = new float[snapsA.Count];
+        var hpB = new float[snapsB.Count];
+        for (int i = 0; i < hpA.Length; i++) hpA[i] = snapsA[i].MaxHp;
+        for (int i = 0; i < hpB.Length; i++) hpB[i] = snapsB[i].MaxHp;
 
         if (activeRecord.Turns != null)
         {
             foreach (var t in activeRecord.Turns)
             {
                 bool attackerIsSelf = t.AttackerIsA == activeRecord.SelfWasA;
+                var attackerSide    = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B;
+                var defenderSide    = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A;
+
                 void ApplyProc(CombatProcEvent pe)
                 {
-                    bool isA = pe.TargetIsA == activeRecord.SelfWasA;
-                    float before = isA ? hpA : hpB;
+                    bool  isA   = pe.TargetIsA == activeRecord.SelfWasA;
+                    var   snaps = isA ? snapsA : snapsB;
+                    var   hpArr = isA ? hpA : hpB;
+                    float before = hpArr[pe.TargetIndex];
                     float after  = pe.TargetHpAfter;
-                    if (isA) hpA = after; else hpB = after;
+                    hpArr[pe.TargetIndex] = after;
 
-                    string who = Colored(isA ? selfDna.CustomName : activeRecord.OpponentName, isA ? SelfColor : OppColor);
-                    log.Add(Line(CombatVisualLogKind.Proc, ProcText(pe, who, after - before)));
+                    string who  = Colored(snaps[pe.TargetIndex].Name, isA ? SelfColor : OppColor);
+                    string text = pe.ElementEvent == ElementEventKind.None
+                        ? ProcText(pe, who, after - before)
+                        : ElementText(pe, who, after - before);
+                    if (text != null) log.Add(Line(CombatVisualLogKind.Proc, text));
                 }
 
                 if (t.Procs != null)
@@ -246,42 +259,55 @@ public class CombatVisualizerService : MonoBehaviour
                         ? Line(CombatVisualLogKind.Crit, $"¡CRÍTICO! {atk} → {def} · {dmg} de daño")
                         : Line(CombatVisualLogKind.Hit,  $"{atk} golpea a {def} · {dmg} de daño"));
 
-                    if (attackerIsSelf) hpB = t.DefenderHpAfter;
-                    else                hpA = t.DefenderHpAfter;
+                    if (defenderSide == CombatVisualSide.A) hpA[t.DefenderIndex] = t.DefenderHpAfter;
+                    else                                    hpB[t.DefenderIndex] = t.DefenderHpAfter;
                 }
 
                 if (t.Procs != null)
                     foreach (var pe in t.Procs)
                         if (!pe.BeforeStrike) ApplyProc(pe);
 
-                bool aDiedHere = false, bDiedHere = false;
-                if (hpA <= 0f && !aDead) { aDead = true; aDiedHere = true; log.Add(Line(CombatVisualLogKind.Death, $"{Colored(selfDna.CustomName, SelfColor)} cae derrotado")); }
-                if (hpB <= 0f && !bDead) { bDead = true; bDiedHere = true; log.Add(Line(CombatVisualLogKind.Death, $"{Colored(activeRecord.OpponentName, OppColor)} cae derrotado")); }
+                var stateA = activeRecord.SelfWasA ? t.TeamStateA : t.TeamStateB;
+                var stateB = activeRecord.SelfWasA ? t.TeamStateB : t.TeamStateA;
 
+                var diedHereA = new bool[stateA.Count];
+                var diedHereB = new bool[stateB.Count];
+                for (int i = 0; i < stateA.Count; i++)
+                    if (stateA[i].Hp <= 0f && aliveA[i])
+                    {
+                        diedHereA[i] = true; aliveA[i] = false;
+                        log.Add(Line(CombatVisualLogKind.Death, $"{Colored(snapsA[i].Name, SelfColor)} cae derrotado"));
+                    }
+                for (int i = 0; i < stateB.Count; i++)
+                    if (stateB[i].Hp <= 0f && aliveB[i])
+                    {
+                        diedHereB[i] = true; aliveB[i] = false;
+                        log.Add(Line(CombatVisualLogKind.Death, $"{Colored(snapsB[i].Name, OppColor)} cae derrotado"));
+                    }
+
+                totalTurns++;
                 var next = new CombatNode
                 {
-                    HasTurn = true, Turn = t,
-                    HpA = hpA, HpB = hpB, ADead = aDead, BDead = bDead,
-                    ADiedHere = aDiedHere, BDiedHere = bDiedHere,
-                    TurnNumber = t.TurnNumber, Log = new List<CombatVisualLogLine>(log),
-                    Attacker = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B,
-                    Defender = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A,
-                    Crit     = t.WasCrit,
-                    StatusA  = (activeRecord.SelfWasA ? t.StatusA : t.StatusB) ?? new List<CombatStatusMark>(),
-                    StatusB  = (activeRecord.SelfWasA ? t.StatusB : t.StatusA) ?? new List<CombatStatusMark>(),
+                    HasTurn       = true, Turn = t,
+                    StateA        = stateA, StateB = stateB,
+                    DiedHereA     = diedHereA, DiedHereB = diedHereB,
+                    TurnNumber    = t.TurnNumber, ActionIndex = totalTurns, Log = new List<CombatVisualLogLine>(log),
+                    AttackerSide  = attackerSide,
+                    AttackerIndex = t.AttackerIndex,
+                    DefenderIndex = t.DefenderIndex,
+                    Crit          = t.WasCrit,
                 };
                 node.Next = next; next.Prev = node; node = next;
-                totalTurns++;
-                if (aDead || bDead) break;
             }
         }
 
-        endIsDraw = !aDead && !bDead;
-        endWinner = aDead ? CombatVisualSide.B : CombatVisualSide.A;
-        string winnerName = endWinner == CombatVisualSide.A ? selfDna.CustomName : activeRecord.OpponentName;
+        endIsDraw = activeRecord.Outcome == CombatOutcome.Draw;
+        endWinner = activeRecord.Outcome == CombatOutcome.Won ? CombatVisualSide.A : CombatVisualSide.B;
         node.Log.Add(endIsDraw
             ? Line(CombatVisualLogKind.Result, "Empate")
-            : Line(CombatVisualLogKind.Result, $"Ganador: {Colored(winnerName, endWinner == CombatVisualSide.A ? SelfColor : OppColor)}"));
+            : Line(CombatVisualLogKind.Result, endWinner == CombatVisualSide.A
+                ? Colored("Ganador: tu equipo", SelfColor)
+                : Colored("Ganador: equipo rival", OppColor)));
 
         current = head;
     }
@@ -293,22 +319,26 @@ public class CombatVisualizerService : MonoBehaviour
 
     private IEnumerator BeginRoutine()
     {
-        SpawnFighters(selfDna, oppDna);
+        units.Spawn(CombatVisualSide.A, teamSelf, activeRecord.SelfTeam, boardA, visualizerPrefab, elementTable);
+        units.Spawn(CombatVisualSide.B, teamOpp, activeRecord.OpponentTeam, boardB, visualizerPrefab, elementTable);
         yield return null;
         yield return null;
 
         var ctx = new CombatVisualContext
         {
-            DnaA = selfDna, DnaB = oppDna,
-            HpMaxA = hpMaxA, HpMaxB = hpMaxB,
-            SlotA = slotA, SlotB = slotB,
+            DnaA = teamSelf[0], DnaB = teamOpp[0],
+            HpMaxA = activeRecord.SelfTeam[0].MaxHp, HpMaxB = activeRecord.OpponentTeam[0].MaxHp,
+            SlotA = boardA, SlotB = boardB,
             TotalTurns = totalTurns,
+            TeamA = teamSelf, TeamB = teamOpp,
+            HpMaxTeamA = activeRecord.SelfTeam.Select(s => s.MaxHp).ToArray(),
+            HpMaxTeamB = activeRecord.OpponentTeam.Select(s => s.MaxHp).ToArray(),
+            SnapsA = activeRecord.SelfTeam, SnapsB = activeRecord.OpponentTeam,
         };
         CombatVisualEvents.VisualCombatStart(ctx);
-        barA?.Bind(selfDna.CustomName, statsA.Attack, statsA.Speed);
-        barB?.Bind(activeRecord.OpponentName, statsB.Attack, statsB.Speed);
-        hooksA?.PlayCombatStart();
-        hooksB?.PlayCombatStart();
+
+        foreach (var unit in units.Team(CombatVisualSide.A)) unit.Hooks?.PlayCombatStart();
+        foreach (var unit in units.Team(CombatVisualSide.B)) unit.Hooks?.PlayCombatStart();
 
         isAuto  = false;
         current = head;
@@ -338,10 +368,12 @@ public class CombatVisualizerService : MonoBehaviour
 
         var target = current.Next;
         var t      = target.Turn;
-        bool attackerIsSelf = t.AttackerIsA == activeRecord.SelfWasA;
-        var attacker = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B;
-        var defender = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A;
 
+        var atkUnit = units.Get(target.AttackerSide, target.AttackerIndex);
+        var defSide = target.AttackerSide == CombatVisualSide.A ? CombatVisualSide.B : CombatVisualSide.A;
+        var defUnit = units.Get(defSide, target.DefenderIndex);
+
+        CombatVisualEvents.ActiveUnit(target.AttackerSide, target.AttackerIndex);
         CombatVisualEvents.TurnStart(t);
 
         if (t.Procs != null)
@@ -350,13 +382,19 @@ public class CombatVisualizerService : MonoBehaviour
 
         if (!t.NoAttack)
         {
-            CombatVisualEvents.Attack(attacker);
-            target.FireWindup(hooksA, hooksB);
+            CombatVisualEvents.Attack(target.AttackerSide);
+            atkUnit?.Hooks?.PlayAttack();
             yield return new WaitForSeconds(windupSeconds / Speed);
 
-            var hit = new CombatVisualHit { Attacker = attacker, Defender = defender, Damage = t.Damage, Crit = t.WasCrit };
+            var hit = new CombatVisualHit
+            {
+                Attacker = target.AttackerSide, Defender = defSide, Damage = t.Damage, Crit = t.WasCrit,
+                AttackerIndex = target.AttackerIndex, DefenderIndex = target.DefenderIndex,
+            };
             CombatVisualEvents.Hit(hit);
-            target.FireImpact(hooksA, hooksB, hpMaxA, hpMaxB);
+            if (t.WasCrit) { atkUnit?.Hooks?.PlayCritDealt(); defUnit?.Hooks?.PlayCritTaken(); }
+            else            { atkUnit?.Hooks?.PlayHitDealt();  defUnit?.Hooks?.PlayHitTaken(); }
+            defUnit?.Hooks?.PlayHpChanged(t.DefenderHpAfter, defUnit.MaxHp);
             if (t.WasCrit)
             {
                 CombatVisualEvents.Crit(hit);
@@ -367,12 +405,11 @@ public class CombatVisualizerService : MonoBehaviour
                 CombatVisualEvents.Log($"{t.AttackerName} golpea a {t.DefenderName} · {t.Damage:F0} de daño");
             }
 
-            float defMax = defender == CombatVisualSide.A ? hpMaxA : hpMaxB;
-            PushHp(defender, t.DefenderHpAfter, defMax);
+            PushHp(defSide, target.DefenderIndex, t.DefenderHpAfter);
             if (t.Damage >= 0.5f)
                 CombatVisualEvents.Popup(new CombatVisualPopup
                 {
-                    Side = defender, Position = FighterPos(defender), Follow = FighterTransform(defender),
+                    Side = defSide, Position = units.PosOf(defSide, target.DefenderIndex), Follow = units.TransformOf(defSide, target.DefenderIndex),
                     Kind = t.WasCrit ? CombatPopupKind.Crit : CombatPopupKind.Hit, Amount = t.Damage,
                 });
             yield return new WaitForSeconds(impactSeconds / Speed);
@@ -383,17 +420,35 @@ public class CombatVisualizerService : MonoBehaviour
                 if (!pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe));
 
         current = target;
-        PushStatus(target);
+        PushStatusAll(target);
+        PushElements(target);
         Publish();
 
-        if (target.ADiedHere || target.BDiedHere)
+        bool anyDied = false;
+        for (int i = 0; i < target.DiedHereA.Length; i++)
+            if (target.DiedHereA[i])
+            {
+                anyDied = true;
+                units.Get(CombatVisualSide.A, i)?.Hooks?.PlayDead();
+                CombatVisualEvents.Dead(CombatVisualSide.A);
+                CombatVisualEvents.UnitDead(CombatVisualSide.A, i);
+            }
+        for (int i = 0; i < target.DiedHereB.Length; i++)
+            if (target.DiedHereB[i])
+            {
+                anyDied = true;
+                units.Get(CombatVisualSide.B, i)?.Hooks?.PlayDead();
+                CombatVisualEvents.Dead(CombatVisualSide.B);
+                CombatVisualEvents.UnitDead(CombatVisualSide.B, i);
+            }
+
+        if (anyDied)
         {
-            target.FireDeath(hooksA, hooksB);
-            if (target.ADiedHere) CombatVisualEvents.Dead(CombatVisualSide.A);
-            if (target.BDiedHere) CombatVisualEvents.Dead(CombatVisualSide.B);
             yield return new WaitForSeconds(deathPauseSeconds / Speed);
-            if (target.ADiedHere) SetFighterActive(CombatVisualSide.A, false);
-            if (target.BDiedHere) SetFighterActive(CombatVisualSide.B, false);
+            for (int i = 0; i < target.DiedHereA.Length; i++)
+                if (target.DiedHereA[i]) units.SetActive(units.Get(CombatVisualSide.A, i), false);
+            for (int i = 0; i < target.DiedHereB.Length; i++)
+                if (target.DiedHereB[i]) units.SetActive(units.Get(CombatVisualSide.B, i), false);
         }
 
         CombatVisualEvents.TurnEnd(t);
@@ -401,37 +456,73 @@ public class CombatVisualizerService : MonoBehaviour
         if (current.IsEnd)
         {
             CombatVisualEvents.VisualCombatEnd(endWinner, endIsDraw);
-            if (!endIsDraw) (endWinner == CombatVisualSide.A ? hooksA : hooksB)?.PlayVictory();
+            if (!endIsDraw)
+            {
+                var winnerState = endWinner == CombatVisualSide.A ? current.StateA : current.StateB;
+                for (int i = 0; i < winnerState.Count; i++)
+                    if (winnerState[i].Hp > 0f) { units.Get(endWinner, i)?.Hooks?.PlayVictory(); break; }
+            }
         }
 
         busy       = false;
         fwdRoutine = null;
         Publish();
+        PublishOrder();
     }
 
     private IEnumerator PlayProc(CombatProcEvent pe)
     {
         var side = SimToVisual(pe.TargetIsA);
-        float before = side == CombatVisualSide.A ? shownHpA : shownHpB;
-        float max    = side == CombatVisualSide.A ? hpMaxA : hpMaxB;
-        if (pe.Kind == ModifierEffectKind.Synergy)
+        var unit = units.Get(side, pe.TargetIndex);
+        if (unit == null) yield break;
+        float delta = pe.TargetHpAfter - unit.ShownHp;
+
+        if (pe.ElementEvent == ElementEventKind.Reaction)
+        {
             yield return new WaitForSeconds(synergyPopupDelay / Speed);
-        RaiseProcPopup(pe, side, pe.TargetHpAfter - before);
-        PushHp(side, pe.TargetHpAfter, max);
-        if (pe.TargetStatusAfter != null) PushStatusSide(side, pe.TargetStatusAfter);
+            CombatVisualEvents.Popup(new CombatVisualPopup
+            {
+                Side = side, Position = units.PosOf(side, pe.TargetIndex), Follow = units.TransformOf(side, pe.TargetIndex),
+                Kind = CombatPopupKind.Reaction, Amount = 0f,
+                Text = pe.ReactionName,
+                HasOverrideColor = elementTable != null,
+                OverrideColor = elementTable != null ? elementTable.GetIdentity(pe.Element).UiColor : Color.white,
+            });
+        }
+        else if (pe.ElementEvent != ElementEventKind.None)
+        {
+            if (Mathf.Abs(delta) >= 0.5f)
+                CombatVisualEvents.Popup(new CombatVisualPopup
+                {
+                    Side = side, Position = units.PosOf(side, pe.TargetIndex), Follow = units.TransformOf(side, pe.TargetIndex),
+                    Kind = delta > 0f ? CombatPopupKind.Heal : CombatPopupKind.Hit, Amount = Mathf.Abs(delta),
+                });
+        }
+        else
+        {
+            RaiseProcPopup(pe, unit, delta);
+        }
+
+        PushHp(side, pe.TargetIndex, pe.TargetHpAfter);
+        if (pe.TargetStatusAfter != null) unit.Bar?.SetStatus(pe.TargetStatusAfter);
+
+        if (pe.ElementEvent == ElementEventKind.AffinityGained) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, (int)pe.Amount, -1);
+        else if (pe.ElementEvent == ElementEventKind.EnergyGained) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, 0, (int)pe.Amount);
+        else if (pe.ElementEvent == ElementEventKind.EnergySpent) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, -1, (int)pe.Amount);
+
         yield return new WaitForSeconds(impactSeconds / Speed);
     }
 
     private CombatVisualSide SimToVisual(bool simIsA)
         => simIsA == activeRecord.SelfWasA ? CombatVisualSide.A : CombatVisualSide.B;
 
-    private void RaiseProcPopup(CombatProcEvent pe, CombatVisualSide side, float delta)
+    private void RaiseProcPopup(CombatProcEvent pe, CombatVisualUnit unit, float delta)
     {
         if (pe.Kind == ModifierEffectKind.Stun)
         {
             CombatVisualEvents.Popup(new CombatVisualPopup
             {
-                Side = side, Position = FighterPos(side), Follow = FighterTransform(side),
+                Side = unit.Side, Position = units.PosOf(unit.Side, unit.Index), Follow = units.TransformOf(unit.Side, unit.Index),
                 Kind = CombatPopupKind.Stun, Amount = pe.Amount,
             });
             return;
@@ -440,7 +531,7 @@ public class CombatVisualizerService : MonoBehaviour
         {
             CombatVisualEvents.Popup(new CombatVisualPopup
             {
-                Side = side, Position = FighterPos(side), Follow = FighterTransform(side),
+                Side = unit.Side, Position = units.PosOf(unit.Side, unit.Index), Follow = units.TransformOf(unit.Side, unit.Index),
                 Kind = CombatPopupKind.Synergy, Amount = 0f,
             });
             return;
@@ -448,7 +539,7 @@ public class CombatVisualizerService : MonoBehaviour
         if (Mathf.Abs(delta) < 0.5f) return;
         CombatVisualEvents.Popup(new CombatVisualPopup
         {
-            Side = side, Position = FighterPos(side), Follow = FighterTransform(side),
+            Side = unit.Side, Position = units.PosOf(unit.Side, unit.Index), Follow = units.TransformOf(unit.Side, unit.Index),
             Kind = ProcPopupKind(pe.Kind), Amount = Mathf.Abs(delta),
         });
     }
@@ -469,21 +560,6 @@ public class CombatVisualizerService : MonoBehaviour
         ModifierEffectKind.Lifesteal => CombatPopupKind.Lifesteal,
         _                               => CombatPopupKind.Hit,
     };
-
-    private Vector3 FighterPos(CombatVisualSide side)
-    {
-        var inst = side == CombatVisualSide.A ? instanceA : instanceB;
-        if (inst != null) return inst.transform.position;
-        var slot = side == CombatVisualSide.A ? slotA : slotB;
-        return slot != null ? slot.position : Vector3.zero;
-    }
-
-    private Transform FighterTransform(CombatVisualSide side)
-    {
-        var inst = side == CombatVisualSide.A ? instanceA : instanceB;
-        if (inst != null) return inst.transform;
-        return side == CombatVisualSide.A ? slotA : slotB;
-    }
 
     private static string ProcText(CombatProcEvent pe, string who, float delta)
     {
@@ -517,25 +593,60 @@ public class CombatVisualizerService : MonoBehaviour
         };
     }
 
+    private string ElementText(CombatProcEvent pe, string who, float delta) => pe.ElementEvent switch
+    {
+        ElementEventKind.Reaction      => $"¡{pe.ReactionName}! sobre {who}",
+        ElementEventKind.StateArmed    => $"{who} queda {StateName(pe.State)}",
+        ElementEventKind.StateConsumed => $"{who} consume {StateName(pe.State)}",
+        ElementEventKind.StateRemoved  => $"{who} pierde {StateName(pe.State)}",
+        ElementEventKind.MarkApplied   => $"{who} recibe marca {ElemName(pe.Element)}{(pe.AllySource ? " (aliada)" : "")}",
+        ElementEventKind.MarkRemoved   => $"{who} pierde la marca {ElemName(pe.Element)}",
+        ElementEventKind.Heal          => $"{who} se cura {Mathf.Abs(delta):F0}",
+        ElementEventKind.Damage        => $"{who} recibe {Colored($"{Mathf.Abs(delta):F0}", DamageColor)}",
+        ElementEventKind.ShieldDoubled => $"{who} duplica su escudo",
+        _                               => null,
+    };
+
+    private string ElemName(Element e)
+        => elementTable != null ? elementTable.GetIdentity(e).DisplayName : e.ToString();
+
+    private string StateName(ElementalState s)
+        => elementTable != null && !string.IsNullOrEmpty(elementTable.GetState(s).DisplayName) ? elementTable.GetState(s).DisplayName : s.ToString();
+
     private void Restore(CombatNode node)
     {
         if (node == null) return;
         current = node;
 
-        SetFighterActive(CombatVisualSide.A, !node.ADead);
-        SetFighterActive(CombatVisualSide.B, !node.BDead);
-
-        RestoreAnim(animA, node.ADead);
-        RestoreAnim(animB, node.BDead);
-
-        PushHp(CombatVisualSide.A, node.HpA, hpMaxA);
-        PushHp(CombatVisualSide.B, node.HpB, hpMaxB);
-        PushStatus(node);
+        for (int i = 0; i < node.StateA.Count; i++)
+        {
+            var unit  = units.Get(CombatVisualSide.A, i);
+            var state = node.StateA[i];
+            bool dead = state.Hp <= 0f;
+            units.SetActive(unit, !dead);
+            RestoreAnim(unit?.Anim, dead);
+            PushHp(CombatVisualSide.A, i, state.Hp);
+            unit?.Bar?.SetStatus(state.Marks);
+        }
+        for (int i = 0; i < node.StateB.Count; i++)
+        {
+            var unit  = units.Get(CombatVisualSide.B, i);
+            var state = node.StateB[i];
+            bool dead = state.Hp <= 0f;
+            units.SetActive(unit, !dead);
+            RestoreAnim(unit?.Anim, dead);
+            PushHp(CombatVisualSide.B, i, state.Hp);
+            unit?.Bar?.SetStatus(state.Marks);
+        }
 
         if (node.IsEnd)
             CombatVisualEvents.VisualCombatEnd(endWinner, endIsDraw);
 
+        PushElements(node);
         Publish();
+        PublishOrder();
+        if (current.Next != null) CombatVisualEvents.ActiveUnit(current.Next.AttackerSide, current.Next.AttackerIndex);
+        else                      CombatVisualEvents.ActiveUnit(current.AttackerSide, current.AttackerIndex);
     }
 
     private static void RestoreAnim(MoriMonchiProceduralAnimator anim, bool dead)
@@ -549,7 +660,7 @@ public class CombatVisualizerService : MonoBehaviour
         if (current == null) return;
         CombatVisualEvents.PanelState(new CombatVisualPanelState
         {
-            TurnNumber = current.TurnNumber,
+            TurnNumber = current.ActionIndex,
             TotalTurns = totalTurns,
             Log        = current.Log.ToArray(),
             Ended      = current.IsEnd,
@@ -562,64 +673,95 @@ public class CombatVisualizerService : MonoBehaviour
         });
     }
 
-    private void SpawnFighters(CreatureDNA dnaA, CreatureDNA dnaB)
+    private void PushHp(CombatVisualSide side, int index, float hp)
     {
-        DespawnFighters();
-        instanceA = SpawnOne(dnaA, slotA, out barA);
-        instanceB = SpawnOne(dnaB, slotB, out barB);
-        hooksA = instanceA as MoriMonchiCombatVisualizer;
-        hooksB = instanceB as MoriMonchiCombatVisualizer;
-        animA  = instanceA != null ? instanceA.GetComponent<MoriMonchiProceduralAnimator>() : null;
-        animB  = instanceB != null ? instanceB.GetComponent<MoriMonchiProceduralAnimator>() : null;
+        var unit = units.Get(side, index);
+        if (unit == null) return;
+        unit.ShownHp = hp;
+        unit.Bar?.SetHp(hp, unit.MaxHp);
+        CombatVisualEvents.UnitHpChanged(side, index, hp, unit.MaxHp);
+        CombatVisualEvents.HpChanged(side, hp, unit.MaxHp);
     }
 
-    private MoriMonchiVisualizer SpawnOne(CreatureDNA dna, Transform slot, out MoriMonchiCombatVisualizerUITK bar)
+    private void PushStatusAll(CombatNode node)
     {
-        var inst = Instantiate(visualizerPrefab, slot.position, slot.rotation, slot);
-        bar = inst.GetComponentInChildren<MoriMonchiCombatVisualizerUITK>(true);
-        inst.SetFurDatabase(GameManager.Instance.FurTypeDatabase);
-        inst.Assemble(dna, GameManager.Instance.PartVisualBank);
-        return inst;
+        for (int i = 0; i < node.StateA.Count; i++)
+            units.Get(CombatVisualSide.A, i)?.Bar?.SetStatus(node.StateA[i].Marks);
+        for (int i = 0; i < node.StateB.Count; i++)
+            units.Get(CombatVisualSide.B, i)?.Bar?.SetStatus(node.StateB[i].Marks);
     }
 
-    private void PushHp(CombatVisualSide side, float hp, float max)
+    private void PushElements(CombatNode node)
     {
-        CombatVisualEvents.HpChanged(side, hp, max);
-        var bar = side == CombatVisualSide.A ? barA : barB;
-        if (bar != null) bar.SetHp(hp, max);
-        if (side == CombatVisualSide.A) shownHpA = hp; else shownHpB = hp;
+        void PushTeam(CombatVisualSide side, List<CombatUnitState> states)
+        {
+            for (int i = 0; i < states.Count; i++)
+            {
+                var state = states[i];
+                var markChips = new List<ElementChipData>();
+                if (state.ElementMarks != null)
+                    foreach (var m in state.ElementMarks)
+                        markChips.Add(new ElementChipData
+                        {
+                            Label = ElemName(m.Element),
+                            Color = elementTable != null ? elementTable.GetIdentity(m.Element).UiColor : Color.white,
+                            AllySource = m.AllySource,
+                        });
+
+                var armedChips = new List<ElementChipData>();
+                if (state.ArmedStates != null)
+                    foreach (var s in state.ArmedStates)
+                        armedChips.Add(new ElementChipData
+                        {
+                            Label = StateName(s),
+                            Color = CombatElements.IsNegative(s) ? new Color(0.95f, 0.4f, 0.35f) : new Color(0.45f, 0.9f, 0.55f),
+                            AllySource = false,
+                        });
+
+                units.Get(side, i)?.Bar?.SetElementState(markChips, armedChips);
+            }
+        }
+
+        PushTeam(CombatVisualSide.A, node.StateA);
+        PushTeam(CombatVisualSide.B, node.StateB);
     }
 
-    private void PushStatus(CombatNode node)
+    private void PublishOrder()
     {
-        barA?.SetStatus(node.StatusA);
-        barB?.SetStatus(node.StatusB);
-    }
+        if (current == null) return;
 
-    private void PushStatusSide(CombatVisualSide side, List<CombatStatusMark> marks)
-    {
-        var bar = side == CombatVisualSide.A ? barA : barB;
-        bar?.SetStatus(marks);
-    }
+        var order = new List<CombatOrderEntry>();
+        var seen  = new HashSet<(CombatVisualSide, int)>();
 
-    private void SetFighterActive(CombatVisualSide side, bool active)
-    {
-        var inst = side == CombatVisualSide.A ? instanceA : instanceB;
-        if (inst != null && inst.gameObject.activeSelf != active) inst.gameObject.SetActive(active);
-    }
+        for (var n = current.Next; n != null; n = n.Next)
+        {
+            var key = (n.AttackerSide, n.AttackerIndex);
+            if (seen.Contains(key)) continue;
+            seen.Add(key);
 
-    private void DespawnFighters()
-    {
-        if (instanceA != null) Destroy(instanceA.gameObject);
-        if (instanceB != null) Destroy(instanceB.gameObject);
-        instanceA = null;
-        instanceB = null;
-        hooksA    = null;
-        hooksB    = null;
-        barA      = null;
-        barB      = null;
-        animA     = null;
-        animB     = null;
+            var states = n.AttackerSide == CombatVisualSide.A ? current.StateA : current.StateB;
+            if (n.AttackerIndex < 0 || n.AttackerIndex >= states.Count) continue;
+            var state = states[n.AttackerIndex];
+            if (state.Hp <= 0f) continue;
+
+            order.Add(new CombatOrderEntry { Side = n.AttackerSide, Index = n.AttackerIndex, Alive = true, State = state });
+        }
+
+        for (int i = 0; i < current.StateA.Count; i++)
+            if (current.StateA[i].Hp > 0f && !seen.Contains((CombatVisualSide.A, i)))
+                order.Add(new CombatOrderEntry { Side = CombatVisualSide.A, Index = i, Alive = true, State = current.StateA[i] });
+        for (int i = 0; i < current.StateB.Count; i++)
+            if (current.StateB[i].Hp > 0f && !seen.Contains((CombatVisualSide.B, i)))
+                order.Add(new CombatOrderEntry { Side = CombatVisualSide.B, Index = i, Alive = true, State = current.StateB[i] });
+
+        for (int i = 0; i < current.StateA.Count; i++)
+            if (current.StateA[i].Hp <= 0f)
+                order.Add(new CombatOrderEntry { Side = CombatVisualSide.A, Index = i, Alive = false, State = current.StateA[i] });
+        for (int i = 0; i < current.StateB.Count; i++)
+            if (current.StateB[i].Hp <= 0f)
+                order.Add(new CombatOrderEntry { Side = CombatVisualSide.B, Index = i, Alive = false, State = current.StateB[i] });
+
+        CombatVisualEvents.ActionOrder(order);
     }
 
     // ── DEV — Test Harness ────────────────────────────────────────
@@ -661,10 +803,9 @@ public class CombatVisualizerService : MonoBehaviour
         { Debug.LogWarning("[CombatVisualizer] Índice de pelea inválido."); return; }
 
         var record = dnaA.CombatHistory[devFightIndex];
-        var dnaB   = ResolveOpponent(record, dnaA);
-        if (dnaB == null) { Debug.LogWarning($"[CombatVisualizer] El rival \"{record.OpponentName}\" no está en el registro (¿murió/se vendió?). No puedo armar su modelo."); return; }
+        if (record.SelfTeam == null) { Debug.LogWarning("[CombatVisualizer] record sin datos 3v3"); return; }
 
-        Play(dnaA, dnaB, record);
+        Play(dnaA, record);
     }
 
     [ButtonGroup("DEV — Test Harness/Controles")]
@@ -679,22 +820,13 @@ public class CombatVisualizerService : MonoBehaviour
     [Button("▶▶ Adelante"), DisableInEditorMode]
     private void DevNext() => Next();
 
-    private static bool HasTurns(CombatRecord r) => r != null && r.Turns != null && r.Turns.Count > 0;
+    private static bool HasTurns(CombatRecord r) => r != null && r.Turns != null && r.Turns.Count > 0 && r.SelfTeam != null;
 
     private CreatureDNA ResolveDna(string id)
     {
         if (string.IsNullOrEmpty(id)) return null;
         var reg = GameManager.Instance != null ? GameManager.Instance.Registry : null;
         return reg != null && reg.TryGet(id, out var dna) ? dna : null;
-    }
-
-    private CreatureDNA ResolveOpponent(CombatRecord record, CreatureDNA self)
-    {
-        var reg = GameManager.Instance != null ? GameManager.Instance.Registry : null;
-        if (reg == null) return null;
-        foreach (var dna in reg.GetAll().Values)
-            if (dna != null && dna != self && dna.CustomName == record.OpponentName) return dna;
-        return null;
     }
 
     private IEnumerable<ValueDropdownItem<string>> FighterOptions()

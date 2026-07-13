@@ -1,0 +1,1097 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0db06baaf47f3f045975934a823bf705, type: 3}
+  m_Name: ElementTable
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ElementTableSO
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: Identities
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.Element,
+        Assembly-CSharp],[MoriMonchiSimulator.ElementIdentity, Assembly-CSharp]],
+        mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.Element,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 0
+    - Name: $v
+      Entry: 7
+      Data: 2|MoriMonchiSimulator.ElementIdentity, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Agua
+    - Name: UiColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.2
+    - Name: 
+      Entry: 4
+      Data: 0.6
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 7
+      Data: 3|MoriMonchiSimulator.ElementIdentity, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Fuego
+    - Name: UiColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 0.35
+    - Name: 
+      Entry: 4
+      Data: 0.1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 7
+      Data: 4|MoriMonchiSimulator.ElementIdentity, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Electricidad
+    - Name: UiColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 0.9
+    - Name: 
+      Entry: 4
+      Data: 0.1
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 3
+    - Name: $v
+      Entry: 7
+      Data: 5|MoriMonchiSimulator.ElementIdentity, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Planta
+    - Name: UiColor
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.25
+    - Name: 
+      Entry: 4
+      Data: 0.75
+    - Name: 
+      Entry: 4
+      Data: 0.25
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: States
+      Entry: 7
+      Data: 6|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.ElementalState,
+        Assembly-CSharp],[MoriMonchiSimulator.StateDefinition, Assembly-CSharp]],
+        mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 7|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.ElementalState,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 12
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 2
+    - Name: $v
+      Entry: 7
+      Data: 8|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Vaporizado
+    - Name: Description
+      Entry: 1
+      Data: Suma Percent como bonus plano a la chance de esquivar. Se consume al
+        lograr esquivar un ataque. (Aliado, Agua+Fuego)
+    - Name: Percent
+      Entry: 4
+      Data: 0.3
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 3
+    - Name: $v
+      Entry: 7
+      Data: 9|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: GolpePreciso
+    - Name: Description
+      Entry: 1
+      Data: "Suma Percent como bonus plano a la chance de cr\xEDtico. Se consume
+        al conectar un cr\xEDtico. (Aliado, Agua+Electricidad)"
+    - Name: Percent
+      Entry: 4
+      Data: 0.25
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 6
+    - Name: $v
+      Entry: 7
+      Data: 10|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Boiling
+    - Name: Description
+      Entry: 1
+      Data: "El pr\xF3ximo golpe que reciba hace +Percent de da\xF1o extra (antes
+        del escudo). Se consume al recibir un golpe conectado. (Ofensivo, Agua+Fuego)"
+    - Name: Percent
+      Entry: 4
+      Data: 0.3
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 4
+    - Name: $v
+      Entry: 7
+      Data: 11|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Charcoal
+    - Name: Description
+      Entry: 1
+      Data: "Devuelve Percent del da\xF1o recibido al agresor (puede matarlo). Se
+        consume al recibir un golpe conectado. (Aliado, Fuego+Planta)"
+    - Name: Percent
+      Entry: 4
+      Data: 0.5
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 10
+    - Name: $v
+      Entry: 7
+      Data: 12|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Mareado
+    - Name: Description
+      Entry: 1
+      Data: "En su pr\xF3xima acci\xF3n: Percent de chance de golpear a un aliado
+        al azar (incluido \xE9l mismo) por Amount de da\xF1o fijo en vez de atacar;
+        si resiste el roll act\xFAa normal. Se consume al actuar e igual genera afinidad.
+        (Ofensivo, Fuego+Electricidad)"
+    - Name: Percent
+      Entry: 4
+      Data: 0.5
+    - Name: Amount
+      Entry: 4
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 0
+    - Name: $v
+      Entry: 7
+      Data: 13|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Energizado
+    - Name: Description
+      Entry: 1
+      Data: "Act\xFAa PRIMERO en el orden de la siguiente ronda (antes que la velocidad).
+        Se consume al actuar con prioridad. Sin knobs. (Aliado, Fuego+Electricidad)"
+    - Name: Percent
+      Entry: 4
+      Data: 0
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 1
+    - Name: $v
+      Entry: 7
+      Data: 14|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Cleanse
+    - Name: Description
+      Entry: 1
+      Data: "Instant\xE1neo: purga el primer estado negativo armado del portador;
+        si no tiene ninguno, cura un % de su vida m\xE1xima. El % vive en el leaf
+        CleanseEffect de la reacci\xF3n, no ac\xE1. (Aliado, Agua+Planta)"
+    - Name: Percent
+      Entry: 4
+      Data: 0
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 5
+    - Name: $v
+      Entry: 7
+      Data: 15|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: OverGrow
+    - Name: Description
+      Entry: 1
+      Data: "Instant\xE1neo: duplica el escudo actual del portador (0 queda 0). Sin
+        knobs. (Aliado, Electricidad+Planta)"
+    - Name: Percent
+      Entry: 4
+      Data: 0
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 7
+    - Name: $v
+      Entry: 7
+      Data: 16|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Debilidad
+    - Name: Description
+      Entry: 1
+      Data: "El pr\xF3ximo golpe que reciba IGNORA su DEF (reducci\xF3n = 0). Se
+        consume al recibir un golpe conectado. Sin knobs. (Ofensivo, Fuego+Planta)"
+    - Name: Percent
+      Entry: 4
+      Data: 0
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 8
+    - Name: $v
+      Entry: 7
+      Data: 17|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Confuso
+    - Name: Description
+      Entry: 1
+      Data: "Su pr\xF3xima acci\xF3n falla COMPLETA (no ataca, no traits, no \xEDtems);
+        igual genera afinidad. Se consume al actuar. Sin knobs. (Ofensivo, Agua+Electricidad)"
+    - Name: Percent
+      Entry: 4
+      Data: 0
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 9
+    - Name: $v
+      Entry: 7
+      Data: 18|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: Leech
+    - Name: Description
+      Entry: 1
+      Data: "Instant\xE1neo: drena HP fijo del portador y se lo da a quien deton\xF3
+        la reacci\xF3n (no baja de 0, no cura sobre el m\xE1ximo). La cantidad vive
+        en el leaf LeechEffect de la reacci\xF3n, no ac\xE1. (Ofensivo, Agua+Planta)"
+    - Name: Percent
+      Entry: 4
+      Data: 0
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 11
+    - Name: $v
+      Entry: 7
+      Data: 19|MoriMonchiSimulator.StateDefinition, Assembly-CSharp
+    - Name: DisplayName
+      Entry: 1
+      Data: PisoTierra
+    - Name: Description
+      Entry: 1
+      Data: "Instant\xE1neo: remueve UNA marca al azar del portador (de cualquier
+        canal); sin marcas no hace nada. Sin knobs. (Ofensivo, Electricidad+Planta)"
+    - Name: Percent
+      Entry: 4
+      Data: 0
+    - Name: Amount
+      Entry: 4
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Reactions
+      Entry: 7
+      Data: 20|System.Collections.Generic.List`1[[MoriMonchiSimulator.ElementReaction,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 12
+    - Name: 
+      Entry: 7
+      Data: 21|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Vaporizado
+    - Name: A
+      Entry: 3
+      Data: 0
+    - Name: B
+      Entry: 3
+      Data: 1
+    - Name: AllySource
+      Entry: 5
+      Data: true
+    - Name: Effects
+      Entry: 7
+      Data: 22|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 23|MoriMonchiSimulator.ArmStateEffect, Assembly-CSharp
+    - Name: State
+      Entry: 3
+      Data: 2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 24|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: GolpePreciso
+    - Name: A
+      Entry: 3
+      Data: 0
+    - Name: B
+      Entry: 3
+      Data: 2
+    - Name: AllySource
+      Entry: 5
+      Data: true
+    - Name: Effects
+      Entry: 7
+      Data: 25|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 26|MoriMonchiSimulator.ArmStateEffect, Assembly-CSharp
+    - Name: State
+      Entry: 3
+      Data: 3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 27|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Cleanse
+    - Name: A
+      Entry: 3
+      Data: 0
+    - Name: B
+      Entry: 3
+      Data: 3
+    - Name: AllySource
+      Entry: 5
+      Data: true
+    - Name: Effects
+      Entry: 7
+      Data: 28|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 29|MoriMonchiSimulator.CleanseEffect, Assembly-CSharp
+    - Name: HealPercent
+      Entry: 4
+      Data: 0.2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 30|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Energizado
+    - Name: A
+      Entry: 3
+      Data: 1
+    - Name: B
+      Entry: 3
+      Data: 2
+    - Name: AllySource
+      Entry: 5
+      Data: true
+    - Name: Effects
+      Entry: 7
+      Data: 31|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 32|MoriMonchiSimulator.ArmStateEffect, Assembly-CSharp
+    - Name: State
+      Entry: 3
+      Data: 0
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 33|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Charcoal
+    - Name: A
+      Entry: 3
+      Data: 1
+    - Name: B
+      Entry: 3
+      Data: 3
+    - Name: AllySource
+      Entry: 5
+      Data: true
+    - Name: Effects
+      Entry: 7
+      Data: 34|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 35|MoriMonchiSimulator.ArmStateEffect, Assembly-CSharp
+    - Name: State
+      Entry: 3
+      Data: 4
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 36|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: OverGrow
+    - Name: A
+      Entry: 3
+      Data: 2
+    - Name: B
+      Entry: 3
+      Data: 3
+    - Name: AllySource
+      Entry: 5
+      Data: true
+    - Name: Effects
+      Entry: 7
+      Data: 37|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 38|MoriMonchiSimulator.DoubleShieldEffect, Assembly-CSharp
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 39|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Boiling
+    - Name: A
+      Entry: 3
+      Data: 0
+    - Name: B
+      Entry: 3
+      Data: 1
+    - Name: AllySource
+      Entry: 5
+      Data: false
+    - Name: Effects
+      Entry: 7
+      Data: 40|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 41|MoriMonchiSimulator.ArmStateEffect, Assembly-CSharp
+    - Name: State
+      Entry: 3
+      Data: 6
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 42|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Confuso
+    - Name: A
+      Entry: 3
+      Data: 0
+    - Name: B
+      Entry: 3
+      Data: 2
+    - Name: AllySource
+      Entry: 5
+      Data: false
+    - Name: Effects
+      Entry: 7
+      Data: 43|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 44|MoriMonchiSimulator.ArmStateEffect, Assembly-CSharp
+    - Name: State
+      Entry: 3
+      Data: 8
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 45|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Leech
+    - Name: A
+      Entry: 3
+      Data: 0
+    - Name: B
+      Entry: 3
+      Data: 3
+    - Name: AllySource
+      Entry: 5
+      Data: false
+    - Name: Effects
+      Entry: 7
+      Data: 46|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 47|MoriMonchiSimulator.LeechEffect, Assembly-CSharp
+    - Name: Amount
+      Entry: 4
+      Data: 4
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 48|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Mareado
+    - Name: A
+      Entry: 3
+      Data: 1
+    - Name: B
+      Entry: 3
+      Data: 2
+    - Name: AllySource
+      Entry: 5
+      Data: false
+    - Name: Effects
+      Entry: 7
+      Data: 49|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 50|MoriMonchiSimulator.ArmStateEffect, Assembly-CSharp
+    - Name: State
+      Entry: 3
+      Data: 10
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 51|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: Debilidad
+    - Name: A
+      Entry: 3
+      Data: 1
+    - Name: B
+      Entry: 3
+      Data: 3
+    - Name: AllySource
+      Entry: 5
+      Data: false
+    - Name: Effects
+      Entry: 7
+      Data: 52|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 53|MoriMonchiSimulator.ArmStateEffect, Assembly-CSharp
+    - Name: State
+      Entry: 3
+      Data: 7
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 54|MoriMonchiSimulator.ElementReaction, Assembly-CSharp
+    - Name: Name
+      Entry: 1
+      Data: PisoTierra
+    - Name: A
+      Entry: 3
+      Data: 2
+    - Name: B
+      Entry: 3
+      Data: 3
+    - Name: AllySource
+      Entry: 5
+      Data: false
+    - Name: Effects
+      Entry: 7
+      Data: 55|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionEffectBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 56|MoriMonchiSimulator.RemoveRandomMarkEffect, Assembly-CSharp
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+  Reactions:
+  - Name: Vaporizado
+    A: 0
+    B: 1
+    AllySource: 1
+  - Name: GolpePreciso
+    A: 0
+    B: 2
+    AllySource: 1
+  - Name: Cleanse
+    A: 0
+    B: 3
+    AllySource: 1
+  - Name: Energizado
+    A: 1
+    B: 2
+    AllySource: 1
+  - Name: Charcoal
+    A: 1
+    B: 3
+    AllySource: 1
+  - Name: OverGrow
+    A: 2
+    B: 3
+    AllySource: 1
+  - Name: Boiling
+    A: 0
+    B: 1
+    AllySource: 0
+  - Name: Confuso
+    A: 0
+    B: 2
+    AllySource: 0
+  - Name: Leech
+    A: 0
+    B: 3
+    AllySource: 0
+  - Name: Mareado
+    A: 1
+    B: 2
+    AllySource: 0
+  - Name: Debilidad
+    A: 1
+    B: 3
+    AllySource: 0
+  - Name: PisoTierra
+    A: 2
+    B: 3
+    AllySource: 0

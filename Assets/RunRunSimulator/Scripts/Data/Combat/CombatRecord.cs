@@ -113,5 +113,16 @@ public class CombatUnitState
     public float Hp;
     public float Shield;
     public List<CombatStatusMark> Marks = new List<CombatStatusMark>();
+    public List<CombatElementMark> ElementMarks = new List<CombatElementMark>();
+    public List<ElementalState>    ArmedStates  = new List<ElementalState>();
+    public int Affinity;
+    public int Energy;
+}
+
+[Serializable]
+public class CombatElementMark
+{
+    public Element Element;
+    public bool    AllySource;
 }
 }

@@ -15,6 +15,9 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
     private Button        nextButton;
     private Slider        speedSlider;
     private Label         speedLabel;
+    private Button        logToggleButton;
+
+    private bool logExpanded = true;
 
     private CombatVisualizerService Service => CombatVisualizerService.Instance;
 
@@ -42,14 +45,17 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
         backButton   = root.Q<Button>("btn-back");
         playButton   = root.Q<Button>("btn-play");
         nextButton   = root.Q<Button>("btn-next");
-        speedSlider  = root.Q<Slider>("speed-slider");
-        speedLabel   = root.Q<Label>("speed-label");
+        speedSlider     = root.Q<Slider>("speed-slider");
+        speedLabel      = root.Q<Label>("speed-label");
+        logToggleButton = root.Q<Button>("btn-log-toggle");
 
         if (backButton  != null) backButton.clicked += () => Service?.Back();
         if (playButton  != null) playButton.clicked += () => Service?.TogglePlay();
         if (nextButton  != null) nextButton.clicked += () => Service?.Next();
         if (speedSlider != null) speedSlider.RegisterValueChangedCallback(e => Service?.SetSpeed(e.newValue));
+        if (logToggleButton != null) logToggleButton.clicked += ToggleLog;
 
+        ApplyLogExpanded();
         SetVisible(false);
     }
 
@@ -93,6 +99,20 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
 
         if (logScroll != null)
             logScroll.schedule.Execute(() => logScroll.scrollOffset = new Vector2(0f, float.MaxValue)).ExecuteLater(1);
+    }
+
+    private void ToggleLog()
+    {
+        logExpanded = !logExpanded;
+        ApplyLogExpanded();
+    }
+
+    private void ApplyLogExpanded()
+    {
+        if (logScroll != null)
+            logScroll.style.display = logExpanded ? DisplayStyle.Flex : DisplayStyle.None;
+        if (logToggleButton != null)
+            logToggleButton.text = logExpanded ? "▼" : "▲";
     }
 
     private static string KindClass(CombatVisualLogKind kind) => kind switch

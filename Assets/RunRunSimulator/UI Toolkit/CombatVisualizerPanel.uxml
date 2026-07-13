@@ -1,14 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="CombatVisualizerPanel.uss" />
     <ui:VisualElement name="root" class="cv-root">
-        <ui:VisualElement name="header" class="cv-header">
+        <ui:VisualElement name="order-bar" class="cv-order-bar" />
+        <ui:VisualElement name="turn-box" class="cv-turn-box">
             <ui:Label name="turn-label" text="Turno" class="cv-turn" />
-        </ui:VisualElement>
-        <ui:VisualElement name="spacer" class="cv-spacer" />
-        <ui:VisualElement name="log-frame" class="cv-log-frame">
-            <ui:ScrollView name="log-scroll" class="cv-log-scroll">
-                <ui:VisualElement name="log-container" class="cv-log" />
-            </ui:ScrollView>
         </ui:VisualElement>
         <ui:VisualElement name="controls" class="cv-controls">
             <ui:Button name="btn-back" text="◀" class="cv-btn" />
@@ -18,6 +13,15 @@
                 <ui:Label name="speed-label" text="Velocidad x1.0" class="cv-speed-label" />
                 <ui:Slider name="speed-slider" low-value="0.25" high-value="4" value="1" class="cv-slider" />
             </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="log-frame" class="cv-log-frame">
+            <ui:VisualElement name="log-header" class="cv-log-header">
+                <ui:Label text="Registro" class="cv-log-title" />
+                <ui:Button name="btn-log-toggle" text="▼" class="cv-btn-log-toggle" />
+            </ui:VisualElement>
+            <ui:ScrollView name="log-scroll" class="cv-log-scroll">
+                <ui:VisualElement name="log-container" class="cv-log" />
+            </ui:ScrollView>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

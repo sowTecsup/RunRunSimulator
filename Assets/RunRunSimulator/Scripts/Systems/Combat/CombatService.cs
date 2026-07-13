@@ -14,7 +14,9 @@ namespace MoriMonchiSimulator
 // teams, in fixed A0..An,B0..Bn order) BEFORE sorting the turn order — this
 // keeps rng consumption constant regardless of who is faster. Turn order
 // sorts (Energizado holders first desc, EffSpeed desc, tiebreak desc, side
-// A-before-B, Index asc).
+// A-before-B, Index asc). Elemental state magnitudes/percents (Vaporizado,
+// GolpePreciso, Boiling, Charcoal, Mareado, etc.) come from the ElementTable
+// (config.Elements) — never hardcoded knobs.
 //
 // Per turn, in order: (1) tick active statuses — a unit that dies here
 // succumbs without acting and gains no Affinity; (2) targeting — (Agresivo
@@ -25,20 +27,21 @@ namespace MoriMonchiSimulator
 // Energizado, consume it and log priority; (4) stun check — skip turn if
 // stunned (no Affinity gained), grant wake-up immunity when the stun just
 // expired; (5) Confuso — consume it, the action fails, still gains Affinity,
-// turn ends; (6) Mareado — consume it, roll vs MareadoChance: on hit the
-// actor strikes a random ally (self included) for MareadoDamage and the
-// turn ends (Affinity gained), on resist the turn continues normally;
+// turn ends; (6) Mareado — consume it, roll vs the ElementTable's Mareado
+// percent: on hit the actor strikes a random ally (self included) for the
+// ElementTable's Mareado amount and the turn ends (Affinity gained), on
+// resist the turn continues normally;
 // (7) Protector role: pick an ally and grant it Shield (no roll cost when
 // ShieldPerTurn is 0), then an elemental proc: spend 1 Energy to mark that
 // same ally; (8) equipped items with N uses (no roll — a use fires
 // deterministically once its rule matches, decrementing its remaining
-// count); (9) evasion roll — Vaporizado adds VaporizadoEvaBonus and is
-// consumed on a successful dodge; (10) crit roll — GolpePreciso adds
-// GolpePrecisoCritBonus and is consumed on a crit; (11) on-connect damage —
+// count); (9) evasion roll — Vaporizado adds its ElementTable percent and is
+// consumed on a successful dodge; (10) crit roll — GolpePreciso adds its
+// ElementTable percent and is consumed on a crit; (11) on-connect damage —
 // Debilidad zeroes DEF reduction and is consumed, Boiling multiplies the
-// final damage by (1+BoilingDamageBonus) and is consumed, Shield absorbs
-// first; (12) Charcoal — if the defender had it, reflect
-// CharcoalReflectPercent of the damage back onto the attacker and consume
+// final damage by (1+its ElementTable percent) and is consumed, Shield
+// absorbs first; (12) Charcoal — if the defender had it, reflect its
+// ElementTable percent of the damage back onto the attacker and consume
 // it; (13) elemental mark — if the strike connected (not dodged, damage>0),
 // mark the target with the attacker's Element as an enemy-sourced mark;
 // (14) Empático role: heal the lowest-HP ally for a % of the damage dealt
@@ -59,6 +62,10 @@ namespace MoriMonchiSimulator
 // appends a CombatRecord to every live DNA's CombatHistory. BuildRecord is
 // also used by the async flow to build each side's record from the shared
 // seeded result.
+//
+// The per-turn role hooks (targeting/shield/heal), the item-use loop and the
+// strike math live in CombatRoleHooks / CombatItems / CombatStrike —
+// CombatService.TakeTurn only orchestrates the sequence.
 public static class CombatService
 {
     private static readonly int[] DefaultLineup = { (int)CombatRow.Front, (int)CombatRow.Front, (int)CombatRow.Mid };
@@ -419,54 +426,16 @@ public static class CombatService
         }
 
         var profile = config.Roles != null ? config.Roles.GetProfile(actor.Role) : null;
-        Combatant target;
-        if (profile != null && profile.BacklineHitChance > 0f)
-        {
-            float aggroRoll = rng.NextFloat();
-            if (aggroRoll < profile.BacklineHitChance)
-            {
-                var back = CombatTargeting.PickBacklineTarget(enemies, rng);
-                if (back != null)
-                {
-                    target = back;
-                    result.Log.Add($"    [Agresivo] {actor.Name} caza la backline");
-                    if (actor.Energy > 0)
-                    {
-                        actor.Energy--;
-                        CombatElements.AddMark(CombatTargeting.PickAlly(allies, rng), actor.Element, true, actor, config, result, rng);
-                    }
-                }
-                else
-                {
-                    if (actor.Energy > 0)
-                    {
-                        actor.Energy--;
-                        var mate = CombatTargeting.PickAlly(allies, rng);
-                        mate.Energy++;
-                        result.Log.Add($"    [Agresivo] {actor.Name} comparte energía con {mate.Name} (energía {mate.Energy})");
-                    }
-                    else
-                    {
-                        result.Log.Add("    [Agresivo] sin backline — comparte energía (sin efecto)");
-                    }
-                    target = CombatTargeting.PickFrontTarget(enemies, rng);
-                }
-            }
-            else
-            {
-                target = CombatTargeting.PickFrontTarget(enemies, rng);
-            }
-        }
-        else
-        {
-            target = CombatTargeting.PickFrontTarget(enemies, rng);
-        }
+        var target = CombatRoleHooks.ResolveTarget(actor, profile, allies, enemies, config, result, r, rng);
 
         r.Self = actor;
         r.Opponent = target;
 
         if (actor.ConsumeState(ElementalState.Energizado))
+        {
             result.Log.Add($"    [estado] {actor.Name} consumió Energizado (actuó con prioridad)");
+            r.RecordElement(ElementEventKind.StateConsumed, actor, state: ElementalState.Energizado);
+        }
 
         if (actor.StunTurns > 0)
         {
@@ -482,150 +451,69 @@ public static class CombatService
         if (actor.ConsumeState(ElementalState.Confuso))
         {
             result.Log.Add($"    [estado] {actor.Name} está Confuso — su acción falla");
-            GainAffinity(actor, result);
+            r.RecordElement(ElementEventKind.StateConsumed, actor, state: ElementalState.Confuso);
+            GainAffinity(actor, result, r);
             EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
             return;
         }
 
         if (actor.ConsumeState(ElementalState.Mareado))
         {
+            r.RecordElement(ElementEventKind.StateConsumed, actor, state: ElementalState.Mareado);
+            float mareadoChance = config.Elements != null ? config.Elements.StatePercent(ElementalState.Mareado) : 0f;
+            float mareadoDamage = config.Elements != null ? config.Elements.StateAmount(ElementalState.Mareado) : 0f;
             float roll = rng.NextFloat();
-            if (roll < config.MareadoChance)
+            if (roll < mareadoChance)
             {
                 var victima = CombatTargeting.PickAlly(allies, rng);
-                victima.Hp = Mathf.Max(0f, victima.Hp - config.MareadoDamage);
-                result.Log.Add($"    [estado] {actor.Name} Mareado — se golpea a {victima.Name} -{config.MareadoDamage:F1} → {victima.Hp:F1}");
-                GainAffinity(actor, result);
+                victima.Hp = Mathf.Max(0f, victima.Hp - mareadoDamage);
+                result.Log.Add($"    [estado] {actor.Name} Mareado — se golpea a {victima.Name} -{mareadoDamage:F1} → {victima.Hp:F1}");
+                r.RecordElement(ElementEventKind.Damage, victima, amount: mareadoDamage);
+                GainAffinity(actor, result, r);
                 EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
                 return;
             }
             result.Log.Add($"    [estado] {actor.Name} resiste el mareo");
         }
 
-        if (profile != null && profile.ShieldPerTurn > 0f)
-        {
-            var ally = CombatTargeting.PickAlly(allies, rng);
-            ally.Shield += profile.ShieldPerTurn;
-            result.Log.Add($"    [Protector] {actor.Name} escuda a {ally.Name} +{profile.ShieldPerTurn:F0} (escudo {ally.Shield:F0})");
-            r.Record(ModifierEffectKind.Shield, ally, profile.ShieldPerTurn);
-            if (actor.Energy > 0)
-            {
-                actor.Energy--;
-                CombatElements.AddMark(ally, actor.Element, true, actor, config, result, rng);
-            }
-        }
+        CombatRoleHooks.GrantShield(actor, profile, allies, config, result, r, rng);
 
-        foreach (var u in actor.Uses)
-        {
-            if (u.Remaining <= 0) continue;
-            if (u.Effect.Rule == UseRule.SelfHpBelow && actor.Hp > actor.MaxHp * (u.Effect.HpThresholdPercent / 100f)) continue;
-            u.Remaining--;
-            r.Self = actor;
-            r.Opponent = target;
-            result.Log.Add($"    [item] {actor.Name} usa {u.Effect.Summary()} ({u.Remaining} restantes)");
-            u.Effect.Apply(r);
-        }
+        CombatItems.UseItems(actor, target, r, result);
         if (actor.Hp <= 0f || target.Hp <= 0f)
         {
             EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
             return;
         }
 
-        float evaChance = target.EffEvasion * config.EvasionPerPoint;
-        evaChance      += target.HasState(ElementalState.Vaporizado) ? config.VaporizadoEvaBonus : 0f;
-        float evaRoll   = rng.NextFloat();
-        bool  dodged    = evaRoll < evaChance;
-        if (dodged && target.ConsumeState(ElementalState.Vaporizado))
-            result.Log.Add($"    [estado] Vaporizado consumido — {target.Name} esquivó");
-        bool  crit        = false;
-        float critChance  = 0f;
-        float critRoll    = 1f;
-        float damage      = 0f;
-        float absorbed    = 0f;
-        if (!dodged)
-        {
-            critChance      = config.CritChance + actor.Luck * config.LuckCritPerPoint;
-            critChance     += actor.HasState(ElementalState.GolpePreciso) ? config.GolpePrecisoCritBonus : 0f;
-            critRoll        = rng.NextFloat();
-            crit             = critRoll < critChance;
-            if (crit && actor.ConsumeState(ElementalState.GolpePreciso))
-                result.Log.Add($"    [estado] GolpePreciso consumido — {actor.Name} conecta un crítico");
-            float raw       = actor.Attack * (crit ? config.CritMultiplier : 1f);
-            float reduction = Mathf.Clamp01(target.EffDefense * config.DefenseReductionPerPoint);
-            if (target.ConsumeState(ElementalState.Debilidad))
-            {
-                reduction = 0f;
-                result.Log.Add("    [estado] Debilidad — el golpe ignora DEF");
-            }
-            damage          = raw * (1f - reduction);
-            if (target.ConsumeState(ElementalState.Boiling))
-            {
-                damage *= (1f + config.BoilingDamageBonus);
-                result.Log.Add($"    [estado] Boiling — daño amplificado a {damage:F1}");
-            }
-            absorbed        = Mathf.Min(target.Shield, damage);
-            target.Shield  -= absorbed;
-            target.Hp       = Mathf.Max(0f, target.Hp - (damage - absorbed));
-
-            if (target.ConsumeState(ElementalState.Charcoal))
-            {
-                float reflect = damage * config.CharcoalReflectPercent;
-                actor.Hp = Mathf.Max(0f, actor.Hp - reflect);
-                result.Log.Add($"    [estado] Charcoal — {target.Name} devuelve {reflect:F1} a {actor.Name} → {actor.Hp:F1}");
-            }
-
-            if (!dodged && damage > 0f)
-                CombatElements.AddMark(target, actor.Element, false, actor, config, result, rng);
-        }
-        float defHpAfterStrike    = target.Hp;
-        float defShieldAfterHit   = target.Shield;
-
-        string dir         = $"{(actor.IsA ? "A" : "B")}{actor.Index}→{(target.IsA ? "A" : "B")}{target.Index}";
-        string shieldNote  = absorbed > 0f ? $" (escudo -{absorbed:F1}, quedan {target.Shield:F1})" : "";
-        result.Log.Add(dodged
-            ? $"    [{dir}] DODGE!  {target.Name} HP:{target.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}%)"
-            : $"    [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}{shieldNote}  {target.Name} HP:{target.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}% · crit {critRoll * 100f:F0} vs {critChance * 100f:F0}%)");
-
         r.BeforeStrike = false;
+        var strike = CombatStrike.Execute(actor, target, config, result, r, rng);
 
-        if (!dodged && damage > 0f && profile != null && profile.HealPercentOfDamage > 0f)
-        {
-            var healTarget = CombatTargeting.LowestHpAlly(allies);
-            if (healTarget != null)
-            {
-                float heal = damage * profile.HealPercentOfDamage;
-                healTarget.Hp = Mathf.Min(healTarget.MaxHp, healTarget.Hp + heal);
-                result.Log.Add($"    [Empático] {actor.Name} cura a {healTarget.Name} +{heal:F1} → {healTarget.Hp:F1}");
-                r.Record(ModifierEffectKind.Heal, healTarget, heal);
-                if (actor.Energy > 0)
-                {
-                    actor.Energy--;
-                    CombatElements.AddMark(healTarget, actor.Element, true, actor, config, result, rng);
-                }
-            }
-        }
+        CombatRoleHooks.HealAfterStrike(actor, profile, allies, strike.Dodged, strike.Damage, config, result, r, rng);
 
-        if (!dodged && damage > 0f && actor.LifestealPercent > 0f)
+        if (!strike.Dodged && strike.Damage > 0f && actor.LifestealPercent > 0f)
         {
-            float steal = damage * actor.LifestealPercent;
+            float steal = strike.Damage * actor.LifestealPercent;
             actor.Hp = Mathf.Min(actor.MaxHp, actor.Hp + steal);
             result.Log.Add($"    [Lifesteal] {actor.Name} +{steal:F1} → {actor.Hp:F1}");
             r.Record(ModifierEffectKind.Lifesteal, actor, steal);
         }
 
-        GainAffinity(actor, result);
+        GainAffinity(actor, result, r);
 
-        EmitTurn(result, round, actor, target, false, damage, crit, defHpAfterStrike, defShieldAfterHit, procs, teamA, teamB);
+        EmitTurn(result, round, actor, target, false, strike.Damage, strike.Crit, strike.DefenderHpAfter, strike.DefenderShieldAfter, procs, teamA, teamB);
     }
 
-    private static void GainAffinity(Combatant actor, CombatResult result)
+    private static void GainAffinity(Combatant actor, CombatResult result, CombatResolver r)
     {
         actor.Affinity++;
+        result.Log.Add($"    [afinidad] {actor.Name} +1 afinidad ({actor.Affinity}/2)");
+        r.RecordElement(ElementEventKind.AffinityGained, actor, amount: actor.Affinity);
         if (actor.Affinity >= 2)
         {
             actor.Affinity -= 2;
             actor.Energy++;
             result.Log.Add($"    [energía] {actor.Name} genera energía ({actor.Energy})");
+            r.RecordElement(ElementEventKind.EnergyGained, actor, amount: actor.Energy);
         }
     }
 
@@ -649,12 +537,28 @@ public static class CombatService
             DefenderShieldAfter = defShieldAfter,
         };
 
-        foreach (var u in teamA)
-            turn.TeamStateA.Add(new CombatUnitState { Hp = Mathf.Max(0f, u.Hp), Shield = u.Shield, Marks = CombatResolver.StatusMarks(u) });
-        foreach (var u in teamB)
-            turn.TeamStateB.Add(new CombatUnitState { Hp = Mathf.Max(0f, u.Hp), Shield = u.Shield, Marks = CombatResolver.StatusMarks(u) });
+        foreach (var u in teamA) turn.TeamStateA.Add(UnitState(u));
+        foreach (var u in teamB) turn.TeamStateB.Add(UnitState(u));
 
         result.Turns.Add(turn);
+    }
+
+    private static CombatUnitState UnitState(Combatant u)
+    {
+        var elementMarks = new List<CombatElementMark>();
+        foreach (var m in u.Marks)
+            elementMarks.Add(new CombatElementMark { Element = m.Element, AllySource = m.AllySource });
+
+        return new CombatUnitState
+        {
+            Hp           = Mathf.Max(0f, u.Hp),
+            Shield       = u.Shield,
+            Marks        = CombatResolver.StatusMarks(u),
+            ElementMarks = elementMarks,
+            ArmedStates  = new List<ElementalState>(u.States),
+            Affinity     = u.Affinity,
+            Energy       = u.Energy,
+        };
     }
 
     private static void TickStatuses(Combatant c, CombatResult result, CombatResolver r)
@@ -704,25 +608,10 @@ public static class CombatService
             Defense = eff.Defense,
             Luck    = eff.Luck,
             Evasion = eff.Evasion,
-            Uses    = CollectUses(dna, equipDb),
+            Uses    = CombatItems.CollectUses(dna, equipDb),
         };
         c.Hp = c.MaxHp;
         return c;
-    }
-
-    private static List<ItemUseState> CollectUses(CreatureDNA dna, EquipmentDatabaseSO equipDb)
-    {
-        var list = new List<ItemUseState>();
-        if (equipDb == null || dna.Equipped == null) return list;
-        foreach (EquipmentSlot slot in System.Enum.GetValues(typeof(EquipmentSlot)))
-        {
-            if (!dna.Equipped.TryGetValue(slot, out var id)) continue;
-            var item = equipDb.GetByID(id);
-            if (item?.Effects == null) continue;
-            foreach (var e in item.Effects)
-                if (e is ItemUseEffect use) list.Add(new ItemUseState { Effect = use, Remaining = use.Uses });
-        }
-        return list;
     }
 
     private static CombatFighterSnapshot Snapshot(Combatant c) => new CombatFighterSnapshot

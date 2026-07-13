@@ -33,15 +33,8 @@ public class CombatManagerSO : SerializedScriptableObject
     [LabelWidth(160)] public RoleTableSO Roles;
 
     [Title("Elemental")]
-    [InfoBox("Estados elementales de un uso; valores 0–1 son porcentajes.")]
-    [LabelWidth(160)] public float VaporizadoEvaBonus     = 0.30f;
-    [LabelWidth(160)] public float GolpePrecisoCritBonus  = 0.25f;
-    [LabelWidth(160)] public float BoilingDamageBonus     = 0.30f;
-    [LabelWidth(160)] public float CharcoalReflectPercent = 0.50f;
-    [LabelWidth(160)] public float CleanseHealPercent     = 0.20f;
-    [LabelWidth(160)] public float LeechAmount            = 4f;
-    [LabelWidth(160)] public float MareadoChance          = 0.50f;
-    [LabelWidth(160)] public float MareadoDamage          = 3f;
+    [InfoBox("Tabla elemental: identidad de elementos, estados (con sus magnitudes) y reacciones por fuente. Sin tabla = sin reacciones ni bonus de estados.")]
+    [LabelWidth(160)] public ElementTableSO Elements;
 
     [Title("Needs")]
     [InfoBox("Energía que gasta un MoriMochi al encolarse para combate (NeedsState).")]

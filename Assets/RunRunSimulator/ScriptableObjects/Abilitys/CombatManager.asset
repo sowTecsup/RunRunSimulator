@@ -21,7 +21,6 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  EvolutionChance: 0.3
   DeathChance: 0.05
   CritChance: 0.2
   CritMultiplier: 3
@@ -31,6 +30,6 @@ MonoBehaviour:
   MaxRounds: 10
   MaxFightCount: 5
   StunImmunityTurns: 1
-  Synergies: {fileID: 11400000, guid: 4a51eeab968ee394483b0168d330cdf4, type: 2}
   Roles: {fileID: 11400000, guid: fa410b146507e9d428679ec15066e519, type: 2}
+  Elements: {fileID: 11400000, guid: 6412d61d67ea8584d800907d694be47f, type: 2}
   EnergyCostToQueue: 15

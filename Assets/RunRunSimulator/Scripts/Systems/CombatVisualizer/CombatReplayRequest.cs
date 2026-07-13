@@ -10,21 +10,16 @@ public static class CombatReplayRequest
     public static string SelfId     { get; private set; }
     public static int    FightIndex { get; private set; } = -1;
 
-    public static CreatureDNA ResolveOpponent(CombatRecord rec, CreatureDNA self, CreatureRegistrySO registry)
-    {
-        if (registry == null || rec == null) return null;
-        if (!string.IsNullOrEmpty(rec.OpponentDnaId) && registry.TryGet(rec.OpponentDnaId, out var byId) && byId != null && byId != self)
-            return byId;
-        foreach (var dna in registry.GetAll().Values)
-            if (dna != null && dna != self && dna.CustomName == rec.OpponentName) return dna;
-        return null;
-    }
-
     public static bool CanReplay(CreatureDNA self, CombatRecord rec, CreatureRegistrySO registry)
     {
-        if (rec != null && rec.SelfTeam != null) return false;
-        return self != null && rec != null && rec.Turns != null && rec.Turns.Count > 0 &&
-            ResolveOpponent(rec, self, registry) != null;
+        if (self == null || rec == null || registry == null) return false;
+        if (rec.Turns == null || rec.Turns.Count == 0) return false;
+        if (rec.SelfTeam == null || rec.SelfTeamIds == null || rec.OpponentTeamIds == null) return false;
+        foreach (var id in rec.SelfTeamIds)
+            if (!registry.TryGet(id, out _)) return false;
+        foreach (var id in rec.OpponentTeamIds)
+            if (!registry.TryGet(id, out _)) return false;
+        return true;
     }
 
     public static void Request(CreatureDNA self, CombatRecord rec)

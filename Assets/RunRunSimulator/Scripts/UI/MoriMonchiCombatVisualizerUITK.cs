@@ -17,22 +17,38 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
     private Label         spdLabel;
     private VisualElement fill;
     private VisualElement effectsRow;
+    private VisualElement roleElementRow;
+    private Label         roleLabel;
+    private VisualElement elementChip;
+    private Label         elementLabel;
+    private VisualElement marksAllyRow;
+    private VisualElement armedRow;
+    private VisualElement marksEnemyRow;
     private float         targetPct   = 1f;
     private float         currentPct  = 1f;
     private float         maxHp       = 1f;
     private string        desiredName = "?";
     private string        desiredAtk  = "";
     private string        desiredSpd  = "";
+    private Role           desiredRole;
+    private string         desiredElementName  = "";
+    private Color          desiredElementColor = Color.white;
     private List<CombatStatusMark> desiredStatus = new List<CombatStatusMark>();
+    private List<ElementChipData>  desiredMarks  = new List<ElementChipData>();
+    private List<ElementChipData>  desiredArmed  = new List<ElementChipData>();
     private bool          staticDirty;
     private bool          statusDirty;
+    private bool          elementStateDirty;
     private Transform     cam;
 
-    public void Bind(string displayName, float attack, float speed)
+    public void Bind(string displayName, float attack, float speed, Role role, string elementName, Color elementColor)
     {
-        desiredName = displayName;
-        desiredAtk  = $"ATK {Mathf.RoundToInt(attack)}";
-        desiredSpd  = $"VEL {Mathf.RoundToInt(speed)}";
+        desiredName         = displayName;
+        desiredAtk          = $"ATK {Mathf.RoundToInt(attack)}";
+        desiredSpd          = $"VEL {Mathf.RoundToInt(speed)}";
+        desiredRole         = role;
+        desiredElementName  = elementName;
+        desiredElementColor = elementColor.a <= 0f ? Color.white : elementColor;
         staticDirty = true;
         targetPct   = 1f;
         currentPct  = 1f;
@@ -49,6 +65,13 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
     {
         desiredStatus = marks ?? new List<CombatStatusMark>();
         statusDirty   = true;
+    }
+
+    public void SetElementState(List<ElementChipData> marks, List<ElementChipData> armed)
+    {
+        desiredMarks      = marks ?? new List<ElementChipData>();
+        desiredArmed      = armed ?? new List<ElementChipData>();
+        elementStateDirty = true;
     }
 
     private bool EnsureRefs()
@@ -74,8 +97,94 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
             effectsRow.style.marginTop     = 2;
             root.Add(effectsRow);
         }
-        staticDirty  = true;
-        statusDirty  = true;
+
+        roleElementRow = root.Q<VisualElement>("role-element");
+        if (roleElementRow == null)
+        {
+            roleElementRow = new VisualElement { name = "role-element" };
+            roleElementRow.style.flexDirection = FlexDirection.Row;
+            roleElementRow.style.alignItems    = Align.Center;
+            roleElementRow.style.marginTop     = 1;
+            roleElementRow.style.marginBottom  = 1;
+
+            roleLabel = new Label { name = "role-label" };
+            roleLabel.style.fontSize                = 9;
+            roleLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            roleLabel.style.color                   = new Color(0.85f, 0.85f, 0.85f);
+            roleLabel.style.marginRight             = 4;
+            roleElementRow.Add(roleLabel);
+
+            elementChip = new VisualElement { name = "element-chip" };
+            elementChip.style.width  = 8;
+            elementChip.style.height = 8;
+            elementChip.style.marginRight              = 3;
+            elementChip.style.borderTopLeftRadius      = 2;
+            elementChip.style.borderTopRightRadius     = 2;
+            elementChip.style.borderBottomLeftRadius   = 2;
+            elementChip.style.borderBottomRightRadius  = 2;
+            roleElementRow.Add(elementChip);
+
+            elementLabel = new Label { name = "element-label" };
+            elementLabel.style.fontSize = 9;
+            roleElementRow.Add(elementLabel);
+
+            if (nameLabel != null)
+            {
+                int idx = root.IndexOf(nameLabel);
+                if (idx >= 0) root.Insert(idx + 1, roleElementRow);
+                else root.Add(roleElementRow);
+            }
+            else
+            {
+                root.Add(roleElementRow);
+            }
+        }
+        else
+        {
+            roleLabel    = roleElementRow.Q<Label>("role-label");
+            elementChip  = roleElementRow.Q<VisualElement>("element-chip");
+            elementLabel = roleElementRow.Q<Label>("element-label");
+        }
+
+        marksAllyRow = root.Q<VisualElement>("marks-ally");
+        if (marksAllyRow == null)
+        {
+            marksAllyRow = new VisualElement { name = "marks-ally" };
+            marksAllyRow.style.flexDirection  = FlexDirection.Row;
+            marksAllyRow.style.flexWrap       = Wrap.Wrap;
+            marksAllyRow.style.justifyContent = Justify.Center;
+            marksAllyRow.style.marginTop      = 1;
+            marksAllyRow.style.marginBottom   = 1;
+            root.Insert(0, marksAllyRow);
+        }
+
+        armedRow = root.Q<VisualElement>("armed-row");
+        if (armedRow == null)
+        {
+            armedRow = new VisualElement { name = "armed-row" };
+            armedRow.style.flexDirection  = FlexDirection.Row;
+            armedRow.style.flexWrap       = Wrap.Wrap;
+            armedRow.style.justifyContent = Justify.Center;
+            armedRow.style.marginTop      = 1;
+            armedRow.style.marginBottom   = 1;
+            root.Add(armedRow);
+        }
+
+        marksEnemyRow = root.Q<VisualElement>("marks-enemy");
+        if (marksEnemyRow == null)
+        {
+            marksEnemyRow = new VisualElement { name = "marks-enemy" };
+            marksEnemyRow.style.flexDirection  = FlexDirection.Row;
+            marksEnemyRow.style.flexWrap       = Wrap.Wrap;
+            marksEnemyRow.style.justifyContent = Justify.Center;
+            marksEnemyRow.style.marginTop      = 1;
+            marksEnemyRow.style.marginBottom   = 1;
+            root.Add(marksEnemyRow);
+        }
+
+        staticDirty       = true;
+        statusDirty       = true;
+        elementStateDirty = true;
         return nameLabel != null && fill != null;
     }
 
@@ -89,6 +198,13 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
             if (nameLabel != null) nameLabel.text = desiredName;
             if (atkLabel  != null) atkLabel.text  = desiredAtk;
             if (spdLabel  != null) spdLabel.text  = desiredSpd;
+            if (roleLabel != null) roleLabel.text = RoleLabel(desiredRole);
+            if (elementChip != null) elementChip.style.backgroundColor = desiredElementColor;
+            if (elementLabel != null)
+            {
+                elementLabel.text          = desiredElementName;
+                elementLabel.style.color   = desiredElementColor;
+            }
             staticDirty = false;
         }
         if (!Mathf.Approximately(currentPct, targetPct))
@@ -135,6 +251,103 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
             }
             statusDirty = false;
         }
+        if (elementStateDirty)
+        {
+            if (marksAllyRow != null)
+            {
+                marksAllyRow.Clear();
+                foreach (var mark in desiredMarks)
+                {
+                    if (!mark.AllySource) continue;
+                    marksAllyRow.Add(BuildMarkChip(mark, top: true));
+                }
+            }
+            if (armedRow != null)
+            {
+                armedRow.Clear();
+                foreach (var armed in desiredArmed)
+                    armedRow.Add(BuildArmedChip(armed));
+            }
+            if (marksEnemyRow != null)
+            {
+                marksEnemyRow.Clear();
+                foreach (var mark in desiredMarks)
+                {
+                    if (mark.AllySource) continue;
+                    marksEnemyRow.Add(BuildMarkChip(mark, top: false));
+                }
+            }
+            elementStateDirty = false;
+        }
+    }
+
+    private static string RoleLabel(Role role)
+    {
+        switch (role)
+        {
+            case Role.Protector: return "Protector";
+            case Role.Agresivo:  return "Agresivo";
+            case Role.Empatico:  return "Empático";
+            default:             return role.ToString();
+        }
+    }
+
+    private static VisualElement BuildMarkChip(ElementChipData data, bool top)
+    {
+        Color c = data.Color.a <= 0f ? Color.white : data.Color;
+        var chip = new VisualElement();
+        chip.style.paddingTop      = 1;
+        chip.style.paddingBottom   = 1;
+        chip.style.paddingLeft     = 3;
+        chip.style.paddingRight    = 3;
+        chip.style.marginLeft      = 1;
+        chip.style.marginRight     = 1;
+        chip.style.backgroundColor = new Color(0f, 0f, 0f, 0.55f);
+        if (top)
+        {
+            chip.style.borderTopWidth = 2;
+            chip.style.borderTopColor = c;
+        }
+        else
+        {
+            chip.style.borderBottomWidth = 2;
+            chip.style.borderBottomColor = c;
+        }
+
+        var label = new Label(data.Label);
+        label.style.fontSize                = 8;
+        label.style.unityFontStyleAndWeight = FontStyle.Bold;
+        label.style.color                   = c;
+        chip.Add(label);
+        return chip;
+    }
+
+    private static VisualElement BuildArmedChip(ElementChipData data)
+    {
+        Color c = data.Color.a <= 0f ? Color.white : data.Color;
+        var chip = new VisualElement();
+        chip.style.paddingTop         = 1;
+        chip.style.paddingBottom      = 1;
+        chip.style.paddingLeft        = 3;
+        chip.style.paddingRight       = 3;
+        chip.style.marginLeft         = 1;
+        chip.style.marginRight        = 1;
+        chip.style.backgroundColor    = new Color(0f, 0f, 0f, 0.55f);
+        chip.style.borderTopWidth     = 1;
+        chip.style.borderBottomWidth  = 1;
+        chip.style.borderLeftWidth    = 1;
+        chip.style.borderRightWidth   = 1;
+        chip.style.borderTopColor     = c;
+        chip.style.borderBottomColor  = c;
+        chip.style.borderLeftColor    = c;
+        chip.style.borderRightColor   = c;
+
+        var label = new Label("★" + data.Label);
+        label.style.fontSize                = 8;
+        label.style.unityFontStyleAndWeight = FontStyle.Bold;
+        label.style.color                   = c;
+        chip.Add(label);
+        return chip;
     }
 
     private static string StatusCode(ModifierEffectKind kind)

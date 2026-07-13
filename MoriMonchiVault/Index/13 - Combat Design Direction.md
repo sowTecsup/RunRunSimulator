@@ -215,9 +215,15 @@ Abrirán **opciones de ataque** para los MoriMonchis. En esta update **siguen va
 
 **Fase 4 — VISUALIZER 3V3 (SIGUIENTE, orden de Juan)**: **paso 0 obligatorio = enriquecer el record** (el visualizer NO lee el log de texto): eventos elementales en `CombatProcEvent` (o lista nueva por turno) + `CombatUnitState` con marcas elementales/estados armados/energía — todo aditivo. Después: replay de 6 unidades + grilla en escena (reusar `CombatVisualizerMM`), quitar guard de `CanReplay`, tarjetas 3v3, chips de marca por canal, popups de reacción, iconos de los 12 estados, pips de energía, storytelling (ghost bar/banner).
 
+**Visión de Juan para F4 (cierre S40, 2026-07-12)** — resuelve el problema #1 (peleas legibles):
+- **Cámaras**: cámara general de la escena + **una vcam Cinemachine SIMPLE dentro de cada MM** del replay. En su turno, su cámara lo enfoca y se acerca hacia su objetivo al pegar — sistema sencillo por **cambio de prioridad**. Nosotros dejamos los MMs seteados con la vcam adentro; **Juan se encarga del foco/prioridad**.
+- **Barra superior = orden de acción** con cartas por unidad: marcas ALIADAS en el borde SUPERIOR de la carta, marcas ENEMIGAS en el borde INFERIOR, y **2 circulitos de afinidad** dentro de la carta que se llenan con cada acción (al llenarse los 2 → energía, se vacían).
+- **Parte inferior**: las plataformas colocadas (las grillas 2-3-2 enfrentadas).
+- El **log ya narra en el orden del visualizer** (ajuste S40 post-cierre): golpe (quién→quién, daño) → marca enemiga → reacción/estado → cura Empático → `[afinidad]` +1 por acción → `[energía]` al convertir. El replay debe seguir ese mismo beat.
+
 **Fase 5 — ASYNC 3V3 (AL FINAL, orden de Juan)**: enqueue de EQUIPO con lineup, JS matchmaker de equipos (blob con 6 snapshots + rows), `ApplyResult` de equipos, test online end-to-end.
 
-## PLAN S40 — REFACTOR DE EXTENSIÓN (planeado al cierre de S39, ejecutar la próxima sesión)
+## PLAN S40 — REFACTOR DE EXTENSIÓN — ✅ EJECUTADO ENTERO EN S40 (2026-07-12, verificado por paridad de log al hash + Determinism OK; detalle en [[Index/09 - Active Context]])
 
 **Meta de Juan**: poder tweakear desde assets, sin tocar código: los roles, sus stats, sus pasivas (y que un rol pueda tener pasivas distintas a futuro), sus activas de combate, la tabla de reacciones elementales y lo que hace cada reacción. **El patrón de referencia es la sección de ítems (`EquipmentSO.Effects`): lista polimórfica Odin con leaves cerrados parametrizados.**
 

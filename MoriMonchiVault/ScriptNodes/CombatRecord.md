@@ -6,11 +6,11 @@ tags: [combat, data, persistence, history]
 
 **Ruta:** `Data/Combat/CombatRecord.cs`
 
-**Responsabilidad:** DTO serializable que persiste el historial completo y replayable de una pelea terminada. Vive en `CreatureDNA.CombatHistory` y se sincroniza via Cloud Save. Almacena turno-a-turno para que el visualizador local reproduzca el combate sin recomputar. **S37:** Campos aditivos para equipos (SelfTeam/OpponentTeam/SelfTeamIds/OpponentTeamIds); backward compatible con 1v1 legacy records.
+**Responsabilidad:** DTO serializable que persiste el historial completo y replayable de una pelea terminada. Vive en `CreatureDNA.CombatHistory` y se sincroniza via Cloud Save. Almacena turno-a-turno para que el visualizador local reproduzca el combate sin recomputar. **S37:** Campos aditivos para equipos (SelfTeam/OpponentTeam/SelfTeamIds/OpponentTeamIds); backward compatible con 1v1 legacy records. **S41:** Eventos elementales aditivos en `CombatUnitState` (marcas elementales, estados armados, afinidad, energía).
 
-## Descripción General (S32 + S37)
+## Descripción General (S32 + S37 + S41)
 
-Un único motor C# seeded: el servidor (JS) proporciona seed + snapshots DNA de todos los combatientes. Ambos clientes corren `CombatService.SimulateCore` con idéntica seed y snapshots → idéntico resultado → idéntico record. El visualizador es 100% local y determinista. **S37:** Expandido a 3v3 teams (1..3 por lado), order de rolls por EffSpeed, efectos de rol (escudo, backline, heal).
+Un único motor C# seeded: el servidor (JS) proporciona seed + snapshots DNA de todos los combatientes. Ambos clientes corren `CombatService.SimulateCore` con idéntica seed y snapshots → idéntico resultado → idéntico record. El visualizador es 100% local y determinista. **S37:** Expandido a 3v3 teams (1..3 por lado), order de rolls por EffSpeed, efectos de rol (escudo, backline, heal). **S41:** Estados elementales y marcas se graban en `CombatUnitState` para replay visual de efectos (marcas, reacciones, estados armados).
 
 ## Cambios S33
 
@@ -33,6 +33,37 @@ Un único motor C# seeded: el servidor (JS) proporciona seed + snapshots DNA de 
 **Compatibilidad:** Records 3v3 nuevos tienen SelfTeam/OpponentTeam != null (y SelfTeamIds/OpponentTeamIds también). Records 1v1 legacy tienen estos campos null; `SelfStats`/`OpponentStats` seguirán siendo el snapshot único (backward compat).
 
 **Determinismo por equipo:** Snapshots alineados con índices en `CombatTurn.AttackerIndex`/`DefenderIndex` (0..2 por equipo).
+
+## Cambios S41 (Paso 0)
+
+**NUEVOS campos en CombatUnitState (aditivos, backward compatible):**
+- `ElementMarks` | `List<CombatElementMark>` — marcas elementales aplicadas al unit por cada golpe/reacción
+- `ArmedStates` | `List<ElementalState>` — estados elementales armados (single-use, se consumen al trigger)
+- `Affinity` | `int` — contador de afinidad actual (0..inf, cada 2 = +1 energía)
+- `Energy` | `int` — contador de energía acumulada (0..inf, gastable por activas de rol)
+
+**Significado:**
+- `ElementMarks` — lista de pares (Element, AllySource). Una marca persiste en el unit hasta que detona reacción O se remueve por `PisoTierra`.
+- `ArmedStates` — lista de estados armados (Energizado, Vaporizado, GolpePreciso, Cleanse, Charcoal, OverGrow, Boiling, Debilidad, Confuso, Leech, Mareado, PisoTierra). Cada uno es single-use: se consume cuando su trigger ocurre.
+- `Affinity` — suma simple, se gana +1 por turno donde el unit actúa (independiente de éxito). Cada 2 = +1 Energía (conversión automática en `GainAffinity`).
+- `Energy` — activa de rol (ShieldAllyPassive, HealLowestAllyOnHitPassive, BacklineHunterActive) gasta 1 Energy para aplicar marca aliada. Ganado por conversión de Affinity.
+
+**Creación:** En `CombatService.UnitState(Combatant c)` (nuevo helper S41), tras cada turno, se copia estado elemental a CombatUnitState:
+
+```csharp
+return new CombatUnitState
+{
+    Hp = c.Hp,
+    Shield = c.Shield,
+    Marks = StatusMarks(c),
+    ElementMarks = c.Marks.Select(m => new CombatElementMark { Element = m.Element, AllySource = m.AllySource }).ToList(),
+    ArmedStates = c.States.ToList(),
+    Affinity = c.Affinity,
+    Energy = c.Energy,
+};
+```
+
+**Backward compat:** Records viejos (S40 y antes) tienen ElementMarks/ArmedStates/Affinity/Energy = null/empty (deserialize default). Visualizador debe tolerar nulls.
 
 ## Campos Públicos
 
@@ -90,7 +121,7 @@ El helper `Snapshot()` extrae tiers, color, nombre, rol, row de cada Combatant.
 
 **Backward compat:** Records viejos con SelfTeam = null siguen funcionando (mostrar SelfStats/OpponentStats en UI); CombatTurn.TeamStateA/TeamStateB también null (skip equipo states en visualización).
 
-## CombatTurn — S34 + S37
+## CombatTurn — S34 + S37 + S41
 
 Estructura interna que representa un único ataque dentro de un combate.
 
@@ -104,14 +135,14 @@ Estructura interna que representa un único ataque dentro de un combate.
 | `WasCrit` | `bool` | Si fue crítico |
 | `DefenderHpAfter` | `float` | HP resultante del defensor tras golpe |
 | `NoAttack` | `bool` | Si true, no hubo golpe (stun-skip, muerte por aflicción) |
-| `Procs` | `List<CombatProcEvent>` | Eventos de proc en este turno, en orden |
+| `Procs` | `List<CombatProcEvent>` | Eventos de proc en este turno, en orden (S41: aditivo con eventos elementales) |
 | `StatusA` | `List<CombatStatusMark>` | **S34** Marcas de estado activo tras este turno (1v1 only; 3v3 usa TeamStateA) |
 | `StatusB` | `List<CombatStatusMark>` | **S34** Marcas de estado activo tras este turno (1v1 only; 3v3 usa TeamStateB) |
 | `AttackerIndex` | `int` | **S37** Índice del atacante dentro su equipo (0..2) |
 | `DefenderIndex` | `int` | **S37** Índice del defensor dentro su equipo (0..2) |
 | `DefenderShieldAfter` | `float` | **S37** Escudo resultante del defensor tras golpe (Shield pool del defensor) |
-| `TeamStateA` | `List<CombatUnitState>` | **S37** Estado completo de todos los units del team A tras este turno (null en 1v1) |
-| `TeamStateB` | `List<CombatUnitState>` | **S37** Estado completo de todos los units del team B tras este turno (null en 1v1) |
+| `TeamStateA` | `List<CombatUnitState>` | **S37/S41** Estado completo de todos los units del team A tras este turno (null en 1v1; S41 incluye elementales) |
+| `TeamStateB` | `List<CombatUnitState>` | **S37/S41** Estado completo de todos los units del team B tras este turno (null en 1v1; S41 incluye elementales) |
 
 ## CombatStatusMark — S34
 
@@ -126,7 +157,7 @@ Estructura interna que representa un único ataque dentro de un combate.
 
 **Consumo:** Usado en 1v1 legacy records (S34+); 3v3 records (S37+) usan TeamStateA/B en su lugar.
 
-## CombatUnitState — S37
+## CombatUnitState — S37 + S41
 
 **Estructura:** Estado completo de UN unit al cierre de cada turno, para 3v3 replay.
 
@@ -135,17 +166,57 @@ Estructura interna que representa un único ataque dentro de un combate.
 | `Hp` | `float` | HP actual del unit |
 | `Shield` | `float` | Escudo actual del unit (Protector role) |
 | `Marks` | `List<CombatStatusMark>` | Efectos activos en el unit (Poison, Burn, etc.) |
+| `ElementMarks` | `List<CombatElementMark>` | **S41** Marcas elementales actuales (Element + AllySource) |
+| `ArmedStates` | `List<ElementalState>` | **S41** Estados elementales armados (single-use) |
+| `Affinity` | `int` | **S41** Contador de afinidad acumulada |
+| `Energy` | `int` | **S41** Contador de energía acumulada |
 
-**Creación:** En `CombatService.EmitTurn()`, tras resolver el turno, se copian estados de ambos equipos a `CombatTurn.TeamStateA/TeamStateB` (indices 0..team.Count-1).
+**CombatElementMark (DTO nuevo S41):**
+```csharp
+public class CombatElementMark
+{
+    public Element Element;       // elemento de la marca
+    public bool AllySource;       // true = aliada, false = enemiga
+}
+```
 
-**Consumo:** Visualizador 3v3 (futuro, Fase 4) lee TeamStateA/B para renderizar HP/Shield/efectos en tiempo real.
+**Creación (S41):** En `CombatService.UnitState(Combatant c)` (nuevo helper), tras resolver un turno, se poblam todos los campos:
 
-## Backward Compatibility (S32 + S33 + S34 + S37)
+```csharp
+private static CombatUnitState UnitState(Combatant c)
+{
+    return new CombatUnitState
+    {
+        Hp = c.Hp,
+        Shield = c.Shield,
+        Marks = StatusMarks(c),
+        ElementMarks = c.Marks.Select(m => new CombatElementMark { Element = m.Element, AllySource = m.AllySource }).ToList(),
+        ArmedStates = c.States.ToList(),
+        Affinity = c.Affinity,
+        Energy = c.Energy,
+    };
+}
+```
+
+Luego en `EmitTurn()`, para ambos equipos:
+```csharp
+var stateA = new List<CombatUnitState>();
+var stateB = new List<CombatUnitState>();
+foreach (var u in teamA) stateA.Add(UnitState(u));
+foreach (var u in teamB) stateB.Add(UnitState(u));
+turn.TeamStateA = stateA;
+turn.TeamStateB = stateB;
+```
+
+**Consumo:** Visualizador 3v3 (futuro, Fase 4) lee TeamStateA/B para renderizar HP/Shield/efectos/marcas/estados en tiempo real.
+
+## Backward Compatibility (S32 + S33 + S34 + S37 + S41)
 
 - **1v1 legacy:** SelfStats/OpponentStats != null, SelfTeam/OpponentTeam = null, StatusA/StatusB pobladas, TeamStateA/TeamStateB = null
-- **3v3 new:** SelfStats/OpponentStats can be null, SelfTeam/OpponentTeam != null, StatusA/StatusB empty (usa TeamStateA/B), TeamStateA/TeamStateB poblados
+- **3v3 new (S37+):** SelfStats/OpponentStats can be null, SelfTeam/OpponentTeam != null, StatusA/StatusB empty (usa TeamStateA/B), TeamStateA/TeamStateB poblados
+- **3v3 elemental (S41+):** TeamStateA/TeamStateB incluyen ElementMarks, ArmedStates, Affinity, Energy
 - **Transición:** CombatController.SimulateLocal() y AsyncCombatService.ApplyResult() soportan ambos formatos; BuildRecord() produce 3v3 records (S37+)
-- Old UI code (1v1) sigue leyendo SelfStats/OpponentStats; visualizador 3v3 (futuro) leerá SelfTeam/OpponentTeam
+- Old UI code (1v1) sigue leyendo SelfStats/OpponentStats; visualizador 3v3 (futuro) leerá SelfTeam/OpponentTeam + TeamStateA/B elementales
 
 ## Serialización
 
@@ -154,27 +225,27 @@ JSON con Newtonsoft.Json, `StringEnumConverter` para enums. PascalCase campo nam
 ## Vinculado a
 
 - [[Index/03 - Combat]]
+- [[Index/13 - Combat Design Direction]]
 - [[CreatureDNA]] — `CombatHistory` es `List<CombatRecord>`
 - [[CombatService]] — construye via `BuildRecord()` y popula en `SimulateCore()`, `EmitTurn()`
 - [[AsyncCombatService]] — popula desde `CloudMatchBlob` JS v2 (3v3)
-- [[CombatVisualizerService]] — lee records para replay local (S38+)
+- [[CombatVisualizerService]] — lee records para replay local (S38+, S41+)
 - [[MorimonchiDetailInfoUITK]] — consume CombatRecord en tab Combate (1v1 display via SelfStats)
 - [[MoriMonchiCombatVisualizerUITK]] — renderiza efectos vía StatusA/B (1v1) o TeamStateA/B (3v3 futuro)
-- [[CombatTurn]], [[CombatProcEvent]], [[CombatStatusMark]], [[CombatUnitState]] — estructuras nested
+- [[CombatTurn]], [[CombatProcEvent]], [[CombatStatusMark]], [[CombatUnitState]], [[CombatElementMark]] — estructuras nested
 
 ## Conexiones
 
 **Entrada:**
 - `CombatService.SimulateCore()` → genera snapshots via `Snapshot(Combatant)` → copia a result.TeamA/B
-- `CombatService.EmitTurn()` → puebla `TeamStateA/TeamStateB` con HP/Shield/Marks de cada unit
+- `CombatService.EmitTurn()` → puebla `TeamStateA/TeamStateB` con HP/Shield/Marks de cada unit (S41: + elementales via `UnitState()`)
 - `CombatService.BuildRecord()` → copia snapshots + teamIds a record.SelfTeam/OpponentTeam/SelfTeamIds/OpponentTeamIds
-- `AsyncCombatService.ApplyResult()` → construye via `CombatService.BuildRecord()`
 
 **Salida:**
 - Persistencia via `GameManager.SaveDatabase()` cuando `GameEvents.OnRegistryChanged`
 - `MorimonchiDetailInfoUITK.BuildCombatHistory()` → lee SelfStats (1v1) o SelfTeam[0] (3v3, esta criatura es index en team)
-- `CombatReplayRequest.CanReplay()` → valida `Turns != null && Turns.Count > 0`; **S37:** retorna false si SelfTeam != null (visualizador 3v3 en Fase 4)
-- Visualizador futuro (Fase 4): lee SelfTeam/OpponentTeam/TeamStateA/B para replay 3v3
+- `CombatReplayRequest.CanReplay()` → valida `Turns != null && Turns.Count > 0`; **S37:** retorna false si SelfTeam != null (visualizador 3v3 en Fase 4); **S41:** lo invierte, exige SelfTeam != null (3v3 only)
+- Visualizador 3v3 (Fase 4): lee SelfTeam/OpponentTeam/TeamStateA/B para replay con marcas/reacciones/estados
 
 ## Notas
 
@@ -182,4 +253,4 @@ JSON con Newtonsoft.Json, `StringEnumConverter` para enums. PascalCase campo nam
 - **SelfWasA / SelfTeam index:** En 1v1 legacy, SelfWasA dice al visualizador si "A" = "yo". En 3v3, SelfTeam contiene la posición en el equipo; index de THIS creature en SelfTeamIds/SelfTeam es información display.
 - **Equipo Lineup:** S37 copia SelfTeamIds en orden de simulación (índice 0 = first combatant, etc.); snapshot Name/Role/Row incluidos.
 - **S37 S34 Tiers + Color:** Snapshot guarda estado visual completo (evolución + color + rol) para renderización offline.
-- **EN REVISIÓN (S37):** CanReplay() retorna false para 3v3 records hasta que visualizador 3v3 esté listo (Fase 4). 1v1 records siguen soportados.
+- **S41 Elementales:** ElementMarks/ArmedStates/Affinity/Energy se capturan al cierre de cada turno; el visualizador 3v3 iterará por TeamStateA/B para narrar cambios de estado elemental.
