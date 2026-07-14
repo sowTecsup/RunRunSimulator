@@ -6,7 +6,7 @@ tags: [combat, data, mutable-state]
 
 **Ruta:** `Systems/Combat/Combatant.cs`
 
-**Responsabilidad:** Modelo mutable de un combatiente *durante* la simulación 3v3. Almacena snapshot de DNA, stats finales (después de equipment + role mods), HP presente, escudo (S37), rol (S37), fila (S37), índice (S37), elemento (S39), afinidad de elemento (S39), energía (S39), stun/immunity counters, y listas de usos de equipo y efectos activos. **S35:** Propiedades dinámicas (`EffDefense`, `EffEvasion`, `EffSpeed`, `LifestealPercent`) que suman stacks de elementos activos en tiempo real. **S39:** ItemUseState reemplaza CombatProcEffect; lista de `Marks` (ElementMark) y `States` (ElementalState) para sistema elemental.
+**Responsabilidad:** Modelo mutable de un combatiente *durante* la simulación 3v3. Almacena snapshot de DNA, stats finales (después de equipment + role mods), HP presente, escudo (S37), rol (S37), fila (S37), índice (S37), elemento (S39), afinidad de elemento (S39), stun/immunity counters, y listas de usos de equipo y efectos activos. **S35:** Propiedades dinámicas (`EffDefense`, `EffEvasion`, `EffSpeed`, `LifestealPercent`) que suman stacks de elementos activos en tiempo real. **S39:** ItemUseState reemplaza CombatProcEffect; lista de `Marks` (ElementMark) y `States` (ElementalState) para sistema elemental. **S46:** Campo `Energy` eliminado; solo queda `Affinity`.
 
 ## Estructura
 
@@ -33,8 +33,7 @@ tags: [combat, data, mutable-state]
 | `StunTurns` | `int` | Turnos de stun activos (decrementa cada turno) |
 | `StunImmunityTurns` | `int` | Turnos de inmunidad a stun post-despertar (decrementa) |
 | `Element` | `Element` | **S39** Elemento de la criatura (innato del DNA) |
-| `Affinity` | `int` | **S39** Afinidad de elemento (entero, rango depende de sistema) |
-| `Energy` | `int` | **S39** Energía acumulada del combatiente |
+| `Affinity` | `int` | **S46** Afinidad de elemento (0-1, llega a 2 y dispara auto-marca). Recurso central (reemplaza Energy). |
 | `Uses` | `List<ItemUseState>` | **S39** Todos los usos de equipment equipado (cada uno tiene Effect + Remaining) |
 | `Active` | `List<ActiveEffect>` | Estados en curso (Poison, Burn, Regen, Static, Pulse, Steel, Mist, Lifesteal, etc.) |
 | `Marks` | `List<ElementMark>` | **S39** Marcas elementales acumuladas |
@@ -91,12 +90,24 @@ Estructura de un uso de equipo durante combate, reemplazando CombatProcEffect.
 
 ## Ciclo de Vida (S37)
 
-1. `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia, carga DNA/equipment, asigna Role/Row/Index/Shield=0, copia Element/Affinity/Energy del DNA
+1. `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia, carga DNA/equipment, asigna Role/Row/Index/Shield=0, copia Element/Affinity del DNA
 2. `CombatService.SimulateCore()` — itera ambos equipos en orden de EffSpeed
-3. `TakeTurn()` muta: `Hp`, `Shield` (role Protector), `StunTurns`, `StunImmunityTurns`, `Active` (lista crece/shrinks), `States` (decrementa), `Marks` (acumula)
+3. `TakeTurn()` muta: `Hp`, `Shield` (role Protector), `Affinity`, `StunTurns`, `StunImmunityTurns`, `Active` (lista crece/shrinks), `States` (decrementa), `Marks` (acumula)
 4. Las propiedades dinámicas (`EffSpeed`, `EffDefense`, etc.) se leen durante orden de turno y en fórmulas de daño
-5. `EmitTurn()` captura estado final de `Hp`/`Shield`/`Active` en `CombatUnitState` (S37)
+5. `EmitTurn()` captura estado final de `Hp`/`Shield`/`Affinity`/`Active` en `CombatUnitState` (S37)
 6. Final de combate: si ganó/perdió, mutaciones vuelven al DNA persistente via `CombatEvolution.AdvanceTier()` o muerte
+
+## Cambios S46
+
+**Energy eliminado:**
+- Campo `Energy` removido completamente.
+- Gates `if (actor.Energy > 0)` eliminados de pasivas (ShieldAllyPassive, HealLowestAllyOnHitPassive, BacklineHunterActive).
+- Las pasivas ahora se aplican SIEMPRE (sin gate de recurso).
+
+**Affinity refactorizado:**
+- Sigue siendo `int`, rango 0-2.
+- Cada turno, `GainAffinity()` incrementa +1; al alcanzar 2, se resetea a 0 y dispara `CombatElements.AddMark(actor, actor.Element, true, ...)` (auto-marca, mismo turno).
+- El "beat" visual (UI: 2 llenos → se vacían) ahora emite dos eventos: `AffinityGained` con 2, y luego `AffinityGained` con 0 (post-marca).
 
 ## Cambios S39
 
@@ -108,7 +119,6 @@ Estructura de un uso de equipo durante combate, reemplazando CombatProcEffect.
 **Campos elementales nuevos:**
 - `Element` — elemento innato del DNA (proviene de `CreatureDNA.Element`)
 - `Affinity` — afinidad de elemento (valor numérico)
-- `Energy` — energía acumulada (puede usarse para activar efectos)
 - `Marks` — lista de marcas elementales (ElementMark: tipo + stack count)
 - `States` — lista de estados elementales activos (Quemado, Envenenado, etc.)
 
@@ -134,14 +144,14 @@ Estructura de un uso de equipo durante combate, reemplazando CombatProcEffect.
 ## Conexiones
 
 **Entrada:**
-- `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia con Role/Row/Index del DNA y Element/Affinity/Energy
+- `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia con Role/Row/Index del DNA y Element/Affinity
 - `CombatResolver.AddStatus()` — agrega a `Active` list
 - `CombatResolver.ShieldTarget()` — suma a `Shield` (role Protector)
 - `CombatResolver.ApplyMark()` — agrega a `Marks` (S39)
 - `CombatResolver.ApplyState()` — agrega a `States` (S39)
 
 **Salida:**
-- Cambios en `Hp`, `Shield`, stun counters, `Active`, `Marks`, `States` vía CombatResolver
+- Cambios en `Hp`, `Shield`, `Affinity`, stun counters, `Active`, `Marks`, `States` vía CombatResolver
 - Las propiedades dinámicas se leen en Speed order, daño, evasión, lifesteal
 - Final de combat: mutation vuelve a DNA vía CombatEvolution (tiers) o CombatRecord (historia)
 
@@ -152,4 +162,5 @@ Estructura de un uso de equipo durante combate, reemplazando CombatProcEffect.
 - `StunImmunityTurns` implementa anti-permastun (ver `CombatManagerSO.StunImmunityTurns`).
 - **S35:** Las propiedades dinámicas permiten que stacks de elementos *en curso* modifiquen el comportamiento en tiempo real. No hay pre-cálculo; se leen on-demand cada turno.
 - **S37:** Role/Row/Index definen semántica 3v3. Shield es pool de absorción (Protector role). IsA se mantiene para backward compat + identificación de equipo.
-- **S39:** Element/Affinity/Energy/Marks/States integran el sistema elemental en cada combatiente. Los efectos del equipo usan `ItemUseState` en lugar de `CombatProcEffect`.
+- **S39:** Element/Affinity/Marks/States integran el sistema elemental en cada combatiente. Los efectos del equipo usan `ItemUseState` en lugar de `CombatProcEffect`.
+- **S46:** Energy completamente eliminado como recurso. Affinity es el único mecánica de acumulación para disparar auto-marcas.

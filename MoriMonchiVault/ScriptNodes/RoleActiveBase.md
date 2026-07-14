@@ -6,64 +6,55 @@ tags: [script, combat, roles, targeting, base-class, elements]
 
 **Ruta:** `Data/Combat/RoleActiveBase.cs`
 
-**Responsabilidad:** Clase abstracta base para efectos active de rol (override de targeting) serializables en listas polimórficas. **S40:** Abstracción de lógica de targeting heredable, eliminando branches enum-based del antes. Un active decide si OVERRIDE el targeting por defecto (retorna `Combatant` non-null) o pasa (retorna `null`). Primero active que retorna non-null gana; fallback a front-row si todos retornan `null`. Soporte polimórfico vía `[Serializable]` + Odin Inspector. **S41:** Parámetro `r` (CombatResolver) nuevo para emitir eventos elementales de energía gasto/ganancia (EnergySpent, EnergyGained).
+**Responsabilidad:** Clase abstracta base para efectos active de rol (override de targeting) serializables en listas polimórficas. **S40:** Abstracción de lógica de targeting heredable, eliminando branches enum-based. Un active decide si OVERRIDE el targeting por defecto (retorna `Combatant` non-null) o pasa (retorna `null`). **S46:** Energy completamente eliminado de BacklineHunterActive — solo hace targeting puro.
 
 ## Métodos Abstractos
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
-| `ResolveTarget(actor, allies, enemies, config, result, r, rng)` | `Combatant \| null` | **S41 SIG CAMBIÓ** Intenta override targeting. Si retorna non-null, es el objetivo. Si null, continúa con siguiente active o fallback. Parámetro `r` nuevo S41 para emitir eventos elementales. |
+| `ResolveTarget(actor, allies, enemies, config, result, r, rng)` | `Combatant \| null` | **S46** Intenta override targeting. Si retorna non-null, es el objetivo. Si null, continúa con siguiente active o fallback. |
 | `Summary()` | `string` | Retorna descripción UI del efecto (ej: "50% caza backline enemiga") |
 
 ## Implementaciones Concretas
 
 ### BacklineHunterActive
 
-**Descripción:** Rol Agresivo. Pre-targeting, roll chance `Chance` (ej: 50%) para ignorar front-row y golpear backline en su lugar. Si no hay backline, puede gastar Energía para aumentar energía de un aliado (efecto bonus).
+**Descripción:** Rol Agresivo. Pre-targeting, roll chance `Chance` (ej: 50%) para ignorar front-row y golpear backline en su lugar. **S46:** Targeting PURO — se eliminaron las dos ramas de gasto de energía.
 
 **Campos:**
 - `Chance` (float, PropertyRange 0–1, LabelText "Backline chance") — defecto 0.5 (50%)
 
-**ResolveTarget (S41 FIRMA CAMBIÓ):**
+**ResolveTarget (S46):**
 1. Si Chance ≤ 0, retorna `null` (no override)
 2. Roll `aggroRoll = rng.NextFloat()`
 3. Si `aggroRoll < Chance`:
    - Intenta `CombatTargeting.PickBacklineTarget(enemies, rng)`
    - Si existe backline:
-     - Log "caza backline"
-     - Retorna target
-     - Si actor.Energy > 0:
-       - Decrementa: `actor.Energy--`
-       - Graba evento: `r.RecordElement(ElementEventKind.EnergySpent, actor, amount: actor.Energy)` **(S41 NEW)**
-       - Pick aliado random: `CombatTargeting.PickAlly(allies, rng)`
-       - Marca aliado: `CombatElements.AddMark(ally, actor.Element, true, actor, config, result, r, rng)` (parámetro `r` nuevo S41)
+     - Log: `"{actor.Name} caza la backline"`
+     - Retorna backline target
    - Si NO hay backline:
-     - Si actor.Energy > 0:
-       - Decrementa: `actor.Energy--`
-       - Graba evento: `r.RecordElement(ElementEventKind.EnergySpent, actor, amount: actor.Energy)` **(S41 NEW)**
-       - Pick aliado random y aumenta su energía: `mate.Energy++`
-       - Log "comparte energía con X"
-       - Graba evento: `r.RecordElement(ElementEventKind.EnergyGained, mate, amount: mate.Energy)` **(S41 NEW)**
-     - Si no Energy: log "sin backline — comparte energía (sin efecto)"
-     - Retorna fallback `PickFrontTarget()` (via CombatRoleHooks)
-4. Si `aggroRoll >= Chance`: retorna `PickFrontTarget()` (fallback clamped a default, no override)
+     - Fallback: `CombatTargeting.PickFrontTarget(enemies, rng)`
+     - Retorna frontline
+4. Si `aggroRoll >= Chance`: retorna `null` (no override, pasó el roll)
 
 **Consumo RNG:** `rng.NextFloat()` una vez (roll Chance), más picks si aplica
 
-## Flujo de Integración (S40 + S41)
+**Cambio S46:** Se eliminó toda la lógica de gasto de energía (dos branches del viejo código). Ahora es PURO TARGETING.
+
+## Flujo de Integración (S46)
 
 **En `RoleTableSO.RoleProfile`:**
 ```csharp
 public List<RoleActiveBase> Actives = new List<RoleActiveBase>();
 ```
 
-**En `CombatService.TakeTurn()` (S41 FIRMA CAMBIÓ):**
+**En `CombatService.TakeTurn()` (S46):**
 ```csharp
 var profile = config.Roles != null ? config.Roles.GetProfile(actor.Role) : null;
-var target = CombatRoleHooks.ResolveTarget(actor, profile, allies, enemies, config, result, r, rng);  // parámetro r nuevo
+var target = CombatRoleHooks.ResolveTarget(actor, profile, allies, enemies, config, result, r, rng);
 ```
 
-**En `CombatRoleHooks` (S41):**
+**En `CombatRoleHooks` (S46):**
 ```csharp
 public static Combatant ResolveTarget(Combatant actor, RoleProfile profile, ..., CombatResolver r, ...)
 {
@@ -71,7 +62,7 @@ public static Combatant ResolveTarget(Combatant actor, RoleProfile profile, ...,
     {
         foreach (var active in profile.Actives)
         {
-            var t = active.ResolveTarget(actor, allies, enemies, config, result, r, rng);  // parámetro r nuevo
+            var t = active.ResolveTarget(actor, allies, enemies, config, result, r, rng);
             if (t != null) return t;
         }
     }
@@ -81,23 +72,19 @@ public static Combatant ResolveTarget(Combatant actor, RoleProfile profile, ...,
 
 ## Determinismo
 
-- **Odin Serialization:** Polimórficas en inspector como lista editable (Odin maneja [SerializableField])
+- **Odin Serialization:** Polimórficas en inspector como lista editable
 - **RNG:** Cada active consume RNG según su lógica (roll Chance, picks); orden sincronizado con profile order
-- **Energía:** Si actor.Energy > 0 y aplica efecto, decrementa — determinista sin roll (S41: eventos grabados en orden)
 - **Fallback:** Si todos actives retornan null, CombatRoleHooks fallback a frontline
 
-## Cambios S41
+## Cambios S46
 
-**Nuevo parámetro `r` (CombatResolver):**
-- `ResolveTarget()` ahora recibe `CombatResolver r` para emitir eventos elementales
-- Cuando actor gasta Energy, emite `ElementEventKind.EnergySpent`
-- Cuando aliado gana Energy (en BacklineHunter fallback), emite `ElementEventKind.EnergyGained`
-- `AddMark()` ahora recibe `r` (parámetro nuevo S41) para grabar eventos de marca/reacción
+**BacklineHunterActive simplificado:**
+- Eliminó rama 1: `if (backline exists) → gasta energía + marca aliado`
+- Eliminó rama 2: `if (no backline) → gasta energía + comparte energía con aliado`
+- Quedó solo: targeting puro (roll chance → pick backline o frontline)
+- No más grabación de eventos EnergySpent/EnergyGained vía `r`
 
-**Eventos emitidos (S41):**
-- `ElementEventKind.EnergySpent` — cuando actor decrementa Energy
-- `ElementEventKind.EnergyGained` — cuando aliado incrementa Energy (BacklineHunter fallback)
-- `ElementEventKind.MarkApplied` — cuando se añade marca aliada (emitido dentro de AddMark)
+**Responsabilidad clara:** Solo targeting, no efectos de rol. Las marcas de rol (si aplican) vienen del paso de pasivas (ApplyPassives), no del targeting.
 
 ## Vinculado a
 
@@ -107,10 +94,8 @@ public static Combatant ResolveTarget(Combatant actor, RoleProfile profile, ...,
 ## Conexiones
 
 - [[RoleTableSO]] — serializadas en `RoleProfile.Actives` lista polimórfica
-- [[CombatRoleHooks]] — invocador en `ResolveTarget()` (parámetro `r` nuevo S41)
-- [[CombatResolver]] — receptor de `RecordElement()` (S41 NEW)
-- [[CombatService]] — `TakeTurn()` captura resultado y lo usa como target (parámetro `r` nuevo S41)
-- [[CombatElements]] — llamada para `AddMark()` si Energy gasto (parámetro `r` nuevo S41)
-- [[Combatant]] — actor/allies/enemies context, Energy mutado si aplica
-- [[CombatManagerSO]], [[CombatResult]], [[CombatRng]] — contexto
-- [[CombatTargeting]] — PickBacklineTarget, PickFrontTarget, PickAlly
+- [[CombatRoleHooks]] — invocador en `ResolveTarget()`
+- [[CombatService]] — `TakeTurn()` captura resultado y lo usa como target
+- [[Combatant]] — actor/allies/enemies context
+- [[CombatManagerSO]], [[CombatResult]], [[CombatRng]]
+- [[CombatTargeting]] — PickBacklineTarget, PickFrontTarget

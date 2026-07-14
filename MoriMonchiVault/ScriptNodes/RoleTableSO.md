@@ -6,7 +6,7 @@ tags: [script, data, combat, roles]
 
 **Ruta:** `Data/Combat/RoleTableSO.cs`
 
-**Responsabilidad:** Asset Odin `SerializedScriptableObject` que define perfiles de rol heredables (Protector/Agresivo/Empático) con modificadores de stats y listas polimórficas de efectos de rol. Mapeado 1:1 desde `CreatureDNA.Role` (enum). Consumido por `CombatService.TakeTurn()` y `CreatureGenerator` para aplicar transformaciones heredables en combate. **S40:** Refactor v2 — fuera campos individuales ShieldPerTurn/BacklineHitChance/HealPercentOfDamage; entran listas polimórficas `Passives`/`Actives` serializadas (Odin Inspector). Mismo gameplay, data-driven.
+**Responsabilidad:** Asset Odin `SerializedScriptableObject` que define perfiles de rol heredables (Protector/Agresivo/Empático) con modificadores de stats y listas polimórficas de efectos de rol. Mapeado 1:1 desde `CreatureDNA.Role` (enum). Consumido por `CombatService.TakeTurn()` y `CreatureGenerator` para aplicar transformaciones heredables en combate. **S40:** Refactor v2 — data-driven listas polimórficas `Passives`/`Actives`. **S46:** Agresivo ganó `MarkRandomAllyPassive` en Passives; BacklineHunterActive quedó puro targeting.
 
 ## Estructura
 
@@ -18,32 +18,32 @@ tags: [script, data, combat, roles]
 | `AtkMod` | `float` | Modificador de ATK heredable. Protector -2, Agresivo +2, Empático -3 |
 | `SpdMod` | `float` | Modificador de SPD heredable. Protector -2, Agresivo +1, Empático +2 |
 | `PriceModifier` | `float` | Ajuste de precio en tienda (Agresivo -0.10, Empático +0.10, Protector 0) |
-| `Passives` | `List<RolePassiveBase>` | **(S40)** Efectos pasivos polimórficos (OnTurnStart, OnDamageDealt). Ej: ShieldAllyPassive, HealLowestAllyOnHitPassive. |
-| `Actives` | `List<RoleActiveBase>` | **(S40)** Efectos active polimórficos (targeting override). Ej: BacklineHunterActive. |
+| `Passives` | `List<RolePassiveBase>` | **(S40)** Efectos pasivos polimórficos (OnAfterStrike, OnDamageDealt). **S46:** Agresivo tiene MarkRandomAllyPassive. |
+| `Actives` | `List<RoleActiveBase>` | **(S40)** Efectos active polimórficos (targeting override). BacklineHunterActive solo targeting (S46). |
 
-## Perfiles Implementados (PopulateV2)
+## Perfiles Implementados (PopulateV2 — S46)
 
 ### Protector (Tanque)
 - `ConMod = 4f` — HP sustancialmente mayor
-- `AtkMod = -2f` — ataque reducido (rol defensivo)
-- `SpdMod = -2f` — más lento (sacrifica velocidad por durabilidad)
-- `PriceModifier = 0f` — precio base (no modificado)
+- `AtkMod = -2f` — ataque reducido
+- `SpdMod = -2f` — más lento
+- `PriceModifier = 0f` — precio base
 - `Passives` — [ShieldAllyPassive(1.0)]
 - `Actives` — []
 
-### Agresivo (Pegador)
-- `ConMod = -3f` — HP más bajo (payoff de offensiva)
+### Agresivo (Pegador — S46 CAMBIÓ)
+- `ConMod = -3f` — HP más bajo
 - `AtkMod = 2f` — ataque sustancialmente mayor
-- `SpdMod = 1f` — más rápido (primer turno likely)
-- `PriceModifier = -0.10f` — 10% más barato (menor rareza implícita)
-- `Passives` — []
-- `Actives` — [BacklineHunterActive(0.5)]
+- `SpdMod = 1f` — más rápido
+- `PriceModifier = -0.10f` — 10% más barato
+- `Passives` — **[MarkRandomAllyPassive()]** **(S46 NEW)** — marca aliado al azar cada turno
+- `Actives` — [BacklineHunterActive(0.5)] — puro targeting (S46: sin Energy branches)
 
 ### Empático (Soporte)
-- `ConMod = 1f` — HP ligeramente elevado (soporte moderado)
-- `AtkMod = -3f` — ataque muy reducido (rol soporte, no ofensiva)
-- `SpdMod = 2f` — muy rápido (actúa primero para curaciones defensivas)
-- `PriceModifier = 0.10f` — 10% más caro (valor de soporte)
+- `ConMod = 1f` — HP ligeramente elevado
+- `AtkMod = -3f` — ataque muy reducido
+- `SpdMod = 2f` — muy rápido
+- `PriceModifier = 0.10f` — 10% más caro
 - `Passives` — [HealLowestAllyOnHitPassive(0.5)]
 - `Actives` — []
 
@@ -52,53 +52,57 @@ tags: [script, data, combat, roles]
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
 | `GetProfile(role)` | `RoleProfile` | Busca en `Profiles` dict y retorna perfil (default vacío si falta) |
-| `PopulateV2()` | `void` (Button) | Llena diccionario con los 3 perfiles estándar con listas polimórficas; marca dirty para editor |
+| `PopulateV2()` | `void` (Button) | Llena diccionario con los 3 perfiles; marca dirty (S46: Agresivo con MarkRandomAllyPassive) |
 
-## Consumo en Combate (S37 + S40)
+## Consumo en Combate (S46)
 
-**En `CombatService.TakeTurn()`:**
-1. Actives: antes de elegir objetivo, `CombatRoleHooks.ResolveTarget()` itera `profile.Actives`; primer active que retorna non-null (ej: BacklineHunterActive roll) es el objetivo
-2. Passives (pre-attack): `CombatRoleHooks.GrantShield()` itera `profile.Passives`, cada una llama `OnTurnStart()` (escudo, marca elemental, etc)
-3. Passives (post-strike): `CombatRoleHooks.HealAfterStrike()` itera `profile.Passives`, cada una llama `OnDamageDealt()` si hit + damage > 0 (curación, marca elemental)
+**En `CombatService.TakeTurn()` nuevo orden:**
+1. **Targeting:** `CombatRoleHooks.ResolveTarget()` itera `profile.Actives` → BacklineHunterActive roll (pure targeting, sin Energy)
+2. **Strike** — estándar
+3. **GainAffinity** — +1, al llegar a 2 auto-marca
+4. **Pasivas (post-strike):** `CombatRoleHooks.ApplyPassives()` itera `profile.Passives`:
+   - Protector: escuda aliado + marca aliado
+   - Agresivo: marca aliado al azar (MarkRandomAllyPassive)
+   - Empático: cura aliado más débil (OnDamageDealt)
+5. **Heal-on-damage:** `CombatRoleHooks.HealAfterStrike()` itera `profile.Passives`, cada una llama `OnDamageDealt()`
 
-**En `CreatureGenerator.MintRandomCreature()`:**
-- Asigna rol al azar 50/50 padres (o 1/3 al azar si no hay padres)
-- Aplica modificadores de `RoleProfile` en `BaseConstitution`, `BaseAttack`, `BaseSpeed`
+## Cambios S46
+
+**Agresivo Passives (antes vacía, ahora MarkRandomAllyPassive):**
+- Línea 56 en PopulateV2: `Passives = new List<RolePassiveBase> { new MarkRandomAllyPassive() }`
+- Cambio semántico: **el Agresivo ahora marca un aliado cada turno** (pasiva), en lugar de solo hacer targeting de backline
+- Sin gate de Energy (Energy fue eliminado)
+
+**BacklineHunterActive simplificado (S46):**
+- Línea 57: `Actives = new List<RoleActiveBase> { new BacklineHunterActive { Chance = 0.5f } }`
+- Solo targeting puro, sin efectos de Energy gasto/comparte
 
 ## Cambios S40
 
-**Antes (V1):**
-```csharp
-public float ShieldPerTurn;          // Protector 1.0
-public float BacklineHitChance;      // Agresivo 0.5
-public float HealPercentOfDamage;    // Empático 0.5
-```
+**Antes (V1):** Campos individuales ShieldPerTurn, BacklineHitChance, HealPercentOfDamage
 
-**Ahora (V2):**
-```csharp
-public List<RolePassiveBase> Passives;   // polimórficas, serializadas
-public List<RoleActiveBase> Actives;     // polimórficas, serializadas
-```
+**Ahora (V2):** Listas polimórficas Passives/Actives
 
 **Beneficios:**
 - **Data-driven:** Nuevos roles sin código
-- **Extensible:** Agregar ShieldMultiplePassive, HealRangePassive, etc. sin tocar CombatService
+- **Extensible:** Agregar pasivas sin tocar CombatService
 - **Inspector-friendly:** Odin auto-soporta listas polimórficas
-- **Composición:** Protector podría tener múltiples pasivas (future)
+- **Composición:** Futuros roles pueden tener múltiples pasivas
 
 ## Vinculado a
 
 - [[Index/13 - Combat Design Direction]]
 - [[CreatureDNA]] — `Role` enum field
-- [[Enums]] — `Role` enum (Protector=0, Agresivo=1, Empático=2)
+- [[Role]] — enum (Protector=0, Agresivo=1, Empático=2)
 - [[CombatService]] — `TakeTurn()` usa perfiles vía `CombatRoleHooks`
-- [[CombatRoleHooks]] — invocador de efectos (S40)
-- [[RolePassiveBase]] — base para Passives polimórficas (S40)
-- [[RoleActiveBase]] — base para Actives polimórficas (S40)
+- [[CombatRoleHooks]] — invocador de efectos (S46: ApplyPassives post-strike)
+- [[RolePassiveBase]] — base para Passives polimórficas
+- [[RoleActiveBase]] — base para Actives polimórficas
+- [[MarkRandomAllyPassive]] — nueva pasiva del Agresivo (S46)
+- [[ShieldAllyPassive]] — pasiva del Protector
+- [[HealLowestAllyOnHitPassive]] — pasiva del Empático
+- [[BacklineHunterActive]] — active del Agresivo (targeting puro S46)
 - [[CreatureGenerator]] — `MintRandomCreature()` aplica mods
-- [[CombatTargeting]] — PickBacklineTarget / LowestHpAlly
-- [[CombatResolver]] — grabación de effectos
-- [[CombatManagerSO]] — ref Roles
 
 ## Conexiones
 
@@ -109,14 +113,12 @@ public List<RoleActiveBase> Actives;     // polimórficas, serializadas
 **Salida:**
 - `RoleProfile` aplicado en:
   - Stats base (ConMod, AtkMod, SpdMod) → `CreatureDNA` at mint/breed
-  - Efectos de rol (Passives, Actives) → `CombatService.TakeTurn()` cada round via `CombatRoleHooks`
-  - Precio ajustado → `StoreManager` (futuro)
+  - Efectos de rol (Passives, Actives) → `CombatService.TakeTurn()` cada round via `CombatRoleHooks` (S46: ApplyPassives post-strike)
+  - Precio ajustado → `StoreManager`
 
-## Notas (S37 + S40)
+## Notas (S40 + S46)
 
-- **Perfiles mutables:** El botón PopulateV2 permite editar los valores en el asset sin código
-- **Herencia 50/50:** En breeding, Role se asigna 50/50 de padres; si solo hay 1 padre, se hereda; si 0, al azar 1/3
-- **Polimórfismo:** Passives/Actives son listas editables en Odin Inspector; ¡no hay switch/enum branch!
-- **Rebalanceo futuro:** Los números (ConMod=4, ShieldAllyPassive.AmountPerTurn=1) son V2 y pueden ajustarse vía inspector sin recompilar
-- **Impacto de precio:** PriceModifier afecta costo en tienda (Agresivo barato = menos rareza, Empático caro = más demanda)
-- **Determinismo:** Orden de Passives/Actives es fijo por lista; consumo RNG sincronizado con V1 (verificado por paridad log)
+- **PopulateV2 idempotente:** El botón puede ejecutarse múltiples veces sin efecto negativo
+- **S46 cambio semántico:** Agresivo pasó de "hunter de backline + gasta energía" a "hunter de backline (targeting) + marca aliado (pasiva)"
+- **Determinismo:** Orden de Passives/Actives es fijo por lista; consumo RNG sincronizado
+- **Rebalanceo futuro:** Los números pueden ajustarse via inspector sin recompilar

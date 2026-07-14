@@ -6,200 +6,140 @@ tags: [script, ui, uitk, combat, visualization, order-bar]
 
 **Ruta:** `UI/CombatOrderBarUITK.cs`
 
-**Responsabilidad:** Barra superior de orden de acción para el replay 3v3 — visualiza equipos A/gap/B con cartas de cada unidad. **S44:** Rediseño visual sin tamaños fijos px: order-bar = teamA (flex-grow) + gap + teamB; cada unidad vive en slot cv-ob-slot (flex-grow max 240px) que contiene carta + fila de estados. Carta comprimida: (1) label cv-ob-order-num con número de orden (1ero/2do/3ero/4to…); (2) header nombre + chip rol (sin swatch de color ni mini-chip elemento, nombre coloreado con UiColor del elemento); (3) circulitos de afinidad (energía ⚡ eliminada); (4) marksSplit aliadas(izq)/enemigas(der) — chips son Labels con DisplayName en blanco sobre fondo de color. Turno activo indicado solo por borde dorado (cv-order-card--active, sin TurnMarker ▼). Suscriptor de eventos visuales (OnVisualCombatStart, OnActionOrder, OnUnitAffinity, OnActiveUnit). **S45:** Nuevo banner de equipo (`cv-ob-team-banner`, azul aliado/rojo enemigo) en cada carta. Nuevo handler `HandleUnitElement(CombatElementEventData)` que suscribe a `OnUnitElement` y muta listas runtime `Marks`/`States` por-proc (MarkApplied add, Reaction quita ambos elementos, StateArmed add, Consumed/Removed quita), con helpers `RemoveMark` y `RebuildElements`. `ApplyState` re-sincroniza las listas desde snapshot. Energía (parámetro energy en OnUnitAffinity) eliminado completamente del display.
+**Responsabilidad:** Barra superior de orden de acción para el replay 3v3 — visualiza equipos A/B con cartas de cada unidad. **S44:** Rediseño visual: order-bar = teamA + gap + teamB; cada slot contiene carta + fila de estados. **S45:** Nuevo banner de equipo por carta. Handler `HandleUnitElement()` suscribe a `OnUnitElement` y muta listas runtime `Marks`/`States` por-proc. **S46:** `HandleAffinity` firma cambió (sin parámetro energy). En `HandleUnitElement`, caso `Reaction` parsea `ReactionName` a `ElementalState` e inserta en `States` (para estados INSTANTÁNEOS que nunca quedan armados, pero el visualizador debe dibujarlos).
 
 ## Enums / Constantes
 
 | Nombre | Descripción |
 |--------|-------------|
-| `NegativeStates` (HashSet) | Estados que se marcan con color rojo: Boiling, Debilidad, Confuso, Leech, Mareado, PisoTierra |
+| `NegativeStates` (HashSet) | Estados rojo: Boiling, Debilidad, Confuso, Leech, Mareado, PisoTierra |
 
 ## Clase Interna: OrderCard
 
-Descriptor de una tarjeta de unidad (S44, S45: con Marks/States).
+Descriptor de una tarjeta de unidad.
 
 ```csharp
 private class OrderCard
 {
-    public VisualElement Root;                           // Contenedor raíz de la tarjeta
-    public VisualElement Slot;                           // **S45** Slot padre (cv-ob-slot)
-    public VisualElement AllyMarksRow;                   // Columna izq: marcas aliadas
-    public VisualElement EnemyMarksRow;                  // Columna der: marcas enemigas
-    public VisualElement StatesRow;                      // Fila de estados armados (fuera de la carta, debajo)
+    public VisualElement Root;                           // Contenedor raíz
+    public VisualElement Slot;                           // Slot padre (cv-ob-slot)
+    public VisualElement AllyMarksRow;                   // Marcas aliadas
+    public VisualElement EnemyMarksRow;                  // Marcas enemigas
+    public VisualElement StatesRow;                      // Fila de estados armados
     public VisualElement AffinityDot0;                   // Primer círculo afinidad
     public VisualElement AffinityDot1;                   // Segundo círculo afinidad
-    public List<CombatElementMark> Marks  = new List<CombatElementMark>();  // **S45 NEW** Marcas actuales (se actualiza por-proc)
-    public List<ElementalState>    States = new List<ElementalState>();     // **S45 NEW** Estados armados actuales (se actualiza por-proc)
+    public List<CombatElementMark> Marks  = new List<CombatElementMark>();  // Marcas actuales (runtime)
+    public List<ElementalState>    States = new List<ElementalState>();     // Estados actuales (runtime)
 }
 ```
-
-**S45 NUEVO:** Campos `Marks` y `States` son listas que se actualizan en vivo por HandleUnitElement, independiente de ApplyState que los re-sincroniza a fin de turno.
 
 ## Métodos Públicos
 
 | Método | Descripción |
 |--------|-------------|
-| `OnEnable()` | Suscribe a eventos visuales (Start, Order, Affinity, ActiveUnit, **S45: UnitElement**) |
+| `OnEnable()` | Suscribe a eventos: Start, Order, Affinity, ActiveUnit, UnitElement |
 | `OnDisable()` | Desuscribe eventos |
-| `Start()` | Inicializa referencias y oculta la barra |
+| `Start()` | Inicializa referencias, oculta barra |
 
-## Métodos Privados
+## Métodos Privados Clave
 
 | Método | Descripción |
 |--------|-------------|
-| `EnsureRefs()` | Localiza UIDocument → orderBar, crea tooltip dinámico si falta; retorna true si referencias válidas |
-| `HandleStart(CombatVisualContext)` | Almacena contexto, construye cartas estáticas de equipos A y B |
-| `BuildCards()` | Limpia orderBar, construye equipo A, agrega gap, construye equipo B |
-| `BuildTeam(side, snapshots, dnas)` | Itera snapshots, crea OrderCard por unidad en slot cv-ob-slot, agrega a dictionary y teamContainer |
-| `CreateCard(side, snapshot, element)` | **S44/S45:** Arma tarjeta: (1) banner equipo (azul aliado/rojo enemigo); (2) body (nombre coloreado + chip rol P/A/E); (3) affinityRow (dots); (4) marksSplit (aliadas/enemigas) |
-| `HandleOrder(List<CombatOrderEntry>)` | Recibe orden de próxima acción, reordena cartas en DOM, itera entries para re-sincronizar ApplyState (Marks/States desde snapshot) |
-| `HandleActiveUnit(side, index)` | Marca tarjeta activa con clase "cv-order-card--active" (borde dorado); otros pierden clase |
-| `HandleUnitElement(CombatElementEventData)` | **S45 NEW** Handler para OnUnitElement — muta Marks/States por-proc (MarkApplied add, Reaction quita ambos, StateArmed add, StateConsumed/Removed quita), llama RebuildElements |
-| `ApplyState(card, entry)` | Aplica clase "dead" si no vivo, re-sincroniza Marks/States desde entry.State (snapshot), actualiza afinidad, llama RebuildElements |
-| `RemoveMark(marks, element, ally)` | **S45 NEW** Helper — busca y quita la primera marca que coincida element+ally |
-| `RebuildElements(card)` | **S45 NEW** Helper — reconstruye AllyMarksRow/StatesRow/EnemyMarksRow desde Marks/States actuales |
-| `HandleAffinity(side, index, affinity, energy)` | Ignora parámetro energy; actualiza circulitos con affinity >= 1 ó >= 2 |
-| `BuildMarkRow(row, marks, ally)` | Limpia fila, agrega chips de marcas aliadas XOR enemigas |
-| `CreateMarkChip(mark)` | **S44:** Label(DisplayName) en blanco sobre fondo MarkColor(element), tooltip "Marca elemento (fuente) — reacciona…" |
-| `BuildStatesRow(row, states)` | Limpia fila, agrega labels con DisplayName, clase negativa/positiva, tooltip Description |
-| `CreateStateChip(state)` | Label(DisplayName) + classe negativa/positiva, tooltip Description |
-| `SetAffinity(card, affinity)` | Actualiza circulitos (filled si >= 1 ó 2) |
-| `RegisterTooltip(element, text)` | Eventos PointerEnter/Leave para mostrar/ocultar tooltip dinámico |
-| `ShowTooltip(anchor, text)` | Posiciona tooltip bajo el elemento |
-| `HideTooltip()` | Oculta tooltip |
+| `EnsureRefs()` | Localiza UIDocument → orderBar, crea tooltip dinámico |
+| `HandleStart(CombatVisualContext)` | Almacena contexto, construye cartas A y B |
+| `BuildCards()` | Limpia orderBar, construye equipos |
+| `BuildTeam(side, snapshots, dnas)` | Itera snapshots, crea OrderCard por unidad |
+| `CreateCard(side, snapshot, element)` | Arma tarjeta: banner equipo + body + affinityRow + marksSplit |
+| `HandleOrder(List<CombatOrderEntry>)` | Recibe orden, reordena DOM, re-sincroniza Marks/States desde snapshot |
+| `HandleActiveUnit(side, index)` | Marca tarjeta activa (borde dorado) |
+| `HandleAffinity(side, index, affinity)` | **S46 FIRMA CAMBIÓ** Sin parámetro energy. Actualiza circulitos afinidad. |
+| `HandleUnitElement(CombatElementEventData)` | **S45** Muta Marks/States por-proc, llama RebuildElements. **S46:** Parsea ReactionName a ElementalState para Reaction event. |
+| `ApplyState(card, entry)` | Re-sincroniza Marks/States desde snapshot (fin-de-turno resync) |
+| `RemoveMark(marks, element, ally)` | **S45** Helper — busca y quita marca |
+| `RebuildElements(card)` | **S45** Reconstruye filas de marcas/estados |
+| `BuildMarkRow(row, marks, ally)` | Limpia fila, agrega chips de marcas |
+| `CreateMarkChip(mark)` | Label(DisplayName) en blanco sobre fondo elemento |
+| `BuildStatesRow(row, states)` | Limpia fila, agrega estados |
+| `CreateStateChip(state)` | Label(DisplayName) + clase negativa/positiva |
+| `SetAffinity(card, affinity)` | Llena circulitos si affinity >= 1 ó >= 2 |
 | `Identity(element)` | Lee ElementTableSO → DisplayName + UiColor |
 | `StateOf(state)` | Lee ElementTableSO → DisplayName + Description |
-| `MarkColor(element)` | Retorna UiColor de elemento o white si alpha 0 |
-| `RoleText(role)` | Mapea Role → "Protector" / "Agresivo" / "Empático" |
-| `RoleInitial(role)` | Mapea Role → "P" / "A" / "E" |
+| `MarkColor(element)` | Retorna UiColor de elemento |
+| `RoleText(role)` | Role → "Protector" / "Agresivo" / "Empático" |
+| `RoleInitial(role)` | Role → "P" / "A" / "E" |
 | `SetVisible(bool)` | Muestra/oculta orderBar |
 
 ## Flujo de Construcción y Actualización
 
 **Evento OnVisualCombatStart:**
 1. EnsureRefs → localiza UIDocument
-2. BuildCards:
-   - Limpia orderBar
-   - Crea teamA (flex-grow)
-   - BuildTeam(A): itera SnapsA, crea OrderCards, cada una en un slot cv-ob-slot (flex-grow max 240px) que contiene Root + StatesRow
-   - Crea gap
-   - Crea teamB y construye igual
-3. SetVisible(true) → muestra barra
+2. BuildCards → crea cartas A y B en slots
+3. SetVisible(true)
 
-**Evento OnActionOrder (S45: reordenación de DOM):**
-- Itera entries en el orden nuevo
-- Por cada entry: obtiene/crea card, llama ApplyState (re-sincroniza Marks/States desde snapshot), agrega Slot al orderBar
-- Resultado: cartas reordenadas en DOM para reflejar orden de atacantes (estable dentro ronda)
+**Evento OnActionOrder:**
+- Itera entries en orden nuevo
+- Por cada entry: obtiene card, re-sincroniza Marks/States desde snapshot, reordena DOM
 
-**Evento OnUnitElement (S45 NEW):**
-- Encuentra card correspondiente a (Side, Index)
-- Muta Marks/States según Kind:
-  - MarkApplied: agrega marca a Marks
-  - MarkRemoved: quita marca de Marks
-  - Reaction: quita Element y ElementB de Marks
-  - StateArmed: agrega State a States
-  - StateConsumed/StateRemoved: quita State de States
-- Llama RebuildElements para re-render AllyMarksRow/StatesRow/EnemyMarksRow
+**Evento OnUnitElement (S46):**
+- Encuentra card correspondiente
+- Muta Marks/States según `Kind`:
+  - `MarkApplied`: agrega marca
+  - `MarkRemoved`: quita marca
+  - `Reaction`: quita Element y ElementB de Marks; **S46:** parsea ReactionName a ElementalState e inserta si no presente
+  - `StateArmed`: agrega State
+  - `StateConsumed` / `StateRemoved`: quita State
+- Llama RebuildElements
 
-**Evento OnActiveUnit:**
-- Recorre todas las cartas
-- Marca solo (side, index) activa con clase "cv-order-card--active" (borde dorado)
-- Otros pierden clase
+**Evento OnUnitAffinity (S46 CAMBIÓ):**
+- Recibe (side, index, affinity) — **sin energy**
+- Llama SetAffinity(card, affinity)
+- Circulitos se llenan si affinity >= 1 ó >= 2
 
-**Evento OnUnitAffinity:**
-- Llama HandleAffinity ignorando parámetro energy
-- Actualiza solo los dots de afinidad
+## Cambios S46
 
-## Estructura Layout CSS S44/S45
+**HandleAffinity firma cambió:**
+- Antes (S42-S45): `void HandleAffinity(CombatVisualSide side, int index, int affinity, int energy)`
+- Ahora (S46): `void HandleAffinity(CombatVisualSide side, int index, int affinity)`
+- Ignora completamente energy (que ya no existe)
 
-**order-bar (raíz, flex-row):**
-- `.cv-ob-team` (A, flex-grow): equipos aliados
-- `.cv-ob-team-gap`: espaciador
-- `.cv-ob-team` (B, flex-grow): equipos enemigos
+**HandleUnitElement para Reaction (S46 NUEVO):**
+```csharp
+case ElementEventKind.Reaction:
+    RemoveMark(card.Marks, d.Element, d.AllySource);
+    RemoveMark(card.Marks, d.ElementB, d.AllySource);
+    if (System.Enum.TryParse<ElementalState>(d.ReactionName, out var reacted)
+     && !card.States.Contains(reacted))
+        card.States.Add(reacted);
+    break;
+```
+- Parsea `ReactionName` (ej: "PisoTierra") a `ElementalState` enum
+- Agrega estado a `card.States` si no está presente
+- Permite que estados INSTANTÁNEOS (que nunca se arman en Combatant.States) se visualicen en la barra por un turno
 
-**slot (.cv-ob-slot, flex-column, flex-grow max 240px):**
-- `cv-order-card` (Root):
-  - `.cv-ob-team-banner` (azul aliado / rojo enemigo) — **S45 NEW**
-  - `.cv-ob-body-row` (nombre + rol)
-  - `.cv-ob-affinity-row` (dots)
-  - `.cv-ob-marks-split` (aliadas izq | enemigas der)
-- `.cv-ob-states-row` (StatesRow, fuera de Root, debajo)
+**Energía completamente eliminada:**
+- No hay circulitos de energía ⚡
+- No hay parámetro energy en OnUnitAffinity
+- Solo circulitos de afinidad (0-2)
 
-**Estados tarjeta:**
-- `.cv-order-card--self` (equipo A, aliado)
-- `.cv-order-card--opp` (equipo B, enemigo)
-- `.cv-order-card--active` (borde dorado, turno activo)
-- `.cv-order-card--dead` (muerto, gris)
+## Ciclo de Vida
 
-**Team banner (S45 NEW):**
-- `.cv-ob-team-banner--self` (azul claro para aliado)
-- `.cv-ob-team-banner--opp` (rojo claro para enemigo)
-
-## S44 Cambios
-
-**Rediseño layout flexible (sin px fijos):**
-- order-bar = teamA (flex-grow) + gap + teamB
-- .cv-ob-slot: flex-grow max 240px (no tamaño fijo)
-- Tooltip dinámico ahora sobre nombre (elemento)
-
-**Eliminar:**
-- TurnMarker ▼ (indicador ▼ desaparece; turno activo = borde dorado)
-- EnergyLabel ⚡ (energía no se muestra en UI)
-- Swatch de color de criatura (quita visual antes de nombre)
-- Mini-chip de elemento (quita cuadrado color, indicador va en nombre coloreado)
-- Helper `SnapshotColor` (nunca usado)
-
-**Nuevos elementos:**
-- OrderLabel: mostrar número de orden (1ero/2do/3ero…) solo si Alive
-- Nombre coloreado con UiColor del elemento → indicador de elemento integrado
-- Chip de rol siempre visible (P/A/E con tooltip)
-
-**CreateMarkChip S44:**
-- Antes (S43): chips de marca sin texto especial
-- Ahora (S44): Label(DisplayName) en blanco, fondo MarkColor(element)
-
-**OrderCard S44:**
-- Borrados: TurnMarker, EnergyLabel
-- Agregados: OrderLabel
-
-**Invariante:** Eventos, flujo de estado, tolerancia para estados muertos (texto vacío en lugar de valor), negativeStates sin cambios.
-
-## S45 Cambios
-
-**Aditivos (append-only):**
-- **Nuevo campo serializado:** None (solo internos)
-- **Nuevos campos en OrderCard:**
-  - `Marks: List<CombatElementMark>` — lista de marcas que se actualiza en vivo por HandleUnitElement
-  - `States: List<ElementalState>` — lista de estados que se actualiza en vivo por HandleUnitElement
-- **Nueva suscripción:** `OnUnitElement += HandleUnitElement` (OnEnable/OnDisable)
-- **Nuevo método privado:** 
-  - `HandleUnitElement(CombatElementEventData d)` — maneja eventos elementales por-proc (muta Marks/States)
-  - `RemoveMark(List<CombatElementMark> marks, Element element, bool ally)` — helper para quitar marca específica
-  - `RebuildElements(OrderCard card)` — helper para reconstruir filas de marcas/estados desde listas actuales
-- **Banner de equipo (S45 NEW):**
-  - Nuevo VisualElement `.cv-ob-team-banner` (azul si self, rojo si opp) agregado a cada CreateCard
-  - CSS: altura pequeña, ancho 100%, fondo semitransparente
-- **ApplyState actualizado (S45):**
-  - Ahora re-sincroniza Marks/States desde entry.State (snapshot) — permite que tras DisplayOrder se corrija si hubo desincronización
-  - Luego llama `RebuildElements(card)`
-- **HandleAffinity actualizado (S45):**
-  - Ignora completamente parámetro `energy` (antes se ignoraba)
-  - Solo actualiza dots de afinidad
-
-**Invariante:** Eventos OnActionOrder/OnActiveUnit/OnUnitAffinity siguen sin cambios; nuevas capas HandleUnitElement sólo mutan Marks/States listas en paralelo.
-
-## Notas S45
-
-- **Por-proc updates:** Cuando PlayProc emite OnUnitElement por MarkApplied, HandleUnitElement agrega la marca a card.Marks; RebuildElements reconstruye AllyMarksRow
-- **Re-sincronización:** Al cambiar de turno, OnActionOrder dispara ApplyState que re-sincroniza Marks/States desde snapshot (entry.State), cerrando cualquier desvío acumulado por errores de proc
-- **Energía eliminada:** Energy indicator (⚡ label) no existe en S45; OnUnitAffinity parámetro energy ignorado por completo
-- **Orden estable:** Cartas reordenadas en DOM por HandleOrder (OnActionOrder), reflejando orden.TurnNumber estable desde roundOrders en CombatVisualizerService
-- **Dead-actors:** Si unidad muere, estado "dead" se marca vía clase css, pero Marks/States listos siguen actualizando (silenciosamente, para snapshots históricos)
+1. **OnVisualCombatStart:** Se crean las cartas estáticas
+2. **OnActionOrder:** Cada turno, se reordenan las cartas en el DOM (orden estable dentro ronda)
+3. **OnUnitElement (por-proc):** Conforme salen procs, se actualizan las marcas/estados en vivo
+4. **OnUnitAffinity (fin-de-turno):** Se actualiza afinidad (sin energy)
+5. **OnActiveUnit:** Se marca quién está en turno actual
 
 ## Vinculado a
 
-- [[CombatVisualEvents]] — suscriptor (OnVisualCombatStart, OnActionOrder, OnUnitAffinity, OnActiveUnit, **S45: OnUnitElement**)
-- [[CombatVisualizerService]] — publicador de eventos
-- [[ElementTableSO]] — fuente de DisplayName + UiColor + StateDefinition
-- [[CombatVisualContext]] — contexto snapshot de combate
-- [[Index/13 - Combat Design Direction]] — tabla de estados y estructura 3v3
+- [[Index/03 - Combat System]]
+- [[Index/13 - Combat Design Direction]]
+- [[CombatVisualEvents]] — suscriptor (S46: OnUnitAffinity sin energy, HandleUnitElement parsea ReactionName)
+- [[CombatVisualizerService]] — publisher de OnActionOrder/OnUnitAffinity/OnActiveUnit/OnUnitElement
+- [[ElementTableSO]] — proveedor de DisplayName + UiColor + Description
+
+## Notas S46
+
+- Affinidad es el único recurso visible (2 circulitos)
+- Energy⚡ fue completamente removido del display
+- ReactionName parsing a ElementalState permite visualizar estados que se disparan instantáneamente (ej: PisoTierra)
+- Backward compat: Energía simplemente no se utiliza en el UI (parámetro omitido de OnUnitAffinity)
