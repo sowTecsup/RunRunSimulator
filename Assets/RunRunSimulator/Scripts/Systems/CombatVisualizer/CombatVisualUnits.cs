@@ -19,6 +19,7 @@ public class CombatVisualUnit
     public MoriMonchiCombatVisualizerUITK Bar;
     public MoriMonchiProceduralAnimator Anim;
     public Transform Anchor;
+    public Unity.Cinemachine.CinemachineCamera VCam;
 }
 
 // Owns spawn/lookup/lifecycle of the up-to-3-per-side combat visual units. Collaborator
@@ -86,6 +87,7 @@ public class CombatVisualUnits
             vcam.Priority = 0;
             vcam.LookAt = inst.transform;
             vcamGo.AddComponent<Unity.Cinemachine.CinemachineRotationComposer>();
+            unit.VCam = vcam;
         }
     }
 

@@ -26,6 +26,13 @@ public class CombatVisualizerService : MonoBehaviour
     [SerializeField, MinValue(0f)] private float betweenTurnsSeconds = 0.55f;
     [SerializeField, MinValue(0f)] private float deathPauseSeconds   = 0.6f;
     [SerializeField, MinValue(0f)] private float synergyPopupDelay   = 0.6f;
+    [SerializeField, MinValue(0f)] private float stateBeatSeconds    = 0.5f;
+
+    [Title("Speech (frases tweakeables)")]
+    [SerializeField] private string protectorLine = "¡Toma, protégete!";
+    [SerializeField] private string empaticoLine  = "¡{0}, te curo!";
+    [SerializeField] private string agresivoLine  = "¡Te comparto mi espíritu de pelea!";
+    [SerializeField, MinValue(0.2f)] private float speechSeconds = 1.6f;
 
     [Title("Playback")]
     [SerializeField, Range(0.25f, 4f)] private float playbackSpeed = 1f;
@@ -178,6 +185,8 @@ public class CombatVisualizerService : MonoBehaviour
         playbackSpeed = Mathf.Clamp(value, 0.25f, 4f);
         Publish();
     }
+
+    public Unity.Cinemachine.CinemachineCamera VCamOf(CombatVisualSide side, int index) => units.Get(side, index)?.VCam;
 
     private static List<CombatUnitState> BuildInitialState(List<CombatFighterSnapshot> snaps)
     {
@@ -378,7 +387,7 @@ public class CombatVisualizerService : MonoBehaviour
 
         if (t.Procs != null)
             foreach (var pe in t.Procs)
-                if (pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe));
+                if (pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe, target));
 
         if (!t.NoAttack)
         {
@@ -406,6 +415,7 @@ public class CombatVisualizerService : MonoBehaviour
             }
 
             PushHp(defSide, target.DefenderIndex, t.DefenderHpAfter);
+            PushShield(defSide, target.DefenderIndex, t.DefenderShieldAfter);
             if (t.Damage >= 0.5f)
                 CombatVisualEvents.Popup(new CombatVisualPopup
                 {
@@ -417,11 +427,12 @@ public class CombatVisualizerService : MonoBehaviour
 
         if (t.Procs != null)
             foreach (var pe in t.Procs)
-                if (!pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe));
+                if (!pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe, target));
 
         current = target;
         PushStatusAll(target);
         PushElements(target);
+        PushShieldAll(target);
         Publish();
 
         bool anyDied = false;
@@ -470,7 +481,7 @@ public class CombatVisualizerService : MonoBehaviour
         PublishOrder();
     }
 
-    private IEnumerator PlayProc(CombatProcEvent pe)
+    private IEnumerator PlayProc(CombatProcEvent pe, CombatNode node)
     {
         var side = SimToVisual(pe.TargetIsA);
         var unit = units.Get(side, pe.TargetIndex);
@@ -488,6 +499,7 @@ public class CombatVisualizerService : MonoBehaviour
                 HasOverrideColor = elementTable != null,
                 OverrideColor = elementTable != null ? elementTable.GetIdentity(pe.Element).UiColor : Color.white,
             });
+            units.Get(side, pe.TargetIndex)?.Bar?.FlashReaction(pe.ReactionName, elementTable != null ? elementTable.GetIdentity(pe.Element).UiColor : Color.white);
         }
         else if (pe.ElementEvent != ElementEventKind.None)
         {
@@ -503,6 +515,15 @@ public class CombatVisualizerService : MonoBehaviour
             RaiseProcPopup(pe, unit, delta);
         }
 
+        if (pe.ElementEvent == ElementEventKind.None && pe.Kind == ModifierEffectKind.Shield)
+            EmitSpeech(node.AttackerSide, node.AttackerIndex, protectorLine, side, pe.TargetIndex, true);
+        else if (pe.ElementEvent == ElementEventKind.None && pe.Kind == ModifierEffectKind.Heal && !pe.BeforeStrike)
+            EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(empaticoLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
+        else if (pe.ElementEvent == ElementEventKind.EnergyGained && !(side == node.AttackerSide && pe.TargetIndex == node.AttackerIndex))
+            EmitSpeech(node.AttackerSide, node.AttackerIndex, agresivoLine, side, pe.TargetIndex, true);
+        else if (pe.ElementEvent == ElementEventKind.StateArmed)
+            EmitSpeech(side, pe.TargetIndex, $"¡Quedé {StateName(pe.State)}!", side, pe.TargetIndex, false);
+
         PushHp(side, pe.TargetIndex, pe.TargetHpAfter);
         if (pe.TargetStatusAfter != null) unit.Bar?.SetStatus(pe.TargetStatusAfter);
 
@@ -510,14 +531,54 @@ public class CombatVisualizerService : MonoBehaviour
         else if (pe.ElementEvent == ElementEventKind.EnergyGained) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, 0, (int)pe.Amount);
         else if (pe.ElementEvent == ElementEventKind.EnergySpent) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, -1, (int)pe.Amount);
 
+        bool beat = pe.ElementEvent == ElementEventKind.Reaction
+                 || pe.ElementEvent == ElementEventKind.StateArmed
+                 || pe.ElementEvent == ElementEventKind.StateConsumed
+                 || (pe.ElementEvent == ElementEventKind.None && (pe.Kind == ModifierEffectKind.Shield || pe.Kind == ModifierEffectKind.Heal));
+        if (beat) yield return new WaitForSeconds(stateBeatSeconds / Speed);
+
         yield return new WaitForSeconds(impactSeconds / Speed);
     }
 
     private CombatVisualSide SimToVisual(bool simIsA)
         => simIsA == activeRecord.SelfWasA ? CombatVisualSide.A : CombatVisualSide.B;
 
+    private void EmitSpeech(CombatVisualSide speakerSide, int speakerIndex, string text, CombatVisualSide targetSide, int targetIndex, bool hasTarget)
+    {
+        var follow = units.TransformOf(speakerSide, speakerIndex);
+        if (follow == null) return;
+        CombatVisualEvents.Speech(new CombatSpeechData
+        {
+            Side         = speakerSide,
+            Index        = speakerIndex,
+            Text         = text,
+            HasColor     = false,
+            Duration     = speechSeconds / Speed,
+            Follow       = follow,
+            HasTarget    = hasTarget,
+            TargetSide   = targetSide,
+            TargetIndex  = targetIndex,
+            TargetFollow = hasTarget ? units.TransformOf(targetSide, targetIndex) : null,
+        });
+    }
+
+    private string SnapName(CombatVisualSide side, int index)
+    {
+        var team = side == CombatVisualSide.A ? activeRecord.SelfTeam : activeRecord.OpponentTeam;
+        return team != null && index >= 0 && index < team.Count ? team[index].Name : "";
+    }
+
     private void RaiseProcPopup(CombatProcEvent pe, CombatVisualUnit unit, float delta)
     {
+        if (pe.Kind == ModifierEffectKind.Shield)
+        {
+            CombatVisualEvents.Popup(new CombatVisualPopup
+            {
+                Side = unit.Side, Position = units.PosOf(unit.Side, unit.Index), Follow = units.TransformOf(unit.Side, unit.Index),
+                Kind = CombatPopupKind.Shield, Amount = pe.Amount,
+            });
+            return;
+        }
         if (pe.Kind == ModifierEffectKind.Stun)
         {
             CombatVisualEvents.Popup(new CombatVisualPopup
@@ -571,6 +632,7 @@ public class CombatVisualizerService : MonoBehaviour
                 ModifierEffectKind.Burn   => $"{who} se incendia",
                 ModifierEffectKind.Regen  => $"{who} entra en regeneración",
                 ModifierEffectKind.Stun   => $"{who} queda aturdido {pe.Amount:F0}t",
+                ModifierEffectKind.Shield => $"{who} recibe escudo (+{pe.Amount:F0})",
                 _                         => $"{who} — {pe.Kind}",
             };
         }
@@ -599,7 +661,7 @@ public class CombatVisualizerService : MonoBehaviour
         ElementEventKind.StateArmed    => $"{who} queda {StateName(pe.State)}",
         ElementEventKind.StateConsumed => $"{who} consume {StateName(pe.State)}",
         ElementEventKind.StateRemoved  => $"{who} pierde {StateName(pe.State)}",
-        ElementEventKind.MarkApplied   => $"{who} recibe marca {ElemName(pe.Element)}{(pe.AllySource ? " (aliada)" : "")}",
+        ElementEventKind.MarkApplied   => $"{who} recibe marca {ElemName(pe.Element)} {(pe.AllySource ? "aliada" : "enemiga")}",
         ElementEventKind.MarkRemoved   => $"{who} pierde la marca {ElemName(pe.Element)}",
         ElementEventKind.Heal          => $"{who} se cura {Mathf.Abs(delta):F0}",
         ElementEventKind.Damage        => $"{who} recibe {Colored($"{Mathf.Abs(delta):F0}", DamageColor)}",
@@ -626,6 +688,7 @@ public class CombatVisualizerService : MonoBehaviour
             units.SetActive(unit, !dead);
             RestoreAnim(unit?.Anim, dead);
             PushHp(CombatVisualSide.A, i, state.Hp);
+            PushShield(CombatVisualSide.A, i, state.Shield);
             unit?.Bar?.SetStatus(state.Marks);
         }
         for (int i = 0; i < node.StateB.Count; i++)
@@ -636,6 +699,7 @@ public class CombatVisualizerService : MonoBehaviour
             units.SetActive(unit, !dead);
             RestoreAnim(unit?.Anim, dead);
             PushHp(CombatVisualSide.B, i, state.Hp);
+            PushShield(CombatVisualSide.B, i, state.Shield);
             unit?.Bar?.SetStatus(state.Marks);
         }
 
@@ -683,6 +747,17 @@ public class CombatVisualizerService : MonoBehaviour
         CombatVisualEvents.HpChanged(side, hp, unit.MaxHp);
     }
 
+    private void PushShield(CombatVisualSide side, int index, float shield)
+        => units.Get(side, index)?.Bar?.SetShield(shield);
+
+    private void PushShieldAll(CombatNode node)
+    {
+        for (int i = 0; i < node.StateA.Count; i++)
+            PushShield(CombatVisualSide.A, i, node.StateA[i].Shield);
+        for (int i = 0; i < node.StateB.Count; i++)
+            PushShield(CombatVisualSide.B, i, node.StateB[i].Shield);
+    }
+
     private void PushStatusAll(CombatNode node)
     {
         for (int i = 0; i < node.StateA.Count; i++)
@@ -706,6 +781,7 @@ public class CombatVisualizerService : MonoBehaviour
                             Label = ElemName(m.Element),
                             Color = elementTable != null ? elementTable.GetIdentity(m.Element).UiColor : Color.white,
                             AllySource = m.AllySource,
+                            Negative = false,
                         });
 
                 var armedChips = new List<ElementChipData>();
@@ -716,6 +792,7 @@ public class CombatVisualizerService : MonoBehaviour
                             Label = StateName(s),
                             Color = CombatElements.IsNegative(s) ? new Color(0.95f, 0.4f, 0.35f) : new Color(0.45f, 0.9f, 0.55f),
                             AllySource = false,
+                            Negative = CombatElements.IsNegative(s),
                         });
 
                 units.Get(side, i)?.Bar?.SetElementState(markChips, armedChips);

@@ -18,13 +18,12 @@ public class CombatOrderBarUITK : MonoBehaviour
     private class OrderCard
     {
         public VisualElement Root;
-        public Label         TurnMarker;
+        public Label         OrderLabel;
         public VisualElement AllyMarksRow;
         public VisualElement EnemyMarksRow;
         public VisualElement StatesRow;
         public VisualElement AffinityDot0;
         public VisualElement AffinityDot1;
-        public Label         EnergyLabel;
     }
 
     private VisualElement root;
@@ -108,16 +107,23 @@ public class CombatOrderBarUITK : MonoBehaviour
     {
         orderBar.Clear();
         cards.Clear();
-        BuildTeam(CombatVisualSide.A, ctx.SnapsA, ctx.TeamA);
+
+        var teamA = new VisualElement();
+        teamA.AddToClassList("cv-ob-team");
+        orderBar.Add(teamA);
+        BuildTeam(teamA, CombatVisualSide.A, ctx.SnapsA, ctx.TeamA);
 
         var teamGap = new VisualElement();
         teamGap.AddToClassList("cv-ob-team-gap");
         orderBar.Add(teamGap);
 
-        BuildTeam(CombatVisualSide.B, ctx.SnapsB, ctx.TeamB);
+        var teamB = new VisualElement();
+        teamB.AddToClassList("cv-ob-team");
+        orderBar.Add(teamB);
+        BuildTeam(teamB, CombatVisualSide.B, ctx.SnapsB, ctx.TeamB);
     }
 
-    private void BuildTeam(CombatVisualSide side, List<CombatFighterSnapshot> snaps, List<CreatureDNA> team)
+    private void BuildTeam(VisualElement teamContainer, CombatVisualSide side, List<CombatFighterSnapshot> snaps, List<CreatureDNA> team)
     {
         if (snaps == null) return;
 
@@ -126,7 +132,12 @@ public class CombatOrderBarUITK : MonoBehaviour
             var element = team != null && i < team.Count && team[i] != null ? team[i].Element : Element.Agua;
             var card    = CreateCard(side, snaps[i], element);
             cards[(side, i)] = card;
-            orderBar.Add(card.Root);
+
+            var slot = new VisualElement();
+            slot.AddToClassList("cv-ob-slot");
+            slot.Add(card.Root);
+            slot.Add(card.StatesRow);
+            teamContainer.Add(slot);
         }
     }
 
@@ -136,37 +147,24 @@ public class CombatOrderBarUITK : MonoBehaviour
         cardRoot.AddToClassList("cv-order-card");
         cardRoot.AddToClassList(side == CombatVisualSide.A ? "cv-order-card--self" : "cv-order-card--opp");
 
-        var turnMarker = new Label("▼");
-        turnMarker.AddToClassList("cv-ob-turn-marker");
-        turnMarker.style.display = DisplayStyle.None;
-        cardRoot.Add(turnMarker);
-
-        var allyRow = new VisualElement();
-        allyRow.AddToClassList("cv-ob-mark-row");
-        cardRoot.Add(allyRow);
+        var orderLabel = new Label("");
+        orderLabel.AddToClassList("cv-ob-order-num");
+        cardRoot.Add(orderLabel);
 
         var body = new VisualElement();
-        body.AddToClassList("cv-ob-body");
+        body.AddToClassList("cv-ob-body-row");
         cardRoot.Add(body);
-
-        var swatch = new VisualElement();
-        swatch.AddToClassList("cv-ob-swatch");
-        swatch.style.backgroundColor = SnapshotColor(snap);
-        body.Add(swatch);
 
         var nameLabel = new Label(snap.Name);
         nameLabel.AddToClassList("cv-ob-name");
+        nameLabel.style.color = MarkColor(element);
+        RegisterTooltip(nameLabel, $"Elemento: {Identity(element).DisplayName}");
         body.Add(nameLabel);
 
-        var roleLabel = new Label(RoleText(snap.Role));
-        roleLabel.AddToClassList("cv-ob-role");
-        body.Add(roleLabel);
-
-        var identity  = Identity(element);
-        var elemLabel = new Label(identity.DisplayName);
-        elemLabel.AddToClassList("cv-ob-elem");
-        elemLabel.style.color = identity.UiColor;
-        body.Add(elemLabel);
+        var roleChip = new Label(RoleInitial(snap.Role));
+        roleChip.AddToClassList("cv-ob-role-chip");
+        RegisterTooltip(roleChip, $"Rol: {RoleText(snap.Role)}");
+        body.Add(roleChip);
 
         var affinityRow = new VisualElement();
         affinityRow.AddToClassList("cv-ob-affinity-row");
@@ -180,28 +178,32 @@ public class CombatOrderBarUITK : MonoBehaviour
         dot1.AddToClassList("cv-ob-dot");
         affinityRow.Add(dot1);
 
-        var energyLabel = new Label("");
-        energyLabel.AddToClassList("cv-ob-energy");
-        affinityRow.Add(energyLabel);
+        var marksSplit = new VisualElement();
+        marksSplit.AddToClassList("cv-ob-marks-split");
+        cardRoot.Add(marksSplit);
+
+        var allyCol = new VisualElement();
+        allyCol.AddToClassList("cv-ob-marks-col");
+        allyCol.AddToClassList("cv-ob-marks-col--ally");
+        marksSplit.Add(allyCol);
+
+        var enemyCol = new VisualElement();
+        enemyCol.AddToClassList("cv-ob-marks-col");
+        enemyCol.AddToClassList("cv-ob-marks-col--enemy");
+        marksSplit.Add(enemyCol);
 
         var statesRow = new VisualElement();
         statesRow.AddToClassList("cv-ob-states-row");
-        cardRoot.Add(statesRow);
-
-        var enemyRow = new VisualElement();
-        enemyRow.AddToClassList("cv-ob-mark-row");
-        cardRoot.Add(enemyRow);
 
         return new OrderCard
         {
             Root          = cardRoot,
-            TurnMarker    = turnMarker,
-            AllyMarksRow  = allyRow,
-            EnemyMarksRow = enemyRow,
+            OrderLabel    = orderLabel,
+            AllyMarksRow  = allyCol,
+            EnemyMarksRow = enemyCol,
             StatesRow     = statesRow,
             AffinityDot0  = dot0,
             AffinityDot1  = dot1,
-            EnergyLabel   = energyLabel,
         };
     }
 
@@ -209,12 +211,31 @@ public class CombatOrderBarUITK : MonoBehaviour
     {
         if (!EnsureRefs() || !hasCtx || order == null) return;
 
+        int pos = 0;
         foreach (var entry in order)
         {
             if (!cards.TryGetValue((entry.Side, entry.Index), out var card)) continue;
             ApplyState(card, entry);
+
+            if (entry.Alive)
+            {
+                pos++;
+                card.OrderLabel.text = Ordinal(pos);
+            }
+            else
+            {
+                card.OrderLabel.text = "";
+            }
         }
     }
+
+    private static string Ordinal(int n) => n switch
+    {
+        1 => "1ero",
+        2 => "2do",
+        3 => "3ero",
+        _ => n + "to",
+    };
 
     private void HandleActiveUnit(CombatVisualSide side, int index)
     {
@@ -224,7 +245,6 @@ public class CombatOrderBarUITK : MonoBehaviour
         {
             bool isActive = kvp.Key.Side == side && kvp.Key.Index == index;
             kvp.Value.Root.EnableInClassList("cv-order-card--active", isActive);
-            kvp.Value.TurnMarker.style.display = isActive ? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 
@@ -236,7 +256,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         BuildMarkRow(card.AllyMarksRow, state?.ElementMarks, true);
         BuildMarkRow(card.EnemyMarksRow, state?.ElementMarks, false);
         BuildStatesRow(card.StatesRow, state?.ArmedStates);
-        SetAffinity(card, state?.Affinity ?? 0, state?.Energy ?? 0);
+        SetAffinity(card, state?.Affinity ?? 0);
     }
 
     private void HandleAffinity(CombatVisualSide side, int index, int affinity, int energy)
@@ -248,8 +268,6 @@ public class CombatOrderBarUITK : MonoBehaviour
             card.AffinityDot0.EnableInClassList("cv-ob-dot--filled", affinity >= 1);
             card.AffinityDot1.EnableInClassList("cv-ob-dot--filled", affinity >= 2);
         }
-        if (energy >= 0)
-            card.EnergyLabel.text = energy > 0 ? $"⚡{energy}" : "";
     }
 
     private void BuildMarkRow(VisualElement row, List<CombatElementMark> marks, bool ally)
@@ -266,7 +284,7 @@ public class CombatOrderBarUITK : MonoBehaviour
 
     private VisualElement CreateMarkChip(CombatElementMark mark)
     {
-        var chip = new VisualElement();
+        var chip = new Label(Identity(mark.Element).DisplayName);
         chip.AddToClassList("cv-ob-mark-chip");
         chip.style.backgroundColor = MarkColor(mark.Element);
 
@@ -296,11 +314,10 @@ public class CombatOrderBarUITK : MonoBehaviour
         return chip;
     }
 
-    private void SetAffinity(OrderCard card, int affinity, int energy)
+    private void SetAffinity(OrderCard card, int affinity)
     {
         card.AffinityDot0.EnableInClassList("cv-ob-dot--filled", affinity >= 1);
         card.AffinityDot1.EnableInClassList("cv-ob-dot--filled", affinity >= 2);
-        card.EnergyLabel.text = energy > 0 ? $"⚡{energy}" : "";
     }
 
     private void RegisterTooltip(VisualElement chip, string text)
@@ -338,15 +355,20 @@ public class CombatOrderBarUITK : MonoBehaviour
         return color.a <= 0f ? Color.white : color;
     }
 
-    private static Color SnapshotColor(CombatFighterSnapshot s) =>
-        !string.IsNullOrEmpty(s.ColorHex) && ColorUtility.TryParseHtmlString("#" + s.ColorHex, out var c) ? c : Color.gray;
-
     private static string RoleText(Role role) => role switch
     {
         Role.Protector => "Protector",
         Role.Agresivo  => "Agresivo",
         Role.Empatico  => "Empático",
         _              => role.ToString(),
+    };
+
+    private static string RoleInitial(Role role) => role switch
+    {
+        Role.Protector => "P",
+        Role.Agresivo  => "A",
+        Role.Empatico  => "E",
+        _              => role.ToString().Substring(0, 1),
     };
 
     private void SetVisible(bool v)

@@ -4,11 +4,11 @@ tags: [combat, visualization, ui, presenter, numbers-pro]
 
 # CombatDamageNumbers
 
-MonoBehaviour presenter que responde a `CombatVisualEvents.OnPopup` y spawna números flotantes animados (package DamageNumbersPro). Una instancia en escena, suscrita al bus de eventos de visualización de combate. **S42:** Renderiza ReactionName + color custom para popups elementales (Kind Reaction).
+MonoBehaviour presenter que responde a `CombatVisualEvents.OnPopup` y spawna números flotantes animados (package DamageNumbersPro). Una instancia en escena, suscrita al bus de eventos de visualización de combate. **S42:** Renderiza ReactionName + color custom para popups elementales (Kind Reaction). **S43:** Label "Escudo" para CombatPopupKind.Shield.
 
 ## Responsabilidad
 
-Convertir `CombatVisualPopup` eventos en instancias de `DamageNumber` animadas: posiciona el número, setea el label (texto descriptivo por tipo), color via paleta o override custom, sigue al luchador si `Follow != null`, y habilita/desabilita el número según el tipo. **S42:** Soporte para popups de reacción con ReactionName custom + color de elemento.
+Convertir `CombatVisualPopup` eventos en instancias de `DamageNumber` animadas: posiciona el número, setea el label (texto descriptivo por tipo), color via paleta o override custom, sigue al luchador si `Follow != null`, y habilita/desabilita el número según el tipo. **S42:** Soporte para popups de reacción con ReactionName custom + color de elemento. **S43:** Label "Escudo" para popups de escudo.
 
 ## Campos Serializados
 
@@ -39,11 +39,11 @@ Permite asignar un prefab diferente para cada tipo de popup (ej: Poison usa pref
 |--------|-------------|
 | `OnEnable()` | Suscribe `CombatVisualEvents.OnPopup += HandlePopup` |
 | `OnDisable()` | Desuscribe `CombatVisualEvents.OnPopup -= HandlePopup` |
-| `HandlePopup(CombatVisualPopup p)` | Spawna número, setea texto/color/scale/follow según `p.Kind` (S42: con Text/OverrideColor) |
+| `HandlePopup(CombatVisualPopup p)` | Spawna número, setea texto/color/scale/follow según `p.Kind` (S42: con Text/OverrideColor, S43: Shield) |
 | `ResolvePrefab(CombatPopupKind kind)` | Busca override en `prefabOverrides`, fallback a `numberPrefab` |
-| `Label(CombatPopupKind kind)` | Static helper: retorna label localizado (S42: Reaction vacío) |
+| `Label(CombatPopupKind kind)` | Static helper: retorna label localizado (S43: Shield → "Escudo") |
 
-## Lógica de HandlePopup (S42 ACTUALIZADO)
+## Lógica de HandlePopup (S43 IGUAL A S42)
 
 ```csharp
 private void HandlePopup(CombatVisualPopup p)
@@ -58,7 +58,7 @@ private void HandlePopup(CombatVisualPopup p)
     dn.enableTopText = true;
     dn.topText       = string.IsNullOrEmpty(p.Text) ? Label(p.Kind) : p.Text;
 
-    if (p.HasOverrideColor) dn.SetColor(p.OverrideColor);           // S42 NEW
+    if (p.HasOverrideColor) dn.SetColor(p.OverrideColor);
     else if (palette != null) dn.SetColor(palette.GetColor(p.Kind));
     if (p.Follow != null) dn.SetFollowedTarget(p.Follow);
 
@@ -73,12 +73,12 @@ private void HandlePopup(CombatVisualPopup p)
 }
 ```
 
-**Flujo (S42 cambio):**
+**Flujo (sin cambios S43):**
 1. `ResolvePrefab()` — busca override antes de usar `numberPrefab`
 2. Spawn número en `p.Position + spawnOffset`
 3. Habilita número si `Kind != Stun` y `Amount >= 0.5f` (casos textuales sin número)
-4. Setea `topText = p.Text if not empty else Label(p.Kind)` — **S42:** soporte para ReactionName custom
-5. **S42 NUEVO:** Colorea via `p.OverrideColor` si `HasOverrideColor`, sino fallback a paleta
+4. Setea `topText = p.Text if not empty else Label(p.Kind)` — soporte para ReactionName custom + ahora Shield
+5. Colorea via `p.OverrideColor` si `HasOverrideColor`, sino fallback a paleta
 6. `SetFollowedTarget(p.Follow)` si Follow no es null — popups siguen al luchador dinámicamente
 7. Para Heal/Regen: agrega `enableLeftText = "+"` (quirk de DamageNumbersPro)
 8. Para Crit: escala por critScale
@@ -96,33 +96,34 @@ private DamageNumber ResolvePrefab(CombatPopupKind kind)
 }
 ```
 
-Busca secuencialmente en `prefabOverrides` un match para `kind`. Si encuentra, retorna su `Prefab`. Si no, fallback a `numberPrefab`. Esto permite builds customizadas (ej: Poison usa prefab_poison con sprite de gota verde, Crit usa prefab_crit más grande).
+Busca secuencialmente en `prefabOverrides` un match para `kind`. Si encuentra, retorna su `Prefab`. Si no, fallback a `numberPrefab`. Esto permite builds customizadas (ej: Poison usa prefab_poison con sprite de gota verde, Crit usa prefab_crit más grande, Shield con color azul).
 
-## Label (S32+S35+S42)
+## Label (S32+S35+S42+S43)
 
 ```csharp
 private static string Label(CombatPopupKind kind) => kind switch
 {
-    CombatPopupKind.Hit       => "Golpe",
-    CombatPopupKind.Crit      => "¡Crítico!",
-    CombatPopupKind.Poison    => "Veneno",
-    CombatPopupKind.Burn      => "Quemadura",
-    CombatPopupKind.Thorns    => "Espinas",
-    CombatPopupKind.Heal      => "Cura",
-    CombatPopupKind.Regen     => "Regeneración",
-    CombatPopupKind.Stun      => "Aturdido",
-    CombatPopupKind.Synergy   => "¡Sinergia!",
+    CombatPopupKind.Hit    => "Golpe",
+    CombatPopupKind.Crit   => "¡Crítico!",
+    CombatPopupKind.Poison => "Veneno",
+    CombatPopupKind.Burn   => "Quemadura",
+    CombatPopupKind.Thorns => "Espinas",
+    CombatPopupKind.Heal   => "Cura",
+    CombatPopupKind.Regen  => "Regeneración",
+    CombatPopupKind.Stun   => "Aturdido",
+    CombatPopupKind.Synergy => "¡Sinergia!",
     CombatPopupKind.Static    => "Static",
     CombatPopupKind.Pulse     => "Pulse",
     CombatPopupKind.Steel     => "Steel",
     CombatPopupKind.Mist      => "Mist",
     CombatPopupKind.Lifesteal => "Robo de vida",
-    CombatPopupKind.Reaction  => "¡Reacción!",     // S42: fallback (usa p.Text si disponible)
-    _                         => "",
+    CombatPopupKind.Shield => "Escudo",         // S43 NEW
+    CombatPopupKind.Reaction => "¡Reacción!",   // S42
+    _                      => "",
 };
 ```
 
-**S42:** Label para `Reaction` = "¡Reacción!" (fallback si p.Text vacío, pero normalmente se usa ReactionName custom p.ej. "¡Vaporizado!").
+**S43:** Nuevo label para `Shield` = "Escudo" (popup de restauración de escudo mid-turno, post-defensa Protector).
 
 ## Cambios S32
 
@@ -163,13 +164,22 @@ Esto permite popups textuales sin número para Stun y Synergy. `CombatVisualizer
 
 **Invariante:** Eventos 1v1 legacy siguen funcionando, labels viejos intactos.
 
+## Cambios S43
+
+**Aditivos (append-only):**
+- **Nuevo Kind:** `CombatPopupKind.Shield` para popups de escudo (blue 4px track en barra world-space)
+- **Nuevo Label:** "Escudo" (en switch Label)
+- **Integración CombatVisualizerService:** PushShield/PushShieldAll emiten popup Shield con Amount = shield value cuando se restaura escudo post-turno o mid-golpe con DefenderShieldAfter
+
+**Invariante:** Flujo de HandlePopup sin cambios; solo se agregó case Shield al switch.
+
 ## Vinculado a
 
 - [[Index/03 - Combat]]
 - [[CombatVisualEvents]] — `OnPopup` evento, struct `CombatVisualPopup`
 - [[CombatPopupPaletteSO]] — ref a instancia SO para obtener colores
-- [[CombatVisualizerService]] — levanta popups via `CombatVisualEvents.Popup()`, setea `Follow = FighterTransform()`, **S42:** popups de reacción con ReactionName + OverrideColor
-- [[Enums]] — `CombatPopupKind` (incluye Reaction S42)
+- [[CombatVisualizerService]] — levanta popups via `CombatVisualEvents.Popup()`, setea `Follow = FighterTransform()`, **S42:** popups de reacción con ReactionName + OverrideColor, **S43:** popups de escudo via PushShield
+- [[Enums]] — `CombatPopupKind` (incluye Reaction S42, Shield S43)
 - [[DamageNumbersPro]] — package externo, API `Spawn(), SetColor(), SetFollowedTarget(), SetScale(), UpdateText()`
 
 ## Conexiones
@@ -188,6 +198,7 @@ Esto permite popups textuales sin número para Stun y Synergy. `CombatVisualizer
 - `Follow` permite popups dinámicos (oscilan alrededor del luchador en lugar de quedar fijos en posición inicial)
 - **Quirk Heal/Regen:** DamageNumbersPro `Spawn(pos, amount)` activa `enableNumber` pero no `enableLeftText` automáticamente; obligatorio settear `"+"` manualmente
 - **prefabOverrides:** Extensible — agregar más KindPrefabOverride en inspector para customizar por tipo
-- Los labels son españolizados: "Golpe", "¡Crítico!", "Veneno", etc.
+- Los labels son españolizados: "Golpe", "¡Crítico!", "Veneno", "Escudo", etc.
 - **S42:** Reacciones elementales priorizan texto custom (ReactionName) + color de elemento sobre labels/palette
+- **S43:** Escudo muestra valor en popup (Amount = shield value, label "Escudo" + número azul)
 - critScale serializado permite tuning visual del énfasis de crits

@@ -4,11 +4,11 @@ tags: [combat, visualization, events, bus, 3v3]
 
 # CombatVisualEvents
 
-Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). Es puramente un `public static class` con eventos y métodos helper. **S41:** Aditivo con datos de 3v3 (equipos, indices, eventos por unit). **S42:** Nuevos eventos para barra de orden de acción y afinidad/energía.
+Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). Es puramente un `public static class` con eventos y métodos helper. **S41:** Aditivo con datos de 3v3 (equipos, indices, eventos por unit). **S42:** Nuevos eventos para barra de orden de acción y afinidad/energía. **S43:** Struct `CombatSpeechData` + evento `OnSpeech` para globos de habla cómic + `Negative` en `ElementChipData`.
 
 ## Responsabilidad
 
-Transportar datos de replay (contexto, turnos, hits, popups, log) desde el visualizador a listeners sin acoplamiento directo. Un publisher central para ~15 eventos de replay (S42 aditivos).
+Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden) desde el visualizador a listeners sin acoplamiento directo. Un publisher central para ~16 eventos de replay (S43 aditivos).
 
 ## Enums
 
@@ -76,14 +76,14 @@ Datos de popup flotante.
 |-------|------|-------------|
 | `Side` | `CombatVisualSide` | Quién recibe popup (A o B) |
 | `Position` | `Vector3` | Posición mundo (si Follow es null) |
-| `Kind` | `CombatPopupKind` | Tipo (Hit, Crit, Poison, Reaction, etc.) |
-| `Amount` | `float` | Magnitud (daño, curación, etc.) |
+| `Kind` | `CombatPopupKind` | Tipo (Hit, Crit, Poison, Reaction, Shield, etc.) |
+| `Amount` | `float` | Magnitud (daño, curación, escudo, etc.) |
 | `Follow` | `Transform` | Transform del luchador para seguimiento (S34+) |
 | `Text` | `string` | **S42 NEW** Texto custom (p.ej. ReactionName) |
 | `OverrideColor` | `Color` | **S42 NEW** Color custom (p.ej. color del elemento) |
 | `HasOverrideColor` | `bool` | **S42 NEW** Si usar OverrideColor o palette |
 
-### ElementChipData (S42 NEW)
+### ElementChipData (S42 NEW, S43 + Negative)
 
 Descriptor de chip elemental para barra de orden.
 
@@ -92,6 +92,7 @@ Descriptor de chip elemental para barra de orden.
 | `Label` | `string` | Nombre del elemento o estado (DisplayName) |
 | `Color` | `Color` | Color UI del elemento |
 | `AllySource` | `bool` | true = marca aliada, false = marca enemiga |
+| `Negative` | `bool` | **S43 NEW** true = estado negativo/marca enemiga visible (rojo), false = aliado/positivo |
 
 ### CombatOrderEntry (S42 NEW)
 
@@ -103,6 +104,24 @@ Entrada de orden de acción para barra superior.
 | `Index` | `int` | Índice within equipo (0..2) |
 | `Alive` | `bool` | Si la unidad está viva |
 | `State` | `CombatUnitState` | Estado actual (marcas, estados, afinidad) |
+
+### CombatSpeechData (S43 NEW)
+
+Datos de globo de habla cómic.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `Side` | `CombatVisualSide` | Quién habla (A o B) |
+| `Index` | `int` | Índice unit dentro equipo |
+| `Text` | `string` | Texto del globo |
+| `Color` | `Color` | Color borde globo y flecha |
+| `HasColor` | `bool` | Si usar color custom o default |
+| `Duration` | `float` | Segundos a mostrar globo |
+| `Follow` | `Transform` | Transform hablante (para posicionar globo) |
+| `HasTarget` | `bool` | Si mostrar flecha hacia objetivo |
+| `TargetSide` | `CombatVisualSide` | Lado objetivo (solo si HasTarget) |
+| `TargetIndex` | `int` | Índice objetivo within equipo |
+| `TargetFollow` | `Transform` | Transform objetivo (para flecha) |
 
 ### CombatVisualLogLine
 
@@ -151,10 +170,13 @@ Estado de control del replay UI.
 | `OnActionOrder` | `List<CombatOrderEntry>` | **S42 NEW** Orden de próxima acción (para barra) |
 | `OnUnitAffinity` | `CombatVisualSide, int, int, int` | **S42 NEW** Afinidad/energía cambió (side, index, affinity, energy) |
 | `OnActiveUnit` | `CombatVisualSide, int` | **S42 NEW** Unit activa en turno actual (side, index) |
+| `OnSpeech` | `CombatSpeechData` | **S43 NEW** Emite globo de habla (Protector/Empático/Agresivo, narrador) |
 
 **S41 Cambios:** Eventos 1v1 legacy (OnHpChanged/OnDead) intactos; nuevos eventos OnUnitHpChanged/OnUnitDead para 3v3.
 
 **S42 Cambios:** Tres nuevos eventos para barra de orden + UI afinidad/energía.
+
+**S43 Cambios:** Nuevo struct CombatSpeechData + evento OnSpeech; ElementChipData gana bool Negative.
 
 ## Métodos Helper Estáticos
 
@@ -177,15 +199,18 @@ Estado de control del replay UI.
 | `ActionOrder` | `(List<CombatOrderEntry> order)` | **S42 NEW** Dispara `OnActionOrder` |
 | `UnitAffinity` | `(CombatVisualSide side, int index, int affinity, int energy)` | **S42 NEW** Dispara `OnUnitAffinity` |
 | `ActiveUnit` | `(CombatVisualSide side, int index)` | **S42 NEW** Dispara `OnActiveUnit` |
+| `Speech` | `(CombatSpeechData d)` | **S43 NEW** Dispara `OnSpeech` |
 
 ## Vinculado a
 
-- [[CombatVisualizerService]] — único publisher (S41: por unit, S42: con orden/afinidad)
+- [[CombatVisualizerService]] — único publisher (S41: por unit, S42: con orden/afinidad, S43: con speech)
 - [[CombatVisualUnits]] — suscriptor de eventos spawn (S41)
 - [[CombatDamageNumbers]] — suscriptor `OnPopup` (S42: renderiza ReactionName si Reaction)
 - [[CombatOrderBarUITK]] — **S42 NEW** suscriptor (OnVisualCombatStart, OnActionOrder, OnUnitAffinity, OnActiveUnit)
+- [[CombatSpeechBubbles]] — **S43 NEW** suscriptor `OnSpeech` (renderiza globos cómic)
+- [[CombatCameraDirector]] — **S43 NEW** suscriptor `OnActiveUnit` (maneja vcam priorities)
 - [[MoriMonchiCombatVisualizer]] — suscriptor effects (1v1 legacy)
-- [[MoriMonchiCombatVisualizerUITK]] — suscriptor panel state + elementos
+- [[MoriMonchiCombatVisualizerUITK]] — suscriptor panel state + elementos + shield
 
 ## Cambios S41
 
@@ -207,3 +232,20 @@ Estado de control del replay UI.
 - **Nuevos helpers:** ActionOrder(), UnitAffinity(), ActiveUnit()
 
 **Invariante:** Eventos 1v1 legacy siguen disparándose, structs viejos solo adquieren campos nuevos opcionales.
+
+## Cambios S43
+
+**Aditivos (append-only):**
+- `ElementChipData`: bool Negative — marca si es estado negativo/enemigo para styling rojo en barra de orden
+- **Nuevo struct:** `CombatSpeechData` (10 campos) — para globos cómic con borde coloreado, texto, flecha hacia objetivo, duración
+- **Nuevo evento:** `OnSpeech(CombatSpeechData)` — disparado por PlayProc en CombatVisualizerService (Protector pre-golpe, Empático post-golpe, Agresivo al ganar energía, narrador en StateArmed)
+- **Nuevo helper:** `Speech(CombatSpeechData d)` — wrapper que dispara `OnSpeech`
+
+**Invariante:** Eventos/structs S42 siguen intactos; CombatSpeechData es aditivo para globos visuales.
+
+## Notas Implementación S43
+
+- CombatSpeechBubbles suscribe OnSpeech y renderiza globo + flecha dinámicamente por frame
+- CombatCameraDirector suscribe OnActiveUnit para cortes de cámara (vcam priority)
+- PlayProc en CombatVisualizerService emite Speech con textos tweakeables (protectorLine, empaticoLine, agresivoLine)
+- Speech por narrador (personaje nulo) en StateArmed: "¡Quedé {stateName}!" (rojo/verde según negativo)

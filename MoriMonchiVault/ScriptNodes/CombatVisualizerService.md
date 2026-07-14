@@ -6,7 +6,7 @@ tags: [combat, visualization, replay, ui, 3v3]
 
 **Ruta:** `Systems/CombatVisualizer/CombatVisualizerService.cs`
 
-**Responsabilidad:** Orquesta visualización local 3v3 de `CombatRecord`, construyendo árbol de nodos doblemente enlazados y generando secuencia de animaciones turno-a-turno. **S41 REWRITE a equipos (1..3 por lado):** Firma nueva `Play(CreatureDNA self, CombatRecord record)` resuelve equipos vía `record.SelfTeamIds/OpponentTeamIds` desde registry (vieja sobrecarga 3-args ELIMINADA). Colaborador `CombatVisualUnits` spawn/lookup. Barras usan stats EXACTOS del snapshot (sin recomputar EquipmentStats). `CombatNode` lee `TeamStateA/TeamStateB` del record, `DiedHereA/DiedHereB` por unidad. Helper `ElementText()` narra eventos elementales (S41); afinidad/energía omitidas de narrativa. **S42 NUEVO:** Popups elementales con ReactionName + OverrideColor, PublishOrder() emite orden de próxima acción, PushElements() renderiza chips a barras, ActionIndex (contador ronda), eventos OnActionOrder/OnUnitAffinity/OnActiveUnit.
+**Responsabilidad:** Orquesta visualización local 3v3 de `CombatRecord`, construyendo árbol de nodos doblemente enlazados y generando secuencia de animaciones turno-a-turno. **S41 REWRITE a equipos (1..3 por lado):** Firma nueva `Play(CreatureDNA self, CombatRecord record)` resuelve equipos vía `record.SelfTeamIds/OpponentTeamIds` desde registry (vieja sobrecarga 3-args ELIMINADA). Colaborador `CombatVisualUnits` spawn/lookup. Barras usan stats EXACTOS del snapshot (sin recomputar EquipmentStats). `CombatNode` lee `TeamStateA/TeamStateB` del record, `DiedHereA/DiedHereB` por unidad. Helper `ElementText()` narra eventos elementales (S41); afinidad/energía omitidas de narrativa. **S42 NUEVO:** Popups elementales con ReactionName + OverrideColor, PublishOrder() emite orden de próxima acción, PushElements() renderiza chips a barras, ActionIndex (contador ronda), eventos OnActionOrder/OnUnitAffinity/OnActiveUnit. **S43 NUEVO:** Campos speech tweakeables (protectorLine, empaticoLine, agresivoLine, speechSeconds, stateBeatSeconds), método VCamOf(), PlayProc emite Speech events + FlashReaction, PushShield/PushShieldAll para escudo azul, Negative en ElementChipData.
 
 ## Métodos Públicos
 
@@ -18,6 +18,7 @@ tags: [combat, visualization, replay, ui, 3v3]
 | `Next()` | Avanza un turno |
 | `Back()` | Retrocede un turno |
 | `SetSpeed(float value)` | Setea velocidad playback (0.25–4) |
+| `VCamOf(CombatVisualSide side, int index)` | **S43 NEW** Retorna la CinemachineCamera de la unidad (para cortes de cámara) |
 
 ## Campos Serializados
 
@@ -32,9 +33,14 @@ tags: [combat, visualization, replay, ui, 3v3]
 | `betweenTurnsSeconds` | `float` | Pausa entre turnos |
 | `deathPauseSeconds` | `float` | Pausa al morir |
 | `synergyPopupDelay` | `float` | Delay pre-popup reacción (÷ Speed) |
+| `stateBeatSeconds` | `float` | **S43 NEW** Pausa en estados armados (narrador) |
+| `protectorLine` | `string` | **S43 NEW** Frase Protector: "¡Toma, protégete!" |
+| `empaticoLine` | `string` | **S43 NEW** Frase Empático: "¡{0}, te curo!" (formato para nombre aliado) |
+| `agresivoLine` | `string` | **S43 NEW** Frase Agresivo: "¡Te comparto mi espíritu de pelea!" |
+| `speechSeconds` | `float` | **S43 NEW** Duración globo de habla (default 1.6s) |
 | `playbackSpeed` | `float` | Multiplicador velocidad (0.25–4) |
 
-## Estructura: CombatNode (S41 NUEVO, S42: ActionIndex)
+## Estructura: CombatNode (S41 NUEVO, S42: ActionIndex, S43: sin cambios)
 
 ```csharp
 private class CombatNode
@@ -104,13 +110,13 @@ public void Play(CreatureDNA self, CombatRecord record)
 - Opponent RESUELTO vía registry desde `record.OpponentTeamIds`
 - Validación EXIGE SelfTeam != null (no 1v1 legacy)
 
-## Construcción de Estados (S41, S42: ActionIndex + ElementText)
+## Construcción de Estados (S41, S42: ActionIndex + ElementText, S43: sin cambios core)
 
 **BuildStates()** construye árbol `CombatNode` desde `CombatRecord.Turns`:
 
 **Barras (S41 NUEVO):** Stats tomados DIRECTAMENTE del snapshot (`CombatFighterSnapshot`). NO se recomputan mods de equipo en el visualizer — snapshot es fuente de verdad (ya incluye equipo del momento de pelea).
 
-**Procesamiento Turns (S42: ActionIndex incrementa):**
+**Procesamiento Turns (S42: ActionIndex incrementa, S43: sin cambios):**
 - Procesa `Turn.Procs` (antes/después golpe)
   - Si `ElementEvent == None`: llama `ProcText(pe, ...)` (clásico)
   - Si `ElementEvent != None`: llama `ElementText(pe, ...)` (S41 NEW)
@@ -120,7 +126,7 @@ public void Play(CreatureDNA self, CombatRecord record)
 - **S42 NEW:** Incrementa ActionIndex (totalTurns++)
 - Crea `CombatNode` enlazado con ActionIndex
 
-**Helper `ElementText()` (S41 NEW, S42 sin cambios):** Narra eventos elementales solo si `pe.ElementEvent != None`:
+**Helper `ElementText()` (S41 NEW, S42/S43 sin cambios):** Narra eventos elementales solo si `pe.ElementEvent != None`:
 - `MarkApplied`: "{Name} recibe marca {Element}"
 - `Reaction`: "¡{ReactionName}! sobre {Name}" (S42: DisplayName del elemento)
 - `StateArmed`: "{Name} queda {State}"
@@ -133,9 +139,9 @@ public void Play(CreatureDNA self, CombatRecord record)
 
 **Helpers S42:** `ElemName(e)` y `StateName(s)` retornan DisplayName desde ElementTableSO (fallback ToString).
 
-**Spawn (S41, S42: con elementTable):** Tras BuildStates, `CombatVisualUnits.Spawn(side, dnas, snapshots, board, prefab, elementTable)` instancia modelos en anchors (S42: pasa elementTable para bind de barra).
+**Spawn (S41, S42: con elementTable, S43: igual):** Tras BuildStates, `CombatVisualUnits.Spawn(side, dnas, snapshots, board, prefab, elementTable)` instancia modelos en anchors (S42: pasa elementTable para bind de barra).
 
-## Colaborador: CombatVisualUnits (S41, S42)
+## Colaborador: CombatVisualUnits (S41, S42, S43: sin cambios API)
 
 Clase privada que maneja spawn/lookup/lifecycle (regla 11, composición):
 - `Spawn(side, dnas, snapshots, board, prefab, elements)` — **S42:** con ElementTableSO
@@ -144,23 +150,38 @@ Clase privada que maneja spawn/lookup/lifecycle (regla 11, composición):
 - `TransformOf(side, index)` — retorna transform para popups
 - `PosOf(side, index)` — retorna posición
 - `SetActive(unit, active)` — muestra/oculta
+- **S43:** `units.Get(side, index)?.VCam` accesible via `VCamOf(side, index)`
 
-## Eventos Aditivos S42
+## Eventos Aditivos S42/S43
 
 **PublishOrder():** Emite `OnActionOrder(List<CombatOrderEntry>)` con próximas acciones vivas (atacantes) + todas las unidades vivas + todas las muertas. Orden:
 1. Próximos atacantes (hasta fin record, de current.Next onwards, first appearance each (side, index))
 2. Unidades vivas no listadas (self)
 3. Unidades muertas (al final, gris)
 
-**PushElements():** Renderiza chips elementales a barras (antes de `PublishOrder()`). Itera `CombatUnitState.ElementMarks` (marcas) y `ArmedStates` (estados), convierte a `ElementChipData`, llama `Bar.SetElementState()`.
+**PushElements():** Renderiza chips elementales a barras (antes de `PublishOrder()`). Itera `CombatUnitState.ElementMarks` (marcas) y `ArmedStates` (estados), convierte a `ElementChipData`, llama `Bar.SetElementState()`. **S43:** Agrega bool Negative a ElementChipData (true si es estado negativo o marca enemiga).
 
-**PlayProc() S42 NUEVO:** Rama de `CombatProcEvent` con `ElementEvent == Reaction`:
-- Emite `OnPopup()` con Kind = Reaction, Text = ReactionName, OverrideColor = elemento.UiColor, HasOverrideColor = true
-- Emite `OnUnitAffinity()` para AffinityGained/EnergyGained/EnergySpent
+**PlayProc() S42/S43:** Rama de `CombatProcEvent`:
+- **S42:** Si `ElementEvent == Reaction`: Emite `OnPopup()` con Kind = Reaction, Text = ReactionName, OverrideColor = elemento.UiColor, HasOverrideColor = true
+- **S43 NUEVO:** Emite `OnSpeech()` para roles (Protector pre-golpe, Empático post-golpe, Agresivo al ganar energía)
+- **S43 NUEVO:** Si `ElementEvent == StateArmed`: emite Speech narrador "¡Quedé {stateName}!" (rojo si negativo, verde si positivo) + beat extra con stateBeatSeconds
 
-**Restore() S42 NUEVO:** Llama `PublishOrder()` al fin.
+**PushShield() / PushShieldAll() S43 NEW:** Restauran escudo post-turno o mid-golpe. Llaman `Bar.SetShield(shield)` (dibuja barra azul 4px sobre hp-track), emiten popup Shield con valor.
 
-**ForwardRoutine() S42:** Emite `OnActiveUnit()` al inicio, llama `PushElements()` + `PublishOrder()` al fin de turno.
+**Restore() S42/S43:** Llama `PublishOrder()` al fin. **S43:** También llama `PushShield()` para sincronizar escudos.
+
+**ForwardRoutine() S42/S43:** 
+- S42: Emite `OnActiveUnit()` al inicio, llama `PushElements()` + `PublishOrder()` al fin de turno
+- S43: Igual, pero `PushShield()` se llama post-golpe (DefenderShieldAfter en mid-golpe) y post-turno
+
+## Método VCamOf() S43 NEW
+
+```csharp
+public Unity.Cinemachine.CinemachineCamera VCamOf(CombatVisualSide side, int index) 
+    => units.Get(side, index)?.VCam;
+```
+
+Retorna la vcam Cinemachine de la unidad en (side, index), o null si no existe. Usado por CombatCameraDirector para elevar prioridades.
 
 ## Determinismo
 
@@ -168,6 +189,7 @@ Clase privada que maneja spawn/lookup/lifecycle (regla 11, composición):
 - Logs narrativos desde `CombatProcEvent` (clásicos + elementales S41)
 - Orden turnos/muertes por unit definido por record
 - **S42:** Orden de acción desde record.Turns (doblemente enlazado)
+- **S43:** Speech frases + timing serializados (protectorLine, empaticoLine, agresivoLine, speechSeconds, stateBeatSeconds)
 
 ## Cambios S41
 
@@ -191,20 +213,43 @@ Clase privada que maneja spawn/lookup/lifecycle (regla 11, composición):
 
 **Invariante:** Eventos 1v1 legacy siguen disparándose, métodos viejos intactos (DespawnAll, CanForward/Back, PlayAttack/HitDealt/Dead, etc.).
 
+## Cambios S43
+
+**Aditivos (append-only):**
+- **Campos serializados nuevos:** 
+  - `stateBeatSeconds` (pausa en narrador estado, default 0.5s)
+  - `protectorLine`, `empaticoLine`, `agresivoLine` (frases tweakeables)
+  - `speechSeconds` (duración globo, default 1.6s)
+- **Nuevo método público:** `VCamOf(side, index)` — retorna CinemachineCamera de unit para CombatCameraDirector
+- **PlayProc() rama nueva (S43):**
+  - Si atacante es rol Protector (`e.AttackerRole == Role.Protector`): emite Speech pre-golpe con protectorLine + color azul
+  - Si defensor es rol Empático post-golpe: emite Speech con empaticoLine (format {0} = nombre aliado sanado) + color verde
+  - Si atacante gana energía (AffinityGained/EnergyGained): emite Speech Agresivo con agresivoLine + color rojo
+  - Si StateArmed en Procs post-golpe: emite Speech narrador "¡Quedé {stateName}!" con `FlashReaction(text, color)`, beat extra con `yield return WaitForSeconds(stateBeatSeconds / Speed)`
+- **Nuevos métodos privados S43:**
+  - `PushShield(side, index)` — llamado post-turno, emite popup Shield si escudo > 0
+  - `PushShieldAll()` — llama PushShield para todos los units vivos
+  - (reemplazan/complementan a PushElements)
+- **ElementChipData.Negative:** S42 solo tenía `Label, Color, AllySource`; S43 agrega `bool Negative` (true = rojo, false = verde/aliado)
+- **MoriMonchiCombatVisualizerUITK.FlashReaction():** método nuevo en barra UI, llamado por PlayProc cuando StateArmed, muestra texto transient 2s
+
+**Invariante:** Eventos/métodos S42 siguen intactos; S43 agrega Speech + Shield + VCamOf() sin romper compat.
+
 ## Vinculado a
 
 - [[Index/03 - Combat System]]
 - [[Index/13 - Combat Design Direction]]
-- [[CombatVisualUnits]] — spawn/lookup (S41, S42: con elementTable)
-- [[CombatVisualEvents]] — eventos replay (S41: OnUnitHpChanged/OnUnitDead, S42: OnActionOrder/OnUnitAffinity/OnActiveUnit aditivos)
+- [[CombatVisualUnits]] — spawn/lookup (S41, S42: con elementTable, S43: VCam access)
+- [[CombatVisualEvents]] — eventos replay (S41: OnUnitHpChanged/OnUnitDead, S42: OnActionOrder/OnUnitAffinity/OnActiveUnit, **S43: OnSpeech aditivo**)
 - [[CombatRecord]] — fuente datos (S41: TeamStateA/B con ElementMarks/ArmedStates)
-- [[CombatProcEvent]] — logs (S41: ElementEvent para narración, S42: ReactionName)
-- [[ElementTableSO]] — **S42 NEW** DisplayName + UiColor para narración + chips
+- [[CombatCameraDirector]] — **S43 NEW** suscriptor OnActiveUnit, llama VCamOf() para vcam priorities
+- [[CombatSpeechBubbles]] — **S43 NEW** suscriptor OnSpeech, renderiza globos cómic
+- [[MoriMonchiCombatVisualizerUITK]] — **S43:** FlashReaction() para narrador estados + SetShield() para escudo
 
-## Conexiones
+## Notas Implementación S43
 
-**Entrada:** `Play(self, record)` desde UI/test
-
-**Salida:**
-- `CombatVisualEvents.On{Start,Popup,Dead,ActionOrder,UnitAffinity,ActiveUnit}` — eventos visuales
-- `CombatVisualUnits` — instancias de modelos
+- Globos de habla (Speech) emitidos por PlayProc en 4 escenarios: Protector pre-ataque, Empático post-curación, Agresivo al gastar energía, narrador en estados armados
+- Vcam priorities: 0 (inactivo default), 10 (scene cam), 20 (active unit — CombatCameraDirector)
+- Shield popups solo si Amount > 0; AnimateHp en barra tweenea a máximo en estateBeatSeconds
+- Todos los timings (speechSeconds, stateBeatSeconds, windupSeconds, etc.) dividen por Speed para playback variable
+- Frases son tweakeables en inspector para localization futura

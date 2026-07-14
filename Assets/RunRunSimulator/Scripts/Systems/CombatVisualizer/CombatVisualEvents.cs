@@ -50,6 +50,7 @@ public struct ElementChipData
     public string Label;
     public Color  Color;
     public bool   AllySource;
+    public bool   Negative;
 }
 
 public struct CombatOrderEntry
@@ -58,6 +59,21 @@ public struct CombatOrderEntry
     public int              Index;
     public bool             Alive;
     public CombatUnitState  State;
+}
+
+public struct CombatSpeechData
+{
+    public CombatVisualSide Side;
+    public int              Index;
+    public string           Text;
+    public Color            Color;
+    public bool             HasColor;
+    public float            Duration;
+    public Transform        Follow;
+    public bool             HasTarget;
+    public CombatVisualSide TargetSide;
+    public int              TargetIndex;
+    public Transform        TargetFollow;
 }
 
 public enum CombatVisualLogKind { Versus, Hit, Crit, Death, Result, Proc }
@@ -134,5 +150,8 @@ public static class CombatVisualEvents
 
     public static event Action<CombatVisualSide, int> OnActiveUnit;
     public static void ActiveUnit(CombatVisualSide side, int index) => OnActiveUnit?.Invoke(side, index);
+
+    public static event Action<CombatSpeechData> OnSpeech;
+    public static void Speech(CombatSpeechData d) => OnSpeech?.Invoke(d);
 }
 }

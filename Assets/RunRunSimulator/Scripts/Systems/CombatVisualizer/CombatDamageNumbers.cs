@@ -72,6 +72,7 @@ public class CombatDamageNumbers : MonoBehaviour
         CombatPopupKind.Steel     => "Steel",
         CombatPopupKind.Mist      => "Mist",
         CombatPopupKind.Lifesteal => "Robo de vida",
+        CombatPopupKind.Shield => "Escudo",
         CombatPopupKind.Reaction => "¡Reacción!",
         _                      => "",
     };
