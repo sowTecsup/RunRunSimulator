@@ -18,12 +18,14 @@ public class CombatOrderBarUITK : MonoBehaviour
     private class OrderCard
     {
         public VisualElement Root;
-        public Label         OrderLabel;
+        public VisualElement Slot;
         public VisualElement AllyMarksRow;
         public VisualElement EnemyMarksRow;
         public VisualElement StatesRow;
         public VisualElement AffinityDot0;
         public VisualElement AffinityDot1;
+        public List<CombatElementMark> Marks  = new List<CombatElementMark>();
+        public List<ElementalState>    States = new List<ElementalState>();
     }
 
     private VisualElement root;
@@ -43,6 +45,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         CombatVisualEvents.OnActionOrder       += HandleOrder;
         CombatVisualEvents.OnUnitAffinity      += HandleAffinity;
         CombatVisualEvents.OnActiveUnit        += HandleActiveUnit;
+        CombatVisualEvents.OnUnitElement       += HandleUnitElement;
     }
 
     private void OnDisable()
@@ -51,6 +54,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         CombatVisualEvents.OnActionOrder       -= HandleOrder;
         CombatVisualEvents.OnUnitAffinity      -= HandleAffinity;
         CombatVisualEvents.OnActiveUnit        -= HandleActiveUnit;
+        CombatVisualEvents.OnUnitElement       -= HandleUnitElement;
     }
 
     private void Start()
@@ -108,22 +112,11 @@ public class CombatOrderBarUITK : MonoBehaviour
         orderBar.Clear();
         cards.Clear();
 
-        var teamA = new VisualElement();
-        teamA.AddToClassList("cv-ob-team");
-        orderBar.Add(teamA);
-        BuildTeam(teamA, CombatVisualSide.A, ctx.SnapsA, ctx.TeamA);
-
-        var teamGap = new VisualElement();
-        teamGap.AddToClassList("cv-ob-team-gap");
-        orderBar.Add(teamGap);
-
-        var teamB = new VisualElement();
-        teamB.AddToClassList("cv-ob-team");
-        orderBar.Add(teamB);
-        BuildTeam(teamB, CombatVisualSide.B, ctx.SnapsB, ctx.TeamB);
+        BuildTeam(CombatVisualSide.A, ctx.SnapsA, ctx.TeamA);
+        BuildTeam(CombatVisualSide.B, ctx.SnapsB, ctx.TeamB);
     }
 
-    private void BuildTeam(VisualElement teamContainer, CombatVisualSide side, List<CombatFighterSnapshot> snaps, List<CreatureDNA> team)
+    private void BuildTeam(CombatVisualSide side, List<CombatFighterSnapshot> snaps, List<CreatureDNA> team)
     {
         if (snaps == null) return;
 
@@ -137,7 +130,8 @@ public class CombatOrderBarUITK : MonoBehaviour
             slot.AddToClassList("cv-ob-slot");
             slot.Add(card.Root);
             slot.Add(card.StatesRow);
-            teamContainer.Add(slot);
+            card.Slot = slot;
+            orderBar.Add(slot);
         }
     }
 
@@ -147,9 +141,10 @@ public class CombatOrderBarUITK : MonoBehaviour
         cardRoot.AddToClassList("cv-order-card");
         cardRoot.AddToClassList(side == CombatVisualSide.A ? "cv-order-card--self" : "cv-order-card--opp");
 
-        var orderLabel = new Label("");
-        orderLabel.AddToClassList("cv-ob-order-num");
-        cardRoot.Add(orderLabel);
+        var banner = new VisualElement();
+        banner.AddToClassList("cv-ob-team-banner");
+        banner.AddToClassList(side == CombatVisualSide.A ? "cv-ob-team-banner--self" : "cv-ob-team-banner--opp");
+        cardRoot.Add(banner);
 
         var body = new VisualElement();
         body.AddToClassList("cv-ob-body-row");
@@ -198,7 +193,6 @@ public class CombatOrderBarUITK : MonoBehaviour
         return new OrderCard
         {
             Root          = cardRoot,
-            OrderLabel    = orderLabel,
             AllyMarksRow  = allyCol,
             EnemyMarksRow = enemyCol,
             StatesRow     = statesRow,
@@ -211,31 +205,13 @@ public class CombatOrderBarUITK : MonoBehaviour
     {
         if (!EnsureRefs() || !hasCtx || order == null) return;
 
-        int pos = 0;
         foreach (var entry in order)
         {
             if (!cards.TryGetValue((entry.Side, entry.Index), out var card)) continue;
             ApplyState(card, entry);
-
-            if (entry.Alive)
-            {
-                pos++;
-                card.OrderLabel.text = Ordinal(pos);
-            }
-            else
-            {
-                card.OrderLabel.text = "";
-            }
+            orderBar.Add(card.Slot);
         }
     }
-
-    private static string Ordinal(int n) => n switch
-    {
-        1 => "1ero",
-        2 => "2do",
-        3 => "3ero",
-        _ => n + "to",
-    };
 
     private void HandleActiveUnit(CombatVisualSide side, int index)
     {
@@ -253,21 +229,60 @@ public class CombatOrderBarUITK : MonoBehaviour
         card.Root.EnableInClassList("cv-order-card--dead", !entry.Alive);
 
         var state = entry.State;
-        BuildMarkRow(card.AllyMarksRow, state?.ElementMarks, true);
-        BuildMarkRow(card.EnemyMarksRow, state?.ElementMarks, false);
-        BuildStatesRow(card.StatesRow, state?.ArmedStates);
+        card.Marks  = state?.ElementMarks != null ? new List<CombatElementMark>(state.ElementMarks) : new List<CombatElementMark>();
+        card.States = state?.ArmedStates  != null ? new List<ElementalState>(state.ArmedStates)     : new List<ElementalState>();
+        RebuildElements(card);
         SetAffinity(card, state?.Affinity ?? 0);
     }
 
-    private void HandleAffinity(CombatVisualSide side, int index, int affinity, int energy)
+    private void HandleUnitElement(CombatElementEventData d)
+    {
+        if (!EnsureRefs() || !cards.TryGetValue((d.Side, d.Index), out var card)) return;
+
+        switch (d.Kind)
+        {
+            case ElementEventKind.MarkApplied:
+                card.Marks.Add(new CombatElementMark { Element = d.Element, AllySource = d.AllySource });
+                break;
+            case ElementEventKind.MarkRemoved:
+                RemoveMark(card.Marks, d.Element, d.AllySource);
+                break;
+            case ElementEventKind.Reaction:
+                RemoveMark(card.Marks, d.Element, d.AllySource);
+                RemoveMark(card.Marks, d.ElementB, d.AllySource);
+                if (System.Enum.TryParse<ElementalState>(d.ReactionName, out var reacted)
+                 && !card.States.Contains(reacted))
+                    card.States.Add(reacted);
+                break;
+            case ElementEventKind.StateArmed:
+                if (!card.States.Contains(d.State)) card.States.Add(d.State);
+                break;
+            case ElementEventKind.StateConsumed:
+            case ElementEventKind.StateRemoved:
+                card.States.Remove(d.State);
+                break;
+        }
+        RebuildElements(card);
+    }
+
+    private static void RemoveMark(List<CombatElementMark> marks, Element element, bool ally)
+    {
+        for (int i = 0; i < marks.Count; i++)
+            if (marks[i].Element == element && marks[i].AllySource == ally) { marks.RemoveAt(i); return; }
+    }
+
+    private void RebuildElements(OrderCard card)
+    {
+        BuildMarkRow(card.AllyMarksRow, card.Marks, true);
+        BuildMarkRow(card.EnemyMarksRow, card.Marks, false);
+        BuildStatesRow(card.StatesRow, card.States);
+    }
+
+    private void HandleAffinity(CombatVisualSide side, int index, int affinity)
     {
         if (!EnsureRefs() || !cards.TryGetValue((side, index), out var card)) return;
 
-        if (affinity >= 0)
-        {
-            card.AffinityDot0.EnableInClassList("cv-ob-dot--filled", affinity >= 1);
-            card.AffinityDot1.EnableInClassList("cv-ob-dot--filled", affinity >= 2);
-        }
+        SetAffinity(card, affinity);
     }
 
     private void BuildMarkRow(VisualElement row, List<CombatElementMark> marks, bool ally)

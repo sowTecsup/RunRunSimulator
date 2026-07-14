@@ -18,12 +18,16 @@ namespace MoriMonchiSimulator
 // GolpePreciso, Boiling, Charcoal, Mareado, etc.) come from the ElementTable
 // (config.Elements) — never hardcoded knobs.
 //
+// Elemental marks have exactly two sources (S46): a unit's own Affinity —
+// every 2 actions it marks ITSELF with its own Element, ally-sourced, on the
+// same turn — and its role's passive, which marks the ally that passive acts
+// upon, every turn and with no resource gate. There is no Energy resource.
+//
 // Per turn, in order: (1) tick active statuses — a unit that dies here
 // succumbs without acting and gains no Affinity; (2) targeting — (Agresivo
-// role: roll backline chance → pick backline target if it lands (grants an
-// elemental proc: spend 1 Energy to mark a random ally) else pick frontline
-// (no backline found: spend 1 Energy to give it to a random ally instead,
-// or log a no-op if no Energy)) / plain pick frontline; (3) if the actor had
+// role: roll backline chance → pick backline target if it lands, else pick
+// frontline; targeting only, no elemental side effect) / plain pick
+// frontline; (3) if the actor had
 // Energizado, consume it and log priority; (4) stun check — skip turn if
 // stunned (no Affinity gained), grant wake-up immunity when the stun just
 // expired; (5) Confuso — consume it, the action fails, still gains Affinity,
@@ -31,23 +35,28 @@ namespace MoriMonchiSimulator
 // percent: on hit the actor strikes a random ally (self included) for the
 // ElementTable's Mareado amount and the turn ends (Affinity gained), on
 // resist the turn continues normally;
-// (7) Protector role: pick an ally and grant it Shield (no roll cost when
-// ShieldPerTurn is 0), then an elemental proc: spend 1 Energy to mark that
-// same ally; (8) equipped items with N uses (no roll — a use fires
+// (7) equipped items with N uses (no roll — a use fires
 // deterministically once its rule matches, decrementing its remaining
-// count); (9) evasion roll — Vaporizado adds its ElementTable percent and is
-// consumed on a successful dodge; (10) crit roll — GolpePreciso adds its
-// ElementTable percent and is consumed on a crit; (11) on-connect damage —
+// count); (8) evasion roll — Vaporizado adds its ElementTable percent and is
+// consumed on a successful dodge; (9) crit roll — GolpePreciso adds its
+// ElementTable percent and is consumed on a crit; (10) on-connect damage —
 // Debilidad zeroes DEF reduction and is consumed, Boiling multiplies the
 // final damage by (1+its ElementTable percent) and is consumed, Shield
-// absorbs first; (12) Charcoal — if the defender had it, reflect its
+// absorbs first; (11) Charcoal — if the defender had it, reflect its
 // ElementTable percent of the damage back onto the attacker and consume
-// it; (13) elemental mark — if the strike connected (not dodged, damage>0),
+// it; (12) elemental mark — if the strike connected (not dodged, damage>0),
 // mark the target with the attacker's Element as an enemy-sourced mark;
-// (14) Empático role: heal the lowest-HP ally for a % of the damage dealt
-// (no roll), then an elemental proc: spend 1 Energy to mark that heal
-// target; (15) lifesteal; (16) GainAffinity(actor) — +1 Affinity, every 2
-// converts to +1 Energy. Every alive unit takes its turn once per round
+// (13) GainAffinity(actor) — +1 Affinity; on reaching 2 it resets to 0 and
+// the actor marks itself with its own Element (ally-sourced), so the mark
+// lands on the same turn that fills the dots;
+// (14) role passives, ALL of them after the damage so the three roles read
+// the same way (S46: intent → damage → affinity → passive) — Protector: pick
+// an ally, grant it Shield (no roll cost when ShieldPerTurn is 0) and mark
+// that same ally with the actor's Element; Agresivo: mark a random ally with
+// the actor's Element; Empático: heal the lowest-HP ally for a % of the
+// damage dealt (no roll) and mark that heal target with the actor's Element;
+// (15) lifesteal.
+// Every alive unit takes its turn once per round
 // until a team is fully wiped, then: pick one alive winner (uniform) →
 // CombatEvolution.TryEvolveRandomSlot roll → pick one loser unit (KO or
 // not, uniform) → DeathChance roll. Item effects come from equipment
@@ -452,7 +461,7 @@ public static class CombatService
         {
             result.Log.Add($"    [estado] {actor.Name} está Confuso — su acción falla");
             r.RecordElement(ElementEventKind.StateConsumed, actor, state: ElementalState.Confuso);
-            GainAffinity(actor, result, r);
+            GainAffinity(actor, config, result, r, rng);
             EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
             return;
         }
@@ -469,14 +478,12 @@ public static class CombatService
                 victima.Hp = Mathf.Max(0f, victima.Hp - mareadoDamage);
                 result.Log.Add($"    [estado] {actor.Name} Mareado — se golpea a {victima.Name} -{mareadoDamage:F1} → {victima.Hp:F1}");
                 r.RecordElement(ElementEventKind.Damage, victima, amount: mareadoDamage);
-                GainAffinity(actor, result, r);
+                GainAffinity(actor, config, result, r, rng);
                 EmitTurn(result, round, actor, target, true, 0f, false, target.Hp, target.Shield, procs, teamA, teamB);
                 return;
             }
             result.Log.Add($"    [estado] {actor.Name} resiste el mareo");
         }
-
-        CombatRoleHooks.GrantShield(actor, profile, allies, config, result, r, rng);
 
         CombatItems.UseItems(actor, target, r, result);
         if (actor.Hp <= 0f || target.Hp <= 0f)
@@ -488,6 +495,9 @@ public static class CombatService
         r.BeforeStrike = false;
         var strike = CombatStrike.Execute(actor, target, config, result, r, rng);
 
+        GainAffinity(actor, config, result, r, rng);
+
+        CombatRoleHooks.ApplyPassives(actor, profile, allies, config, result, r, rng);
         CombatRoleHooks.HealAfterStrike(actor, profile, allies, strike.Dodged, strike.Damage, config, result, r, rng);
 
         if (!strike.Dodged && strike.Damage > 0f && actor.LifestealPercent > 0f)
@@ -498,23 +508,19 @@ public static class CombatService
             r.Record(ModifierEffectKind.Lifesteal, actor, steal);
         }
 
-        GainAffinity(actor, result, r);
-
         EmitTurn(result, round, actor, target, false, strike.Damage, strike.Crit, strike.DefenderHpAfter, strike.DefenderShieldAfter, procs, teamA, teamB);
     }
 
-    private static void GainAffinity(Combatant actor, CombatResult result, CombatResolver r)
+    private static void GainAffinity(Combatant actor, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng)
     {
         actor.Affinity++;
         result.Log.Add($"    [afinidad] {actor.Name} +1 afinidad ({actor.Affinity}/2)");
         r.RecordElement(ElementEventKind.AffinityGained, actor, amount: actor.Affinity);
-        if (actor.Affinity >= 2)
-        {
-            actor.Affinity -= 2;
-            actor.Energy++;
-            result.Log.Add($"    [energía] {actor.Name} genera energía ({actor.Energy})");
-            r.RecordElement(ElementEventKind.EnergyGained, actor, amount: actor.Energy);
-        }
+        if (actor.Affinity < 2) return;
+
+        actor.Affinity -= 2;
+        CombatElements.AddMark(actor, actor.Element, true, actor, config, result, r, rng);
+        r.RecordElement(ElementEventKind.AffinityGained, actor, amount: actor.Affinity);
     }
 
     private static void EmitTurn(CombatResult result, int round, Combatant actor, Combatant target,
@@ -557,7 +563,6 @@ public static class CombatService
             ElementMarks = elementMarks,
             ArmedStates  = new List<ElementalState>(u.States),
             Affinity     = u.Affinity,
-            Energy       = u.Energy,
         };
     }
 

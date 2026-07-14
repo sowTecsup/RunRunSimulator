@@ -6,6 +6,7 @@ namespace MoriMonchiSimulator
 public class CombatSpeechBubbles : MonoBehaviour
 {
     [SerializeField] private UIDocument document;
+    [SerializeField] private bool       hideForDebug = false;
     [SerializeField] private Vector3    speakerOffset = new Vector3(0f, 1.6f, 0f);
     [SerializeField] private Vector3    targetOffset  = new Vector3(0f, 1.9f, 0f);
 
@@ -132,6 +133,7 @@ public class CombatSpeechBubbles : MonoBehaviour
 
     private void HandleSpeech(CombatSpeechData d)
     {
+        if (hideForDebug) return;
         if (!EnsureRefs()) return;
 
         activeData  = d;
@@ -160,6 +162,7 @@ public class CombatSpeechBubbles : MonoBehaviour
 
     private void Update()
     {
+        if (hideForDebug) { if (hasActive) HideAll(); return; }
         if (!hasActive) return;
 
         if (Time.time >= activeUntil)

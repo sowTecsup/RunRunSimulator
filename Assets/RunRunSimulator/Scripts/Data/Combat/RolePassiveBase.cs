@@ -3,14 +3,18 @@ using Sirenix.OdinInspector;
 namespace MoriMonchiSimulator
 {
 
-// Passive role effects: triggered every turn (OnTurnStart) or after a landed
-// strike (OnDamageDealt). Serialized templates inside RoleProfile.Passives,
-// executed each turn by CombatRoleHooks — same rng consumption order and log
-// strings as the values they replace.
+// Passive role effects. Both hooks run AFTER the strike (S46) so every role
+// reads the same way — intent → damage → affinity → passive: OnAfterStrike
+// fires every turn regardless of the strike's outcome, OnDamageDealt only
+// when the strike actually landed. Serialized templates inside
+// RoleProfile.Passives, executed each turn by CombatRoleHooks. Authoring rule
+// (Index/13): every role passive applies the actor's Element to the ally it
+// acts upon — with no resource gate, so it fires every single turn (S46: the
+// Energy gate is gone).
 [Serializable]
 public abstract class RolePassiveBase
 {
-    public virtual void OnTurnStart(Combatant actor, System.Collections.Generic.List<Combatant> allies, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng) { }
+    public virtual void OnAfterStrike(Combatant actor, System.Collections.Generic.List<Combatant> allies, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng) { }
 
     public virtual void OnDamageDealt(Combatant actor, System.Collections.Generic.List<Combatant> allies, float damage, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng) { }
 
@@ -23,7 +27,7 @@ public class ShieldAllyPassive : RolePassiveBase
     [MinValue(0), LabelText("Shield per turn")]
     public float AmountPerTurn = 1f;
 
-    public override void OnTurnStart(Combatant actor, System.Collections.Generic.List<Combatant> allies, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng)
+    public override void OnAfterStrike(Combatant actor, System.Collections.Generic.List<Combatant> allies, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng)
     {
         if (AmountPerTurn <= 0f) return;
 
@@ -31,12 +35,7 @@ public class ShieldAllyPassive : RolePassiveBase
         ally.Shield += AmountPerTurn;
         result.Log.Add($"    [Protector] {actor.Name} escuda a {ally.Name} +{AmountPerTurn:F0} (escudo {ally.Shield:F0})");
         r.Record(ModifierEffectKind.Shield, ally, AmountPerTurn);
-        if (actor.Energy > 0)
-        {
-            actor.Energy--;
-            r.RecordElement(ElementEventKind.EnergySpent, actor, amount: actor.Energy);
-            CombatElements.AddMark(ally, actor.Element, true, actor, config, result, r, rng);
-        }
+        CombatElements.AddMark(ally, actor.Element, true, actor, config, result, r, rng);
     }
 
     public override string Summary()
@@ -62,18 +61,31 @@ public class HealLowestAllyOnHitPassive : RolePassiveBase
             healTarget.Hp = UnityEngine.Mathf.Min(healTarget.MaxHp, healTarget.Hp + heal);
             result.Log.Add($"    [Empático] {actor.Name} cura a {healTarget.Name} +{heal:F1} → {healTarget.Hp:F1}");
             r.Record(ModifierEffectKind.Heal, healTarget, heal);
-            if (actor.Energy > 0)
-            {
-                actor.Energy--;
-                r.RecordElement(ElementEventKind.EnergySpent, actor, amount: actor.Energy);
-                CombatElements.AddMark(healTarget, actor.Element, true, actor, config, result, r, rng);
-            }
+            CombatElements.AddMark(healTarget, actor.Element, true, actor, config, result, r, rng);
         }
     }
 
     public override string Summary()
     {
         return $"Cura {PercentOfDamage:P0} del daño infligido al aliado con menos HP";
+    }
+}
+
+[Serializable]
+public class MarkRandomAllyPassive : RolePassiveBase
+{
+    public override void OnAfterStrike(Combatant actor, System.Collections.Generic.List<Combatant> allies, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng)
+    {
+        var ally = CombatTargeting.PickAlly(allies, rng);
+        if (ally == null) return;
+
+        result.Log.Add($"    [Agresivo] {actor.Name} comparte su elemento con {ally.Name}");
+        CombatElements.AddMark(ally, actor.Element, true, actor, config, result, r, rng);
+    }
+
+    public override string Summary()
+    {
+        return "Comparte su elemento con un aliado al azar cada turno";
     }
 }
 }

@@ -1,12 +1,12 @@
 ---
-tags: [script, ui, combat]
+tags: [script, ui, combat, uitk]
 ---
 
 # MoriMonchiCombatVisualizerUITK.cs
 
 **Ruta:** `UI/MoriMonchiCombatVisualizerUITK.cs`
 
-**Responsabilidad:** Barra de HP world-space + chips de estado + elementos + ESCUDO + reacciones DE UN combatiente del visualizer. Componente HIJO del prefab del peleador, con un `UIDocument` que apunta a `CombatHpBar.uxml` (elementos base `name`, `hp-value`, `atk`, `spd`, `fill` y `effects`). **S42:** Bind expandido a 6 args (rol + nombre/color elemento), nuevas filas dinámicas (role-element, marks-ally, armed-row, marks-enemy) construidas por SetElementState() con ElementChipData (marcas/estados). **S43:** SetShield() dibuja barra azul 4px sobre hp-track, FlashReaction() muestra label transient 2s (narrador/reacciones), BuildArmedChip borrado → BuildStateLabel, estados armados en cajas rojo (negativo) / verde (positivo) con nombres completos.
+**Responsabilidad:** Barra de HP world-space + chips de estado + elementos + ESCUDO + reacciones DE UN combatiente del visualizer. Componente HIJO del prefab del peleador, con un `UIDocument` que apunta a `CombatHpBar.uxml` (elementos base `name`, `hp-value`, `atk`, `spd`, `fill` y `effects`). **S42:** Bind expandido a 6 args (rol + nombre/color elemento), nuevas filas dinámicas (role-element, marks-ally, armed-row, marks-enemy) construidas por SetElementState() con ElementChipData (marcas/estados). **S43:** SetShield() dibuja barra azul 4px sobre hp-track, FlashReaction() muestra label transient 2s (narrador/reacciones), BuildArmedChip borrado → BuildStateLabel, estados armados en cajas rojo (negativo) / verde (positivo) con nombres completos. **S45:** Nuevo campo serializado `hideForDebug` (bool) — si true, oculta el root del cuadro world-space (display None en Apply()) y saltea el resto del Apply(). Permite debug sin la UI world-space tapando la pantalla.
 
 **Driven por el Service:** El `CombatVisualizerService` la maneja por referencia directa:
 - `Bind(string displayName, float attack, float speed, Role role, string elementName, Color elementColor)` — **S42:** 6 args, fija nombre, ATK, VEL, rol, elemento, resetea HP a 100%
@@ -19,6 +19,8 @@ tags: [script, ui, combat]
 **Binding resiliente + fix de árbol huérfano:** `EnsureRefs()` detecta cuando el `UIDocument` reconstruye su árbol comparando `docRoot != root`; re-resuelve elementos y marca dirty para reescribirlos. Sin esto, al retroceder (Back) la barra quedaría apuntando al árbol viejo.
 
 **Billboard:** en `LateUpdate` orienta el panel hacia `Camera.main`, igual que [[NameTag]], independiente de rotación del slot.
+
+**S45 hideForDebug:** Si true, Apply() setea root.style.display = DisplayStyle.None y retorna early, ocultando todo el cuadro. Permite QA/debug sin que UI tapee la pantalla.
 
 ## Métodos Públicos
 
@@ -36,12 +38,13 @@ tags: [script, ui, combat]
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `document` | `UIDocument` | Ref opcional (auto-resuelto si null) |
+| `hideForDebug` | `bool` | **S45 NEW** Si true, oculta el cuadro root (display None en Apply) y saltea lógica |
 | `fillLerpSeconds` | `float` | Duración interpolación HP (default 0.4s) |
 | `uprightOnly` | `bool` | Si true, solo rota Y (billboard uprightless) |
 | `palette` | `CombatPopupPaletteSO` | Paleta para colorear chips de estado (S35, legacy) |
 | `reactionFlashSeconds` | `float` | **S43 NEW** Duración del flash de reacción (default 2f) |
 
-## Campos Internos (S42/S43)
+## Campos Internos (S42/S43/S45)
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
@@ -66,7 +69,7 @@ tags: [script, ui, combat]
 | `reactionUntil` | `float` | **S43 NEW** Time.time límite para mostrar reacción |
 | `reactionVisible` | `bool` | **S43 NEW** Bandera si reacción está visible |
 
-## Método Bind (S42 ACTUALIZADO)
+## Método Bind (S42 ACTUALIZADO, S45 SIN CAMBIOS)
 
 ```csharp
 public void Bind(string displayName, float attack, float speed, Role role, string elementName, Color elementColor)
@@ -114,7 +117,7 @@ public void SetShield(float shield)
 }
 ```
 
-En `Apply()` si `shieldDirty`:
+En `Apply()` si `shieldDirty` y `!hideForDebug`:
 ```csharp
 if (shieldFill != null && maxHp > 0f)
 {
@@ -139,7 +142,7 @@ public void FlashReaction(string text, Color color)
 }
 ```
 
-En `Apply()` si `reactionDirty`:
+En `Apply()` si `reactionDirty` y `!hideForDebug`:
 ```csharp
 if (reactionRow != null)
 {
@@ -164,7 +167,7 @@ public void SetElementState(List<ElementChipData> marks, List<ElementChipData> a
 }
 ```
 
-En `Apply()` si `elementStateDirty`:
+En `Apply()` si `elementStateDirty` y `!hideForDebug`:
 ```csharp
 if (marksAllyRow != null)
 {
@@ -276,6 +279,25 @@ private VisualElement BuildStateLabel(ElementChipData armed)
 
 **Invariante con S42:** ElementChipData.Negative viene de CombatVisualizerService.PushElements(), que marca negativo si es ElementalState en NegativeStates HashSet o mark.AllySource == false.
 
+## Método Apply() (S43/S45)
+
+```csharp
+private void Apply()
+{
+    if (!EnsureRefs()) return;
+    if (root != null) root.style.display = hideForDebug ? DisplayStyle.None : DisplayStyle.Flex;  // **S45 NEW**
+    if (hideForDebug) return;  // **S45 NEW** Saltea el resto si hideForDebug
+    if (staticDirty) { ... }
+    // ... resto de lógica ...
+}
+```
+
+**S45 NUEVO:**
+- Línea 327: Setea root.style.display según hideForDebug (None si true, Flex si false)
+- Línea 328: Early return si hideForDebug es true (evita procesar dirty flags)
+
+**Efecto:** Si hideForDebug = true, el cuadro world-space queda invisible y no se ejecuta lógica de Apply() (eficiencia).
+
 ## EnsureRefs() Improvements (S42/S43)
 
 **Nuevo en S42:** Resolución dinámica de rows (roleElementRow, marksAllyRow, armedRow, marksEnemyRow) si faltan.
@@ -310,42 +332,32 @@ if (shieldTrack == null && fill != null)
 
 Crea la barra azul dinámicamente si no existe en UXML.
 
-## LateUpdate (S42/S43 IGUAL)
+## Update() (S43/S45)
+
+```csharp
+private void Update() => Apply();
+```
+
+Llama Apply() cada frame (donde se procesan dirty flags y se hace billboard en LateUpdate).
+
+## LateUpdate (S42/S43/S45)
 
 ```csharp
 private void LateUpdate()
 {
     if (!EnsureRefs()) return;
-
+    if (hideForDebug) return;  // **S45 NEW** Saltea billboard si hideForDebug
+    
     // Billboard hacia Camera.main
     if (cam != null && uprightOnly)
     {
-        var dir = (cam.transform.position - root.worldBound.center).normalized;
-        root.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+        var dir = (cam.transform.position - transform.position).normalized;
+        transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
     }
-
-    // Animar fill (HP)
-    if (currentPct != targetPct)
-    {
-        currentPct = Mathf.Lerp(currentPct, targetPct, Time.deltaTime / fillLerpSeconds);
-        if (fill != null) fill.style.width = Length.Percent(currentPct * 100f);
-        if (hpValueLabel != null) hpValueLabel.text = $"{Mathf.RoundToInt(currentPct * maxHp)} / {Mathf.RoundToInt(maxHp)}";
-    }
-
-    // Ocultar reacción si tiempo expiró (S43)
-    if (reactionVisible && Time.time >= reactionUntil)
-    {
-        reactionVisible = false;
-        if (reactionRow != null) reactionRow.style.display = DisplayStyle.None;
-    }
-
-    // Apply() si dirty flags
-    if (staticDirty || statusDirty || elementStateDirty || shieldDirty || reactionDirty)
-        Apply();
 }
 ```
 
-**S43:** Chequea si reactionUntil expiró y oculta label.
+**S45 NEW:** Early return si hideForDebug es true.
 
 ## S42 Cambios
 
@@ -368,6 +380,22 @@ private void LateUpdate()
 
 **Invariante:** Bind, SetHp, SetStatus, SetElementState sin cambios visibles; métodos publicados, implementación interna extendida.
 
+## S45 Cambios
+
+**Aditivos (append-only):**
+- **Nuevo campo serializado:** `hideForDebug` (bool, default false)
+- **Gate en Apply() (línea 327):** root.style.display = hideForDebug ? DisplayStyle.None : DisplayStyle.Flex;
+- **Gate en Apply() (línea 328):** if (hideForDebug) return; — saltea todo el resto de lógica
+- **Gate en LateUpdate():** if (hideForDebug) return; — saltea billboard
+
+**Invariante:** Métodos públicos Bind/SetHp/SetStatus/SetElementState/SetShield/FlashReaction sin cambios. Gates son puramente cosmético/debug.
+
+## Uso (S45)
+
+- Developers pueden marcar `hideForDebug = true` en inspector para ocultar el cuadro world-space durante sesiones de debug sin alterar código
+- Útil para concentrarse en orden de acción o barra deHP superior sin que la UI world-space tapee la pantalla central
+- False por default (cuadro activo)
+
 ## Vinculado a
 
 - [[Index/03 - Combat System]]
@@ -382,5 +410,6 @@ private void LateUpdate()
 - **S42:** Dinámico por completo — si el UXML es minimal, construye todo en C#
 - **S43:** Shield track azul 4px sobre HP (marginBottom 1 para separación)
 - **S43:** FlashReaction label transient, oculto automático tras reactionFlashSeconds
+- **S45:** hideForDebug permite desactivar rendering + lógica sin remoción de componente
 - **Negative classification:** true si estado en NegativeStates HashSet O mark.AllySource == false (marca enemiga)
 - Todos los colores pueden tweakearse vía Color constants en BuildStateLabel

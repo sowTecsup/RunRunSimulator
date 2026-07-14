@@ -5,9 +5,10 @@ namespace MoriMonchiSimulator
 
 // Role-driven turn hooks for the 3v3 simulator: executes the polymorphic
 // Passives/Actives lists carried by each RoleProfile (RolePassiveBase /
-// RoleActiveBase). Same public signatures as before the refactor so
-// CombatService stays untouched — same rng consumption order, same log
-// strings, now data-driven instead of inline per-role branches.
+// RoleActiveBase), data-driven instead of inline per-role branches.
+// ResolveTarget runs before the strike (targeting only); ApplyPassives and
+// HealAfterStrike both run after it (S46), so every role reads the same way:
+// intent → damage → affinity → passive.
 public static class CombatRoleHooks
 {
     public static Combatant ResolveTarget(Combatant actor, RoleProfile profile, List<Combatant> allies, List<Combatant> enemies, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng)
@@ -23,12 +24,12 @@ public static class CombatRoleHooks
         return CombatTargeting.PickFrontTarget(enemies, rng);
     }
 
-    public static void GrantShield(Combatant actor, RoleProfile profile, List<Combatant> allies, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng)
+    public static void ApplyPassives(Combatant actor, RoleProfile profile, List<Combatant> allies, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng)
     {
         if (profile == null || profile.Passives == null) return;
 
         foreach (var passive in profile.Passives)
-            passive.OnTurnStart(actor, allies, config, result, r, rng);
+            passive.OnAfterStrike(actor, allies, config, result, r, rng);
     }
 
     public static void HealAfterStrike(Combatant actor, RoleProfile profile, List<Combatant> allies, bool dodged, float damage, CombatManagerSO config, CombatResult result, CombatResolver r, CombatRng rng)

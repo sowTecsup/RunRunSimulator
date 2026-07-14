@@ -26,7 +26,6 @@ public class Combatant
     public int         StunImmunityTurns;
     public Element     Element;
     public int         Affinity;
-    public int         Energy;
     public List<ItemUseState>     Uses   = new List<ItemUseState>();
     public List<ActiveEffect>     Active = new List<ActiveEffect>();
     public List<ElementMark>      Marks  = new List<ElementMark>();

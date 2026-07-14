@@ -23,6 +23,7 @@ public class CombatVisualizerService : MonoBehaviour
     [Title("Timing (seconds, divided by speed)")]
     [SerializeField, MinValue(0f)] private float windupSeconds       = 0.35f;
     [SerializeField, MinValue(0f)] private float impactSeconds       = 0.35f;
+    [SerializeField, Range(0f, 1f)] private float lungeFraction      = 0.6f;
     [SerializeField, MinValue(0f)] private float betweenTurnsSeconds = 0.55f;
     [SerializeField, MinValue(0f)] private float deathPauseSeconds   = 0.6f;
     [SerializeField, MinValue(0f)] private float synergyPopupDelay   = 0.6f;
@@ -71,6 +72,8 @@ public class CombatVisualizerService : MonoBehaviour
     private int          totalTurns;
     private bool         endIsDraw;
     private CombatVisualSide endWinner;
+
+    private readonly Dictionary<int, List<(CombatVisualSide Side, int Index)>> roundOrders = new Dictionary<int, List<(CombatVisualSide Side, int Index)>>();
 
     private bool isAuto;
     private bool busy;
@@ -220,6 +223,7 @@ public class CombatVisualizerService : MonoBehaviour
         };
         var node = head;
         totalTurns = 0;
+        roundOrders.Clear();
 
         var aliveA = new bool[snapsA.Count];
         var aliveB = new bool[snapsB.Count];
@@ -238,6 +242,13 @@ public class CombatVisualizerService : MonoBehaviour
                 bool attackerIsSelf = t.AttackerIsA == activeRecord.SelfWasA;
                 var attackerSide    = attackerIsSelf ? CombatVisualSide.A : CombatVisualSide.B;
                 var defenderSide    = attackerIsSelf ? CombatVisualSide.B : CombatVisualSide.A;
+
+                if (!roundOrders.TryGetValue(t.TurnNumber, out var ro))
+                {
+                    ro = new List<(CombatVisualSide Side, int Index)>();
+                    roundOrders[t.TurnNumber] = ro;
+                }
+                if (!ro.Contains((attackerSide, t.AttackerIndex))) ro.Add((attackerSide, t.AttackerIndex));
 
                 void ApplyProc(CombatProcEvent pe)
                 {
@@ -393,7 +404,14 @@ public class CombatVisualizerService : MonoBehaviour
         {
             CombatVisualEvents.Attack(target.AttackerSide);
             atkUnit?.Hooks?.PlayAttack();
-            yield return new WaitForSeconds(windupSeconds / Speed);
+
+            var atkHome  = atkUnit?.Anchor != null ? atkUnit.Anchor.position
+                         : atkUnit?.Instance != null ? atkUnit.Instance.transform.position : Vector3.zero;
+            var lungePos = atkHome + (units.PosOf(defSide, target.DefenderIndex) - atkHome) * lungeFraction;
+            if (atkUnit?.Instance != null)
+                yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, atkHome, lungePos, windupSeconds / Speed));
+            else
+                yield return new WaitForSeconds(windupSeconds / Speed);
 
             var hit = new CombatVisualHit
             {
@@ -422,7 +440,10 @@ public class CombatVisualizerService : MonoBehaviour
                     Side = defSide, Position = units.PosOf(defSide, target.DefenderIndex), Follow = units.TransformOf(defSide, target.DefenderIndex),
                     Kind = t.WasCrit ? CombatPopupKind.Crit : CombatPopupKind.Hit, Amount = t.Damage,
                 });
-            yield return new WaitForSeconds(impactSeconds / Speed);
+            if (atkUnit?.Instance != null)
+                yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, lungePos, atkHome, impactSeconds / Speed));
+            else
+                yield return new WaitForSeconds(impactSeconds / Speed);
         }
 
         if (t.Procs != null)
@@ -481,6 +502,21 @@ public class CombatVisualizerService : MonoBehaviour
         PublishOrder();
     }
 
+    private IEnumerator MoveOverTime(Transform tr, Vector3 from, Vector3 to, float duration)
+    {
+        if (tr == null) yield break;
+        if (duration <= 0f) { tr.position = to; yield break; }
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            if (tr == null) yield break;
+            elapsed += Time.deltaTime;
+            tr.position = Vector3.Lerp(from, to, Mathf.Clamp01(elapsed / duration));
+            yield return null;
+        }
+        if (tr != null) tr.position = to;
+    }
+
     private IEnumerator PlayProc(CombatProcEvent pe, CombatNode node)
     {
         var side = SimToVisual(pe.TargetIsA);
@@ -519,7 +555,9 @@ public class CombatVisualizerService : MonoBehaviour
             EmitSpeech(node.AttackerSide, node.AttackerIndex, protectorLine, side, pe.TargetIndex, true);
         else if (pe.ElementEvent == ElementEventKind.None && pe.Kind == ModifierEffectKind.Heal && !pe.BeforeStrike)
             EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(empaticoLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
-        else if (pe.ElementEvent == ElementEventKind.EnergyGained && !(side == node.AttackerSide && pe.TargetIndex == node.AttackerIndex))
+        else if (pe.ElementEvent == ElementEventKind.MarkApplied && pe.AllySource
+              && SnapRole(node.AttackerSide, node.AttackerIndex) == Role.Agresivo
+              && !(side == node.AttackerSide && pe.TargetIndex == node.AttackerIndex))
             EmitSpeech(node.AttackerSide, node.AttackerIndex, agresivoLine, side, pe.TargetIndex, true);
         else if (pe.ElementEvent == ElementEventKind.StateArmed)
             EmitSpeech(side, pe.TargetIndex, $"¡Quedé {StateName(pe.State)}!", side, pe.TargetIndex, false);
@@ -527,13 +565,27 @@ public class CombatVisualizerService : MonoBehaviour
         PushHp(side, pe.TargetIndex, pe.TargetHpAfter);
         if (pe.TargetStatusAfter != null) unit.Bar?.SetStatus(pe.TargetStatusAfter);
 
-        if (pe.ElementEvent == ElementEventKind.AffinityGained) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, (int)pe.Amount, -1);
-        else if (pe.ElementEvent == ElementEventKind.EnergyGained) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, 0, (int)pe.Amount);
-        else if (pe.ElementEvent == ElementEventKind.EnergySpent) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, -1, (int)pe.Amount);
+        if (pe.ElementEvent == ElementEventKind.AffinityGained) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, (int)pe.Amount);
+
+
+        if (pe.ElementEvent == ElementEventKind.MarkApplied
+         || pe.ElementEvent == ElementEventKind.MarkRemoved
+         || pe.ElementEvent == ElementEventKind.Reaction
+         || pe.ElementEvent == ElementEventKind.StateArmed
+         || pe.ElementEvent == ElementEventKind.StateConsumed
+         || pe.ElementEvent == ElementEventKind.StateRemoved)
+            CombatVisualEvents.UnitElement(new CombatElementEventData
+            {
+                Side = side, Index = pe.TargetIndex, Kind = pe.ElementEvent,
+                Element = pe.Element, ElementB = pe.ElementB, AllySource = pe.AllySource, State = pe.State,
+                ReactionName = pe.ReactionName,
+            });
 
         bool beat = pe.ElementEvent == ElementEventKind.Reaction
                  || pe.ElementEvent == ElementEventKind.StateArmed
                  || pe.ElementEvent == ElementEventKind.StateConsumed
+                 || pe.ElementEvent == ElementEventKind.MarkApplied
+                 || (pe.ElementEvent == ElementEventKind.AffinityGained && pe.Amount >= 2f)
                  || (pe.ElementEvent == ElementEventKind.None && (pe.Kind == ModifierEffectKind.Shield || pe.Kind == ModifierEffectKind.Heal));
         if (beat) yield return new WaitForSeconds(stateBeatSeconds / Speed);
 
@@ -566,6 +618,14 @@ public class CombatVisualizerService : MonoBehaviour
     {
         var team = side == CombatVisualSide.A ? activeRecord.SelfTeam : activeRecord.OpponentTeam;
         return team != null && index >= 0 && index < team.Count ? team[index].Name : "";
+    }
+
+    public Vector3 PosOf(CombatVisualSide side, int index) => units.PosOf(side, index);
+
+    private Role SnapRole(CombatVisualSide side, int index)
+    {
+        var team = side == CombatVisualSide.A ? activeRecord.SelfTeam : activeRecord.OpponentTeam;
+        return team != null && index >= 0 && index < team.Count ? team[index].Role : default;
     }
 
     private void RaiseProcPopup(CombatProcEvent pe, CombatVisualUnit unit, float delta)
@@ -807,35 +867,33 @@ public class CombatVisualizerService : MonoBehaviour
     {
         if (current == null) return;
 
+        int round = current.Next != null ? current.Next.TurnNumber : current.TurnNumber;
+
         var order = new List<CombatOrderEntry>();
         var seen  = new HashSet<(CombatVisualSide, int)>();
 
-        for (var n = current.Next; n != null; n = n.Next)
-        {
-            var key = (n.AttackerSide, n.AttackerIndex);
-            if (seen.Contains(key)) continue;
-            seen.Add(key);
-
-            var states = n.AttackerSide == CombatVisualSide.A ? current.StateA : current.StateB;
-            if (n.AttackerIndex < 0 || n.AttackerIndex >= states.Count) continue;
-            var state = states[n.AttackerIndex];
-            if (state.Hp <= 0f) continue;
-
-            order.Add(new CombatOrderEntry { Side = n.AttackerSide, Index = n.AttackerIndex, Alive = true, State = state });
-        }
+        if (roundOrders.TryGetValue(round, out var actors))
+            foreach (var (side, index) in actors)
+            {
+                var states = side == CombatVisualSide.A ? current.StateA : current.StateB;
+                if (index < 0 || index >= states.Count) continue;
+                if (!seen.Add((side, index))) continue;
+                var state = states[index];
+                order.Add(new CombatOrderEntry { Side = side, Index = index, Alive = state.Hp > 0f, State = state });
+            }
 
         for (int i = 0; i < current.StateA.Count; i++)
-            if (current.StateA[i].Hp > 0f && !seen.Contains((CombatVisualSide.A, i)))
+            if (current.StateA[i].Hp > 0f && seen.Add((CombatVisualSide.A, i)))
                 order.Add(new CombatOrderEntry { Side = CombatVisualSide.A, Index = i, Alive = true, State = current.StateA[i] });
         for (int i = 0; i < current.StateB.Count; i++)
-            if (current.StateB[i].Hp > 0f && !seen.Contains((CombatVisualSide.B, i)))
+            if (current.StateB[i].Hp > 0f && seen.Add((CombatVisualSide.B, i)))
                 order.Add(new CombatOrderEntry { Side = CombatVisualSide.B, Index = i, Alive = true, State = current.StateB[i] });
 
         for (int i = 0; i < current.StateA.Count; i++)
-            if (current.StateA[i].Hp <= 0f)
+            if (current.StateA[i].Hp <= 0f && seen.Add((CombatVisualSide.A, i)))
                 order.Add(new CombatOrderEntry { Side = CombatVisualSide.A, Index = i, Alive = false, State = current.StateA[i] });
         for (int i = 0; i < current.StateB.Count; i++)
-            if (current.StateB[i].Hp <= 0f)
+            if (current.StateB[i].Hp <= 0f && seen.Add((CombatVisualSide.B, i)))
                 order.Add(new CombatOrderEntry { Side = CombatVisualSide.B, Index = i, Alive = false, State = current.StateB[i] });
 
         CombatVisualEvents.ActionOrder(order);

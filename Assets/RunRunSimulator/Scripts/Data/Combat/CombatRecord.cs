@@ -116,7 +116,6 @@ public class CombatUnitState
     public List<CombatElementMark> ElementMarks = new List<CombatElementMark>();
     public List<ElementalState>    ArmedStates  = new List<ElementalState>();
     public int Affinity;
-    public int Energy;
 }
 
 [Serializable]

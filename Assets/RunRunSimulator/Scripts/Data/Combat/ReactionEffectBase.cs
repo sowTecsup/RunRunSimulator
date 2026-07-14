@@ -187,22 +187,4 @@ public class DamageEffect : ReactionEffectBase
     }
 }
 
-[Serializable]
-public class GrantEnergyEffect : ReactionEffectBase
-{
-    [MinValue(1), LabelText("Energy")]
-    public int Amount = 1;
-
-    public override void Apply(Combatant bearer, Combatant reactor, string reactionName, CombatResult result, CombatResolver r, CombatRng rng)
-    {
-        bearer.Energy += Amount;
-        result.Log.Add($"    [estado] {reactionName} da energía a {bearer.Name} ({bearer.Energy})");
-        r.RecordElement(ElementEventKind.EnergyGained, bearer, amount: bearer.Energy, reactionName: reactionName);
-    }
-
-    public override string Summary()
-    {
-        return $"Otorga {Amount} de energía al portador";
-    }
-}
 }

@@ -76,6 +76,18 @@ public struct CombatSpeechData
     public Transform        TargetFollow;
 }
 
+public struct CombatElementEventData
+{
+    public CombatVisualSide Side;
+    public int              Index;
+    public ElementEventKind Kind;
+    public Element          Element;
+    public Element          ElementB;
+    public bool             AllySource;
+    public ElementalState   State;
+    public string           ReactionName;
+}
+
 public enum CombatVisualLogKind { Versus, Hit, Crit, Death, Result, Proc }
 
 public struct CombatVisualLogLine
@@ -145,13 +157,16 @@ public static class CombatVisualEvents
     public static event Action<List<CombatOrderEntry>> OnActionOrder;
     public static void ActionOrder(List<CombatOrderEntry> order) => OnActionOrder?.Invoke(order);
 
-    public static event Action<CombatVisualSide, int, int, int> OnUnitAffinity;
-    public static void UnitAffinity(CombatVisualSide side, int index, int affinity, int energy) => OnUnitAffinity?.Invoke(side, index, affinity, energy);
+    public static event Action<CombatVisualSide, int, int> OnUnitAffinity;
+    public static void UnitAffinity(CombatVisualSide side, int index, int affinity) => OnUnitAffinity?.Invoke(side, index, affinity);
 
     public static event Action<CombatVisualSide, int> OnActiveUnit;
     public static void ActiveUnit(CombatVisualSide side, int index) => OnActiveUnit?.Invoke(side, index);
 
     public static event Action<CombatSpeechData> OnSpeech;
     public static void Speech(CombatSpeechData d) => OnSpeech?.Invoke(d);
+
+    public static event Action<CombatElementEventData> OnUnitElement;
+    public static void UnitElement(CombatElementEventData d) => OnUnitElement?.Invoke(d);
 }
 }

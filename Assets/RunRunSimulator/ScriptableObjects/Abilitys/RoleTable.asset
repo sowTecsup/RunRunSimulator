@@ -130,7 +130,13 @@ MonoBehaviour:
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 8|MoriMonchiSimulator.MarkRandomAllyPassive, Assembly-CSharp
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -139,14 +145,14 @@ MonoBehaviour:
       Data: 
     - Name: Actives
       Entry: 7
-      Data: 8|System.Collections.Generic.List`1[[MoriMonchiSimulator.RoleActiveBase,
+      Data: 9|System.Collections.Generic.List`1[[MoriMonchiSimulator.RoleActiveBase,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 9|MoriMonchiSimulator.BacklineHunterActive, Assembly-CSharp
+      Data: 10|MoriMonchiSimulator.BacklineHunterActive, Assembly-CSharp
     - Name: Chance
       Entry: 4
       Data: 0.5
@@ -173,7 +179,7 @@ MonoBehaviour:
       Data: 2
     - Name: $v
       Entry: 7
-      Data: 10|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
+      Data: 11|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
     - Name: ConMod
       Entry: 4
       Data: 1
@@ -188,14 +194,14 @@ MonoBehaviour:
       Data: 0.1
     - Name: Passives
       Entry: 7
-      Data: 11|System.Collections.Generic.List`1[[MoriMonchiSimulator.RolePassiveBase,
+      Data: 12|System.Collections.Generic.List`1[[MoriMonchiSimulator.RolePassiveBase,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 1
     - Name: 
       Entry: 7
-      Data: 12|MoriMonchiSimulator.HealLowestAllyOnHitPassive, Assembly-CSharp
+      Data: 13|MoriMonchiSimulator.HealLowestAllyOnHitPassive, Assembly-CSharp
     - Name: PercentOfDamage
       Entry: 4
       Data: 0.5
@@ -210,7 +216,7 @@ MonoBehaviour:
       Data: 
     - Name: Actives
       Entry: 7
-      Data: 13|System.Collections.Generic.List`1[[MoriMonchiSimulator.RoleActiveBase,
+      Data: 14|System.Collections.Generic.List`1[[MoriMonchiSimulator.RoleActiveBase,
         Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12

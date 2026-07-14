@@ -6,9 +6,9 @@ namespace MoriMonchiSimulator
 
 // Active role targeting overrides: decide who gets hit before the default
 // front-row pick applies. Serialized templates inside RoleProfile.Actives,
-// executed each turn by CombatRoleHooks — same rng consumption order and log
-// strings as the values they replace. ResolveTarget returns null when this
-// active does not override targeting this turn.
+// executed each turn by CombatRoleHooks. ResolveTarget returns null when this
+// active does not override targeting this turn. Targeting only — elemental
+// marks belong to the role's passives (S46), never here.
 [Serializable]
 public abstract class RoleActiveBase
 {
@@ -27,45 +27,14 @@ public class BacklineHunterActive : RoleActiveBase
     {
         if (Chance <= 0f) return null;
 
-        Combatant target;
         float aggroRoll = rng.NextFloat();
-        if (aggroRoll < Chance)
-        {
-            var back = CombatTargeting.PickBacklineTarget(enemies, rng);
-            if (back != null)
-            {
-                target = back;
-                result.Log.Add($"    [Agresivo] {actor.Name} caza la backline");
-                if (actor.Energy > 0)
-                {
-                    actor.Energy--;
-                    r.RecordElement(ElementEventKind.EnergySpent, actor, amount: actor.Energy);
-                    CombatElements.AddMark(CombatTargeting.PickAlly(allies, rng), actor.Element, true, actor, config, result, r, rng);
-                }
-            }
-            else
-            {
-                if (actor.Energy > 0)
-                {
-                    actor.Energy--;
-                    r.RecordElement(ElementEventKind.EnergySpent, actor, amount: actor.Energy);
-                    var mate = CombatTargeting.PickAlly(allies, rng);
-                    mate.Energy++;
-                    result.Log.Add($"    [Agresivo] {actor.Name} comparte energía con {mate.Name} (energía {mate.Energy})");
-                    r.RecordElement(ElementEventKind.EnergyGained, mate, amount: mate.Energy);
-                }
-                else
-                {
-                    result.Log.Add("    [Agresivo] sin backline — comparte energía (sin efecto)");
-                }
-                target = CombatTargeting.PickFrontTarget(enemies, rng);
-            }
-        }
-        else
-        {
-            target = CombatTargeting.PickFrontTarget(enemies, rng);
-        }
-        return target;
+        if (aggroRoll >= Chance) return CombatTargeting.PickFrontTarget(enemies, rng);
+
+        var back = CombatTargeting.PickBacklineTarget(enemies, rng);
+        if (back == null) return CombatTargeting.PickFrontTarget(enemies, rng);
+
+        result.Log.Add($"    [Agresivo] {actor.Name} caza la backline");
+        return back;
     }
 
     public override string Summary()

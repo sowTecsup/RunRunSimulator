@@ -6,6 +6,7 @@ namespace MoriMonchiSimulator
 public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
 {
     [SerializeField] private UIDocument document;
+    [SerializeField] private bool hideForDebug = false;
     [SerializeField, Range(0.05f, 2f)] private float fillLerpSeconds = 0.4f;
     [SerializeField] private bool uprightOnly = true;
     [SerializeField] private CombatPopupPaletteSO palette;
@@ -323,6 +324,8 @@ public class MoriMonchiCombatVisualizerUITK : MonoBehaviour
     private void Apply()
     {
         if (!EnsureRefs()) return;
+        if (root != null) root.style.display = hideForDebug ? DisplayStyle.None : DisplayStyle.Flex;
+        if (hideForDebug) return;
         if (staticDirty)
         {
             if (nameLabel != null) nameLabel.text = desiredName;

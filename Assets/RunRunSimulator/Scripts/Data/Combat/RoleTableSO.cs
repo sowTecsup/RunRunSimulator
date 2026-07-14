@@ -53,7 +53,7 @@ public class RoleTableSO : SerializedScriptableObject
             AtkMod = 2f,
             SpdMod = 1f,
             PriceModifier = -0.10f,
-            Passives = new List<RolePassiveBase>(),
+            Passives = new List<RolePassiveBase> { new MarkRandomAllyPassive() },
             Actives = new List<RoleActiveBase> { new BacklineHunterActive { Chance = 0.5f } },
         };
 

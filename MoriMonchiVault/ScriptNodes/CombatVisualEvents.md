@@ -4,11 +4,11 @@ tags: [combat, visualization, events, bus, 3v3]
 
 # CombatVisualEvents
 
-Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). Es puramente un `public static class` con eventos y métodos helper. **S41:** Aditivo con datos de 3v3 (equipos, indices, eventos por unit). **S42:** Nuevos eventos para barra de orden de acción y afinidad/energía. **S43:** Struct `CombatSpeechData` + evento `OnSpeech` para globos de habla cómic + `Negative` en `ElementChipData`.
+Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). Es puramente un `public static class` con eventos y métodos helper. **S41:** Aditivo con datos de 3v3 (equipos, indices, eventos por unit). **S42:** Nuevos eventos para barra de orden de acción y afinidad/energía. **S43:** Struct `CombatSpeechData` + evento `OnSpeech` para globos de habla cómic + `Negative` en `ElementChipData`. **S45:** Nuevo struct `CombatElementEventData` + evento `OnUnitElement` — canal por-proc para actualizar marcas/estados de la barra de orden en tiempo real (MarkApplied/MarkRemoved/Reaction/StateArmed/StateConsumed/StateRemoved).
 
 ## Responsabilidad
 
-Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden) desde el visualizador a listeners sin acoplamiento directo. Un publisher central para ~16 eventos de replay (S43 aditivos).
+Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden, eventos elementales por-proc) desde el visualizador a listeners sin acoplamiento directo. Un publisher central para ~17 eventos de replay (S45 aditivo: OnUnitElement).
 
 ## Enums
 
@@ -123,6 +123,22 @@ Datos de globo de habla cómic.
 | `TargetIndex` | `int` | Índice objetivo within equipo |
 | `TargetFollow` | `Transform` | Transform objetivo (para flecha) |
 
+### CombatElementEventData (S45 NEW)
+
+Evento elemental por-proc para actualizar marcas/estados de la barra en tiempo real.
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `Side` | `CombatVisualSide` | Equipo de la unidad afectada (A o B) |
+| `Index` | `int` | Índice de la unidad within equipo (0..2) |
+| `Kind` | `ElementEventKind` | Tipo de evento (MarkApplied, MarkRemoved, Reaction, StateArmed, StateConsumed, StateRemoved) |
+| `Element` | `Element` | Elemento aplicado/removido |
+| `ElementB` | `Element` | **S45 NEW** Segundo elemento en Reaction (para ambos reactantes) |
+| `AllySource` | `bool` | true si marca/estado viene de aliado, false si enemigo |
+| `State` | `ElementalState` | Estado elemental (para StateArmed/StateConsumed/StateRemoved) |
+
+**S45:** Canal por-proc independiente de OnActionOrder — permite que la barra incremente marcas/estados en tiempo real conforme se disparan procs, sin esperar a fin de turno.
+
 ### CombatVisualLogLine
 
 Línea de log con tipo.
@@ -171,12 +187,15 @@ Estado de control del replay UI.
 | `OnUnitAffinity` | `CombatVisualSide, int, int, int` | **S42 NEW** Afinidad/energía cambió (side, index, affinity, energy) |
 | `OnActiveUnit` | `CombatVisualSide, int` | **S42 NEW** Unit activa en turno actual (side, index) |
 | `OnSpeech` | `CombatSpeechData` | **S43 NEW** Emite globo de habla (Protector/Empático/Agresivo, narrador) |
+| `OnUnitElement` | `CombatElementEventData` | **S45 NEW** Evento elemental por-proc (marca/estado cambió en tiempo real) |
 
 **S41 Cambios:** Eventos 1v1 legacy (OnHpChanged/OnDead) intactos; nuevos eventos OnUnitHpChanged/OnUnitDead para 3v3.
 
 **S42 Cambios:** Tres nuevos eventos para barra de orden + UI afinidad/energía.
 
 **S43 Cambios:** Nuevo struct CombatSpeechData + evento OnSpeech; ElementChipData gana bool Negative.
+
+**S45 Cambios:** Nuevo struct CombatElementEventData + evento OnUnitElement para actualizar marcas/estados per-proc (independiente de OnActionOrder).
 
 ## Métodos Helper Estáticos
 
@@ -200,17 +219,18 @@ Estado de control del replay UI.
 | `UnitAffinity` | `(CombatVisualSide side, int index, int affinity, int energy)` | **S42 NEW** Dispara `OnUnitAffinity` |
 | `ActiveUnit` | `(CombatVisualSide side, int index)` | **S42 NEW** Dispara `OnActiveUnit` |
 | `Speech` | `(CombatSpeechData d)` | **S43 NEW** Dispara `OnSpeech` |
+| `UnitElement` | `(CombatElementEventData d)` | **S45 NEW** Dispara `OnUnitElement` |
 
 ## Vinculado a
 
-- [[CombatVisualizerService]] — único publisher (S41: por unit, S42: con orden/afinidad, S43: con speech)
+- [[CombatVisualizerService]] — único publisher (S41: por unit, S42: con orden/afinidad, S43: con speech, S45: con OnUnitElement per-proc)
 - [[CombatVisualUnits]] — suscriptor de eventos spawn (S41)
 - [[CombatDamageNumbers]] — suscriptor `OnPopup` (S42: renderiza ReactionName si Reaction)
-- [[CombatOrderBarUITK]] — **S42 NEW** suscriptor (OnVisualCombatStart, OnActionOrder, OnUnitAffinity, OnActiveUnit)
-- [[CombatSpeechBubbles]] — **S43 NEW** suscriptor `OnSpeech` (renderiza globos cómic)
-- [[CombatCameraDirector]] — **S43 NEW** suscriptor `OnActiveUnit` (maneja vcam priorities)
+- [[CombatOrderBarUITK]] — **S42 NEW** suscriptor (OnVisualCombatStart, OnActionOrder, OnUnitAffinity, OnActiveUnit); **S45 NEW** suscriptor OnUnitElement para actualizar marcas/estados por-proc
+- [[CombatSpeechBubbles]] — **S43 NEW** suscriptor `OnSpeech` (renderiza globos cómic); **S45:** sin cambios
+- [[CombatCameraDirector]] — **S43 NEW** suscriptor `OnActiveUnit` (maneja vcam priorities); **S45:** sin cambios
 - [[MoriMonchiCombatVisualizer]] — suscriptor effects (1v1 legacy)
-- [[MoriMonchiCombatVisualizerUITK]] — suscriptor panel state + elementos + shield
+- [[MoriMonchiCombatVisualizerUITK]] — suscriptor panel state + elementos + shield; **S45:** sin cambios
 
 ## Cambios S41
 
@@ -243,9 +263,19 @@ Estado de control del replay UI.
 
 **Invariante:** Eventos/structs S42 siguen intactos; CombatSpeechData es aditivo para globos visuales.
 
-## Notas Implementación S43
+## Cambios S45
+
+**Aditivos (append-only):**
+- **Nuevo struct:** `CombatElementEventData` (7 campos) — para eventos elementales por-proc (MarkApplied, MarkRemoved, Reaction, StateArmed, StateConsumed, StateRemoved)
+- **Nuevo evento:** `OnUnitElement(CombatElementEventData)` — disparado por PlayProc en CombatVisualizerService cada vez que un proc elemental mueve/agrega/quita marcas o estados
+- **Nuevo helper:** `UnitElement(CombatElementEventData d)` — wrapper que dispara `OnUnitElement`
+
+**Invariante:** Eventos/structs S43 siguen intactos; CombatElementEventData es aditivo para actualizar barra de orden en tiempo real, sin esperar a fin de turno.
+
+## Notas Implementación S43 / S45
 
 - CombatSpeechBubbles suscribe OnSpeech y renderiza globo + flecha dinámicamente por frame
 - CombatCameraDirector suscribe OnActiveUnit para cortes de cámara (vcam priority)
 - PlayProc en CombatVisualizerService emite Speech con textos tweakeables (protectorLine, empaticoLine, agresivoLine)
 - Speech por narrador (personaje nulo) en StateArmed: "¡Quedé {stateName}!" (rojo/verde según negativo)
+- **S45:** PlayProc emite OnUnitElement por cada proc elemental (MarkApplied/MarkRemoved/Reaction/StateArmed/StateConsumed/StateRemoved); CombatOrderBarUITK suscriptor HandleUnitElement muta Marks/States lists por-proc para mostrar cambios en vivo
