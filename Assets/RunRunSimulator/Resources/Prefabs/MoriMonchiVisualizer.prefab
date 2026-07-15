@@ -283,11 +283,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.MoriMonchiCombatVisualizerUITK
   document: {fileID: 8978682245256818456}
-  hideForDebug: 1
+  hideForDebug: 0
   fillLerpSeconds: 0.4
   uprightOnly: 1
-  palette: {fileID: 0}
-  reactionFlashSeconds: 2
 --- !u!114 &8978682245256818456
 MonoBehaviour:
   m_ObjectHideFlags: 0

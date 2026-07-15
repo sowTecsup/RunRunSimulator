@@ -85,7 +85,7 @@
 .cv-ob-marks-split {
     flex-direction: row;
     margin-top: 3px;
-    min-height: 76px;
+    min-height: 40px;
 }
 
 .cv-ob-marks-col {

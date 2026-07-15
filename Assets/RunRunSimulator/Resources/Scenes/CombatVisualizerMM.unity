@@ -317,7 +317,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -328,7 +329,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 57886884}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 7dd9516aa6141da4da89ec26ba04d9e0, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &140391896
 GameObject:
   m_ObjectHideFlags: 0
@@ -464,7 +562,7 @@ MonoBehaviour:
   DebugActive: 0
   InScriptDrivenPause: 0
   FeedbacksList:
-  - rid: 3109730379974574357
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -476,11 +574,11 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 3109730379974574357
+    - rid: 6715568874646405215
       type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
         Active: 1
-        UniqueID: 1113033918
+        UniqueID: -1709545261
         Label: Particles Instantiation
         OriginalLabel: Particles Instantiation
         ChannelMode: 0
@@ -555,7 +653,7 @@ MonoBehaviour:
         MutualizePools: 0
         ParentTransform: {fileID: 0}
         CachedRecycle: 1
-        ParticlesPrefab: {fileID: 7906114521842336964, guid: 9fe716b0b156ac047aeb11d319f99bcf, type: 3}
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 089a9e6d9c22d964085cfcb220374e77, type: 3}
         RandomParticlePrefabs: []
         MainParticlesPrefabWeight: 1
         RandomParticleWeights: 
@@ -564,7 +662,7 @@ MonoBehaviour:
         DeclaredDuration: 0
         ForceStopAction: 0
         StopAction: 0
-        PositionMode: 0
+        PositionMode: 3
         InstantiateParticlesPosition: {fileID: 0}
         TargetWorldPosition: {x: 0, y: 0, z: 0}
         Offset: {x: 0, y: 0, z: 0}
@@ -707,7 +805,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -718,7 +817,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 153784658}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1001 &176623147
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1324,7 +1520,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -1335,7 +1532,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 398825749}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &418349380
 GameObject:
   m_ObjectHideFlags: 0
@@ -1680,7 +1974,7 @@ MonoBehaviour:
   DebugActive: 0
   InScriptDrivenPause: 0
   FeedbacksList:
-  - rid: 3109730379974574354
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -1692,13 +1986,13 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 3109730379974574354
-      type: {class: MMF_Particles, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
         Active: 1
-        UniqueID: -987670257
-        Label: Particles Play
-        OriginalLabel: Particles Play
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -1766,16 +2060,27 @@ MonoBehaviour:
           ButtonText: 
         Owner: {fileID: 600181251}
         DebugActive: 0
-        Mode: 0
-        EmitCount: 100
-        BoundParticleSystem: {fileID: 7906114521842336964, guid: ac57e66d637f46143a862824131c2a38, type: 3}
-        RandomParticleSystems: []
-        MoveToPosition: 1
-        ActivateOnPlay: 0
-        StopSystemOnInit: 1
-        StopSystemOnReset: 1
-        StopSystemOnStopFeedback: 1
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: ac57e66d637f46143a862824131c2a38, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
         DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
         ForceSimulationSpeed: 0
         ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &608720549
@@ -1912,7 +2217,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -1923,7 +2229,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 608720551}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &609505762
 GameObject:
   m_ObjectHideFlags: 0
@@ -2638,7 +3041,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -2649,7 +3053,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 906266296}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!43 &936253247
 Mesh:
   m_ObjectHideFlags: 0
@@ -3201,7 +3702,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -3212,7 +3714,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 1082601224}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1125721160
 GameObject:
   m_ObjectHideFlags: 0
@@ -3575,7 +4174,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -3586,7 +4186,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 1148429290}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1158799774
 GameObject:
   m_ObjectHideFlags: 0
@@ -3755,7 +4452,7 @@ MonoBehaviour:
   DebugActive: 0
   InScriptDrivenPause: 0
   FeedbacksList:
-  - rid: 3109730379974574358
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -3767,11 +4464,11 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 3109730379974574358
+    - rid: 6715568874646405215
       type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
         Active: 1
-        UniqueID: -685770829
+        UniqueID: -1709545261
         Label: Particles Instantiation
         OriginalLabel: Particles Instantiation
         ChannelMode: 0
@@ -3855,7 +4552,7 @@ MonoBehaviour:
         DeclaredDuration: 0
         ForceStopAction: 0
         StopAction: 0
-        PositionMode: 2
+        PositionMode: 3
         InstantiateParticlesPosition: {fileID: 0}
         TargetWorldPosition: {x: 0, y: 0, z: 0}
         Offset: {x: 0, y: 0, z: 0}
@@ -3998,7 +4695,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -4009,7 +4707,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 1253587628}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1264656810
 GameObject:
   m_ObjectHideFlags: 0
@@ -4144,7 +4939,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -4155,7 +4951,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 1264656812}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1282939544
 GameObject:
   m_ObjectHideFlags: 0
@@ -4680,7 +5573,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -4691,7 +5585,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 1352601472}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1375358295
 GameObject:
   m_ObjectHideFlags: 0
@@ -5006,7 +5997,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -5017,7 +6009,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 1660168318}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1674720997
 GameObject:
   m_ObjectHideFlags: 0
@@ -5216,7 +6305,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -5227,7 +6317,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 1705548062}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1722094333
 GameObject:
   m_ObjectHideFlags: 0
@@ -5648,7 +6835,7 @@ MonoBehaviour:
   DebugActive: 0
   InScriptDrivenPause: 0
   FeedbacksList:
-  - rid: 3109730379974574355
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -5660,13 +6847,13 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 3109730379974574355
-      type: {class: MMF_Particles, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
         Active: 1
-        UniqueID: 1353979493
-        Label: Particles Play
-        OriginalLabel: Particles Play
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -5734,16 +6921,27 @@ MonoBehaviour:
           ButtonText: 
         Owner: {fileID: 1752671261}
         DebugActive: 0
-        Mode: 0
-        EmitCount: 100
-        BoundParticleSystem: {fileID: 7906114521842336964, guid: ac57e66d637f46143a862824131c2a38, type: 3}
-        RandomParticleSystems: []
-        MoveToPosition: 1
-        ActivateOnPlay: 0
-        StopSystemOnInit: 1
-        StopSystemOnReset: 1
-        StopSystemOnStopFeedback: 1
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 7dd9516aa6141da4da89ec26ba04d9e0, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
         DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
         ForceSimulationSpeed: 0
         ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1755152914
@@ -5862,9 +7060,13 @@ MonoBehaviour:
   deathPauseSeconds: 0.6
   synergyPopupDelay: 0.6
   stateBeatSeconds: 0.5
-  protectorLine: "\xA1Toma, prot\xE9gete!"
+  protectorLine: "\xA1Prot\xE9gete, {0}!"
   empaticoLine: "\xA1{0}, te curo!"
   agresivoLine: "\xA1Te comparto mi esp\xEDritu de pelea!"
+  protectorSelfLine: "\xA1Me escudar\xE9!"
+  empaticoSelfLine: "\xA1Qu\xE9 alivio!"
+  agresivoSelfLine: "\xA1Me toca a m\xED!"
+  attackLine: "\xA1TOMA, {0}!"
   speechSeconds: 1.6
   playbackSpeed: 1
 --- !u!114 &1755152920
@@ -5926,7 +7128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatSpeechBubbles
   document: {fileID: 1755152916}
-  hideForDebug: 1
+  hideForDebug: 0
   speakerOffset: {x: 0, y: 1.6, z: 0}
   targetOffset: {x: 0, y: 1.9, z: 0}
 --- !u!114 &1755152924
@@ -6212,9 +7414,12 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+  muteSoporte: 0
   shieldFeedback: {fileID: 600181251}
   healFeedback: {fileID: 1752671261}
-  offset: {x: 0, y: 1, z: 0}
+  muteMarcas: 0
+  muteEstados: 0
+  offset: {x: 0, y: 0, z: 0}
 --- !u!1 &1760546697
 GameObject:
   m_ObjectHideFlags: 0
@@ -6749,7 +7954,8 @@ MonoBehaviour:
         m_Calls: []
   DebugActive: 0
   InScriptDrivenPause: 0
-  FeedbacksList: []
+  FeedbacksList:
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -6760,7 +7966,104 @@ MonoBehaviour:
   MMF_ChannelDefinition: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+      data:
+        Active: 1
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
+        ChannelMode: 0
+        Channel: 0
+        MMChannelDefinition: {fileID: 0}
+        Chance: 100
+        Timing:
+          TimescaleMode: 0
+          ExcludeFromHoldingPauses: 0
+          ContributeToTotalDuration: 1
+          InitialDelay: 0
+          CooldownDuration: 0
+          InterruptsOnStop: 1
+          NumberOfRepeats: 0
+          RepeatForever: 0
+          DelayBetweenRepeats: 1
+          PlayCount: 0
+          LimitPlayCount: 0
+          MaxPlayCount: 3
+          SetPlayCountToZeroOnReset: 0
+          MMFeedbacksDirectionCondition: 0
+          PlayDirection: 0
+          ConstantIntensity: 0
+          UseIntensityInterval: 0
+          IntensityIntervalMin: 0
+          IntensityIntervalMax: 0
+          Sequence: {fileID: 0}
+          TrackID: 0
+          Quantized: 0
+          TargetBPM: 120
+        AutomatedTargetAcquisition:
+          Mode: 0
+          ChildIndex: 0
+        RandomizeOutput: 0
+        RandomMultiplier: {x: 0.8, y: 1}
+        RandomizeDuration: 0
+        RandomDurationMultiplier: {x: 0.5, y: 2}
+        UseRange: 0
+        RangeDistance: 5
+        UseRangeFalloff: 0
+        RangeFalloff:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        RemapRangeFalloff: {x: 0, y: 1}
+        AutomaticShakerSetupButton:
+          ButtonText: 
+        Owner: {fileID: 1893151652}
+        DebugActive: 0
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: 5c02f21f8c243ac44b3da45ef4e4a530, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
+        DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
+        ForceSimulationSpeed: 0
+        ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1901642954
 GameObject:
   m_ObjectHideFlags: 0
@@ -6896,7 +8199,7 @@ MonoBehaviour:
   DebugActive: 0
   InScriptDrivenPause: 0
   FeedbacksList:
-  - rid: 3109730379974574356
+  - rid: 6715568874646405215
   KeepPlayModeChanges: 0
   PerformanceMode: 0
   RestoreInitialValuesOnDisable: 0
@@ -6908,13 +8211,13 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 3109730379974574356
-      type: {class: MMF_Particles, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
+    - rid: 6715568874646405215
+      type: {class: MMF_ParticlesInstantiation, ns: MoreMountains.Feedbacks, asm: MoreMountains.Tools}
       data:
         Active: 1
-        UniqueID: -824685693
-        Label: Particles Play
-        OriginalLabel: Particles Play
+        UniqueID: -1709545261
+        Label: Particles Instantiation
+        OriginalLabel: Particles Instantiation
         ChannelMode: 0
         Channel: 0
         MMChannelDefinition: {fileID: 0}
@@ -6982,16 +8285,27 @@ MonoBehaviour:
           ButtonText: 
         Owner: {fileID: 1901642956}
         DebugActive: 0
-        Mode: 0
-        EmitCount: 100
-        BoundParticleSystem: {fileID: 7906114521842336964, guid: ac57e66d637f46143a862824131c2a38, type: 3}
-        RandomParticleSystems: []
-        MoveToPosition: 0
-        ActivateOnPlay: 0
-        StopSystemOnInit: 1
-        StopSystemOnReset: 1
-        StopSystemOnStopFeedback: 1
+        Mode: 2
+        ObjectPoolSize: 5
+        MutualizePools: 0
+        ParentTransform: {fileID: 0}
+        CachedRecycle: 1
+        ParticlesPrefab: {fileID: 7906114521842336964, guid: ac57e66d637f46143a862824131c2a38, type: 3}
+        RandomParticlePrefabs: []
+        MainParticlesPrefabWeight: 1
+        RandomParticleWeights: 
+        ForceSetActiveOnPlay: 0
+        StopOnReset: 0
         DeclaredDuration: 0
+        ForceStopAction: 0
+        StopAction: 0
+        PositionMode: 3
+        InstantiateParticlesPosition: {fileID: 0}
+        TargetWorldPosition: {x: 0, y: 0, z: 0}
+        Offset: {x: 0, y: 0, z: 0}
+        NestParticles: 1
+        ApplyRotation: 0
+        ApplyScale: 0
         ForceSimulationSpeed: 0
         ForcedSimulationSpeed: {x: 0.1, y: 1}
 --- !u!1 &1934920906
@@ -7564,6 +8878,10 @@ PrefabInstance:
     - target: {fileID: 254578880972996097, guid: ac57e66d637f46143a862824131c2a38, type: 3}
       propertyPath: m_Name
       value: EffectCircle_Blue
+      objectReference: {fileID: 0}
+    - target: {fileID: 254578880972996097, guid: ac57e66d637f46143a862824131c2a38, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6289477942844159886, guid: ac57e66d637f46143a862824131c2a38, type: 3}
       propertyPath: m_LocalPosition.x

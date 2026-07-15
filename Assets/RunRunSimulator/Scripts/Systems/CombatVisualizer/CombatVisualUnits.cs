@@ -44,7 +44,7 @@ public class CombatVisualUnits
         return team[index];
     }
 
-    public void Spawn(CombatVisualSide side, List<CreatureDNA> dnas, List<CombatFighterSnapshot> snapshots, Transform board, MoriMonchiVisualizer prefab, ElementTableSO elements)
+    public void Spawn(CombatVisualSide side, List<CreatureDNA> dnas, List<CombatFighterSnapshot> snapshots, Transform board, MoriMonchiVisualizer prefab)
     {
         var team = side == CombatVisualSide.A ? teamA : teamB;
         team.Clear();
@@ -74,10 +74,7 @@ public class CombatVisualUnits
                 Anim     = inst.GetComponent<MoriMonchiProceduralAnimator>(),
                 Anchor   = anchor,
             };
-            var identity = elements != null ? elements.GetIdentity(dnas[i].Element) : null;
-            unit.Bar?.Bind(snapshot.Name, snapshot.Attack, snapshot.Speed, snapshot.Role,
-                identity != null ? identity.DisplayName : dnas[i].Element.ToString(),
-                identity != null ? identity.UiColor : Color.white);
+            unit.Bar?.Bind();
             team.Add(unit);
 
             var vcamGo = new GameObject($"VCam_{side}{i}");

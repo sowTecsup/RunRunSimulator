@@ -14,6 +14,7 @@ public class CombatResolver : ICombatContext
     public Combatant    Opponent;
     public List<CombatProcEvent> TurnProcs;
     public bool                  BeforeStrike;
+    public bool                  PassivePhase;
 
     public void DamageOpponent(float amount, string source)
     {
@@ -67,7 +68,7 @@ public class CombatResolver : ICombatContext
         => TurnProcs?.Add(new CombatProcEvent
         {
             Kind = kind, TargetIsA = target.IsA, TargetIndex = target.Index, Amount = amount,
-            TargetHpAfter = target.Hp, BeforeStrike = BeforeStrike,
+            TargetHpAfter = target.Hp, BeforeStrike = BeforeStrike, PassivePhase = PassivePhase,
             TargetStatusAfter = StatusMarks(target),
         });
 
@@ -77,7 +78,7 @@ public class CombatResolver : ICombatContext
         => TurnProcs?.Add(new CombatProcEvent
         {
             ElementEvent = ev, TargetIsA = target.IsA, TargetIndex = target.Index, Amount = amount,
-            TargetHpAfter = target.Hp, BeforeStrike = BeforeStrike,
+            TargetHpAfter = target.Hp, BeforeStrike = BeforeStrike, PassivePhase = PassivePhase,
             Element = element, ElementB = elementB, AllySource = allySource, State = state, ReactionName = reactionName,
         });
 

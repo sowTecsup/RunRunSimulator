@@ -45,14 +45,6 @@ public struct CombatVisualPopup
     public bool   HasOverrideColor;
 }
 
-public struct ElementChipData
-{
-    public string Label;
-    public Color  Color;
-    public bool   AllySource;
-    public bool   Negative;
-}
-
 public struct CombatOrderEntry
 {
     public CombatVisualSide Side;

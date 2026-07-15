@@ -33,6 +33,10 @@ public class CombatVisualizerService : MonoBehaviour
     [SerializeField] private string protectorLine = "¡Toma, protégete!";
     [SerializeField] private string empaticoLine  = "¡{0}, te curo!";
     [SerializeField] private string agresivoLine  = "¡Te comparto mi espíritu de pelea!";
+    [SerializeField] private string protectorSelfLine = "¡Me escudaré!";
+    [SerializeField] private string empaticoSelfLine  = "¡Qué alivio!";
+    [SerializeField] private string agresivoSelfLine  = "¡Me toca a mí!";
+    [SerializeField] private string attackLine    = "¡TOMA, {0}!";
     [SerializeField, MinValue(0.2f)] private float speechSeconds = 1.6f;
 
     [Title("Playback")]
@@ -339,8 +343,8 @@ public class CombatVisualizerService : MonoBehaviour
 
     private IEnumerator BeginRoutine()
     {
-        units.Spawn(CombatVisualSide.A, teamSelf, activeRecord.SelfTeam, boardA, visualizerPrefab, elementTable);
-        units.Spawn(CombatVisualSide.B, teamOpp, activeRecord.OpponentTeam, boardB, visualizerPrefab, elementTable);
+        units.Spawn(CombatVisualSide.A, teamSelf, activeRecord.SelfTeam, boardA, visualizerPrefab);
+        units.Spawn(CombatVisualSide.B, teamOpp, activeRecord.OpponentTeam, boardB, visualizerPrefab);
         yield return null;
         yield return null;
 
@@ -394,19 +398,64 @@ public class CombatVisualizerService : MonoBehaviour
         var defUnit = units.Get(defSide, target.DefenderIndex);
 
         CombatVisualEvents.ActiveUnit(target.AttackerSide, target.AttackerIndex);
+        SetActiveFrames(target.AttackerSide, target.AttackerIndex);
         CombatVisualEvents.TurnStart(t);
+        if (!t.NoAttack) defUnit?.Bar?.SetTargeted(true);
+
+        var atkHome = atkUnit?.Anchor != null ? atkUnit.Anchor.position
+                    : atkUnit?.Instance != null ? atkUnit.Instance.transform.position : Vector3.zero;
 
         if (t.Procs != null)
             foreach (var pe in t.Procs)
                 if (pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe, target));
+
+        if (t.Procs != null)
+        {
+            var passiveProcs = t.Procs.Where(pe => !pe.BeforeStrike && pe.PassivePhase).ToList();
+            int gi = 0;
+            while (gi < passiveProcs.Count)
+            {
+                var groupSide  = SimToVisual(passiveProcs[gi].TargetIsA);
+                var groupIndex = passiveProcs[gi].TargetIndex;
+                var group = new List<CombatProcEvent> { passiveProcs[gi] };
+                int gj = gi + 1;
+                while (gj < passiveProcs.Count && SimToVisual(passiveProcs[gj].TargetIsA) == groupSide && passiveProcs[gj].TargetIndex == groupIndex)
+                {
+                    group.Add(passiveProcs[gj]);
+                    gj++;
+                }
+                gi = gj;
+
+                bool isSelf = groupSide == target.AttackerSide && groupIndex == target.AttackerIndex;
+                if (isSelf)
+                {
+                    foreach (var pe in group) yield return StartCoroutine(PlayProc(pe, target));
+                }
+                else
+                {
+                    var dest = atkHome + (units.PosOf(groupSide, groupIndex) - atkHome) * lungeFraction;
+                    if (atkUnit?.Instance != null)
+                        yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, atkHome, dest, windupSeconds / Speed));
+                    else
+                        yield return new WaitForSeconds(windupSeconds / Speed);
+
+                    foreach (var pe in group) yield return StartCoroutine(PlayProc(pe, target));
+
+                    if (atkUnit?.Instance != null)
+                        yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, dest, atkHome, impactSeconds / Speed));
+                    else
+                        yield return new WaitForSeconds(impactSeconds / Speed);
+                }
+            }
+        }
 
         if (!t.NoAttack)
         {
             CombatVisualEvents.Attack(target.AttackerSide);
             atkUnit?.Hooks?.PlayAttack();
 
-            var atkHome  = atkUnit?.Anchor != null ? atkUnit.Anchor.position
-                         : atkUnit?.Instance != null ? atkUnit.Instance.transform.position : Vector3.zero;
+            EmitSpeech(target.AttackerSide, target.AttackerIndex, string.Format(attackLine, t.DefenderName), defSide, target.DefenderIndex, true);
+
             var lungePos = atkHome + (units.PosOf(defSide, target.DefenderIndex) - atkHome) * lungeFraction;
             if (atkUnit?.Instance != null)
                 yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, atkHome, lungePos, windupSeconds / Speed));
@@ -444,15 +493,14 @@ public class CombatVisualizerService : MonoBehaviour
                 yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, lungePos, atkHome, impactSeconds / Speed));
             else
                 yield return new WaitForSeconds(impactSeconds / Speed);
+            defUnit?.Bar?.SetTargeted(false);
         }
 
         if (t.Procs != null)
             foreach (var pe in t.Procs)
-                if (!pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe, target));
+                if (!pe.BeforeStrike && !pe.PassivePhase) yield return StartCoroutine(PlayProc(pe, target));
 
         current = target;
-        PushStatusAll(target);
-        PushElements(target);
         PushShieldAll(target);
         Publish();
 
@@ -535,7 +583,6 @@ public class CombatVisualizerService : MonoBehaviour
                 HasOverrideColor = elementTable != null,
                 OverrideColor = elementTable != null ? elementTable.GetIdentity(pe.Element).UiColor : Color.white,
             });
-            units.Get(side, pe.TargetIndex)?.Bar?.FlashReaction(pe.ReactionName, elementTable != null ? elementTable.GetIdentity(pe.Element).UiColor : Color.white);
         }
         else if (pe.ElementEvent != ElementEventKind.None)
         {
@@ -551,19 +598,33 @@ public class CombatVisualizerService : MonoBehaviour
             RaiseProcPopup(pe, unit, delta);
         }
 
+        bool esSelf = side == node.AttackerSide && pe.TargetIndex == node.AttackerIndex;
+
         if (pe.ElementEvent == ElementEventKind.None && pe.Kind == ModifierEffectKind.Shield)
-            EmitSpeech(node.AttackerSide, node.AttackerIndex, protectorLine, side, pe.TargetIndex, true);
+        {
+            if (esSelf)
+                EmitSpeech(node.AttackerSide, node.AttackerIndex, protectorSelfLine, side, pe.TargetIndex, false);
+            else
+                EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(protectorLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
+        }
         else if (pe.ElementEvent == ElementEventKind.None && pe.Kind == ModifierEffectKind.Heal && !pe.BeforeStrike)
-            EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(empaticoLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
+        {
+            if (esSelf)
+                EmitSpeech(node.AttackerSide, node.AttackerIndex, empaticoSelfLine, side, pe.TargetIndex, false);
+            else
+                EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(empaticoLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
+        }
+        else if (pe.ElementEvent == ElementEventKind.MarkApplied && pe.AllySource && pe.PassivePhase
+              && SnapRole(node.AttackerSide, node.AttackerIndex) == Role.Agresivo && esSelf)
+            EmitSpeech(node.AttackerSide, node.AttackerIndex, agresivoSelfLine, side, pe.TargetIndex, false);
         else if (pe.ElementEvent == ElementEventKind.MarkApplied && pe.AllySource
               && SnapRole(node.AttackerSide, node.AttackerIndex) == Role.Agresivo
-              && !(side == node.AttackerSide && pe.TargetIndex == node.AttackerIndex))
-            EmitSpeech(node.AttackerSide, node.AttackerIndex, agresivoLine, side, pe.TargetIndex, true);
+              && !esSelf)
+            EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(agresivoLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
         else if (pe.ElementEvent == ElementEventKind.StateArmed)
             EmitSpeech(side, pe.TargetIndex, $"¡Quedé {StateName(pe.State)}!", side, pe.TargetIndex, false);
 
         PushHp(side, pe.TargetIndex, pe.TargetHpAfter);
-        if (pe.TargetStatusAfter != null) unit.Bar?.SetStatus(pe.TargetStatusAfter);
 
         if (pe.ElementEvent == ElementEventKind.AffinityGained) CombatVisualEvents.UnitAffinity(side, pe.TargetIndex, (int)pe.Amount);
 
@@ -739,6 +800,7 @@ public class CombatVisualizerService : MonoBehaviour
     {
         if (node == null) return;
         current = node;
+        ClearTargetedFrames();
 
         for (int i = 0; i < node.StateA.Count; i++)
         {
@@ -749,7 +811,6 @@ public class CombatVisualizerService : MonoBehaviour
             RestoreAnim(unit?.Anim, dead);
             PushHp(CombatVisualSide.A, i, state.Hp);
             PushShield(CombatVisualSide.A, i, state.Shield);
-            unit?.Bar?.SetStatus(state.Marks);
         }
         for (int i = 0; i < node.StateB.Count; i++)
         {
@@ -760,17 +821,15 @@ public class CombatVisualizerService : MonoBehaviour
             RestoreAnim(unit?.Anim, dead);
             PushHp(CombatVisualSide.B, i, state.Hp);
             PushShield(CombatVisualSide.B, i, state.Shield);
-            unit?.Bar?.SetStatus(state.Marks);
         }
 
         if (node.IsEnd)
             CombatVisualEvents.VisualCombatEnd(endWinner, endIsDraw);
 
-        PushElements(node);
         Publish();
         PublishOrder();
-        if (current.Next != null) CombatVisualEvents.ActiveUnit(current.Next.AttackerSide, current.Next.AttackerIndex);
-        else                      CombatVisualEvents.ActiveUnit(current.AttackerSide, current.AttackerIndex);
+        if (current.Next != null) { CombatVisualEvents.ActiveUnit(current.Next.AttackerSide, current.Next.AttackerIndex); SetActiveFrames(current.Next.AttackerSide, current.Next.AttackerIndex); }
+        else                      { CombatVisualEvents.ActiveUnit(current.AttackerSide, current.AttackerIndex); SetActiveFrames(current.AttackerSide, current.AttackerIndex); }
     }
 
     private static void RestoreAnim(MoriMonchiProceduralAnimator anim, bool dead)
@@ -818,49 +877,16 @@ public class CombatVisualizerService : MonoBehaviour
             PushShield(CombatVisualSide.B, i, node.StateB[i].Shield);
     }
 
-    private void PushStatusAll(CombatNode node)
+    private void SetActiveFrames(CombatVisualSide side, int index)
     {
-        for (int i = 0; i < node.StateA.Count; i++)
-            units.Get(CombatVisualSide.A, i)?.Bar?.SetStatus(node.StateA[i].Marks);
-        for (int i = 0; i < node.StateB.Count; i++)
-            units.Get(CombatVisualSide.B, i)?.Bar?.SetStatus(node.StateB[i].Marks);
+        foreach (var unit in units.Team(CombatVisualSide.A)) unit.Bar?.SetActiveTurn(unit.Side == side && unit.Index == index);
+        foreach (var unit in units.Team(CombatVisualSide.B)) unit.Bar?.SetActiveTurn(unit.Side == side && unit.Index == index);
     }
 
-    private void PushElements(CombatNode node)
+    private void ClearTargetedFrames()
     {
-        void PushTeam(CombatVisualSide side, List<CombatUnitState> states)
-        {
-            for (int i = 0; i < states.Count; i++)
-            {
-                var state = states[i];
-                var markChips = new List<ElementChipData>();
-                if (state.ElementMarks != null)
-                    foreach (var m in state.ElementMarks)
-                        markChips.Add(new ElementChipData
-                        {
-                            Label = ElemName(m.Element),
-                            Color = elementTable != null ? elementTable.GetIdentity(m.Element).UiColor : Color.white,
-                            AllySource = m.AllySource,
-                            Negative = false,
-                        });
-
-                var armedChips = new List<ElementChipData>();
-                if (state.ArmedStates != null)
-                    foreach (var s in state.ArmedStates)
-                        armedChips.Add(new ElementChipData
-                        {
-                            Label = StateName(s),
-                            Color = CombatElements.IsNegative(s) ? new Color(0.95f, 0.4f, 0.35f) : new Color(0.45f, 0.9f, 0.55f),
-                            AllySource = false,
-                            Negative = CombatElements.IsNegative(s),
-                        });
-
-                units.Get(side, i)?.Bar?.SetElementState(markChips, armedChips);
-            }
-        }
-
-        PushTeam(CombatVisualSide.A, node.StateA);
-        PushTeam(CombatVisualSide.B, node.StateB);
+        foreach (var unit in units.Team(CombatVisualSide.A)) unit.Bar?.SetTargeted(false);
+        foreach (var unit in units.Team(CombatVisualSide.B)) unit.Bar?.SetTargeted(false);
     }
 
     private void PublishOrder()

@@ -4,11 +4,11 @@ tags: [combat, data, dto, procs, elements]
 
 # CombatProcEvent
 
-DTO [Serializable] que registra un evento de proc dentro de un turno de combate. Captura la magnitud, el objetivo afectado y el timing (antes o después del golpe), junto con el estado HP resultante del objetivo y los status marks tras el proc para la replay del visualizador. **S37:** Campo `TargetIndex` captura el índice (0..2) del unit target dentro su equipo en combate 3v3. **S41:** Campos aditivos para eventos elementales (marca, reacción, estado armado/consumido, energía gasto).
+DTO [Serializable] que registra un evento de proc dentro de un turno de combate. Captura la magnitud, el objetivo afectado y el timing (antes o después del golpe), junto con el estado HP resultante del objetivo y los status marks tras el proc para la replay del visualizador. **S37:** Campo `TargetIndex` captura el índice (0..2) del unit target dentro su equipo en combate 3v3. **S41:** Campos aditivos para eventos elementales (marca, reacción, estado armado/consumido, energía gasto). **S47:** Nuevo campo `PassivePhase` marca si el proc proviene de una pasiva de rol (Protector shield, Empático heal, Agresivo mark) durante el step 14 (post-strike).
 
 ## Responsabilidad
 
-Transportar datos de un proc ejecutado durante `CombatService.TakeTurn()` → `CombatRecord.CombatTurn.Procs`. Fuente de verdad única para la visualización replay: el visualizador lee este DTO (nunca recomputa). **S35:** Captura `TargetStatusAfter` (lista de status marks post-proc) para sincronización exacta de efectos activos con la UI. **S37:** Campo `TargetIndex` identifica qué unit del equipo fue afectado. **S41:** Campos elementales (`ElementEvent`, `Element`, `ElementB`, `AllySource`, `State`, `ReactionName`) enriquecen el proc con contexto elemental, coexistiendo con procs clásicos (`Kind`, `ModifierEffectKind`) — backward compatible.
+Transportar datos de un proc ejecutado durante `CombatService.TakeTurn()` → `CombatRecord.CombatTurn.Procs`. Fuente de verdad única para la visualización replay: el visualizador lee este DTO (nunca recomputa). **S35:** Captura `TargetStatusAfter` (lista de status marks post-proc) para sincronización exacta de efectos activos con la UI. **S37:** Campo `TargetIndex` identifica qué unit del equipo fue afectado. **S41:** Campos elementales (`ElementEvent`, `Element`, `ElementB`, `AllySource`, `State`, `ReactionName`) enriquecen el proc con contexto elemental, coexistiendo con procs clásicos (`Kind`, `ModifierEffectKind`) — backward compatible. **S47:** Campo `PassivePhase` permite al visualizador ejecutar coreografía especial para pasivas (el atacante se mueve a la posición del aliado objetivo, anima el efecto, retorna).
 
 ## Campos Públicos
 
@@ -20,6 +20,7 @@ Transportar datos de un proc ejecutado durante `CombatService.TakeTurn()` → `C
 | `Amount` | `float` | Magnitud: daño, curación, turnos de stun, etc.; en eventos elementales: afinidad/energía total resultante, daño/cura magnitud, escudo resultante |
 | `TargetHpAfter` | `float` | HP absoluto del objetivo tras aplicar el proc (para graficar) |
 | `BeforeStrike` | `bool` | Si true, el proc ocurrió en fase pre-ataque; false = on-connect (post-golpe) |
+| `PassivePhase` | `bool` | **S47 NEW** Si true, el proc fue generado por una pasiva de rol (Protector shield, Empático heal, Agresivo mark) durante el step 14 (TakeTurn). La replay los coreografía separadamente: el atacante viaja a la posición del aliado objetivo antes del golpe, anima los procs, retorna. Falso = strike clásico o procs ordinarios. |
 | `TargetStatusAfter` | `List<CombatStatusMark>` | **(S35)** Estado de efectos activos sobre el objetivo DESPUÉS de aplicar este proc. Null en records viejos (backward compat). Null en eventos elementales (no aplica stacks clásicos). |
 | **Campos elementales (S41):**
 | `ElementEvent` | `ElementEventKind` | **S41 NEW** Tipo de evento elemental (None, MarkApplied, Reaction, StateArmed, etc.). Significativo SOLO si != None. |
@@ -39,40 +40,76 @@ N/A (DTO puro, sin lógica)
 - [[Index/13 - Combat Design Direction]]
 - [[CombatRecord]] — `CombatTurn.Procs` es `List<CombatProcEvent>`
 - [[CombatService]] — emite los eventos via `Resolver.Record()` y `Resolver.RecordElement()`
-- [[CombatResolver]] — popula ambos tipos de evento
-- [[CombatVisualizerService]] — consume para animar procs por turno (1v1)
+- [[CombatResolver]] — popula ambos tipos de evento, stampa PassivePhase
+- [[CombatVisualizerService]] — consume PassivePhase para coreografía especial de pasivas
 - [[CombatElements]] — emite `RecordElement()` para cada marca/reacción/estado
 
 ## Conexiones
 
 **Entrada:**
-- `CombatResolver.Record()` — crea e inserta en `TurnProcs` con fields clásicos (Kind, TargetIndex, TargetStatusAfter)
-- `CombatResolver.RecordElement()` — crea e inserta en `TurnProcs` con fields elementales (ElementEvent, Element, ElementB, AllySource, State, ReactionName)
+- `CombatResolver.Record()` — crea e inserta en `TurnProcs` con fields clásicos (Kind, TargetIndex, TargetStatusAfter, **S47: PassivePhase**)
+- `CombatResolver.RecordElement()` — crea e inserta en `TurnProcs` con fields elementales (ElementEvent, Element, ElementB, AllySource, State, ReactionName, **S47: PassivePhase**)
 
 **Salida:**
-- `CombatVisualizerService.BuildStates()` — lee `Turn.Procs` y aplica visualmente (1v1)
-- `CombatVisualizerService.PlayProc()` — anima un proc y rasura popup; pushea `TargetStatusAfter` a la barra (S35)
-- **S41:** Replay 3v3 lee eventos elementales para display de marcas, reacciones, estados armados/consumidos
+- `CombatVisualizerService.PlayTurn()` — filtra procs por PassivePhase para coreografiar por separado
+  - Procs pre-strike (BeforeStrike=true, cualquier PassivePhase)
+  - Procs pasivos (PassivePhase=true, !BeforeStrike) — se animan en el step 14, grupo por (targetSide, targetIndex)
+  - Procs post-strike (PassivePhase=false, !BeforeStrike) — se animan después del golpe
 
-## Cambios S37
+## Cambios S47
 
 **Nuevo campo:**
-- `TargetIndex` (int) — índice del unit target en equipo 3v3 (0..2). Default 0 para records 1v1 legacy.
+- `PassivePhase` (bool) — marcado por `CombatResolver` cuando se graban procs generados por ApplyPassives() y HealAfterStrike().
 
-**Captura en Record (S37):**
+**Captura en Record (S47):**
 ```csharp
 public void Record(ModifierEffectKind kind, Combatant target, float amount)
     => TurnProcs?.Add(new CombatProcEvent
     {
         Kind = kind,
         TargetIsA = target.IsA,
-        TargetIndex = target.Index,  // S37 new: índice dentro equipo
+        TargetIndex = target.Index,
         Amount = amount,
         TargetHpAfter = target.Hp,
         BeforeStrike = BeforeStrike,
+        PassivePhase = PassivePhase,  // S47 new: stamped by TakeTurn
         TargetStatusAfter = StatusMarks(target),
     });
 ```
+
+**Captura en RecordElement (S47):**
+```csharp
+public void RecordElement(ElementEventKind ev, Combatant target, float amount = 0f, 
+    Element element = default, Element elementB = default, bool allySource = false, 
+    ElementalState state = default, string reactionName = null)
+    => TurnProcs?.Add(new CombatProcEvent
+    {
+        ElementEvent = ev,
+        TargetIsA = target.IsA,
+        TargetIndex = target.Index,
+        Amount = amount,
+        TargetHpAfter = target.Hp,
+        BeforeStrike = BeforeStrike,
+        PassivePhase = PassivePhase,  // S47 new: stamped by TakeTurn
+        Element = element,
+        ElementB = elementB,
+        AllySource = allySource,
+        State = state,
+        ReactionName = reactionName,
+    });
+```
+
+**Flujo en CombatService (S47):**
+
+En `TakeTurn()`, antes de `ApplyPassives()` y `HealAfterStrike()`:
+```csharp
+r.PassivePhase = true;
+CombatRoleHooks.ApplyPassives(actor, profile, allies, config, result, r, rng);
+CombatRoleHooks.HealAfterStrike(actor, profile, allies, strike.Dodged, strike.Damage, config, result, r, rng);
+r.PassivePhase = false;
+```
+
+Todos los procs emitidos dentro de ese bloque (Shield grants, Heal, marks) llevan `PassivePhase = true`.
 
 ## Cambios S41
 
@@ -106,6 +143,7 @@ public void RecordElement(ElementEventKind ev, Combatant target, float amount = 
         Amount = amount,
         TargetHpAfter = target.Hp,
         BeforeStrike = BeforeStrike,
+        PassivePhase = PassivePhase,
         Element = element,
         ElementB = elementB,
         AllySource = allySource,
@@ -149,6 +187,7 @@ Captura snapshot de stacks activos + stun turns del combatiente. Se llama en `Re
 ## Notas
 
 - Backward compatible: registros viejos sin campos elementales deserializan con default values (ElementEvent == None)
+- Backward compatible: registros viejos sin PassivePhase deserializan con false (comportamiento pre-S47)
 - El lector SIEMPRE gatea por `ElementEvent` primero — jamás asume campos elementales si ElementEvent == None
 - TargetStatusAfter es null en eventos elementales (los estados elementales van en CombatUnitState.ArmedStates del record)
 - Orden dentro de `Procs` es significativo: la replay los anima en secuencia
@@ -156,3 +195,4 @@ Captura snapshot de stacks activos + stun turns del combatiente. Se llama en `Re
 - **S35:** PopUp de status ocurre DESPUÉS de que PushStatusSide() sincroniza la UI; el `TargetStatusAfter` es una snapshot point-in-time del estado post-proc
 - **S37:** TargetIndex permite 3v3 replay identificar qué unit específico fue afectado
 - **S41:** Los eventos elementales son log-only si el visualizer 1v1 los ignora; el visualizer 3v3 usa estos campos para narrar marcas/reacciones/estados
+- **S47:** PassivePhase permite coreografía especial: si PassivePhase=true && !BeforeStrike, agrupa procs por (targetSide, targetIndex) y ejecuta desplazamiento+animación+retorno del atacante. Procs no-pasivos se animan en lugar (sin desplazamiento).

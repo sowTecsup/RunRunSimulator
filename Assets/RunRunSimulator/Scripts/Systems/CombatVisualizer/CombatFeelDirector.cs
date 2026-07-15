@@ -20,9 +20,16 @@ namespace MoriMonchiSimulator
 // matched to its state by parsing the ElementTable reaction's Name — armed and
 // instant reactions alike — so renaming a reaction in the asset silently drops
 // its feedback (nothing else breaks).
+//
+// Each tab has its own mute toggle (muteSoporte/muteMarcas/muteEstados, S48) so
+// a section can be silenced for testing without unwiring its feedbacks.
 public class CombatFeelDirector : SerializedMonoBehaviour
 {
     private const string Group = "Feedbacks";
+
+    [TabGroup(Group, "Soporte")]
+    [Tooltip("Silencia los feedbacks de este tab para testeo.")]
+    [SerializeField] private bool muteSoporte;
 
     [TabGroup(Group, "Soporte")]
     [Tooltip("Sobre el aliado que RECIBE el escudo.")]
@@ -33,8 +40,16 @@ public class CombatFeelDirector : SerializedMonoBehaviour
     [SerializeField] private MMFeedbacks healFeedback;
 
     [TabGroup(Group, "Marcas")]
+    [Tooltip("Silencia los feedbacks de este tab para testeo.")]
+    [SerializeField] private bool muteMarcas;
+
+    [TabGroup(Group, "Marcas")]
     [Tooltip("Sobre quien recibe una marca, según el elemento de la marca.")]
     [OdinSerialize] private Dictionary<Element, MMFeedbacks> markFeedbacks = new Dictionary<Element, MMFeedbacks>();
+
+    [TabGroup(Group, "Estados")]
+    [Tooltip("Silencia los feedbacks de este tab para testeo.")]
+    [SerializeField] private bool muteEstados;
 
     [TabGroup(Group, "Estados")]
     [Tooltip("Sobre quien detona la reacción, según el estado resultante.")]
@@ -58,6 +73,8 @@ public class CombatFeelDirector : SerializedMonoBehaviour
 
     private void HandlePopup(CombatVisualPopup p)
     {
+        if (muteSoporte) return;
+
         if (p.Kind == CombatPopupKind.Shield)    Play(shieldFeedback, p.Position);
         else if (p.Kind == CombatPopupKind.Heal) Play(healFeedback, p.Position);
     }
@@ -66,14 +83,18 @@ public class CombatFeelDirector : SerializedMonoBehaviour
     {
         if (d.Kind == ElementEventKind.MarkApplied)
         {
+            if (muteMarcas) return;
             if (markFeedbacks.TryGetValue(d.Element, out var mark)) PlayOn(mark, d.Side, d.Index);
             return;
         }
 
-        if (d.Kind == ElementEventKind.Reaction
-         && Enum.TryParse<ElementalState>(d.ReactionName, out var state)
-         && stateFeedbacks.TryGetValue(state, out var feedback))
-            PlayOn(feedback, d.Side, d.Index);
+        if (d.Kind == ElementEventKind.Reaction)
+        {
+            if (muteEstados) return;
+            if (Enum.TryParse<ElementalState>(d.ReactionName, out var state)
+             && stateFeedbacks.TryGetValue(state, out var feedback))
+                PlayOn(feedback, d.Side, d.Index);
+        }
     }
 
     private void PlayOn(MMFeedbacks feedback, CombatVisualSide side, int index)

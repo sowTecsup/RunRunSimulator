@@ -365,9 +365,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 298384168}
   serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_Mass: 0.5
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -381,7 +381,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!153 &298384174
@@ -394,17 +394,17 @@ ConfigurableJoint:
   serializedVersion: 4
   m_ConnectedBody: {fileID: 1235036768}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Anchor: {x: 0.5, y: -0.44353324, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
-  m_XMotion: 2
-  m_YMotion: 2
-  m_ZMotion: 2
-  m_AngularXMotion: 2
-  m_AngularYMotion: 2
-  m_AngularZMotion: 2
+  m_XMotion: 0
+  m_YMotion: 0
+  m_ZMotion: 0
+  m_AngularXMotion: 1
+  m_AngularYMotion: 1
+  m_AngularZMotion: 1
   m_LinearLimitSpring:
     spring: 0
     damper: 0
@@ -416,22 +416,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 0
+    limit: -35
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 0
+    limit: 35
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 0
+    limit: 35
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 0
+    limit: 35
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -456,7 +456,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_TargetRotation: {x: 0, y: 0, z: 0, w: 1}
   m_TargetAngularVelocity: {x: 0, y: 0, z: 0}
-  m_RotationDriveMode: 0
+  m_RotationDriveMode: 1
   m_AngularXDrive:
     serializedVersion: 4
     positionSpring: 0
@@ -471,19 +471,19 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
-    maximumForce: 3.4028233e+38
+    positionSpring: 500
+    positionDamper: 40
+    maximumForce: 3.402823e+38
     useAcceleration: 0
-  m_ProjectionMode: 0
+  m_ProjectionMode: 1
   m_ProjectionDistance: 0.1
-  m_ProjectionAngle: 180
+  m_ProjectionAngle: 30
   m_ConfiguredInWorldSpace: 0
   m_SwapBodies: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_EnableCollision: 0
-  m_EnablePreprocessing: 1
+  m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &558764388
@@ -650,8 +650,8 @@ Rigidbody:
   m_GameObject: {fileID: 560025005}
   serializedVersion: 5
   m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -665,7 +665,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!153 &560025011
@@ -678,17 +678,17 @@ ConfigurableJoint:
   serializedVersion: 4
   m_ConnectedBody: {fileID: 1235036768}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Anchor: {x: 0, y: -0.5, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
-  m_XMotion: 2
-  m_YMotion: 2
-  m_ZMotion: 2
-  m_AngularXMotion: 2
-  m_AngularYMotion: 2
-  m_AngularZMotion: 2
+  m_XMotion: 0
+  m_YMotion: 0
+  m_ZMotion: 0
+  m_AngularXMotion: 1
+  m_AngularYMotion: 1
+  m_AngularZMotion: 1
   m_LinearLimitSpring:
     spring: 0
     damper: 0
@@ -700,22 +700,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 0
+    limit: -30
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 0
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 0
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 0
+    limit: 30
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -740,7 +740,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_TargetRotation: {x: 0, y: 0, z: 0, w: 1}
   m_TargetAngularVelocity: {x: 0, y: 0, z: 0}
-  m_RotationDriveMode: 0
+  m_RotationDriveMode: 1
   m_AngularXDrive:
     serializedVersion: 4
     positionSpring: 0
@@ -755,19 +755,19 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
-    maximumForce: 3.4028233e+38
+    positionSpring: 600
+    positionDamper: 40
+    maximumForce: 3.402823e+38
     useAcceleration: 0
-  m_ProjectionMode: 0
+  m_ProjectionMode: 1
   m_ProjectionDistance: 0.1
-  m_ProjectionAngle: 180
+  m_ProjectionAngle: 30
   m_ConfiguredInWorldSpace: 0
   m_SwapBodies: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_EnableCollision: 0
-  m_EnablePreprocessing: 1
+  m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &731198744
@@ -814,9 +814,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 731198744}
   serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_Mass: 0.4
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -830,7 +830,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!65 &731198747
@@ -921,17 +921,17 @@ ConfigurableJoint:
   serializedVersion: 4
   m_ConnectedBody: {fileID: 999778071}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Anchor: {x: 0.5, y: 0.5, z: -0.5}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
-  m_XMotion: 2
-  m_YMotion: 2
-  m_ZMotion: 2
-  m_AngularXMotion: 2
-  m_AngularYMotion: 2
-  m_AngularZMotion: 2
+  m_XMotion: 0
+  m_YMotion: 0
+  m_ZMotion: 0
+  m_AngularXMotion: 1
+  m_AngularYMotion: 1
+  m_AngularZMotion: 1
   m_LinearLimitSpring:
     spring: 0
     damper: 0
@@ -943,22 +943,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 0
+    limit: -25
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -983,7 +983,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_TargetRotation: {x: 0, y: 0, z: 0, w: 1}
   m_TargetAngularVelocity: {x: 0, y: 0, z: 0}
-  m_RotationDriveMode: 0
+  m_RotationDriveMode: 1
   m_AngularXDrive:
     serializedVersion: 4
     positionSpring: 0
@@ -998,19 +998,19 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
-    maximumForce: 3.4028233e+38
+    positionSpring: 700
+    positionDamper: 40
+    maximumForce: 3.402823e+38
     useAcceleration: 0
-  m_ProjectionMode: 0
+  m_ProjectionMode: 1
   m_ProjectionDistance: 0.1
-  m_ProjectionAngle: 180
+  m_ProjectionAngle: 30
   m_ConfiguredInWorldSpace: 0
   m_SwapBodies: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_EnableCollision: 0
-  m_EnablePreprocessing: 1
+  m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &837453211
@@ -1057,9 +1057,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 837453211}
   serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_Mass: 0.4
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1073,7 +1073,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!65 &837453214
@@ -1164,17 +1164,17 @@ ConfigurableJoint:
   serializedVersion: 4
   m_ConnectedBody: {fileID: 999778071}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Anchor: {x: -0.5, y: 0.5, z: -0.5}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
-  m_XMotion: 2
-  m_YMotion: 2
-  m_ZMotion: 2
-  m_AngularXMotion: 2
-  m_AngularYMotion: 2
-  m_AngularZMotion: 2
+  m_XMotion: 0
+  m_YMotion: 0
+  m_ZMotion: 0
+  m_AngularXMotion: 1
+  m_AngularYMotion: 1
+  m_AngularZMotion: 1
   m_LinearLimitSpring:
     spring: 0
     damper: 0
@@ -1186,22 +1186,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 0
+    limit: -25
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -1226,7 +1226,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_TargetRotation: {x: 0, y: 0, z: 0, w: 1}
   m_TargetAngularVelocity: {x: 0, y: 0, z: 0}
-  m_RotationDriveMode: 0
+  m_RotationDriveMode: 1
   m_AngularXDrive:
     serializedVersion: 4
     positionSpring: 0
@@ -1241,19 +1241,19 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
-    maximumForce: 3.4028233e+38
+    positionSpring: 700
+    positionDamper: 40
+    maximumForce: 3.402823e+38
     useAcceleration: 0
-  m_ProjectionMode: 0
+  m_ProjectionMode: 1
   m_ProjectionDistance: 0.1
-  m_ProjectionAngle: 180
+  m_ProjectionAngle: 30
   m_ConfiguredInWorldSpace: 0
   m_SwapBodies: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_EnableCollision: 0
-  m_EnablePreprocessing: 1
+  m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &999778066
@@ -1378,9 +1378,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 999778066}
   serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_Mass: 2.5
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1394,7 +1394,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!153 &999778072
@@ -1407,7 +1407,7 @@ ConfigurableJoint:
   serializedVersion: 4
   m_ConnectedBody: {fileID: 1235036768}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Anchor: {x: 0, y: 0.4766585, z: -0.15561016}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
@@ -1429,47 +1429,47 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 0
+    limit: -20
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 0
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 0
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 0
+    limit: 20
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
   m_TargetVelocity: {x: 0, y: 0, z: 0}
   m_XDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
+    positionSpring: 1
+    positionDamper: 1
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_YDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
+    positionSpring: 1
+    positionDamper: 1
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_ZDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
+    positionSpring: 1
+    positionDamper: 1
     maximumForce: 3.4028233e+38
     useAcceleration: 0
   m_TargetRotation: {x: 0, y: 0, z: 0, w: 1}
   m_TargetAngularVelocity: {x: 0, y: 0, z: 0}
-  m_RotationDriveMode: 0
+  m_RotationDriveMode: 1
   m_AngularXDrive:
     serializedVersion: 4
     positionSpring: 0
@@ -1484,19 +1484,19 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
-    maximumForce: 3.4028233e+38
+    positionSpring: 1500
+    positionDamper: 40
+    maximumForce: 3.402823e+38
     useAcceleration: 0
-  m_ProjectionMode: 0
+  m_ProjectionMode: 1
   m_ProjectionDistance: 0.1
-  m_ProjectionAngle: 180
+  m_ProjectionAngle: 30
   m_ConfiguredInWorldSpace: 0
   m_SwapBodies: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_EnableCollision: 0
-  m_EnablePreprocessing: 1
+  m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &1235036763
@@ -1620,9 +1620,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1235036763}
   serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_Mass: 3
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1636,7 +1636,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 0
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &1270789997
@@ -1761,9 +1761,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1270789997}
   serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_Mass: 0.5
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -1777,7 +1777,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!153 &1270790003
@@ -1790,17 +1790,17 @@ ConfigurableJoint:
   serializedVersion: 4
   m_ConnectedBody: {fileID: 1235036768}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Anchor: {x: -0.5, y: -0.44353324, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
-  m_XMotion: 2
-  m_YMotion: 2
-  m_ZMotion: 2
-  m_AngularXMotion: 2
-  m_AngularYMotion: 2
-  m_AngularZMotion: 2
+  m_XMotion: 0
+  m_YMotion: 0
+  m_ZMotion: 0
+  m_AngularXMotion: 1
+  m_AngularYMotion: 1
+  m_AngularZMotion: 1
   m_LinearLimitSpring:
     spring: 0
     damper: 0
@@ -1812,22 +1812,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 0
+    limit: -35
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 0
+    limit: 35
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 0
+    limit: 35
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 0
+    limit: 35
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -1852,7 +1852,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_TargetRotation: {x: 0, y: 0, z: 0, w: 1}
   m_TargetAngularVelocity: {x: 0, y: 0, z: 0}
-  m_RotationDriveMode: 0
+  m_RotationDriveMode: 1
   m_AngularXDrive:
     serializedVersion: 4
     positionSpring: 0
@@ -1867,19 +1867,19 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
-    maximumForce: 3.4028233e+38
+    positionSpring: 500
+    positionDamper: 40
+    maximumForce: 3.402823e+38
     useAcceleration: 0
-  m_ProjectionMode: 0
+  m_ProjectionMode: 1
   m_ProjectionDistance: 0.1
-  m_ProjectionAngle: 180
+  m_ProjectionAngle: 30
   m_ConfiguredInWorldSpace: 0
   m_SwapBodies: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_EnableCollision: 0
-  m_EnablePreprocessing: 1
+  m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &1271235436
@@ -2039,9 +2039,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1693351749}
   serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_Mass: 0.4
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -2055,7 +2055,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!65 &1693351752
@@ -2146,17 +2146,17 @@ ConfigurableJoint:
   serializedVersion: 4
   m_ConnectedBody: {fileID: 999778071}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Anchor: {x: 0.5, y: 0.5, z: 0.5}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
-  m_XMotion: 2
-  m_YMotion: 2
-  m_ZMotion: 2
-  m_AngularXMotion: 2
-  m_AngularYMotion: 2
-  m_AngularZMotion: 2
+  m_XMotion: 0
+  m_YMotion: 0
+  m_ZMotion: 0
+  m_AngularXMotion: 1
+  m_AngularYMotion: 1
+  m_AngularZMotion: 1
   m_LinearLimitSpring:
     spring: 0
     damper: 0
@@ -2168,22 +2168,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 0
+    limit: -25
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -2208,7 +2208,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_TargetRotation: {x: 0, y: 0, z: 0, w: 1}
   m_TargetAngularVelocity: {x: 0, y: 0, z: 0}
-  m_RotationDriveMode: 0
+  m_RotationDriveMode: 1
   m_AngularXDrive:
     serializedVersion: 4
     positionSpring: 0
@@ -2223,19 +2223,19 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
-    maximumForce: 3.4028233e+38
+    positionSpring: 700
+    positionDamper: 40
+    maximumForce: 3.402823e+38
     useAcceleration: 0
-  m_ProjectionMode: 0
+  m_ProjectionMode: 1
   m_ProjectionDistance: 0.1
-  m_ProjectionAngle: 180
+  m_ProjectionAngle: 30
   m_ConfiguredInWorldSpace: 0
   m_SwapBodies: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_EnableCollision: 0
-  m_EnablePreprocessing: 1
+  m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &1714694332
@@ -2409,9 +2409,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1778839461}
   serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_Mass: 0.4
+  m_LinearDamping: 0.2
+  m_AngularDamping: 1.5
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -2425,7 +2425,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!65 &1778839464
@@ -2516,17 +2516,17 @@ ConfigurableJoint:
   serializedVersion: 4
   m_ConnectedBody: {fileID: 999778071}
   m_ConnectedArticulationBody: {fileID: 0}
-  m_Anchor: {x: 0, y: 0.5, z: 0}
+  m_Anchor: {x: -0.5, y: 0.5, z: 0.5}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
   m_ConnectedAnchor: {x: 0, y: 0, z: 0}
   m_SecondaryAxis: {x: 0, y: 1, z: 0}
-  m_XMotion: 2
-  m_YMotion: 2
-  m_ZMotion: 2
-  m_AngularXMotion: 2
-  m_AngularYMotion: 2
-  m_AngularZMotion: 2
+  m_XMotion: 0
+  m_YMotion: 0
+  m_ZMotion: 0
+  m_AngularXMotion: 1
+  m_AngularYMotion: 1
+  m_AngularZMotion: 1
   m_LinearLimitSpring:
     spring: 0
     damper: 0
@@ -2538,22 +2538,22 @@ ConfigurableJoint:
     spring: 0
     damper: 0
   m_LowAngularXLimit:
-    limit: 0
+    limit: -25
     bounciness: 0
     contactDistance: 0
   m_HighAngularXLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularYZLimitSpring:
     spring: 0
     damper: 0
   m_AngularYLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_AngularZLimit:
-    limit: 0
+    limit: 25
     bounciness: 0
     contactDistance: 0
   m_TargetPosition: {x: 0, y: 0, z: 0}
@@ -2578,7 +2578,7 @@ ConfigurableJoint:
     useAcceleration: 0
   m_TargetRotation: {x: 0, y: 0, z: 0, w: 1}
   m_TargetAngularVelocity: {x: 0, y: 0, z: 0}
-  m_RotationDriveMode: 0
+  m_RotationDriveMode: 1
   m_AngularXDrive:
     serializedVersion: 4
     positionSpring: 0
@@ -2593,19 +2593,19 @@ ConfigurableJoint:
     useAcceleration: 0
   m_SlerpDrive:
     serializedVersion: 4
-    positionSpring: 0
-    positionDamper: 0
-    maximumForce: 3.4028233e+38
+    positionSpring: 700
+    positionDamper: 40
+    maximumForce: 3.402823e+38
     useAcceleration: 0
-  m_ProjectionMode: 0
+  m_ProjectionMode: 1
   m_ProjectionDistance: 0.1
-  m_ProjectionAngle: 180
+  m_ProjectionAngle: 30
   m_ConfiguredInWorldSpace: 0
   m_SwapBodies: 0
   m_BreakForce: Infinity
   m_BreakTorque: Infinity
   m_EnableCollision: 0
-  m_EnablePreprocessing: 1
+  m_EnablePreprocessing: 0
   m_MassScale: 1
   m_ConnectedMassScale: 1
 --- !u!1 &1999038938

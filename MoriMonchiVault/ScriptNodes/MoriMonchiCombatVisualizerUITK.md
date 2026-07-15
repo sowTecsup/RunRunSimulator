@@ -6,15 +6,14 @@ tags: [script, ui, combat, uitk]
 
 **Ruta:** `UI/MoriMonchiCombatVisualizerUITK.cs`
 
-**Responsabilidad:** Barra de HP world-space + chips de estado + elementos + ESCUDO + reacciones DE UN combatiente del visualizer. Componente HIJO del prefab del peleador, con un `UIDocument` que apunta a `CombatHpBar.uxml` (elementos base `name`, `hp-value`, `atk`, `spd`, `fill` y `effects`). **S42:** Bind expandido a 6 args (rol + nombre/color elemento), nuevas filas dinámicas (role-element, marks-ally, armed-row, marks-enemy) construidas por SetElementState() con ElementChipData (marcas/estados). **S43:** SetShield() dibuja barra azul 4px sobre hp-track, FlashReaction() muestra label transient 2s (narrador/reacciones), BuildArmedChip borrado → BuildStateLabel, estados armados en cajas rojo (negativo) / verde (positivo) con nombres completos. **S45:** Nuevo campo serializado `hideForDebug` (bool) — si true, oculta el root del cuadro world-space (display None en Apply()) y saltea el resto del Apply(). Permite debug sin la UI world-space tapando la pantalla.
+**Responsabilidad:** Barra de HP world-space + escudo (S47) DE UN combatiente del visualizer. Componente HIJO del prefab del peleador, con un `UIDocument` que apunta a `CombatHpBar.uxml` (elementos base `name`, `hp-value`, `atk`, `spd`, `fill` y `effects`). **S42:** Bind expandido a 6 args (rol + nombre/color elemento), nuevas filas dinámicas (role-element, marks-ally, armed-row, marks-enemy) construidas por SetElementState() con ElementChipData (marcas/estados). **S43:** SetShield() dibuja barra azul 4px sobre hp-track, FlashReaction() muestra label transient 2s (narrador/reacciones), BuildArmedChip borrado → BuildStateLabel, estados armados en cajas rojo (negativo) / verde (positivo) con nombres completos. **S45:** Nuevo campo serializado `hideForDebug` (bool) — si true, oculta el root del cuadro world-space (display None en Apply()) y saltea el resto del Apply(). **S47:** Bind reescrito SIN argumentos; API simplificada a SetHp/SetShield/SetActiveTurn/SetTargeted — eliminados SetStatus, SetElementState, FlashReaction. Barra minimal: solo HP + escudo como segmento azul + marcos dorado (turno activo) / rojo (objetivo del ataque).
 
 **Driven por el Service:** El `CombatVisualizerService` la maneja por referencia directa:
-- `Bind(string displayName, float attack, float speed, Role role, string elementName, Color elementColor)` — **S42:** 6 args, fija nombre, ATK, VEL, rol, elemento, resetea HP a 100%
+- `Bind()` — **S47:** Sin argumentos, barra inicializada en blanco
 - `SetHp(float current, float max)` — interpola fill + actualiza hp-value label
-- `SetStatus(List<CombatStatusMark>)` — actualiza chips de estado activo (legacy S35, aún vigente)
-- `SetElementState(List<ElementChipData> marks, List<ElementChipData> armed)` — **S42 NEW** renderiza marcas aliadas (arriba), estados armados (centro), marcas enemigas (abajo)
-- `SetShield(float shield)` — **S43 NEW** renderiza barra azul 4px sobre hp-track, escala shield/MaxHp, oculta si <0.5
-- `FlashReaction(string text, Color color)` — **S43 NEW** muestra label transient reactionFlashSeconds=2s (narrador estados armados, reacciones elementales)
+- `SetShield(float shield)` — dibuja segmento azul dentro del track, sin animación (S47: simplificado)
+- `SetActiveTurn(bool value)` — marca turno activo (marco dorado)
+- `SetTargeted(bool value)` — marca objetivo de ataque (marco rojo)
 
 **Binding resiliente + fix de árbol huérfano:** `EnsureRefs()` detecta cuando el `UIDocument` reconstruye su árbol comparando `docRoot != root`; re-resuelve elementos y marca dirty para reescribirlos. Sin esto, al retroceder (Back) la barra quedaría apuntando al árbol viejo.
 
@@ -22,80 +21,64 @@ tags: [script, ui, combat, uitk]
 
 **S45 hideForDebug:** Si true, Apply() setea root.style.display = DisplayStyle.None y retorna early, ocultando todo el cuadro. Permite QA/debug sin que UI tapee la pantalla.
 
+**S47 Simplificación:** Eliminadas filas dinámicas de marcas/estados; barra minimal muestra solo HP + escudo (azul) + marcos (dorado/rojo en bordes). Stats/elemento/rol ya no necesarios — se rellenan dinámicamente vía API.
+
 ## Métodos Públicos
 
 | Método | Descripción |
 |--------|-------------|
-| `Bind(string name, float atk, float spd, Role role, string elemName, Color elemColor)` | **S42:** 6 args — Fija nombre, stats, rol, elemento, resetea HP a 100% |
+| `Bind()` | **S47:** Sin argumentos — inicializa barra en blanco, resetea HP a 100%, escudo a 0, marcos a inactivos |
 | `SetHp(float current, float max)` | Actualiza HP (interpola fill) |
-| `SetStatus(List<CombatStatusMark> marks)` | **S35** Setea estado de efectos activos (legacy, aún vigente) |
-| `SetElementState(List<ElementChipData> marks, List<ElementChipData> armed)` | **S42 NEW** Renderiza marcas y estados armados en filas dinámicas |
-| `SetShield(float shield)` | **S43 NEW** Renderiza barra azul 4px sobre hp-track, escala a shield/MaxHp |
-| `FlashReaction(string text, Color color)` | **S43 NEW** Muestra label transient reactionFlashSeconds=2s con color custom |
+| `SetShield(float shield)` | **S47 ACTUALIZADO** Renderiza barra azul dentro del track, sin animación separada |
+| `SetActiveTurn(bool value)` | **S47 NEW** Activa/desactiva marco dorado (turno activo del unit) |
+| `SetTargeted(bool value)` | **S47 NEW** Activa/desactiva marco rojo (unit es objetivo del ataque) |
 
 ## Campos Serializados
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `document` | `UIDocument` | Ref opcional (auto-resuelto si null) |
-| `hideForDebug` | `bool` | **S45 NEW** Si true, oculta el cuadro root (display None en Apply) y saltea lógica |
+| `hideForDebug` | `bool` | **S45** Si true, oculta el cuadro root (display None en Apply) y saltea lógica |
 | `fillLerpSeconds` | `float` | Duración interpolación HP (default 0.4s) |
 | `uprightOnly` | `bool` | Si true, solo rota Y (billboard uprightless) |
-| `palette` | `CombatPopupPaletteSO` | Paleta para colorear chips de estado (S35, legacy) |
-| `reactionFlashSeconds` | `float` | **S43 NEW** Duración del flash de reacción (default 2f) |
 
-## Campos Internos (S42/S43/S45)
+## Campos Internos (S47)
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-| `desiredRole` | `Role` | Rol actual (para label: "Protector"/"Agresivo"/"Empático") |
-| `desiredElementName` | `string` | Nombre del elemento (DisplayName de ElementTableSO) |
-| `desiredElementColor` | `Color` | Color del elemento (UiColor) |
-| `desiredMarks` | `List<ElementChipData>` | Marcas actuales (aliadas + enemigas) |
-| `desiredArmed` | `List<ElementChipData>` | Estados armados actuales |
-| `desiredShield` | `float` | **S43 NEW** Valor de escudo a renderizar (0..MaxHp) |
-| `desiredReactionText` | `string` | **S43 NEW** Texto del flash de reacción |
-| `desiredReactionColor` | `Color` | **S43 NEW** Color del flash de reacción |
-| `elementStateDirty` | `bool` | Marca update de elementos |
-| `shieldDirty` | `bool` | **S43 NEW** Marca update de escudo |
-| `reactionDirty` | `bool` | **S43 NEW** Marca update de reacción flash |
-| `roleElementRow` | `VisualElement` | Row con role-label + element-chip + element-label (S42 creado si falta) |
-| `marksAllyRow` | `VisualElement` | Row superior: marcas aliadas (S42 creado si falta) |
-| `armedRow` | `VisualElement` | Row central: estados armados (S42 creado si falta) |
-| `marksEnemyRow` | `VisualElement` | Row inferior: marcas enemigas (S42 creado si falta) |
-| `shieldTrack` | `VisualElement` | **S43 NEW** Barra azul 4px sobre hp-track (height 4, width 100%, marginBottom 1) |
-| `shieldFill` | `VisualElement` | **S43 NEW** Fill azul dentro shieldTrack (width % basado en shield/MaxHp) |
-| `reactionRow` | `Label` | **S43 NEW** Label transient para narrador/reacciones (reactionFlashSeconds duration) |
-| `reactionUntil` | `float` | **S43 NEW** Time.time límite para mostrar reacción |
-| `reactionVisible` | `bool` | **S43 NEW** Bandera si reacción está visible |
+| `targetPct` | `float` | Porcentaje HP deseado (0..1) |
+| `currentPct` | `float` | Porcentaje HP actual (interpola a targetPct) |
+| `maxHp` | `float` | HP máximo (para cálculos de escudo) |
+| `desiredShield` | `float` | Valor de escudo a renderizar (0..MaxHp) |
+| `activeTurn` | `bool` | Si el unit tiene turno activo (marco dorado) |
+| `targeted` | `bool` | Si el unit es objetivo del ataque (marco rojo) |
+| `cam` | `Transform` | Cache de Camera.main.transform (para billboard) |
+| `root` | `VisualElement` | Root del documento UXML |
+| `nameLabel` | `Label` | Elemento `name` (oculto en S47) |
+| `atkLabel` | `Label` | Elemento `atk` (oculto en S47) |
+| `spdLabel` | `Label` | Elemento `spd` (oculto en S47) |
+| `hpValueLabel` | `Label` | Elemento `hp-value` (muestra "valor / máx" + escudo) |
+| `fill` | `VisualElement` | Elemento `fill` (barra HP) |
+| `track` | `VisualElement` | Padre de `fill` (recibe bordes) |
+| `shieldFill` | `VisualElement` | **S47 ACTUALIZADO** Segmento azul dentro del track, ancho = (escudo/MaxHp) |
 
-## Método Bind (S42 ACTUALIZADO, S45 SIN CAMBIOS)
+## Método Bind() (S47 REESCRITO, Sin Argumentos)
 
 ```csharp
-public void Bind(string displayName, float attack, float speed, Role role, string elementName, Color elementColor)
+public void Bind()
 {
-    desiredName         = displayName;
-    desiredAtk          = $"ATK {Mathf.RoundToInt(attack)}";
-    desiredSpd          = $"VEL {Mathf.RoundToInt(speed)}";
-    desiredRole         = role;
-    desiredElementName  = elementName;
-    desiredElementColor = elementColor.a <= 0f ? Color.white : elementColor;
-    staticDirty = true;
-    targetPct   = 1f;
-    currentPct  = 1f;
-    desiredShield = 0f;      // S43 NEW: reset escudo
-    shieldDirty   = true;    // S43 NEW
-    reactionUntil  = 0f;     // S43 NEW
-    reactionVisible = false; // S43 NEW
-    if (reactionRow != null) reactionRow.style.display = DisplayStyle.None;
+    targetPct     = 1f;
+    currentPct    = 1f;
+    desiredShield = 0f;
+    activeTurn    = false;
+    targeted      = false;
     Apply();
 }
 ```
 
-**S42 Cambio:** Parámetros expandidos a 6 args (antes 3), incluyendo rol y elemento.
-**S43 Cambio:** Reset escudo a 0, reaction a invisible.
+**S47 Cambio:** Parámetros completamente eliminados (antes 6 args). Barra inicializada en blanco con HP al 100%, sin datos de nombre/rol/elemento — esos datos llegan vía API dinámicamente si se necesitan en otras partes de la UI.
 
-## SetHp (S42/S43 IGUAL)
+## SetHp (S42/S43/S47 IGUAL)
 
 ```csharp
 public void SetHp(float current, float max)
@@ -107,309 +90,245 @@ public void SetHp(float current, float max)
 
 Anima fill y hp-value label sobre fillLerpSeconds.
 
-## SetShield (S43 NEW)
+## SetShield (S43/S47 SIMPLIFICADO)
 
 ```csharp
 public void SetShield(float shield)
 {
     desiredShield = shield;
-    shieldDirty   = true;
 }
 ```
 
-En `Apply()` si `shieldDirty` y `!hideForDebug`:
+**S47 Cambio:** Antes era procesado con `shieldDirty` flag. Ahora es directo: en Update/Apply() se actualiza `shieldFill` en tiempo real sin flag separado.
+
+En `Apply()`:
 ```csharp
-if (shieldFill != null && maxHp > 0f)
+float hpPct     = Mathf.Clamp01(currentPct);
+float shieldPct = maxHp > 0f ? Mathf.Clamp01(desiredShield / maxHp) : 0f;
+shieldPct       = Mathf.Min(shieldPct, 1f - hpPct);  // No supera el track disponible
+if (shieldFill != null)
 {
-    float shieldPct = Mathf.Clamp01(desiredShield / maxHp);
-    shieldFill.style.width = Length.Percent(shieldPct * 100f);
-    if (shieldFill.parent != null) shieldFill.parent.style.display = shieldPct >= 0.005f ? DisplayStyle.Flex : DisplayStyle.None;
-}
-shieldDirty = false;
-```
-
-Oculta si pct < 0.5% (umbral visual).
-
-## FlashReaction (S43 NEW)
-
-```csharp
-public void FlashReaction(string text, Color color)
-{
-    desiredReactionText  = text;
-    desiredReactionColor = color;
-    reactionUntil = Time.time + reactionFlashSeconds;
-    reactionDirty = true;
+    shieldFill.style.left    = Length.Percent(hpPct * 100f);
+    shieldFill.style.width   = Length.Percent(shieldPct * 100f);
+    shieldFill.style.display = desiredShield >= 0.5f && shieldPct > 0f ? DisplayStyle.Flex : DisplayStyle.None;
 }
 ```
 
-En `Apply()` si `reactionDirty` y `!hideForDebug`:
-```csharp
-if (reactionRow != null)
-{
-    reactionRow.text = desiredReactionText;
-    reactionRow.style.color = desiredReactionColor;
-    reactionRow.style.display = DisplayStyle.Flex;
-    reactionVisible = true;
-}
-reactionDirty = false;
-```
+Dibuja barra azul como segmento adyacente al HP, sin animación separada.
 
-Llamado por `CombatVisualizerService.PlayProc()` en rama StateArmed: emite narrador "¡Quedé {stateName}!" con color rojo (negativo) o verde (positivo).
-
-## SetElementState (S42 NEW, S43 IGUAL)
+## SetActiveTurn (S47 NEW)
 
 ```csharp
-public void SetElementState(List<ElementChipData> marks, List<ElementChipData> armed)
+public void SetActiveTurn(bool value)
 {
-    desiredMarks      = marks ?? new List<ElementChipData>();
-    desiredArmed      = armed ?? new List<ElementChipData>();
-    elementStateDirty = true;
+    activeTurn = value;
 }
 ```
 
-En `Apply()` si `elementStateDirty` y `!hideForDebug`:
+**S47 NEW:** Marca si el unit tiene turno activo (usado al comenzar TurnStart).
+
+En `Apply()`:
 ```csharp
-if (marksAllyRow != null)
+Color borderColor = BorderColor();
+track.style.borderTopColor    = borderColor;
+track.style.borderBottomColor = borderColor;
+track.style.borderLeftColor   = borderColor;
+track.style.borderRightColor  = borderColor;
+
+private Color BorderColor()
 {
-    marksAllyRow.Clear();
-    foreach (var mark in desiredMarks)
-        if (mark.AllySource) marksAllyRow.Add(BuildMarkChip(mark, top: true));
+    if (targeted)   return new Color(1f, 72f / 255f, 72f / 255f);  // Rojo
+    if (activeTurn) return new Color(1f, 200f / 255f, 60f / 255f); // Dorado
+    return Color.clear;  // Sin marco
 }
-if (armedRow != null)
-{
-    armedRow.Clear();
-    foreach (var armed in desiredArmed)
-        armedRow.Add(BuildStateLabel(armed));  // S43: renamed from BuildArmedChip
-}
-if (marksEnemyRow != null)
-{
-    marksEnemyRow.Clear();
-    foreach (var mark in desiredMarks)
-        if (!mark.AllySource) marksEnemyRow.Add(BuildMarkChip(mark, top: false));
-}
-elementStateDirty = false;
 ```
 
-**Lógica S42/S43:**
-- Itera desiredMarks, filtra aliadas → BuildMarkChip(top: true) con borde superior coloreado
-- Itera desiredArmed → BuildStateLabel() con borde 4-lados (sin ★ prefix, solo DisplayName)
-- Itera desiredMarks, filtra enemigas → BuildMarkChip(top: false) con borde inferior coloreado
-
-## BuildMarkChip (S42/S43 IGUAL)
+## SetTargeted (S47 NEW)
 
 ```csharp
-private static VisualElement BuildMarkChip(ElementChipData data, bool top)
+public void SetTargeted(bool value)
 {
-    Color c = data.Color.a <= 0f ? Color.white : data.Color;
-    var chip = new VisualElement();
-    chip.style.paddingTop      = 1;
-    chip.style.paddingBottom   = 1;
-    chip.style.paddingLeft     = 3;
-    chip.style.paddingRight    = 3;
-    chip.style.marginLeft      = 1;
-    chip.style.marginRight     = 1;
-    chip.style.backgroundColor = new Color(0f, 0f, 0f, 0.55f);
-    if (top)
-    {
-        chip.style.borderTopWidth = 2;
-        chip.style.borderTopColor = c;
-    }
-    else
-    {
-        chip.style.borderBottomWidth = 2;
-        chip.style.borderBottomColor = c;
-    }
-
-    var label = new Label(data.Label);
-    label.style.fontSize                = 8;
-    label.style.unityFontStyleAndWeight = FontStyle.Bold;
-    label.style.color                   = c;
-    chip.Add(label);
-    return chip;
+    targeted = value;
 }
 ```
 
-Crea chip con Label (DisplayName del elemento) colorido, borde superior (aliada) o inferior (enemiga), fondo semitransparente.
+**S47 NEW:** Marca si el unit es objetivo del ataque actual.
 
-## BuildStateLabel (S43 NUEVO, reemplaza BuildArmedChip S42)
+Marco dibujado en `Apply()` vía `BorderColor()` (rojo si targeted, dorado si activeTurn, invisible si ninguno).
 
-```csharp
-private VisualElement BuildStateLabel(ElementChipData armed)
-{
-    Color c = armed.Color.a <= 0f ? Color.white : armed.Color;
-    
-    var stateBox = new VisualElement();
-    stateBox.style.backgroundColor = armed.Negative 
-        ? new Color(140f / 255f, 24f / 255f, 24f / 255f, 0.75f)      // rojo
-        : new Color(60f / 255f, 140f / 255f, 60f / 255f, 0.75f);     // verde
-    stateBox.style.borderTopColor    = armed.Negative ? new Color(1f, 90f / 255f, 90f / 255f) : new Color(120f / 255f, 1f, 120f / 255f);
-    stateBox.style.borderBottomColor = stateBox.style.borderTopColor;
-    stateBox.style.borderLeftColor   = stateBox.style.borderTopColor;
-    stateBox.style.borderRightColor  = stateBox.style.borderTopColor;
-    stateBox.style.borderTopWidth    = 1;
-    stateBox.style.borderBottomWidth = 1;
-    stateBox.style.borderLeftWidth   = 1;
-    stateBox.style.borderRightWidth  = 1;
-    stateBox.style.borderTopLeftRadius     = 3;
-    stateBox.style.borderTopRightRadius    = 3;
-    stateBox.style.borderBottomLeftRadius  = 3;
-    stateBox.style.borderBottomRightRadius = 3;
-    stateBox.style.paddingTop    = 1;
-    stateBox.style.paddingBottom = 1;
-    stateBox.style.paddingLeft   = 3;
-    stateBox.style.paddingRight  = 3;
-    stateBox.style.marginTop     = 1;
-    stateBox.style.marginBottom  = 1;
-    stateBox.style.alignItems    = Align.Center;
-
-    var label = new Label(armed.Label);
-    label.style.fontSize                = 8;
-    label.style.unityFontStyleAndWeight = FontStyle.Bold;
-    label.style.color                   = c;
-    stateBox.Add(label);
-    return stateBox;
-}
-```
-
-**S43 Cambio:** Borrada rama BuildArmedChip con ★ prefix. Reemplazada por BuildStateLabel que:
-- Usa ElementChipData.Negative para decidir color (rojo si negativo, verde si positivo)
-- Muestra DisplayName completo sin prefijo (antes tenía ★)
-- Borde 4-lados (rojo/verde según Negative)
-- Caja semitransparente
-
-**Invariante con S42:** ElementChipData.Negative viene de CombatVisualizerService.PushElements(), que marca negativo si es ElementalState en NegativeStates HashSet o mark.AllySource == false.
-
-## Método Apply() (S43/S45)
+## Método Apply() (S47 SIMPLIFICADO)
 
 ```csharp
 private void Apply()
 {
     if (!EnsureRefs()) return;
-    if (root != null) root.style.display = hideForDebug ? DisplayStyle.None : DisplayStyle.Flex;  // **S45 NEW**
-    if (hideForDebug) return;  // **S45 NEW** Saltea el resto si hideForDebug
-    if (staticDirty) { ... }
-    // ... resto de lógica ...
-}
-```
+    if (root != null) root.style.display = hideForDebug ? DisplayStyle.None : DisplayStyle.Flex;
+    if (hideForDebug) return;
 
-**S45 NUEVO:**
-- Línea 327: Setea root.style.display según hideForDebug (None si true, Flex si false)
-- Línea 328: Early return si hideForDebug es true (evita procesar dirty flags)
-
-**Efecto:** Si hideForDebug = true, el cuadro world-space queda invisible y no se ejecuta lógica de Apply() (eficiencia).
-
-## EnsureRefs() Improvements (S42/S43)
-
-**Nuevo en S42:** Resolución dinámica de rows (roleElementRow, marksAllyRow, armedRow, marksEnemyRow) si faltan.
-
-**S43 NUEVO:** Resolución dinámica de shieldTrack/shieldFill:
-```csharp
-shieldTrack = root.Q<VisualElement>("shield-track");
-if (shieldTrack == null && fill != null)
-{
-    // Crear shieldTrack como hermano de fill (insertarlo ANTES de fill en el padre)
-    var track = fill.parent;
-    var trackParent = track != null ? track.parent : null;
-    if (track != null && trackParent != null)
+    if (!Mathf.Approximately(currentPct, targetPct))
     {
-        shieldTrack = new VisualElement { name = "shield-track" };
-        shieldTrack.style.height          = 4;
-        shieldTrack.style.width           = Length.Percent(100f);
-        shieldTrack.style.marginBottom    = 1;
-        shieldTrack.style.backgroundColor = new Color(0f, 0f, 0f, 0.4f);
+        float t = fillLerpSeconds > 0f ? Mathf.Min(1f, Time.deltaTime / fillLerpSeconds) : 1f;
+        currentPct = Mathf.Lerp(currentPct, targetPct, t);
+    }
+    if (fill != null) fill.style.width = Length.Percent(currentPct * 100f);
+    
+    if (hpValueLabel != null)
+    {
+        hpValueLabel.text = desiredShield >= 0.5f
+            ? $"{Mathf.RoundToInt(currentPct * maxHp)} / {Mathf.RoundToInt(maxHp)}  +{Mathf.RoundToInt(desiredShield)}"
+            : $"{Mathf.RoundToInt(currentPct * maxHp)} / {Mathf.RoundToInt(maxHp)}";
+    }
 
-        shieldFill = new VisualElement { name = "shield-fill" };
-        shieldFill.style.height          = Length.Percent(100f);
-        shieldFill.style.width           = Length.Percent(0f);
-        shieldFill.style.backgroundColor = new Color(90f / 255f, 160f / 255f, 255f / 255f);  // Azul
-        shieldTrack.Add(shieldFill);
+    float hpPct     = Mathf.Clamp01(currentPct);
+    float shieldPct = maxHp > 0f ? Mathf.Clamp01(desiredShield / maxHp) : 0f;
+    shieldPct       = Mathf.Min(shieldPct, 1f - hpPct);
+    if (shieldFill != null)
+    {
+        shieldFill.style.left    = Length.Percent(hpPct * 100f);
+        shieldFill.style.width   = Length.Percent(shieldPct * 100f);
+        shieldFill.style.display = desiredShield >= 0.5f && shieldPct > 0f ? DisplayStyle.Flex : DisplayStyle.None;
+    }
 
-        int trackIdx = trackParent.IndexOf(track);
-        trackParent.Insert(trackIdx, shieldTrack);  // Inserta ANTES de fill
+    if (track != null)
+    {
+        Color borderColor = BorderColor();
+        track.style.borderTopColor    = borderColor;
+        track.style.borderBottomColor = borderColor;
+        track.style.borderLeftColor   = borderColor;
+        track.style.borderRightColor  = borderColor;
     }
 }
+
+private Color BorderColor()
+{
+    if (targeted)   return new Color(1f, 72f / 255f, 72f / 255f);
+    if (activeTurn) return new Color(1f, 200f / 255f, 60f / 255f);
+    return Color.clear;
+}
 ```
 
-Crea la barra azul dinámicamente si no existe en UXML.
+**S47 CAMBIO:** Completamente reescrito. Eliminados SetStatus, SetElementState, FlashReaction. Ahora solo:
+1. Interpola HP (currentPct → targetPct)
+2. Renderiza fill (HP) + shieldFill (escudo azul)
+3. Renderiza label con valor + escudo
+4. Renderiza borders (marco dorado/rojo)
 
-## Update() (S43/S45)
+## EnsureRefs() (S47 SIMPLIFICADO)
+
+```csharp
+private bool EnsureRefs()
+{
+    if (document == null) document = GetComponentInChildren<UIDocument>(true);
+    if (document == null) return false;
+    var docRoot = document.rootVisualElement;
+    if (docRoot == null) return false;
+    if (docRoot == root && fill != null) return true;
+
+    root         = docRoot;
+    nameLabel    = root.Q<Label>("name");
+    fill         = root.Q<VisualElement>("fill");
+    hpValueLabel = root.Q<Label>("hp-value");
+    atkLabel     = root.Q<Label>("atk");
+    spdLabel     = root.Q<Label>("spd");
+
+    if (nameLabel != null) nameLabel.style.display = DisplayStyle.None;
+    if (atkLabel  != null) atkLabel.style.display  = DisplayStyle.None;
+    if (spdLabel  != null) spdLabel.style.display  = DisplayStyle.None;
+
+    track = fill != null ? fill.parent : null;
+    if (track != null)
+    {
+        track.style.borderTopWidth    = 2;
+        track.style.borderBottomWidth = 2;
+        track.style.borderLeftWidth   = 2;
+        track.style.borderRightWidth  = 2;
+
+        shieldFill = track.Q<VisualElement>("shield-fill");
+        if (shieldFill == null)
+        {
+            shieldFill = new VisualElement { name = "shield-fill" };
+            shieldFill.style.position        = Position.Absolute;
+            shieldFill.style.top             = 0;
+            shieldFill.style.bottom          = 0;
+            shieldFill.style.backgroundColor = new Color(90f / 255f, 160f / 255f, 255f / 255f);
+            track.Add(shieldFill);
+        }
+    }
+
+    return fill != null;
+}
+```
+
+**S47 CAMBIO:** Eliminadas resoluciones de roleElementRow, marksAllyRow, armedRow, marksEnemyRow, reactionRow. Queda solo el track + shieldFill.
+
+## Update() (S47 IGUAL)
 
 ```csharp
 private void Update() => Apply();
 ```
 
-Llama Apply() cada frame (donde se procesan dirty flags y se hace billboard en LateUpdate).
+Llama Apply() cada frame.
 
-## LateUpdate (S42/S43/S45)
+## LateUpdate (S47 IGUAL)
 
 ```csharp
 private void LateUpdate()
 {
-    if (!EnsureRefs()) return;
-    if (hideForDebug) return;  // **S45 NEW** Saltea billboard si hideForDebug
-    
-    // Billboard hacia Camera.main
-    if (cam != null && uprightOnly)
+    if (cam == null)
     {
-        var dir = (cam.transform.position - transform.position).normalized;
-        transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+        if (Camera.main == null) return;
+        cam = Camera.main.transform;
     }
+    Vector3 toCam = transform.position - cam.position;
+    if (uprightOnly) toCam.y = 0f;
+    if (toCam.sqrMagnitude > 0.0001f)
+        transform.rotation = Quaternion.LookRotation(toCam);
 }
 ```
 
-**S45 NEW:** Early return si hideForDebug es true.
+Billboard hacia Camera.main (sin cambios desde S43).
 
-## S42 Cambios
+## S47 Cambios (VERSIÓN SIMPLIFICADA)
 
-**Nuevo en S42:**
-- Bind expandido a 6 args (role + elemento)
-- SetElementState() new method
-- Filas dinámicas: roleElementRow, marksAllyRow, armedRow, marksEnemyRow
-- BuildMarkChip() helper
+**Radicales:**
+- `Bind()` reescrito sin argumentos
+- Eliminados métodos `SetStatus()`, `SetElementState()`, `FlashReaction()`
+- Eliminadas filas dinámicas (roleElementRow, marksAllyRow, armedRow, marksEnemyRow, reactionRow)
+- Eliminados helpers `BuildMarkChip()`, `BuildStateLabel()`
 
-## S43 Cambios
+**Nuevos métodos:**
+- `SetActiveTurn(bool value)` — marca turno activo (marco dorado)
+- `SetTargeted(bool value)` — marca objetivo (marco rojo)
 
-**Aditivos (append-only):**
-- **Campos públicos:** SetShield(), FlashReaction()
-- **Campos internos:** desiredShield, desiredReactionText, desiredReactionColor, shieldTrack, shieldFill, reactionRow, reactionUntil, reactionVisible, shieldDirty, reactionDirty
-- **Serializado:** reactionFlashSeconds (default 2f)
-- **EnsureRefs() nueva rama:** Crea shieldTrack/shieldFill dinámicamente
-- **BuildStateLabel() NEW:** Reemplaza BuildArmedChip, usa ElementChipData.Negative para color (rojo/verde)
-- **LateUpdate() rama S43:** Chequea reactionUntil, oculta label si expiró
-- **Apply() lógica S43:** Renderiza shieldFill width basado en shield/MaxHp, aplica reactionRow text/color si reactionDirty
+**Nuevos campos:**
+- `activeTurn` (bool)
+- `targeted` (bool)
 
-**Invariante:** Bind, SetHp, SetStatus, SetElementState sin cambios visibles; métodos publicados, implementación interna extendida.
+**Simplificaciones de Apply():**
+- Solo interpola HP
+- Solo renderiza fill + shieldFill
+- Solo renderiza label hp-value
+- Solo renderiza borders (coloreados por BorderColor)
 
-## S45 Cambios
+**Impacto:** Barra minimal, datos desacoplados de la visualización. CombatVisualizerService llama SetHp/SetShield/SetActiveTurn/SetTargeted en secuencia.
 
-**Aditivos (append-only):**
-- **Nuevo campo serializado:** `hideForDebug` (bool, default false)
-- **Gate en Apply() (línea 327):** root.style.display = hideForDebug ? DisplayStyle.None : DisplayStyle.Flex;
-- **Gate en Apply() (línea 328):** if (hideForDebug) return; — saltea todo el resto de lógica
-- **Gate en LateUpdate():** if (hideForDebug) return; — saltea billboard
+## S45 Cambios (Preservados en S47)
 
-**Invariante:** Métodos públicos Bind/SetHp/SetStatus/SetElementState/SetShield/FlashReaction sin cambios. Gates son puramente cosmético/debug.
-
-## Uso (S45)
-
-- Developers pueden marcar `hideForDebug = true` en inspector para ocultar el cuadro world-space durante sesiones de debug sin alterar código
-- Útil para concentrarse en orden de acción o barra deHP superior sin que la UI world-space tapee la pantalla central
-- False por default (cuadro activo)
+- Nuevo campo serializado `hideForDebug` (bool, default false)
+- Gate en Apply(): root.style.display = hideForDebug ? DisplayStyle.None : DisplayStyle.Flex
+- Early return si hideForDebug (eficiencia)
 
 ## Vinculado a
 
 - [[Index/03 - Combat System]]
-- [[CombatVisualizerService]] — publicador SetHp/SetShield/FlashReaction/SetElementState via ref
+- [[CombatVisualizerService]] — llama Bind() / SetHp() / SetShield() / SetActiveTurn() / SetTargeted()
 - [[MoriMonchiVisualizer]] — prefab padre (component child)
-- [[ElementTableSO]] — paleta de colores
-- [[UIDocument]] — ref a CombatHpBar.uxml (elementos base name, hp-value, fill, effects)
-- [[CombatVisualEvents]] — suscriptor OnUnitHpChanged (legacy) para SetHp
+- [[UIDocument]] — ref a CombatHpBar.uxml (elementos base name, hp-value, fill)
 
 ## Notas
 
-- **S42:** Dinámico por completo — si el UXML es minimal, construye todo en C#
-- **S43:** Shield track azul 4px sobre HP (marginBottom 1 para separación)
-- **S43:** FlashReaction label transient, oculto automático tras reactionFlashSeconds
-- **S45:** hideForDebug permite desactivar rendering + lógica sin remoción de componente
-- **Negative classification:** true si estado en NegativeStates HashSet O mark.AllySource == false (marca enemiga)
-- Todos los colores pueden tweakearse vía Color constants en BuildStateLabel
+- **S47:** Completamente reescrito a barra minimal. Antigua funcionalidad de marcas/estados removida (vivía en CombatOrderBarUITK antes).
+- **Marcos:** Bordes de 2px, colores dinámicos (rojo/dorado/clear) en BorderColor()
+- **Escudo:** Segmento azul continuo dentro del track, sin animación separada
+- **Billboard:** Orienta hacia cámara en LateUpdate, independiente de slot rotation
+- **hideForDebug:** Toggle rápido en inspector para ocultar durante debug

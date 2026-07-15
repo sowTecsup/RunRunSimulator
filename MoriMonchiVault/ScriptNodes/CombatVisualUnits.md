@@ -6,7 +6,7 @@ tags: [script, combat, visualizer, composition]
 
 **Ruta:** `Systems/CombatVisualizer/CombatVisualUnits.cs`
 
-**Responsabilidad:** Colaborador de `CombatVisualizerService` (composición, regla 11) — spawn/lookup/lifecycle de las unidades del replay 3v3. Dueño de mapeo de DNAs → anchors por fila (Front0/Front1, Mid0/Mid1/Mid2, Back0/Back1 convención hex 2-3-2), instantiación de modelos visuales, binding de barras UI con stats del snapshot, lifecycle de despawn. Plain data (DTO `CombatVisualUnit`) + stateless operations. **S42:** Spawn gana param ElementTableSO, Bind de barra pasa a 6 args (rol + nombre y color de elemento), crea vcam Cinemachine hija por unidad. **S43:** VCam referencia la CinemachineCamera hija (para CombatCameraDirector).
+**Responsabilidad:** Colaborador de `CombatVisualizerService` (composición, regla 11) — spawn/lookup/lifecycle de las unidades del replay 3v3. Dueño de mapeo de DNAs → anchors por fila (Front0/Front1, Mid0/Mid1/Mid2, Back0/Back1 convención hex 2-3-2), instantiación de modelos visuales, binding de barras UI con stats del snapshot, lifecycle de despawn. Plain data (DTO `CombatVisualUnit`) + stateless operations. **S42:** Spawn gana param ElementTableSO, crea vcam Cinemachine hija por unidad. **S43:** VCam referencia la CinemachineCamera hija (para CombatCameraDirector). **S47:** Bind de barra cambia a sin argumentos — la barra se inicializa en blanco, los datos vienen por SetHp/SetShield después.
 
 ## Métodos Públicos
 
@@ -14,7 +14,7 @@ tags: [script, combat, visualizer, composition]
 |--------|---------|-------------|
 | `Team(side)` | `IReadOnlyList<CombatVisualUnit>` | Retorna la lista inmutable de unidades de un lado (A o B) |
 | `Get(side, index)` | `CombatVisualUnit` | Busca la unidad en un lado/índice exacto; null si no existe |
-| `Spawn(side, dnas, snapshots, board, prefab, elements)` | `void` | **S42:** Instancia visualizadores para un equipo con param ElementTableSO, resuelve anchors por fila, arma instancias, binds de barras con elemento, crea vcams; **S43:** VCam capturada en unit.VCam |
+| `Spawn(side, dnas, snapshots, board, prefab)` | `void` | **S42/S47:** Instancia visualizadores para un equipo, resuelve anchors por fila, arma instancias, binds de barras (S47: sin args), crea vcams; **S43:** VCam capturada en unit.VCam |
 | `DespawnAll()` | `void` | Destruye todos los GameObjects de ambos equipos y limpia listas |
 | `SetActive(unit, active)` | `void` | Muestra/oculta el GameObject de una unidad (sin destruir) |
 | `TransformOf(side, index)` | `Transform` | Retorna el transform de la unidad o su anchor (fallback) |
@@ -58,7 +58,7 @@ private static readonly string[] BackNames  = { "Back0", "Back1" };
 
 El método privado `ResolveAnchor(board, row, ref frontUsed, ref midUsed, ref backUsed)` itera sobre los nombres ordenados por uso y devuelve el Transform del anchor libre, incrementando el contador para la siguiente unidad de esa fila.
 
-## Flujo de Spawn (S41 → S42 → S43)
+## Flujo de Spawn (S41 → S42 → S43 → S47)
 
 **Entrada:**
 - `side` — `CombatVisualSide.A` o `.B`
@@ -66,7 +66,6 @@ El método privado `ResolveAnchor(board, row, ref frontUsed, ref midUsed, ref ba
 - `snapshots` — lista de `CombatFighterSnapshot` (índice 1:1 con dnas)
 - `board` — Transform del BoardA o BoardB (contiene los anchors hijos)
 - `prefab` — MoriMonchiVisualizer a instanciar
-- `elements` — **S42 NEW** ElementTableSO (para nombres e identidades de elementos)
 
 **Proceso:**
 1. Borra el equipo anterior (teamA o teamB según side)
@@ -75,13 +74,25 @@ El método privado `ResolveAnchor(board, row, ref frontUsed, ref midUsed, ref ba
 4. Instancia el prefab como hijo del anchor
 5. Assemble visual (fur, parts, colores) vía `MoriMonchiVisualizer.SetFurDatabase + Assemble`
 6. Captura referencias (Hooks=`as MoriMonchiCombatVisualizer`, Bar=`GetComponentInChildren`, Anim=`GetComponent`)
-7. **S42 NUEVO:** Resuelve identidad del elemento (DisplayName + UiColor) desde ElementTableSO
-8. **S42 NUEVO:** Bind barra UI con 6 args: `Bind(name, attack, speed, role, elementName, elementColor)` (antes 3 args)
-9. **S42 NUEVO:** Crea GameObject hijo "VCam_{side}{i}" con CinemachineCamera (priority 0) + CinemachineRotationComposer
-10. **S43 IGUAL:** Asigna referencia vcam a `unit.VCam` (ya se hacía en S42, ahora solo documenta)
-11. Agrega `CombatVisualUnit` a la lista del equipo
+7. **S47 NUEVO:** Bind barra UI sin argumentos: `unit.Bar?.Bind();` — la barra se inicializa vacía, esperando SetHp/SetShield
+8. **S42 NUEVO:** Crea GameObject hijo "VCam_{side}{i}" con CinemachineCamera (priority 0) + CinemachineRotationComposer
+9. **S43 IGUAL:** Asigna referencia vcam a `unit.VCam` (ya se hacía en S42, ahora solo documenta)
+10. Agrega `CombatVisualUnit` a la lista del equipo
 
-**Resultado:** El equipo está vivo en pantalla, cada unidad en su anchor exacto, barras listas para animar, vcams listos para corte de cámara (CombatCameraDirector levanta prioridades).
+**Resultado:** El equipo está vivo en pantalla, cada unidad en su anchor exacto, barras inicializadas vacías (se rellenan vía API CombatVisualizerService), vcams listos para corte de cámara (CombatCameraDirector levanta prioridades).
+
+## S47 Cambios
+
+**Bind de barra sin argumentos:**
+- **Antes (S42-S46):** `unit.Bar?.Bind(snapshot.Name, snapshot.Attack, snapshot.Speed, snapshot.Role, elementName, elementColor);` — barra inicializada con stats
+- **Ahora (S47):** `unit.Bar?.Bind();` — sin argumentos, barra inicializada en blanco
+- Los datos (HP, escudo, marcos) llegan posteriormente vía API:
+  - `SetHp(current, max)` — sincroniza porcentaje de barra
+  - `SetShield(amount)` — dibuja segmento azul
+  - `SetActiveTurn(bool)` — marco dorado
+  - `SetTargeted(bool)` — marco rojo
+
+**Impacto:** Simplifică la inicialización (no necesita stats de snapshot), la barra se actualiza dinámicamente durante replay sin mantener copias de datos.
 
 ## S41 Cambios
 
@@ -96,9 +107,7 @@ El método privado `ResolveAnchor(board, row, ref frontUsed, ref midUsed, ref ba
 ## S42 Cambios
 
 **Nuevo en S42:**
-- Parámetro `ElementTableSO elements` en Spawn (nullable, defensive null-checks)
-- Resolución de identidad del elemento: `identity = elements?.GetIdentity(dna.Element)` (fallback a ToString/Color.white)
-- Bind de barra expandido a 6 parámetros: `Bar?.Bind(snapshot.Name, snapshot.Attack, snapshot.Speed, snapshot.Role, elementName, elementColor)`
+- Resolución de identidad del elemento desde ElementTableSO (ya sin usar en S47, pero conservado para compatibilidad)
 - **Nuevos objetos Cinemachine:** Por cada unidad spawneada, crea GameObject hijo con:
   - Nombre: `VCam_{side}{i}` (p.ej. "VCam_A0", "VCam_B2")
   - Posición: localPosition (0f, 1.5f, -2.6f) relativa a la unidad
@@ -106,7 +115,7 @@ El método privado `ResolveAnchor(board, row, ref frontUsed, ref midUsed, ref ba
   - Componente `CinemachineRotationComposer` (para rotación/look)
 - Referencia vcam capturada en `unit.VCam`
 
-**Impacto:** Bind de barra UI es más rico (rol + nombre/color elemento), facilitando visualización en CombatOrderBarUITK y MoriMonchiCombatVisualizerUITK.
+**Impacto:** VCams listos para cortes de cámara dinámicos durante replay.
 
 ## S43 Cambios
 
@@ -120,16 +129,17 @@ El método privado `ResolveAnchor(board, row, ref frontUsed, ref midUsed, ref ba
 ## Vinculado a
 
 - [[Index/13 - Combat Design Direction]]
-- [[CombatVisualizerService]] — orquestador que usa esta clase para spawn/lifecycle
+- [[CombatVisualizerService]] — orquestador que usa esta clase para spawn/lifecycle, llama Bind() sin args (S47)
 - [[CombatCameraDirector]] — **S43 NEW** suscriptor que accede VCams via VCamOf()
-- [[ElementTableSO]] — **S42:** fuente de DisplayName + UiColor del elemento
+- [[MoriMonchiCombatVisualizerUITK]] — **S47** barra minimal, Bind() sin args, API SetHp/SetShield/SetActiveTurn/SetTargeted
 
 ## Conexiones
 
-- **Entrada:** `CombatVisualizerService.Play()` llama `Spawn(side, dnas, snapshots, board, prefab, elementTable)` en ambos lados
+- **Entrada:** `CombatVisualizerService.Play()` llama `Spawn(side, dnas, snapshots, board, prefab)` en ambos lados
 - **Salida:** Popula lista de `CombatVisualUnit` que el service itera cada frame para animar barras/posiciones
 - **Refs:** `MoriMonchiVisualizer` (prefab), `GameManager.FurTypeDatabase`, `GameManager.PartVisualBank`
 - **Board refs:** BoardA/BoardB (Transform con 7 hijos anchor)
 - **Hooks:** `MoriMonchiCombatVisualizer`, `MoriMonchiCombatVisualizerUITK`, `MoriMonchiProceduralAnimator`
 - **S42/S43:** `CinemachineCamera`, `CinemachineRotationComposer` (vcams hijos)
 - **S43 Query:** `CombatCameraDirector.HandleActiveUnit()` → `CombatVisualizerService.VCamOf()` → `units.Get()?.VCam`
+- **S47:** `CombatVisualizerService.ForwardRoutine()` llama `SetHp()` / `SetShield()` / `SetActiveTurn()` / `SetTargeted()` sobre `unit.Bar`

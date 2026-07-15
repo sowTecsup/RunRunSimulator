@@ -55,9 +55,14 @@ namespace MoriMonchiSimulator
 // that same ally with the actor's Element; Agresivo: mark a random ally with
 // the actor's Element; Empático: heal the lowest-HP ally for a % of the
 // damage dealt (no roll) and mark that heal target with the actor's Element;
-// (15) lifesteal.
-// Every alive unit takes its turn once per round
-// until a team is fully wiped, then: pick one alive winner (uniform) →
+// (15) lifesteal. Passive-phase procs (Protector shield, Empático heal, and
+// the ally marks and any reactions/states they trigger) are recorded with
+// PassivePhase = true so the replay can choreograph them separately from
+// the strike.
+// Every alive unit takes its turn once per round. At the end of every round
+// all remaining Shield dissipates (shields only live for the round they were
+// granted in); no rng consumed.
+// Once a team is fully wiped: pick one alive winner (uniform) →
 // CombatEvolution.TryEvolveRandomSlot roll → pick one loser unit (KO or
 // not, uniform) → DeathChance roll. Item effects come from equipment
 // (ItemUseEffect) and act through ICombatContext, which also owns status
@@ -259,6 +264,8 @@ public static class CombatService
             }
 
             if (wiped) break;
+            ExpireShields(A, result);
+            ExpireShields(B, result);
         }
 
         if (!wiped)
@@ -394,6 +401,16 @@ public static class CombatService
         return order;
     }
 
+    private static void ExpireShields(List<Combatant> team, CombatResult result)
+    {
+        foreach (var c in team)
+        {
+            if (!c.IsAlive || c.Shield <= 0f) continue;
+            result.Log.Add($"    [escudo] {c.Name} pierde su escudo (-{c.Shield:F0})");
+            c.Shield = 0f;
+        }
+    }
+
     private static bool AllDead(List<Combatant> team)
     {
         foreach (var c in team) if (c.IsAlive) return false;
@@ -425,6 +442,7 @@ public static class CombatService
         result.Log.Add($"  » Turno de {(actor.IsA ? "A" : "B")}{actor.Index} \"{actor.Name}\"");
 
         r.BeforeStrike = true;
+        r.PassivePhase = false;
         TickStatuses(actor, result, r);
         if (actor.Hp <= 0f)
         {
@@ -497,8 +515,10 @@ public static class CombatService
 
         GainAffinity(actor, config, result, r, rng);
 
+        r.PassivePhase = true;
         CombatRoleHooks.ApplyPassives(actor, profile, allies, config, result, r, rng);
         CombatRoleHooks.HealAfterStrike(actor, profile, allies, strike.Dodged, strike.Damage, config, result, r, rng);
+        r.PassivePhase = false;
 
         if (!strike.Dodged && strike.Damage > 0f && actor.LifestealPercent > 0f)
         {

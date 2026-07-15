@@ -4,7 +4,7 @@ tags: [combat, visualization, events, bus, 3v3]
 
 # CombatVisualEvents
 
-Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). Es puramente un `public static class` con eventos y métodos helper. **S46:** `OnUnitAffinity` firma cambió (se quitó parámetro `energy`). `CombatElementEventData` gana campo `ReactionName`.
+Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). Es puramente un `public static class` con eventos y métodos helper. **S46:** `OnUnitAffinity` firma cambió (se quitó parámetro `energy`). `CombatElementEventData` gana campo `ReactionName`. **S47:** ElementChipData struct ELIMINADO (ya no se usa en pipeline visual).
 
 ## Responsabilidad
 
@@ -80,17 +80,6 @@ Datos de popup flotante.
 | `OverrideColor` | `Color` | **S42** Color custom (p.ej. color del elemento) |
 | `HasOverrideColor` | `bool` | **S42** Si usar OverrideColor o palette |
 
-### ElementChipData (S42+)
-
-Descriptor de chip elemental para barra de orden.
-
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `Label` | `string` | Nombre del elemento o estado (DisplayName) |
-| `Color` | `Color` | Color UI del elemento |
-| `AllySource` | `bool` | true = marca aliada, false = marca enemiga |
-| `Negative` | `bool` | **S43** true = estado negativo/marca enemiga visible (rojo) |
-
 ### CombatOrderEntry (S42+)
 
 Entrada de orden de acción para barra superior.
@@ -120,7 +109,7 @@ Datos de globo de habla cómic.
 | `TargetIndex` | `int` | Índice objetivo within equipo |
 | `TargetFollow` | `Transform` | Transform objetivo (para flecha) |
 
-### CombatElementEventData (S45+, S46 con ReactionName)
+### CombatElementEventData (S45+, S46 con ReactionName, S47 sin ElementChipData)
 
 Evento elemental por-proc para actualizar marcas/estados de la barra en tiempo real.
 
@@ -211,6 +200,16 @@ Estado de control del replay UI.
 | `Speech` | `(CombatSpeechData d)` | **S43** Dispara `OnSpeech` |
 | `UnitElement` | `(CombatElementEventData d)` | **S45** Dispara `OnUnitElement` (S46: con ReactionName) |
 
+## Cambios S47
+
+**ElementChipData struct ELIMINADO:**
+- Struct que captaba (Label, Color, AllySource, Negative) de marcas/estados elementales
+- Ya no se emite ni se consume
+- Era usada en el pipeline visual antiguo (pre-S47) de la barra de orden
+- Reemplazada por lógica más directa en CombatOrderBarUITK (parsea ElementalState de ReactionName)
+
+**Impacto:** Simplificación del bus de eventos, pipeline de datos más directo (sin intermediarios DTO).
+
 ## Cambios S46
 
 **OnUnitAffinity firma cambió:**
@@ -225,10 +224,16 @@ Estado de control del replay UI.
 ## Vinculado a
 
 - [[CombatVisualizerService]] — único publisher
-- [[CombatOrderBarUITK]] — suscriptor (S46: HandleAffinity sin energy)
+- [[CombatOrderBarUITK]] — suscriptor (S46: HandleAffinity sin energy; S47: parsea ReactionName)
 - [[CombatSpeechBubbles]] — suscriptor `OnSpeech`
 - [[CombatCameraDirector]] — suscriptor `OnActiveUnit`
 - [[CombatFeelDirector]] — **S46 NEW** suscriptor `OnPopup` + `OnUnitElement`
+
+## Notas Implementación S47
+
+- ElementChipData completamente removido (no genera errores de compilación, era solo un DTO)
+- Flujo de coreografía de pasivas no usa ElementChipData; SetActiveTurn/SetTargeted reemplazan visualización de marcos
+- CombatOrderBarUITK S47 parsea estados directamente de ReactionName sin intermediario
 
 ## Notas Implementación S46
 

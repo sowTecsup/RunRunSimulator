@@ -11,6 +11,7 @@ public class CombatProcEvent
     public float              Amount;
     public float              TargetHpAfter;
     public bool               BeforeStrike;
+    public bool               PassivePhase;
     public List<CombatStatusMark> TargetStatusAfter;
 
     public ElementEventKind ElementEvent;
