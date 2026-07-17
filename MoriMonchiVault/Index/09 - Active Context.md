@@ -4,6 +4,74 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-16/17 (Session 50 — **FEEL DEL AVANCE APROBADO POR JUAN ✅ + ESTÉTICA DE LA HOJA + EXPERIMENTO GANG BEASTS (brazos físicos + salto + cuerpo elástico emergente) + REGLA UI ESCALABLE — ✅ CERRADA: 0 errores de consola, escena guardada; el salto/elástico quedó SIN test visual de Juan (cerró sesión antes)**)
+**Focus:** Juan aprobó visualmente el fix del avance de S49 ("lo conseguimos, luce bien") — pendiente #1 cerrado. Dirección nueva de Juan para las animaciones de combate del MoriMochi: caminar/atacar/saltar/rotar, squash & stretch súper elástico, pose de derrota, loop de victoria, brazos que jueguen — y que sea **orgánico/emergente estilo Gang Beasts, no estrictamente codeado**. Approach acordado: HÍBRIDO — gait aprobado se queda kinematic; la vida y las acciones salen de física con resortes.
+
+1. **Estética de la hoja (S48 nota 10) ✅**: patas cono (mesh procedural `SpiderConeMesh.asset` reutilizable, base en la articulación y punta dentro de la garra — reemplazó los 6 cilindros), 2 colmillos marfil bajo la cara (`Spider_Fang.mat` nuevo), marca de patita pad+3 dedos sobre el lomo (`Spider_PawMark.mat` nuevo). Todo bajo `BodyVisual`, grupo Undo "S50 Spider estetica". Screenshots `s50_estetica_*.png`.
+2. **Brazos físicos (Gang Beasts v1, SIN código)**: `Arm_L`/`Arm_R` reparentados de `BodyVisual` al root (un rb dinámico no puede vivir bajo un transform animado), ahora Rigidbody dinámico (masa 0.15, sin collider) + `ConfigurableJoint` al rb del root: lineal Locked, angular Limited ±60°, Slerp drive spring 50 / damper 4, target = pose de reposo. Bamboleo 100% emergente. CLAVE: quedan FUERA del array `bodies` de `SpiderRagdollMode` → siempre dinámicos en ambos modos, cero cambios a ese script.
+3. **Salto + cuerpo elástico (Iteración A del set de acciones)**: `SpiderJump` NUEVO (Space o botón del panel; impulso + gravedad integrada con `gravityScale`, expone `HeightOffset` que el controller SUMA al ride height del raycast) y `SpiderElasticBody` NUEVO (dueño EXCLUSIVO de `localScale` de `BodyVisual` — pos/rot siguen siendo de `SpiderBodyMotion`, un dueño por dato; resorte subamortiguado que persigue la velocidad vertical REAL con conservación de volumen xz=1/√y; el squash de aterrizaje EMERGE del resorte al cortarse la velocidad; guarda anti-teleport |vy|>12). Knobs nuevos en `SpiderTuningSO`: `elasticAmount`, `jumpImpulse` + sliders Elasticidad/Salto y botón "Saltar! (Space)" en el DevPanel. Wireado en escena por MCP (grupo Undo "S50 wiring salto+elastico").
+4. **REGLA NUEVA DE JUAN (permanente, guardada en memoria)**: toda UI debe escalar con el screen size — nunca píxeles absolutos. Aplicado a `SpiderDevPanel` y `SpiderGaitMonitor`: `GUI.matrix = Scale(Screen.height/1080f)` (mín 1) + rects en coordenadas virtuales. Para UITK futura: PanelSettings ScaleWithScreenSize; uGUI: CanvasScaler.
+5. **REGLA NUEVA DE JUAN (workflow, guardada en memoria)**: no abusar del Play mode por MCP (tiempo/tokens) — verificación puntual y solo cuando él apruebe; el feel/visual lo prueba él con su teclado.
+
+> ### 📝 Notas S50
+> 1. **⚠️ Salto + elástico SIN aprobación visual de Juan** — primer paso de S51: Play, Space para saltar, sentir el squash de aterrizaje y el jelly al caminar, tunear sliders Elasticidad/Salto.
+> 2. Durante el salto las patas intentan quedarse plantadas (el IK se estira hacia sus homes en el piso) — en saltos bajos se lee como anticipación cartoon. Si Juan quiere que recoja las patitas en el aire, es la primera mejora de la Iteración B.
+> 3. Posible desfase visual en hombros: brazos anclados al root pero el caparazón bobea aparte (`BodyVisual`) — con amplitudes actuales debería ser imperceptible; vigilar.
+> 4. Knob de brazos si se sienten flácidos/tiesos: spring/damper del slerpDrive de los 2 joints (hoy 50/4, en escena, no en el SO).
+> 5. `execute_code` ahora compila con **Roslyn** (C# moderno OK) — el quirk "solo C# 6" de Index/12 ya no aplica en este editor (verificado varias veces esta sesión). OJO: `Object` sigue ambiguo — calificar `UnityEngine.Object`.
+> 6. El refresh de scripts nuevos necesita `refresh_unity` scope **all** (scope scripts no importa archivos nuevos → CS0246 fantasma).
+> 7. `Assets/_Recovery/` (del cuelgue de Unity en S49) sigue sin trackear — decisión de Juan borrarlo o no. El `09 - Active Context.md` ya pesa >315KB — archivar sesiones viejas sigue pendiente.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Prototype/Spider/SpiderJump.cs` (NUEVO): integración vertical del salto (impulso+gravedad propia), lee Space de `Keyboard.current`, respeta ragdoll. Contrato: `HeightOffset`/`IsAirborne`/`Jump()`.
+- `Prototype/Spider/SpiderElasticBody.cs` (NUEVO): dueño exclusivo de `localScale` del pivote visual; resorte subamortiguado sobre velocidad vertical real, conserva volumen; reset en ragdoll.
+- `Prototype/Spider/SpiderBodyController.cs` (MODIFICADO): + ref `SpiderJump jump`; la altura del raycast suma `jump.HeightOffset`.
+- `Prototype/Spider/SpiderTuningSO.cs` (MODIFICADO): + Header "Elastico" con `elasticAmount` (0-1) y `jumpImpulse` (1-6).
+- `Prototype/Spider/SpiderDevPanel.cs` (MODIFICADO): escala con pantalla (GUI.matrix ref 1080p); + ref jump, sliders Elasticidad/Salto, botón "Saltar! (Space)".
+- `Prototype/Spider/SpiderGaitMonitor.cs` (MODIFICADO): escala con pantalla (GUI.matrix, anclaje derecho en coordenadas virtuales).
+
+**Files Touched (no-ScriptNode):** `Resources/Scenes/MorimonchiNewModel.unity` (conos/colmillos/patita, brazos reparentados+rb+joints, componentes nuevos wireados), `Prototype/SpiderConeMesh.asset` (NUEVO), `Prototype/Materials/Spider_Fang.mat` + `Spider_PawMark.mat` (NUEVOS), `Assets/Screenshots/s50_estetica_*.png` (2, borrables), `Prototype/SpiderTuning.asset` (campos nuevos serializados).
+
+**Next session (S51):**
+1. **Aprobación de Juan del salto + cuerpo elástico** (nota 1) y tuning de sliders; ajustar spring de brazos si hace falta (nota 4).
+2. **Iteración B del set de acciones** (física primero): atacar (lunge + manotazo vía `targetRotation` del resorte del brazo), recoger patas en el aire si Juan lo pide (nota 2), gesticulación de brazos al caminar (Perlin sobre `targetRotation`).
+3. **Iteración C**: derrota (soltar ragdoll, quizá con drives debilitados para desinfle) + loop de victoria (botes por resorte + brazos arriba).
+4. Arrastran: terreno irregular (prueba de fuego del gait), decisión de fondo procedural vs alternativas, volcar MODELO NUEVO S46 a `Index/13`, quirk Empático, F5 async 3v3, economía F7, ítems con estados, tuning de knobs elementales, archivar sesiones viejas de esta nota (>315KB).
+
+**ScriptNodes (cierre S50):** CREAR `SpiderJump.md`, `SpiderElasticBody.md`; ACTUALIZAR `SpiderBodyController.md`, `SpiderTuningSO.md`, `SpiderDevPanel.md`, `SpiderGaitMonitor.md`.
+
+---
+
+**Session:** 2026-07-16 (Session 49 — **FEEL DEL AVANCE: DIAGNÓSTICO CERRADO + FIX DEL TRIGGER DE TORSIÓN — ✅ verificado por telemetría MCP en Play (0 errores de consola), ⚠️ FALTA LA APROBACIÓN VISUAL DE JUAN (Unity se le colgó en reload al cierre, reinicia)**)
+**Focus:** el pendiente #1 de S48 ("el giro luce bien y moverme adelante/atrás se ve raro"). Diagnóstico por A/B con `SpiderGaitMonitor` + muestreo de `Twist` vivo: **H1 confirmada** — el disparador de torsión de S48 disparaba constantemente en marcha recta, amplificado por la urgencia.
+
+1. **Causa raíz**: `Twist` se calcula contra el home PREDICHO (`lastHome` incluye `hipVelocity × anticipation`). A `moveSpeed=2.36` con `anticipation=0.22` la predicción corre el home 0.52u adelante — comparable al offset de pata (~0.6u). Para la trasera (offset −0.45 en z) el home quedaba casi sobre la cadera apuntando ADELANTE → **`Twist=180°` permanente caminando recto** (medido). La guarda `sqrMagnitude < 0.0004` no cubre este caso. Las delanteras también pasaban de 22° en recta (58.8° medido). La urgencia (ratio 180/22 = 8× → clamp 0.5) hacía a la trasera ametralladora: **6.74 pasos/s vs 3.68 de las delanteras** (A/B: con `maxTwist=60` apenas bajaba a 6.0 — el ángulo degenerado supera cualquier umbral). `turnSpeed=60` descartado como causa. La traslación del root está sana (velocidad medida = exactamente `moveSpeed`).
+2. **Fix (vía `morimonchi-coder`, 2 archivos)**: el twist (trigger + aporte a urgencia) se gatea con **`turningNow || !moving`** — activo girando y en reposo, apagado SOLO en marcha recta. `SpiderBodyController` computa `bool turning = |turn| > 0.01` (input A/D + AutoTurn) y lo pasa por la firma nueva **`Tick(bool mayStep, bool turning)`**; `SpiderLegStepper` guarda `turningNow`. El `|| !moving` importa: en reposo no hay anticipación que degenere la métrica, y sin él una pata quedaba clavada tras frenar con drag 0.54 (justo bajo el umbral de reposo 0.545) y twist 52° — regresión detectada en el primer retest y corregida.
+3. **Verificación (todo por MCP en Play, laps automáticos vía `EditorApplication.update` porque el plano 40×40 queda corto)**: recta 56s → FL/FR 186/186 alternando + trasera 231 (4.1 pasos/s, la diferencia restante = no paga turno, por diseño); giro en el lugar 43s (~7 vueltas) → 104/104/116 parejo, comportamiento aprobado del giro INTACTO; quieto 45s → 0 pasos; freno → exactamente 1 paso de asentamiento por pata, pose final drag≈0/twist≈0.
+
+> ### 📝 Notas S49
+> 1. **⚠️ Juan NO vio el resultado todavía**: Unity se colgó en reload al cierre y reinicia. Primer paso de S50: Play en `MorimonchiNewModel`, probar W/S + giro + freno, y que Juan apruebe (o no) el feel.
+> 2. La trasera sigue leyendo `Twist=180°` en recta (la métrica sigue degenerada por la anticipación) — hoy es INOFENSIVO porque está gateada, pero si algún día el twist se necesita en marcha recta, calcularlo contra el home SIN anticipación.
+> 3. `SpiderTuning.asset` quedó con sus valores originales (`maxTwist=22`; durante el test se subió a 60 y se restauró). El diff de git es solo line-endings.
+> 4. Truco de test: para corridas largas de autowalk, registrar un callback en `EditorApplication.update` que teletransporta al spider a z=−18 cuando z>12, controlado por un GameObject marcador `__LapMarker` (destruirlo desregistra). La guarda anti-teleport del stepper lo absorbe. `maxDrag` del monitor queda contaminado por los teleports (~30) — ignorarlo; métricas robustas: conteo de pasos y esperas.
+> 5. La escena activa quedó `MorimonchiNewModel` (se cambió desde `CombatVisualizerMM`, que estaba limpia).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Prototype/Spider/SpiderBodyController.cs` (MODIFICADO): computa `bool turning` del input de giro y lo pasa a las patas vía la firma nueva `Tick(mayStep, turning)`.
+- `Prototype/Spider/SpiderLegStepper.cs` (MODIFICADO): contrato `Tick(bool)` → `Tick(bool mayStep, bool turning)`; campo `turningNow`; trigger de torsión y su componente de urgencia gateados con `turningNow || !moving`.
+
+**Files Touched (no-ScriptNode):** `Prototype/SpiderTuning.asset` (solo line-endings, valores intactos).
+
+**Next session (S50):**
+1. **Aprobación visual de Juan del feel del avance** (nota 1) — la telemetría dice que la recta volvió al régimen pre-fix-del-giro, pero el ojo decide.
+2. Si el feel cierra: estética pendiente de la hoja (colmillos, marca patita, conos ProBuilder) y/o terreno irregular (la prueba de fuego: piedras/rampas).
+3. Decisión de fondo pendiente (arrastra de S48): si el approach procedural no convence → squash-and-stretch cartoon, asset comprado, o clips a mano + Animation Rigging.
+4. Arrastran: volcar el MODELO NUEVO de S46 a `Index/13`, quirk Empático, F5 async 3v3, economía F7, ítems con estados, tuning de knobs elementales. El propio `09 - Active Context.md` ya pesa 310KB — considerar archivar sesiones viejas.
+
+**ScriptNodes (cierre S49):** ACTUALIZAR `SpiderBodyController.md`, `SpiderLegStepper.md`.
+
+---
+
 **Session:** 2026-07-15 (Session 48 — **POC ARÁCNIDO PROCEDURAL: HUMANOIDE DESCARTADO → TRÍPODE SEGÚN HOJA DE ARTE + IK ANALÍTICO + GAIT PREDICTIVO + RAGDOLL TOGGLE + PLAYGROUND — ✅ CERRADA: 0 errores en consola, todo verificado en Play por MCP con telemetría; el giro aprobado por Juan, el avance quedó raro al final (pendiente #1 de S49)**)
 **Focus:** la sesión iba a iterar el ragdoll de S47 y Juan la redirigió dos veces: primero a "controlador simple + movimiento básico como POC, sin tanto detalle" (spider walk procedural, la opción más barata), y a mitad de sesión trajo una **hoja de concepto de arte** (versión arácnida: bola + cara enorme + 3 patitas + 2 brazitos, paletas NOCTURNO/ARENA/SELVA/GLACIAL/ALBINO) que **descartó el rig humanoide** construido en la primera mitad. TODO es prototipo explícito (carpeta `Scripts/Prototype/Spider/`): a futuro entra modelo real + Animator + RigBuilder (Animation Rigging ya descargado por Juan; `TwoBoneIKConstraint` mapea 1:1 con nuestro IK — cadera/rodilla/pie + pole).
 

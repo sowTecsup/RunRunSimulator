@@ -81,7 +81,9 @@ namespace MoriMonchiSimulator.Prototype
         private void OnGUI()
         {
             if (!show || legs == null || steps == null) return;
-            GUILayout.BeginArea(new Rect(Screen.width - panelWidth - 10f, 10f, panelWidth, 30f + legs.Length * 78f), GUI.skin.box);
+            float scale = Mathf.Max(1f, Screen.height / 1080f);
+            GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
+            GUILayout.BeginArea(new Rect(Screen.width / scale - panelWidth - 10f, 10f, panelWidth, 30f + legs.Length * 78f), GUI.skin.box);
             GUILayout.Label("GAIT MONITOR");
             for (int i = 0; i < legs.Length; i++)
             {

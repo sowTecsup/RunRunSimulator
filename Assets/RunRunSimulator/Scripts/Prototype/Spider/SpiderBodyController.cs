@@ -6,6 +6,7 @@ namespace MoriMonchiSimulator.Prototype
     public class SpiderBodyController : MonoBehaviour
     {
         [SerializeField] private SpiderTuningSO tuning;
+        [SerializeField] private SpiderJump jump;
         [SerializeField] private SpiderLegStepper[] legs;
         [SerializeField] private SpiderLegIK[] legIks;
         [SerializeField] private int[] gaitGroup = new int[] { 0, 1, 2 };
@@ -40,6 +41,8 @@ namespace MoriMonchiSimulator.Prototype
             if (autoWalk) fwd = 1f;
             if (autoTurn != 0f) turn = Mathf.Clamp(autoTurn, -1f, 1f);
 
+            bool turning = Mathf.Abs(turn) > 0.01f;
+
             float spd = tuning != null ? tuning.moveSpeed : moveSpeed;
             float turnSpd = tuning != null ? tuning.turnSpeed : turnSpeed;
             float ride = tuning != null ? tuning.rideHeight : rideHeight;
@@ -51,7 +54,7 @@ namespace MoriMonchiSimulator.Prototype
             if (Physics.Raycast(transform.position + Vector3.up * rayUp, Vector3.down, out hit, rayLength, groundMask))
             {
                 Vector3 p = transform.position;
-                p.y = hit.point.y + ride;
+                p.y = hit.point.y + ride + (jump != null ? jump.HeightOffset : 0f);
                 transform.position = p;
             }
 
@@ -81,7 +84,7 @@ namespace MoriMonchiSimulator.Prototype
             {
                 if (legs[i] == null) continue;
                 int gi = (gaitGroup != null && i < gaitGroup.Length) ? gaitGroup[i] : 0;
-                legs[i].Tick(gi < 0 || i == best);
+                legs[i].Tick(gi < 0 || i == best, turning);
             }
 
             for (int i = 0; i < legIks.Length; i++)

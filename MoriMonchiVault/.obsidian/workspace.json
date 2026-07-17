@@ -165,8 +165,14 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "904556343679102e",
+  "active": "b5d7629a56bcfd1f",
   "lastOpenFiles": [
+    "ScriptNodes/SpiderDevPanel.md.tmp.12364.602766a56c03",
+    "ScriptNodes/SpiderBodyController.md.tmp.12364.a0d9fb767ffc",
+    "ScriptNodes/SpiderElasticBody.md",
+    "ScriptNodes/SpiderJump.md",
+    "ScriptNodes/SpiderJump.md.tmp.12364.bb73d1816618",
+    "Index/09 - Active Context.md.tmp.12364.cef2aec8fbc4",
     "Index/09 - Active Context.md.tmp.5648.0fc7c028e5e6",
     "Index/13 - Combat Design Direction.md.tmp.5648.1af470baa000",
     "Index/09 - Active Context.md.tmp.5648.655c7044364b",
@@ -181,10 +187,6 @@
     "Index/02 - Genetics & Breeding.md",
     "00 - Index.md",
     "ScriptNodes/GameManager.md",
-    "Index/09 - Active Context.md.tmp.2824.d3aa777085a7",
-    "Index/11 - Technical Debt.md.tmp.2824.8544ac3113df",
-    "Index/11 - Technical Debt.md.tmp.2824.39ffccaf0b7e",
-    "ScriptNodes/CloudSyncService.md.tmp.2824.7278870791c4",
     "ScriptNodes/SpawnDiagnostics.md",
     "Index/06 - Player & World.md",
     "Index/11 - Technical Debt.md",
@@ -201,8 +203,6 @@
     "ScriptNodes/PartDatabaseSO.md",
     "ScriptNodes/MoriMochiAgent.md",
     "FurShaders/FUR_02_Speckled.md",
-    "Archive - Fur Shaders (POC descartado)/FUR_01_Smooth.md",
-    "Archive - Fur Shaders (POC descartado)/00 - Fur Shaders Index.md",
     "Sin título.canvas",
     "ScriptsNodes/Sin título.canvas"
   ]

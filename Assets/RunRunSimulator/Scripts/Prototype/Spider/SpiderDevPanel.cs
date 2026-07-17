@@ -7,6 +7,7 @@ namespace MoriMonchiSimulator.Prototype
         [SerializeField] private SpiderTuningSO tuning;
         [SerializeField] private SpiderRagdollMode ragdollMode;
         [SerializeField] private SpiderBodyController controller;
+        [SerializeField] private SpiderJump jump;
         [SerializeField] private Rigidbody rootBody;
         [SerializeField] private Transform spawnPoint;
         [SerializeField] private float panelWidth = 290f;
@@ -25,7 +26,10 @@ namespace MoriMonchiSimulator.Prototype
         {
             if (!show || tuning == null) return;
 
-            GUILayout.BeginArea(new Rect(10f, 10f, panelWidth, Screen.height - 20f), GUI.skin.box);
+            float scale = Mathf.Max(1f, Screen.height / 1080f);
+            GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
+
+            GUILayout.BeginArea(new Rect(10f, 10f, panelWidth, Screen.height / scale - 20f), GUI.skin.box);
             GUILayout.Label("<b>SPIDER PLAYGROUND</b>", new GUIStyle(GUI.skin.label) { richText = true, fontSize = 14 });
             GUILayout.Space(4f);
 
@@ -49,6 +53,8 @@ namespace MoriMonchiSimulator.Prototype
             tuning.idleAmount = Row("Idle", tuning.idleAmount, 0f, 1f);
             tuning.bobAmount = Row("Bob caminar", tuning.bobAmount, 0f, 0.06f);
             tuning.leanAmount = Row("Inclinacion", tuning.leanAmount, 0f, 1f);
+            tuning.elasticAmount = Row("Elasticidad", tuning.elasticAmount, 0f, 1f);
+            tuning.jumpImpulse = Row("Salto", tuning.jumpImpulse, 1f, 6f);
 
             GUILayout.Space(6f);
             GUILayout.Label("Ragdoll");
@@ -64,6 +70,7 @@ namespace MoriMonchiSimulator.Prototype
             {
                 controller.AutoWalk = !controller.AutoWalk;
             }
+            if (jump != null && GUILayout.Button("Saltar! (Space)", GUILayout.Height(26f))) jump.Jump();
             if (GUILayout.Button(isRag ? "Volver a caminar" : "Activar ragdoll", GUILayout.Height(26f)))
             {
                 if (ragdollMode != null) ragdollMode.SetRagdoll(!isRag);

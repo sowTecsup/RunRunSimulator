@@ -27,12 +27,13 @@ namespace MoriMonchiSimulator.Prototype
         private float currentStepDuration;
         private bool moving;
         private float lastUrgencyScale = 1f;
+        private bool turningNow;
 
         public bool IsStepping { get { return isStepping; } }
         public Vector3 FootPosition { get { return footPosition; } }
         public Vector3 Home { get { return lastHome; } }
         public float Drag { get { return (footPosition - lastHome).magnitude; } }
-        public bool WantsStep { get { return !isStepping && restTimer <= 0f && (Drag > (moving ? StepDistance : StepDistance * 1.6f) || Twist > MaxTwist); } }
+        public bool WantsStep { get { return !isStepping && restTimer <= 0f && (Drag > (moving ? StepDistance : StepDistance * 1.6f) || ((turningNow || !moving) && Twist > MaxTwist)); } }
 
         public float Twist
         {
@@ -79,8 +80,9 @@ namespace MoriMonchiSimulator.Prototype
             lastHipPos = hip.position;
         }
 
-        public void Tick(bool mayStep)
+        public void Tick(bool mayStep, bool turning)
         {
+            turningNow = turning;
             if (hip == null)
             {
                 return;
@@ -124,7 +126,8 @@ namespace MoriMonchiSimulator.Prototype
                     isStepping = true;
                     stepT = 0f;
                     float threshold = moving ? StepDistance : StepDistance * 1.6f;
-                    float urgency = Mathf.Max(Drag / Mathf.Max(threshold, 0.01f), Twist / Mathf.Max(MaxTwist, 1f));
+                    float urgency = Drag / Mathf.Max(threshold, 0.01f);
+                    if (turningNow || !moving) urgency = Mathf.Max(urgency, Twist / Mathf.Max(MaxTwist, 1f));
                     lastUrgencyScale = Mathf.Clamp(1f / Mathf.Sqrt(Mathf.Max(urgency, 1f)), 0.5f, 1f);
                     currentStepDuration = (moving ? StepDuration : StepDuration * 1.8f) * lastUrgencyScale;
                     stepFrom = footPosition;

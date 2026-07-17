@@ -26,5 +26,9 @@ namespace MoriMonchiSimulator.Prototype
 
         [Header("Ragdoll")]
         [Range(1f, 12f)] public float launchImpulse = 5f;
+
+        [Header("Elastico")]
+        [Range(0f, 1f)] public float elasticAmount = 0.5f;
+        [Range(1f, 6f)] public float jumpImpulse = 3f;
     }
 }
