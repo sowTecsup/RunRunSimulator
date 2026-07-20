@@ -26,3 +26,5 @@ MonoBehaviour:
   bobAmount: 0.02
   leanAmount: 0.5
   launchImpulse: 12
+  elasticAmount: 0.5
+  jumpImpulse: 3

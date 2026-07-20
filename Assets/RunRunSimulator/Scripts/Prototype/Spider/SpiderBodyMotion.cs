@@ -10,6 +10,8 @@ namespace MoriMonchiSimulator.Prototype
         [SerializeField] private float breatheFrequency = 1.4f;
         [SerializeField] private float bobFrequency = 9f;
         [SerializeField] private float maxSpeedReference = 1.5f;
+        [SerializeField] private float actionFrequency = 2.5f;
+        [SerializeField] private float actionDamping = 0.35f;
 
         private Vector3 basePos;
         private Quaternion baseRot;
@@ -20,6 +22,8 @@ namespace MoriMonchiSimulator.Prototype
         private float bobPhase;
         private float pitch;
         private float roll;
+        private float actionPitch;
+        private float actionPitchVelocity;
 
         private void Awake()
         {
@@ -39,6 +43,8 @@ namespace MoriMonchiSimulator.Prototype
             {
                 visualPivot.localPosition = basePos;
                 visualPivot.localRotation = baseRot;
+                actionPitch = 0f;
+                actionPitchVelocity = 0f;
                 return;
             }
 
@@ -75,8 +81,19 @@ namespace MoriMonchiSimulator.Prototype
             pitch = Mathf.Lerp(pitch, targetPitch, 1f - Mathf.Exp(-6f * dt));
             roll = Mathf.Lerp(roll, targetRoll, 1f - Mathf.Exp(-6f * dt));
 
+            float actionOmega = 2f * Mathf.PI * actionFrequency;
+            actionPitchVelocity += (0f - actionPitch) * actionOmega * actionOmega * dt;
+            actionPitchVelocity -= actionPitchVelocity * 2f * actionDamping * actionOmega * dt;
+            actionPitch += actionPitchVelocity * dt;
+            actionPitch = Mathf.Clamp(actionPitch, -45f, 45f);
+
             visualPivot.localPosition = basePos + Vector3.up * (breatheY + bobY);
-            visualPivot.localRotation = baseRot * Quaternion.Euler(pitch + idlePitch, 0f, roll + idleRoll);
+            visualPivot.localRotation = baseRot * Quaternion.Euler(pitch + idlePitch + actionPitch, 0f, roll + idleRoll);
+        }
+
+        public void AddPitchImpulse(float degrees)
+        {
+            actionPitchVelocity += degrees * 2f * Mathf.PI * actionFrequency;
         }
     }
 }

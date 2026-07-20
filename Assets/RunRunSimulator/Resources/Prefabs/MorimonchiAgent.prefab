@@ -117,6 +117,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiController
   agent: {fileID: 992515727134330810}
   visualizer: {fileID: 9121188545248217067}
+  spiderVisual: {fileID: 0}
 --- !u!114 &992515727134330810
 MonoBehaviour:
   m_ObjectHideFlags: 0

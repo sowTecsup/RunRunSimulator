@@ -22,6 +22,11 @@ namespace MoriMonchiSimulator.Prototype
             lastY = transform.position.y;
         }
 
+        public void AddImpulse(float velocity)
+        {
+            scaleVelocity += velocity;
+        }
+
         private void Update()
         {
             if (visualPivot == null || tuning == null) return;

@@ -19,9 +19,35 @@ namespace MoriMonchiSimulator.Prototype
         [SerializeField] private bool drawGizmos = true;
         [SerializeField] private bool autoWalk;
         [SerializeField] private float autoTurn;
+        [SerializeField] private bool externalMotion;
+
+        private bool useExternalDrive;
+        private float externalForward;
+        private float externalTurn;
+        private float externalLastYaw;
 
         public bool AutoWalk { get { return autoWalk; } set { autoWalk = value; } }
         public float AutoTurn { get { return autoTurn; } set { autoTurn = value; } }
+        public bool ExternalMotion { get { return externalMotion; } set { externalMotion = value; } }
+
+        public void SetExternalDrive(float forward, float turn)
+        {
+            useExternalDrive = true;
+            externalForward = Mathf.Clamp(forward, -1f, 1f);
+            externalTurn = Mathf.Clamp(turn, -1f, 1f);
+        }
+
+        public void ClearExternalDrive()
+        {
+            useExternalDrive = false;
+            externalForward = 0f;
+            externalTurn = 0f;
+        }
+
+        private void Awake()
+        {
+            externalLastYaw = transform.eulerAngles.y;
+        }
 
         private void Update()
         {
@@ -30,32 +56,52 @@ namespace MoriMonchiSimulator.Prototype
                 return;
             }
 
-            var kb = Keyboard.current;
-            float turn = 0f;
-            float fwd = 0f;
-            if (kb != null)
+            bool turning;
+
+            if (externalMotion)
             {
-                turn = (kb.dKey.isPressed ? 1f : 0f) - (kb.aKey.isPressed ? 1f : 0f);
-                fwd = (kb.wKey.isPressed ? 1f : 0f) - (kb.sKey.isPressed ? 1f : 0f);
+                float yaw = transform.eulerAngles.y;
+                float yawRate = Mathf.DeltaAngle(externalLastYaw, yaw) / Mathf.Max(Time.deltaTime, 0.0001f);
+                externalLastYaw = yaw;
+                turning = Mathf.Abs(yawRate) > 25f;
             }
-            if (autoWalk) fwd = 1f;
-            if (autoTurn != 0f) turn = Mathf.Clamp(autoTurn, -1f, 1f);
-
-            bool turning = Mathf.Abs(turn) > 0.01f;
-
-            float spd = tuning != null ? tuning.moveSpeed : moveSpeed;
-            float turnSpd = tuning != null ? tuning.turnSpeed : turnSpeed;
-            float ride = tuning != null ? tuning.rideHeight : rideHeight;
-
-            transform.Rotate(0f, turn * turnSpd * Time.deltaTime, 0f);
-            transform.position += transform.forward * (fwd * spd * Time.deltaTime);
-
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position + Vector3.up * rayUp, Vector3.down, out hit, rayLength, groundMask))
+            else
             {
-                Vector3 p = transform.position;
-                p.y = hit.point.y + ride + (jump != null ? jump.HeightOffset : 0f);
-                transform.position = p;
+                var kb = Keyboard.current;
+                float turn = 0f;
+                float fwd = 0f;
+                if (kb != null)
+                {
+                    turn = (kb.dKey.isPressed ? 1f : 0f) - (kb.aKey.isPressed ? 1f : 0f);
+                    fwd = (kb.wKey.isPressed ? 1f : 0f) - (kb.sKey.isPressed ? 1f : 0f);
+                }
+                if (autoWalk) fwd = 1f;
+                if (autoTurn != 0f) turn = Mathf.Clamp(autoTurn, -1f, 1f);
+
+                if (useExternalDrive)
+                {
+                    fwd = externalForward;
+                    turn = externalTurn;
+                }
+
+                turning = Mathf.Abs(turn) > 0.01f;
+
+                float spd = tuning != null ? tuning.moveSpeed : moveSpeed;
+                float turnSpd = tuning != null ? tuning.turnSpeed : turnSpeed;
+                float ride = tuning != null ? tuning.rideHeight : rideHeight;
+
+                transform.Rotate(0f, turn * turnSpd * Time.deltaTime, 0f);
+                transform.position += transform.forward * (fwd * spd * Time.deltaTime);
+
+                RaycastHit hit;
+                if (Physics.Raycast(transform.position + Vector3.up * rayUp, Vector3.down, out hit, rayLength, groundMask))
+                {
+                    Vector3 p = transform.position;
+                    p.y = hit.point.y + ride + (jump != null ? jump.HeightOffset : 0f);
+                    transform.position = p;
+                }
+
+                externalLastYaw = transform.eulerAngles.y;
             }
 
             int best = -1;

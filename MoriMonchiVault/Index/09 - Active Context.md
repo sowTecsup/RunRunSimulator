@@ -4,6 +4,65 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-20 (Session 52 — **CONTRATO DE ANIMACIÓN DE COMBATE + SET COMPLETO EN EL SPIDER + 60/30/10 + EXPERIMENTO "SPIDER COMO MODELO DEL JUEGO" EJECUTADO Y REVERTIDO — ✅ CERRADA: 0 errores, rollback verificado, spider DESCARTADO como modelo (eliminación pendiente)**)
+**Focus:** Juan reencuadró el rig procedural como stand-in temporal y pidió el set mínimo de animaciones de combate + roadmap de integración. Se diseñó **contract-first**: la API semántica sobrevive a cualquier modelo. Al final de la sesión Juan probó el spider como modelo real en GameScene y lo **descartó** ("ver tantas arañas moverse con sus patitas da repelús") — rollback completo, el experimento spider (S48-S52) queda terminado.
+
+1. **Contrato permanente `MonchiAnimationDriver`** (`Scripts/World/`, abstract MonoBehaviour): `IsBusy` / `MoveTo(dest, onArrived)` / `PlayAttack(targetPos, onImpact, onFinished)` / `PlayHit(intensity)` / `PlayBuff(onFinished)` / `PlayDefeat()` / `PlayVictory()` / `PlayIdle()`. Es LO QUE SOBREVIVE de la sesión: el CombatVisualizer consumirá esta API y cada modelo la implementa con su driver.
+2. **Set completo implementado en el spider** (driver procedural de referencia): ataque con aproximación (caminar o saltitos 50/50 random) + encarado + inclinación adelante (~28°) + punch elástico + manotazo del brazo físico; golpe recibido = squash + inclinación atrás; buff = viaje al aliado + mini baile (brazos arriba + vaivén + saltito); derrota = ragdoll + lanzamiento hacia arriba; victoria = brazos arriba + botes. Inclinaciones vía `SpiderBodyMotion.AddPitchImpulse` (resorte subamortiguado, dueño único de la rotación del pivote).
+3. **REGLA DE COLOR 60/30/10 (decisión de Juan, sobrevive al spider)**: cuerpo=`BaseColor` (60), cara=`SecondaryColor` (30), detalles de cara=acento `DeriveSecondary(secondary)` (10). Implementada en `SpiderPaletteApplier` (MaterialPropertyBlock `_BaseColor`+`_Color`, sin mutar materiales compartidos) + `ApplyMaterial` para que el material base lo dicte la DB (`FurTypeDatabaseSO.GetMaterial(dna.FurType)`).
+4. **Experimento GameScene (ejecutado y REVERTIDO)**: `MoriMochiSpider.prefab` creado (limpio, dev-tools movidos a `__SpiderDevTools` en la escena playground); `SpiderBodyController` ganó modo `externalMotion` (patas siguen al NavMeshAgent sin pelear el movimiento); `MoriMonchiController` ganó camino opcional `spiderVisual` (si != null: material DB + ApplyFromDna, sin `Assemble`; hoy quedó **null** = camino viejo activo). El prefab `MorimonchiAgent.prefab` volvió al ensamblado por partes.
+5. **Perf medida en GameScene (9 criaturas)**: main 7,6ms / render thread 8,5ms / GPU 2,4ms / física ~2,5ms — los ~30fps que vio Juan son mayormente overhead del editor (Scene+Game view+profiler). Se removieron igualmente los rbs/joints de patas del variant (solo servían al ragdoll apagado) antes del rollback.
+
+> ### 📌 Notas S52
+> 1. **SPIDER DESCARTADO COMO MODELO** — decisión de Juan tras verlo en densidad real (guardada en memoria del agente). Lección: validar estética SIEMPRE con la densidad real de gameplay, no en solitario.
+> 2. **PENDIENTE NUEVO — ELIMINACIÓN DEL EXPERIMENTO SPIDER**: carpeta `Scripts/Prototype/Spider/` (13 scripts), `MoriMochiSpider.prefab`, campo `spiderVisual` de `MoriMonchiController`, escena `MorimonchiNewModel` (limpiar o archivar), `SpiderTuning.asset`, `SpiderConeMesh.asset`, materiales `Spider_*.mat`, ScriptNodes `Spider*.md`. Sesión mecánica dedicada.
+> 3. El contrato `MonchiAnimationDriver` y la regla 60/30/10 NO se eliminan — son la base de las animaciones de la pelotita.
+> 4. La UI de alineaciones 2-3-2 (pregunta de Juan) YA EXISTE: `CombatLineupUITK` + `CombatLineupBoard`, tab "Equipo 3v3" (~S38, ajustada S39).
+> 5. `BaseFurNewTest.mat`/`FurBaseTest.mat` figuran modificados en git (re-serialización/toques de Juan) — los tintes van por MPB, ningún script muta materiales.
+> 6. La barra de vida del combate debe RECUPERAR EL NOMBRE del MoriMochi (pedido de Juan, quedó oculta desde la barra minimal S47) — va con la fase del visualizador.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `World/MonchiAnimationDriver.cs` (NUEVO, PERMANENTE): contrato abstracto de animación de combate (8 miembros).
+- `World/Creatures/MoriMonchiController.cs` (MODIFICADO): camino opcional `spiderVisual` en Initialize/Rebind (material DB + colores 60/30/10, salta Assemble); hoy con ref null = inerte.
+- `Prototype/Spider/SpiderAnimationDriver.cs` (NUEVO): driver procedural que implementa el contrato completo componiendo controller/jump/elastic/ragdoll/arms/motion.
+- `Prototype/Spider/SpiderArmDriver.cs` (NUEVO): poses de brazos vía `targetRotation` de los ConfigurableJoints (rest/arriba/swipe con callback de impacto).
+- `Prototype/Spider/SpiderPaletteApplier.cs` (NUEVO): 60/30/10 por MPB sobre 3 grupos de renderers + `ApplyMaterial` (material dictado por DB) + `ApplyFromDna`.
+- `Prototype/Spider/SpiderBodyController.cs` (MODIFICADO): `SetExternalDrive/ClearExternalDrive` (conducción por código) + modo `externalMotion` (gait reactivo a movimiento impuesto, turning por yaw observado).
+- `Prototype/Spider/SpiderBodyMotion.cs` (MODIFICADO): `AddPitchImpulse(degrees)` — inclinación dramática con resorte subamortiguado hacia 0, knobs `actionFrequency`/`actionDamping`.
+- `Prototype/Spider/SpiderElasticBody.cs` (MODIFICADO): `AddImpulse(velocity)` — inyección al resorte de escala (squash/punch).
+- `Prototype/Spider/SpiderDevPanel.cs` (MODIFICADO): scroll view general; sección "Acciones (driver)" (Atacar/Buff/Recibir golpe/Victoria/Derrota/Idle/Ir al spawn) + "Colores random (60/30/10)"; refs driver/palette/attackTarget.
+
+**Files Touched (no-ScriptNode):** `Resources/Prefabs/MoriMochiSpider.prefab` (NUEVO — pendiente de borrar con el experimento), `Resources/Prefabs/MorimonchiAgent.prefab` (cirugía spider ejecutada y REVERTIDA — quedó como antes + ref `spiderVisual` null), `Resources/Scenes/MorimonchiNewModel.unity` (componentes nuevos wireados, dev-tools a `__SpiderDevTools`, 15 renderers con `BaseFurNewTest`), `Prototype/SpiderTuning.asset`, materiales FurTypes re-serializados, registry asset (guardados de Play).
+
+**Next session (S53):**
+1. **ANIMACIONES DE LA PELOTITA (prioridad de Juan)**: implementar `MonchiAnimationDriver` sobre el modelo ensamblado real — `MonchiBallAnimationDriver` apoyado en `MoriMonchiProceduralAnimator` (squash/stretch de ataque y golpe, baile de buff con los bracitos, desplome de derrota, botes de victoria). Trasladar lo aprendido: resortes subamortiguados, impulsos de pitch, callbacks de impacto.
+2. Luego integración en el replay 3v3 (`CombatVisualizerMM`): `CombatVisualUnit` gana driver, `ForwardRoutine` reemplaza `MoveOverTime` por la API del contrato, barra recupera el nombre (nota 6).
+3. **DEUDA TÉCNICA (frente declarado por Juan)**: descomposición de partials según Index/11 Fases 6-9 (`MoriMochiAgent`, paneles UITK, `CloudSyncService`, `MoriMochiSpawner.Debug`) — una sesión por monstruo. + Eliminación del experimento spider (nota 2).
+4. Arrastran: F5 async 3v3, economía F7, ítems con estados, tuning de knobs elementales, archivar sesiones viejas de esta nota (>315KB).
+
+**ScriptNodes (cierre S52):** CREAR `MonchiAnimationDriver.md`, `SpiderAnimationDriver.md`, `SpiderArmDriver.md`, `SpiderPaletteApplier.md`; ACTUALIZAR `MoriMonchiController.md`, `SpiderBodyController.md`, `SpiderBodyMotion.md`, `SpiderElasticBody.md`, `SpiderDevPanel.md`.
+
+---
+
+**Session:** 2026-07-20 (Session 51 — **CONSOLIDACIÓN NOTION ✅ (autorizada por Juan): el wiki de diseño quedó sincronizado con el estado del código y el vault** — ✅ CERRADA, sin scripts .cs tocados)
+**Focus:** Sesión de documentación pura. Juan autorizó explícitamente el `notion-documenter`; el orquestador digirió vault + Active Context con 2 sub-agentes y ejecutó 4 corridas de Notion con alcances disjuntos. 17 páginas del wiki actualizadas.
+
+1. **Notion — Combate (4 páginas)**: "Combate, Venganza y Bidding" (tesis v3 autobattler 3v3; Venganza/Bidding preservados con callout "etapa futura, no revisado en v3"), "Combate Local — Implementación" (reescrita 1v1→3v3 completa), "Evolución y Ciclo de Vida" (trigger 3v3: una unidad al azar del ganador evoluciona; muerte 5%; Tiers/aging/límites 4-5 intactos), "Combate Async + UGS" (nota: 1v1 async operativo como base, 3v3 async al final del roadmap).
+2. **Notion — Criaturas (7 páginas)**: Personalidades(6)→Roles(3) en "Vida y Comportamiento" (tabla vieja en subsección ⚠️ Legacy pendiente de revisión de Juan) y "Agentes en Escena"; metadata del DNA (Género/Rol/Elemento fuera del genetic string) en "Sistema Genético" y "Genética — Implementación"; herencia Rol 50/50, Elemento 50/50+10% mutación, matriz 3×3 y límites duros en "Breeding" (diseño + implementación); subsección "Dirección de Arte y Animación 2026-07" (trípode arácnido, 5 paletas, híbrido gait kinematic + física Gang Beasts) en "Concepto y Pilares".
+3. **Notion — Transversal (5 páginas)**: "Decisiones de Diseño" +14 decisiones cerradas S39-S50; "Preguntas Abiertas" con Ronda 3 (11 nuevas) y varias marcadas resueltas; modificadores de precio por Rol + delivery físico en "Tienda, Economía y Onboarding"; pipeline único de persistencia en "Identidad y Persistencia"; regla UI escalable + 4 tabs de combate en "Arquitectura General".
+4. **Notion — Raíz del wiki**: roadmap actualizado a julio 2026 (overhaul combate v3 ✅, modelo nuevo MoriMochi 🔶 en progreso).
+5. **Vault — `Index/13 - Combat Design Direction` actualizado a v4**: nueva sección "MODELO VIGENTE S46-S47" (energía eliminada, dos vías de marcas, sobreescritura, orden de turno unificado, escudo por ronda); secciones históricas con energía marcadas como pre-S46. Saldada la deuda documental de S46.
+
+> ### 📝 Notas S51
+> 1. Incidente resuelto: la primera autenticación de Notion MCP entró al workspace institucional (tecsup) → 404; se reconectó con la cuenta SowtankDev (gmail) y se verificó con fetch antes de escribir. Si Notion vuelve a dar 404, revisar la cuenta del conector.
+> 2. Para revisión de Juan en Notion: (a) subsección Legacy de Personalidades en "Vida y Comportamiento"; (b) el agente marcó resueltas algunas preguntas preexistentes no indicadas (Evolución Tier2/Tier3, Sets, presupuesto de Venganza) — verificar; (c) especificación pendiente marcada en Notion: cómo evoluciona exactamente la unidad ganadora en 3v3.
+> 3. Venganza y Bidding siguen sin contraparte en código/vault — confirmado como diseño de etapa futura, no descartado.
+> 4. Sigue pendiente de S50: archivar sesiones viejas de este archivo (>315KB) y decidir sobre `Assets/_Recovery/`. Y el primer paso de gameplay sigue siendo el test visual del salto + cuerpo elástico.
+
+**Files Touched (.cs — input ScriptNodes):** ninguno (sesión de documentación; vault-documenter no aplica).
+
+---
+
 **Session:** 2026-07-16/17 (Session 50 — **FEEL DEL AVANCE APROBADO POR JUAN ✅ + ESTÉTICA DE LA HOJA + EXPERIMENTO GANG BEASTS (brazos físicos + salto + cuerpo elástico emergente) + REGLA UI ESCALABLE — ✅ CERRADA: 0 errores de consola, escena guardada; el salto/elástico quedó SIN test visual de Juan (cerró sesión antes)**)
 **Focus:** Juan aprobó visualmente el fix del avance de S49 ("lo conseguimos, luce bien") — pendiente #1 cerrado. Dirección nueva de Juan para las animaciones de combate del MoriMochi: caminar/atacar/saltar/rotar, squash & stretch súper elástico, pose de derrota, loop de victoria, brazos que jueguen — y que sea **orgánico/emergente estilo Gang Beasts, no estrictamente codeado**. Approach acordado: HÍBRIDO — gait aprobado se queda kinematic; la vida y las acciones salen de física con resortes.
 

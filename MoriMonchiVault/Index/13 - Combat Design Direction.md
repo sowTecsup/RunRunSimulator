@@ -4,7 +4,20 @@ tags: [index, combat, design]
 
 # 13 - Combat Design Direction (norte de diseño)
 
-**Status:** v3 — CAPA ELEMENTAL IMPLEMENTADA Y VERIFICADA EN PLAY (S39, 2026-07-11/12). La tesis S37 bajó a código: Fases 1-3 + 6 (core sim) + 7 (Personality→Role total) HECHAS; la tabla de estados de la sección 6 refleja la IMPLEMENTACIÓN REAL (efecto, consumo, knob). Falta: visualizer 3v3 (requiere enriquecer el record — los eventos elementales hoy son log-only) y async 3v3. Diseño canónico → Notion (pendiente de volcar).
+**Status:** v4 — MODELO S46 VIGENTE (energía eliminada) + visualizer 3v3 implementado y aprobado visualmente por Juan (S45-S47). La tesis S37 bajó a código (Fases 1-3, 6, 7 hechas), los eventos elementales viven en el record desde S41 (ya no log-only), y el replay quedó cerrado en S47 (escudo por ronda, coreografía de pasivas, barra minimal). Falta: async 3v3 (F5) y economía (F7). Diseño canónico volcado a Notion en la consolidación 2026-07-20. OJO: las secciones históricas de abajo que mencionan "energía" describen el modelo pre-S46 — el modelo vigente está en la sección siguiente.
+
+## MODELO VIGENTE S46–S47 (reemplaza el ciclo de energía)
+
+La **energía como recurso contable DEJA DE EXISTIR** (decisión mayor S46: el modelo era ilegible). Quedan solo **afinidad** (2 circulitos) y **marcas**, con exactamente dos vías:
+
+1. **Afinidad → marca PROPIA**: cada acción genera 1 punto de afinidad; al llegar a 2 se consume y el MM aplica su propia marca elemental **sobre sí mismo, en el mismo turno** (≈ cada 2 acciones). Estuneado no genera; Confuso/Mareado sí (accionaron y fallaron).
+2. **Pasiva de rol → marca a OTRO**: sin gate de recurso, **todos los turnos**. El Agresivo marca a un aliado al azar acierte o no su activa (su roll 50% queda como puro targeting de la activa, ya no comparte energía).
+
+Reglas asociadas del modelo vigente:
+- **Marca duplicada SOBREESCRIBE** (ya no es no-op como en S39).
+- **Orden del turno unificado** para los 3 roles: intención → daño (+marca enemiga) → afinidad (+marca propia) → pasiva (+marca al aliado). El escudo del Protector es post-golpe.
+- **Escudo por RONDA** (S43 decisión de Juan, S47 implementación): se disipa al cierre de cada ronda — "para no quitarle el rol a la curación". Reemplaza el "persistente hasta consumirse" de la decisión S37 #10.
+- El volumen alto de marcas es INTENCIONAL en esta etapa: legibilidad antes que balance.
 
 ## Referencias
 - **Pokémon Quest**: equipo de 3, combate auto-simulado.
@@ -71,16 +84,16 @@ Los elementos son **intrínsecos al MoriMonchi: nace con UNO** (decisión cerrad
 
 Ningún elemento hace nada por sí solo — solo reaccionan **en pares**.
 
-### Afinidad → energía → proc (decisión cerrada S37)
+### Afinidad → energía → proc (decisión cerrada S37 — **HISTÓRICO, reemplazado por el MODELO S46** de arriba)
 - Cada **acción** realizada genera **1 punto de afinidad** (estuneado = no acciona = no genera).
-- Con **2 de afinidad** el MM genera su **energía**: la energía ES el combustible del proc de elemento — el trait solo proquea su elemento cuando hay energía (≈ cada 2 acciones → 1 proc). Esto ritma las reacciones y las hace legibles.
+- ~~Con **2 de afinidad** el MM genera su **energía**: la energía ES el combustible del proc de elemento~~ → S46: con 2 de afinidad el MM aplica su **marca propia** directamente, mismo turno; la energía no existe.
 
 ### Marcas y fuentes (decisión cerrada S37)
 Las marcas elementales tienen 2 **fuentes que van separadas**: aliada y enemiga — la MISMA pareja de elementos produce estados distintos según la fuente. Cuando dos marcas de elementos distintos de la misma fuente coinciden sobre una unidad → **reacción** (se consumen las marcas, se aplica el estado). "Piso Tierra" remueve una MARCA aplicada, nunca el elemento innato.
 
-Los dos canales de aplicación:
-- **Fuente ALIADA (ritmada por energía)**: el trait del rol proquea el elemento del MM a un aliado cuando tiene energía (≈ cada 2 acciones).
-- **Fuente ENEMIGA (libre, cada golpe)**: **todo ataque recibido deja además la marca del elemento del atacante en la víctima**. Sin gate de energía.
+Los dos canales de aplicación (redefinidos en S46):
+- **Fuente ALIADA (ritmada por afinidad)**: (a) marca PROPIA cada 2 acciones vía afinidad, y (b) pasiva de rol que marca a OTRO aliado todos los turnos, sin gate de recurso.
+- **Fuente ENEMIGA (libre, cada golpe)**: **todo ataque recibido deja además la marca del elemento del atacante en la víctima**. Sin gate.
 
 Asimetría resultante (a propósito): las reacciones ofensivas detonan con frecuencia (presión constante de composición rival); las aliadas son el payoff ritmado que se ve venir.
 
@@ -178,12 +191,12 @@ Abrirán **opciones de ataque** para los MoriMonchis. En esta update **siguen va
 
 ## Preguntas abiertas — RESUELTAS EN S39 (decisiones de Juan + implementación)
 1. ✅ **Herencia de ELEMENTO**: 50/50 padre/madre + MUTACIÓN (elemento random) — knob `ElementMutationChance` (0.10) en `InheritanceOddsTableSO`.
-2. ✅ **Marcas**: máx 1 por elemento+fuente por unidad (re-aplicar = no-op logueado); persisten hasta reaccionar o PisoTierra; mismo elemento nunca reacciona. Máx teórico 8 marcas por unidad.
+2. ✅ **Marcas**: máx 1 por elemento+fuente por unidad (S39: re-aplicar = no-op → **S46: sobreescribe**); persisten hasta reaccionar o PisoTierra; mismo elemento nunca reacciona. Máx teórico 8 marcas por unidad.
 3. ✅ **Cleanse**: se evalúa AL APLICARSE (purga un negativo o cura 20% en el acto) — un beat, legible. Revisable si Juan prefiere que quede armado negando el próximo negativo.
 4. ✅ **Confuso**: falla la ACCIÓN COMPLETA del turno (ataque, trait e ítems); genera afinidad igual.
 5. 🟡 **Magnitudes de tuning**: defaults v1 en la tabla de arriba, todos knobs — tuning con data real pendiente. Cap del escudo sigue abierto; clamp de hoja post-rol se mantiene [1,10].
 6. ⏳ **Compradores por arquetipo** (tabla invertida): después (con PriceModifier, Fase economía).
-7. ✅ **Frontline del Agresivo sin backline**: el 50% acertado se convierte en COMPARTIR ENERGÍA (un aliado azar gana +1 energía, consume 1 del actor) — implementado y verificado.
+7. ✅ **Frontline del Agresivo sin backline**: ~~el 50% acertado se convierte en COMPARTIR ENERGÍA~~ → obsoleto con S46 (la energía no existe): el roll 50% es puro targeting de la activa y la pasiva marca a un aliado todos los turnos, acierte o no.
 8. ✅ **Afinidad**: toda acción de turno genera 1 (incluye turnos de Confuso/Mareado); estuneado NO genera; muerte por tick NO genera.
 
 ## Preguntas abiertas (S39+)

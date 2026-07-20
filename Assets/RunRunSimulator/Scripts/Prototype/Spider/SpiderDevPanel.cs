@@ -10,11 +10,15 @@ namespace MoriMonchiSimulator.Prototype
         [SerializeField] private SpiderJump jump;
         [SerializeField] private Rigidbody rootBody;
         [SerializeField] private Transform spawnPoint;
+        [SerializeField] private SpiderAnimationDriver driver;
+        [SerializeField] private Transform attackTarget;
+        [SerializeField] private SpiderPaletteApplier palette;
         [SerializeField] private float panelWidth = 290f;
         [SerializeField] private bool show = true;
 
         private Vector3 spawnPos;
         private Quaternion spawnRot;
+        private Vector2 scroll;
 
         private void Awake()
         {
@@ -30,6 +34,7 @@ namespace MoriMonchiSimulator.Prototype
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
 
             GUILayout.BeginArea(new Rect(10f, 10f, panelWidth, Screen.height / scale - 20f), GUI.skin.box);
+            scroll = GUILayout.BeginScrollView(scroll);
             GUILayout.Label("<b>SPIDER PLAYGROUND</b>", new GUIStyle(GUI.skin.label) { richText = true, fontSize = 14 });
             GUILayout.Space(4f);
 
@@ -79,7 +84,32 @@ namespace MoriMonchiSimulator.Prototype
             if (GUILayout.Button("Reset", GUILayout.Height(22f))) ResetSpider();
 
             GUILayout.Space(6f);
+            GUILayout.Label("Acciones (driver)");
+            if (driver != null && GUILayout.Button("Atacar", GUILayout.Height(24f)))
+            {
+                Vector3 tgt = attackTarget != null ? attackTarget.position : driver.transform.position + driver.transform.forward * 1.5f;
+                driver.PlayAttack(tgt, null, null);
+            }
+            if (driver != null && GUILayout.Button("Buff aliado", GUILayout.Height(24f)))
+            {
+                Vector3 tgt = attackTarget != null ? attackTarget.position : driver.transform.position + driver.transform.forward * 1.5f;
+                driver.MoveTo(tgt, () => driver.PlayBuff(null));
+            }
+            if (driver != null && GUILayout.Button("Recibir golpe", GUILayout.Height(24f))) driver.PlayHit(1f);
+            if (driver != null && GUILayout.Button("Victoria", GUILayout.Height(24f))) driver.PlayVictory();
+            if (driver != null && GUILayout.Button("Derrota", GUILayout.Height(24f))) driver.PlayDefeat();
+            if (driver != null && GUILayout.Button("Idle", GUILayout.Height(24f))) driver.PlayIdle();
+            if (driver != null && GUILayout.Button("Ir al spawn", GUILayout.Height(24f))) driver.MoveTo(spawnPos, null);
+            if (palette != null && GUILayout.Button("Colores random (60/30/10)", GUILayout.Height(24f)))
+            {
+                Color b = ColorGenetics.RandomBase();
+                palette.Apply(b, ColorGenetics.DeriveSecondary(b));
+            }
+            if (driver != null) GUILayout.Label(driver.IsBusy ? "driver: BUSY" : "driver: idle", new GUIStyle(GUI.skin.label) { fontSize = 10 });
+
+            GUILayout.Space(6f);
             GUILayout.Label("WASD para mover", new GUIStyle(GUI.skin.label) { fontSize = 10 });
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
 
 #if UNITY_EDITOR
