@@ -23,7 +23,7 @@ namespace MoriMonchiSimulator
 //
 // RUNTIME — creatures born after prewarm fall through to controllerPool.Get() (reuse or fresh Instantiate).
 // DESPAWN — controllerPool.Return(): deactivate + enqueue to the ControllerPool.
-public partial class MoriMochiSpawner : MonoBehaviour
+public class MoriMochiSpawner : MonoBehaviour
 {
     [Header("Prefab")]
     [Tooltip("Prefab root with MoriMonchiController + MoriMochiAgent + MoriMonchiVisualizer.")]
@@ -68,7 +68,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
     // False until the furniture has loaded AND the NavMesh has baked (first OnNavMeshRebaked).
     // The pump won't fire a single creature until this is true.
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
-    private bool WorldReady => worldReady;
+    internal bool WorldReady => worldReady;
 
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private bool DataReady => dataReady;
@@ -102,18 +102,19 @@ public partial class MoriMochiSpawner : MonoBehaviour
     private bool      dataReady;
     private Transform player;
 
-    private readonly List<GameObject> debugShots = new List<GameObject>();
+    [ShowInInspector, ReadOnly, BoxGroup("Status")]
+    internal int SpawnedCount   => spawned.Count;
+    [ShowInInspector, ReadOnly, BoxGroup("Status")]
+    internal int PooledCount    => controllerPool?.Count ?? 0;
+    [ShowInInspector, ReadOnly, BoxGroup("Status")]
+    internal int QueuedCount    => spawnQueue.Count + anchoredQueue.Count;
+    [ShowInInspector, ReadOnly, BoxGroup("Status")]
+    internal int PrewarmedCount => prewarmed.Count;
 
-    [ShowInInspector, ReadOnly, BoxGroup("Status")]
-    private int SpawnedCount   => spawned.Count;
-    [ShowInInspector, ReadOnly, BoxGroup("Status")]
-    private int PooledCount    => controllerPool?.Count ?? 0;
-    [ShowInInspector, ReadOnly, BoxGroup("Status")]
-    private int QueuedCount    => spawnQueue.Count + anchoredQueue.Count;
-    [ShowInInspector, ReadOnly, BoxGroup("Status")]
-    private int PrewarmedCount => prewarmed.Count;
-    [ShowInInspector, ReadOnly, BoxGroup("Status")]
-    private int DebugShotCount => debugShots.Count;
+    internal MoriMonchiController CreaturePrefab => creaturePrefab;
+    internal Vector3 MuzzlePosition => launchPoint != null ? launchPoint.position : transform.position;
+    internal Vector2 LaunchAngleRange => launchAngle;
+    internal IEnumerable<KeyValuePair<string, MoriMonchiController>> SpawnedEntries => spawned;
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
@@ -327,7 +328,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
 
     // ── Sync ──────────────────────────────────────────────────────
 
-    private void Sync(CreatureRegistrySO registry)
+    internal void Sync(CreatureRegistrySO registry)
     {
         var all = registry.GetAll();
 
@@ -520,7 +521,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
         }
     }
 
-    private void ClearAll()
+    internal void ClearAll()
     {
         foreach (var controller in spawned.Values) controllerPool.Return(controller);
         spawned.Clear();
@@ -533,7 +534,7 @@ public partial class MoriMochiSpawner : MonoBehaviour
     // ── Spawn helpers ─────────────────────────────────────────────
 
     // A random landing target on the floor plane, inside spawnRadius of the spawn area.
-    private Vector3 RandomLandingPoint()
+    internal Vector3 RandomLandingPoint()
     {
         Vector3 center = spawnArea != null ? spawnArea.position : transform.position;
         Vector2 disk   = Random.insideUnitCircle * spawnRadius;
@@ -551,6 +552,75 @@ public partial class MoriMochiSpawner : MonoBehaviour
         if (spawnArea != null && NavMesh.SamplePosition(spawnArea.position, out var hit2, 50f, NavMesh.AllAreas))
             return hit2.position;
         return probe;
+    }
+
+    // ── Gizmos ───────────────────────────────────────────────────
+
+    // Always-visible: muzzle, landing zone, and the line between them.
+    private void OnDrawGizmos()
+    {
+        Vector3 muzzle = launchPoint != null ? launchPoint.position : transform.position;
+        Vector3 center = spawnArea  != null ? spawnArea.position    : transform.position;
+
+        Gizmos.color = new Color(1f, 0.85f, 0f);
+        Gizmos.DrawWireSphere(muzzle, 0.3f);
+
+        Gizmos.color = new Color(0.4f, 1f, 0.5f);
+        DrawRing(center, spawnRadius, 48);
+
+        Gizmos.color = new Color(1f, 0.85f, 0f, 0.4f);
+        Gizmos.DrawLine(muzzle, center);
+    }
+
+    // Selected: simulated trajectories to the ring edge, at both the min (cyan) and max (orange)
+    // elevation, in 8 directions — shows the real arcs the cannon produces.
+    private void OnDrawGizmosSelected()
+    {
+        Vector3 muzzle = launchPoint != null ? launchPoint.position : transform.position;
+        Vector3 center = spawnArea  != null ? spawnArea.position    : transform.position;
+        float   g      = Mathf.Abs(Physics.gravity.y); if (g < 0.01f) g = 9.81f;
+
+        for (int d = 0; d < 8; d++)
+        {
+            float   a    = d * (Mathf.PI / 4f);
+            Vector3 edge = center + new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * spawnRadius;
+
+            Gizmos.color = new Color(1f, 0.55f, 0.15f, 0.6f);
+            DrawSimulatedArc(muzzle, SpawnBallistics.SolveLaunchVelocity(muzzle, edge, launchAngle.y * Mathf.Deg2Rad), center.y, g);
+
+            Gizmos.color = new Color(0.3f, 0.85f, 1f, 0.5f);
+            DrawSimulatedArc(muzzle, SpawnBallistics.SolveLaunchVelocity(muzzle, edge, launchAngle.x * Mathf.Deg2Rad), center.y, g);
+        }
+    }
+
+    // Steps a projectile (gravity only — ignores drag) and draws it until it drops back to groundY.
+    private static void DrawSimulatedArc(Vector3 origin, Vector3 vel, float groundY, float g)
+    {
+        const int   steps = 48;
+        const float dt    = 0.04f;
+        Vector3 p = origin, v = vel, prev = origin;
+        for (int i = 0; i < steps; i++)
+        {
+            v += Vector3.down * g * dt;
+            p += v * dt;
+            Gizmos.DrawLine(prev, p);
+            prev = p;
+            if (p.y <= groundY && i > 1) break;
+        }
+    }
+
+    private static void DrawRing(Vector3 center, float radius, int segments)
+    {
+        if (radius < 0.05f) return;
+        float   step = 2f * Mathf.PI / segments;
+        Vector3 prev = center + new Vector3(radius, 0f, 0f);
+        for (int i = 1; i <= segments; i++)
+        {
+            float   a    = i * step;
+            Vector3 curr = center + new Vector3(Mathf.Cos(a) * radius, 0f, Mathf.Sin(a) * radius);
+            Gizmos.DrawLine(prev, curr);
+            prev = curr;
+        }
     }
 }
 }

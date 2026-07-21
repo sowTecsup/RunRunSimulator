@@ -1,150 +1,192 @@
 ---
-tags: [script, world, ai, partial]
+tags: [script, world, ai]
 ---
 
-# MoriMochiAgent
+# MoriMochiAgent.cs
 
-**Ruta:** `World/AI/MoriMochiAgent.cs` (partial class, deuda activa)
+**Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Cerebro IA de criatura viva. FSM (Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting). **Role-driven via `RoleWorldProfileSO`** (S39 cambio: antes `PersonalityProfileSO`). Decae necesidades cada frame, busca `NeedStation` cuando crítico. Implementa `IThrowable` (agarrar/lanzar/knock con física peluche: bounce, spin) e `IInteractable` (E acariciar). Confinement (pen/courtship). NavMesh confinado; sobrevive rebake. **Método `Initialize(dna, profileTable, player)`** resuelve perfil vía `dna.Role` (S39). **Método `Rebind(dna, profileTable)`** re-vincula sin resetear NavMesh (reloads rápidos).
+**Responsabilidad:** Núcleo delgado que orquesta la vida de una criatura en el mundo (comportamiento autónomo + física de lanzamiento). Compone cuatro colaboradores internos: `AgentContext` (estado compartido), `AgentBrain` (máquina de estados NavMesh), `AgentPhysics` (handoff ragdoll), `AgentConfinement` (pens/cortejo). Implementa `IThrowable` (agarrar/lanzar/knock) e `IInteractable` (petting). Ciclo de vida: `Initialize()` (wiring, setup NavMesh masks), `Rebind()` (reload rápido), `PrepareForPool()` (pooling). Update() despachador de ticks por estado; FixedUpdate() para FixedTick del physics. Expone fachada pública inmutable (`DNA`, `Intent`, `IsHeld`, `IsAirborne`, `IsPenned`, `CanBePetted`, etc.) y switchboard interno para que colaboradores pidan operaciones (`RequestRoam()`, `RequestReleaseStation()`, `RequestDetachToPhysics()`, etc.). **Resuelto S55:** ya NO es partial; compone mini-managers con una responsabilidad cada uno.
 
 ## Máquina de Estados
 
-| Estado | Descripción |
-|--------|-------------|
-| `Idle` | Esperando, sin actividad |
-| `Roaming` | Navegación aleatoria |
-| `Reacting` | Respuesta a evento (voice, hit) |
-| `Carried` | Agarrado por jugador |
-| `Thrown` | Lanzado en aire |
-| `Recovering` | Post-lanzamiento, ragdoll → stand-up |
-| `SeekingNeed` | Navegando a NeedStation |
-| `UsingStation` | Usando estación (eat, sleep, play) |
-| `Courting` | En cortejo (orbita/tienda hembra) |
+| Estado | Responsable | Descripción |
+|--------|-------------|-------------|
+| `Idle` | AgentBrain | Esperando aleatorio |
+| `Roaming` | AgentBrain | NavMesh autónomo |
+| `Reacting` | AgentBrain | Persigue/huye del jugador |
+| `Carried` | AgentPhysics | Agarrado por el jugador |
+| `Thrown` | AgentPhysics | Ragdoll en aire, refleja bounces |
+| `Recovering` | AgentPhysics | Get-up post-lanzamiento |
+| `SeekingNeed` | AgentBrain | Navega a estación crítica |
+| `UsingStation` | AgentBrain | Consume de estación |
+| `Courting` | AgentConfinement | Danza de apareamiento |
 
-## Organización (partial class — Deuda Activa S32)
+## Estructura (Composición S55)
 
-| Archivo | Responsabilidad |
-|---------|-----------------|
-| `MoriMochiAgent.cs` | Núcleo, lifecycle, dispatch, NavMesh helpers, gizmos |
-| `MoriMochiAgent.Brain.cs` | Estados, needs, reacciones, intent |
-| `MoriMochiAgent.Physics.cs` | Colisión, knock, throw, ragdoll, recovery |
-| `MoriMochiAgent.Confinement.cs` | Pen, courtship, rebake, pooling |
-| `MoriMochiAgent.Tuning.cs` | Campos Odin, readouts, dev buttons, **Stats tab (S32)** |
-
-## Método Initialize (S39 cambio)
-
-```csharp
-public void Initialize(CreatureDNA creature, RoleWorldProfileSO profileTable, Transform playerTransform)
-{
-    dna     = creature;
-    profile = profileTable?.GetProfile(creature.Role)  // S39: creature.Role (no Personality)
-              ?? RoleWorldProfile.Neutral();
-    player  = playerTransform;
-
-    RestoreNavMeshControl();
-    if (nameTag != null) nameTag.Bind(creature, this);
-    
-    // NavMesh masks setup...
-    EnterRoaming();
-}
+```
+MoriMochiAgent (fachada pública)
+  ├─ AgentContext (estado puro: componentes, DNA, profile, masks)
+  ├─ AgentBrain (ticks: Idle, Roaming, Reacting, SeekingNeed, UsingStation, Courting)
+  ├─ AgentPhysics (handoff NavMesh ⇄ Rigidbody, ragdoll, bounce, recovery)
+  └─ AgentConfinement (pens, courtship, rebake prep)
 ```
 
-**Cambio S39:** 
-- Antes: `profileTable?.GetProfile(creature.Personality)`
-- Ahora: `profileTable?.GetProfile(creature.Role)` — RoleWorldProfileSO, no PersonalityProfileSO
-- Retorna `RoleWorldProfile` que contiene modifiers de comportamiento (speed preferences, reaction biases, etc. para el mundo)
+Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachada pública.
 
-## Método Rebind (S39 cambio)
+## Métodos Públicos
+
+**Lifecycle:**
+- `Initialize(CreatureDNA dna, RoleWorldProfileSO profileTable, Transform player)` — wiring inicial, setup NavMesh, NameTag binding
+- `Rebind(CreatureDNA dna, RoleWorldProfileSO profileTable)` — reload: rebind DNA + profile, NO reinicia NavMesh
+- `PrepareForPool()` — pre-pool: libera estaciones, detach si es necesario
+
+**Propiedades (fachada):**
+- `DNA → CreatureDNA` — read-only
+- `Intent → CreatureIntent` — intención actual (Idle, Wandering, Following, Eating, Fleeing, etc.)
+- `IsHeld → bool` — en Carried
+- `IsAirborne → bool` — en Thrown
+- `IsPenned → bool` — confinado en pen
+- `IsForSale → bool` — ocupante de StoreContainer
+- `IsRecovering → bool` — en Recovering
+- `IsInFriendlyReaction → bool` — Reacting pero no fleeing
+- `IsBeingPetted → bool` — petting display (1.5s)
+- `CanBePetted → bool` — condiciones de petting cumplidas
+- `IsPlayerFacingMe() → bool` — player está a petRadius y mira hacia esta criatura
+- `IsCourting → bool` — en Courting
+- `Condition → CreatureCondition` — Healthy/Sick/InNeed (derived from needs vs thresholds)
+
+**Interacción:**
+- `Interact()` — E-acariciar (del gameplay)
+- `Launch(Vector3 launchPos, launchVelocity)` — cannon spawn
+- `OnGrab(Transform anchor), OnRelease(), OnThrow(Vector3)` — IThrowable contract
+- `Knock(Vector3 force)` — golpeado por otra criatura
+- `EnterConfinement(MoriMochiContainer pen) → bool` — confinamiento a pen
+- `EnterCourtship(MoriMochiAgent partner, Vector3 anchor), ExitCourtship()` — cortejo
+
+**Switchboard interno (RequestRoam, etc.):**
+- `RequestRoam()` — AgentBrain.EnterRoaming()
+- `RequestReleaseStation()` — AgentBrain.ReleaseStation()
+- `RequestEnterRagdoll()` — AgentPhysics.EnterRagdoll()
+- `RequestDetachToPhysics()` — AgentPhysics.DetachToPhysics()
+- `RequestRejoinNavMesh(Vector3 desired, int mask) → bool` — AgentPhysics.RejoinNavMesh()
+- `RequestReleaseFromPen()` — AgentConfinement.ReleaseFromPen()
+
+## Campos Tuning (Odin Tabs)
+
+**Tuning > References:**
+- `nameTag` (NameTag) — label world-space
+
+**Tuning > Movement:**
+- NavMesh sampling: `sampleRadius`
+- Proximity: `repathInterval`, `followDuration`, `reactCooldown`, `petRadius`, `petLookAngle`
+- Breeding: `breedingAreaName`, `courtSpeedMultiplier`, `courtOrbitRadius`, `courtAngularSpeed`, `courtLookahead`, `courtRepath`, `courtTendRadius`, `courtTendInterval`
+- Read-only: `ProfileProximityRadius`, `ProfileRoamRadius`, `ProfileFollowDistance` (viven en RoleWorldProfile)
+
+**Tuning > Needs:**
+- Live readouts (play mode): `Health`, `Energy`, `Affect` (progress bars)
+- Decay per second: `healthDecayPerSecond`, `energyDecayPerSecond`, `affectDecayPerSecond`
+- Critical thresholds: `criticalHealth`, `criticalEnergy`, `criticalAffect`
+- Stress events: `affectOnThrow`, `affectOnHardCollision`, `hardImpactThreshold`, `affectOnPet`
+
+**Tuning > Stats:**
+- Live readouts (play mode): `StatCon`, `StatAtk`, `StatSpd`, `StatDef`, `StatLck`, `StatEva` (Base → Final + delta)
+
+**Tuning > Physics:**
+- Hold feel: `followSpeed`, `settleSpeed`, `settleDelay`
+- Throw: `thrownLinearDamping`, `thrownAngularDamping`, `groundCheckDistance`, `maxThrownTime`, `offMeshRecoverDelay`
+- Bounce: `bounciness`, `maxBounces`, `minBounceSpeed`, `bounceSpin`
+- Knock: `knockTransfer`, `knockUpBias`
+- Recovery: `downedDelay`, `getUpDuration`, `getUpJitter`
+
+**Tuning > Presentation:**
+- UnityEvents: `onGrab`, `onThrow`, `onBounce`, `onLand`, `onGetUp`, `onPet`
+
+**Tuning > Dev:**
+- Live readouts: `CurrentState`, `NavStatus`, `CourtInfo`
+- Toggles: `forceRagdoll`, `logStateTransitions`, `snapWarnThreshold`
+- Buttons: `DevForceRagdoll()`, `DevForceRoam()`
+
+## Ciclo de Actualización
 
 ```csharp
-public void Rebind(CreatureDNA newDna, RoleWorldProfileSO profileTable)
-{
-    dna = newDna;
-    profile = profileTable?.GetProfile(newDna.Role)  // S39: newDna.Role
-              ?? RoleWorldProfile.Neutral();
-    
-    if (nameTag != null) nameTag.Rebind(newDna);  // actualiza display
-    if (visualizer != null) visualizer.Rebind(newDna, database);
-    // NavMesh NO se resetea (fast reloads)
-}
+Update():
+  DevTrackState()  // logging
+  if (forceRagdoll && NavMesh-controlled) → ragdoll
+  physics.RecoverIfStuckOffMesh()
+  brain.TickAlways(dt)  // needs decay
+  
+  switch (ctx.State):
+    Idle       → brain.TickIdle()
+    Roaming    → brain.TickRoaming()
+    Reacting   → brain.TickReacting()
+    Thrown     → physics.TickThrown()
+    Recovering → physics.TickRecovering()
+    SeekingNeed   → brain.TickSeekingNeed()
+    UsingStation  → brain.TickUsingStation()
+    Courting      → confinement.TickCourting()
+    Carried    → (nothing, follow runs in FixedUpdate)
+
+FixedUpdate():
+  physics.FixedTick()  // carry follow
+  
+OnCollisionEnter(Collision):
+  physics.HandleCollisionEnter()
+  
+OnTriggerEnter(Collider):
+  physics.HandleTriggerEnter()
 ```
 
-**Cambio S39:** 
-- Antes: `GetProfile(newDna.Personality)`
-- Ahora: `GetProfile(newDna.Role)`
+## Eventos Suscritos
 
-## Campos Inyectados (Initialize/Rebind)
+- `GameEvents.OnNavMeshWillRebake` → `confinement.OnNavMeshWillRebake()`
+- `GameEvents.OnNavMeshRebaked` → `confinement.OnNavMeshRebaked()`
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `dna` | `CreatureDNA` | DNA viva de la criatura |
-| `profile` | `RoleWorldProfile` | Perfil de rol (modifiers de comportamiento del mundo, S39) |
-| `player` | `Transform` | Ref al jugador (para orient/react/pet) |
+## Gizmos
 
-## Pestaña Stats en .Tuning.cs (S32)
-
-Muestra para cada stat una línea `Base → Final (delta)`:
-
-```csharp
-private EffectiveStats StatsBase() =>
-    database != null ? CombatStats.GetEffectiveStats(dna, database)
-                     : new EffectiveStats(...);
-
-private EffectiveStats StatsFinal() =>
-    database != null && equipDb != null
-        ? EquipmentStats.Apply(StatsBase(), dna, equipDb)
-        : StatsBase();
-```
-
-**Stats display:** Usa `CombatStats.GetEffectiveStats()` (clase extraída S32) + `EquipmentStats.Apply()` para mostrar deltas de equipo. Solo en Play mode.
-
-## Propiedades Públicas
-
-| Propiedad | Tipo | Descripción |
-|-----------|------|-------------|
-| `DNA` | `CreatureDNA` | Acceso read-only a dna |
-| `Intent` | `CreatureIntent` | Intent actual (para NameTag) |
-| `IsAlive` | `bool` | `!dna.IsDead && state != Thrown + grace timeout` |
-| `IsPenned` | `bool` | Confinado (location != "") |
-| `IsForSale` | `bool` | Occupant de StoreContainer |
-| `IsBeingPetted` | `bool` | Recibiendo input E en frame |
-| `IsPlayerFacingMe()` | `bool` | Jugador forward · to-me (XZ plane, angle < petLookAngle) |
-| `IsInFriendlyReaction` | `bool` | Reaccionando amistosamente (permite "[E] Acariciar") |
-| `IsAirborne` | `bool` | Rigidbody dynamic + velocity > 0 (mid-throw/ragdoll) |
+Dibuja en Play mode (cuando initialized):
+- Esfera amarilla: ProximityRadius (detección jugador)
+- Esfera azul: RoamRadius (destino aleatorio)
+- Esfera magenta: petRadius
+- Esfera verde: FollowDistance (si reacciona amistosamente)
+- Punto coloreado: rol tint
+- Línea magenta: destino actual si tiene path
 
 ## Vinculado a
 
 - [[Index/06 - Player & World]]
 - [[Index/02 - Genetics & Breeding]]
-- [[CreatureDNA]] — DNA viva
-- [[RoleWorldProfileSO]] — profile mundo (S39, reemplaza PersonalityProfileSO)
-- [[RoleWorldProfile]] — struct perfil comportamiento
-- [[NeedStationRegistry]] — busca estaciones
-- [[CombatStats]] — calcula stats base (S32)
-- [[EffectiveStats]] — struct stats (S32)
-- [[EquipmentStats]] — aplica mods (S32)
-- [[MoriMonchiVisualizer]] — assembly visual
-- [[NameTag]] — label world-space
-- [[GameEvents]] — NavMesh rebake events
 
 ## Conexiones
 
-**Entrada:**
-- `Initialize(dna, profileTable, player)` — wiring inicial (MoriMochiSpawner)
-- `Rebind(dna, profileTable)` — reload rápido (MoriMochiSpawner, OnRegistryReloaded)
-- `GameEvents.OnNavMeshWillRebake/Rebaked` — reacciona a rebakes de furniture
-- Estados actualizados por TakeTurn / Launch / Grab, etc.
+**Colaboradores internos:**
+- [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentConfinement]]
 
-**Salida:**
-- NavMesh pathfinding + movement
-- `IThrowable`, `IInteractable` implementations
-- Cambios en `dna.NeedState` durante gameplay (presisten vía RegistryChanged)
+**Datos & servicios:**
+- [[CreatureDNA]] — DNA viva
+- [[RoleWorldProfileSO]], [[RoleWorldProfile]] — perfil comportamiento
+- [[NeedStationRegistry]] — búsqueda de estaciones
+- [[CombatStats]], [[EquipmentStats]] — stats (live readout)
 
-## Notas (S32 + S39)
+**Visualización & UI:**
+- [[MoriMonchiController]] — contiene este + visualizer
+- [[MoriMonchiVisualizer]] — assembly 3D
+- [[NameTag]] — label world-space
+- [[MoriMonchiProceduralAnimator]] — lee transforms para animation
 
-- **Partial class:** Deuda activa (Fase 6-9, refactor a componentes pequeños, Index/11 hoja de ruta).
-- **S32 Stats display:** Usa `CombatStats.GetEffectiveStats()` + `EquipmentStats.Apply()` (clases extraídas).
-- **S39 Role-based:** Comportamiento del mundo (speed, reaction biases) ahora data-driven vía RoleWorldProfile (separación de Role de combate vs Role de comportamiento).
-- **ProfileTable fallback:** Si profileTable == null, usa `RoleWorldProfile.Neutral()` (valores defaults).
-- **NavMesh survival:** Rebind preserva NavMeshAgent state; OnNavMeshRebaked hace detach + reattach via gameEvents.
+**Eventos & física:**
+- [[GameEvents]] — OnNavMeshRebake, etc.
+- [[IThrowable]], [[IInteractable]] — interfaces
+
+**Mundo:**
+- [[MoriMochiContainer]] — pen/breeding confinement
+- [[NeedStation]] — estaciones (Feeder, RestZone, PlayZone)
+- [[MoriMochiSpawner]] — instancia y wirea
+
+## Notas S55
+
+- **Refactor S55 resuelto:** Deuda Fase 8 cerrada. Ya NO partial class; composición de 4 mini-managers.
+- **Fachada intacta:** Métodos públicos y propiedades sin cambios desde vista externa.
+- **Switchboard:** RequestRoam, RequestReleaseStation, etc. son "puertas de entrada" de colaboradores hacia MoriMochiAgent.
+- **Tuning absorbido:** Todos los campos del viejo .Tuning.cs ahora viven en MoriMochiAgent.cs como tabs Odin.
+- **Gizmos preservados:** Los gizmos del viejo .Debug.cs ahora en OnDrawGizmos().

@@ -34698,6 +34698,7 @@ GameObject:
   - component: {fileID: 1999386638}
   - component: {fileID: 1999386639}
   - component: {fileID: 1999386640}
+  - component: {fileID: 1999386641}
   m_Layer: 0
   m_Name: MoriMonchiSpawner
   m_TagString: Untagged
@@ -34757,6 +34758,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.SpawnDiagnostics
   logToConsole: 1
   historySize: 40
+--- !u!114 &1999386641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999386637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8adfffc5aaba82c428d3d3f388eca42e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.SpawnerDevConsole
+  spawner: {fileID: 1999386639}
 --- !u!1 &2004143669
 GameObject:
   m_ObjectHideFlags: 0

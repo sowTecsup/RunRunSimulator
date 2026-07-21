@@ -14,7 +14,6 @@ public class MoriMonchiController : MonoBehaviour
 {
     [Required, SerializeField] private MoriMochiAgent       agent;
     [Required, SerializeField] private MoriMonchiVisualizer visualizer;
-    [SerializeField] private Prototype.SpiderPaletteApplier spiderVisual;
 
     public CreatureDNA DNA => agent.DNA;
 
@@ -31,13 +30,6 @@ public class MoriMonchiController : MonoBehaviour
 
         visualizer.SetFurDatabase(furDb);
 
-        if (spiderVisual != null)
-        {
-            if (furDb != null) spiderVisual.ApplyMaterial(furDb.GetMaterial(dna.FurType));
-            spiderVisual.ApplyFromDna(dna);
-            return;
-        }
-
         if (bank == null) return;
 
         visualizer.Assemble(dna, bank);
@@ -47,13 +39,6 @@ public class MoriMonchiController : MonoBehaviour
     {
         agent.Rebind(dna, profileTable);
         visualizer.SetFurDatabase(furDb);
-
-        if (spiderVisual != null)
-        {
-            if (furDb != null) spiderVisual.ApplyMaterial(furDb.GetMaterial(dna.FurType));
-            spiderVisual.ApplyFromDna(dna);
-            return;
-        }
 
         visualizer.RefreshFur(dna);
     }
