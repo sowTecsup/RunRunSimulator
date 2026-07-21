@@ -4,6 +4,41 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-21 (Session 56 — **PIVOT DE MODELO: Suriyun Dragons_SD APROBADO COMO MORIMOCHI FINAL — análisis de viabilidad + simulador de validación + Fase C de assets COMPLETA (33 FurPatterns + 25 caras + 5 gemas + 4 cuerpos + 23 anims copiados a nuestra estructura) — ✅ CERRADA: 0 errores, todo verificado en Play por MCP. Un solo .cs nuevo: `SuriyunSimDriver` (paleta de diseño autocontenida)**)
+**Focus:** Juan descargó el asset Suriyun `Dragons_SD` (dragones SD chibi) y pidió análisis de viabilidad para pivotar el modelo del MoriMochi. Veredicto: encaje excepcional. Se validó en simulador vivo, Juan aprobó el look ("con esto ya lo tenemos") y se materializó la base de assets. El plan "animaciones de la pelotita" (S52-S55) queda RETIRADO — lo reemplaza este modelo con animaciones reales.
+
+1. **Análisis del paquete** (`Assets/Suriyun/`, queda INTACTO como referencia): 4 cuerpos FBX (`DragonSD_A-D`) con **rig Generic COMPARTIDO** y 6 SkinnedMeshRenderers separables cada uno (`Dragon_body`, `Face` plano, `Teech`, `Horn` propio por FBX, `Back` A/B, `Wing_A`); 23 clips de animación en FBX aparte sobre el mismo rig (Idle/Walk/Run/Jump/Damage/Die/**Eat/Rest/Sick**/Roar/Fire/Yes/No/Fly×6/giros); 33 materiales de cuerpo **con el MISMO Unity Toon Shader que nuestros FurTypes** (mismo GUID → `ApplyFur`/MPB funciona tal cual); textura `T_Dragon_00` casi neutra (tinteable), las otras 32 con color+patrón horneados; 25 caras = textura transparente en material Unlit aparte (swap de cara = swap de material).
+2. **Fase A — simulador de validación** (`Assets/Scenes/SuriyunSimTest.unity`, quedó en el proyecto): 16 dragones (4 por cuerpo) con tinte genético real (`ColorGenetics.BuildFurPalette` + 4 PropertyIDs por MPB), caras random, Animator con el controller demo, driver de ciclado (anims cada 2-5s) vía `EditorApplication.update` keyed a GO `__SimDriver` (patrón lap-marker S49; registrarlo DESPUÉS de entrar a Play por el domain reload). 16/16 animando, perf trivial.
+3. **Descubrimiento clave — "el amago" de los materiales de fábrica**: su riqueza son los **gradientes/patrones pintados en la textura**, no el color. Desaturando las 32 texturas (Python PIL: autocontrast + gamma 0.6, conservando luminancia y alpha) el patrón sobrevive y se tiñe con el pipeline genético → **FurType = patrón de textura** (gen ya existente cobra significado visual real).
+4. **Sistema de armonías de color** (aprobado por Juan tras iteración de suavidad): TODO deriva del color principal; cuerpo=base, alas=armonía1, cuerno+cresta=armonía2, dientes=marfil apenas teñido; esquemas ponderados **análogo 40% / mono 30% / triádico 20% / complementario 10%**; saturación natural (0.28-0.56); `Rim` = Lerp(color, blanco, 0.65) — fix de las "alas radiactivas" (el rim saturado dominaba en membranas finas de canto).
+5. **Fase C — assets permanentes creados** (copiados/generados, Suriyun intacta): `Resources/Models/MoriMochi/MonchiBody_A-D.fbx` · `Resources/Animations/MoriMochi/MonchiAnim_*.fbx` (23) · `Resources/Textures/MoriMochi/Patterns/MonchiPattern_00-32.png` (33 desaturadas) + `Faces/MonchiFace_01-25.png` + `MonchiGemMatcap.png` (matcap procedural) · `Resources/Materials/MoriMochi/FurPatterns/MonchiFur_00-32.mat` (UTS+patrón, tinteables) + `Faces/MonchiFace_01-25.mat` + `Gems/MonchiGem_{Gold,Ruby,Emerald,Sapphire,Amethyst}.mat` (**MatCap glossy** + `_Is_SpecularToHighColor`, verificado en Play: resaltan clarísimo de los mate).
+
+> ### 📌 DECISIONES DE DISEÑO DE JUAN (S56 — el nuevo contrato del MoriMochi visual)
+> 1. **Genes del MoriMochi nuevo**: (a) **Tipo de cuerno** = gen primario que selecciona el FBX COMPLETO (cuerno+cuerpo+cresta vienen juntos → sin retarget cruzado, riesgo eliminado); (b) **Rol** (ya existe); (c) **Color principal** único — todos los demás derivan con armonía.
+> 2. **Caras = MOOD, no gen**: las 25 caras ciclan según el estado emocional del agente (enganche con needs/reacciones — `Sick` hasta tiene animación propia). Sirve al store mode para que se sientan vivos.
+> 3. **FurType = patrón de textura; AMPLIAR el enum** (hoy 5 slots vs 33 patrones) — **reset de saves aceptado** por Juan.
+> 4. **Determinismo del esquema de armonía**: la solución de menor resistencia = derivar del hash del `BaseColor` (sin gen nuevo, sin cambio de DNA).
+> 5. **Shiny gem**: gen rarísimo **0.5%, únicamente estético**, usa los materiales `MonchiGem_*`.
+> 6. **Cartas de MoriMonchis** (teorización pendiente post-integración): idea de Juan = cámara por MM aislado a RenderTexture con otro skybox; propuesta alternativa presentada = **híbrido fotomatón** (snapshot cacheado por DNA+mood para grillas, cámara live solo para la carta enfocada). SIN DECIDIR.
+> 7. El AnimatorController demo auto-retorna a Idle al terminar cada clip (transiciones con exit time) — conducta ideal para moods; el controller propio debe replicarla con nombres limpios.
+> 8. Los 33 prefabs demo, escenas, scripts, Floor y UI de Suriyun NO se copian (solo referencia).
+
+6. **`SuriyunSimDriver` (pedido final de Juan): la escena quedó AUTOCONTENIDA como paleta de diseño guía** — MonoBehaviour en GO `__SimSetup` de `SuriyunSimTest` que en cada Play regenera todo solo: carga los bancos por `Resources.Load` (33 fur / 25 caras / 5 gemas), toma los `Dragon_*` de la escena, aplica armonía ponderada 40/30/20/10 + tinte MPB + shinies (2, gema random) y cicla anims/caras en `Update`. Knobs serializados: `seed` (4242 = paleta reproducible; `randomizeEachPlay` para variar), `shinyCount`, `cycleSeconds`, rangos de saturación/valor. Reemplaza el driver efímero por `EditorApplication.update`. Verificado en Play sin inyección: 0 errores.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Prototype/SuriyunSimDriver.cs` (NUEVO): driver autocontenido de la escena de paleta `SuriyunSimTest` (regenera looks + cicla anims/caras cada Play vía Resources.Load).
+
+**Files Touched (no-ScriptNode):** NUEVOS: `Assets/Scenes/SuriyunSimTest.unity` (escena simulador, 16 dragones + Animators wireados); toda la estructura `Resources/{Models,Animations,Textures,Materials}/MoriMochi/` (4 FBX + 23 anim FBX + 59 texturas + 63 materiales); `Assets/Screenshots/s56_*.png` (10, borrables). La carpeta `Assets/Suriyun/` (paquete importado por Juan) queda sin trackear como referencia.
+
+**Next session (S57, candidatos):**
+1. **INTEGRACIÓN DE CÓDIGO DEL MODELO NUEVO (prioridad)**: AnimatorController propio (nombres limpios + auto-idle), prefab `MorimonchiAgent` sobre `MonchiBody_*`, `DragonAnimationDriver : MonchiAnimationDriver` (Animator-based), visualizer nuevo/adaptado (selección FBX por gen cuerno + patrón FurType + armonía por hash + cara por mood), enum `FurType` ampliado + wipe de saves, gen shiny 0.5%. Plan formal con sub-agentes `morimonchi-coder`; cuidado con el invariante color↔identidad (BaseColor embebido en UniqueID).
+2. Después: integración replay 3v3 con el driver nuevo + barra con nombre + interacciones ingame (arrastra de S45); teorizar cartas (nota 6).
+3. Arrastran: probar confinamiento/cortejo con corrales, F5 async 3v3, economía F7, nota escudo por RONDA.
+
+**ScriptNodes (cierre S56):** CREAR `SuriyunSimDriver.md`.
+
+---
+
 **Session:** 2026-07-20/21 (Session 55 — **DEUDA TÉCNICA TOTAL: FASE 8 (`MoriMochiAgent` → AgentContext + 3 mini-managers) + FASE 9 (`SpawnerDevConsole`) + ELIMINACIÓN COMPLETA DEL SPIDER + ARCHIVADO DEL ACTIVE CONTEXT — ✅ CERRADA: 0 errores, todo verificado en Play por MCP. NO QUEDA NINGÚN PARTIAL EN EL JUEGO**)
 **Focus:** Juan pidió "acabar con todas las deudas pendientes". Cayeron los 4 frentes en una sesión: el experimento spider borrado entero, la Fase 9 menor, el jefe final (Fase 8) y la higiene del vault.
 
