@@ -4,6 +4,84 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-20 (Session 54 — **DEUDA TÉCNICA: FASE 7 COMPLETA (`BreedingPanelUITK` + `MorimonchiDetailInfoUITK` → presenters) + contrato generalizado `ITabPresenter` — ✅ CERRADA: 0 errores, ambos paneles verificados en Play por MCP**)
+**Focus:** Continuación directa del piloto S53. Cayeron los dos paneles restantes de la Fase 7 con el patrón de composición. Los paneles UITK quedan SIN partials; de deuda solo restan Fase 8 (`MoriMochiAgent`) y Fase 9 (`MoriMochiSpawner.Debug`).
+
+1. **Contrato generalizado**: `ICombatTabPresenter` → **`ITabPresenter`** (renombre de archivo `.cs`+`.meta` juntos, GUID preservado; actualizados los 3 presenters de combate + núcleo `CombatPanelUITK` — mecánico, sin cambio de comportamiento).
+2. **`BreedingPanelUITK` ya no es partial** (`.Content.cs`/`.Navigation.cs` eliminados): **`BreedingBreedTabPresenter`** (tab Criar: candidatos padre/madre, selección, preview, `TryBreed` con callback `onBred` al núcleo — equivalente al `onEnqueued` del piloto; expone `Busy` FUERA de la interfaz y el núcleo congela TODO el input mientras un breed está en vuelo, paridad con el viejo `breedBusy` que también congelaba la TabBar) + **`BreedingEggsTabPresenter`** (tab Incubando: huevos, `DoHatch`, `Tick()` fuera de la interfaz con throttle interno de 1s — el núcleo lo llama solo con la tab visible, patrón `CombatResultsTabPresenter`) + núcleo (216 líneas) espejo de `CombatPanelUITK`: `IUINavigable` TabBar⇄Content, campos serializados intactos → cero cambios de escena.
+3. **`MorimonchiDetailInfoUITK` ya no es partial** (`.Trees.cs` eliminado) — **decisión de arquitectura**: este panel NO tiene navegación interna (A/D cambia tabs, Submit vacío, Cancel cierra), así que sus presenters **NO implementan `ITabPresenter`** (habrían sido 5 métodos muertos por clase — regla 8): son colaboradores planos `ctor(root, deps)` + `Rebuild(dna)`. Cuatro: `DetailInfoTabPresenter` (stats con desglose, identidad, rol/elemento, partes, progresión), `DetailCombatTabPresenter` (tarjetas historial + replay), `DetailTreesPresenter` (tabs Linaje **y** Descendencia — UN dominio, comparten `MakeChip`/`ParseGenetics`), `DetailEquipTabPresenter` (cards por slot, popup mochila, stats Base→Final). Núcleo 173 líneas (era 665+199): lifecycle, `Show`/`Populate` (título+retrato+delegar 4 `Rebuild`), `IUINavigable` intacto.
+4. **Regla del patrón consolidada (para futuros paneles)**: `ITabPresenter` es para tabs con foco jerárquico real (regiones/listas navegables); un panel de solo-contenido usa colaboradores planos con `Rebuild(data)`. Siempre: `Q<>` propios sobre el root, registry por `Func<>` (no cachear), estado UI propio, `Teardown` solo desuscribe botones persistentes.
+5. **Verificación Breeding (Play, GameScene)**: panel por código — Criar con 3 padres/6 madres; navegación completa por `IUINavigable` (entrar → lista padres → seleccionar 2º → slot madre → lista madres → seleccionar → preview con colores/stats/partes/"≈ 30 min", foco en el slot correcto); cancelación jerárquica con paridad exacta (listas→Slots→TabBar consumen; en TabBar retorna `false`); tab Incubando con 0 huevos (solo rebuild/nav vacía); un pull de nube disparó `OnRegistryReloaded` en medio y el rebuild vía presenters pasó sin errores. NO ejercitado: breed/hatch reales (efecto servidor).
+6. **Verificación DetailInfo (Play, GameScene)**: "Gloomy Sprout", 5 tabs recorridas por `IUINavigable` con clamp en extremos: Info completa (stats 8/4/6 con desglose, Agresivo · Electricidad, 4 partes), Combate con récord viejo (fallback "sin stats registradas" + botón replay — camino backward-compat), Equipo (3 slots vacíos con acento por slot, retrato, stats), Linaje (chip "Tú" + vacío "linaje silvestre"). Límites: el registry no tiene criaturas con ancestros ni ítems equipados → árboles poblados y cards con ítem no vistos en pantalla (mismo código compartido sí corrió); replay no cliqueado (carga escena).
+
+> ### 📌 Notas S54
+> 1. Screenshots `Assets/Screenshots/s54_*.png` (6; `s54_detailpanel_info.png` salió vacío por timing de frame, su `-1` es el bueno) — borrables.
+> 2. Durante la verificación DetailInfo la consola mostró "PlayerLoop internal function has been called recursively" + "Missing Profiler.EndSample" — ruido interno del editor (ScreenCapture + execute_code por MCP), sin ningún stack de código del juego.
+> 3. **FASE 7 COMPLETA** (piloto Combat S53 + Breeding y DetailInfo S54). Deuda de partials restante: Fase 8 (`MoriMochiAgent`, blackboard + mini-managers, sesión dedicada) y Fase 9 (`MoriMochiSpawner.Debug`, menor).
+> 4. Index/11 actualizado: Fase 7 ✅ completa.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `UI/ITabPresenter.cs` (NUEVO — renombre de `ICombatTabPresenter.cs` con GUID preservado): contrato generalizado de tab presenters con foco.
+- `UI/BreedingBreedTabPresenter.cs` (NUEVO): presenter tab Criar (+ `Busy` fuera de la interfaz).
+- `UI/BreedingEggsTabPresenter.cs` (NUEVO): presenter tab Incubando (+ `Tick()` fuera de la interfaz).
+- `UI/BreedingPanelUITK.cs` (MODIFICADO): reescrito como núcleo delgado; ya no partial.
+- `UI/DetailInfoTabPresenter.cs` (NUEVO): tab Info del detalle (colaborador plano, sin interfaz).
+- `UI/DetailCombatTabPresenter.cs` (NUEVO): tab Combate del detalle (colaborador plano).
+- `UI/DetailTreesPresenter.cs` (NUEVO): tabs Linaje+Descendencia del detalle (colaborador plano).
+- `UI/DetailEquipTabPresenter.cs` (NUEVO): tab Equipo del detalle (colaborador plano).
+- `UI/MorimonchiDetailInfoUITK.cs` (MODIFICADO): reescrito como núcleo delgado; ya no partial.
+- `UI/CombatPanelUITK.cs`, `UI/CombatOnlineTabPresenter.cs`, `UI/CombatResultsTabPresenter.cs`, `UI/CombatHistoryTabPresenter.cs` (MODIFICADOS: solo renombre `ICombatTabPresenter`→`ITabPresenter`).
+- ELIMINADOS: `BreedingPanelUITK.Content.cs`, `BreedingPanelUITK.Navigation.cs`, `MorimonchiDetailInfoUITK.Trees.cs`, `ICombatTabPresenter.cs` (con sus `.meta`).
+
+**Files Touched (no-ScriptNode):** `Assets/Screenshots/s54_*.png` (6, borrables).
+
+**Next session (S55, candidatos):**
+1. **Prioridad de gameplay de Juan (S53 original)**: animaciones de la pelotita (`MonchiBallAnimationDriver` sobre `MoriMonchiProceduralAnimator`) + integración replay 3v3 + barra con nombre.
+2. **Deuda**: Fase 8 `MoriMochiAgent` (el jefe final, sesión dedicada con testing exhaustivo en Play) o Fase 9 menor; eliminación del experimento spider (S52 nota 2, sesión mecánica).
+3. Arrastran: F5 async 3v3, economía F7, archivar sesiones viejas de esta nota (>315KB).
+
+**ScriptNodes (cierre S54):** CREAR `BreedingBreedTabPresenter.md`, `BreedingEggsTabPresenter.md`, `DetailInfoTabPresenter.md`, `DetailCombatTabPresenter.md`, `DetailTreesPresenter.md`, `DetailEquipTabPresenter.md`, `ITabPresenter.md` (sucesor de `ICombatTabPresenter.md`); ACTUALIZAR `BreedingPanelUITK.md`, `MorimonchiDetailInfoUITK.md`, `CombatPanelUITK.md`, `CombatOnlineTabPresenter.md`, `CombatResultsTabPresenter.md`, `CombatHistoryTabPresenter.md` (referencia a `ITabPresenter`); MARCAR RETIRADOS `BreedingPanelUITK.Content.md`, `ICombatTabPresenter.md`.
+
+---
+
+**Session:** 2026-07-20 (Session 53 — **DEUDA TÉCNICA: FASE 6 COMPLETA (CloudSyncService → composición) + FASE 7 PILOTO COMPLETO (CombatPanelUITK → presenters por pestaña) — ✅ CERRADA: 0 errores, ambos verificados en Play por MCP**)
+**Focus:** Juan eligió el frente de deuda técnica (Index/11, decisión S32: composición sobre partial). Cayeron DOS monstruos con el patrón canónico (mini-managers con estado propio + núcleo delgado coordinador): el partial de red y el panel UITK más grande.
+
+1. **FASE 6 — `CloudSyncService` ya no es partial** (`.Auth.cs`/`.Sync.cs` eliminados): **`CloudAuth`** (clase plana, dueña única de identidad: `IsSignedIn`/`PlayerID`/`PlayerName`/`AuthMethod`/`ServerOffset`; init UGS, sign-in anónimo/Unity/resume, sign-out, update de nombre, server time; reporta status por `Action<string>` y el sign-in completo por `Func<string, Task>`) + **`CloudSyncOps`** (clase plana, dueña de sync: keys, `SyncMeta` anti-cheat, `MetaPath` por `auth.PlayerID`, validate/push/pull/reset/notify; lee la identidad, nunca la muta) + **`CloudSyncService`** núcleo MonoBehaviour (148 líneas): compone ambos en `Start`, orquesta la secuencia post-sign-in (SetUserScope → loads locales → server time → pull → notify), fachada pública INTACTA (`PushAsync`/`ServerOffset`/etc. — `GameManager` no cambió) + botones/displays Odin delegando. Único `[SerializeField]` (`newNameInput`) se quedó en el núcleo → cero riesgo de serialización.
+2. **FASE 7 PILOTO — `CombatPanelUITK` ya no es partial** (`.Tabs.cs`/`.Navigation.cs` eliminados): interfaz **`ICombatTabPresenter`** (`Enter/Navigate/Submit/Cancel/ClearFocus/Rebuild/Teardown`) + **un presenter por pestaña**: `CombatOnlineTabPresenter` (elegibles, selección, stats/partes, enqueue con callback `onEnqueued` al core, foco interno lista⇄acciones), `CombatResultsTabPresenter` (cola + reloj cron vía `Tick()` que el core llama solo con la tab visible), `CombatHistoryTabPresenter` (items aplanados, filtro, detalle, replay). Núcleo (237 líneas): lifecycle, eventos, wiring, composición en `Wire()` y `IUINavigable` reducido a `TabBar ⇄ Content` que DELEGA el foco interno al presenter activo. Cada presenter hace sus `Q<>` sobre el root y recibe el registry por `Func<>` (no cachea). Campos serializados intactos → cero cambios de escena. Tab 3 (Equipo 3v3) sigue siendo del sibling `CombatLineupUITK`, sin tocar.
+3. **Decisión de arquitectura (patrón para el resto de F7)**: la navegación NO se queda entera en el núcleo — el núcleo solo conserva la región TabBar⇄Contenido; los sub-estados de foco (p.ej. lista vs botones de acción) viven en su presenter. El presenter retorna `false` en `Navigate`/`Cancel` para "salir a la tab bar".
+4. **Verificación Fase 6 (Play, GameScene)**: sign-in resume OK (SowMain#6345), server offset +0,3s, pull automático 9 criaturas + meta local, push por fachada con `ValidateBeforePush` → Security OK, flush de `OnApplicationQuit` por el camino nuevo, y `AsyncCombatService.FetchQueuedIdsAsync` contra servidor OK (el riesgo auth→async que marcaba Index/11).
+5. **Verificación Fase 7 (Play, GameScene)**: panel abierto por código — Online 9 cards, Historial 6 items; navegación ejercitada por `IUINavigable` (entrar lista → seleccionar → cancelar ×2 → tab Historial → detalle "Gloomy Sprout") con paridad al Navigation viejo; screenshots `s53_combatpanel_*.png`. NO se ejercitó el enqueue real (efecto en servidor) ni `ResetProgressAsync` (destructivo, solo compila).
+
+> ### 📌 Notas S53
+> 1. La escena activa quedó **GameScene** (antes estaba `MorimonchiNewModel`); sin cambios de escena guardados.
+> 2. `Assets/Screenshots/s53_combatpanel_*.png` (2) son borrables.
+> 3. **Fase 7 pendiente** (mecánico con el patrón del piloto): `BreedingPanelUITK` (.Content) y `MorimonchiDetailInfoUITK` (.Trees) — una sesión por panel con testing en Play.
+> 4. Quedan de deuda: Fase 8 (`MoriMochiAgent`, el jefe final) y Fase 9 (`MoriMochiSpawner.Debug`).
+> 5. Index/11 actualizado: Fase 6 ✅, Fase 7 piloto ✅.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Systems/Cloud/CloudAuth.cs` (NUEVO): mini-manager de identidad UGS (clase plana, callbacks de status/sign-in).
+- `Systems/Cloud/CloudSyncOps.cs` (NUEVO): mini-manager de sync/meta (clase plana; push/pull/reset/validate/notify).
+- `Systems/Cloud/CloudSyncService.cs` (MODIFICADO): reescrito como núcleo delgado que compone `CloudAuth`+`CloudSyncOps`; ya no partial; fachada pública intacta.
+- `UI/ICombatTabPresenter.cs` (NUEVO): contrato núcleo↔presenter de pestaña.
+- `UI/CombatOnlineTabPresenter.cs` (NUEVO): presenter tab Batalla Online.
+- `UI/CombatResultsTabPresenter.cs` (NUEVO): presenter tab Resultados (+`Tick()` fuera de la interfaz).
+- `UI/CombatHistoryTabPresenter.cs` (NUEVO): presenter tab Historial.
+- `UI/CombatPanelUITK.cs` (MODIFICADO): reescrito como núcleo delgado; ya no partial; `IUINavigable` TabBar⇄Content delegado.
+- ELIMINADOS: `CloudSyncService.Auth.cs`, `CloudSyncService.Sync.cs`, `CombatPanelUITK.Tabs.cs`, `CombatPanelUITK.Navigation.cs` (con sus .meta).
+
+**Files Touched (no-ScriptNode):** `Assets/Screenshots/s53_combatpanel_*.png` (2, borrables).
+
+**Next session (S54, candidatos):**
+1. **Fase 7 continuación**: `BreedingPanelUITK` → presenters de .Content (patrón del piloto), luego `MorimonchiDetailInfoUITK`.
+2. O retomar la **prioridad de gameplay de Juan (S53 original)**: animaciones de la pelotita (`MonchiBallAnimationDriver` sobre `MoriMonchiProceduralAnimator`) + integración replay 3v3 + barra con nombre.
+3. Arrastran: eliminación del experimento spider (S52 nota 2), Fases 8-9 de deuda, F5 async 3v3, economía F7, archivar sesiones viejas de esta nota (>315KB).
+
+**ScriptNodes (cierre S53):** CREAR `CloudAuth.md`, `CloudSyncOps.md`, `ICombatTabPresenter.md`, `CombatOnlineTabPresenter.md`, `CombatResultsTabPresenter.md`, `CombatHistoryTabPresenter.md`; ACTUALIZAR `CloudSyncService.md`, `CombatPanelUITK.md`; ELIMINAR (o marcar retirados) `CombatPanelUITK.Tabs.md`, `CombatPanelUITK.Navigation.md` si existen.
+
+---
+
 **Session:** 2026-07-20 (Session 52 — **CONTRATO DE ANIMACIÓN DE COMBATE + SET COMPLETO EN EL SPIDER + 60/30/10 + EXPERIMENTO "SPIDER COMO MODELO DEL JUEGO" EJECUTADO Y REVERTIDO — ✅ CERRADA: 0 errores, rollback verificado, spider DESCARTADO como modelo (eliminación pendiente)**)
 **Focus:** Juan reencuadró el rig procedural como stand-in temporal y pidió el set mínimo de animaciones de combate + roadmap de integración. Se diseñó **contract-first**: la API semántica sobrevive a cualquier modelo. Al final de la sesión Juan probó el spider como modelo real en GameScene y lo **descartó** ("ver tantas arañas moverse con sus patitas da repelús") — rollback completo, el experimento spider (S48-S52) queda terminado.
 

@@ -1,26 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// In-game breeding screen (UI Toolkit), modal, with two tabs:
+// In-game breeding screen (UI Toolkit), modal. This component owns two tabs:
 //   • "Criar"     — pick a Father + Mother, preview both (stats + parts), see the
 //                   estimated time, and start the breed (server-timed).
 //   • "Incubando" — the eggs currently breeding as cards (Mother 💗 Father → time
 //                   left); when an egg's timer hits 0 a Hatch button appears.
 //
 // Lives on the always-active UIManager object (like the grid/detail controllers)
-// and fills its own UIDocument. It's an action controller (like BreedingController):
-// it reaches the registry via GameManager and starts/hatches through AsyncBreedingService.
+// and fills its own UIDocument. It's a thin core: navigation and content for each
+// tab are delegated to BreedingBreedTabPresenter / BreedingEggsTabPresenter, both
+// reached via GameManager's registry and AsyncBreedingService.
 //
-// Keyboard/gamepad: implements IUINavigable with a small hierarchical focus model
-// (TabBar ⇄ content ⇄ side-list). ESC steps one level up (OnUICancel consumes it)
-// and only closes the panel when already at the TabBar.
+// Keyboard/gamepad: implements IUINavigable with the same hierarchical focus model
+// (TabBar ⇄ content) as CombatPanelUITK. ESC steps one level up (OnUICancel consumes
+// it) and only closes the panel when already at the TabBar.
 [DisallowMultipleComponent]
-public partial class BreedingPanelUITK : MonoBehaviour, IUINavigable
+public class BreedingPanelUITK : MonoBehaviour, IUINavigable
 {
     [Header("UI Toolkit setup")]
     [SerializeField] private UIDocument document;
@@ -33,48 +31,27 @@ public partial class BreedingPanelUITK : MonoBehaviour, IUINavigable
     [Tooltip("Starts the server-timed breed and hatches ready eggs.")]
     [SerializeField] private AsyncBreedingService asyncBreedingService;
 
-    // Hierarchical focus: which region currently receives navigation.
-    private enum Region { TabBar, Criar, FatherList, MotherList, Incubando }
+    private enum Region { TabBar, Content }
     private Region region = Region.TabBar;
 
-    // Criar content cursor: 0 = Father slot, 1 = Mother slot, 2 = Breed button.
-    private int criarIndex;
-
-    private const string Focus = "breed-focus";
-
-    // ── UI refs (queried once the tree is built) ──
+    // ── UI refs ──
     private TabView tabs;
-    private VisualElement fatherSlot, motherSlot, preview, fatherSlotImg, motherSlotImg;
-    private Label fatherSlotName, motherSlotName, timeLabel;
-    private Button breedButton, closeButton;
-    private ScrollView fatherList, motherList, eggListView;
+    private Button closeButton;
 
     // ── State ──
     private CreatureRegistrySO registry;
-    private string selectedFatherId = "", selectedMotherId = "";
-    private readonly List<VisualElement> fatherCards = new List<VisualElement>();
-    private readonly List<VisualElement> motherCards = new List<VisualElement>();
-    private int fatherIndex, motherIndex, eggIndex;
-    private readonly List<EggView> eggs = new List<EggView>();
-    private float countdownTick;
     private bool wired;
-    private bool breedBusy;   // a StartBreedingAsync is in flight → inputs frozen
 
-    private sealed class EggView
-    {
-        public string MotherId;
-        public long   ReadyAt;
-        public VisualElement Row;
-        public Label  Time;
-        public Button Hatch;
-    }
+    private BreedingBreedTabPresenter breed;
+    private BreedingEggsTabPresenter eggs;
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
     private void Awake()
     {
         if (document != null) document.sortingOrder = sortingOrder;
-        if (GameManager.Instance != null) registry = GameManager.Instance.Registry;
+        var gm = GameManager.Instance;
+        registry = gm != null ? gm.Registry : null;
     }
 
     private void OnEnable()
@@ -99,21 +76,18 @@ public partial class BreedingPanelUITK : MonoBehaviour, IUINavigable
         UIManager.RegisterNavigable(panel, this);
     }
 
+    // Tick the egg countdown only while the Incubando tab is visible.
+    private void Update()
+    {
+        if (wired && tabs != null && tabs.selectedTabIndex == 1) eggs.Tick();
+    }
+
     private void OnDestroy()
     {
         if (closeButton != null) closeButton.clicked -= OnClose;
-        if (breedButton != null) breedButton.clicked -= TryBreed;
+        breed?.Teardown();
+        eggs?.Teardown();
         UIManager.UnregisterNavigable(panel);
-    }
-
-    // Ticks the egg countdowns once a second (the controller is always active).
-    private void Update()
-    {
-        if (!wired || eggs.Count == 0) return;
-        countdownTick += Time.deltaTime;
-        if (countdownTick < 1f) return;
-        countdownTick = 0f;
-        RefreshEggTimers();
     }
 
     // ── Wiring ────────────────────────────────────────────────────
@@ -124,25 +98,13 @@ public partial class BreedingPanelUITK : MonoBehaviour, IUINavigable
         var root = document != null ? document.rootVisualElement : null;
         if (root == null) return;
 
-        tabs           = root.Q<TabView>("tabs");
-        fatherSlot     = root.Q<VisualElement>("father-slot");
-        motherSlot     = root.Q<VisualElement>("mother-slot");
-        fatherSlotImg  = root.Q<VisualElement>("father-slot-img");
-        motherSlotImg  = root.Q<VisualElement>("mother-slot-img");
-        preview        = root.Q<VisualElement>("preview");
-        fatherSlotName = root.Q<Label>("father-slot-name");
-        motherSlotName = root.Q<Label>("mother-slot-name");
-        timeLabel      = root.Q<Label>("time-label");
-        breedButton    = root.Q<Button>("breed-button");
-        closeButton    = root.Q<Button>("close-button");
-        fatherList     = root.Q<ScrollView>("father-list");
-        motherList     = root.Q<ScrollView>("mother-list");
-        eggListView    = root.Q<ScrollView>("egg-list");
+        tabs        = root.Q<TabView>("tabs");
+        closeButton = root.Q<Button>("close-button");
+
+        breed = new BreedingBreedTabPresenter(root, () => registry, database, asyncBreedingService, OnBred);
+        eggs  = new BreedingEggsTabPresenter(root, () => registry, asyncBreedingService);
 
         if (closeButton != null) closeButton.clicked += OnClose;
-        if (breedButton != null) breedButton.clicked += TryBreed;
-        fatherSlot?.RegisterCallback<ClickEvent>(_ => OpenList(Region.FatherList));
-        motherSlot?.RegisterCallback<ClickEvent>(_ => OpenList(Region.MotherList));
 
         wired = true;
         RebuildAll();
@@ -150,6 +112,14 @@ public partial class BreedingPanelUITK : MonoBehaviour, IUINavigable
     }
 
     private void OnClose() => UIManager.RequestPanelToggle(panel);
+
+    private void OnBred()
+    {
+        if (tabs != null) tabs.selectedTabIndex = 1;   // jump to Incubando
+        region = Region.TabBar;
+        ClearAllFocus();
+        SetTabBarFocus(true);
+    }
 
     // ── Data / events ─────────────────────────────────────────────
 
@@ -165,9 +135,91 @@ public partial class BreedingPanelUITK : MonoBehaviour, IUINavigable
 
     private void RebuildAll()
     {
-        RebuildCandidates();
-        RebuildEggs();
-        RefreshSlots();
+        breed.Rebuild();
+        eggs.Rebuild();
+    }
+
+    // ── IUINavigable ──────────────────────────────────────────────
+
+    private ITabPresenter ActivePresenter()
+    {
+        int t = tabs != null ? tabs.selectedTabIndex : 0;
+        switch (t)
+        {
+            case 0: return breed;
+            case 1: return eggs;
+            default: return null;
+        }
+    }
+
+    public void OnUINavigate(Vector2 dir)
+    {
+        if (breed != null && breed.Busy) return;
+
+        int h = dir.x >  0.5f ? 1 : dir.x < -0.5f ? -1 : 0;
+        int v = dir.y < -0.5f ? 1 : dir.y >  0.5f ? -1 : 0;   // down = +1
+        if (h == 0 && v == 0) return;
+
+        if (region == Region.TabBar)
+        {
+            if (h != 0 && tabs != null) tabs.selectedTabIndex = Mathf.Clamp(tabs.selectedTabIndex + h, 0, 1);
+            else if (v > 0) EnterContent();
+        }
+        else
+        {
+            var p = ActivePresenter();
+            if (p == null || !p.Navigate(h, v)) { region = Region.TabBar; SetTabBarFocus(true); }
+        }
+    }
+
+    public void OnUISubmit()
+    {
+        if (breed != null && breed.Busy) return;
+
+        if (region == Region.TabBar) EnterContent();
+        else ActivePresenter()?.Submit();
+    }
+
+    public bool OnUICancel()
+    {
+        if (breed != null && breed.Busy) return true;
+
+        if (region == Region.TabBar) return false;
+
+        var p = ActivePresenter();
+        if (p != null && p.Cancel()) return true;
+
+        ClearAllFocus();
+        region = Region.TabBar;
+        SetTabBarFocus(true);
+        return true;
+    }
+
+    private void EnterContent()
+    {
+        var p = ActivePresenter();
+        if (p == null) return;
+        SetTabBarFocus(false);
+        region = Region.Content;
+        p.Enter();
+    }
+
+    private void SetTabBarFocus(bool on) { tabs?.EnableInClassList("tabbar-focused", on); }
+
+    private void ClearAllFocus()
+    {
+        breed?.ClearFocus();
+        eggs?.ClearFocus();
+        SetTabBarFocus(false);
+    }
+
+    private void ResetFocus()
+    {
+        if (!wired) return;
+        tabs.selectedTabIndex = 0;
+        ClearAllFocus();
+        region = Region.TabBar;
+        SetTabBarFocus(true);
     }
 }
 }

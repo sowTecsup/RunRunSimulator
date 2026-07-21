@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
@@ -20,7 +17,7 @@ namespace MoriMonchiSimulator
 // fights through CombatService / AsyncCombatService. Same hierarchical IUINavigable
 // focus model as the breeding panel (TabBar ⇄ content ⇄ list).
 [DisallowMultipleComponent]
-public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
+public class CombatPanelUITK : MonoBehaviour, IUINavigable
 {
     [Header("UI Toolkit setup")]
     [SerializeField] private UIDocument document;
@@ -31,54 +28,20 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private CreatureDatabaseSO database;
     [SerializeField] private AsyncCombatService asyncCombatService;
 
-    private enum Region { TabBar, T1List, T1Actions, T3List, T4List }
+    private enum Region { TabBar, Content }
     private Region region = Region.TabBar;
-
-    private const string Focus = "cbt-focus";
 
     // ── UI refs ──
     private TabView tabs;
     private Button closeButton;
-    // Tab 1
-    private ScrollView onlineList;
-    private VisualElement onlineImg, onlineParts;
-    private Label onlineName, onlineStats;
-    private Button btnInstant, btnTimer;
-    // Tab 3 (Resultados: cola + reloj al próximo tick)
-    private Button btnRefresh;
-    private ScrollView resultsList;
-    private Label queueClock, queueEmpty;
-    // Tab 4 (Historial)
-    private DropdownField historyFilter;
-    private ScrollView historyList, histLines;
-    private Label historyEmpty, histOpponent, histDate, histOutcome;
-    private Button histReplayBtn;
 
     // ── State ──
     private CreatureRegistrySO registry;
-    private CombatManagerSO Config => CombatController.Instance != null ? CombatController.Instance.Config : null;
-
-    private string onlineSelectedId = "";
-
-    private readonly List<VisualElement> onlineCards = new List<VisualElement>();
-    private readonly List<VisualElement> resultCards = new List<VisualElement>();
-    private readonly List<Label> resultTimeLabels = new List<Label>();          // per-row countdown
-    private readonly List<VisualElement> t3Cards = new List<VisualElement>();   // refresh + entries
-    private readonly List<VisualElement> historyCards = new List<VisualElement>();
-    private readonly List<HistItem> historyRendered = new List<HistItem>();   // parallel to historyCards
-    private int onlineIndex, t1ActionIndex, t3Index, t4Index;
-
-    // Flattened, date-sorted view of every creature's CombatHistory (newest first).
-    private readonly List<HistItem> historyItems = new List<HistItem>();
-    private string historyFilterId = "";   // "" = all creatures
-    private readonly List<string> filterIds = new List<string>();   // parallel to dropdown choices
-
-    private bool refreshBusy;
     private bool wired;
-    private int lastClockSecond = -1;
 
-    private struct HistItem { public CreatureDNA Self; public CombatRecord Rec; }
-    private HistItem histCurrent;
+    private CombatOnlineTabPresenter online;
+    private CombatResultsTabPresenter results;
+    private CombatHistoryTabPresenter history;
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
@@ -116,15 +79,15 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     // Tick the queue countdown only while the Resultados tab is visible.
     private void Update()
     {
-        if (wired && tabs != null && tabs.selectedTabIndex == 1) UpdateClock();
+        if (wired && tabs != null && tabs.selectedTabIndex == 1) results.Tick();
     }
 
     private void OnDestroy()
     {
         if (closeButton != null) closeButton.clicked -= OnClose;
-        if (btnInstant  != null) btnInstant.clicked  -= OnInstant;
-        if (btnTimer    != null) btnTimer.clicked    -= OnTimer;
-        if (btnRefresh  != null) btnRefresh.clicked   -= DoRefresh;
+        online?.Teardown();
+        results?.Teardown();
+        history?.Teardown();
         UIManager.UnregisterNavigable(panel);
     }
 
@@ -139,43 +102,27 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
         tabs        = root.Q<TabView>("tabs");
         closeButton = root.Q<Button>("close-button");
 
-        onlineList  = root.Q<ScrollView>("online-list");
-        onlineImg   = root.Q<VisualElement>("online-img");
-        onlineParts = root.Q<VisualElement>("online-parts");
-        onlineName  = root.Q<Label>("online-name");
-        onlineStats = root.Q<Label>("online-stats");
-        btnInstant  = root.Q<Button>("btn-instant");
-        btnTimer    = root.Q<Button>("btn-timer");
-
-        btnRefresh  = root.Q<Button>("btn-refresh");
-        resultsList = root.Q<ScrollView>("results-list");
-        queueClock  = root.Q<Label>("queue-clock");
-        queueEmpty  = root.Q<Label>("queue-empty");
-
-        historyFilter = root.Q<DropdownField>("history-filter");
-        historyList   = root.Q<ScrollView>("history-list");
-        historyEmpty  = root.Q<Label>("history-empty");
-        histOpponent  = root.Q<Label>("hist-opponent");
-        histDate      = root.Q<Label>("hist-date");
-        histLines     = root.Q<ScrollView>("hist-lines");
-        histOutcome   = root.Q<Label>("hist-outcome");
-
-        if (historyFilter != null)
-            historyFilter.RegisterValueChangedCallback(_ => OnHistoryFilterChanged());
+        online  = new CombatOnlineTabPresenter(root, () => registry, database, asyncCombatService, OnEnqueued);
+        results = new CombatResultsTabPresenter(root, () => registry, asyncCombatService);
+        history = new CombatHistoryTabPresenter(root, () => registry);
 
         if (closeButton != null) closeButton.clicked += OnClose;
-        if (btnInstant  != null) btnInstant.clicked  += OnInstant;
-        if (btnTimer    != null) btnTimer.clicked    += OnTimer;
-        if (btnRefresh  != null) btnRefresh.clicked   += DoRefresh;
 
         wired = true;
         RebuildAll();
         ResetFocus();
     }
 
-    private void OnClose()   => UIManager.RequestPanelToggle(panel);
-    private void OnInstant() => EnqueueOnline(instant: true);
-    private void OnTimer()   => EnqueueOnline(instant: false);
+    private void OnClose() => UIManager.RequestPanelToggle(panel);
+
+    private void OnEnqueued()
+    {
+        if (tabs != null) tabs.selectedTabIndex = 1;   // jump to Resultados
+        region = Region.TabBar;
+        ClearAllFocus();
+        SetTabBarFocus(true);
+        results.Rebuild();
+    }
 
     // ── Data / events ─────────────────────────────────────────────
 
@@ -191,8 +138,8 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
     private void OnCombatLogged(CombatLogEntry entry)
     {
         if (!wired) return;
-        RebuildResults();
-        RebuildHistory();
+        results.Rebuild();
+        history.Rebuild();
     }
 
     private void OnPanelToggle(UIPanelType p) { if (p == panel) ResetFocus(); }
@@ -200,22 +147,91 @@ public partial class CombatPanelUITK : MonoBehaviour, IUINavigable
 
     private void RebuildAll()
     {
-        RebuildOnlineList();
-        RebuildResults();
-        RebuildHistory();
-        SetCenter();
+        online.Rebuild();
+        results.Rebuild();
+        history.Rebuild();
     }
 
-    private IEnumerable<CreatureDNA> Eligible() =>
-        registry == null ? Enumerable.Empty<CreatureDNA>()
-        : registry.GetAll().Values
-            .Where(d => !d.IsDead && !d.IsBusy && d.FightCount < MaxFights())
-            .OrderBy(d => d.CustomName);
+    // ── IUINavigable ──────────────────────────────────────────────
 
-    private int MaxFights() => Config != null ? Config.MaxFightCount : 5;
+    private ITabPresenter ActivePresenter()
+    {
+        int t = tabs != null ? tabs.selectedTabIndex : 0;
+        switch (t)
+        {
+            case 0: return online;
+            case 1: return results;
+            case 2: return history;
+            default: return null;
+        }
+    }
 
-    private EffectiveStats StatsOf(CreatureDNA dna) =>
-        database != null ? CombatStats.GetEffectiveStats(dna, database)
-                         : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
+    public void OnUINavigate(Vector2 dir)
+    {
+        int h = dir.x >  0.5f ? 1 : dir.x < -0.5f ? -1 : 0;
+        int v = dir.y < -0.5f ? 1 : dir.y >  0.5f ? -1 : 0;   // down = +1
+        if (h == 0 && v == 0) return;
+
+        if (region == Region.TabBar)
+        {
+            if (h != 0 && tabs != null) tabs.selectedTabIndex = Mathf.Clamp(tabs.selectedTabIndex + h, 0, 3);
+            else if (v > 0) EnterContent();
+        }
+        else
+        {
+            var p = ActivePresenter();
+            if (p == null || !p.Navigate(h, v)) { region = Region.TabBar; SetTabBarFocus(true); }
+        }
+    }
+
+    public void OnUISubmit()
+    {
+        if (region == Region.TabBar) EnterContent();
+        else ActivePresenter()?.Submit();
+    }
+
+    public bool OnUICancel()
+    {
+        if (region == Region.TabBar) return false;
+
+        var p = ActivePresenter();
+        if (p != null && p.Cancel()) return true;
+
+        ClearAllFocus();
+        region = Region.TabBar;
+        SetTabBarFocus(true);
+        return true;
+    }
+
+    private void EnterContent()
+    {
+        int t = tabs != null ? tabs.selectedTabIndex : 0;
+        if (t == 3) { SetTabBarFocus(true); return; }   // Equipo 3v3: mouse-driven by CombatLineupUITK
+
+        var p = ActivePresenter();
+        if (p == null) return;
+        SetTabBarFocus(false);
+        region = Region.Content;
+        p.Enter();
+    }
+
+    private void SetTabBarFocus(bool on) { tabs?.EnableInClassList("tabbar-focused", on); }
+
+    private void ClearAllFocus()
+    {
+        online?.ClearFocus();
+        results?.ClearFocus();
+        history?.ClearFocus();
+        SetTabBarFocus(false);
+    }
+
+    private void ResetFocus()
+    {
+        if (!wired) return;
+        tabs.selectedTabIndex = 0;
+        ClearAllFocus();
+        region = Region.TabBar;
+        SetTabBarFocus(true);
+    }
 }
 }

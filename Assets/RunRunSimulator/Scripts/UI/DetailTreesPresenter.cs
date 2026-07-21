@@ -5,8 +5,34 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-public partial class MorimonchiDetailInfoUITK
+public class DetailTreesPresenter
 {
+    private readonly CreatureDatabaseSO database;
+    private readonly Func<CreatureRegistrySO> getRegistry;
+
+    private readonly VisualElement lineageTree;
+    private readonly Label lineageEmpty;
+    private readonly VisualElement breedTree;
+    private readonly Label breedEmpty;
+
+    public DetailTreesPresenter(VisualElement root, CreatureDatabaseSO database, Func<CreatureRegistrySO> getRegistry)
+    {
+        this.database = database;
+        this.getRegistry = getRegistry;
+
+        lineageTree = root.Q<VisualElement>("lineage-tree");
+        lineageEmpty = root.Q<Label>("lineage-empty");
+        breedTree = root.Q<VisualElement>("breed-tree");
+        breedEmpty = root.Q<Label>("breed-empty");
+    }
+
+    public void Rebuild(CreatureDNA dna)
+    {
+        if (dna == null) return;
+        BuildLineage(dna);
+        BuildBreed(dna);
+    }
+
     // ── Lineage tab (ancestor tree: self + parents + grandparents) ──
 
     private void BuildLineage(CreatureDNA dna)
@@ -63,6 +89,7 @@ public partial class MorimonchiDetailInfoUITK
         if (string.IsNullOrEmpty(id))
             return BuildBlock(null, role, depth, isSelf: false);
 
+        var registry = getRegistry();
         if (registry != null && registry.TryGet(id, out var known))
             return BuildBlock(known, role, depth, isSelf: false);
 
@@ -120,6 +147,7 @@ public partial class MorimonchiDetailInfoUITK
         if (breedTree == null) return;
         breedTree.Clear();
 
+        var registry = getRegistry();
         string selfId = dna.UniqueID;
         var byPartner = new Dictionary<string, List<CreatureDNA>>();
         var order     = new List<string>();   // preserves discovery order
@@ -171,6 +199,7 @@ public partial class MorimonchiDetailInfoUITK
         bool        dead = false;
         if (!string.IsNullOrEmpty(partnerId))
         {
+            var registry = getRegistry();
             if (registry != null && registry.TryGet(partnerId, out var known)) pdna = known;
             else { pdna = ParseGenetics(partnerId); dead = true; }
         }

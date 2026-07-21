@@ -2,42 +2,28 @@
 tags: [script, ui, breeding]
 ---
 
-# BreedingPanelUITK
+# BreedingPanelUITK.cs
 
 **Ruta:** `UI/BreedingPanelUITK.cs`
 
-**Responsabilidad:** Panel UI de breeding (2 pestañas: Criar, Incubando). Implementa `IUINavigable` (focus jerárquico). Obtiene registry de `GameManager.Instance`. Cría local via `BreedingController.BreedCreatures()`, async via `BreedingController.StartBreedingAsync()`, hatch via `BreedingController.HatchAsync()`. Tick de huevos en Update (cuenta atrás).
+**Responsabilidad (S54 — Fase 7 composición):** Panel modal de crianza (2 tabs: Criar/Incubando). Núcleo delgado MonoBehaviour que orquesta: Tab 0 "Criar" (seleccionar padre+madre, preview, breed) y Tab 1 "Incubando" (huevos + timers + hatch). Compone `ITabPresenter` (contrato polimórfico) + 2 presenters concretos: `BreedingBreedTabPresenter`, `BreedingEggsTabPresenter`. Implementa `IUINavigable` (foco jerárquico TabBar ↔ Content). Setup: `Wire()` instancia presenters, obtiene refs via `document.Q<>()`, wiring callbacks Rebuild/Tick/ClearFocus. Eventos: `OnRegistry` (rebuild listas), `OnBred()` callback (salta a tab 1 tras breed exitoso). Campo especial: `breed.Busy` — congelado input global mientras async breed en vuelo. `Update()` llama `eggs.Tick()` solo si tab 1 visible. Callbacks async via `AsyncBreedingService` (StartBreedingAsync/HatchAsync).
 
-## Organización (partial class)
+**Organización (S54 composición — Fase 7):**
+- `BreedingPanelUITK.cs` — núcleo MonoBehaviour: lifecycle, navigation, tab bar ↔ content, fachada IUINavigable
+- `ITabPresenter.cs` — contrato polimórfico para presenters (Enter/Navigate/Submit/Cancel/ClearFocus/Rebuild/Teardown)
+- `BreedingBreedTabPresenter.cs` — Tab 0: selección padre/madre + preview + breed async (gestiona Busy)
+- `BreedingEggsTabPresenter.cs` — Tab 1: lista huevos + timers + hatch async (método Tick() externo)
 
-| Archivo | Responsabilidad |
-|---------|-----------------|
-| `BreedingPanelUITK.cs` | Núcleo, lifecycle, wiring, data |
-| `BreedingPanelUITK.Content.cs` | Candidatos, huevos, preview, breed, hatch |
-| `BreedingPanelUITK.Navigation.cs` | `IUINavigable` + foco jerárquico |
+**Eliminadas partials (S54):**
+- `BreedingPanelUITK.Content.cs` — contenido decomposed en BreedingBreedTabPresenter + BreedingEggsTabPresenter
+- `BreedingPanelUITK.Navigation.cs` — navegación reducida a región TabBar⇄Content (delegando al presenter activo)
 
-## Cambios S32
+**Vinculado a:** [[Index/05 - UI System]], [[Index/11 - Technical Debt]] (Fase 7 deuda)
 
-**Stats refs:** Cambio de `CombatService.GetEffectiveStats()` → `CombatStats.GetEffectiveStats()` y `CombatService.EffectiveStats` → `EffectiveStats` top-level. Usado en preview de crías (display de stats heredados).
+**Conexiones:** [[ITabPresenter]], [[BreedingBreedTabPresenter]], [[BreedingEggsTabPresenter]], [[UIManager]], [[GameManager]], [[GameEvents]], [[AsyncBreedingService]], [[BreedingController]]
 
-## Vinculado a
-
-- [[Index/05 - UI System]]
-- [[BreedingController]] — orquesta crianza
-- [[AsyncBreedingService]] — async breeding
-- [[GameManager]] — registry
-- [[CombatStats]] — calcula stats (S32)
-- [[EffectiveStats]] — struct (S32)
-
-## Conexiones
-
-**Entrada:**
-- `GameEvents.OnRegistryChanged`, etc. — subscriptor
-- Botones UI → llamadas a `BreedingController`
-
-**Salida:**
-- UI visual (pestañas, candidatos, huevos, preview stats)
-
-## Notas
-
-- **Stats preview:** Muestra stats de crías proyectadas vía `CombatStats.GetEffectiveStats()` (S32).
+**Notas S54:**
+- Presenters son clases planas (no MonoBehaviour) con state UI-only; reciben `Func<CreatureRegistrySO>` para lazy-load (no cachean registry)
+- BreedingBreedTabPresenter.Busy bloquea input global (core chequea antes de procesar input)
+- BreedingEggsTabPresenter.Tick() es método público EXTRA (no en ITabPresenter) — core lo llama desde Update solo si tab 1 visible (throttle 1s)
+- Stats en preview usan `CombatStats.GetEffectiveStats()` (S32)

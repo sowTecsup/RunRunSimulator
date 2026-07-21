@@ -6,13 +6,13 @@ tags: [script, cloud]
 
 **Ruta:** `Systems/Cloud/CloudSyncService.cs`
 
-**Responsabilidad:** Capa de sincronización con UGS Cloud Save. Auth, Push/Pull de registry+metadata+furniture+inventory, security metadata (anti-cheat: timestamps LocalPulledAt/LocalKnownCloudAt/CloudPushedAt). **`ResetProgressAsync()`** (en .Sync.cs): borra TODO el estado MM server-side + local + JSON. Secuencia: (1) llama `CloudEndpoint.CallAsync(CANCEL_ALL_BREEDING, {})` para cancelar huevos; (2) itera registry, para cada criatura con BusyState=QueuedForCombat, llama `CloudEndpoint.CallAsync(DEQUEUE_COMBAT, {creatureId})`; (3) borra 5 Cloud Save keys via `CloudSaveService.DeleteAsync()`: `creatureregistry`, `sync_meta`, `furnitureregistry`, `playerinventory`, `combat_results`. (4) vaciá caché local + recargar JSON + dispara `RegistryReloaded`/`FurnitureReloaded`/`InventoryReloaded` SIN push (limpieza pura). Pull/Push disparan `OnRegistryReloaded` solo en Pull.
+**Responsabilidad (S53 — Fase 6 composición):** Núcleo MonoBehaviour delgado que orquesta autenticación + sincronización. Compone: `CloudAuth` (identidad UGS) + `CloudSyncOps` (operaciones sync). Setup: `Start()` instancia ambas, `Awake()` carga refs de GameManager (registry/furnitureRegistry/inventory). Fachada pública intacta para consumidores externos (GameManager): `InitializeAsync()`, `PushAsync()`, `PullAsync()`, `ResetProgressAsync()`, `UpdatePlayerNameAsync()`, `ServerOffset`. Secuencia post-sign-in (`HandleSignedInAsync`): cargar locales + scope por PlayerID + FetchServerTime + Pull + NotifyPending. Ciclo: (1) `auth.InitializeAsync()` → resume session || anónimo || espera Unity Account; (2) callback dispara `HandleSignedInAsync()` → setup local + Func coordinator que llama `syncOps.PullAsync()`. Panel Odin Buttons: sign in (anón/Unity), sign out, update name, reset progress (dev), push, pull. Displays readonly: Player ID, Name, Auth Method, Last Pull, Last Known Cloud Push, Security Status, Server Offset. Botones y displays delegando a auth/syncOps.
 
 **Vinculado a:** [[Index/04 - UGS & Cloud]]
 
-**Conexiones:** [[GameManager]], [[GameEvents]], [[CloudCodeTester]]
+**Conexiones:** [[CloudAuth]], [[CloudSyncOps]], [[GameManager]], [[GameEvents]], [[SaveSystem]]
 
-**Organización (partial class):**
-- `CloudSyncService.cs` — núcleo: constants/SyncMeta/fields/lifecycle/meta helpers
-- `CloudSyncService.Auth.cs` — auth+init+cuenta
-- `CloudSyncService.Sync.cs` — validate+reset+push+pull
+**Organización (S53 composición — Fase 6):**
+- `CloudSyncService.cs` — núcleo MonoBehaviour: lifecycle, coordination, fachada pública
+- `CloudAuth.cs` — identidad UGS (dueño único)
+- `CloudSyncOps.cs` — operaciones de sync (dueño único)

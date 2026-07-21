@@ -1,14 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Sirenix.OdinInspector;
-using Unity.Services.Authentication;
-using Unity.Services.Authentication.PlayerAccounts;
-using Unity.Services.CloudCode;
-using Unity.Services.CloudSave;
-using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.Serialization;
 namespace MoriMonchiSimulator
@@ -18,73 +10,59 @@ namespace MoriMonchiSimulator
 //   Authentication → enable Anonymous + Unity Player Accounts
 //   Cloud Save     → enable
 // Attach to same GameObject as GameManager. Assign CreatureRegistrySO in Setup.
-public partial class CloudSyncService : MonoBehaviour
+public class CloudSyncService : MonoBehaviour
 {
-    private const string REGISTRY_KEY  = "creatureregistry";
-    private const string META_KEY      = "sync_meta";
-    private const string FURNITURE_KEY = "furnitureregistry";
-    private const string INVENTORY_KEY = "playerinventory";
-    private const string COMBAT_RESULTS_KEY  = "combat_results";
-    private const string CANCEL_ALL_BREEDING = "cancel-all-breeding";
-    private const string DEQUEUE_COMBAT      = "dequeue-combat";
-
-    private string MetaPath =>
-        Path.Combine(Application.persistentDataPath,
-            string.IsNullOrEmpty(playerID) ? "sync_meta.json" : $"sync_meta_{playerID}.json");
-
-    [Serializable]
-    private class SyncMeta
-    {
-        public long LocalPulledAt     = 0;
-        public long LocalKnownCloudAt = 0;
-        public long CloudPushedAt     = 0;
-    }
-
-    // ── Private Fields ────────────────────────────────────────────
-
-    // ── Cached References ─────────────────────────────────────────
-
     private CreatureRegistrySO  registry;
     private FurnitureRegistrySO furnitureRegistry;
     private PlayerInventorySO   inventory;
 
+    private CloudAuth    auth;
+    private CloudSyncOps syncOps;
+
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private string status = "Not initialized";
-
-    [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Player ID")]
-    private string playerID = "---";
-
-    [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Player Name")]
-    private string playerName = "---";
-
-    [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Signed In")]
-    private bool isSignedIn = false;
-
-    [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Auth Method")]
-    private string authMethod = "---";
 
     [BoxGroup("Account"), LabelText("New Name"), EnableIf("isSignedIn")]
     [FormerlySerializedAs("_newNameInput")]
     [SerializeField] private string newNameInput = "";
 
+    // ── Inspector Displays ────────────────────────────────────────
+
+    [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Player ID")]
+    private string PlayerIDDisplay => auth?.PlayerID ?? "---";
+
+    [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Player Name")]
+    private string PlayerNameDisplay => auth?.PlayerName ?? "---";
+
+    [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Signed In")]
+    private bool SignedInDisplay => auth?.IsSignedIn ?? false;
+
+    [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Auth Method")]
+    private string AuthMethodDisplay => auth?.AuthMethod ?? "---";
+
     [ShowInInspector, ReadOnly, BoxGroup("Security"), LabelText("Last Pull")]
-    private string lastPullDisplay = "---";
+    private string LastPullDisplay => syncOps?.LastPullDisplay ?? "---";
 
     [ShowInInspector, ReadOnly, BoxGroup("Security"), LabelText("Last Known Cloud Push")]
-    private string lastKnownCloudDisplay = "---";
+    private string LastKnownCloudDisplay => syncOps?.LastKnownCloudDisplay ?? "---";
 
     [ShowInInspector, ReadOnly, BoxGroup("Security"), LabelText("Security Status")]
-    private string securityStatus = "---";
+    private string SecurityStatusDisplay => syncOps?.SecurityStatus ?? "---";
 
     [ShowInInspector, ReadOnly, BoxGroup("Security"), LabelText("Server Time Offset")]
-    private string serverOffsetDisplay = "---";
+    private string ServerOffsetDisplay => auth?.ServerOffsetDisplay ?? "---";
 
-    // Difference between server UTC and local UTC, fetched once at login.
-    // Usage: (DateTime.UtcNow + ServerOffset).ToLocalTime() = server-adjusted local time.
-    private TimeSpan _serverOffset = TimeSpan.Zero;
-    public  TimeSpan ServerOffset  => _serverOffset;
+    private bool isSignedIn => auth != null && auth.IsSignedIn;
 
-    private bool isPushInProgress = false;
+    // ── Public Facade ─────────────────────────────────────────────
+
+    public TimeSpan ServerOffset => auth?.ServerOffset ?? TimeSpan.Zero;
+
+    public Task InitializeAsync() => auth.InitializeAsync();
+    public Task PushAsync() => syncOps.PushAsync();
+    public Task PullAsync() => syncOps.PullAsync();
+    public Task ResetProgressAsync() => syncOps.ResetProgressAsync();
+    public Task UpdatePlayerNameAsync(string newName) => auth.UpdatePlayerNameAsync(newName);
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
@@ -93,47 +71,77 @@ public partial class CloudSyncService : MonoBehaviour
         registry          = GameManager.Instance.Registry;
         furnitureRegistry = GameManager.Instance.FurnitureRegistry;
         inventory         = GameManager.Instance.Inventory;
-        await InitializeAsync();
+        auth    = new CloudAuth(s => status = s, HandleSignedInAsync);
+        syncOps = new CloudSyncOps(auth, registry, furnitureRegistry, inventory, s => status = s);
+        await auth.InitializeAsync();
     }
 
-    private void OnDestroy()
+    private void OnDestroy() => auth?.Teardown();
+
+    private async Task HandleSignedInAsync(string method)
     {
-        PlayerAccountService.Instance.SignedIn -= OnPlayerAccountSignedIn;
+        syncOps.RefreshSecurityDisplay();
+
+        // Scope local save by player + auto-sync from cloud
+        SaveSystem.SetUserScope(auth.PlayerID);
+        SaveSystem.LoadInto(registry);
+        // Reflect local data in the UI immediately: the cloud pull below raises its
+        // own reload only when the cloud actually has data, so a local-only player
+        // (fresh/anon/offline, or after a reset) would otherwise see an empty grid.
+        GameEvents.RegistryReloaded(registry);
+
+        // Pre-warm from local cache so the player sees their data instantly before the
+        // cloud pull completes. PullAsync below will override with the authoritative cloud
+        // copy if it exists. Reload (not Changed) → UI rebuilds, no re-save.
+        if (furnitureRegistry != null)
+        {
+            SaveSystem.LoadFurniture(furnitureRegistry);
+            GameEvents.FurnitureReloaded(furnitureRegistry);
+        }
+        if (inventory != null)
+        {
+            SaveSystem.LoadInventory(inventory);
+            GameEvents.InventoryReloaded(inventory);
+        }
+
+        await auth.FetchServerTimeAsync();
+        await syncOps.PullAsync();
+        await syncOps.NotifyPendingCombatResultsAsync();
     }
 
-    private SyncMeta ReadLocalMeta()
+    // ── Buttons ───────────────────────────────────────────────────
+
+    [Button("Sign In Anonymous (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.6f, 0.6f)]
+    [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]
+    private async void SignInAnonButton() => await auth.SignInAnonymouslyAsync();
+
+    [Button("Sign In with Unity Account", ButtonSizes.Large), GUIColor(0.4f, 0.6f, 1f)]
+    [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]
+    private async void SignInButton() => await auth.StartUnitySignInAsync();
+
+    [Button("Sign Out", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.5f)]
+    [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
+    private void SignOut() => auth.SignOut();
+
+    [Button("Update Name"), GUIColor(0.9f, 0.9f, 0.4f)]
+    [BoxGroup("Account"), EnableIf("isSignedIn")]
+    private async void UpdateNameButton()
     {
-        if (!File.Exists(MetaPath)) return new SyncMeta();
-        try { return JsonConvert.DeserializeObject<SyncMeta>(File.ReadAllText(MetaPath)) ?? new SyncMeta(); }
-        catch { return new SyncMeta(); }
+        if (string.IsNullOrWhiteSpace(newNameInput)) return;
+        await auth.UpdatePlayerNameAsync(newNameInput);
+        newNameInput = "";
     }
 
-    private void WriteLocalMeta(SyncMeta meta) =>
-        File.WriteAllText(MetaPath, JsonConvert.SerializeObject(meta, Formatting.Indented));
+    [Button("Reset All Progress (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.2f, 0.2f)]
+    [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
+    private async void ResetProgressButton() => await syncOps.ResetProgressAsync();
 
-    private void RefreshSecurityDisplay()
-    {
-        var meta = ReadLocalMeta();
-        lastPullDisplay = meta.LocalPulledAt > 0
-            ? new DateTime(meta.LocalPulledAt, DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm:ss") + " UTC"
-            : "Never";
-        lastKnownCloudDisplay = meta.LocalKnownCloudAt > 0
-            ? new DateTime(meta.LocalKnownCloudAt, DateTimeKind.Utc).ToString("yyyy-MM-dd HH:mm:ss") + " UTC"
-            : "Never";
-    }
+    [Button("Push to Cloud", ButtonSizes.Large), GUIColor(1f, 0.85f, 0.3f)]
+    [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
+    private async void PushButton() => await syncOps.PushAsync();
 
-    private bool EnsureSignedIn()
-    {
-        if (isSignedIn) return true;
-        status = "Not signed in";
-        Debug.LogError("[CloudSync] Not signed in.");
-        return false;
-    }
-
-    private async Task<string> SafeGetPlayerName()
-    {
-        try { return await AuthenticationService.Instance.GetPlayerNameAsync() ?? "---"; }
-        catch { return "---"; }
-    }
+    [Button("Pull from Cloud", ButtonSizes.Large), GUIColor(0.5f, 0.85f, 1f)]
+    [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
+    private async void PullButton() => await syncOps.PullAsync();
 }
 }

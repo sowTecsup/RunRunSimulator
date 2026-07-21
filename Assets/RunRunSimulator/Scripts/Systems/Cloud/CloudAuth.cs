@@ -1,21 +1,39 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Sirenix.OdinInspector;
 using Unity.Services.Authentication;
 using Unity.Services.Authentication.PlayerAccounts;
 using Unity.Services.CloudCode;
-using Unity.Services.CloudSave;
 using Unity.Services.Core;
 using UnityEngine;
-using UnityEngine.Serialization;
 namespace MoriMonchiSimulator
 {
 
-public partial class CloudSyncService
+public class CloudAuth
 {
+    private readonly Action<string>      setStatus;
+    private readonly Func<string, Task>  onSignedInComplete;
+
+    private bool     isSignedIn          = false;
+    private string   playerID            = "---";
+    private string   playerName          = "---";
+    private string   authMethod          = "---";
+    private TimeSpan _serverOffset       = TimeSpan.Zero;
+    private string   serverOffsetDisplay = "---";
+
+    public bool     IsSignedIn          => isSignedIn;
+    public string   PlayerID            => playerID;
+    public string   PlayerName          => playerName;
+    public string   AuthMethod          => authMethod;
+    public TimeSpan ServerOffset        => _serverOffset;
+    public string   ServerOffsetDisplay => serverOffsetDisplay;
+
+    public CloudAuth(Action<string> setStatus, Func<string, Task> onSignedInComplete)
+    {
+        this.setStatus          = setStatus;
+        this.onSignedInComplete = onSignedInComplete;
+    }
+
     // ── Private Methods ───────────────────────────────────────────
 
     private void SetupAuthEvents()
@@ -28,13 +46,13 @@ public partial class CloudSyncService
         {
             isSignedIn = false;
             authMethod = "---";
-            status     = "Signed out";
+            setStatus("Signed out");
         };
         AuthenticationService.Instance.Expired += () =>
         {
             isSignedIn = false;
             authMethod = "---";
-            status     = "Session expired — sign in again";
+            setStatus("Session expired — sign in again");
             Debug.LogWarning("[CloudSync] Session expired.");
         };
     }
@@ -43,19 +61,19 @@ public partial class CloudSyncService
     {
         try
         {
-            status = "Authenticating...";
+            setStatus("Authenticating...");
             await AuthenticationService.Instance.SignInWithUnityAsync(
                 PlayerAccountService.Instance.AccessToken);
             await OnSignedInComplete("Unity Account");
         }
         catch (AuthenticationException ex)
         {
-            status = $"Auth error: {ex.Message}";
+            setStatus($"Auth error: {ex.Message}");
             Debug.LogException(ex);
         }
         catch (RequestFailedException ex)
         {
-            status = $"Request failed: {ex.Message}";
+            setStatus($"Request failed: {ex.Message}");
             Debug.LogException(ex);
         }
     }
@@ -66,62 +84,27 @@ public partial class CloudSyncService
         isSignedIn = true;
         authMethod = method;
         playerName = await SafeGetPlayerName();
-        status     = $"Signed in ({method})";
-        RefreshSecurityDisplay();
-      //  Debug.Log($"[CloudSync] Signed in via '{method}' — ID: {playerID}, Name: {playerName}");
+        setStatus($"Signed in ({method})");
 
-        // Scope local save by player + auto-sync from cloud
-        SaveSystem.SetUserScope(playerID);
-        SaveSystem.LoadInto(registry);
-        // Reflect local data in the UI immediately: the cloud pull below raises its
-        // own reload only when the cloud actually has data, so a local-only player
-        // (fresh/anon/offline, or after a reset) would otherwise see an empty grid.
-        GameEvents.RegistryReloaded(registry);
-
-        // Pre-warm from local cache so the player sees their data instantly before the
-        // cloud pull completes. PullAsync below will override with the authoritative cloud
-        // copy if it exists. Reload (not Changed) → UI rebuilds, no re-save.
-        if (furnitureRegistry != null)
-        {
-            SaveSystem.LoadFurniture(furnitureRegistry);
-            GameEvents.FurnitureReloaded(furnitureRegistry);
-        }
-        if (inventory != null)
-        {
-            SaveSystem.LoadInventory(inventory);
-            GameEvents.InventoryReloaded(inventory);
-        }
-        await FetchServerTimeAsync();
-        await PullAsync();
-        await NotifyPendingCombatResultsAsync();
+        await onSignedInComplete(method);
     }
-    private async Task NotifyPendingCombatResultsAsync()
+
+    private async Task<string> SafeGetPlayerName()
     {
-        try
-        {
-            var data = await CloudSaveService.Instance.Data.Player.LoadAsync(
-                new HashSet<string> { "combat_results" });
-            if (!data.ContainsKey("combat_results")) return;
-
-            var json    = data["combat_results"].Value.GetAs<string>();
-            var results = JsonConvert.DeserializeObject<List<object>>(json);
-            if (results == null || results.Count == 0) return;
-
-            Debug.Log($"[CloudSync] ¡Bienvenido, {playerName}! Tienes {results.Count} MoriMochi(s) con resultado de combate pendiente. Presiona 'Check Pending Results' para aplicarlos.");
-        }
-        catch { /* silent — non-critical notification */ }
+        try { return await AuthenticationService.Instance.GetPlayerNameAsync() ?? "---"; }
+        catch { return "---"; }
     }
 
     // Calls the minimal get-server-time Cloud Code function and caches the offset.
     // Non-critical: if it fails the game falls back to local time gracefully.
-    private async Task FetchServerTimeAsync()
+    public async Task FetchServerTimeAsync()
     {
         try
         {
             var raw = await CloudCodeService.Instance.CallEndpointAsync<string>(
-                "get-server-time", new Dictionary<string, object>());
+                "get-server-time", new System.Collections.Generic.Dictionary<string, object>());
 
-            var resp = JsonConvert.DeserializeObject<Dictionary<string, string>>(raw);
+            var resp = JsonConvert.DeserializeObject<System.Collections.Generic.Dictionary<string, string>>(raw);
             if (resp != null && resp.TryGetValue("utc", out string utcStr) &&
                 DateTime.TryParse(utcStr, null,
                     System.Globalization.DateTimeStyles.AdjustToUniversal |
@@ -138,13 +121,14 @@ public partial class CloudSyncService
             Debug.LogWarning($"[CloudSync] Could not fetch server time: {e.Message}");
         }
     }
+
     // ── Public Methods ────────────────────────────────────────────
 
     public async Task InitializeAsync()
     {
         try
         {
-            status = "Initializing...";
+            setStatus("Initializing...");
 
             if (UnityServices.State == ServicesInitializationState.Uninitialized)
                 await UnityServices.InitializeAsync();
@@ -161,58 +145,52 @@ public partial class CloudSyncService
             // Resume cached session silently — works for any prior auth method
             if (AuthenticationService.Instance.SessionTokenExists)
             {
-                status = "Resuming session...";
+                setStatus("Resuming session...");
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
                 await OnSignedInComplete("Session resumed");
                 return;
             }
 
-            status = "Ready — press 'Sign In with Unity Account'";
+            setStatus("Ready — press 'Sign In with Unity Account'");
         }
         catch (Exception e)
         {
-            status = $"Init error: {e.Message}";
+            setStatus($"Init error: {e.Message}");
             Debug.LogError($"[CloudSync] Init failed: {e}");
         }
     }
 
-    [Button("Sign In Anonymous (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.6f, 0.6f)]
-    [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]
-    private async void SignInAnonButton()
+    public async Task SignInAnonymouslyAsync()
     {
         try
         {
-            status = "Signing in anonymously...";
+            setStatus("Signing in anonymously...");
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
             await OnSignedInComplete("Anonymous");
         }
         catch (Exception e)
         {
-            status = $"Anon sign-in error: {e.Message}";
+            setStatus($"Anon sign-in error: {e.Message}");
             Debug.LogError($"[CloudSync] SignInAnonymously failed: {e}");
         }
     }
 
-    [Button("Sign In with Unity Account", ButtonSizes.Large), GUIColor(0.4f, 0.6f, 1f)]
-    [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]
-    private async void SignInButton()
+    public async Task StartUnitySignInAsync()
     {
         try
         {
-            status = "Opening sign-in...";
+            setStatus("Opening sign-in...");
             await PlayerAccountService.Instance.StartSignInAsync();
             // Flow continues in OnPlayerAccountSignedIn (event-driven by the browser callback)
         }
         catch (Exception e)
         {
-            status = $"Sign-in error: {e.Message}";
+            setStatus($"Sign-in error: {e.Message}");
             Debug.LogError($"[CloudSync] StartSignInAsync failed: {e}");
         }
     }
 
-    [Button("Sign Out", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.5f)]
-    [BoxGroup("Cloud Actions"), EnableIf("isSignedIn")]
-    private void SignOut()
+    public void SignOut()
     {
         AuthenticationService.Instance.SignOut();
         PlayerAccountService.Instance.SignOut();
@@ -221,29 +199,25 @@ public partial class CloudSyncService
         // isSignedIn + status updated by the SignedOut event handler above
     }
 
-    [Button("Update Name"), GUIColor(0.9f, 0.9f, 0.4f)]
-    [BoxGroup("Account"), EnableIf("isSignedIn")]
-    private async void UpdateNameButton()
-    {
-        if (string.IsNullOrWhiteSpace(newNameInput)) return;
-        await UpdatePlayerNameAsync(newNameInput);
-    }
-
     public async Task UpdatePlayerNameAsync(string newName)
     {
         try
         {
             await AuthenticationService.Instance.UpdatePlayerNameAsync(newName);
-            playerName   = await SafeGetPlayerName();
-            newNameInput = "";
-            status       = $"Name updated: {playerName}";
+            playerName = await SafeGetPlayerName();
+            setStatus($"Name updated: {playerName}");
             Debug.Log($"[CloudSync] Player name updated → {playerName}");
         }
         catch (Exception e)
         {
-            status = $"Name update error: {e.Message}";
+            setStatus($"Name update error: {e.Message}");
             Debug.LogError($"[CloudSync] UpdatePlayerName failed: {e}");
         }
+    }
+
+    public void Teardown()
+    {
+        PlayerAccountService.Instance.SignedIn -= OnPlayerAccountSignedIn;
     }
 }
 }
