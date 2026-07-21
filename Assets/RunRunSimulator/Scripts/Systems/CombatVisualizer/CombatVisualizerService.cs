@@ -11,7 +11,7 @@ public class CombatVisualizerService : MonoBehaviour
     public static CombatVisualizerService Instance { get; private set; }
 
     [Title("Scene Refs")]
-    [Required, SerializeField] private MoriMonchiVisualizer visualizerPrefab;
+    [Required, SerializeField] private MonchiVisualizer visualizerPrefab;
 
     [Title("Boards")]
     [Required, SerializeField] private Transform boardA;
@@ -24,10 +24,18 @@ public class CombatVisualizerService : MonoBehaviour
     [SerializeField, MinValue(0f)] private float windupSeconds       = 0.35f;
     [SerializeField, MinValue(0f)] private float impactSeconds       = 0.35f;
     [SerializeField, Range(0f, 1f)] private float lungeFraction      = 0.6f;
+    [SerializeField, MinValue(0f)] private float passiveAnticipationSeconds  = 0.25f;
+    [SerializeField, MinValue(0f)] private float passiveAnticipationPullback = 0.3f;
     [SerializeField, MinValue(0f)] private float betweenTurnsSeconds = 0.55f;
     [SerializeField, MinValue(0f)] private float deathPauseSeconds   = 0.6f;
     [SerializeField, MinValue(0f)] private float synergyPopupDelay   = 0.6f;
     [SerializeField, MinValue(0f)] private float stateBeatSeconds    = 0.5f;
+    [SerializeField, MinValue(0f)] private float turnSeconds         = 0.15f;
+
+    [Title("Corpses")]
+    [SerializeField, MinValue(0f)] private float corpseFadeDelay   = 2.5f;
+    [SerializeField, MinValue(0f)] private float corpseFadeSeconds = 1.5f;
+    [SerializeField, Range(0f, 1f)] private float corpseAlpha      = 0.35f;
 
     [Title("Speech (frases tweakeables)")]
     [SerializeField] private string protectorLine = "¡Toma, protégete!";
@@ -85,6 +93,7 @@ public class CombatVisualizerService : MonoBehaviour
     private Coroutine beginRoutine;
     private Coroutine autoRoutine;
     private Coroutine fwdRoutine;
+    private readonly List<Coroutine> corpseFades = new List<Coroutine>();
 
     public bool  IsPlaying => head != null;
     public bool  IsAuto    => isAuto;
@@ -154,6 +163,7 @@ public class CombatVisualizerService : MonoBehaviour
         beginRoutine = null;
         autoRoutine  = null;
         fwdRoutine   = null;
+        corpseFades.Clear();
         isAuto       = false;
         busy         = false;
         head         = null;
@@ -190,7 +200,14 @@ public class CombatVisualizerService : MonoBehaviour
     public void SetSpeed(float value)
     {
         playbackSpeed = Mathf.Clamp(value, 0.25f, 4f);
+        PushTimeScale();
         Publish();
+    }
+
+    private void PushTimeScale()
+    {
+        foreach (var unit in units.Team(CombatVisualSide.A)) unit.Anim?.SetTimeScale(Speed);
+        foreach (var unit in units.Team(CombatVisualSide.B)) unit.Anim?.SetTimeScale(Speed);
     }
 
     public Unity.Cinemachine.CinemachineCamera VCamOf(CombatVisualSide side, int index) => units.Get(side, index)?.VCam;
@@ -263,7 +280,16 @@ public class CombatVisualizerService : MonoBehaviour
                     float after  = pe.TargetHpAfter;
                     hpArr[pe.TargetIndex] = after;
 
-                    string who  = Colored(snaps[pe.TargetIndex].Name, isA ? SelfColor : OppColor);
+                    string who      = Colored(snaps[pe.TargetIndex].Name, isA ? SelfColor : OppColor);
+                    var    unitSide = isA ? CombatVisualSide.A : CombatVisualSide.B;
+
+                    if (pe.ElementEvent == ElementEventKind.Reaction)
+                    {
+                        string reactionText = ReactionLine(pe, who);
+                        log.Add(Line(CombatVisualLogKind.Proc, reactionText, true, unitSide, pe.TargetIndex));
+                        return;
+                    }
+
                     string text = pe.ElementEvent == ElementEventKind.None
                         ? ProcText(pe, who, after - before)
                         : ElementText(pe, who, after - before);
@@ -300,13 +326,13 @@ public class CombatVisualizerService : MonoBehaviour
                     if (stateA[i].Hp <= 0f && aliveA[i])
                     {
                         diedHereA[i] = true; aliveA[i] = false;
-                        log.Add(Line(CombatVisualLogKind.Death, $"{Colored(snapsA[i].Name, SelfColor)} cae derrotado"));
+                        log.Add(Line(CombatVisualLogKind.Death, $"{Colored(snapsA[i].Name, SelfColor)} cae derrotado", true, CombatVisualSide.A, i));
                     }
                 for (int i = 0; i < stateB.Count; i++)
                     if (stateB[i].Hp <= 0f && aliveB[i])
                     {
                         diedHereB[i] = true; aliveB[i] = false;
-                        log.Add(Line(CombatVisualLogKind.Death, $"{Colored(snapsB[i].Name, OppColor)} cae derrotado"));
+                        log.Add(Line(CombatVisualLogKind.Death, $"{Colored(snapsB[i].Name, OppColor)} cae derrotado", true, CombatVisualSide.B, i));
                     }
 
                 totalTurns++;
@@ -336,8 +362,8 @@ public class CombatVisualizerService : MonoBehaviour
         current = head;
     }
 
-    private static CombatVisualLogLine Line(CombatVisualLogKind kind, string text)
-        => new CombatVisualLogLine { Kind = kind, Text = text };
+    private static CombatVisualLogLine Line(CombatVisualLogKind kind, string text, bool hasUnit = false, CombatVisualSide unitSide = default, int unitIndex = 0)
+        => new CombatVisualLogLine { Kind = kind, Text = text, HasUnit = hasUnit, UnitSide = unitSide, UnitIndex = unitIndex };
 
     private static string Colored(string text, string hex) => $"<color=#{hex}>{text}</color>";
 
@@ -361,12 +387,10 @@ public class CombatVisualizerService : MonoBehaviour
         };
         CombatVisualEvents.VisualCombatStart(ctx);
 
-        foreach (var unit in units.Team(CombatVisualSide.A)) unit.Hooks?.PlayCombatStart();
-        foreach (var unit in units.Team(CombatVisualSide.B)) unit.Hooks?.PlayCombatStart();
-
         isAuto  = false;
         current = head;
         Restore(head);
+        PushTimeScale();
         beginRoutine = null;
     }
 
@@ -433,11 +457,27 @@ public class CombatVisualizerService : MonoBehaviour
                 }
                 else
                 {
+                    var passiveRot = atkUnit?.Instance != null ? atkUnit.Instance.transform.rotation : Quaternion.identity;
                     var dest = atkHome + (units.PosOf(groupSide, groupIndex) - atkHome) * lungeFraction;
+                    if (atkUnit?.Instance != null) yield return StartCoroutine(TurnTowards(atkUnit.Instance.transform, units.PosOf(groupSide, groupIndex), turnSeconds / Speed));
+
+                    var lungeStart = atkHome;
                     if (atkUnit?.Instance != null)
-                        yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, atkHome, dest, windupSeconds / Speed));
+                    {
+                        var pullDir = units.PosOf(groupSide, groupIndex) - atkHome;
+                        pullDir.y = 0f;
+                        var pullbackDir = pullDir.sqrMagnitude > 0.0001f ? -pullDir.normalized : Vector3.zero;
+                        lungeStart = atkHome + pullbackDir * passiveAnticipationPullback;
+                        yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, atkHome, lungeStart, passiveAnticipationSeconds * 0.6f / Speed));
+                        yield return new WaitForSeconds(passiveAnticipationSeconds * 0.4f / Speed);
+                    }
+
+                    if (atkUnit?.Instance != null)
+                        yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, lungeStart, dest, windupSeconds / Speed));
                     else
                         yield return new WaitForSeconds(windupSeconds / Speed);
+
+                    atkUnit?.Anim?.PlayBuff(null);
 
                     foreach (var pe in group) yield return StartCoroutine(PlayProc(pe, target));
 
@@ -445,6 +485,7 @@ public class CombatVisualizerService : MonoBehaviour
                         yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, dest, atkHome, impactSeconds / Speed));
                     else
                         yield return new WaitForSeconds(impactSeconds / Speed);
+                    if (atkUnit?.Instance != null) yield return StartCoroutine(TurnBack(atkUnit.Instance.transform, passiveRot, turnSeconds / Speed));
                 }
             }
         }
@@ -452,15 +493,19 @@ public class CombatVisualizerService : MonoBehaviour
         if (!t.NoAttack)
         {
             CombatVisualEvents.Attack(target.AttackerSide);
-            atkUnit?.Hooks?.PlayAttack();
 
             EmitSpeech(target.AttackerSide, target.AttackerIndex, string.Format(attackLine, t.DefenderName), defSide, target.DefenderIndex, true);
 
-            var lungePos = atkHome + (units.PosOf(defSide, target.DefenderIndex) - atkHome) * lungeFraction;
-            if (atkUnit?.Instance != null)
-                yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, atkHome, lungePos, windupSeconds / Speed));
+            bool impacted = false;
+            bool attackDone = false;
+            if (atkUnit?.Anim != null)
+                atkUnit.Anim.PlayAttack(units.PosOf(defSide, target.DefenderIndex), () => impacted = true, () => attackDone = true);
             else
+            {
                 yield return new WaitForSeconds(windupSeconds / Speed);
+                impacted = true; attackDone = true;
+            }
+            yield return new WaitUntil(() => impacted);
 
             var hit = new CombatVisualHit
             {
@@ -468,9 +513,7 @@ public class CombatVisualizerService : MonoBehaviour
                 AttackerIndex = target.AttackerIndex, DefenderIndex = target.DefenderIndex,
             };
             CombatVisualEvents.Hit(hit);
-            if (t.WasCrit) { atkUnit?.Hooks?.PlayCritDealt(); defUnit?.Hooks?.PlayCritTaken(); }
-            else            { atkUnit?.Hooks?.PlayHitDealt();  defUnit?.Hooks?.PlayHitTaken(); }
-            defUnit?.Hooks?.PlayHpChanged(t.DefenderHpAfter, defUnit.MaxHp);
+            defUnit?.Anim?.PlayHit(t.WasCrit ? 1f : 0.5f);
             if (t.WasCrit)
             {
                 CombatVisualEvents.Crit(hit);
@@ -489,10 +532,7 @@ public class CombatVisualizerService : MonoBehaviour
                     Side = defSide, Position = units.PosOf(defSide, target.DefenderIndex), Follow = units.TransformOf(defSide, target.DefenderIndex),
                     Kind = t.WasCrit ? CombatPopupKind.Crit : CombatPopupKind.Hit, Amount = t.Damage,
                 });
-            if (atkUnit?.Instance != null)
-                yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, lungePos, atkHome, impactSeconds / Speed));
-            else
-                yield return new WaitForSeconds(impactSeconds / Speed);
+            yield return new WaitUntil(() => attackDone);
             defUnit?.Bar?.SetTargeted(false);
         }
 
@@ -509,7 +549,7 @@ public class CombatVisualizerService : MonoBehaviour
             if (target.DiedHereA[i])
             {
                 anyDied = true;
-                units.Get(CombatVisualSide.A, i)?.Hooks?.PlayDead();
+                units.Get(CombatVisualSide.A, i)?.Anim?.PlayDefeat();
                 CombatVisualEvents.Dead(CombatVisualSide.A);
                 CombatVisualEvents.UnitDead(CombatVisualSide.A, i);
             }
@@ -517,7 +557,7 @@ public class CombatVisualizerService : MonoBehaviour
             if (target.DiedHereB[i])
             {
                 anyDied = true;
-                units.Get(CombatVisualSide.B, i)?.Hooks?.PlayDead();
+                units.Get(CombatVisualSide.B, i)?.Anim?.PlayDefeat();
                 CombatVisualEvents.Dead(CombatVisualSide.B);
                 CombatVisualEvents.UnitDead(CombatVisualSide.B, i);
             }
@@ -526,9 +566,17 @@ public class CombatVisualizerService : MonoBehaviour
         {
             yield return new WaitForSeconds(deathPauseSeconds / Speed);
             for (int i = 0; i < target.DiedHereA.Length; i++)
-                if (target.DiedHereA[i]) units.SetActive(units.Get(CombatVisualSide.A, i), false);
+                if (target.DiedHereA[i])
+                {
+                    var unit = units.Get(CombatVisualSide.A, i);
+                    if (unit != null) { unit.Bar?.gameObject.SetActive(false); corpseFades.Add(StartCoroutine(CorpseFade(unit))); }
+                }
             for (int i = 0; i < target.DiedHereB.Length; i++)
-                if (target.DiedHereB[i]) units.SetActive(units.Get(CombatVisualSide.B, i), false);
+                if (target.DiedHereB[i])
+                {
+                    var unit = units.Get(CombatVisualSide.B, i);
+                    if (unit != null) { unit.Bar?.gameObject.SetActive(false); corpseFades.Add(StartCoroutine(CorpseFade(unit))); }
+                }
         }
 
         CombatVisualEvents.TurnEnd(t);
@@ -540,7 +588,7 @@ public class CombatVisualizerService : MonoBehaviour
             {
                 var winnerState = endWinner == CombatVisualSide.A ? current.StateA : current.StateB;
                 for (int i = 0; i < winnerState.Count; i++)
-                    if (winnerState[i].Hp > 0f) { units.Get(endWinner, i)?.Hooks?.PlayVictory(); break; }
+                    if (winnerState[i].Hp > 0f) { units.Get(endWinner, i)?.Anim?.PlayVictory(); break; }
             }
         }
 
@@ -563,6 +611,53 @@ public class CombatVisualizerService : MonoBehaviour
             yield return null;
         }
         if (tr != null) tr.position = to;
+    }
+
+    private IEnumerator CorpseFade(CombatVisualUnit unit)
+    {
+        yield return new WaitForSeconds(corpseFadeDelay / Speed);
+        float elapsed = 0f;
+        while (elapsed < corpseFadeSeconds)
+        {
+            elapsed += Time.deltaTime;
+            unit?.Instance?.SetGhost(Mathf.Lerp(1f, corpseAlpha, Mathf.Clamp01(elapsed / corpseFadeSeconds)));
+            yield return null;
+        }
+        unit?.Instance?.SetGhost(corpseAlpha);
+    }
+
+    private IEnumerator TurnTowards(Transform tr, Vector3 worldPos, float duration)
+    {
+        if (tr == null) yield break;
+        Vector3 flat = worldPos - tr.position;
+        flat.y = 0f;
+        if (flat.sqrMagnitude < 0.0001f) yield break;
+        var from = tr.rotation;
+        var to = Quaternion.LookRotation(flat.normalized, Vector3.up);
+        if (duration <= 0f) { tr.rotation = to; yield break; }
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            tr.rotation = Quaternion.Slerp(from, to, Mathf.Clamp01(elapsed / duration));
+            yield return null;
+        }
+        tr.rotation = to;
+    }
+
+    private IEnumerator TurnBack(Transform tr, Quaternion to, float duration)
+    {
+        if (tr == null) yield break;
+        var from = tr.rotation;
+        if (duration <= 0f) { tr.rotation = to; yield break; }
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            tr.rotation = Quaternion.Slerp(from, to, Mathf.Clamp01(elapsed / duration));
+            yield return null;
+        }
+        tr.rotation = to;
     }
 
     private IEnumerator PlayProc(CombatProcEvent pe, CombatNode node)
@@ -683,6 +778,8 @@ public class CombatVisualizerService : MonoBehaviour
 
     public Vector3 PosOf(CombatVisualSide side, int index) => units.PosOf(side, index);
 
+    public Transform AnchorOf(CombatVisualSide side, int index) => units.Get(side, index)?.Anchor;
+
     private Role SnapRole(CombatVisualSide side, int index)
     {
         var team = side == CombatVisualSide.A ? activeRecord.SelfTeam : activeRecord.OpponentTeam;
@@ -796,20 +893,62 @@ public class CombatVisualizerService : MonoBehaviour
     private string StateName(ElementalState s)
         => elementTable != null && !string.IsNullOrEmpty(elementTable.GetState(s).DisplayName) ? elementTable.GetState(s).DisplayName : s.ToString();
 
+    private static readonly HashSet<ElementalState> NegativeStates = new HashSet<ElementalState>
+    {
+        ElementalState.Boiling, ElementalState.Debilidad, ElementalState.Confuso,
+        ElementalState.Leech, ElementalState.Mareado, ElementalState.PisoTierra,
+    };
+
+    private const string PositiveStateColor = "86E3A0";
+    private const string NegativeStateColor = "FF9090";
+    private const string DescriptionColor   = "B8B8B8";
+
+    private string ElemNameColored(Element e)
+    {
+        string name = ElemName(e);
+        if (elementTable == null) return name;
+        return Colored(name, ColorUtility.ToHtmlStringRGB(elementTable.GetIdentity(e).UiColor));
+    }
+
+    private static string Truncate(string text, int maxLength)
+        => text.Length <= maxLength ? text : text.Substring(0, maxLength) + "…";
+
+    private string ReactionLine(CombatProcEvent pe, string who)
+    {
+        string a = ElemNameColored(pe.Element);
+        string b = ElemNameColored(pe.ElementB);
+        bool parsed = System.Enum.TryParse<ElementalState>(pe.ReactionName, out var st);
+        string state = parsed
+            ? Colored($"<b>{StateName(st)}</b>", NegativeStates.Contains(st) ? NegativeStateColor : PositiveStateColor)
+            : pe.ReactionName;
+
+        string line = $"{who}: {a}+{b} → {state}";
+        if (!parsed) return line;
+
+        string desc = elementTable != null ? elementTable.GetState(st).Description : null;
+        if (string.IsNullOrEmpty(desc)) return line;
+        return $"{line} — {Colored(Truncate(desc, 70), DescriptionColor)}";
+    }
+
     private void Restore(CombatNode node)
     {
         if (node == null) return;
         current = node;
         ClearTargetedFrames();
 
+        foreach (var c in corpseFades) if (c != null) StopCoroutine(c);
+        corpseFades.Clear();
+
         for (int i = 0; i < node.StateA.Count; i++)
         {
             var unit  = units.Get(CombatVisualSide.A, i);
             var state = node.StateA[i];
             bool dead = state.Hp <= 0f;
-            units.SetActive(unit, !dead);
+            units.SetActive(unit, true);
+            unit?.Bar?.gameObject.SetActive(!dead);
+            unit?.Instance?.SetGhost(dead ? corpseAlpha : 1f);
             RestoreAnim(unit?.Anim, dead);
-            PushHp(CombatVisualSide.A, i, state.Hp);
+            PushHp(CombatVisualSide.A, i, state.Hp, animate: false);
             PushShield(CombatVisualSide.A, i, state.Shield);
         }
         for (int i = 0; i < node.StateB.Count; i++)
@@ -817,9 +956,11 @@ public class CombatVisualizerService : MonoBehaviour
             var unit  = units.Get(CombatVisualSide.B, i);
             var state = node.StateB[i];
             bool dead = state.Hp <= 0f;
-            units.SetActive(unit, !dead);
+            units.SetActive(unit, true);
+            unit?.Bar?.gameObject.SetActive(!dead);
+            unit?.Instance?.SetGhost(dead ? corpseAlpha : 1f);
             RestoreAnim(unit?.Anim, dead);
-            PushHp(CombatVisualSide.B, i, state.Hp);
+            PushHp(CombatVisualSide.B, i, state.Hp, animate: false);
             PushShield(CombatVisualSide.B, i, state.Shield);
         }
 
@@ -832,10 +973,10 @@ public class CombatVisualizerService : MonoBehaviour
         else                      { CombatVisualEvents.ActiveUnit(current.AttackerSide, current.AttackerIndex); SetActiveFrames(current.AttackerSide, current.AttackerIndex); }
     }
 
-    private static void RestoreAnim(MoriMonchiProceduralAnimator anim, bool dead)
+    private static void RestoreAnim(MonchiAnimationDriver anim, bool dead)
     {
         if (anim == null) return;
-        if (dead) anim.AnimDeath(); else anim.AnimIdle();
+        if (dead) anim.PlayDefeat(); else anim.PlayIdle();
     }
 
     private void Publish()
@@ -856,12 +997,13 @@ public class CombatVisualizerService : MonoBehaviour
         });
     }
 
-    private void PushHp(CombatVisualSide side, int index, float hp)
+    private void PushHp(CombatVisualSide side, int index, float hp, bool animate = true)
     {
         var unit = units.Get(side, index);
         if (unit == null) return;
         unit.ShownHp = hp;
-        unit.Bar?.SetHp(hp, unit.MaxHp);
+        if (animate) unit.Bar?.SetHp(hp, unit.MaxHp);
+        else         unit.Bar?.SnapHp(hp, unit.MaxHp);
         CombatVisualEvents.UnitHpChanged(side, index, hp, unit.MaxHp);
         CombatVisualEvents.HpChanged(side, hp, unit.MaxHp);
     }

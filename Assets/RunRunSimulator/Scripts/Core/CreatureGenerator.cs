@@ -8,7 +8,7 @@ public static class CreatureGenerator
     public const int StatMin    = 1;
     public const int StatMax    = 10;
 
-    public static CreatureDNA GenerateRandom(CreatureDatabaseSO database, RarityOddsTableSO oddsTable = null)
+    public static CreatureDNA GenerateRandom(CreatureDatabaseSO database, RarityOddsTableSO oddsTable = null, FurTypeDatabaseSO furDb = null)
     {
         if (database == null)
         {
@@ -35,7 +35,8 @@ public static class CreatureGenerator
             MouthID      = mouth?.ID     ?? "",
             BaseColor      = baseColor,
             SecondaryColor = ColorGenetics.DeriveSecondary(baseColor),
-            FurType        = (FurType)furValues.GetValue(Random.Range(0, furValues.Length)),
+            FurType        = furDb != null ? furDb.RollMintFurType() : (FurType)furValues.GetValue(Random.Range(0, furValues.Length)),
+            IsShiny        = ColorGenetics.RollShiny(),
         };
     }
 

@@ -1,13 +1,31 @@
 ---
-tags: [script, world, combat]
+tags: [script, RETIRADO-S58, world, combat, visual]
 ---
 
-# MoriMonchiCombatVisualizer.cs
+# MoriMonchiCombatVisualizer.cs — RETIRADO S58
 
-**Ruta:** `World/Creatures/MoriMonchiCombatVisualizer.cs`
+**Estado:** RETIRADO — Migración Suriyun + retiro pipeline visual legacy (S58)
 
-**Responsabilidad:** Derivada de `MoriMonchiVisualizer` que expone UnityEvents Feel para feedback visual/audio durante combate. Vive en el prefab del peleador dentro del Combat Visualizer. Los eventos están organizados en TabGroups de Odin (Ataque/Recibe/Estado): OnAttack, OnHitDealt, OnCritDealt (Ataque); OnHitTaken, OnCritTaken (Recibe); OnCombatStart, OnDead, OnVictory (Estado). OnHpChanged es una subclase `HpChangedEvent : UnityEvent<float, float>` (HP actual, HP máximo) para permitir tweening de barras directamente desde el inspector. Los 9 métodos `Play*()` invocan su evento correspondiente; el `CombatVisualizerService` los llama durante el replay vía los `CombatNode`.
+**Descripción anterior:**
+- Derivada de MoriMonchiVisualizer
+- 9 UnityEvents para feedback (OnAttack, OnHitDealt, OnCritDealt, OnHitTaken, OnCritTaken, OnCombatStart, OnDead, OnVictory, OnHpChanged)
+- Llamadas desde CombatVisualizerService durante replay 3v3
 
-**Vinculado a:** [[Index/03 - Combat]]
+**Reemplazo:** [[DragonAnimationDriver]] (vía [[MonchiAnimationDriver]] contrato)
+- `PlayAttack(target, onImpact, onDone)` — espera callbacks reales (no fired UEvents)
+- `PlayHit(intensity)` — animación knockback
+- `PlayDefeat()` — caída
+- `PlayVictory()` — victoria
+- `PlayIdle()` — idle
+- `PlayBuff(buffName)` — pasivas
 
-**Conexiones:** [[MoriMonchiVisualizer]], [[CombatVisualizerService]], [[CombatNode]]
+**Cuando se eliminó:** S58
+
+**Cambio principal:**
+- UEvents → Métodos callback (más control, menos inspector clutter)
+- DragonAnimationDriver maneja timing/callbacks interno
+
+**Conexiones antiguas:**
+- MoriMonchiVisualizer (RETIRADO)
+
+**Ver también:** [[DragonAnimationDriver]], [[MonchiAnimationDriver]], [[CombatVisualizerService]]

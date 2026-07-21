@@ -6,7 +6,7 @@ tags: [script, ui, grid, equipment]
 
 **Ruta:** `UI/CreatureGridUITK.cs`
 
-**Responsabilidad:** Grid UITK de criaturas (residente en UIManager siempre-activo, NO en UIDocument; referencia documento serializado). Popula desde evento registry, cards clonadas de UXML template. Soporta selección keyboard/gamepad (IUINavigable: A/D = horiz, W/S = vert), Submit = abre detail. Event-driven, cero referencias gameplay directas. **S33:** Cada card ahora muestra fila de 3 iconos equipo DISPLAY-ONLY (BindEquipSlot; sin interacción — click sigue abriendo detail).
+**Responsabilidad:** Grid UITK de criaturas (residente en UIManager siempre-activo, NO en UIDocument; referencia documento serializado). Popula desde evento registry, cards clonadas de UXML template. Soporta selección keyboard/gamepad (IUINavigable: A/D = horiz, W/S = vert), Submit = abre detail. Event-driven, cero referencias gameplay directas. **S33:** Cada card muestra fila de 3 iconos equipo DISPLAY-ONLY (BindEquipSlot; sin interacción — click sigue abriendo detail). **S57b:** Icono swatch principal ahora es retrato fotomatón vía [[MonchiPortraitUI]].Apply().
 
 ## Descripción General
 
@@ -46,6 +46,7 @@ GameEvents.OnRegistryChanged(registry) o OnRegistryReloaded(registry)
           → BindIdentity(dna) — nombre/rarity display
           → BindStats(dna) — 6 stats base
           → BindEquipSlot(dna, Weapon/Armor/Amulet) — S33, icon trio
+          → **S57b:** MonchiPortraitUI.Apply(iconElement, dna) — retrato fotomatón
           → RegisterCallback<ClickEvent>(...) — open detail
     → cards.Add(card)
     → container.Add(card)
@@ -85,7 +86,7 @@ Iterado 3 veces (Weapon, Armor, Amulet) → fila de 3 celdas equipadas bajo stat
 | `Rebuild(registry)` | Wipes container, clona cards from template, Bind, Select(0) |
 | `ResolveContainer()` | `document?.rootVisualElement?.Q<ScrollView>("grid-container")`, lazy cache |
 | `WireCloseButton()` | Q<Button> "close-button", registra clicked |
-| `BindCard(card, dna)` | Llama BindIdentity, BindStats, BindEquipSlot (x3), RegisterCallback click |
+| `BindCard(card, dna)` | Llama BindIdentity, BindStats, BindEquipSlot (x3), **S57b:** MonchiPortraitUI.Apply(icon, dna), RegisterCallback click |
 | `BindIdentity(card, dna)` | Settea Q<Label> "name", "rarity", "customization-count", colors |
 | `BindStats(card, dna)` | Settea 6 labels CON/ATK/SPD/DEF/LCK/EVA via CombatStats.GetEffectiveStats |
 | `BindEquipSlot(dna, slot)` | **S33** Popula equip icon, color, tooltip. |
@@ -129,6 +130,7 @@ UIManager.UnregisterNavigable(panel);
 - [[MorimonchiDetailInfoUITK]] — abierto al Submit/click
 - [[CombatStats]] — calcula stats base display
 - [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]] — **S33** resuelven equip display
+- [[MonchiPortraitUI]] — **S57b** pinta retrato en card
 - [[GameEvents]] — suscriptor OnRegistryChanged + OnRegistryReloaded
 
 ## Conexiones
@@ -146,6 +148,7 @@ UIManager.UnregisterNavigable(panel);
 
 - **Siempre activo:** Script MonoBehaviour en UIManager, no en UIDocument (critica para persistencia de suscripción)
 - **Document hidden via display:** UIDocument panel es inactive-false (para keep alive), pero display:none cuando cerrado — Rebuild sigue ejecutándose en background
+- **S57b Portrait swatch:** Retrato fotomatón vía MonchiPortraitUI.Apply() en lugar de backgroundColor BaseColor
 - **S33 Equip row:** Display-only (RGBA colores borde, icon bg). Click en card sigue abriendo detail (donde equip-cards son clickeables → backpack popup). Aquí es solo vistazo rápido de lo equipado.
 - **Newest first:** OrderByDescending BirthDate — recién creados arriba
 - **Scroll auto:** Select() llama ScrollTo() con ScrollVisibility — keep selection on screen

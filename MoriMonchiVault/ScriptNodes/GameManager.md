@@ -1,14 +1,12 @@
 ---
-tags: [script, core]
+tags: [script, core, singleton]
 ---
 
 # GameManager.cs
 
 **Ruta:** `Core/GameManager.cs`
 
-**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. En AppQuit/AppPause, flush a cloud. **S34:** Nuevo método `FlushForSceneChange()` para flush antes de cambiar de escena sin perder estado. **S37:** `MintRandomCreature()` asigna `Role` aleatorio vía `CreatureGenerator.RandomRole()`. **S39:** `MintRandomCreature()` asigna `Element` aleatorio vía `CreatureGenerator.RandomElement()`. `MintRandomCreature()` genera partes/color/FurType, asigna género, elemento, rol, stats base, y registra. Dev tooling para inventario/genética vive en `GeneticsLabPreview`, `DevToolsConsole`. Getters actuales: `Registry`, `FurnitureRegistry`, `Inventory`, `Database`, `RarityOddsTable`, `RoleWorldProfiles`, `PartVisualBank`, `FurTypeDatabase`, `EquipmentDatabase`.
-
-**Vinculado a:** [[Index/07 - Persistence & Identity]], [[Index/13 - Combat Design Direction]]
+**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. **S58:** Getter `PartVisualBank` eliminado (migración Suriyun completa — solo MonchiVisualBank).
 
 ## Métodos Públicos
 
@@ -16,84 +14,51 @@ tags: [script, core]
 |--------|-------------|
 | `PushToCloud()` | Fire-and-forget async push vía `CloudSyncService.PushAsync()` |
 | `FlushToCloud()` | Save local + push cloud; usado en `OnApplicationQuit/Pause` |
-| `FlushForSceneChange()` | **S34** Save local + push cloud ANTES de cambiar escena; patron identico a OnApplicationQuit |
-| `MintRandomCreature()` | **S37/S39** Genera random creature, asigna gender, **elemento (S39)**, rol (S37), stats, nombre, registra |
+| `FlushForSceneChange()` | Save local + push cloud ANTES de cambiar escena |
+| `MintRandomCreature()` | Genera random creature pastel, asigna género, elemento, rol, stats, nombre, registra |
 
-## Cambios S34 — FlushForSceneChange
+## Cambios S58
 
-Nuevo método publico para flush defensivo antes de `SceneManager.LoadScene()`:
+**Eliminado:**
+- Campo `[SerializeField] private PartVisualBankSO partVisualBank;`
+- Getter `public PartVisualBankSO PartVisualBank => partVisualBank;`
+- Referencia completamente removida (no más legacy part system)
 
-```csharp
-public void FlushForSceneChange()
-{
-    CollectLooseWorldProps();
-    FlushToCloud();
-}
-```
+**Impacto:**
+- CombatVisualUnits usa `GameManager.MonchiVisualBank` (Suriyun)
+- Ningún código restante referencia PartVisualBank
+- Limpieza de deuda técnica (deprecation finalizado)
 
-**Uso:** `CombatReplayRequest.Request()` llama esto antes de `SceneManager.LoadScene(CombatSceneName)` para asegurar que el estado está sincronizado con cloud y disco antes de entrar a la escena de combate.
-
-## Cambios S37 — MintRandomCreature con Role
-
-Actualizado para asignar rol aleatorio:
-
-```csharp
-dna.Role = CreatureGenerator.RandomRole();  // S37 NEW
-```
-
-**Impacto:** Cada criatura mint tiene rol aleatorio 1/3. Role impacta stats (mods ConMod/AtkMod/SpdMod) durante combate vía BuildCombatant. Role es metadata (no genético), hereda en breeding.
-
-## Cambios S39 — MintRandomCreature con Element
-
-Actualizado para asignar elemento aleatorio:
-
-```csharp
-dna.Element = CreatureGenerator.RandomElement();  // S39 NEW
-```
-
-**Impacto:** Cada criatura mint tiene elemento aleatorio. Element es afinidad elemental que hereda 50/50 en breeding con chance de mutación. Conduce reacciones elementales en combate vía `CombatElements`.
-
-## Métodos Privados
-
-| Método | Descripción |
-|--------|-------------|
-| `Awake()` | Setea `Instance` |
-| `OnEnable()` | Suscribe a `GameEvents` |
-| `OnDisable()` | Desuscribe |
-| `Persist(CreatureRegistrySO)` | Listener de `RegistryChanged` → `SaveSystem.SaveDatabase()` + `PushToCloud()` |
-| `PersistFurniture(FurnitureRegistrySO)` | Listener de `FurnitureChanged` → `SaveSystem.SaveFurniture()` (local only) |
-| `PersistInventory(PlayerInventorySO)` | Listener de `InventoryChanged` → `SaveSystem.SaveInventory()` (local only) |
-| `OnApplicationQuit()` | `CollectLooseWorldProps()` + `FlushToCloud()` |
-| `OnApplicationPause(bool)` | Same as quit si paused |
-| `CollectLooseWorldProps()` | Barre `WorldPropInstance` sueltos, devuelve al inventario |
-
-## Getters Públicos
+## Getters Públicos (S58)
 
 | Getter | Tipo | Descripción |
 |--------|------|-------------|
-| `Registry` | `CreatureRegistrySO` | Ref a creature registry |
-| `FurnitureRegistry` | `FurnitureRegistrySO` | Ref a furniture registry |
-| `Inventory` | `PlayerInventorySO` | Ref a player inventory |
-| `Database` | `CreatureDatabaseSO` | Ref a creature database |
-| `RarityOddsTable` | `RarityOddsTableSO` | Ref a rarity odds table |
-| `RoleWorldProfiles` | `RoleWorldProfileSO` | Ref a role world profiles (S37) |
-| `PartVisualBank` | `PartVisualBankSO` | Ref a part visual bank |
-| `FurTypeDatabase` | `FurTypeDatabaseSO` | Ref a fur type database |
-| `EquipmentDatabase` | `EquipmentDatabaseSO` | Ref a equipment database |
-
-## Conexiones
-
-Entrada:
-- `GameEvents.CreatureMinted()` — dispara registro automático
-- `CreatureGenerator` — genera partes/color/gender/element (S39)/role (S37)/stats/personalidad
-
-Salida:
-- `GameEvents.CreatureMinted()` — notifica listeners
-- `GameEvents.RegistryChanged()` → `Persist()` → persistencia automática
+| `Registry` | `CreatureRegistrySO` | Creature registry |
+| `FurnitureRegistry` | `FurnitureRegistrySO` | Furniture registry |
+| `Inventory` | `PlayerInventorySO` | Player inventory |
+| `Database` | `CreatureDatabaseSO` | Creature database |
+| `RarityOddsTable` | `RarityOddsTableSO` | Rarity odds table |
+| `RoleWorldProfiles` | `RoleWorldProfileSO` | Role profiles |
+| `MonchiVisualBank` | `MonchiVisualBankSO` | **S58 ÚNICA OPCIÓN** Suriyun model bank |
+| `FurTypeDatabase` | `FurTypeDatabaseSO` | Fur type database |
+| `EquipmentDatabase` | `EquipmentDatabaseSO` | Equipment database |
 
 ## Notas
 
-- **Mint automático:** Cada criatura nueva recibe género, elemento y rol aleatorio. No hay input del jugador en la asignación (a diferencia de personalidad que podría ser seleccionable en futuro).
-- **Element herencia:** En breeding, el elemento se asigna vía BreedingService (50/50 padres con chance de mutación).
-- **Role herencia:** En breeding, el rol se asigna vía BreedingService (50/50 padres).
-- **S39:** Nuevo método `CreatureGenerator.RandomElement()` asigna afinidad elemental al mint.
+- S58: Única capa visual es MonchiVisualBank (Suriyun rig + DragonAnimationDriver)
+- Legacy PartVisualBankSO descartado completamente
+- MintRandomCreature() retorna pastel colors (S58: ColorGenetics.RandomBase())
+
+## Vinculado a
+
+- [[Index/07 - Persistence & Identity]]
+- [[Index/10 - Visualization]]
+- [[CombatVisualUnits]] — consume MonchiVisualBank (S58)
+- [[CreatureGenerator]] — usa Database, FurTypeDatabase
+- [[BreedingService]] — usa Registry
+
+## Conexiones
+
+- **Entrada:** GameEvents (RegistryChanged, FurnitureChanged, InventoryChanged)
+- **Salida:** SaveSystem (persistencia local), CloudSyncService (persistencia cloud)
+- **Refs:** Todos los SO principales del proyecto

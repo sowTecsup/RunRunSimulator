@@ -34,7 +34,7 @@ public class DetailEquipTabPresenter
     {
         if (dna == null) return;
 
-        if (teamPortrait != null) teamPortrait.style.backgroundColor = dna.BaseColor;
+        if (teamPortrait != null) MonchiPortraitUI.Apply(teamPortrait, dna);
         BuildEquipCards(dna);
         BuildEquipStats(dna);
     }

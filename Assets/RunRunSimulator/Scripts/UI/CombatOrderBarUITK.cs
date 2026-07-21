@@ -24,6 +24,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         public VisualElement StatesRow;
         public VisualElement AffinityDot0;
         public VisualElement AffinityDot1;
+        public Color         ElementColor;
         public List<CombatElementMark> Marks  = new List<CombatElementMark>();
         public List<ElementalState>    States = new List<ElementalState>();
     }
@@ -122,8 +123,9 @@ public class CombatOrderBarUITK : MonoBehaviour
 
         for (int i = 0; i < snaps.Count; i++)
         {
-            var element = team != null && i < team.Count && team[i] != null ? team[i].Element : Element.Agua;
-            var card    = CreateCard(side, snaps[i], element);
+            var dna     = team != null && i < team.Count ? team[i] : null;
+            var element = dna != null ? dna.Element : Element.Agua;
+            var card    = CreateCard(side, snaps[i], element, dna);
             cards[(side, i)] = card;
 
             var slot = new VisualElement();
@@ -132,10 +134,14 @@ public class CombatOrderBarUITK : MonoBehaviour
             slot.Add(card.StatesRow);
             card.Slot = slot;
             orderBar.Add(slot);
+
+            int unitIndex = i;
+            slot.RegisterCallback<PointerEnterEvent>(_ => CombatVisualEvents.UnitHover(side, unitIndex, true));
+            slot.RegisterCallback<PointerLeaveEvent>(_ => CombatVisualEvents.UnitHover(side, unitIndex, false));
         }
     }
 
-    private OrderCard CreateCard(CombatVisualSide side, CombatFighterSnapshot snap, Element element)
+    private OrderCard CreateCard(CombatVisualSide side, CombatFighterSnapshot snap, Element element, CreatureDNA dna)
     {
         var cardRoot = new VisualElement();
         cardRoot.AddToClassList("cv-order-card");
@@ -150,16 +156,19 @@ public class CombatOrderBarUITK : MonoBehaviour
         body.AddToClassList("cv-ob-body-row");
         cardRoot.Add(body);
 
-        var nameLabel = new Label(snap.Name);
-        nameLabel.AddToClassList("cv-ob-name");
-        nameLabel.style.color = MarkColor(element);
-        RegisterTooltip(nameLabel, $"Elemento: {Identity(element).DisplayName}");
-        body.Add(nameLabel);
+        var headshot = new VisualElement();
+        headshot.AddToClassList("cv-ob-headshot");
+        MonchiPortraitUI.ApplyHeadshot(headshot, dna);
+        RegisterTooltip(headshot, $"{snap.Name} — Elemento: {Identity(element).DisplayName}");
+        body.Add(headshot);
 
-        var roleChip = new Label(RoleInitial(snap.Role));
+        var roleChip = new Label(RoleText(snap.Role));
         roleChip.AddToClassList("cv-ob-role-chip");
+        roleChip.AddToClassList(RoleChipClass(snap.Role));
         RegisterTooltip(roleChip, $"Rol: {RoleText(snap.Role)}");
         body.Add(roleChip);
+
+        var elementColor = MarkColor(element);
 
         var affinityRow = new VisualElement();
         affinityRow.AddToClassList("cv-ob-affinity-row");
@@ -169,9 +178,23 @@ public class CombatOrderBarUITK : MonoBehaviour
         dot0.AddToClassList("cv-ob-dot");
         affinityRow.Add(dot0);
 
+        var affinityPlus = new Label("+");
+        affinityPlus.AddToClassList("cv-ob-affinity-plus");
+        affinityRow.Add(affinityPlus);
+
         var dot1 = new VisualElement();
         dot1.AddToClassList("cv-ob-dot");
         affinityRow.Add(dot1);
+
+        var affinityEquals = new Label("=");
+        affinityEquals.AddToClassList("cv-ob-affinity-equals");
+        affinityRow.Add(affinityEquals);
+
+        var affinityElement = new Label(Identity(element).DisplayName);
+        affinityElement.AddToClassList("cv-ob-affinity-element");
+        affinityElement.style.backgroundColor = elementColor;
+        RegisterTooltip(affinityElement, $"Cada acción llena un punto; con 2 se aplica su marca de {Identity(element).DisplayName} sobre sí mismo");
+        affinityRow.Add(affinityElement);
 
         var marksSplit = new VisualElement();
         marksSplit.AddToClassList("cv-ob-marks-split");
@@ -198,6 +221,7 @@ public class CombatOrderBarUITK : MonoBehaviour
             StatesRow     = statesRow,
             AffinityDot0  = dot0,
             AffinityDot1  = dot1,
+            ElementColor  = elementColor,
         };
     }
 
@@ -331,8 +355,14 @@ public class CombatOrderBarUITK : MonoBehaviour
 
     private void SetAffinity(OrderCard card, int affinity)
     {
-        card.AffinityDot0.EnableInClassList("cv-ob-dot--filled", affinity >= 1);
-        card.AffinityDot1.EnableInClassList("cv-ob-dot--filled", affinity >= 2);
+        ApplyAffinityDot(card.AffinityDot0, affinity >= 1, card.ElementColor);
+        ApplyAffinityDot(card.AffinityDot1, affinity >= 2, card.ElementColor);
+    }
+
+    private static void ApplyAffinityDot(VisualElement dot, bool filled, Color color)
+    {
+        dot.EnableInClassList("cv-ob-dot--filled", filled);
+        dot.style.backgroundColor = filled ? (StyleColor)color : StyleKeyword.Null;
     }
 
     private void RegisterTooltip(VisualElement chip, string text)
@@ -378,12 +408,12 @@ public class CombatOrderBarUITK : MonoBehaviour
         _              => role.ToString(),
     };
 
-    private static string RoleInitial(Role role) => role switch
+    private static string RoleChipClass(Role role) => role switch
     {
-        Role.Protector => "P",
-        Role.Agresivo  => "A",
-        Role.Empatico  => "E",
-        _              => role.ToString().Substring(0, 1),
+        Role.Protector => "cv-ob-role-chip--protector",
+        Role.Agresivo  => "cv-ob-role-chip--agresivo",
+        Role.Empatico  => "cv-ob-role-chip--empatico",
+        _              => "cv-ob-role-chip",
     };
 
     private void SetVisible(bool v)

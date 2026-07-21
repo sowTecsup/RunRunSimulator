@@ -155,9 +155,15 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     // Re-populates in place after any registry mutation (e.g. equipping an item
     // from the mochila), so the Equipo tab's cards and Base→Final stats stay
     // current. Populate never touches the selected tab, so the user stays put.
+    // Only repopulates while the panel is visible: Show() always calls Populate
+    // on open, so skipping mutations while hidden loses no freshness and avoids
+    // waking a hidden panel's live camera on every background registry change.
     private void OnRegistryChanged(CreatureRegistrySO _)
     {
-        if (current != null && wired) Populate(current);
+        if (current == null || !wired) return;
+        var root = document != null ? document.rootVisualElement : null;
+        if (root == null || root.resolvedStyle.display == DisplayStyle.None) return;
+        Populate(current);
     }
 
     private void Populate(CreatureDNA dna)
@@ -168,7 +174,7 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
             titleLabel.text = string.IsNullOrEmpty(dna.CustomName) ? dna.ToStringID() : dna.CustomName;
 
         if (portrait != null)
-            portrait.style.backgroundColor = dna.BaseColor;
+            MonchiPortraitUI.ApplyLive(portrait, dna);
 
         info.Rebuild(dna);
         combat.Rebuild(dna);

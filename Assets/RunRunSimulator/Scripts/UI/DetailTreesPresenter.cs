@@ -109,7 +109,7 @@ public class DetailTreesPresenter
 
         var sw = new VisualElement();
         sw.AddToClassList("tree-swatch");
-        sw.style.backgroundColor = dna != null ? dna.BaseColor : new Color(0.2f, 0.2f, 0.25f);
+        MonchiPortraitUI.Apply(sw, dna);
         chip.Add(sw);
 
         var name = new Label(ChipName(dna));

@@ -18,6 +18,7 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
     private Button        logToggleButton;
 
     private bool logExpanded = true;
+    private CombatVisualContext context;
 
     private CombatVisualizerService Service => CombatVisualizerService.Instance;
 
@@ -59,7 +60,11 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
         SetVisible(false);
     }
 
-    private void HandleStart(CombatVisualContext ctx) => SetVisible(true);
+    private void HandleStart(CombatVisualContext ctx)
+    {
+        context = ctx;
+        SetVisible(true);
+    }
 
     private void HandleState(CombatVisualPanelState st)
     {
@@ -88,9 +93,20 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
 
         foreach (var line in lines)
         {
+            if (!line.HasUnit && line.Kind != CombatVisualLogKind.Result) continue;
+
             var card = new VisualElement();
             card.AddToClassList("log-card");
             card.AddToClassList(KindClass(line.Kind));
+
+            if (line.HasUnit)
+            {
+                var headshot = new VisualElement();
+                headshot.AddToClassList("log-headshot");
+                MonchiPortraitUI.ApplyHeadshot(headshot, ResolveDna(line.UnitSide, line.UnitIndex));
+                card.Add(headshot);
+            }
+
             var label = new Label(line.Text);
             label.AddToClassList("log-text");
             card.Add(label);
@@ -99,6 +115,12 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
 
         if (logScroll != null)
             logScroll.schedule.Execute(() => logScroll.scrollOffset = new Vector2(0f, float.MaxValue)).ExecuteLater(1);
+    }
+
+    private CreatureDNA ResolveDna(CombatVisualSide side, int index)
+    {
+        var team = side == CombatVisualSide.A ? context.TeamA : context.TeamB;
+        return team != null && index >= 0 && index < team.Count ? team[index] : null;
     }
 
     private void ToggleLog()

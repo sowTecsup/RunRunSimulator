@@ -95,6 +95,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 1
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Stinky Nugget
@@ -197,13 +200,13 @@ MonoBehaviour:
       Data: 5|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 91.51921
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 30.2686863
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 96.6820755
     - Name: 
       Entry: 8
       Data: 
@@ -332,6 +335,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 2
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Fuzzy Lump
@@ -434,13 +440,13 @@ MonoBehaviour:
       Data: 11|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 89.17159
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 23.3433914
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 96.24178
     - Name: 
       Entry: 8
       Data: 
@@ -559,6 +565,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 2
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Funky Nugget
@@ -661,13 +670,13 @@ MonoBehaviour:
       Data: 16|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 89.99855
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 31.71952
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: -6.85105228
     - Name: 
       Entry: 8
       Data: 
@@ -786,6 +795,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 2
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Gloomy Sprout
@@ -37407,13 +37419,13 @@ MonoBehaviour:
       Data: 2008|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 27.7696342
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 77.19353
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 93.7356949
     - Name: 
       Entry: 8
       Data: 
@@ -37532,6 +37544,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 0
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Smelly Fluff
@@ -74153,13 +74168,13 @@ MonoBehaviour:
       Data: 4000|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 94.9976654
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 89.2854156
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 98.29703
     - Name: 
       Entry: 8
       Data: 
@@ -74278,6 +74293,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 0
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Moldy Goober
@@ -110899,13 +110917,13 @@ MonoBehaviour:
       Data: 5992|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 25.7080517
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 78.7308
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: -18.4029655
     - Name: 
       Entry: 8
       Data: 
@@ -111024,6 +111042,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 0
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Itchy Gloop
@@ -147645,13 +147666,13 @@ MonoBehaviour:
       Data: 7984|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 78.9784851
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 63.8641052
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 77.45337
     - Name: 
       Entry: 8
       Data: 
@@ -147770,6 +147791,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 2
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Misty Nugget
@@ -184391,13 +184415,13 @@ MonoBehaviour:
       Data: 9976|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 30.4229488
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 38.0656548
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 95.92633
     - Name: 
       Entry: 8
       Data: 
@@ -184516,6 +184540,9 @@ MonoBehaviour:
     - Name: FurType
       Entry: 3
       Data: 4
+    - Name: IsShiny
+      Entry: 5
+      Data: false
     - Name: CustomName
       Entry: 1
       Data: Scruffy Goober
@@ -221137,13 +221164,13 @@ MonoBehaviour:
       Data: 11968|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 0
+      Data: 95.21507
     - Name: Energy
       Entry: 4
-      Data: 0
+      Data: 35.23534
     - Name: Affect
       Entry: 4
-      Data: -100
+      Data: 96.4396
     - Name: 
       Entry: 8
       Data: 

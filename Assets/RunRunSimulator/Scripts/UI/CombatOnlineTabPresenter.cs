@@ -165,7 +165,7 @@ public class CombatOnlineTabPresenter : ITabPresenter
         CreatureDNA dna = null;
         if (!string.IsNullOrEmpty(onlineSelectedId) && registry != null) registry.TryGet(onlineSelectedId, out dna);
 
-        if (onlineImg != null) onlineImg.style.backgroundColor = dna != null ? dna.BaseColor : new Color(0.24f, 0.24f, 0.28f);
+        if (onlineImg != null) MonchiPortraitUI.Apply(onlineImg, dna);
         if (onlineName != null) onlineName.text = dna != null ? dna.CustomName : "Selecciona un MoriMochi";
 
         if (onlineStats != null)

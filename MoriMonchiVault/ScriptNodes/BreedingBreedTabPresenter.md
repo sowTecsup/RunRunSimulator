@@ -33,9 +33,9 @@ tags: [script, ui, presenter]
 - `Teardown()` — desuscribe breedButton.clicked
 
 **Métodos privados:**
-- `MakeCandidate(dna, bucket, isFather)` — fila con nombre + 6 stats + contador BreedCount/Max. Usa `CombatStats.GetEffectiveStats()` o fallback
-- `RefreshSlots()` — SetSlot (nombre + BaseColor) + BuildPreview
+- `MakeCandidate(dna, bucket, isFather)` — fila con nombre + 6 stats + contador BreedCount/Max. Usa `CombatStats.GetEffectiveStats()` o fallback. **S57b:** Retrato fotomatón vía [[MonchiPortraitUI]].Apply()
+- `RefreshSlots()` — SetSlot (nombre + retrato fotomatón) + BuildPreview
 - `BuildPreview()` — muestra resumen columnar de padre/madre + duración ≈X min via InheritanceOdds
 - `TryBreed()` — await `asyncBreedingService.StartBreedingAsync()`, clearear slots, invocar `onBred()` callback si éxito (madre en estado Breeding)
 
-**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CombatStats]], [[CreatureDatabaseSO]]
+**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CombatStats]], [[CreatureDatabaseSO]], [[MonchiPortraitUI]]

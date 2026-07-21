@@ -6,7 +6,7 @@ tags: [script, genetics]
 
 **Ruta:** `Core/CreatureGenerator.cs`
 
-**Responsabilidad:** Generador estático de criaturas aleatorias. Crea `CreatureDNA` con partes aleatorias por slot (cada uno con su propio roll de rareza), color base aleatorio via `ColorGenetics.RandomBase()`, color secundario derivado deterministico via `ColorGenetics.DeriveSecondary(baseColor)`, `FurType` aleatorio. `RandomRole()` asigna rol no heredado (metadata, 1/3 aleatorio). `RandomElement()` asigna elemento no heredado (metadata, 1/4 aleatorio) para mint. `RandomBaseStats()` genera los 3 stats iniciales (Constitution/Attack/Speed) via point-buy: distribuye `StatBudget` (18 points) entre 3 stats, clampeados a [StatMin..StatMax] (1..10).
+**Responsabilidad:** Generador estático de criaturas aleatorias. Crea `CreatureDNA` con partes aleatorias por slot (cada uno con su propio roll de rareza), color base aleatorio via `ColorGenetics.RandomBase()`, color secundario derivado deterministico via `ColorGenetics.DeriveSecondary(baseColor)`, `FurType` aleatorio (ponderado si se pasa `FurTypeDatabaseSO`, uniform si null). `RandomRole()` asigna rol no heredado (metadata, 1/3 aleatorio). `RandomElement()` asigna elemento no heredado (metadata, 1/4 aleatorio) para mint. `RandomBaseStats()` genera los 3 stats iniciales (Constitution/Attack/Speed) via point-buy: distribuye `StatBudget` (18 points) entre 3 stats, clampeados a [StatMin..StatMax] (1..10).
 
 ## Constantes
 
@@ -20,10 +20,24 @@ tags: [script, genetics]
 
 | Método | Retorna | Propósito |
 |--------|---------|----------|
-| `GenerateRandom(CreatureDatabaseSO, RarityOddsTableSO)` | `CreatureDNA` | Partes + color base/secundario + FurType aleatorios (sin stats base). |
+| `GenerateRandom(CreatureDatabaseSO, RarityOddsTableSO, FurTypeDatabaseSO)` | `CreatureDNA` | Partes + color base/secundario + FurType aleatorios + IsShiny roll (sin stats base). |
 | `RandomRole()` | `Role` | **S37** Role aleatorio no heredado (1/3). |
 | `RandomElement()` | `Element` | **S39** Element aleatorio no heredado (1/4). |
 | `RandomBaseStats()` | `(float, float, float)` | Point-buy: distribuye 18 puntos entre CON/ATK/SPD, cada uno 1–10. |
+
+## Cambios S57
+
+**Actualizado `GenerateRandom()`:**
+- Parámetro nuevo opcional `FurTypeDatabaseSO furDb`
+- Si `furDb != null`: llama `furDb.RollMintFurType()` para FurType ponderado (mintWeights)
+- Si `furDb == null`: FurType aleatorio uniforme (fallback legacy)
+- Llama `ColorGenetics.RollShiny()` para `IsShiny` (0.5% probabilidad)
+- Retorna DNA con `IsShiny` y `FurType` seteados
+
+**Consumo:**
+- `GameManager.MintRandomCreature()` → llama `GenerateRandom(database, rarityOddsTable, furTypeDatabase)` con bank completo
+
+**Impacto:** S57 — mint ahora es ponderado por tabla de pesos de FurType; 0.5% de criaturas nuevas (mint + breeding) serán shiny.
 
 ## Cambios S37
 
@@ -65,4 +79,4 @@ public static Element RandomElement()
 
 **Vinculado a:** [[Index/02 - Genetics & Breeding]], [[Index/03 - Combat System]], [[Index/13 - Combat Design Direction]]
 
-**Conexiones:** [[CreatureDNA]], [[PartDatabaseSO]], [[RarityOddsTableSO]], [[GameManager]], [[ColorGenetics]], [[FurType]], [[Enums]], [[Role]], [[Element]], [[BreedingService]]
+**Conexiones:** [[CreatureDNA]], [[PartDatabaseSO]], [[RarityOddsTableSO]], [[GameManager]], [[ColorGenetics]], [[FurType]], [[Enums]], [[Role]], [[Element]], [[BreedingService]], [[FurTypeDatabaseSO]]

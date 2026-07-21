@@ -86,6 +86,9 @@ public struct CombatVisualLogLine
 {
     public string              Text;
     public CombatVisualLogKind Kind;
+    public bool                HasUnit;
+    public CombatVisualSide    UnitSide;
+    public int                 UnitIndex;
 }
 
 public struct CombatVisualPanelState
@@ -160,5 +163,8 @@ public static class CombatVisualEvents
 
     public static event Action<CombatElementEventData> OnUnitElement;
     public static void UnitElement(CombatElementEventData d) => OnUnitElement?.Invoke(d);
+
+    public static event Action<CombatVisualSide, int, bool> OnUnitHover;
+    public static void UnitHover(CombatVisualSide side, int index, bool hover) => OnUnitHover?.Invoke(side, index, hover);
 }
 }

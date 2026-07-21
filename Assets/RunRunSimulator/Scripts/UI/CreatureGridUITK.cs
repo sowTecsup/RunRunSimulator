@@ -177,11 +177,9 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
         if (nameLabel != null)
             nameLabel.text = string.IsNullOrEmpty(dna.CustomName) ? dna.ToStringID() : dna.CustomName;
 
-        // Placeholder until real sprites exist: tint the icon slot with the
-        // creature's BaseColor, same as the uGUI card.
         var icon = card.Q<VisualElement>("icon");
         if (icon != null)
-            icon.style.backgroundColor = dna.BaseColor;
+            MonchiPortraitUI.Apply(icon, dna);
 
         var stateLabel = card.Q<Label>("state-label");
         if (stateLabel != null)

@@ -18,10 +18,9 @@ public class CreatureVisualUI : MonoBehaviour
     // The MoriMochi's name (CustomName). Sits at the top of the card.
     [SerializeField] private TextMeshProUGUI nameLabel;
 
-    // Slot for the creature's icon/sprite. We don't render real icons yet,
-    // so for now we just tint this Image with the creature's BaseColor —
-    // gives each card a distinct look and proves the sprite slot is wired.
-    // When per-creature sprites exist, set iconImage.sprite here instead.
+    // Slot for the creature's icon/sprite. Rendered via MonchiPortraitUI,
+    // which paints the MoriMochi's portrait sprite when available and falls
+    // back to a BaseColor tint otherwise.
     [SerializeField] private Image iconImage;
 
     // Current state line at the bottom: Free / Breeding / In Queue / DEAD.
@@ -35,8 +34,7 @@ public class CreatureVisualUI : MonoBehaviour
     {
         nameLabel.text = string.IsNullOrEmpty(dna.CustomName) ? dna.ToStringID() : dna.CustomName;
 
-        if (iconImage != null)
-            iconImage.color = dna.BaseColor;
+        MonchiPortraitUI.Apply(iconImage, dna);
 
         stateLabel.text = StateOf(dna);
     }

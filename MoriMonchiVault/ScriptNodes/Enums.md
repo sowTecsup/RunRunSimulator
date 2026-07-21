@@ -47,11 +47,42 @@ Newborn = 0, Child = 1, Teen = 2, Adult = 3, Elder = 4
 
 ### FurType
 
-Tipo de pelaje (hereda 50/50 en breeding). Mapea 1:1 a material de shader en `FurTypeDatabaseSO`.
+Patrón de pelaje del modelo Suriyun (S57). Mapea 1:1 a MonchiFur_XX material en `FurTypeDatabaseSO`. Hereda 50/50 en breeding (sin usar tabla de pesos); al mintear criatura nueva, la tabla de pesos (`mintWeights`) determina qué patrón es más probable. Default al mintear: FurType.Pattern00. El valor persiste en CreatureDNA.FurType pero NO es parte del genetic string (metadata como Gender/Role).
 
 ```
-Smooth = 0, Fluffy = 1, Spiky = 2, Shaggy = 3, Scaly = 4
+Pattern00 = 0, Pattern01 = 1, Pattern02 = 2, Pattern03 = 3, Pattern04 = 4,
+Pattern05 = 5, Pattern06 = 6, Pattern07 = 7, Pattern08 = 8, Pattern09 = 9,
+Pattern10 = 10, Pattern11 = 11, Pattern12 = 12, Pattern13 = 13, Pattern14 = 14,
+Pattern15 = 15, Pattern16 = 16, Pattern17 = 17, Pattern18 = 18, Pattern19 = 19,
+Pattern20 = 20, Pattern21 = 21, Pattern22 = 22, Pattern23 = 23, Pattern24 = 24,
+Pattern25 = 25, Pattern26 = 26, Pattern27 = 27, Pattern28 = 28, Pattern29 = 29,
+Pattern30 = 30, Pattern31 = 31, Pattern32 = 32
 ```
+
+**S57 ACTUALIZADO:** 33 patrones (Pattern00-32) mapeados 1:1 a assets MonchiFur_00.mat–MonchiFur_32.mat. Herencia sigue siendo 50/50; mint usa tabla de pesos opcional.
+
+### MonchiMood
+
+Humor/emoción visible del MoriMochi (S57 sistema de caras). 12 estados mapeados 1:1 a listas de materiales de caras en `MonchiMoodSetSO`. Determinan qué renderer Face muestra en cada momento via `MonchiMoodDriver` (por Intent/Condition del agent) y `DragonAnimationDriver` (durante acciones de combate). Default Neutral.
+
+```
+Neutral = 0, Feliz = 1, Triste = 2, Dolor = 3, Enojado = 4, Dormido = 5,
+Enfermo = 6, Mareado = 7, Asustado = 8, Amoroso = 9, Emocionado = 10, KO = 11
+```
+
+**Descripción:**
+- `Neutral` — Estado base, sin emoción
+- `Feliz` — Comiendo, jugando, feliz
+- `Triste` — Necesidad crítica (Energy/Affect)
+- `Dolor` — Bajo daño en combate
+- `Enojado` — Atacando en combate
+- `Dormido` — Descansando
+- `Enfermo` — Condition.Sick
+- `Mareado` — Tumbling (thrown), efectos de aturdimiento
+- `Asustado` — Fleeing, Held, reacción de miedo
+- `Amoroso` — Buff visual, victoria positiva
+- `Emocionado` — Victoria en combate, Achievement
+- `KO` — Derrotado en combate
 
 ### PartRole
 
@@ -467,6 +498,21 @@ Prácticamente todo el codebase. Los enums son la base de type-safety.
 - `Reaction` — **append-only** para popups de reacciones elementales (ElementEventKind.Reaction). Lleva ReactionName custom (p.ej. "¡Vaporizado!") + OverrideColor del elemento de la reacción, sin número de daño.
 
 **Impacto:** S42 Fase 4 capa visual — popups flotantes de reacciones elementales con narración de nombre + color distintivo del elemento. Integrado en CombatDamageNumbers.Label() para renderizar ReactionName en lugar de números.
+
+## Cambios Sesión 57
+
+**ACTUALIZADO FurType:**
+- Expandido de 5 valores (Smooth, Fluffy, Spiky, Shaggy, Scaly) a 33 patrones (Pattern00-Pattern32) mapeados 1:1 a MonchiFur_00.mat–MonchiFur_32.mat del modelo Suriyun
+- Herencia sigue siendo 50/50 desde padres; mint ahora usa tabla de pesos opcional (`FurTypeDatabaseSO.mintWeights`)
+- Default: FurType.Pattern00
+
+**NUEVO MonchiMood:**
+- 12 emociones mapeadas a renderizadores Face del modelo Suriyun
+- Determinadas por Intent/Condition del agent (MonchiMoodDriver) y acciones de combate (DragonAnimationDriver)
+- Cada mood es lista de materiales en MonchiMoodSetSO; GetFace() selecciona aleatorio, fallback a Neutral
+- Valores: Neutral, Feliz, Triste, Dolor, Enojado, Dormido, Enfermo, Mareado, Asustado, Amoroso, Emocionado, KO
+
+**Impacto:** S57 — integración del modelo Suriyun con sistema visual de emociones por estado y pelaje ponderado al mintear.
 
 ## Notas
 

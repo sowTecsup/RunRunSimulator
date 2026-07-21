@@ -114,7 +114,7 @@ public class TransactionPanelUITK : MonoBehaviour
         var mm   = currentCustomer.TargetMM;
         if (customerNameLbl != null) customerNameLbl.text = "Cliente";
         if (archetypeLbl    != null) archetypeLbl.text    = arch != null ? arch.DisplayName : "";
-        if (mmSwatch        != null) mmSwatch.style.backgroundColor = new StyleColor(mm.BaseColor);
+        if (mmSwatch        != null) MonchiPortraitUI.Apply(mmSwatch, mm);
         if (targetNameLbl   != null) targetNameLbl.text   = string.IsNullOrEmpty(mm.CustomName) ? "MoriMochi" : mm.CustomName;
         if (targetInfoLbl   != null) targetInfoLbl.text   = $"{GenderGlyph(mm.Gender)} · {mm.AgeDays}d";
         if (offerLbl        != null) offerLbl.text        = $"+{currentCustomer.CurrentOffer}";

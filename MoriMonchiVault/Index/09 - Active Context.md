@@ -4,6 +4,259 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-21 (Session 60 — **EXPERIMENTO VFX: 19 efectos de partículas únicos para el combate, construidos 100% por código vía MCP — ✅ CERRADA: 0 errores, 19/19 verificados en Play con capturas s60\*, SIN cambios de .cs**)
+**Focus:** Pedido de Juan (fuera de la PC): "mejorá los sistemas de partículas del combate, es un experimento para ver qué tanto podés hacer". Diagnóstico: los 18 `Feel_*` de `CombatFeelDirector` usaban 5 recolores del mismo `EffectCircle_*` genérico (pack Hovl Studio) — los 12 estados elementales compartían el MISMO efecto púrpura y Shield era igual a la marca de Agua.
+
+1. **19 prefabs nuevos** en `Resources/Particles/Combat/` (`FX_Mark_{Agua,Fuego,Electricidad,Planta}`, `FX_State_{los 12}`, `FX_Shield`, `FX_Heal`), cada uno con firma visual propia, construidos enteramente con `execute_code` (AssetDatabase + PrefabUtility + API de Shuriken): bursts multi-tiempo, velocidad orbital (Mareado/Confuso/motas), noise (Fuego/Boiling), gravedad (gotas/piedras/flechas), stretch billboards (chispas), HorizontalBillboard (anillos/grietas de piso), mesh renderer con el Cylinder.fbx del pack (columna Energizado, muro Shield), trails (convergencia Leech con velocidad radial NEGATIVA), rotación por vida.
+2. **BUG CAZADO — mismo patrón HDR del S59d**: los materiales Hovl tienen `_Color` HDR (×2.4–×6.3) que quema el vertex color a blanco (sin bloom en el proyecto, el HDR solo clampa). Fix: 19 copias `Fx*` con tint plano en `Combat/Materials/` (los materiales del pack quedaron INTACTOS); swap de 58 renderers en los prefabs.
+3. **Rewire**: los 18 `MMF_ParticlesInstantiation` de los `Feel_*` ahora apuntan a su `FX_*`; `CombatVisualizerMM.unity` guardada. Los `EffectCircle_*` originales quedan como rollback (sin uso).
+4. **3 rondas de tuning en Play**: mesh Cylinder nativo mide ~3-4u de diámetro (Shield 1.1→0.4, columna Energizado →0.35); textura `Arrow1` apunta IZQUIERDA (flechas de Debilidad: startRotation -π/2 para apuntar abajo); textura `Slash` es arco ~270° — dos cruzadas forman anillo, GolpePreciso quedó como slash ÚNICO con giro; Wobble de Confuso Gradient→FxPoint (el quad se veía como bloque); vapor/humo/burbujas retocados (alpha/tamaño/gravedad).
+5. **Verificación**: los 19 disparados vía los `MMF_Player` reales (pooling Pool=5 incluido) con capturas s60\*/s60b-e\* revisadas una por una; 0 errores de consola.
+
+> ### 📌 Notas S60
+> 1. **QUIRK NUEVO**: con el editor sin foco, el deltaTime de `EditorApplication.Step()` es VARIABLE (una tanda de capturas salió vacía porque el efecto moría antes del shot). Para verificar VFX: steppear hasta `ps.time >= X`, nunca contar frames.
+> 2. **Pendiente de ojo de Juan en vivo**: feel de los 19 en replay real (se dispararon en posición, no dentro de un combate corriendo) y firma de GolpePreciso (zarpazo dorado único).
+> 3. Regla operativa nueva de Juan (guardada en memoria): NO leer `.prefab`/`.unity` como texto — inspección/edición de prefabs vía MCP.
+> 4. GameScene NO tiene `CombatFeelDirector` — el wiring de partículas vive solo en CombatVisualizerMM.
+> 5. Pendientes sin-Juan identificados: capa morada del escudo (record sintético >10), sizing collider/NavMeshAgent vs modelo 0.7, borrar spider experiment (confirmar carpetas), redactar Descriptions de `ElementTable.asset`.
+
+**Files Touched (.cs):** NINGUNO — sesión 100% assets vía MCP (vault-documenter omitido).
+
+**Files Touched (no-ScriptNode):** `Resources/Particles/Combat/` (NUEVO: 19 prefabs FX_\* + 19 materiales Fx\*), `CombatVisualizerMM.unity` (rewire de 18 ParticlesPrefab, guardada), `Assets/Screenshots/s60*.png` (borrables).
+
+**Next session (S61):** Juan prueba los 19 efectos en vivo en el replay; después arranca el **async 3v3 (F5)** según roadmap. Arrastres que siguen vivos: revisión del feel S59 (nota 1 S59), Descriptions de estados, capa morada del escudo, sizing collider 0.7.
+
+---
+
+**Session:** 2026-07-21 (Session 59 a+b — **LEGIBILIDAD DEL REPLAY: anillo de vida dual cola→hocico con juice + ATAQUE VOLANDO con anticipación y hit-stop + (iteración b) barras SIEMPRE visibles que crecen al frente en hover, popups ±N con color, Eventos compacto coloreado con consecuencias, pedestal outline negro, más aire entre acciones + (c) hover exclusivo closest-wins + (d) fix popups blancos (material HDR), popups ±0 suprimidos, anillo con orientación fija — ✅ CERRADA: 0 errores, todo verificado en Play, capturas s59\*_\***)
+**Focus:** Cinco pedidos de Juan sobre el replay 3v3: (1) anillos solo al pasar el mouse (3D o carta), (2) headshot más lejos y más de perfil, (3) pacing con anticipación real + los MM VUELAN para atacar, (4) barra dual que se vacía desde la cola y la vida restante converge en el hocico, (5) juice de barra (flash/overlap/shake/punch). Implementación por 4 sub-agentes `morimonchi-coder` en paralelo con contrato rígido; compiló al primer intento.
+
+1. **Anillo solo en hover**: `CombatRadialHealthBar` arranca alpha 0 (CanvasGroup, `fadeSeconds` 0.12) y se muestra solo con (a) mouse sobre el MM 3D — distancia ray↔segmento vertical (`hoverHeight` 1.4, `hoverRadius` 0.9) — o (b) hover sobre su carta: evento nuevo **`CombatVisualEvents.OnUnitHover(side, index, bool)`**, emitido por `CombatOrderBarUITK` (PointerEnter/Leave del slot) y consumido por el anillo, que ahora tiene identidad — **`Bind(side, index)`** (firma nueva, `CombatVisualUnits` la pasa). Visible = grueso + números; el estado fino se eliminó. Decisión de Juan: NO auto-mostrar al recibir daño.
+2. **BUG CAZADO — el hover de S58 NUNCA funcionó**: `Input.mousePosition` tira `InvalidOperationException` cada frame (el proyecto usa Input System EXCLUSIVO) → el viejo `UpdateHover` moría siempre y por eso los anillos quedaban "siempre activos" (la queja original de Juan). Las excepciones NO aparecen en la consola vía MCP (se tragan silenciosas — ojo futuro: síntoma = "Update corre a medias", diagnosticar con reflection por fases). Fix: `UnityEngine.InputSystem.Mouse.current.position.ReadValue()`.
+3. **Drenaje dual cola→hocico** (decisión de Juan: "con poca vida es cuando más claridad querés"): dos fills Radial360 espejados con origen Top (=hocico, el canvas ya rota con el facing), cada uno `pct*0.5`; vida llena = los arcos se encuentran en la cola, el daño vacía desde la cola y la vida restante abraza el hocico. Escudo por capas dualizado igual (`rem/10*0.5` por lado).
+4. **Juice de barra** (knobs todos serializados): flash blanco pre-drain (`flashSeconds` 0.12), drain ease-out (`drainSeconds` 0.3), **ghost fill** rezagado (`ghostDelay` 0.35, `ghostSeconds` 0.5, blanco 60%), **shake** amortiguado ∝ daño (`shakeAmplitude` 0.08), **punch** de escala 1→1.12 (`punchSeconds` 0.2). `SnapHp()` nuevo = seteo inmediato sin juice; `Restore` del service usa `PushHp(..., animate:false)`. Curas drenan suave sin flash/shake.
+5. **ATAQUE VOLANDO** (`DragonAnimationDriver` es ahora DUEÑO del movimiento de ataque; el service ya no mueve/rota al atacante en el ataque): anticipación (retroceso `anticipationPullback` 0.35 + hold, `anticipationSeconds` 0.3) → despegue **FlyUp** (sube `flightHeight` 1.1 en `takeoffSeconds` 0.3) → vuelo **Fly** a `flightSpeed` 5.5 hasta `strikeDistance` 1.1 del objetivo → golpe **FlyFire** con onImpact al 45% + **hit-stop** (`Anim.speed=0` por `hitStopSeconds` 0.12) → regreso volando → aterrizaje **FlyDown** (`landSeconds` 0.28) con restauración de rotación. Estados nuevos en `MonchiAnimator.controller`: Fly/FlyUp/FlyDown/FlyFire (clips `Anim_Dra_Fly*`, transiciones de seguridad FlyUp→Fly, FlyFire→Fly, FlyDown→Idle). Pasivas ganan su anticipación más corta en el service (`passiveAnticipationSeconds` 0.25, pullback 0.3). `PlayBuff` con hold previo. `ClipLength` matchea ignorando `_`.
+6. **Slider de velocidad AHORA escala los clips** (resuelve S58 nota 3): `MonchiAnimationDriver.SetTimeScale(float)` virtual nuevo; el driver clampa [0.25,4], setea `Anim.speed` y escala esperas/velocidades; el service lo propaga (`PushTimeScale`) al spawn y en `SetSpeed`. Verificado: SetSpeed(2) → 6/6 Animators a 2.0.
+7. **Headshot**: `headshotPadding` 1.05→**1.25**, `headshotYaw` 140→**115** (más aire, más de perfil) en los DOS estudios (CombatVisualizerMM y GameScene), escenas guardadas.
+8. **Verificación en Play (CombatVisualizerMM, 0 errores reales)**: 6 anillos alpha 0 al inicio; `UnitHover(A,0,true)` → alpha 1 solo en A0 con anillo overlay visible (captura) y fade-out al soltar; turno con vuelo completo capturado (despegue y=1.6 exacto, golpe EN VUELO sobre el frente enemigo con popup, regreso y aterrizaje 6/6 en anchors); 20+ turnos en auto x2 con muerte persistente (barra oculta, carta gris, evento con mini-carta), reacciones y curas; fill dual verificado numéricamente (12/50 → 0.120 por lado convergiendo al hocico). El editor sin foco NO tickea Update aunque `runInBackground=true` — verificación por `EditorApplication.Step()`.
+
+**Iteración S59b (feedback de Juan sobre a, misma sesión):**
+9. **Barras SIEMPRE visibles** (revierte el "solo hover" de a): estado fino permanente con material `UI/Default` (depth test normal — ocluidas por los cuerpos, "cargan abajo de todo"); al hover (mouse 3D o carta) **crecen** (sprite grueso + pop de escala) **y pasan al frente** (material overlay ZTest Always) **con números**. El resto (dual, juice, identidad, eventos) intacto.
+10. **Popups minimalistas**: Hit/Crit sin palabra — número `-N`; Heal/Regen sin palabra — `+N`. Palette actualizada: **Hit y Crit rojos #FF4B4B** (antes blanco/dorado), Heal verde. Crit conserva escala 1.35 y gana **outline dorado** en el TMP (knobs `critOutlineWidth` 0.25 / `critOutlineColor` #FFC830 en `CombatDamageNumbers`). Shield/Reaction/Stun/etc. conservan su texto.
+11. **Ventana Eventos compacta y coloreada**: línea de reacción ahora `{quien}: {ElemA}+{ElemB} → {Estado} — {consecuencia}` con elementos en su UiColor, estado en negrita (verde `86E3A0` positivo / rojo `FF9090` negativo, set estático de 6 negativos en el service) y la Description del estado truncada a 70 chars en gris `B8B8B8`. Helper `ReactionLine` en `CombatVisualizerService`.
+12. **Pedestal activo**: outline 4→**10** y color dorado→**negro** (código + escena).
+13. **Más aire entre acciones** (knobs de escena): betweenTurns 0.55→0.95, stateBeat 0.5→0.7, impact 0.35→0.5, deathPause 0.6→0.8.
+14. **Verificación b en Play**: 6 barras finas visibles ocluidas + hover matemático real funcionando (el mouse del editor activó B2 solo); hover de carta → A0 gruesa al frente; crit sintético verificado por reflection (texto "-99", color FF4B4B, outline 0.25 FFC830); panel Eventos renderizando el formato nuevo con colores; 0 errores.
+15. **Hover exclusivo closest-wins (c)**: pedido final de Juan — el área de hover se podía pisar entre vecinos (hasta 3 anillos a la vez). `hoverRadius` 0.9→**0.45** y coordinación estática en `CombatRadialHealthBar`: una sola pasada por frame (`RecomputeMathWinner`, guard por `Time.frameCount`) elige EL anillo más cercano al ray del mouse entre los que están en rango — `mathHover` solo es true en el ganador (≤1 siempre). `OnDisable` limpia registro y winner. Verificado en Play: con radio forzado a 5 en las 6 barras, exactamente 1 se enciende (la más cercana).
+16. **BUG CAZADO — popups "blancos" pese a palette roja (d)**: el material TMP del prefab DNP (`DamageNumbersPro/Materials/Basic/Basic-Glow.asset`) tenía `_FaceColor` en HDR ~6× — quemaba cualquier color de vértice a blanco. Fix: `_FaceColor` → blanco plano (1,1,1,1); ahora el rojo/verde de la palette se ve de verdad. (El color por popup se aplica vía `dn.SetColor` con vertex color — eso siempre funcionó; el lavado era del material.)
+17. **Popups "+0" eliminados (d)**: venían de montos fraccionarios (ej. cura del Empático = 50% de un daño de 1 → 0.5, mostrado truncado como 0). `CombatDamageNumbers` ahora redondea el monto (`Mathf.RoundToInt`) y si un kind numérico (Hit/Crit/Heal/Regen/Poison/Burn/Thorns/Lifesteal) redondea a 0, el popup NO se emite. Verificado: Heal 0.4 → nada; Hit 7 / Heal 4.4 → "-7" rojo / "+4" verde.
+18. **Orientación del anillo FIJA (d)**: pedido de Juan — la barra radial ya no rota con el MM. `SetFacingTarget` aplica el yaw UNA vez al spawn (orientación de casa, cola hacia atrás del tablero) vía `ApplyFixedFacing`; se eliminó el seguimiento por frame (`UpdateFacing`). Verificado: MM rotado a 137° → canvas yaw inmutable.
+
+> ### 📌 Notas S59
+> 1. **Pendiente de ojo de Juan en vivo**: feel del hover (crece/al frente), popups rojos con outline dorado del crit, timing nuevo entre acciones, vuelo (impactFraction 0.45, alturas/velocidades), headshot (padding 1.25 / yaw 115), pedestal negro. Todo knob serializado.
+> 2. Las Descriptions de estados en `ElementTable.asset` dicen "Percent" literal en vez del número (contenido S40) — ahora que se muestran en Eventos, vale una pasada de autoría de Juan sobre el asset.
+> 3. Capa morada del escudo sigue sin ejercitarse (arrastre S58).
+> 4. Sizing collider/NavMeshAgent vs modelo 0.7 sigue pendiente (arrastre S58).
+> 5. La consola vía MCP NO muestra excepciones de runtime de Update (solo los 3 logs async misclasificados de siempre) — el "0 errores" de consola no cubre excepciones por frame; cruzar con comportamiento. (Así se ocultó el bug de `Input.mousePosition`.)
+> 6. REGLA NUEVA DE JUAN: `vault-documenter` NUNCA se dispara automáticamente — solo con su comando explícito (`/cerrar-sesion`). El paso 10 de CLAUDE.md quedó obsoleto (guardado también en memoria persistente).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Systems/CombatVisualizer/CombatRadialHealthBar.cs` (MODIFICADO): hover-only (math + evento), Bind(side,index), dual cola→hocico, ghost/flash/shake/punch, SnapHp, fix Input System.
+- `Systems/CombatVisualizer/CombatVisualizerService.cs` (MODIFICADO): ataque delegado entero al driver, anticipación de pasivas, PushHp(animate), PushTimeScale.
+- `Systems/CombatVisualizer/CombatVisualEvents.cs` (MODIFICADO): evento OnUnitHover (aditivo).
+- `Systems/CombatVisualizer/CombatVisualUnits.cs` (MODIFICADO): Bind(side, i).
+- `UI/CombatOrderBarUITK.cs` (MODIFICADO): PointerEnter/Leave del slot emite UnitHover.
+- `World/MonchiAnimationDriver.cs` (MODIFICADO): virtual SetTimeScale (aditivo).
+- `World/DragonAnimationDriver.cs` (MODIFICADO): coreografía de ataque volador completa + hit-stop + timescale + ClipLength sin `_`.
+- `Systems/CombatVisualizer/CombatDamageNumbers.cs` (MODIFICADO, b): Hit/Crit/Heal/Regen sin topText, leftText ±, outline dorado del crit (knobs).
+- `Systems/CombatVisualizer/CombatPedestalHighlighter.cs` (MODIFICADO, b): defaults outline 10 / negro.
+
+**Files Touched (no-ScriptNode):** `Resources/Animations/MoriMochi/MonchiAnimator.controller` (+4 estados Fly), `CombatVisualizerMM.unity` (knobs headshot + timing + pedestal, guardada) + `GameScene.unity` (knobs headshot, guardada), `ScriptableObjects/Equipment/CombatPopupPalette.asset` (Hit/Crit rojos), `Assets/DamageNumbersPro/Materials/Basic/Basic-Glow.asset` (_FaceColor HDR→plano, fix del blanco), `Assets/Screenshots/s59_*.png` + `s59b_*.png` + `s59c_*.png` (borrables).
+
+**Next session (S60):** revisión de Juan en vivo de todo lo de la nota 1 + autoría de Descriptions de estados (nota 2); arrastres: capa morada del escudo, sizing collider 0.7; después async 3v3 (F5) según roadmap.
+
+**ScriptNodes (cierre S59):** los 7 de la iteración a actualizados por vault-documenter en su primera corrida; al cierre (autorizado por Juan) se actualizaron además `CombatRadialHealthBar` (iteraciones b/c/d), `CombatVisualizerService` (ReactionLine), `CombatDamageNumbers` y `CombatPedestalHighlighter`. Duda de diseño respondida al cierre: "ataque 1" = genética baja + mod de rol (Empático −3 ATK, clamp piso 1) — no es bug; los popups ±0 quedan suprimidos y la cura fraccionaria se aplica igual.
+
+---
+
+**Session:** 2026-07-21 (Session 58 a-d — **REPLAY 3V3 SOBRE EL MODELO SURIYUN + RETIRO TOTAL DEL PIPELINE VISUAL LEGACY + PASADA GRANDE DE LEGIBILIDAD — ✅ CERRADA: 0 errores, 4 replays completos de 46 turnos verificados en Play con capturas**)
+**Focus:** Sesión larga en cuatro tandas. (a) El replay 3v3 corre AHORA con el modelo Suriyun (`MonchiVisualizer` + `DragonAnimationDriver`) y el pipeline legacy fue borrado entero. (b-d) Iteración de UI/legibilidad del replay dirigida por Juan: retratos, pedestales, barra radial, ventana de eventos, paleta pastel.
+
+1. **Modelos 30% más chicos**: `MorimonchiAgent.prefab` → `Model.localScale = 0.7` (pedido de Juan; collider/NavMeshAgent quedaron igual — tuning pendiente si lo pide).
+2. **Replay Suriyun (S58a)**: prefab nuevo **`MonchiCombatUnit.prefab`** (MonchiVisualizer + DragonAnimationDriver, Model 0.7). `CombatVisualUnits` retipado (fuera `Hooks`); `CombatVisualizerService` dispara el driver: golpe espera `onImpact` real del clip Fire (45%), `PlayHit`/`PlayDefeat`/`PlayVictory`/`PlayIdle` en sus beats, `PlayBuff` en pasivas sobre aliado. **LEGACY BORRADO**: `MoriMonchiVisualizer.cs`, `MoriMonchiCombatVisualizer.cs`, `MoriMonchiProceduralAnimator.cs`, `PartVisualBankSO.cs` (+asset), `BodyPartJoint.cs`, prefab viejo, carpeta `MoriMonchisParts`, campo `GameManager.PartVisualBank`. OJO: el GameManager de CombatVisualizerMM necesitaba wirear `MonchiVisualBank` (S57 solo lo wireó en GameScene) — hecho y guardado.
+3. **Muertes persistentes**: los muertos ya NO desaparecen — anim Die terminal, barra apagada, fade a `corpseAlpha` 0.35 tras 2.5s vía **`MonchiVisualizer.SetGhost(alpha)`** (transparencia UTS runtime sobre materiales instanciados). `Restore` (Back) repone estados/ghost exacto.
+4. **Facing**: el atacante rota hacia su objetivo antes del lunge (`TurnTowards`) y restaura su rotación al volver; ídem pasivas sobre aliado.
+5. **Fotomatón**: capturas SIN sombras (QualitySettings toggle por frame); **`GetHeadshot`/`GetHeadshotSprite`** nuevos = franja de ojos lateral 3/4 (yaw 140, roll 0, banda vertical con knobs `headshotCenterHeight/TopFraction/Padding/Pitch/Yaw/Roll`), RT y caches propios; `MonchiPortraitUI.ApplyHeadshot(element, dna)` (Cover). El estudio se **duplicó dentro de CombatVisualizerMM** (antes solo existía en GameScene).
+6. **Barra de orden**: cartas con headshot en vez de nombre (nombre queda en tooltip), **ancho fijo 160px** (las marcas ya no deforman), rol con nombre completo y color pastel (Protector azul / Agresivo rojo / Empático verde), afinidad como ecuación **○ + ○ = [chip elemento]** (dots 14px que se llenan del UiColor del elemento del MM). Letras de chips elementales en negro.
+7. **Ventana "Eventos"** (ex Registro): filtra a eventos importantes — reacciones ("X activó Vaporizado al combinar Agua con Fuego"), muertes y resultado — cada una con mini-carta headshot. Implementación: `CombatVisualLogLine` ganó `HasUnit/UnitSide/UnitIndex` (aditivo), el service los setea en reacciones/muertes, el panel filtra por `HasUnit || Kind==Result` y resuelve DNA del contexto.
+8. **Barra de vida RADIAL** (`CombatRadialHealthBar`, nuevo): anillo world-space plano alrededor del pedestal (sprites de anillo generados por código, fill Radial360), verde→rojo por %, **escudo en chunks de 10 segmentos por capa** (azul → morado → magenta, `shieldUnder`+`shieldFill`), 10 ticks separadores. Fino por defecto; **hover del mouse** (detección matemática por plano, sin colliders) → engorda + muestra "vida/máx". **Se cierra hacia donde mira el MM** (`SetFacingTarget`, knob `facingAngleOffset`). Dibuja ENCIMA de todo vía shader nuevo **`MoriMonchi/UIRingOverlay`** (UI ZTest Always, `Assets/RunRunSimulator/Shaders/UIRingOverlay.shader`). `SetTargeted` quedó no-op (Juan pidió sacar el aro rojo). La barra flotante `MoriMonchiCombatVisualizerUITK` fue **borrada** (script + hijo del prefab).
+9. **Pedestales**: materiales Toon/Toon por equipo — `PedestalAlly.mat` azul pastel (BoardA) / `PedestalEnemy.mat` salmón pastel (BoardB); `CombatPedestalHighlighter` (nuevo) pone DORADO + outline el pedestal del turno activo vía instancia de material, restaura al cambiar (suscribe OnActiveUnit/OnVisualCombatEnd).
+10. **Paleta pastel en mint**: `ColorGenetics.RandomBase()` ahora S 0.35-0.6 / V 0.8-1 (decisión de Juan: solo mints futuros; los 9 actuales conservan sus genes saturados). Popups: escala 0.7, lifetime 2.5s, offset (0, 0.35, 0) — knobs en `CombatDamageNumbers` + valor de escena actualizado.
+11. **Verificación**: bug reportado de "retratos con colores que no son" descartado — mapeo carta↔snapshot↔registry validado 6/6 por nombre; era el encuadre viejo mostrando solo acentos de armonía. 4 replays completos en Play, 0 errores reales.
+
+> ### 📌 Notas S58
+> 1. **Pendiente de ojo de Juan en vivo**: hover del anillo (no se puede simular mouse por MCP), ángulo de franja (yaw 140), `facingAngleOffset` del cierre del anillo, presencia del outline dorado. Todo knob serializado.
+> 2. Capa morada del escudo (>10) implementada pero no ejercitada (el record de prueba nunca superó 10).
+> 3. Los clips del Animator corren en tiempo real — el slider de velocidad no los acelera (a x4 los turnos duran más que antes). Escalado de `Animator.speed` queda como mejora futura si molesta.
+> 4. El anillo overlay se ve "a través" de los cuerpos (focus pedido por Juan); si en algún ángulo molesta, opción: segundo pase con alpha bajo.
+> 5. Efecto colateral estético: el ring "abraza" al MM visualmente. Aprobación pendiente de Juan en vivo.
+> 6. Sizing: collider/NavMeshAgent del agente siguen al tamaño viejo (modelo ahora 0.7).
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Systems/CombatVisualizer/CombatVisualUnits.cs` (MODIFICADO): retipado a MonchiVisualizer/MonchiAnimationDriver, fuera Hooks, crea CombatRadialHealthBar en el anchor.
+- `Systems/CombatVisualizer/CombatVisualizerService.cs` (MODIFICADO): driver de animación con onImpact real, muertes persistentes + CorpseFade, TurnTowards/TurnBack facing, AnchorOf, log de reacciones/muertes con HasUnit.
+- `Systems/CombatVisualizer/CombatVisualEvents.cs` (MODIFICADO): CombatVisualLogLine += HasUnit/UnitSide/UnitIndex (aditivo).
+- `Systems/CombatVisualizer/CombatDamageNumbers.cs` (MODIFICADO): popupScale/popupLifetime/offset.
+- `Systems/CombatVisualizer/CombatPedestalHighlighter.cs` (NUEVO): pedestal dorado + outline en turno activo.
+- `Systems/CombatVisualizer/CombatRadialHealthBar.cs` (NUEVO): anillo radial de vida/escudo con hover y overlay.
+- `Core/ColorGenetics.cs` (MODIFICADO): RandomBase pastel.
+- `Core/GameManager.cs` (MODIFICADO): fuera campo/propiedad PartVisualBank.
+- `UI/MonchiPortraitService.cs` (MODIFICADO): headshots (franja lateral) + capturas sin sombras.
+- `UI/MonchiPortraitUI.cs` (MODIFICADO): ApplyHeadshot.
+- `UI/CombatOrderBarUITK.cs` (MODIFICADO): headshot en carta, rol con color, ecuación de afinidad, ancho fijo.
+- `UI/CombatVisualizerPanelUITK.cs` (MODIFICADO): ventana Eventos filtrada con mini-cartas.
+- `World/Creatures/MonchiVisualizer.cs` (MODIFICADO): SetGhost(alpha) — transparencia UTS runtime.
+- `World/Spawning/MoriMochiSpawner.cs` (MODIFICADO): solo texto de tooltip (cosmético).
+- BORRADOS (retirar ScriptNodes): `MoriMonchiVisualizer.cs`, `MoriMonchiCombatVisualizer.cs`, `MoriMonchiProceduralAnimator.cs`, `PartVisualBankSO.cs`, `BodyPartJoint.cs`, `MoriMonchiCombatVisualizerUITK.cs`.
+
+**Files Touched (no-ScriptNode):** `MonchiCombatUnit.prefab` (NUEVO), `MorimonchiAgent.prefab` (Model 0.7), `CombatVisualizerMM.unity` (studio duplicado, materiales de pedestal, highlighter, visualizerPrefab re-wireado, MonchiVisualBank wireado, instancia legacy borrada), `Shaders/UIRingOverlay.shader` (NUEVO), `Materials/PedestalToon/PedestalAlly/PedestalEnemy.mat` (NUEVOS — PedestalToon quedó sin uso, borrable), `CombatVisualizerPanel.uss/.uxml`, `Assets/Screenshots/s58*.png` (borrables). BORRADOS: prefab legacy + `MoriMonchisParts/` + PartVisualBank asset.
+
+**Next session (S59):** continuar la sesión de tweaking del replay con Juan en vivo ("lo estamos consiguiendo"): hover/franja/facing/outline con su ojo, y arrastres — capa morada de escudo con un record que la ejercite, sizing collider vs modelo 0.7, Animator.speed vs slider. Después: async 3v3 (F5) según roadmap.
+
+**ScriptNodes (cierre S58):** ACTUALIZAR los 14 MODIFICADOS de arriba; CREAR `CombatPedestalHighlighter.md`, `CombatRadialHealthBar.md`; BORRAR/retirar `MoriMonchiVisualizer.md`, `MoriMonchiCombatVisualizer.md`, `MoriMonchiProceduralAnimator.md`, `PartVisualBankSO.md`, `BodyPartJoint.md`, `MoriMonchiCombatVisualizerUITK.md`.
+
+---
+
+**Session:** 2026-07-21 (Session 57d — **CÁMARA LIVE AISLADA POR CAPA: la carta muestra SOLO al MoriMochi en vivo, sin fondo — ✅ CERRADA: 0 errores, ciclo abrir/aislar/cerrar/restaurar verificado en Play (capas 43/43 restauradas)**)
+**Focus:** Juan aprobó la cámara live pero su visión era el estilo "cámara de inspección": el MoriMochi moviéndose en vivo SIN ningún otro objeto de fondo. Se reemplazó el enfoque "filmar el mundo" por **aislamiento por capa**.
+
+1. **Mecanismo**: capa nueva **`MonchiFocus` (slot 10)**. Mientras la sesión live está activa, `MonchiLivePortrait.Begin` mueve TODO el subtree de `ModelRoot` del visualizer de la criatura (solo renderers, sin colliders → física intacta) a MonchiFocus, guardando `(transform, layer)` originales; `End`/auto-apagado los restaura exactos. La `LiveCamera` pasa a culling mask solo-MonchiFocus + clear SolidColor alpha 0 → **el retrato muestra únicamente a la criatura animándose sobre fondo transparente**. La Main Camera SÍ renderiza MonchiFocus, así que en el mundo se sigue viendo normal (dos vistas simultáneas del mismo modelo).
+2. **Evasión de oclusores ELIMINADA** (S57c): con el aislamiento la cámara no renderiza los oclusores — ver "a través" del jugador/paredes es gratis. El seguimiento queda: damp + dirección relativa a la rotación de la criatura (cara 3/4 siempre).
+3. **`MoriMonchiController` gana `public MonchiVisualizer Visualizer => visualizer;`** (fachada, junto a `Agent`) — lo usa el live para llegar al ModelRoot sin GetComponent.
+4. **BUG CAZADO — loop End→Begin con el panel oculto**: el panel de detalle re-Populaba en cada `GameEvents.OnRegistryChanged` AUNQUE estuviera oculto (paneles escuchan ocultos), y cada Populate rearmaba la live vía `ApplyLive` justo después de que el auto-apagado la cortara — con los 3 muebles nuevos de Juan generando mutaciones periódicas, la cámara nunca moría. Fix: `OnRegistryChanged` corta si `document.rootVisualElement.resolvedStyle.display == None` (al reabrir, `Show()` siempre Populate → no se pierde frescura).
+5. **Verificación en Play**: abrir carta → subtree 43/43 en MonchiFocus, retrato = solo la criatura en vivo con fondo limpio (`s57d_live_aislado.png`); vista de mundo simultánea intacta (`s57d_mundo_check.png`); cerrar → cam OFF, sesión limpia, capas restauradas 43/43, sin re-encendido tras 8s de mutaciones. 0 errores reales.
+
+> ### 📌 Notas S57d
+> 1. Capa nueva `MonchiFocus` (slot 10) en TagManager — reservada para "lo que la cámara de inspección debe ver". Candidata a reutilizarse si algún día hay más de una cámara de inspección simultánea (hoy: una sola sesión live a la vez, singleton).
+> 2. La restauración de capas es por-transform exacta (no asume capa uniforme) — sobrevive a subtrees con capas mixtas.
+> 3. El fondo del retrato live es transparente (se ve el fondo de la carta) — mismo look que la foto del fotomatón, consistencia visual gratis.
+> 4. Ajuste final pedido por Juan: `framePadding` del live 0.65 → **0.5** (criatura ligeramente más grande en cuadro), persistido en escena.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `UI/MonchiLivePortrait.cs` (MODIFICADO): aislamiento por capa MonchiFocus con guardado/restauración exacta de capas; eliminada la evasión de oclusores.
+- `World/Creatures/MoriMonchiController.cs` (MODIFICADO): propiedad `Visualizer` en la fachada.
+- `UI/MorimonchiDetailInfoUITK.cs` (MODIFICADO): `OnRegistryChanged` no repuebla con el panel oculto (fix del loop live).
+
+**Files Touched (no-ScriptNode):** TagManager (capa 10 `MonchiFocus`), GameScene (LiveCamera: mask solo-MonchiFocus + clear alpha 0, guardada), `Assets/Screenshots/s57d_*.png` (2, borrables).
+
+**Next session (S58, candidatos):** sin cambios — 1) integración replay 3v3 con `DragonAnimationDriver` + retiro de legacy; 2) revisión de Juan (caras excluidas, pesos, sizing, wipe opcional); 3) arrastres.
+
+**ScriptNodes (cierre S57d):** ACTUALIZAR `MonchiLivePortrait.md`, `MoriMonchiController.md`, `MorimonchiDetailInfoUITK.md`.
+
+---
+
+**Session:** 2026-07-21 (Session 57c — **CÁMARA LIVE EN LA CARTA DE DETALLE: `MonchiLivePortrait` autogestionada con evasión de oclusores — ✅ CERRADA: 0 errores, ciclo completo verificado en Play (abrir→live ON, cerrar→live OFF+foto)**)
+**Focus:** Pedido de Juan tras aprobar el fotomatón: la foto queda para la visión general (grillas), pero al abrir la carta del MoriMochi el retrato pasa a ser una cámara EN VIVO filmando a esa criatura spawneada en el mundo en ese momento.
+
+1. **`MonchiLivePortrait` (UI/, singleton runtime, componente hermano en `MonchiPortraitStudio`)**: cámara dedicada `LiveCamera` (hija del studio, mask todo-menos-PortraitStudio, clearFlags Skybox → fondo = la tienda real, far 300) rendereando a RT 512 propia. `Begin(element, dna)`: busca la criatura spawneada por UniqueID en `MoriMochiSpawner.Instance.SpawnedEntries` (accesor `internal`, mismo assembly); si no está → false y el caller cae a la foto. Sigue a la criatura con damp (`followDamp=8`), dirección relativa a su rotación (siempre le ve la cara 3/4) con **evasión de oclusores**: cada 0.5s linecast desde el centro de la criatura a la posición candidata; si algo que no es ella bloquea (jugador/pared/otra criatura), rota entre offsets de yaw `{0,55,-55,110,-110,180}` al primer ángulo despejado. Knobs: `framePadding=0.65`, `cameraPitch=18`, `cameraYaw=155`.
+2. **Autogestión del apagado (cero acople con los caminos de cierre del panel)**: `LateUpdate` corta la sesión — apaga cámara y **repinta la foto estática** — si el elemento fue removido del árbol, si está oculto (helper `IsHidden`: camina ancestros mirando `resolvedStyle.display == None`) o si la criatura despawneó. Cubre X, ESC y cualquier cierre futuro sin tocar UIManager.
+3. **Wiring mínimo**: `MonchiPortraitUI.ApplyLive(element, dna)` (intenta live, fallback foto) y `MorimonchiDetailInfoUITK.Populate` usa `ApplyLive` para el retrato del header (un cambio de línea). Grillas y demás cartas siguen con la foto.
+4. **Dos bugs cazados en Play**: (a) el check de visibilidad por `worldBound` NO detecta `display:none` en un ancestro (UITK saltea el layout del subárbol y el rect conserva su último valor) → reemplazado por el ancestor-walk `IsHidden`; (b) ángulo fijo dejaba al jugador tapando a la criatura → evasión de oclusores por linecast.
+5. **Verificación en Play**: abrir carta → cam ON con feed vivo del mundo (criatura encuadrada, fondo tienda; con la manada amontonada post-cañón el plano es caótico — correcto, es live); criatura aislada → encuadre limpio; cerrar panel → cam OFF + sesión limpiada (verificado por reflection). Pull de nube trajo 9 criaturas + 3 muebles (Juan colocó muebles en su sesión) sin errores.
+
+> ### 📌 Notas S57c
+> 1. El plano live puede incluir otras criaturas/jugador cerca — es inherente a filmar el mundo real y parte del encanto; la evasión solo garantiza que la criatura NO quede tapada.
+> 2. La idea original de S56 (skybox propio/fondo aislado para la carta) quedó descartada de facto por esta versión: Juan pidió explícitamente "cámara live del morimonchi en ese momento" → fondo real.
+> 3. Si la criatura no está spawneada (muerta/vendida/en huevo), la carta cae sola a la foto del fotomatón.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `UI/MonchiLivePortrait.cs` (NUEVO): cámara live autogestionada del retrato de detalle (seguimiento + evasión de oclusores + auto-apagado).
+- `UI/MonchiPortraitUI.cs` (MODIFICADO): método `ApplyLive` (live con fallback a foto).
+- `UI/MorimonchiDetailInfoUITK.cs` (MODIFICADO): retrato del header usa `ApplyLive`.
+
+**Files Touched (no-ScriptNode):** GameScene (hija `LiveCamera` en `MonchiPortraitStudio` + componente `MonchiLivePortrait` wireado, guardada), `Assets/Screenshots/s57c_*.png` (7, borrables).
+
+**Next session (S58, candidatos):** sin cambios — 1) integración replay 3v3 con `DragonAnimationDriver` + retiro de legacy; 2) revisión de Juan (caras excluidas, pesos, sizing, wipe opcional); 3) arrastres.
+
+**ScriptNodes (cierre S57c):** CREAR `MonchiLivePortrait.md`; ACTUALIZAR `MonchiPortraitUI.md`, `MorimonchiDetailInfoUITK.md`.
+
+---
+
+**Session:** 2026-07-21 (Session 57b — **CARTAS CON RETRATO REAL: fotomatón `MonchiPortraitService` + helper único `MonchiPortraitUI` en los 10 sitios de carta — ✅ CERRADA: 0 errores, verificado en Play (grilla con 8 retratos únicos + panel detalle)**)
+**Focus:** Juan aprobó el tuning de emociones y el lobby ("quedó joya") y pidió, antes del 3v3, que las cartas de la UI muestren al MoriMochi en lugar del cuadrado de color. Se implementó el **híbrido fotomatón** propuesto en S56 nota 6 (la mitad "snapshot cacheado"; la cámara live para la carta enfocada queda pendiente/opcional).
+
+1. **`MonchiPortraitService` (UI/, singleton runtime)**: estudio oculto en GameScene (`MonchiPortraitStudio` @ (500,-500,500), capa nueva `PortraitStudio` slot 9): GO `Booth` con su propio `MonchiVisualizer` (+hijo `Model` como modelRoot) + `BoothCamera` (disabled, FOV 30, far 30, clear a alpha 0 → retrato con fondo transparente). `GetPortrait(dna)`: cache por UniqueID; miss → activa booth, `Assemble(dna)` (armonía/patrón/shiny gratis del pipeline S57), `SetMood(portraitMood=Neutral)`, pose estática `animator.Play("Idle",0,0)+Update(0)`, encuadre por Bounds de los SMR, `camera.Render()` a RT 384px, ReadPixels→Texture2D, desactiva booth. `GetPortraitSprite(dna)` para uGUI. Primera captura ~0-1ms, cache 0ms. Knobs serializados afinados en vivo y persistidos: `framePadding=0.62`, `cameraPitch=10`, `cameraYaw=155` (vista 3/4 — de frente las alas se ven de canto como líneas).
+2. **`MonchiPortraitUI` (UI/, static helper)**: único punto que pintan las cartas — `Apply(VisualElement, dna)` (backgroundImage + backgroundSize Contain; fallback exacto al viejo cuadrado BaseColor/gris si no hay servicio o dna null) y `Apply(UnityEngine.UI.Image, dna)` (sprite + preserveAspect; tipo calificado — hubo CS0104 por ambigüedad UIElements.Image/UI.Image, único error de la ronda).
+3. **10 call sites reemplazados** (una línea c/u, `MonchiPortraitUI.Apply(...)`): CreatureGridUITK (icono carta), BreedingBreedTabPresenter (candidatos), CombatOnlineTabPresenter (carta central), CombatLineupUITK (carta pool + ghost del drag), CombatLineupBoard (unidad en tablero 2-3-2), TransactionPanelUITK (swatch venta), MorimonchiDetailInfoUITK (retrato header), DetailEquipTabPresenter (retrato equipo), DetailTreesPresenter (chips linaje/descendencia), CreatureVisualUI (grid uGUI in-world, vía sprite).
+4. **Aislamiento**: Main Camera excluye la capa PortraitStudio (mask -513); la cámara del booth ve todo pero con far 30 en un punto a 700m del mundo; la luz direccional de la escena ilumina el booth (sin luz propia, sin doble iluminación).
+5. **Verificación en Play**: grilla con 8 retratos únicos simultáneos (cuerpo/cuerno/armonía/cara distintos por criatura), panel detalle con retrato en header, PNG crudo inspeccionado (transparencia OK). Un falso negativo durante el testing fue autoinfligido (destruí texturas cacheadas ya bindeadas durante el tuning de encuadre) — en flujo normal no pasa: las cartas se rebindean en cada rebuild y el cache vive lo que vive el servicio.
+
+> ### 📌 Notas S57b
+> 1. **Cache nunca se invalida** en runtime (identidad visual inmutable). Si algún día un gen visual muta post-nacimiento (evolución que cambie cuerpo/patrón), agregar invalidación por UniqueID.
+> 2. La carta ENFOCADA con cámara live + skybox propio (idea original de Juan, S56 nota 6) sigue pendiente de decisión — el fotomatón ya cubre todo lo visible.
+> 3. El retrato usa mood fijo Neutral (knob `portraitMood` serializado por si Juan quiere otro).
+> 4. Capa nueva `PortraitStudio` (slot 9) en TagManager.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `UI/MonchiPortraitService.cs` (NUEVO): fotomatón — booth oculto + captura a Texture2D/Sprite cacheada por UniqueID.
+- `UI/MonchiPortraitUI.cs` (NUEVO): helper estático único de pintado de cartas (retrato o fallback BaseColor).
+- `UI/CreatureGridUITK.cs`, `UI/BreedingBreedTabPresenter.cs`, `UI/CombatOnlineTabPresenter.cs`, `UI/CombatLineupUITK.cs`, `UI/CombatLineupBoard.cs`, `UI/TransactionPanelUITK.cs`, `UI/MorimonchiDetailInfoUITK.cs`, `UI/DetailEquipTabPresenter.cs`, `UI/DetailTreesPresenter.cs`, `UI/CreatureVisualUI.cs` (MODIFICADOS): swatch de color → `MonchiPortraitUI.Apply`.
+
+**Files Touched (no-ScriptNode):** GameScene (GO `MonchiPortraitStudio` completo + Main Camera cullingMask sin PortraitStudio, guardada), TagManager (capa 9 `PortraitStudio`), `Assets/Screenshots/s57b_*.png` (7, borrables).
+
+**Next session (S58, candidatos):** sin cambios respecto a S57 — 1) integración replay 3v3 con `DragonAnimationDriver` + retiro de legacy; 2) revisión de Juan (caras excluidas, pesos, sizing, wipe opcional, carta enfocada live); 3) arrastres.
+
+**ScriptNodes (cierre S57b):** CREAR `MonchiPortraitService.md`, `MonchiPortraitUI.md`; ACTUALIZAR (mención breve del retrato) `CreatureGridUITK.md`, `CreatureVisualUI.md`, `MorimonchiDetailInfoUITK.md`, `CombatLineupUITK.md`, `CombatLineupBoard.md`, `CombatOnlineTabPresenter.md`, `BreedingBreedTabPresenter.md`, `TransactionPanelUITK.md`, `DetailEquipTabPresenter.md`, `DetailTreesPresenter.md`.
+
+---
+
+**Session:** 2026-07-21 (Session 57 — **INTEGRACIÓN DE CÓDIGO DEL MODELO NUEVO COMPLETA: pipeline visual Suriyun en gameplay (visualizer + moods + driver Animator + FurType 33 ponderado + shiny 0.5%) — ✅ CERRADA: 0 errores, verificado en Play por MCP (9/9 criaturas con el modelo nuevo, attack/moods/shiny ejercitados)**)
+**Focus:** Ejecución autónoma autorizada por Juan (estaba fuera). Se implementó todo el punto 1 de S57: el modelo Suriyun es AHORA el modelo de gameplay. Decisión de Juan previa a irse: FurType plano 0-32 **con tabla de pesos de rareza solo en mint** (opción 3; herencia sigue 50/50) + sistema de settings de emociones para las caras.
+
+1. **Categorización de los 33 patrones** (hojas de contacto generadas con PIL): ~18 son "liso con matices" (misma textura de escamas, cambia solo valor/contraste panza-cuerpo) y ~15 tienen patrón real: acuarela (02,13), pecas/lunares (04,06,08), dos tonos alto contraste (05,19,20,21,26=orca,27), leopardo/rosetas (12,14), reptil/grunge (31,32). Pesos en mint: comunes 1.0 / 0.5 / 0.25 / épicos 0.12 / orca-26 0.05 — editables en `FurTypeDatabase.asset` (dict `mintWeights`).
+2. **Data layer**: `FurType` → `Pattern00..Pattern32` (33, mapea 1:1 a `MonchiFur_XX`); enum nuevo **`MonchiMood`** (12: Neutral/Feliz/Triste/Dolor/Enojado/Dormido/Enfermo/Mareado/Asustado/Amoroso/Emocionado/KO); `CreatureDNA.IsShiny` (bool, metadata additive, default false — saves viejos compatibles); `ColorGenetics` gana `BuildHarmony(baseColor, out wing, out accent)` **determinista** (roll por hash FNV del RGB24 → esquemas 40/30/20/10 de S56), `ShinyChance=0.005f` + `RollShiny()`; `FurTypeDatabaseSO` gana `mintWeights` + `RollMintFurType()` (ruleta ponderada, fallback uniforme); `CreatureGenerator.GenerateRandom` acepta `furDb` opcional (roll ponderado + shiny); `BreedingService` rolea shiny del hijo; **gen cuerno = BodyShapeID existente**: `MonchiVisualBankSO.GetBody(id)` mapea por hash estable % 4 cuerpos (dict `bodyOverrides` para control explícito futuro) → **el DNA string NO cambió, contrato de red intacto, NO hizo falta wipe** (FurType viejos 0-4 = Pattern00-04 válidos).
+3. **SOs nuevos** (en `ScriptableObjects/Visual/`): **`MonchiVisualBankSO`** (`MonchiVisualBank.asset`: 4 bodies FBX + AnimatorController + 5 gemas + ref moodSet; hash FNV-1a estático NO usa GetHashCode) y **`MonchiMoodSetSO`** (`MonchiMoodSet.asset`: dict mood → lista de materiales de cara, `GetFace(mood)` con fallback a Neutral — **este es el espacio de settings que pidió Juan: sacar/poner caras de una emoción es editar el asset, sin código**). Mapeo cargado: Neutral 01/02/04/07 · Feliz 03/08 · Triste 05/10 · Dolor 06/09 · Enojado 17/25 · Dormido 11/15 · Enfermo 13 · Mareado 14 · Asustado 24 · Amoroso 19 · Emocionado 23 · KO 18. **Excluidas de la rotación (candidatas a "no me gustan", revisión de Juan): 12 (smug), 16 (ojos amarillos), 20 ($), 21 (cruces), 22 (garabato tachado)** — 20 podría servir para modo tienda.
+4. **Runtime nuevo** (World/Creatures salvo driver): **`MonchiVisualizer`** (reemplaza a `MoriMonchiVisualizer` en el agente; instancia body por `GetBody(BodyShapeID)`, Animator con controller del bank, fur `MonchiFur_{FurType}` + tinte por grupos de SMR — Wing→armonía1, Horn/Back→armonía2, Teech→marfil 12%, resto→base — MPB con Rim=Lerp(color,blanco,0.65) fix alas radiactivas; shiny → `MonchiGem_*` por hash del UniqueID sin tinte; `SetMood()` swapea material de Face); **`DragonAnimationDriver : MonchiAnimationDriver`** (contrato de combate sobre Animator.CrossFade: attack=Fire con onImpact al 45% del clip, hit=Damage, buff=Yes, defeat=Die terminal, victory=Roar+Jump loop; `ClipLength` matchea clip por nombre más corto que contenga el estado; setea moods durante acciones); **`MonchiLocomotionAnimator`** (velocity del NavMeshAgent → Idle/Walk/Run con histéresis por estado, cede si combatDriver.IsBusy); **`MonchiMoodDriver`** (tick 2.5-5s desincronizado: Condition Sick→Enfermo, InNeed→Triste; por Intent Resting→Dormido, Eating→Feliz, Playing→Emocionado, Held/Fleeing→Asustado, Tumbling→Mareado; default 35% Feliz/65% Neutral).
+5. **Wiring**: `MoriMonchiController` retipado a `MonchiVisualizer` + `MonchiVisualBankSO` (firma `Initialize`/`Rebind` igual); `MoriMochiSpawner` pasa `GameManager.MonchiVisualBank` (campo+propiedad nuevos, wireado en GameScene, escena guardada); **`MonchiAnimator.controller`** creado por MCP (13 estados nombres limpios, one-shots con exit time 0.95 → auto-Idle, Idle/Walk/Run loop, Die terminal — decisión S56 #7); prefab `MorimonchiAgent` operado por MCP: fuera `MoriMonchiVisualizer`+`MoriMonchiProceduralAnimator`+hijos viejos de Model, dentro los 4 componentes nuevos con refs wireadas.
+6. **BUG CAZADO EN PLAY (paridad de contrato)**: `MoriMochiSpawner.Acquire` reusa prewarmed con `Initialize(bank: null)` a propósito ("saltear re-ensamblado") — el `SetBank(null)` incondicional del controller nuevo PISABA el banco guardado (moods/shiny muertos en prewarmed). Fix: con bank null el controller hace `RefreshLook(dna)` y conserva el banco. Verificado post-fix: 9/9 con banco.
+7. **Verificación en Play (GameScene, 0 errores reales)**: 9/9 spawneadas con cuerpo por gen (hash BodyShapeID→FBX determinista), patrón+armonía+cara aplicados, Animator corriendo (Walk/Run en roaming); mint x2000 SIN tocar registry: distribución ponderada correcta (común 74 / épico 14 / orca 5) + shiny 7/2000≈0.5%, 33/33 tipos salen; `PlayAttack` con onImpact/onFinished disparados (logs `[TEST-S57]`); shiny forzado → `MonchiGem_Emerald` y revertido; `SetMood(KO)` → `MonchiFace_18`; mood driver reflejando estado real (9/9 Enfermo por needs drenadas — GameScene sin NeedStations —; con needs llenas rotaron a Neutral/Feliz variados); reconcile de pull de nube (rebound=9) sin errores. Screenshots `s57_modelo_nuevo_ingame*.png` (4).
+
+> ### 📌 Notas S57
+> 1. **Wipe de saves NO ejecutado y NO necesario**: todo fue additive (FurType 0-4 viejos válidos, IsShiny default false, BodyShapeID mapea por hash). Queda a criterio de Juan si igual quiere resetear.
+> 2. Las 4 entradas "Exception" en consola durante Play son `Debug.Log` de continuaciones async UGS mal clasificadas por el tool MCP (stack empieza en `Debug:Log`) — ruido conocido, no errores.
+> 3. `MoriMonchiVisualizer`/`PartVisualBankSO`/`MoriMonchiProceduralAnimator` quedan como **legacy vivos** (los usa el pipeline de combate: `CombatVisualUnits`/`CombatVisualizerService` con su propio prefab). Se retiran cuando se integre el replay 3v3 al driver nuevo.
+> 4. Caras excluidas de moods (nota 3 arriba) esperan veredicto de Juan; también el mapeo mood→cara es 100% editable en `MonchiMoodSet.asset`.
+> 5. La escala/collider del agente no se retocó — el dragón se ve bien plantado en el piso, pero el sizing fino vs cápsula/cañón es tuning pendiente de Juan.
+> 6. Los accesores `internal` del spawner no son visibles desde `execute_code` (assembly distinto) — verificar spawner por FindObjects, no por API interna.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `Core/Enums.cs` (MODIFICADO): FurType → Pattern00-32; enum nuevo MonchiMood.
+- `Core/ColorGenetics.cs` (MODIFICADO): BuildHarmony determinista por hash + ShiftHue + ShinyChance/RollShiny.
+- `Core/CreatureGenerator.cs` (MODIFICADO): param furDb opcional (mint ponderado) + roll shiny.
+- `Core/GameManager.cs` (MODIFICADO): campo/propiedad MonchiVisualBank; mint pasa furTypeDatabase.
+- `Data/Genetics/CreatureDNA.cs` (MODIFICADO): IsShiny + default Pattern00.
+- `Data/Databases/FurTypeDatabaseSO.cs` (MODIFICADO): mintWeights + RollMintFurType.
+- `Data/Databases/MonchiVisualBankSO.cs` (NUEVO): banco visual del modelo nuevo (bodies por hash, gemas, controller, moodSet).
+- `Data/MonchiMoodSetSO.cs` (NUEVO): settings de emociones (mood → caras).
+- `Systems/Breeding/BreedingService.cs` (MODIFICADO): shiny roll del hijo.
+- `World/Creatures/MonchiVisualizer.cs` (NUEVO): visualizer del modelo Suriyun.
+- `World/Creatures/MonchiLocomotionAnimator.cs` (NUEVO): velocity → Idle/Walk/Run.
+- `World/Creatures/MonchiMoodDriver.cs` (NUEVO): Condition/Intent → mood in-world.
+- `World/DragonAnimationDriver.cs` (NUEVO): contrato de combate sobre Animator.
+- `World/Creatures/MoriMonchiController.cs` (MODIFICADO): fachada al pipeline nuevo + fix bank null (nota 6).
+- `World/Spawning/MoriMochiSpawner.cs` (MODIFICADO): MonchiVisualBank en prewarm/acquire.
+
+**Files Touched (no-ScriptNode):** NUEVOS: `Resources/Animations/MoriMochi/MonchiAnimator.controller` (13 estados), `ScriptableObjects/Visual/MonchiVisualBank.asset`, `ScriptableObjects/Visual/MonchiMoodSet.asset`, `Assets/Screenshots/s57_*.png` (4, borrables). MODIFICADOS: `ScriptableObjects/Breeding/FurTypeDatabase.asset` (33 materiales MonchiFur + pesos), `Resources/Prefabs/MorimonchiAgent.prefab` (cirugía completa), GameScene (ref MonchiVisualBank en GameManager, guardada).
+
+**Next session (S58, candidatos):**
+1. **Integración replay 3v3 con el driver nuevo** (`CombatVisualizerMM`): `CombatVisualUnit` gana `DragonAnimationDriver`, `ForwardRoutine` → API del contrato, barra recupera el nombre (S52 nota 6), interacciones ingame (S45); al cerrar, retirar los legacy (`MoriMonchiVisualizer`/`PartVisualBankSO`/`MoriMonchiProceduralAnimator`).
+2. Revisión de Juan: caras excluidas (12/16/20/21/22), pesos de rareza de patrones, sizing del dragón vs cápsula/cañón, y si quiere el wipe opcional.
+3. Arrastran: corrales/cortejo en Play, F5 async 3v3, economía F7, cartas (S56 nota 6), escudo por RONDA.
+
+**ScriptNodes (cierre S57):** CREAR `MonchiVisualizer.md`, `MonchiVisualBankSO.md`, `MonchiMoodSetSO.md`, `DragonAnimationDriver.md`, `MonchiLocomotionAnimator.md`, `MonchiMoodDriver.md`; ACTUALIZAR `Enums.md`, `ColorGenetics.md`, `CreatureGenerator.md`, `GameManager.md`, `CreatureDNA.md`, `FurTypeDatabaseSO.md`, `BreedingService.md`, `MoriMonchiController.md`, `MoriMochiSpawner.md`.
+
+---
+
 **Session:** 2026-07-21 (Session 56 — **PIVOT DE MODELO: Suriyun Dragons_SD APROBADO COMO MORIMOCHI FINAL — análisis de viabilidad + simulador de validación + Fase C de assets COMPLETA (33 FurPatterns + 25 caras + 5 gemas + 4 cuerpos + 23 anims copiados a nuestra estructura) — ✅ CERRADA: 0 errores, todo verificado en Play por MCP. Un solo .cs nuevo: `SuriyunSimDriver` (paleta de diseño autocontenida)**)
 **Focus:** Juan descargó el asset Suriyun `Dragons_SD` (dragones SD chibi) y pidió análisis de viabilidad para pivotar el modelo del MoriMochi. Veredicto: encaje excepcional. Se validó en simulador vivo, Juan aprobó el look ("con esto ya lo tenemos") y se materializó la base de assets. El plan "animaciones de la pelotita" (S52-S55) queda RETIRADO — lo reemplaza este modelo con animaciones reales.
 

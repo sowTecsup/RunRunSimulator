@@ -1,13 +1,25 @@
 ---
-tags: [script, genetics]
+tags: [script, RETIRADO-S58, data, database]
 ---
 
-# PartVisualBankSO.cs
+# PartVisualBankSO.cs — RETIRADO S58
 
-**Ruta:** `Data/Databases/PartVisualBankSO.cs`
+**Estado:** RETIRADO — Migración Suriyun (S58)
 
-**Responsabilidad:** Mapa part ID → prefab `BodyPartJoint`. Botones "Populate from Database" y "Fill Empty with Defaults". Singleton `Current`.
+**Descripción anterior:**
+- Mapa part ID → prefab BodyPartJoint
+- Botones Populate/Fill Empty
+- Singleton Current
 
-**Vinculado a:** [[Index/02 - Genetics & Breeding]]
+**Reemplazo:** [[MonchiVisualBankSO]]
+- Rig FBX completo (no ensamblado por partes)
+- Body prefabs pre-ensamblados
+- AnimatorController incluido
 
-**Conexiones:** [[MoriMonchiVisualizer]], [[BodyPartJoint]], [[PartDatabaseSO]]
+**Cuando se eliminó:** S58
+
+**Cambio:**
+- Ensamblado dinámico por partes → FBX pre-armado
+- BodyPartJoint (RETIRADO) → prefab único del banco
+
+**Ver también:** [[MonchiVisualBankSO]], [[BodyPartJoint]]

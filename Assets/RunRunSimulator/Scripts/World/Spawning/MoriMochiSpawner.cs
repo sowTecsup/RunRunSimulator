@@ -26,7 +26,7 @@ namespace MoriMonchiSimulator
 public class MoriMochiSpawner : MonoBehaviour
 {
     [Header("Prefab")]
-    [Tooltip("Prefab root with MoriMonchiController + MoriMochiAgent + MoriMonchiVisualizer.")]
+    [Tooltip("Prefab root with MoriMonchiController + MoriMochiAgent + MonchiVisualizer.")]
     [Required, SerializeField] private MoriMonchiController creaturePrefab;
 
     // ── Cannon ────────────────────────────────────────────────────
@@ -271,7 +271,7 @@ public class MoriMochiSpawner : MonoBehaviour
 
         var all   = registry.GetAll();
         var table = GameManager.Instance != null ? GameManager.Instance.RoleWorldProfiles : null;
-        var bank  = GameManager.Instance != null ? GameManager.Instance.PartVisualBank      : null;
+        var bank  = GameManager.Instance != null ? GameManager.Instance.MonchiVisualBank    : null;
         var furDb = GameManager.Instance != null ? GameManager.Instance.FurTypeDatabase     : null;
 
         // Instantiating off-mesh makes NavMeshAgent.OnEnable error. Park all prewarm instances on a
@@ -440,7 +440,7 @@ public class MoriMochiSpawner : MonoBehaviour
     private MoriMonchiController Acquire(CreatureDNA dna, Vector3 navPoint)
     {
         var table = GameManager.Instance != null ? GameManager.Instance.RoleWorldProfiles : null;
-        var bank  = GameManager.Instance != null ? GameManager.Instance.PartVisualBank      : null;
+        var bank  = GameManager.Instance != null ? GameManager.Instance.MonchiVisualBank    : null;
         var furDb = GameManager.Instance != null ? GameManager.Instance.FurTypeDatabase     : null;
 
         if (prewarmed.TryGetValue(dna.UniqueID, out var controller))

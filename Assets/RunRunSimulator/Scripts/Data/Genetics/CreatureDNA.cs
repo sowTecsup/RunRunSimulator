@@ -22,7 +22,8 @@ public class CreatureDNA
     [ColorUsage(false)]
     public Color SecondaryColor = Color.white;
 
-    public FurType FurType = FurType.Smooth;
+    public FurType FurType = FurType.Pattern00;
+    public bool IsShiny = false;
 
     // ── Identity ──────────────────────────────────────────────────
     public string   CustomName = "";     // editable display name — auto-assigned on Mint/Breed

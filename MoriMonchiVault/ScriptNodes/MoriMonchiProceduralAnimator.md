@@ -1,13 +1,30 @@
 ---
-tags: [script, world]
+tags: [script, RETIRADO-S58, world, animation]
 ---
 
-# MoriMonchiProceduralAnimator.cs
+# MoriMonchiProceduralAnimator.cs — RETIRADO S58
 
-**Ruta:** `World/Creatures/MoriMonchiProceduralAnimator.cs`
+**Estado:** RETIRADO — Migración Suriyun (S58)
 
-**Responsabilidad:** Componente de animación procedural que conduce los Transforms públicos de [[MoriMonchiVisualizer]] (ModelRoot, BodyTransform, ArmTransforms, EyeTransforms) mediante matemática en LateUpdate. No usa Skinned Mesh ni bones. Estados via enum MMAnimationType: Idle/Walk son loops (respiración, balanceo, movimiento de brazos, parpadeo); Attack/Hit/Victory son one-shots superpuestos; Death es topple con shrink, se queda inmóvil. **API pública:** `PlayMMAnimation(MMAnimationType)` + 6 wrappers sin parámetros (AnimIdle/AnimWalk/AnimAttack/AnimHit/AnimDeath/AnimVictory) para cablear desde UnityEvent. Inspector Odin con TabGroups (General/Idle/Walk/Reacciones) y tooltips por stat. **DEUDA CONOCIDA:** `autoLoopFromMovement` lee NavMeshAgent.velocity para auto-cambiar entre Idle/Walk; debería delegarse a quién controle el movimiento (ej: MoriMochiAgent) para que llame directamente los wrappers en lugar de leer NAV agent aquí. Lazy rest pose capture tras Assemble del Visualizer.
+**Descripción anterior:**
+- Animación procedural (no Animator)
+- Conducía transforms de MoriMonchiVisualizer (brazos, ojos, cabeza)
+- Estados: Idle, Walk, Attack, Hit, Death, Victory
+- LateUpdate + matemática trigonométrica (respiración, balanceo, parpadeo)
 
-**Vinculado a:** [[Index/06 - Player & World]]
+**Reemplazo:** [[DragonAnimationDriver]] (Animator Suriyun)
+- Rig FBX con Animator + AnimatorController
+- Estados nativos (Idle, Attack, Hit, Defeat, Victory)
+- Transiciones suaves vía parámetros (Speed, Intensity, etc.)
 
-**Conexiones:** [[MoriMonchiVisualizer]], [[MoriMonchiCombatVisualizer]], [[Enums]], [[MoriMochiAgent]]
+**Cuando se eliminó:** S58
+
+**Cambio:**
+- Procedural math → Animator assets (más eficiente, más polished)
+- NavMeshAgent velocity check → Controller llama PlayIdle/PlayWalk directamente
+
+**Conexiones antiguas:**
+- MoriMonchiVisualizer (RETIRADO)
+- MoriMonchiCombatVisualizer (RETIRADO)
+
+**Ver también:** [[DragonAnimationDriver]], [[MonchiAnimationDriver]], [[MonchiVisualizer]]

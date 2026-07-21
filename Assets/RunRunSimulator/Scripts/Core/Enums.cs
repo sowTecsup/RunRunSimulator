@@ -44,17 +44,60 @@ public enum LifeStage
     Elder   = 4
 }
 
-// Coat type of a MoriMochi. Maps 1:1 to a CartoonShader material in FurTypeDatabaseSO.
-// Inherited 50/50 from one parent at breed time. Stored in CreatureDNA, NOT part of
-// the genetic string (metadata like Gender/Role). The material defines the look
-// (outline/shadow sizing, gradients); the per-creature colors ride on a MaterialPropertyBlock.
+// Texture pattern of a MoriMochi. Maps 1:1 to a MonchiFur_00..32 material in
+// FurTypeDatabaseSO. Inherited 50/50 from one parent at breed time. Stored in
+// CreatureDNA, NOT part of the genetic string (metadata like Gender/Role).
 public enum FurType
 {
-    Smooth = 0,  // Clean cartoon, no fuzz
-    Fluffy = 1,  // Soft and puffy
-    Spiky  = 2,  // Sharp tufts
-    Shaggy = 3,  // Long unkempt coat
-    Scaly  = 4,  // Reptilian plates
+    Pattern00 = 0,
+    Pattern01 = 1,
+    Pattern02 = 2,
+    Pattern03 = 3,
+    Pattern04 = 4,
+    Pattern05 = 5,
+    Pattern06 = 6,
+    Pattern07 = 7,
+    Pattern08 = 8,
+    Pattern09 = 9,
+    Pattern10 = 10,
+    Pattern11 = 11,
+    Pattern12 = 12,
+    Pattern13 = 13,
+    Pattern14 = 14,
+    Pattern15 = 15,
+    Pattern16 = 16,
+    Pattern17 = 17,
+    Pattern18 = 18,
+    Pattern19 = 19,
+    Pattern20 = 20,
+    Pattern21 = 21,
+    Pattern22 = 22,
+    Pattern23 = 23,
+    Pattern24 = 24,
+    Pattern25 = 25,
+    Pattern26 = 26,
+    Pattern27 = 27,
+    Pattern28 = 28,
+    Pattern29 = 29,
+    Pattern30 = 30,
+    Pattern31 = 31,
+    Pattern32 = 32,
+}
+
+public enum MonchiMood
+{
+    Neutral    = 0,
+    Feliz      = 1,
+    Triste     = 2,
+    Dolor      = 3,
+    Enojado    = 4,
+    Dormido    = 5,
+    Enfermo    = 6,
+    Mareado    = 7,
+    Asustado   = 8,
+    Amoroso    = 9,
+    Emocionado = 10,
+    KO         = 11,
 }
 
 // Identifies the anatomical slot a part occupies — used for thematic name generation.

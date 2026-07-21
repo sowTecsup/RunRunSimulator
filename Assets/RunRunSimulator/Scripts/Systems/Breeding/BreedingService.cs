@@ -66,6 +66,7 @@ public static class BreedingService
             BaseColor      = childBase,
             SecondaryColor = ColorGenetics.DeriveSecondary(childBase),
             FurType        = ColorGenetics.Inherit(mother.FurType, father.FurType),
+            IsShiny        = ColorGenetics.RollShiny(),
             Gender       = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female,
             Role         = Random.value < 0.5f ? mother.Role : father.Role,
             Element      = Random.value < odds.ElementMutationChance

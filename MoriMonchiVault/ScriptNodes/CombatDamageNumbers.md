@@ -4,21 +4,25 @@ tags: [combat, visualization, ui, presenter, numbers-pro]
 
 # CombatDamageNumbers
 
-MonoBehaviour presenter que responde a `CombatVisualEvents.OnPopup` y spawna números flotantes animados (package DamageNumbersPro). Una instancia en escena, suscrita al bus de eventos de visualización de combate. **S42:** Renderiza ReactionName + color custom para popups elementales (Kind Reaction). **S43:** Label "Escudo" para CombatPopupKind.Shield.
+MonoBehaviour presenter que responde a `CombatVisualEvents.OnPopup` y spawna números flotantes animados (package DamageNumbersPro). Una instancia en escena, suscrita al bus de eventos de visualización de combate. **S58:** Campos `spawnOffset`, `popupScale`, `popupLifetime` serializables para tuning por replay 3v3. Crits multiplican escala base. **S59d:** Popups minimalistas (Hit/Crit/Heal/Regen sin topText, solo número con signo "−" o "+"). Crit gana outline dorado (critOutlineWidth/critOutlineColor TMP). Montos se redondean con RoundToInt; NumericKinds que redondean a 0 NO se emiten (fix del "+0"). Asset DamageNumbersPro Basic-Glow.asset: blanco de popups es _FaceColor HDR ~6x material, corregido en el asset, no en código.
 
 ## Responsabilidad
 
-Convertir `CombatVisualPopup` eventos en instancias de `DamageNumber` animadas: posiciona el número, setea el label (texto descriptivo por tipo), color via paleta o override custom, sigue al luchador si `Follow != null`, y habilita/desabilita el número según el tipo. **S42:** Soporte para popups de reacción con ReactionName custom + color de elemento. **S43:** Label "Escudo" para popups de escudo.
+Convertir `CombatVisualPopup` eventos en instancias de `DamageNumber` animadas: posiciona el número, setea el label (texto descriptivo por tipo, oculto para Hit/Crit/Heal/Regen), color via paleta o override custom, sigue al luchador si `Follow != null`, habilita/desabilita el número según el tipo, y ajusta escala para crits con outline.
 
 ## Campos Serializados
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `palette` | `CombatPopupPaletteSO` | Ref a SO de paleta de colores por tipo popup |
-| `numberPrefab` | `DamageNumber` | Prefab del package DamageNumbersPro (customizable) |
-| `prefabOverrides` | `List<KindPrefabOverride>` | Sobrescrituras de prefab por tipo (Si Kind X existe, usar prefab Y en lugar de numberPrefab) |
-| `spawnOffset` | `Vector3` | Offset local respecto a la posición del fighter (default: 0, 0.6, 0) |
-| `critScale` | `float` | Escala de tamaño para crits (default 1.35) |
+| Campo | Tipo | Default | Descripción |
+|-------|------|---------|-------------|
+| `palette` | `CombatPopupPaletteSO` | - | Ref a SO de paleta de colores por tipo popup |
+| `numberPrefab` | `DamageNumber` | - | Prefab del package DamageNumbersPro |
+| `prefabOverrides` | `List<KindPrefabOverride>` | - | Sobrescrituras de prefab por tipo |
+| `spawnOffset` | `Vector3` | (0, 0.35, 0) | **S58** Offset del spawn respecto a luchador |
+| `critScale` | `float` | 1.35 | **S59d** Multiplicador escala para crits (conservado desde S58) |
+| `popupScale` | `float` | 0.7 | **S58** Escala base de números |
+| `popupLifetime` | `float` | 2.5 | **S58** Duración animación (segundos) |
+| `critOutlineWidth` | `float` | 0.25 | **S59d NEW** Ancho outline TMP para crits |
+| `critOutlineColor` | `Color` | (FF, C8, 30, FF) | **S59d NEW** Color outline dorado para crits |
 
 ## Struct KindPrefabOverride
 
@@ -31,7 +35,19 @@ private struct KindPrefabOverride
 }
 ```
 
-Permite asignar un prefab diferente para cada tipo de popup (ej: Poison usa prefab_poison, Crit usa prefab_crit, etc.).
+Permite asignar prefab diferente para cada tipo de popup.
+
+## Set NumericKinds (S59d NEW)
+
+```csharp
+private static readonly HashSet<CombatPopupKind> NumericKinds = new HashSet<CombatPopupKind>
+{
+    CombatPopupKind.Hit, CombatPopupKind.Crit, CombatPopupKind.Heal, CombatPopupKind.Regen,
+    CombatPopupKind.Poison, CombatPopupKind.Burn, CombatPopupKind.Thorns, CombatPopupKind.Lifesteal,
+};
+```
+
+Kinds que tienen montos numéricos. Si redondean a 0, **no se emiten** (evita "+0" espurio).
 
 ## Métodos Privados
 
@@ -39,11 +55,11 @@ Permite asignar un prefab diferente para cada tipo de popup (ej: Poison usa pref
 |--------|-------------|
 | `OnEnable()` | Suscribe `CombatVisualEvents.OnPopup += HandlePopup` |
 | `OnDisable()` | Desuscribe `CombatVisualEvents.OnPopup -= HandlePopup` |
-| `HandlePopup(CombatVisualPopup p)` | Spawna número, setea texto/color/scale/follow según `p.Kind` (S42: con Text/OverrideColor, S43: Shield) |
-| `ResolvePrefab(CombatPopupKind kind)` | Busca override en `prefabOverrides`, fallback a `numberPrefab` |
-| `Label(CombatPopupKind kind)` | Static helper: retorna label localizado (S43: Shield → "Escudo") |
+| `HandlePopup(CombatVisualPopup p)` | **S59d:** Redondea monto (RoundToInt), descarta NumericKinds=0. Setea texto/color/scale/lifetime/follow según p.Kind. Hit/Crit/Heal/Regen: oculta topText, habilita leftText ("−" o "+"). Crit: outline dorado. |
+| `ResolvePrefab(CombatPopupKind kind)` | Busca override, fallback a numberPrefab |
+| `Label(CombatPopupKind kind)` | Static helper: retorna label localizado |
 
-## Lógica de HandlePopup (S43 IGUAL A S42)
+## Lógica de HandlePopup (S59d)
 
 ```csharp
 private void HandlePopup(CombatVisualPopup p)
@@ -51,54 +67,68 @@ private void HandlePopup(CombatVisualPopup p)
     var prefab = ResolvePrefab(p.Kind);
     if (prefab == null) return;
 
-    var dn = prefab.Spawn(p.Position + spawnOffset, p.Amount);
+    int rounded = Mathf.RoundToInt(p.Amount);
+    if (NumericKinds.Contains(p.Kind) && rounded <= 0) return;  // S59d: skip 0-damage
+
+    var dn = prefab.Spawn(p.Position + spawnOffset, rounded);
     if (dn == null) return;
 
-    dn.enableNumber  = p.Kind != CombatPopupKind.Stun && p.Amount >= 0.5f;
-    dn.enableTopText = true;
-    dn.topText       = string.IsNullOrEmpty(p.Text) ? Label(p.Kind) : p.Text;
+    dn.lifetime = popupLifetime;
+    dn.SetScale(popupScale);
+
+    dn.enableNumber = p.Kind != CombatPopupKind.Stun && rounded >= 1;
+
+    // S59d: Hit/Crit/Heal/Regen sin topText (minimalista)
+    bool suppressTopText = p.Kind == CombatPopupKind.Hit || p.Kind == CombatPopupKind.Crit
+        || p.Kind == CombatPopupKind.Heal || p.Kind == CombatPopupKind.Regen;
+    dn.enableTopText = !suppressTopText;
+    if (!suppressTopText) dn.topText = string.IsNullOrEmpty(p.Text) ? Label(p.Kind) : p.Text;
 
     if (p.HasOverrideColor) dn.SetColor(p.OverrideColor);
     else if (palette != null) dn.SetColor(palette.GetColor(p.Kind));
     if (p.Follow != null) dn.SetFollowedTarget(p.Follow);
 
-    if (p.Kind == CombatPopupKind.Heal || p.Kind == CombatPopupKind.Regen)
+    // S59d: Hit/Crit usan "−"; Heal/Regen usan "+"
+    if (p.Kind == CombatPopupKind.Hit || p.Kind == CombatPopupKind.Crit)
+    {
+        dn.enableLeftText = true;
+        dn.leftText       = "-";
+        dn.UpdateText();
+    }
+    else if (p.Kind == CombatPopupKind.Heal || p.Kind == CombatPopupKind.Regen)
     {
         dn.enableLeftText = true;
         dn.leftText       = "+";
         dn.UpdateText();
     }
 
-    if (p.Kind == CombatPopupKind.Crit) dn.SetScale(critScale);
-}
-```
-
-**Flujo (sin cambios S43):**
-1. `ResolvePrefab()` — busca override antes de usar `numberPrefab`
-2. Spawn número en `p.Position + spawnOffset`
-3. Habilita número si `Kind != Stun` y `Amount >= 0.5f` (casos textuales sin número)
-4. Setea `topText = p.Text if not empty else Label(p.Kind)` — soporte para ReactionName custom + ahora Shield
-5. Colorea via `p.OverrideColor` si `HasOverrideColor`, sino fallback a paleta
-6. `SetFollowedTarget(p.Follow)` si Follow no es null — popups siguen al luchador dinámicamente
-7. Para Heal/Regen: agrega `enableLeftText = "+"` (quirk de DamageNumbersPro)
-8. Para Crit: escala por critScale
-
-## ResolvePrefab Helper
-
-```csharp
-private DamageNumber ResolvePrefab(CombatPopupKind kind)
-{
-    foreach (var o in prefabOverrides)
+    if (p.Kind == CombatPopupKind.Crit)
     {
-        if (o.Kind == kind && o.Prefab != null) return o.Prefab;
+        dn.SetScale(popupScale * critScale);
+        foreach (var text in dn.GetComponentsInChildren<TMPro.TMP_Text>(true))
+        {
+            text.outlineWidth = critOutlineWidth;  // S59d: outline TMP
+            text.outlineColor = critOutlineColor;
+        }
     }
-    return numberPrefab;
 }
 ```
 
-Busca secuencialmente en `prefabOverrides` un match para `kind`. Si encuentra, retorna su `Prefab`. Si no, fallback a `numberPrefab`. Esto permite builds customizadas (ej: Poison usa prefab_poison con sprite de gota verde, Crit usa prefab_crit más grande, Shield con color azul).
+**Flujo S59d:**
+1. ResolvePrefab() — busca override
+2. **Redondea** monto a entero
+3. **Descarta si NumericKind y redondeado ≤ 0** (evita "+0")
+4. Spawn número en `p.Position + spawnOffset`
+5. **S58:** setea `lifetime = popupLifetime`, base `SetScale(popupScale)`
+6. Habilita número si `Kind != Stun` y `rounded >= 1`
+7. **S59d:** Suprime topText para Hit/Crit/Heal/Regen (minimalista)
+8. Setea `topText = p.Text if not empty else Label(p.Kind)` (si no suprimido)
+9. Colorea via `p.OverrideColor` o fallback a paleta
+10. SetFollowedTarget si `p.Follow != null`
+11. **S59d:** Hit/Crit/Heal/Regen: agrega leftText ("−" o "+") → UpdateText()
+12. **S59d:** Crit: multiplica por critScale → `popupScale * critScale` (escala final) y aplica outline dorado TMP
 
-## Label (S32+S35+S42+S43)
+## Label (Todos los Kind)
 
 ```csharp
 private static string Label(CombatPopupKind kind) => kind switch
@@ -117,88 +147,83 @@ private static string Label(CombatPopupKind kind) => kind switch
     CombatPopupKind.Steel     => "Steel",
     CombatPopupKind.Mist      => "Mist",
     CombatPopupKind.Lifesteal => "Robo de vida",
-    CombatPopupKind.Shield => "Escudo",         // S43 NEW
-    CombatPopupKind.Reaction => "¡Reacción!",   // S42
+    CombatPopupKind.Shield => "Escudo",
+    CombatPopupKind.Reaction => "¡Reacción!",
     _                      => "",
 };
 ```
 
-**S43:** Nuevo label para `Shield` = "Escudo" (popup de restauración de escudo mid-turno, post-defensa Protector).
+**S59d:** Labels solo se usan si `!suppressTopText`. Hit/Crit/Heal/Regen ocultan etiqueta, muestran solo número + signo.
 
-## Cambios S32
+## Cambios S58
 
-**enableNumber condition:** Exige `p.Amount >= 0.5f` **además** de `p.Kind != Stun`:
-```csharp
-dn.enableNumber = p.Kind != CombatPopupKind.Stun && p.Amount >= 0.5f;
-```
+**Campos nuevos serializables:**
+- `spawnOffset` — offset del spawn (era hardcoded en S34 a 0,0.6,0; ahora configurable)
+- `popupScale` (0.7) — escala base más pequeña para 3v3 (menos clutter visual)
+- `popupLifetime` (2.5) — duración más larga para soportar replay a distintas velocidades
 
-Esto permite popups textuales sin número para Stun y Synergy. `CombatVisualizerService.RaiseProcPopup()` envía `Amount = 0f` para Synergy cuando el delta HP es menor a 0.5.
+**Crits retipados:**
+- **Antes:** `dn.SetScale(critScale)` — escala absoluta
+- **Ahora:** `dn.SetScale(popupScale * critScale)` — escala base multiplicada
+- Permite ajustar tamaño general sin romper enfasis de crit
 
-## Cambios S34
+## Cambios S59d (Minimalismo, outline dorado, descarta 0s)
 
-**prefabOverrides List:** Permite presets de prefab por tipo. Útil para darle aspecto único a cada efecto (Poison = gota verde, Burn = llama roja, etc.).
+**Popup minimalista para core kinds:**
+- Hit, Crit, Heal, Regen: **sin topText** (solo número)
+- Otros kinds (Poison, Burn, Thorns, Lifesteal, Stun, Shield, etc.): topText via Label() o custom
 
-**ResolvePrefab():** Helper que busca override antes de fallback a prefab default.
+**Redondeo y descarte de 0s:**
+- Línea 39: `int rounded = Mathf.RoundToInt(p.Amount)` — redondea flats
+- Línea 40: `if (NumericKinds.Contains(p.Kind) && rounded <= 0) return;` — **evita "+0" espurio**
+- Aplicable a: Hit, Crit, Heal, Regen, Poison, Burn, Thorns, Lifesteal
+- Resultado: popups limpios, sin ruido visual
 
-**SetFollowedTarget():** Popups ahora siguen al luchador si `p.Follow != null` (asignado por `CombatVisualizerService.FighterTransform()`).
+**Signo visual (leftText):**
+- Hit/Crit: `leftText = "-"` (daño, prefijo negativo)
+- Heal/Regen: `leftText = "+"` (curación, prefijo positivo)
+- **S59d:** Símbolo directo, no "Golpe" / "¡Crítico!" / "Cura" / "Regeneración"
 
-**Heal/Regen con "+":** Quirk de DamageNumbersPro — los overloads `Spawn(pos, amount)` no activan `enableLeftText` automáticamente. Seteamos manualmente `"+"` y llamamos `UpdateText()`.
+**Crit outline dorado (S59d NEW):**
+- Línea 22–23: campos `critOutlineWidth` (0.25) y `critOutlineColor` (naranja dorado #FFC830)
+- Línea 72–79: en HandlePopup, si Crit:
+  ```csharp
+  foreach (var text in dn.GetComponentsInChildren<TMPro.TMP_Text>(true))
+  {
+      text.outlineWidth = critOutlineWidth;
+      text.outlineColor = critOutlineColor;
+  }
+  ```
+- TMP outline aplica a números y leftText, realza visualmente el crit
 
-**SetScale(critScale):** Crits se escalan (default 1.35) para énfasis visual.
-
-**spawnOffset bajado:** De (0, 1.5, 0) a (0, 0.6, 0) para acercarse más al luchador. El valor serializado en escena pisa este default.
-
-## Cambios S35
-
-**5 nuevos labels:** Static, Pulse, Steel, Mist, Lifesteal. Los primeros 4 (Static/Pulse/Steel/Mist) son principalmente textuales; Lifesteal muestra curación como "Robo de vida".
-
-## Cambios S42
-
-**Aditivos (backward compatible):**
-- `CombatVisualPopup.Text` — texto custom para popups (p.ej. ReactionName)
-- `CombatVisualPopup.OverrideColor` + `HasOverrideColor` — color custom para popups
-- **Línea en HandlePopup:** `dn.topText = string.IsNullOrEmpty(p.Text) ? Label(p.Kind) : p.Text;` — prioriza p.Text si disponible
-- **Línea en HandlePopup:** `if (p.HasOverrideColor) dn.SetColor(p.OverrideColor);` — prioriza OverrideColor si presente, sino palette
-- **Nuevo Kind:** `CombatPopupKind.Reaction` con Label fallback "¡Reacción!" (pero normalmente p.Text lleva ReactionName real)
-- **Integración CombatVisualizerService.PlayProc():** genera popup Reaction con Text = pe.ReactionName, OverrideColor = elemento.UiColor, HasOverrideColor = true
-
-**Invariante:** Eventos 1v1 legacy siguen funcionando, labels viejos intactos.
-
-## Cambios S43
-
-**Aditivos (append-only):**
-- **Nuevo Kind:** `CombatPopupKind.Shield` para popups de escudo (blue 4px track en barra world-space)
-- **Nuevo Label:** "Escudo" (en switch Label)
-- **Integración CombatVisualizerService:** PushShield/PushShieldAll emiten popup Shield con Amount = shield value cuando se restaura escudo post-turno o mid-golpe con DefenderShieldAfter
-
-**Invariante:** Flujo de HandlePopup sin cambios; solo se agregó case Shield al switch.
+**Quirk documentable (S59d):**
+- Asset DamageNumbersPro Basic-Glow.asset: blanco de los popups es _FaceColor HDR ~6x del material
+- **Corregido en el asset**, no en código
+- Permite que popups sean legibles a distancia sin ajuste de scale
 
 ## Vinculado a
 
-- [[Index/03 - Combat]]
-- [[CombatVisualEvents]] — `OnPopup` evento, struct `CombatVisualPopup`
-- [[CombatPopupPaletteSO]] — ref a instancia SO para obtener colores
-- [[CombatVisualizerService]] — levanta popups via `CombatVisualEvents.Popup()`, setea `Follow = FighterTransform()`, **S42:** popups de reacción con ReactionName + OverrideColor, **S43:** popups de escudo via PushShield
-- [[Enums]] — `CombatPopupKind` (incluye Reaction S42, Shield S43)
-- [[DamageNumbersPro]] — package externo, API `Spawn(), SetColor(), SetFollowedTarget(), SetScale(), UpdateText()`
+- [[Index/03 - Combat System]]
+- [[CombatVisualEvents]] — OnPopup evento
+- [[CombatVisualizerService]] — emite popups via OnPopup
+- [[DamageNumbersPro]] — package externo; implementa DamageNumber.Spawn(), lifetime, SetScale(), SetFollowedTarget()
+- [[CombatPopupPaletteSO]] — define colores por kind
 
 ## Conexiones
 
-**Entrada:**
-- `CombatVisualEvents.OnPopup` — evento estático que dispara `HandlePopup()`
+**Entrada:** `CombatVisualEvents.OnPopup(CombatVisualPopup p)` → `HandlePopup(CombatVisualPopup p)`
 
-**Salida:**
-- `DamageNumber.Spawn()` (package externo) — anima números flotantes
-- UI visual en mundo para feedback de combate
+**Salida:** `DamageNumber` animadas en mundo
 
-## Notas
+## Notas S58–S59d
 
-- Totalmente desacoplado de `CombatVisualizerService` via evento
-- Null-checks defensivos: si prefab/palette nulos, retorna temprano
-- `Follow` permite popups dinámicos (oscilan alrededor del luchador en lugar de quedar fijos en posición inicial)
-- **Quirk Heal/Regen:** DamageNumbersPro `Spawn(pos, amount)` activa `enableNumber` pero no `enableLeftText` automáticamente; obligatorio settear `"+"` manualmente
-- **prefabOverrides:** Extensible — agregar más KindPrefabOverride en inspector para customizar por tipo
-- Los labels son españolizados: "Golpe", "¡Crítico!", "Veneno", "Escudo", etc.
-- **S42:** Reacciones elementales priorizan texto custom (ReactionName) + color de elemento sobre labels/palette
-- **S43:** Escudo muestra valor en popup (Amount = shield value, label "Escudo" + número azul)
-- critScale serializado permite tuning visual del énfasis de crits
+- Desacoplado de CombatVisualizerService via evento
+- Null-checks defensivos
+- Follow permite popups dinámicos alrededor del luchador
+- prefabOverrides extensible
+- Labels españolizados (solo para kinds no-minimalistas)
+- **S58:** popupScale y popupLifetime configurables por replay (velocidad variable)
+- **S59d:** Popups minimalistas (−123 vs. "−123 Golpe") reducen clutter y mejoran legibilidad
+- **S59d:** Descarte de 0s (NumericKinds) evita feedback falso/ruido visual
+- **S59d:** Crit outline dorado (TMP) realza críticos sin necesidad de escala extra
+- **S59d:** Redondeo consistente (RoundToInt) evita "+0.3" impreciso

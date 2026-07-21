@@ -198,7 +198,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
         if (!string.IsNullOrEmpty(id) && registry != null) registry.TryGet(id, out dna);
 
         if (nameLabel != null) nameLabel.text = dna != null ? dna.CustomName : "Vacío";
-        if (img != null) img.style.backgroundColor = dna != null ? dna.BaseColor : new Color(0.24f, 0.24f, 0.28f);
+        if (img != null) MonchiPortraitUI.Apply(img, dna);
     }
 
     private void BuildPreview()

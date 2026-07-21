@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31ae2b7a73397624b8bf73bca984be07, type: 3}
+  m_Name: MonchiVisualBank
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.MonchiVisualBankSO
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: bodyOverrides
+      Entry: 7
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[UnityEngine.GameObject,
+        UnityEngine.CoreModule]], mscorlib
+    - Name: comparer
+      Entry: 7
+      Data: 1|System.Collections.Generic.GenericEqualityComparer`1[[System.String,
+        mscorlib]], mscorlib
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+  bodies:
+  - {fileID: 100018, guid: 72ddbd65bfd1f844e93145d3f3260121, type: 3}
+  - {fileID: 100018, guid: 9af579d615347644c9dd76a39e73afa6, type: 3}
+  - {fileID: 100018, guid: dc3631cd90bd9bd4782b6c1956cd4a07, type: 3}
+  - {fileID: 100018, guid: fbd5ffe7ce01b7b47a524014cb6208bb, type: 3}
+  animatorController: {fileID: 9100000, guid: 4264f6977e166104c91f434b9e226c3e, type: 2}
+  gemMaterials:
+  - {fileID: 2100000, guid: 8c046d1163eadf1409d801e0014af81d, type: 2}
+  - {fileID: 2100000, guid: 8d8cc1f52fcbff04ca185f1daad9a322, type: 2}
+  - {fileID: 2100000, guid: 86c4c02e014cf8f4eab2ed3f76a6c533, type: 2}
+  - {fileID: 2100000, guid: 2422a2d2cfdda3044bf821bc6f776c4b, type: 2}
+  - {fileID: 2100000, guid: a899b1c03d10f0546a262049c1a1bf2b, type: 2}
+  moodSet: {fileID: 11400000, guid: 33539b5bb470aa644baa22775cd48a7e, type: 2}

@@ -32,13 +32,14 @@
 
 .cv-ob-slot {
     flex-direction: column;
-    flex-grow: 1;
-    max-width: 240px;
+    width: 160px;
+    flex-shrink: 0;
     margin: 0 3px;
 }
 
 .cv-order-card {
-    width: 100%;
+    width: 160px;
+    flex-shrink: 0;
     flex-direction: column;
     margin: 0 0 6px 0;
     padding: 7px 4px 4px 4px;
@@ -91,10 +92,13 @@
 .cv-ob-marks-col {
     width: 50%;
     flex-direction: column;
+    flex-wrap: wrap;
     align-items: stretch;
     justify-content: flex-start;
+    min-height: 38px;
     padding: 2px 1px;
     border-top-width: 2px;
+    overflow: hidden;
 }
 
 .cv-ob-marks-col--ally {
@@ -110,7 +114,7 @@
 .cv-ob-mark-chip {
     font-size: 9px;
     height: 16px;
-    color: rgb(255, 255, 255);
+    color: rgb(20, 20, 20);
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     text-overflow: ellipsis;
@@ -123,10 +127,19 @@
 }
 
 .cv-ob-body-row {
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     margin: 3px 0;
+}
+
+.cv-ob-headshot {
+    width: 100%;
+    height: 48px;
+    min-height: 48px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
 }
 
 .cv-ob-name {
@@ -143,10 +156,25 @@
     -unity-font-style: bold;
     color: rgb(20, 20, 20);
     background-color: rgb(210, 210, 210);
-    margin-left: 3px;
+    margin-top: 3px;
     padding: 0 3px;
     border-radius: 2px;
     -unity-text-align: middle-center;
+}
+
+.cv-ob-role-chip--protector {
+    background-color: rgb(127, 178, 229);
+    color: rgb(20, 20, 20);
+}
+
+.cv-ob-role-chip--agresivo {
+    background-color: rgb(229, 138, 127);
+    color: rgb(20, 20, 20);
+}
+
+.cv-ob-role-chip--empatico {
+    background-color: rgb(143, 214, 160);
+    color: rgb(20, 20, 20);
 }
 
 .cv-ob-affinity-row {
@@ -157,17 +185,43 @@
 }
 
 .cv-ob-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 6px;
-    margin: 0 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    margin: 0 1px;
     border-width: 1px;
-    border-color: rgb(255, 210, 74);
-    background-color: rgba(0, 0, 0, 0);
+    border-color: rgba(255, 255, 255, 0.35);
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
-.cv-ob-dot--filled {
-    background-color: rgb(255, 210, 74);
+.cv-ob-affinity-plus {
+    color: rgb(255, 255, 255);
+    font-size: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin: 0 1px;
+}
+
+.cv-ob-affinity-equals {
+    color: rgb(255, 255, 255);
+    font-size: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin: 0 2px 0 1px;
+}
+
+.cv-ob-affinity-element {
+    font-size: 9px;
+    height: 16px;
+    color: rgb(20, 20, 20);
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    padding: 0 3px;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.6);
 }
 
 .cv-ob-states-row {
@@ -176,6 +230,7 @@
     justify-content: center;
     min-height: 22px;
     margin-top: 3px;
+    overflow: hidden;
 }
 
 .cv-ob-state-chip {
@@ -276,6 +331,16 @@
     border-left-width: 5px;
     border-left-color: rgb(200, 200, 200);
     background-color: rgba(255, 255, 255, 0.06);
+    gap: 8px;
+}
+
+.log-headshot {
+    width: 64px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
 }
 
 .log-text {

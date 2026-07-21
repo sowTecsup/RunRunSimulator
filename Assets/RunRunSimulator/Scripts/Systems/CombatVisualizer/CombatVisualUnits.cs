@@ -4,7 +4,7 @@ namespace MoriMonchiSimulator
 {
 
 // One spawned combat-visual unit — the instantiated model plus the record/live-state
-// refs the visualizer touches every frame (bar, hooks, animator) and the anchor it
+// refs the visualizer touches every frame (bar, animator) and the anchor it
 // was placed on. Plain data, no behaviour.
 public class CombatVisualUnit
 {
@@ -14,10 +14,9 @@ public class CombatVisualUnit
     public CombatFighterSnapshot Snapshot;
     public float MaxHp;
     public float ShownHp;
-    public MoriMonchiVisualizer Instance;
-    public MoriMonchiCombatVisualizer Hooks;
-    public MoriMonchiCombatVisualizerUITK Bar;
-    public MoriMonchiProceduralAnimator Anim;
+    public MonchiVisualizer Instance;
+    public CombatRadialHealthBar Bar;
+    public MonchiAnimationDriver Anim;
     public Transform Anchor;
     public Unity.Cinemachine.CinemachineCamera VCam;
 }
@@ -44,7 +43,7 @@ public class CombatVisualUnits
         return team[index];
     }
 
-    public void Spawn(CombatVisualSide side, List<CreatureDNA> dnas, List<CombatFighterSnapshot> snapshots, Transform board, MoriMonchiVisualizer prefab)
+    public void Spawn(CombatVisualSide side, List<CreatureDNA> dnas, List<CombatFighterSnapshot> snapshots, Transform board, MonchiVisualizer prefab)
     {
         var team = side == CombatVisualSide.A ? teamA : teamB;
         team.Clear();
@@ -57,8 +56,9 @@ public class CombatVisualUnits
             var anchor = ResolveAnchor(board, snapshot.Row, ref frontUsed, ref midUsed, ref backUsed);
 
             var inst = Object.Instantiate(prefab, anchor.position, anchor.rotation, anchor);
+            inst.SetBank(GameManager.Instance.MonchiVisualBank);
             inst.SetFurDatabase(GameManager.Instance.FurTypeDatabase);
-            inst.Assemble(dnas[i], GameManager.Instance.PartVisualBank);
+            inst.Assemble(dnas[i]);
 
             var unit = new CombatVisualUnit
             {
@@ -69,12 +69,16 @@ public class CombatVisualUnits
                 MaxHp    = snapshot.MaxHp,
                 ShownHp  = snapshot.MaxHp,
                 Instance = inst,
-                Hooks    = inst as MoriMonchiCombatVisualizer,
-                Bar      = inst.GetComponentInChildren<MoriMonchiCombatVisualizerUITK>(true),
-                Anim     = inst.GetComponent<MoriMonchiProceduralAnimator>(),
+                Anim     = inst.GetComponent<MonchiAnimationDriver>(),
                 Anchor   = anchor,
             };
-            unit.Bar?.Bind();
+
+            var barGo = new GameObject($"RadialBar_{side}{i}");
+            barGo.transform.SetParent(anchor, false);
+            barGo.transform.localPosition = new Vector3(0f, 0.05f, 0f);
+            unit.Bar = barGo.AddComponent<CombatRadialHealthBar>();
+            unit.Bar?.Bind(side, i);
+            unit.Bar.SetFacingTarget(inst.transform);
             team.Add(unit);
 
             var vcamGo = new GameObject($"VCam_{side}{i}");
@@ -119,7 +123,10 @@ public class CombatVisualUnits
     private static void DespawnTeam(List<CombatVisualUnit> team)
     {
         foreach (var unit in team)
+        {
             if (unit?.Instance != null) Object.Destroy(unit.Instance.gameObject);
+            if (unit?.Bar != null) Object.Destroy(unit.Bar.gameObject);
+        }
         team.Clear();
     }
 

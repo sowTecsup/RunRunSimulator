@@ -1,13 +1,34 @@
 ---
-tags: [script, world]
+tags: [script, RETIRADO-S58, world, visual]
 ---
 
-# MoriMonchiVisualizer.cs
+# MoriMonchiVisualizer.cs — RETIRADO S58
 
-**Ruta:** `World/Creatures/MoriMonchiVisualizer.cs`
+**Estado:** RETIRADO — Migración Suriyun + retiro pipeline visual legacy (S58)
 
-**Responsabilidad:** Ensamblaje 3D: 6 sockets (body, armL/R, eyeL/R, mouth). `SetFurDatabase(furDb)` cachea la ref a FurTypeDatabaseSO. `Assemble(dna, bank)` instancia prefabs de banco, alinea insertionJoints a sockets, aplica espejos según BodyPartJoint.isMirror, luego llama `ApplyFur()`. `RefreshFur(dna)` reaplica fur/colores sin re-ensamblar modelo (util para reloads). **`ApplyFur()` migrado a Unity Toon Shader**: (1) obtiene material Toon via `furDatabase.GetMaterial(dna.FurType)`; (2) consulta `ColorGenetics.BuildFurPalette(dna.BaseColor, dna.SecondaryColor)` → struct `FurPalette` con 4 colores; (3) cachea 4 PropertyIDs estáticos (`_BaseColor`, `_1st_ShadeColor`, `_2nd_ShadeColor`, `_RimLightColor`); (4) aplica en MaterialPropertyBlock para cada renderer, **EXCEPTUANDO los ojos** (helper `IsEyeRenderer()` detecta si el renderer cuelga de `eyeSocketL` o `eyeSocketR` vía `transform.IsChildOf`, esos se saltan con `continue`). Invariante: **los ojos conservan su propio material y no reciben el tinte de fur genético**. **Es el ÚNICO punto de acople a nombres de propiedad del shader.** Expone públicamente: `ModelRoot` (para animación procedural), `BodyTransform`, `ArmTransforms[]`, `EyeTransforms[]`, `MouthTransform` para que [[MoriMonchiProceduralAnimator]] las lea y conduzca. Botón `[Setup]` crea 6 sockets como hijos. Gizmos siempre visibles en escena.
+**Descripción anterior:**
+- Ensamblaje dinámico por partes (body, armL/R, eyeL/R, mouth)
+- 6 sockets con BodyPartJoint
+- Tintado por ColorGenetics.BuildFurPalette → Unity Toon Shader
+- Exponía transforms a MoriMonchiProceduralAnimator
 
-**Vinculado a:** [[Index/06 - Player & World]]
+**Reemplazo:** [[MonchiVisualizer]]
+- Rig Suriyun FBX completo (sin ensamblado por partes)
+- Animator simplificado del banco (no procedural)
+- DragonAnimationDriver para animar (vía MonchiAnimationDriver)
+- Tintado igual (ColorGenetics → Toon Shader)
 
-**Conexiones:** [[BodyPartJoint]], [[PartVisualBankSO]], [[CreatureDNA]], [[MoriMonchiController]], [[FurTypeDatabaseSO]], [[FurType]], [[MoriMonchiProceduralAnimator]]
+**Cuando se eliminó:** S58
+
+**Cómo migrar:**
+1. Reemplaza referencias `MoriMonchiVisualizer` con `MonchiVisualizer`
+2. Usa `MonchiVisualBankSO` (Suriyun) en lugar de `PartVisualBankSO`
+3. Animator está en prefab (no generado proceduralmente)
+4. Animación: usa `DragonAnimationDriver` (PlayAttack, PlayHit, PlayDefeat, PlayVictory) en lugar de procedural
+
+**Conexiones antiguas:**
+- BodyPartJoint (RETIRADO también)
+- PartVisualBankSO (RETIRADO también)
+- MoriMonchiProceduralAnimator (RETIRADO también)
+
+**Ver también:** [[MonchiVisualizer]], [[MonchiVisualBankSO]], [[DragonAnimationDriver]]

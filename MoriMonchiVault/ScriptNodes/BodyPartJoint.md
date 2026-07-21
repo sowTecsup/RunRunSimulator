@@ -1,13 +1,24 @@
 ---
-tags: [script, world]
+tags: [script, RETIRADO-S58, world, visual]
 ---
 
-# BodyPartJoint.md
+# BodyPartJoint.cs — RETIRADO S58
 
-**Ruta:** `World/Creatures/BodyPartJoint.cs`
+**Estado:** RETIRADO — Migración Suriyun (S58)
 
-**Responsabilidad:** Punto de conexión de un prefab de parte. `isMirror` (L/R), `insertionJoint` (alineación al socket).
+**Descripción anterior:**
+- Punto de conexión en prefab de parte
+- Campos: isMirror (L/R), insertionJoint (alineación socket)
+- Usado para ensamblado dinámico por partes
 
-**Vinculado a:** [[Index/06 - Player & World]]
+**Razón:**
+- Rig Suriyun es FBX completo (no ensamblado por partes)
+- No hay sockets ni joints por conectar
 
-**Conexiones:** [[MoriMonchiVisualizer]], [[PartVisualBankSO]]
+**Cuando se eliminó:** S58
+
+**Conexiones antiguas:**
+- MoriMonchiVisualizer (RETIRADO)
+- PartVisualBankSO (RETIRADO)
+
+**Ver también:** [[PartVisualBankSO]], [[MoriMonchiVisualizer]]

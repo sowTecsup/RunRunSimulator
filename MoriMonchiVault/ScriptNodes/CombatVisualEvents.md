@@ -4,11 +4,11 @@ tags: [combat, visualization, events, bus, 3v3]
 
 # CombatVisualEvents
 
-Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). Es puramente un `public static class` con eventos y métodos helper. **S46:** `OnUnitAffinity` firma cambió (se quitó parámetro `energy`). `CombatElementEventData` gana campo `ReactionName`. **S47:** ElementChipData struct ELIMINADO (ya no se usa en pipeline visual).
+Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). **S58:** `CombatVisualLogLine` gana campos `HasUnit`, `UnitSide`, `UnitIndex` para filtrado en UI (mostrar solo reacciones/muertes con unit marker). **S59:** evento nuevo `OnUnitHover(CombatVisualSide, int, bool)` para hover externo (UI card slot).
 
 ## Responsabilidad
 
-Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden, eventos elementales por-proc) desde el visualizador a listeners sin acoplamiento directo. Un publisher central para ~17 eventos de replay.
+Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden, eventos elementales por-proc, hover) desde el visualizador a listeners sin acoplamiento directo. Un publisher central para ~18 eventos de replay.
 
 ## Enums
 
@@ -32,7 +32,7 @@ Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden,
 
 ## Structs
 
-### CombatVisualContext (S41+)
+### CombatVisualContext
 
 Contexto inicial de replay.
 
@@ -45,14 +45,14 @@ Contexto inicial de replay.
 | `SlotA` | `Transform` | Transform spawn A (1v1 legacy) |
 | `SlotB` | `Transform` | Transform spawn B (1v1 legacy) |
 | `TotalTurns` | `int` | Cantidad turnos totales |
-| `TeamA` | `List<CreatureDNA>` | **S41** Equipo A (3v3) |
-| `TeamB` | `List<CreatureDNA>` | **S41** Equipo B (3v3) |
-| `HpMaxTeamA` | `float[]` | **S41** HP máx por unit en A |
-| `HpMaxTeamB` | `float[]` | **S41** HP máx por unit en B |
-| `SnapsA` | `List<CombatFighterSnapshot>` | **S42** Snapshots equipo A |
-| `SnapsB` | `List<CombatFighterSnapshot>` | **S42** Snapshots equipo B |
+| `TeamA` | `List<CreatureDNA>` | Equipo A (3v3) |
+| `TeamB` | `List<CreatureDNA>` | Equipo B (3v3) |
+| `HpMaxTeamA` | `float[]` | HP máx por unit en A |
+| `HpMaxTeamB` | `float[]` | HP máx por unit en B |
+| `SnapsA` | `List<CombatFighterSnapshot>` | Snapshots equipo A |
+| `SnapsB` | `List<CombatFighterSnapshot>` | Snapshots equipo B |
 
-### CombatVisualHit (S41+)
+### CombatVisualHit
 
 Datos de un golpe.
 
@@ -62,10 +62,10 @@ Datos de un golpe.
 | `Defender` | `CombatVisualSide` | Quién recibe (A o B) |
 | `Damage` | `float` | Cantidad daño |
 | `Crit` | `bool` | Si fue crítico |
-| `AttackerIndex` | `int` | **S41** Índice within equipo atacante (0..2) |
-| `DefenderIndex` | `int` | **S41** Índice within equipo defensor (0..2) |
+| `AttackerIndex` | `int` | Índice within equipo atacante (0..2) |
+| `DefenderIndex` | `int` | Índice within equipo defensor (0..2) |
 
-### CombatVisualPopup (S42+)
+### CombatVisualPopup
 
 Datos de popup flotante.
 
@@ -76,11 +76,11 @@ Datos de popup flotante.
 | `Kind` | `CombatPopupKind` | Tipo (Hit, Crit, Poison, Reaction, Shield, etc.) |
 | `Amount` | `float` | Magnitud (daño, curación, escudo, etc.) |
 | `Follow` | `Transform` | Transform del luchador para seguimiento |
-| `Text` | `string` | **S42** Texto custom (p.ej. ReactionName) |
-| `OverrideColor` | `Color` | **S42** Color custom (p.ej. color del elemento) |
-| `HasOverrideColor` | `bool` | **S42** Si usar OverrideColor o palette |
+| `Text` | `string` | Texto custom (p.ej. ReactionName) |
+| `OverrideColor` | `Color` | Color custom (p.ej. color del elemento) |
+| `HasOverrideColor` | `bool` | Si usar OverrideColor o palette |
 
-### CombatOrderEntry (S42+)
+### CombatOrderEntry
 
 Entrada de orden de acción para barra superior.
 
@@ -91,7 +91,7 @@ Entrada de orden de acción para barra superior.
 | `Alive` | `bool` | Si la unidad está viva |
 | `State` | `CombatUnitState` | Estado actual (marcas, estados, afinidad) |
 
-### CombatSpeechData (S43+)
+### CombatSpeechData
 
 Datos de globo de habla cómic.
 
@@ -109,7 +109,7 @@ Datos de globo de habla cómic.
 | `TargetIndex` | `int` | Índice objetivo within equipo |
 | `TargetFollow` | `Transform` | Transform objetivo (para flecha) |
 
-### CombatElementEventData (S45+, S46 con ReactionName, S47 sin ElementChipData)
+### CombatElementEventData
 
 Evento elemental por-proc para actualizar marcas/estados de la barra en tiempo real.
 
@@ -119,23 +119,26 @@ Evento elemental por-proc para actualizar marcas/estados de la barra en tiempo r
 | `Index` | `int` | Índice de la unidad within equipo (0..2) |
 | `Kind` | `ElementEventKind` | Tipo de evento (MarkApplied, MarkRemoved, Reaction, StateArmed, StateConsumed, StateRemoved) |
 | `Element` | `Element` | Elemento aplicado/removido |
-| `ElementB` | `Element` | **S45** Segundo elemento en Reaction |
+| `ElementB` | `Element` | Segundo elemento en Reaction |
 | `AllySource` | `bool` | true si marca/estado viene de aliado |
 | `State` | `ElementalState` | Estado elemental (para StateArmed/etc) |
-| `ReactionName` | `string` | **S46** Nombre de la reacción (para parsing a ElementalState o display) |
+| `ReactionName` | `string` | Nombre de la reacción (para parsing a ElementalState o display) |
 
-**S46:** Nuevo campo `ReactionName` — usado para parseando a `ElementalState` en CombatOrderBarUITK, o display en popups.
+### CombatVisualLogLine (**S58: campos nuevos**)
 
-### CombatVisualLogLine
-
-Línea de log con tipo.
+Línea de log con tipo e información de unidad.
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | `Text` | `string` | Texto (puede llevar HTML color tags) |
 | `Kind` | `CombatVisualLogKind` | Tipo de línea |
+| `HasUnit` | `bool` | **S58** Si esta línea representa a una unidad (reacción/muerte) |
+| `UnitSide` | `CombatVisualSide` | **S58** Lado de la unidad (A o B), si HasUnit=true |
+| `UnitIndex` | `int` | **S58** Índice de la unidad, si HasUnit=true |
 
-### CombatVisualPanelState (S42+)
+**S58:** Las líneas de reacción (Proc/Reaction) y muerte (Death) llevan `HasUnit=true` + `UnitSide/UnitIndex` para filtrado en UI. La línea Versus inicial no tiene unit marker. Resultado final tiene `HasUnit=false`.
+
+### CombatVisualPanelState
 
 Estado de control del replay UI.
 
@@ -143,7 +146,7 @@ Estado de control del replay UI.
 |-------|------|-------------|
 | `TurnNumber` | `int` | Contador de acciones/turnos jugador |
 | `TotalTurns` | `int` | Total turnos/acciones |
-| `Log` | `CombatVisualLogLine[]` | Log acumulado |
+| `Log` | `CombatVisualLogLine[]` | Log acumulado (S58: con unit markers) |
 | `Ended` | `bool` | Si alcanzó fin |
 | `IsDraw` | `bool` | Si fue empate |
 | `Winner` | `CombatVisualSide` | Ganador (A o B) |
@@ -161,82 +164,59 @@ Estado de control del replay UI.
 | `OnTurnStart` | `CombatTurn` | Comienza animación turno |
 | `OnTurnEnd` | `CombatTurn` | Termina animación turno |
 | `OnAttack` | `CombatVisualSide` | Comienza windup ataque |
-| `OnHit` | `CombatVisualHit` | Golpe conecta (S41: con indices) |
-| `OnPopup` | `CombatVisualPopup` | Popup a mostrar (S42: con Text/OverrideColor) |
+| `OnHit` | `CombatVisualHit` | Golpe conecta (con indices) |
+| `OnPopup` | `CombatVisualPopup` | Popup a mostrar (con Text/OverrideColor) |
 | `OnCrit` | `CombatVisualHit` | Crítico |
 | `OnHpChanged` | `CombatVisualSide, float, float` | HP cambió (side, cur, max) — 1v1 legacy |
 | `OnDead` | `CombatVisualSide` | Unit muere — 1v1 legacy |
-| `OnUnitHpChanged` | `CombatVisualSide, int, float, float` | **S41** HP unit cambió (side, index, cur, max) |
-| `OnUnitDead` | `CombatVisualSide, int` | **S41** Unit muere (side, index) |
+| `OnUnitHpChanged` | `CombatVisualSide, int, float, float` | HP unit cambió (side, index, cur, max) |
+| `OnUnitDead` | `CombatVisualSide, int` | Unit muere (side, index) |
 | `OnLog` | `string` | Línea log agregada |
 | `OnPanelState` | `CombatVisualPanelState` | Estado panel control |
-| `OnActionOrder` | `List<CombatOrderEntry>` | **S42** Orden de próxima acción |
-| `OnUnitAffinity` | `CombatVisualSide, int, int` | **S46 FIRMA CAMBIÓ** Afinidad cambió (side, index, affinity) — sin energy |
-| `OnActiveUnit` | `CombatVisualSide, int` | **S42** Unit activa en turno |
-| `OnSpeech` | `CombatSpeechData` | **S43** Globo de habla |
-| `OnUnitElement` | `CombatElementEventData` | **S45** Evento elemental por-proc (S46: con ReactionName) |
+| `OnActionOrder` | `List<CombatOrderEntry>` | Orden de próxima acción |
+| `OnUnitAffinity` | `CombatVisualSide, int, int` | Afinidad cambió (side, index, affinity) — sin energy |
+| `OnActiveUnit` | `CombatVisualSide, int` | Unit activa en turno |
+| `OnSpeech` | `CombatSpeechData` | Globo de habla |
+| `OnUnitElement` | `CombatElementEventData` | Evento elemental por-proc (con ReactionName) |
+| `OnUnitHover` | **S59 NEW** `CombatVisualSide, int, bool` | Hover externo de UI (side, index, hover=true/false) — emitido por CombatOrderBarUITK al entrar/salir slot |
 
-## Métodos Helper Estáticos
+## Cambios S58
 
-| Método | Firma | Descripción |
-|--------|-------|-------------|
-| `VisualCombatStart` | `(CombatVisualContext ctx)` | Dispara `OnVisualCombatStart` |
-| `VisualCombatEnd` | `(CombatVisualSide winner, bool isDraw)` | Dispara `OnVisualCombatEnd` |
-| `TurnStart` | `(CombatTurn turn)` | Dispara `OnTurnStart` |
-| `TurnEnd` | `(CombatTurn turn)` | Dispara `OnTurnEnd` |
-| `Attack` | `(CombatVisualSide side)` | Dispara `OnAttack` |
-| `Hit` | `(CombatVisualHit hit)` | Dispara `OnHit` |
-| `Popup` | `(CombatVisualPopup p)` | Dispara `OnPopup` |
-| `Crit` | `(CombatVisualHit hit)` | Dispara `OnCrit` |
-| `HpChanged` | `(CombatVisualSide side, float current, float max)` | Dispara `OnHpChanged` (1v1) |
-| `Dead` | `(CombatVisualSide side)` | Dispara `OnDead` (1v1) |
-| `UnitHpChanged` | `(CombatVisualSide side, int index, float current, float max)` | **S41** Dispara `OnUnitHpChanged` |
-| `UnitDead` | `(CombatVisualSide side, int index)` | **S41** Dispara `OnUnitDead` |
-| `Log` | `(string line)` | Dispara `OnLog` |
-| `PanelState` | `(CombatVisualPanelState st)` | Dispara `OnPanelState` |
-| `ActionOrder` | `(List<CombatOrderEntry> order)` | **S42** Dispara `OnActionOrder` |
-| `UnitAffinity` | `(CombatVisualSide side, int index, int affinity)` | **S46 FIRMA CAMBIÓ** Dispara `OnUnitAffinity` (sin energy) |
-| `ActiveUnit` | `(CombatVisualSide side, int index)` | **S42** Dispara `OnActiveUnit` |
-| `Speech` | `(CombatSpeechData d)` | **S43** Dispara `OnSpeech` |
-| `UnitElement` | `(CombatElementEventData d)` | **S45** Dispara `OnUnitElement` (S46: con ReactionName) |
+**CombatVisualLogLine cambios:**
+- Nuevos campos: `HasUnit` (bool), `UnitSide` (CombatVisualSide), `UnitIndex` (int)
+- Aditivo — no rompe código viejo (inicializa a default si no se setean)
+- Línea Versus: `HasUnit=false` (no renderiza)
+- Línea Reacción: `HasUnit=true, UnitSide=?, UnitIndex=?` (renderiza con headshot)
+- Línea Muerte: `HasUnit=true, UnitSide=?, UnitIndex=?` (renderiza con headshot)
+- Línea Resultado: `HasUnit=false` (renderiza sin headshot)
+- Líneas Hit/Crit: `HasUnit=false` (no se muestran en log filtrado "Eventos")
 
-## Cambios S47
+**Impacto en UI:**
+- CombatVisualizerPanelUITK.RebuildLog() filtra: `if (!line.HasUnit && line.Kind != CombatVisualLogKind.Result) continue;` — solo muestra reacciones/muertes (con unit marker) + resultado final
+- Cada línea con HasUnit muestra mini-headshot del MM afectado (ResolveDna desde contexto)
 
-**ElementChipData struct ELIMINADO:**
-- Struct que captaba (Label, Color, AllySource, Negative) de marcas/estados elementales
-- Ya no se emite ni se consume
-- Era usada en el pipeline visual antiguo (pre-S47) de la barra de orden
-- Reemplazada por lógica más directa en CombatOrderBarUITK (parsea ElementalState de ReactionName)
+## Cambios S59
 
-**Impacto:** Simplificación del bus de eventos, pipeline de datos más directo (sin intermediarios DTO).
-
-## Cambios S46
-
-**OnUnitAffinity firma cambió:**
-- Antes (S42-S45): `Action<CombatVisualSide, int, int, int>` (side, index, affinity, energy)
-- Ahora (S46): `Action<CombatVisualSide, int, int>` (side, index, affinity) — se quitó energy
-
-**CombatElementEventData ganó ReactionName:**
-- Campo nuevo `ReactionName` (string)
-- Usado para parseando a `ElementalState` en CombatOrderBarUITK (Reaction event)
-- También display en popups de reacción
+**Evento OnUnitHover nuevo (línea 167-168):**
+- Parámetros: `(CombatVisualSide side, int index, bool hover)`
+- Significado: `hover=true` al entrar slot, `hover=false` al salir
+- Emitido por: CombatOrderBarUITK.BuildTeam() (línea 139-140)
+- Consumido por: CombatRadialHealthBar.HandleUnitHover() (línea 93-98) — setea `externalHover`
+- Propósito: Hacer visible el anillo de vida del unit al pasar sobre su card en la barra de orden
 
 ## Vinculado a
 
 - [[CombatVisualizerService]] — único publisher
-- [[CombatOrderBarUITK]] — suscriptor (S46: HandleAffinity sin energy; S47: parsea ReactionName)
-- [[CombatSpeechBubbles]] — suscriptor `OnSpeech`
-- [[CombatCameraDirector]] — suscriptor `OnActiveUnit`
-- [[CombatFeelDirector]] — **S46 NEW** suscriptor `OnPopup` + `OnUnitElement`
+- [[CombatOrderBarUITK]] — **S59** publisher OnUnitHover, suscriptor (OnActionOrder, OnUnitAffinity, OnActiveUnit, OnUnitElement)
+- [[CombatRadialHealthBar]] — **S59** suscriptor OnUnitHover, (OnUnitHpChanged legacy)
+- [[CombatVisualizerPanelUITK]] — **S58** suscriptor OnPanelState (filtra log por HasUnit)
+- [[CombatSpeechBubbles]] — suscriptor OnSpeech
+- [[CombatCameraDirector]] — suscriptor OnActiveUnit
+- [[CombatDamageNumbers]] — suscriptor OnPopup
+- [[CombatPedestalHighlighter]] — **S58 NEW** suscriptor OnActiveUnit/OnVisualCombatEnd
 
-## Notas Implementación S47
+## Notas S59
 
-- ElementChipData completamente removido (no genera errores de compilación, era solo un DTO)
-- Flujo de coreografía de pasivas no usa ElementChipData; SetActiveTurn/SetTargeted reemplazan visualización de marcos
-- CombatOrderBarUITK S47 parsea estados directamente de ReactionName sin intermediario
-
-## Notas Implementación S46
-
-- CombatOrderBarUITK.HandleAffinity ahora toma 3 parámetros (side, index, affinity)
-- CombatElementEventData incluye ReactionName para parseando a ElementalState
-- Enums `ElementEventKind.EnergyGained` y `EnergySpent` siguen existiendo (append-only, nadie los emite)
+- OnUnitHover es aditivo: no rompe subscribers existentes, solo nuevo listener (CombatRadialHealthBar).
+- Flujo hover: CombatOrderBarUITK emite → CombatRadialHealthBar.externalHover setea → UpdateVisibility() fade canvas.
+- El raycast local (mathHover) en CombatRadialHealthBar coexiste con hover externo: OR lógico.

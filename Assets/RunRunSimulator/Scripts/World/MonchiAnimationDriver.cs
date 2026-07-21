@@ -13,5 +13,6 @@ namespace MoriMonchiSimulator
         public abstract void PlayDefeat();
         public abstract void PlayVictory();
         public abstract void PlayIdle();
+        public virtual void SetTimeScale(float value) { }
     }
 }

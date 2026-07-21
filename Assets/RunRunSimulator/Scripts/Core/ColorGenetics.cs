@@ -4,7 +4,7 @@ namespace MoriMonchiSimulator
 
 public static class ColorGenetics
 {
-    public static Color RandomBase() => Random.ColorHSV(0f, 1f, 0.6f, 1f, 0.6f, 1f);
+    public static Color RandomBase() => Random.ColorHSV(0f, 1f, 0.35f, 0.6f, 0.8f, 1f);
 
     public static Color DeriveSecondary(Color baseColor)
     {
@@ -41,6 +41,50 @@ public static class ColorGenetics
 
     public static FurType Inherit(FurType mother, FurType father)
         => Random.value < 0.5f ? mother : father;
+
+    public const float ShinyChance = 0.005f;
+
+    public static bool RollShiny() => Random.value < ShinyChance;
+
+    public static void BuildHarmony(Color baseColor, out Color wing, out Color accent)
+    {
+        float roll = DeterministicRoll(baseColor);
+        if (roll < 0.4f)
+        {
+            wing = ShiftHue(baseColor, 28f, 0.9f);
+            accent = ShiftHue(baseColor, -28f, 1f);
+        }
+        else if (roll < 0.7f)
+        {
+            Color.RGBToHSV(baseColor, out float h, out float s, out float v);
+            wing = Color.HSVToRGB(h, Mathf.Clamp01(s * 0.5f), Mathf.Clamp01(v * 1.1f));
+            accent = Color.HSVToRGB(h, Mathf.Clamp01(s * 1.15f), v * 0.6f);
+        }
+        else if (roll < 0.9f)
+        {
+            wing = ShiftHue(baseColor, 120f, 0.65f);
+            accent = ShiftHue(baseColor, 240f, 0.75f);
+        }
+        else
+        {
+            wing = ShiftHue(baseColor, 180f, 0.6f);
+            accent = ShiftHue(baseColor, 150f, 0.7f);
+        }
+    }
+
+    private static float DeterministicRoll(Color c)
+    {
+        int rgb = (Mathf.RoundToInt(c.r * 255f) << 16) | (Mathf.RoundToInt(c.g * 255f) << 8) | Mathf.RoundToInt(c.b * 255f);
+        uint x = (uint)rgb * 2654435761u;
+        x ^= x >> 15;
+        return (x & 0xFFFFFF) / 16777216f;
+    }
+
+    private static Color ShiftHue(Color color, float degrees, float satMul)
+    {
+        Color.RGBToHSV(color, out float h, out float s, out float v);
+        return Color.HSVToRGB(Mathf.Repeat(h + degrees / 360f, 1f), Mathf.Clamp01(s * satMul), v);
+    }
 }
 
 public struct FurPalette

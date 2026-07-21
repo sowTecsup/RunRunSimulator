@@ -9,7 +9,7 @@ tags: [script, ui, presenter]
 **Responsabilidad (S54):** Presenter colaborador de MorimonchiDetailInfoUITK — tab "Equipo" (3 slots: Arma/Armadura/Amuleto, mostrar items equipados + stats bonificados, abrir mochila al clickear). Implementa ro `Rebuild(dna)` — no navegación.
 
 **Datos UI:**
-- `teamPortrait` (VisualElement tintado con BaseColor)
+- `teamPortrait` (VisualElement retrato fotomatón vía [[MonchiPortraitUI]].Apply())
 - `equipCards` (ScrollView, 3 cards por slot)
 - `equipStats` (tabla 6x2 mostrando Base → Final con bonificación de items)
 
@@ -31,9 +31,9 @@ tags: [script, ui, presenter]
 - `RarityColor()` / `SlotColor()` — via `equipmentPalette` o fallback BodyPart.RarityColor
 
 **Métodos públicos:**
-- `Rebuild(dna)` — limpia cards + stats, rebuildCards + rebuildStats
+- `Rebuild(dna)` — limpia cards + stats, rebuildCards + rebuildStats. **S57b:** Pinta teamPortrait via MonchiPortraitUI.Apply(element, dna)
 
 **Callbacks:**
 - Card click → abre backpack (sin teardown de presenters, card solo callback)
 
-**Conexiones:** [[MorimonchiDetailInfoUITK]], [[EquipmentBackpackUITK]], [[EquipmentStats]], [[CreatureDatabaseSO]], [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]]
+**Conexiones:** [[MorimonchiDetailInfoUITK]], [[EquipmentBackpackUITK]], [[EquipmentStats]], [[CreatureDatabaseSO]], [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]], [[MonchiPortraitUI]]

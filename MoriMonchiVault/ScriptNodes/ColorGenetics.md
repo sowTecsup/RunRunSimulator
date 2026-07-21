@@ -1,13 +1,53 @@
 ---
-tags: [script, genetics]
+tags: [script, genetics, color]
 ---
 
 # ColorGenetics.cs
 
 **Ruta:** `Core/ColorGenetics.cs`
 
-**Responsabilidad:** Lógica de color y fur type para MoriMonchis. `RandomBase()` genera color aleatorio en rango saturado (0.6..1 S, 0.6..1 V). `DeriveSecondary(Color base)` → hue-shift 0.08 + S×0.85 + V+0.15 determinista desde BaseColor (acento visual). `BuildFurPalette(Color base, Color secondary)` → **nuevo struct `FurPalette`** con 4 colores para shader Toon: `Base` (el base), `Shade1` (base 60% value + 8% sat), `Shade2` (Lerp base→secondary 35% con 40% value + 12% sat), `Rim` (el secondary). `Inherit(Color, Color)` mezcla dos padres con variación aleatoria en H/S/V. `Inherit(FurType, FurType)` selecciona 50/50 de un padre.
+**Responsabilidad:** Lógica de color y determinismo visual. `RandomBase()` genera color base aleatorio (pastel S58). `DeriveSecondary()` desatura/clarifica desde base. `BuildFurPalette()` arma 4-tupla para Toon shader (Base, Shade1, Shade2, Rim). `Inherit()` mezcla dos padres con jitter. `RollShiny()` 0.5% por ShinyChance. `BuildHarmony()` determinista por hash RGB (4 esquemas: 40/30/20/10).
 
-**Vinculado a:** [[Index/02 - Genetics & Breeding]]
+## Métodos Públicos
 
-**Conexiones:** [[CreatureDNA]], [[CreatureGenerator]], [[BreedingService]], [[MoriMonchiVisualizer]], [[FurType]]
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `RandomBase()` | `Color` | **S58:** Pastel HSV (H 0-1, S 0.35-0.6, V 0.8-1) |
+| `DeriveSecondary(baseColor)` | `Color` | Hue+8%, sat*85%, value+15% |
+| `BuildFurPalette(baseColor, secondary)` | `FurPalette` | Base, Shade1, Shade2, Rim |
+| `Inherit(a, b)` | `Color` | Lerp 50% + jitter ±4°H ±5%S/V |
+| `Inherit(mother, father)` | `FurType` | Random 50/50 |
+| `RollShiny()` | `bool` | true con prob 0.005 (0.5%) |
+| `BuildHarmony(baseColor, out wing, out accent)` | `void` | Determinista FNV-1a hash (40/30/20/10 split) |
+
+## Cambios S58
+
+**RandomBase() retorna colores pastel:**
+- Antes: `Random.ColorHSV(0, 1, 0, 1, 0, 1)` — rango completo
+- Ahora: `Random.ColorHSV(0, 1, 0.35f, 0.6f, 0.8f, 1f)` — pastel
+  - Saturation: 35-60% (suave, no neon)
+  - Value: 80-100% (brillante, no oscuro)
+
+**Impacto:**
+- Nuevas crías pastel más armoniosas
+- Colores existentes NO afectados (DNA inmutable)
+- Solo afecta GenerateRandom()
+
+## Struct FurPalette
+
+```csharp
+public struct FurPalette
+{
+    public Color Base;    // Cuerpo
+    public Color Shade1;  // Sombra oscura
+    public Color Shade2;  // Sombra media
+    public Color Rim;     // Borde/highlight
+}
+```
+
+## Notas
+
+- Herencia: 50% lerp + jitter (±4°H, ±5%S/V)
+- Harmony determinista (mismo hash → mismos colores alas)
+- ShinyChance 0.5% (1 en 200)
+- BuildHarmony: 4 esquemas de armonía por rango hash

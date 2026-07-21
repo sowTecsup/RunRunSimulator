@@ -6,20 +6,24 @@ tags: [script, world, spawner]
 
 **Ruta:** `World/Spawning/MoriMochiSpawner.cs`
 
-**Responsabilidad:** Convierte DATA (CreatureRegistrySO) → PRESENCIA (MoriMonchiController vivo en escena). Singleton. Dispara criaturas como proyectiles (ragdoll mid-aire). `PrewarmAndStart()` ensambla modelos mientras inactivos, espera World Ready (primer NavMesh bake + furniture cargada), luego pump activa. **Gate `dataReady`**: no puebla hasta primera carga autoritativa (OnRegistryReloaded o timeout `dataReadyTimeout` = 6s default). Cola prioritaria **`anchoredQueue`** (criaturas con LocationKey): se colocan DIRECTAMENTE en su lugar via `AnchorRegistry.TryGet()` + `place.TryReclaim()` (sin cañonazo). Si el lugar desaparece, cae al cañón y limpia LocationKey. Timeout `anchorPlaceTimeout` → si la place no aparece en tiempo, cannon-fire fallback. Criados lanzan desde punto registrado por `RegisterBirthLaunch()`. `OnRegistryReloaded()` re-vincula DNA/profile en spawned via `controller.Rebind()` (rápido, sin re-ensamblar); re-ancla sueltos tras pull nube. Usa ControllerPool para reutilizar, SpawnBallistics para balística. **S55 resuelto:** Ya NO es partial; gizmos + debug ahora inline.
+**Responsabilidad:** Convierte DATA (CreatureRegistrySO) → PRESENCIA (MoriMonchiController vivo en escena). Singleton. Dispara criaturas como proyectiles (ragdoll mid-aire). **S57:** `PrewarmAndStart()` ensambla modelos mientras inactivos pasando `bank=GameManager.MonchiVisualBank` en Initialize (Assemble completo del modelo Suriyun off-screen). `Acquire()` con controller prewarmed pasa `bank=null` A PROPÓSITO (contrato: saltear re-ensamblado — el controller hace `RefreshLook` y CONSERVA el banco guardado en prewarm); cold spawn del pool pasa `bank=MonchiVisualBank` (Assemble completo). Espera World Ready (primer NavMesh bake + furniture cargada), luego pump activa. **Gate `dataReady`**: no puebla hasta primera carga autoritativa (OnRegistryReloaded o timeout `dataReadyTimeout` = 6s default). Cola prioritaria **`anchoredQueue`** (criaturas con LocationKey): se colocan DIRECTAMENTE en su lugar via `AnchorRegistry.TryGet()` + `place.TryReclaim()` (sin cañonazo). Si el lugar desaparece, cae al cañón y limpia LocationKey. Timeout `anchorPlaceTimeout` → si la place no aparece en tiempo, cannon-fire fallback. Criados lanzan desde punto registrado por `RegisterBirthLaunch()`. `OnRegistryReloaded()` re-vincula DNA/profile en spawned via `controller.Rebind()` (rápido, sin re-ensamblar); re-ancla sueltos tras pull nube. Usa ControllerPool para reutilizar, SpawnBallistics para balística.
 
-## Ciclo de vida
+## Ciclo de vida (S57)
 
 1. **Awake:** instancia ControllerPool
 2. **Start:** lanza PrewarmAndStart (si hay registry)
 3. **OnEnable:** suscribe a GameEvents (RegistryChanged, RegistryReloaded, NavMeshRebaked)
-4. **PrewarmAndStart:** 
+4. **PrewarmAndStart (S57):**
    - Itera registry, instancia 1 criatura/frame (inactivo) en prewarmPos
+   - Llama `controller.Initialize(dna, table, player, bank=MonchiVisualBank, furDb)` → Assemble completo mientras inactivo
    - Espera resto de startDelay
    - Bloquea en WorldReady (primer NavMesh bake) o navMeshWaitTimeout
    - Llama Sync() y desbloquea pump
 5. **SpawnPump:** tickea cada spawnInterval, dequeues anchoredQueue → spawnQueue, despacha SpawnOne()
-6. **OnDisable:** limpia coroutines, suscripciones
+6. **Acquire (S57):** 
+   - Si prewarmed: activa + `Initialize(dna, table, player, bank=null, furDb)` — null intencional: el controller hace RefreshLook y conserva el banco del prewarm (modelo ya armado, no se re-ensambla)
+   - Si cold pool: `Initialize(dna, table, player, bank=MonchiVisualBank, furDb)` (Assemble completo)
+7. **OnDisable:** limpia coroutines, suscripciones
 
 ## Colas de spawn
 
@@ -75,7 +79,7 @@ tags: [script, world, spawner]
 **Status (read-only):**
 - `WorldReady`, `DataReady`, `SpawnedCount`, `PooledCount`, `QueuedCount`, `PrewarmedCount`
 
-## Gizmos (S55)
+## Gizmos
 
 **OnDrawGizmos (siempre visible):**
 - Esfera amarilla: muzzle
@@ -106,7 +110,24 @@ tags: [script, world, spawner]
 | `dataReady` | bool | gate: primera carga autoritativa |
 | `player` | Transform | ref al jugador (resuelto en Start) |
 
-## Cambios principales (S21-S55)
+## Cambios principales (S57)
+
+**PrewarmAndStart():**
+- Antes: `bank = GameManager.Instance.PartVisualBank` (pipeline de partes viejo)
+- Ahora: `bank = GameManager.Instance.MonchiVisualBank` → Assemble completo del modelo Suriyun mientras inactivo (el prewarm SIEMPRE ensambla, igual que antes)
+
+**Acquire():**
+- Prewarm path (sin cambios de contrato): `Initialize(dna, table, player, bank=null, furDb)` — null intencional = "no re-ensambles, el modelo ya está armado". El controller S57 hace RefreshLook y CONSERVA el banco que el visualizer guardó en el prewarm (bug cazado en Play: la versión inicial hacía SetBank(null) y pisaba el banco → moods/shiny muertos en prewarmed; fix en MoriMonchiController)
+- Cold spawn path: `Initialize(dna, table, player, bank=GameManager.MonchiVisualBank, furDb)` → Assemble completo
+
+**Banco visual:**
+- Antes: `PartVisualBankSO partVisualBank`
+- Ahora: Referencias a `GameManager.MonchiVisualBank` (MonchiVisualBankSO, centralizado)
+- OnRegistryReloaded: pasa `GameManager.MonchiVisualBank` a Rebind via `furDb`
+
+**Impacto:** S57 — optimización prewarm: modelo inactivo con RefreshLook liviano; Assemble solo cuando se activa (ahorra memoria/tiempo startup). Banco único MonchiVisualBankSO centralizado.
+
+## Cambios principales (S21-S39)
 
 **S21 (Generalización a AnchorPlace):**
 - Renombrado: `breederQueue` → `anchoredQueue`
@@ -118,15 +139,9 @@ tags: [script, world, spawner]
 - Antes: `GameManager.PersonalityProfiles` → `GetProfile(dna.Personality)`
 - Ahora: `GameManager.RoleWorldProfiles` → `GetProfile(dna.Role)`
 
-**S55 (Composición/gizmos):**
-- Antes: partial MoriMochiSpawner.Debug.cs (gizmos + debug buttons)
-- Ahora: gizmos inline (OnDrawGizmos, OnDrawGizmosSelected)
-- Debug buttons: delegados a SpawnerDevConsole (componente separado)
-- Accesores internos públicos para SpawnerDevConsole: CreaturePrefab, MuzzlePosition, LaunchAngleRange, SpawnedEntries
-
 ## Vinculado a
 
-- [[Index/06 - Player & World]]
+- [[Index/06 - Player & World]], [[Index/10 - Visualization]]
 
 ## Conexiones
 
@@ -135,14 +150,14 @@ tags: [script, world, spawner]
 - [[CreatureDNA]] — DNA de cada criatura
 
 **Servicios:**
-- [[GameManager]] — registry, databases, role profiles
+- [[GameManager]] — registry, databases, role profiles, **MonchiVisualBank (S57)**
 - [[GameEvents]] — listeners (NavMeshRebaked, RegistryReloaded, RegistryChanged)
 - [[ControllerPool]] — reutilización GameObject
 
 **Componentes spawneados:**
 - [[MoriMonchiController]] — fachada (Initialize, Rebind, Launch)
 - [[MoriMochiAgent]] — behavior brain
-- [[MoriMonchiVisualizer]] — visual assembly
+- [[MonchiVisualizer]] — visual assembly (S57)
 
 **Mundo:**
 - [[AnchorRegistry]] — búsqueda de IAnchorPlace (pens, store, furniture)
@@ -153,6 +168,12 @@ tags: [script, world, spawner]
 - [[SpawnerDevConsole]] — herramientas Odin para testing
 
 **Bases de datos:**
-- [[PartVisualBankSO]] — partes 3D
+- [[MonchiVisualBankSO]] — banco Suriyun (S57)
 - [[FurTypeDatabaseSO]] — tipos pelaje
 - [[RoleWorldProfileSO]] — perfiles comportamiento (S39)
+
+## Notas
+
+- **Prewarm (S57):** El prewarm ensambla el modelo Suriyun completo mientras la criatura está inactiva (bank real). Al activarla, Acquire pasa bank=null para que el controller NO re-ensamble (RefreshLook conservando el banco guardado).
+- **Cold spawn (S57):** Pasa bank=MonchiVisualBank, Initialize hace Assemble completo. Usado si prewarmed agotado.
+- **Rebind (S39+S57):** Via Rebind() con table + furDb; no re-ensambla, solo RefreshLook liviano.

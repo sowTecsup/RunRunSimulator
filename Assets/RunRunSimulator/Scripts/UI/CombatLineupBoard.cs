@@ -105,7 +105,7 @@ public class CombatLineupBoard
 
         var unit = new VisualElement();
         unit.AddToClassList("cbt-lu-unit");
-        unit.style.backgroundColor = dna.BaseColor;
+        MonchiPortraitUI.Apply(unit, dna);
 
         var roleChip = new Label(RoleText(dna.Role));
         roleChip.AddToClassList("cbt-lu-role");

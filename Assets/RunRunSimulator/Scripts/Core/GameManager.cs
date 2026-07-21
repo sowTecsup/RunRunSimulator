@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private PlayerInventorySO inventory;
 
     [AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private PartVisualBankSO partVisualBank;
+    [SerializeField] private MonchiVisualBankSO monchiVisualBank;
 
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private FurTypeDatabaseSO furTypeDatabase;
@@ -142,7 +142,7 @@ public class GameManager : MonoBehaviour
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
     public void MintRandomCreature()
     {
-        var dna        = CreatureGenerator.GenerateRandom(database, rarityOddsTable);
+        var dna        = CreatureGenerator.GenerateRandom(database, rarityOddsTable, furTypeDatabase);
         dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
         dna.Element = CreatureGenerator.RandomElement();
         dna.Role = CreatureGenerator.RandomRole();
@@ -173,7 +173,7 @@ public class GameManager : MonoBehaviour
     public CreatureDatabaseSO     Database             => database;
     public RarityOddsTableSO      RarityOddsTable      => rarityOddsTable;
     public RoleWorldProfileSO     RoleWorldProfiles    => roleWorldProfiles;
-    public PartVisualBankSO       PartVisualBank       => partVisualBank;
+    public MonchiVisualBankSO     MonchiVisualBank     => monchiVisualBank;
     public FurTypeDatabaseSO      FurTypeDatabase      => furTypeDatabase;
     public EquipmentDatabaseSO    EquipmentDatabase    => equipmentDatabase;
 

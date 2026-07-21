@@ -360,7 +360,7 @@ public class CombatLineupUITK : MonoBehaviour
 
         var swatch = new VisualElement();
         swatch.AddToClassList("cbt-lu-swatch");
-        swatch.style.backgroundColor = dna.BaseColor;
+        MonchiPortraitUI.Apply(swatch, dna);
         top.Add(swatch);
 
         var name = new Label(dna.CustomName);
@@ -672,7 +672,7 @@ public class CombatLineupUITK : MonoBehaviour
         ghost = new VisualElement();
         ghost.AddToClassList("cbt-lu-ghost");
         ghost.pickingMode = PickingMode.Ignore;
-        ghost.style.backgroundColor = dragDna.BaseColor;
+        MonchiPortraitUI.Apply(ghost, dragDna);
         if (slotSize > 0f)
         {
             ghost.style.width = slotSize;
