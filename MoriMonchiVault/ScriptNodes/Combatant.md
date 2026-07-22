@@ -6,7 +6,7 @@ tags: [combat, data, mutable-state]
 
 **Ruta:** `Systems/Combat/Combatant.cs`
 
-**Responsabilidad:** Modelo mutable de un combatiente *durante* la simulación 3v3. Almacena snapshot de DNA, stats finales (después de equipment + role mods), HP presente, escudo (S37), rol (S37), fila (S37), índice (S37), elemento (S39), afinidad de elemento (S39), stun/immunity counters, y listas de usos de equipo y efectos activos. **S35:** Propiedades dinámicas (`EffDefense`, `EffEvasion`, `EffSpeed`, `LifestealPercent`) que suman stacks de elementos activos en tiempo real. **S39:** ItemUseState reemplaza CombatProcEffect; lista de `Marks` (ElementMark) y `States` (ElementalState) para sistema elemental. **S46:** Campo `Energy` eliminado; solo queda `Affinity`.
+**Responsabilidad:** Modelo mutable de un combatiente *durante* la simulación 3v3. Almacena snapshot de DNA, stats finales (después de equipment + role mods), HP presente, escudo (S37) con TTL de expiración (S62), rol (S37), fila (S37), índice (S37), elemento (S39), afinidad de elemento (S39), stun/immunity counters, y listas de usos de equipo y efectos activos. **S35:** Propiedades dinámicas (`EffDefense`, `EffEvasion`, `EffSpeed`, `LifestealPercent`) que suman stacks de elementos activos en tiempo real. **S39:** ItemUseState reemplaza CombatProcEffect; lista de `Marks` (ElementMark) y `States` (ElementalState) para sistema elemental. **S46:** Campo `Energy` eliminado; solo queda `Affinity`. **S62:** Campo `ShieldExpiresAfterRound` nuevo — TTL del escudo (cierre de ronda en que expira).
 
 ## Estructura
 
@@ -25,6 +25,7 @@ tags: [combat, data, mutable-state]
 | `Hp` | `float` | HP actual durante combate |
 | `MaxHp` | `float` | HP máximo = (Constitution + RoleConMod) * BaseHpCombatMultiplier |
 | `Shield` | `float` | **S37** Escudo de rol Protector (acumula ShieldPerTurn, absorbido antes de Hp, decrementa por daño) |
+| `ShieldExpiresAfterRound` | `int` | **S62** TTL del escudo: ronda en que el escudo vence. Un escudo otorgado en ronda R se setea a R+1 y expira al cierre de R+1. |
 | `Attack` | `float` | Ataque total (base + role mods + equipment) |
 | `Speed` | `float` | Velocidad total (base + role mods + equipment) |
 | `Defense` | `float` | Defensa total (base + equipment) |
@@ -92,10 +93,19 @@ Estructura de un uso de equipo durante combate, reemplazando CombatProcEffect.
 
 1. `CombatService.BuildCombatant(dna, db, equipDb, isA, row, index)` — crea instancia, carga DNA/equipment, asigna Role/Row/Index/Shield=0, copia Element/Affinity del DNA
 2. `CombatService.SimulateCore()` — itera ambos equipos en orden de EffSpeed
-3. `TakeTurn()` muta: `Hp`, `Shield` (role Protector), `Affinity`, `StunTurns`, `StunImmunityTurns`, `Active` (lista crece/shrinks), `States` (decrementa), `Marks` (acumula)
+3. `TakeTurn()` muta: `Hp`, `Shield` (role Protector), `ShieldExpiresAfterRound` (S62), `Affinity`, `StunTurns`, `StunImmunityTurns`, `Active` (lista crece/shrinks), `States` (decrementa), `Marks` (acumula)
 4. Las propiedades dinámicas (`EffSpeed`, `EffDefense`, etc.) se leen durante orden de turno y en fórmulas de daño
 5. `EmitTurn()` captura estado final de `Hp`/`Shield`/`Affinity`/`Active` en `CombatUnitState` (S37)
-6. Final de combate: si ganó/perdió, mutaciones vuelven al DNA persistente via `CombatEvolution.AdvanceTier()` o muerte
+6. `ExpireShields()` al cierre de cada ronda — zeroea Shield si `round >= ShieldExpiresAfterRound` (S62)
+7. Final de combate: si ganó/perdió, mutaciones vuelven al DNA persistente via `CombatEvolution.AdvanceTier()` o muerte
+
+## Cambios S62
+
+**ShieldExpiresAfterRound nuevo:**
+- Campo int agregado para almacenar la ronda en que el escudo vence
+- Seteado por `ShieldAllyPassive` y `DoubleShieldEffect` al otorgar escudo: `ShieldExpiresAfterRound = r.Round + 1`
+- Consultado por `CombatService.ExpireShields()` al cierre de cada ronda
+- Un escudo otorgado en ronda R vive hasta el cierre de R+1 (sobrevive la ronda de otorgamiento)
 
 ## Cambios S46
 
@@ -151,7 +161,7 @@ Estructura de un uso de equipo durante combate, reemplazando CombatProcEffect.
 - `CombatResolver.ApplyState()` — agrega a `States` (S39)
 
 **Salida:**
-- Cambios en `Hp`, `Shield`, `Affinity`, stun counters, `Active`, `Marks`, `States` vía CombatResolver
+- Cambios en `Hp`, `Shield`, `ShieldExpiresAfterRound` (S62), `Affinity`, stun counters, `Active`, `Marks`, `States` vía CombatResolver
 - Las propiedades dinámicas se leen en Speed order, daño, evasión, lifesteal
 - Final de combat: mutation vuelve a DNA vía CombatEvolution (tiers) o CombatRecord (historia)
 
@@ -164,3 +174,4 @@ Estructura de un uso de equipo durante combate, reemplazando CombatProcEffect.
 - **S37:** Role/Row/Index definen semántica 3v3. Shield es pool de absorción (Protector role). IsA se mantiene para backward compat + identificación de equipo.
 - **S39:** Element/Affinity/Marks/States integran el sistema elemental en cada combatiente. Los efectos del equipo usan `ItemUseState` en lugar de `CombatProcEffect`.
 - **S46:** Energy completamente eliminado como recurso. Affinity es el único mecánica de acumulación para disparar auto-marcas.
+- **S62:** Shield ahora expira automáticamente al cierre de la ronda especificada por `ShieldExpiresAfterRound`. Permite pasivas y reacciones otorgar escudos temporales sin lógica manual de decremento.

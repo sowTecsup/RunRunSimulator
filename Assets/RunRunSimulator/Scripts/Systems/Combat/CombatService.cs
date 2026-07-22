@@ -50,9 +50,10 @@ namespace MoriMonchiSimulator
 // the actor marks itself with its own Element (ally-sourced), so the mark
 // lands on the same turn that fills the dots;
 // (14) role passives, ALL of them after the damage so the three roles read
-// the same way (S46: intent → damage → affinity → passive) — Protector: pick
-// an ally, grant it Shield (no roll cost when ShieldPerTurn is 0) and mark
-// that same ally with the actor's Element; Agresivo: mark a random ally with
+// the same way (S46: intent → damage → affinity → passive) — Protector:
+// shields the ally with the lowest HP% (random only if the whole team is at
+// 100%, no roll cost when ShieldPerTurn is 0) and marks that same ally with
+// the actor's Element; Agresivo: mark a random ally with
 // the actor's Element; Empático: heal the lowest-HP ally for a % of the
 // damage dealt (no roll) and mark that heal target with the actor's Element;
 // (15) lifesteal. Passive-phase procs (Protector shield, Empático heal, and
@@ -60,9 +61,16 @@ namespace MoriMonchiSimulator
 // PassivePhase = true so the replay can choreograph them separately from
 // the strike.
 // Every alive unit takes its turn once per round. At the end of every round
-// all remaining Shield dissipates (shields only live for the round they were
-// granted in); no rng consumed.
-// Once a team is fully wiped: pick one alive winner (uniform) →
+// all remaining Shield whose ShieldExpiresAfterRound has been reached
+// dissipates — a shield granted in round R survives the close of R and
+// expires at the close of R+1; no rng consumed.
+// From config.SuddenDeathStartRound onward, CombatStrike multiplies strike
+// damage by the round's SuddenDeathMultipliers entry (last entry sticks for
+// later rounds). Once a team is fully wiped, or MaxRounds is reached without
+// a wipe: on a wipe, the winner is whichever team still has someone alive;
+// on hitting MaxRounds, the round is a draw only if both teams' total HP%
+// match exactly, otherwise the team with the higher HP% wins the tiebreak.
+// Either way: pick one alive winner (uniform) →
 // CombatEvolution.TryEvolveRandomSlot roll → pick one loser unit (KO or
 // not, uniform) → DeathChance roll. Item effects come from equipment
 // (ItemUseEffect) and act through ICombatContext, which also owns status
@@ -244,6 +252,7 @@ public static class CombatService
 
         for (int round = 1; round <= config.MaxRounds; round++)
         {
+            resolver.Round = round;
             var order = BuildTurnOrder(A, B, rng);
 
             var orderLabels = new List<string>();
@@ -264,26 +273,35 @@ public static class CombatService
             }
 
             if (wiped) break;
-            ExpireShields(A, result);
-            ExpireShields(B, result);
+            ExpireShields(A, result, round);
+            ExpireShields(B, result, round);
         }
 
         if (!wiped)
         {
-            result.IsDraw = true;
-            foreach (var dna in teamA) dna.FightCount++;
-            foreach (var dna in teamB) dna.FightCount++;
-            result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. {TeamHpSummary(A)} | {TeamHpSummary(B)} ===");
-            result.Log.Add("[DRAW] No consequences for either team.");
-            result.Log.Add("=== COMBAT END === DRAW");
-            return result;
+            float pctA = TeamHpPercent(A);
+            float pctB = TeamHpPercent(B);
+            if (Mathf.Approximately(pctA, pctB))
+            {
+                result.IsDraw = true;
+                foreach (var dna in teamA) dna.FightCount++;
+                foreach (var dna in teamB) dna.FightCount++;
+                result.Log.Add($"=== DRAW — {config.MaxRounds} rounds reached. {TeamHpSummary(A)} | {TeamHpSummary(B)} ===");
+                result.Log.Add("[DRAW] No consequences for either team.");
+                result.Log.Add("=== COMBAT END === DRAW");
+                return result;
+            }
+            result.TeamAWon = pctA > pctB;
+            result.Log.Add($"=== TIEBREAK === Round limit — Team {(result.TeamAWon ? "A" : "B")} wins por vida restante ({pctA * 100f:F0}% vs {pctB * 100f:F0}%) | {TeamHpSummary(A)} | {TeamHpSummary(B)} ===");
+        }
+        else
+        {
+            result.TeamAWon = AllDead(B);
+            result.Log.Add($"=== WIPE === Team {(result.TeamAWon ? "A" : "B")} wins | {TeamHpSummary(A)} | {TeamHpSummary(B)} ===");
         }
 
-        result.TeamAWon = AllDead(B);
         var winnerCombatants = result.TeamAWon ? A : B;
         var loserCombatants  = result.TeamAWon ? B : A;
-
-        result.Log.Add($"=== WIPE === Team {(result.TeamAWon ? "A" : "B")} wins | {TeamHpSummary(A)} | {TeamHpSummary(B)} ===");
 
         foreach (var dna in teamA) dna.FightCount++;
         foreach (var dna in teamB) dna.FightCount++;
@@ -401,11 +419,12 @@ public static class CombatService
         return order;
     }
 
-    private static void ExpireShields(List<Combatant> team, CombatResult result)
+    private static void ExpireShields(List<Combatant> team, CombatResult result, int round)
     {
         foreach (var c in team)
         {
             if (!c.IsAlive || c.Shield <= 0f) continue;
+            if (round < c.ShieldExpiresAfterRound) continue;
             result.Log.Add($"    [escudo] {c.Name} pierde su escudo (-{c.Shield:F0})");
             c.Shield = 0f;
         }
@@ -428,6 +447,13 @@ public static class CombatService
         var parts = new List<string>();
         foreach (var c in team) parts.Add($"{(c.IsA ? "A" : "B")}{c.Index}:{Mathf.Max(0f, c.Hp):F1}HP");
         return string.Join(" ", parts);
+    }
+
+    private static float TeamHpPercent(List<Combatant> team)
+    {
+        float hp = 0f, max = 0f;
+        foreach (var c in team) { hp += Mathf.Max(0f, c.Hp); max += c.MaxHp; }
+        return max > 0f ? hp / max : 0f;
     }
 
     // ── Turn ───────────────────────────────────────────────────────

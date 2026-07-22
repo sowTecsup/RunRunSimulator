@@ -82,6 +82,8 @@ public struct CombatElementEventData
 
 public enum CombatVisualLogKind { Versus, Hit, Crit, Death, Result, Proc }
 
+public enum CombatTurnPhase { Rest, Passives, Attack }
+
 public struct CombatVisualLogLine
 {
     public string              Text;
@@ -146,6 +148,9 @@ public static class CombatVisualEvents
     public static event Action<string> OnLog;
     public static void Log(string line) => OnLog?.Invoke(line);
 
+    public static event Action<CombatVisualLogLine> OnLogAppend;
+    public static void LogAppend(CombatVisualLogLine line) => OnLogAppend?.Invoke(line);
+
     public static event Action<CombatVisualPanelState> OnPanelState;
     public static void PanelState(CombatVisualPanelState st) => OnPanelState?.Invoke(st);
 
@@ -166,5 +171,8 @@ public static class CombatVisualEvents
 
     public static event Action<CombatVisualSide, int, bool> OnUnitHover;
     public static void UnitHover(CombatVisualSide side, int index, bool hover) => OnUnitHover?.Invoke(side, index, hover);
+
+    public static event Action<CombatTurnPhase, CombatVisualSide> OnPhase;
+    public static void Phase(CombatTurnPhase phase, CombatVisualSide actorSide) => OnPhase?.Invoke(phase, actorSide);
 }
 }

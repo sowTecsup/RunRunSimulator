@@ -10,7 +10,8 @@ namespace MoriMonchiSimulator
 // RoleProfile.Passives, executed each turn by CombatRoleHooks. Authoring rule
 // (Index/13): every role passive applies the actor's Element to the ally it
 // acts upon — with no resource gate, so it fires every single turn (S46: the
-// Energy gate is gone).
+// Energy gate is gone). ShieldAllyPassive targets the ally with the lowest
+// HP% (random pick only when the whole team is at 100% HP).
 [Serializable]
 public abstract class RolePassiveBase
 {
@@ -31,8 +32,16 @@ public class ShieldAllyPassive : RolePassiveBase
     {
         if (AmountPerTurn <= 0f) return;
 
-        var ally = CombatTargeting.PickAlly(allies, rng);
+        var ally = CombatTargeting.LowestHpPercentAlly(allies);
+        if (ally == null) return;
+        if (ally.Hp >= ally.MaxHp)
+        {
+            ally = CombatTargeting.PickAlly(allies, rng);
+            if (ally == null) return;
+        }
+
         ally.Shield += AmountPerTurn;
+        ally.ShieldExpiresAfterRound = r.Round + 1;
         result.Log.Add($"    [Protector] {actor.Name} escuda a {ally.Name} +{AmountPerTurn:F0} (escudo {ally.Shield:F0})");
         r.Record(ModifierEffectKind.Shield, ally, AmountPerTurn);
         CombatElements.AddMark(ally, actor.Element, true, actor, config, result, r, rng);
@@ -40,7 +49,7 @@ public class ShieldAllyPassive : RolePassiveBase
 
     public override string Summary()
     {
-        return $"Escuda +{AmountPerTurn:0.##} por turno a un aliado";
+        return $"Escuda +{AmountPerTurn:0.##} por turno al aliado con menos % de vida";
     }
 }
 

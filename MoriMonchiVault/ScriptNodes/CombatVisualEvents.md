@@ -4,11 +4,11 @@ tags: [combat, visualization, events, bus, 3v3]
 
 # CombatVisualEvents
 
-Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). **S58:** `CombatVisualLogLine` gana campos `HasUnit`, `UnitSide`, `UnitIndex` para filtrado en UI (mostrar solo reacciones/muertes con unit marker). **S59:** evento nuevo `OnUnitHover(CombatVisualSide, int, bool)` para hover externo (UI card slot).
+Bus estático de eventos para la visualización de combates (replay). Centraliza toda comunicación entre `CombatVisualizerService` (orquestador) y subscribers (UI, animadores, popups). **S61b:** Enum `CombatTurnPhase` nuevo + evento `OnPhase(phase, actorSide)` para sincronizar cámaras Cinemachine por etapa del turno. **S61:** Evento nuevo `OnLogAppend(CombatVisualLogLine)` para append incremental del log en tiempo real (una línea por beat de proc). **S58:** `CombatVisualLogLine` gana campos `HasUnit`, `UnitSide`, `UnitIndex` para filtrado en UI (mostrar solo reacciones/muertes con unit marker). **S59:** evento nuevo `OnUnitHover(CombatVisualSide, int, bool)` para hover externo (UI card slot).
 
 ## Responsabilidad
 
-Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden, eventos elementales por-proc, hover) desde el visualizador a listeners sin acoplamiento directo. Un publisher central para ~18 eventos de replay.
+Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden, eventos elementales por-proc, hover, fases) desde el visualizador a listeners sin acoplamiento directo. Un publisher central para ~20 eventos de replay.
 
 ## Enums
 
@@ -18,6 +18,16 @@ Transportar datos de replay (contexto, turnos, hits, popups, log, speech, orden,
 |-------|-----|
 | `A` | Equipo/combatiente A (generalmente self) |
 | `B` | Equipo/combatiente B (generalmente opponent) |
+
+### CombatTurnPhase (S61b NEW)
+
+| Valor | Uso |
+|-------|-----|
+| `Rest` | Pausa entre turnos, inicio/fin combate — cámaras de escena en prioridad base |
+| `Passives` | Ejecutan pasivas aliadas — cámara hacia tablero del actor |
+| `Attack` | Ejecuta ataque principal — cámara hacia tablero del objetivo (opuesto) |
+
+**Propósito:** Sincronizar cutaways de Cinemachine por etapa del turno. `CombatCameraDirector` suscriptor.
 
 ### CombatVisualLogKind
 
@@ -124,7 +134,7 @@ Evento elemental por-proc para actualizar marcas/estados de la barra en tiempo r
 | `State` | `ElementalState` | Estado elemental (para StateArmed/etc) |
 | `ReactionName` | `string` | Nombre de la reacción (para parsing a ElementalState o display) |
 
-### CombatVisualLogLine (**S58: campos nuevos**)
+### CombatVisualLogLine
 
 Línea de log con tipo e información de unidad.
 
@@ -172,6 +182,7 @@ Estado de control del replay UI.
 | `OnUnitHpChanged` | `CombatVisualSide, int, float, float` | HP unit cambió (side, index, cur, max) |
 | `OnUnitDead` | `CombatVisualSide, int` | Unit muere (side, index) |
 | `OnLog` | `string` | Línea log agregada |
+| `OnLogAppend` | **S61 NEW** `CombatVisualLogLine` | **S61** Línea log appended en vivo (una por beat de proc) — subscriptor agrega inmediatamente a UI sin rebuild |
 | `OnPanelState` | `CombatVisualPanelState` | Estado panel control |
 | `OnActionOrder` | `List<CombatOrderEntry>` | Orden de próxima acción |
 | `OnUnitAffinity` | `CombatVisualSide, int, int` | Afinidad cambió (side, index, affinity) — sin energy |
@@ -179,6 +190,59 @@ Estado de control del replay UI.
 | `OnSpeech` | `CombatSpeechData` | Globo de habla |
 | `OnUnitElement` | `CombatElementEventData` | Evento elemental por-proc (con ReactionName) |
 | `OnUnitHover` | **S59 NEW** `CombatVisualSide, int, bool` | Hover externo de UI (side, index, hover=true/false) — emitido por CombatOrderBarUITK al entrar/salir slot |
+| `OnPhase` | **S61b NEW** `CombatTurnPhase, CombatVisualSide` | Etapa del turno (Rest/Passives/Attack) + lado del actor — emitido por CombatVisualizerService.ForwardRoutine |
+
+## Cambios S61b
+
+**Enum CombatTurnPhase nuevo:**
+```csharp
+public enum CombatTurnPhase { Rest, Passives, Attack }
+```
+
+**Evento OnPhase nuevo:**
+```csharp
+public static event Action<CombatTurnPhase, CombatVisualSide> OnPhase;
+public static void Phase(CombatTurnPhase phase, CombatVisualSide actorSide) => OnPhase?.Invoke(phase, actorSide);
+```
+
+**Propósito:**
+- Sincronizar Cinemachine cutaways por etapa del turno
+- `CombatCameraDirector.HandlePhase()` suscriptor — conmuta prioridades de 3 cámaras estáticas (sceneCamera, allyCamera, enemyCamera) según fase
+- Antes S61b: DirectorService seguía por unidad activa (VCamOf); ahora pasivo por fase
+
+**Flujo S61b:**
+1. `CombatVisualizerService.ForwardRoutine()` comienza
+2. Si hay pasivas armadas: emite `Phase(Passives, actorSide)` → cámara hacia tablero del actor (phasePriority=30)
+3. Espera `phasePauseSeconds` (0.9s)
+4. Entra ataque: emite `Phase(Attack, actorSide)` → cámara hacia tablero opuesto (objetivo)
+5. Fin etapa: emite `Phase(Rest, A)` → cámaras escena en prioridad base (scenePriority=10)
+
+## Cambios S61
+
+**Evento OnLogAppend nuevo (línea 149-150):**
+```csharp
+public static event Action<CombatVisualLogLine> OnLogAppend;
+public static void LogAppend(CombatVisualLogLine line) => OnLogAppend?.Invoke(line);
+```
+
+**Contexto:**
+- **Antes S61:** Log construido al completo en `OnPanelState` (rebuild total del panel)
+- **S61:** OnLogAppend permite **append incremental** — una línea por beat de proc
+- Dispara sincronizado con `OnUnitElement` (después del chip elemental en barra)
+
+**Flujo S61:**
+1. PlayProc() en CombatVisualizerService
+2. Si `pe.ElementEvent == ElementEventKind.Reaction`: emite `LogAppend()` con línea Proc/Reaction
+3. CombatVisualizerPanelUITK.HandleLogAppend() recibe → AddCard(line) → ScrollLogToEnd()
+4. Resultado: Línea aparece en log conforme se reproduce el beat
+
+**Propósito:**
+- Sincronización visual: el log se actualiza en tiempo real con la animación
+- Sin rebuild: AddCard es O(1) vs RebuildLog O(n)
+- Permite future: auto-scroll a la línea activa, highlight del beat actual
+
+**Suscriptores S61:**
+- `CombatVisualizerPanelUITK.HandleLogAppend()` — append e historia en vivo
 
 ## Cambios S58
 
@@ -206,14 +270,28 @@ Estado de control del replay UI.
 
 ## Vinculado a
 
-- [[CombatVisualizerService]] — único publisher
+- [[CombatVisualizerService]] — único publisher principal (S61b: emite OnPhase; S61: emite OnLogAppend en PlayProc)
+- [[CombatCameraDirector]] — **S61b NEW** suscriptor OnPhase, HandlePhase(phase, actorSide) conmuta cámaras por etapa
 - [[CombatOrderBarUITK]] — **S59** publisher OnUnitHover, suscriptor (OnActionOrder, OnUnitAffinity, OnActiveUnit, OnUnitElement)
 - [[CombatRadialHealthBar]] — **S59** suscriptor OnUnitHover, (OnUnitHpChanged legacy)
-- [[CombatVisualizerPanelUITK]] — **S58** suscriptor OnPanelState (filtra log por HasUnit)
+- [[CombatVisualizerPanelUITK]] — **S61** nuevo handler OnLogAppend (append en vivo); **S58** suscriptor OnPanelState (filtra log por HasUnit)
 - [[CombatSpeechBubbles]] — suscriptor OnSpeech
-- [[CombatCameraDirector]] — suscriptor OnActiveUnit
 - [[CombatDamageNumbers]] — suscriptor OnPopup
 - [[CombatPedestalHighlighter]] — **S58 NEW** suscriptor OnActiveUnit/OnVisualCombatEnd
+
+## Notas S61b
+
+- OnPhase es aditivo — no rompe código viejo (CombatCameraDirector es nuevo suscriptor)
+- Fases emitidas: **Rest** (pausa/init/end), **Passives** (pasivas aliadas), **Attack** (ataque principal)
+- actorSide parámetro permite filtrado de lógica (ej: cámara al actor en pasivas, al defensor en ataque)
+- Cinemachine CM automáticamente interpola (blend 0.6s) entre cortes — suavidad sin lerp manual
+
+## Notas S61
+
+- OnLogAppend es aditivo con OnLog — ambos existen, OnLog para rebuild total, OnLogAppend para append incremental
+- Sincronización: LogAppend emite después de UnitElement en el mismo beat
+- AddCard es método eficiente para append (no reconstruye toda la UI)
+- ScrollLogToEnd auto-scrollea en cada línea nueva
 
 ## Notas S59
 

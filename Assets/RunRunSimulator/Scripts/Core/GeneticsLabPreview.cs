@@ -55,7 +55,7 @@ public class GeneticsLabPreview : MonoBehaviour
     private void GenerateRandomCreature()
     {
         if (gameManager == null) { Debug.LogWarning("[GeneticsLabPreview] No GameManager assigned."); return; }
-        currentDNA       = CreatureGenerator.GenerateRandom(gameManager.Database, gameManager.RarityOddsTable);
+        currentDNA       = CreatureGenerator.GenerateRandom(gameManager.Database);
         currentDNAString = currentDNA.ToStringID();
         RefreshRarityBreakdown();
         Debug.Log($"[GeneticsLabPreview] Generated (preview): {currentDNAString}");

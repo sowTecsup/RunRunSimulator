@@ -26,12 +26,14 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
     {
         CombatVisualEvents.OnVisualCombatStart += HandleStart;
         CombatVisualEvents.OnPanelState        += HandleState;
+        CombatVisualEvents.OnLogAppend         += HandleLogAppend;
     }
 
     private void OnDisable()
     {
         CombatVisualEvents.OnVisualCombatStart -= HandleStart;
         CombatVisualEvents.OnPanelState        -= HandleState;
+        CombatVisualEvents.OnLogAppend         -= HandleLogAppend;
     }
 
     private void Start()
@@ -92,27 +94,42 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
         if (lines == null) return;
 
         foreach (var line in lines)
+            AddCard(line);
+
+        ScrollLogToEnd();
+    }
+
+    private void HandleLogAppend(CombatVisualLogLine line)
+    {
+        if (logContainer == null) return;
+        AddCard(line);
+        ScrollLogToEnd();
+    }
+
+    private void AddCard(CombatVisualLogLine line)
+    {
+        if (!line.HasUnit && line.Kind != CombatVisualLogKind.Result) return;
+
+        var card = new VisualElement();
+        card.AddToClassList("log-card");
+        card.AddToClassList(KindClass(line.Kind));
+
+        if (line.HasUnit)
         {
-            if (!line.HasUnit && line.Kind != CombatVisualLogKind.Result) continue;
-
-            var card = new VisualElement();
-            card.AddToClassList("log-card");
-            card.AddToClassList(KindClass(line.Kind));
-
-            if (line.HasUnit)
-            {
-                var headshot = new VisualElement();
-                headshot.AddToClassList("log-headshot");
-                MonchiPortraitUI.ApplyHeadshot(headshot, ResolveDna(line.UnitSide, line.UnitIndex));
-                card.Add(headshot);
-            }
-
-            var label = new Label(line.Text);
-            label.AddToClassList("log-text");
-            card.Add(label);
-            logContainer.Add(card);
+            var headshot = new VisualElement();
+            headshot.AddToClassList("log-headshot");
+            MonchiPortraitUI.ApplyHeadshot(headshot, ResolveDna(line.UnitSide, line.UnitIndex));
+            card.Add(headshot);
         }
 
+        var label = new Label(line.Text);
+        label.AddToClassList("log-text");
+        card.Add(label);
+        logContainer.Add(card);
+    }
+
+    private void ScrollLogToEnd()
+    {
         if (logScroll != null)
             logScroll.schedule.Execute(() => logScroll.scrollOffset = new Vector2(0f, float.MaxValue)).ExecuteLater(1);
     }

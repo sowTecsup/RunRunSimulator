@@ -80,16 +80,29 @@ public class CleanseEffect : ReactionEffectBase
 [Serializable]
 public class DoubleShieldEffect : ReactionEffectBase
 {
+    [MinValue(0), LabelText("Escudo si no hay")]
+    public float GrantAmount = 2f;
+
     public override void Apply(Combatant bearer, Combatant reactor, string reactionName, CombatResult result, CombatResolver r, CombatRng rng)
     {
-        bearer.Shield *= 2f;
-        result.Log.Add($"    [estado] {reactionName} duplica el escudo de {bearer.Name} → {bearer.Shield:F1}");
-        r.RecordElement(ElementEventKind.ShieldDoubled, bearer, amount: bearer.Shield, reactionName: reactionName);
+        if (bearer.Shield > 0f)
+        {
+            bearer.Shield *= 2f;
+            result.Log.Add($"    [estado] {reactionName} duplica el escudo de {bearer.Name} → {bearer.Shield:F1}");
+            r.RecordElement(ElementEventKind.ShieldDoubled, bearer, amount: bearer.Shield, reactionName: reactionName);
+        }
+        else
+        {
+            bearer.Shield = GrantAmount;
+            bearer.ShieldExpiresAfterRound = r.Round + 1;
+            result.Log.Add($"    [estado] {reactionName} escuda a {bearer.Name} +{GrantAmount:F0} → {bearer.Shield:F1}");
+            r.RecordElement(ElementEventKind.ShieldDoubled, bearer, amount: bearer.Shield, reactionName: reactionName);
+        }
     }
 
     public override string Summary()
     {
-        return "Duplica el escudo actual del portador";
+        return $"Duplica el escudo del portador; si no tiene, otorga {GrantAmount:F0}";
     }
 }
 
@@ -129,13 +142,18 @@ public class RemoveRandomMarkEffect : ReactionEffectBase
 {
     public override void Apply(Combatant bearer, Combatant reactor, string reactionName, CombatResult result, CombatResolver r, CombatRng rng)
     {
-        if (bearer.Marks.Count == 0)
+        var candidates = new System.Collections.Generic.List<int>();
+        for (int i = 0; i < bearer.Marks.Count; i++)
+            if (bearer.Marks[i].AllySource) candidates.Add(i);
+
+        if (candidates.Count == 0)
         {
-            result.Log.Add($"    [estado] {reactionName} sobre {bearer.Name} — sin marcas que remover");
+            result.Log.Add($"    [estado] {reactionName} sobre {bearer.Name} — sin marcas aliadas que remover");
             return;
         }
 
-        int idx = rng.Range(0, bearer.Marks.Count);
+        int pick = rng.Range(0, candidates.Count);
+        int idx = candidates[pick];
         var removed = bearer.Marks[idx];
         bearer.Marks.RemoveAt(idx);
         result.Log.Add($"    [estado] {reactionName} remueve marca {removed.Element} ({(removed.AllySource ? "aliada" : "enemiga")}) de {bearer.Name}");
@@ -144,7 +162,7 @@ public class RemoveRandomMarkEffect : ReactionEffectBase
 
     public override string Summary()
     {
-        return "Remueve una marca elemental aleatoria del portador";
+        return "Remueve una marca elemental aliada aleatoria del portador";
     }
 }
 

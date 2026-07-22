@@ -88,7 +88,7 @@ public class CombatSpeechBubbles : MonoBehaviour
         bubbleLabel.style.unityTextAlign    = TextAnchor.MiddleCenter;
         bubble.Add(bubbleLabel);
 
-        root.Add(bubble);
+        root.Insert(0, bubble);
     }
 
     private void BuildTail()
@@ -98,7 +98,7 @@ public class CombatSpeechBubbles : MonoBehaviour
         bubbleTail.style.fontSize = 14;
         bubbleTail.style.color    = (Color)new Color32(250, 250, 250, 255);
         bubbleTail.style.display  = DisplayStyle.None;
-        root.Add(bubbleTail);
+        root.Insert(0, bubbleTail);
     }
 
     private void BuildArrow()
@@ -109,7 +109,7 @@ public class CombatSpeechBubbles : MonoBehaviour
         targetArrow.style.unityFontStyleAndWeight = FontStyle.Bold;
         targetArrow.style.color    = DefaultArrowColor;
         targetArrow.style.display  = DisplayStyle.None;
-        root.Add(targetArrow);
+        root.Insert(0, targetArrow);
     }
 
     private static void SetBorderColor(VisualElement el, Color c)

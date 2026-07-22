@@ -6,7 +6,7 @@ tags: [script, combat, elements, reactions, effects, base-class]
 
 **Ruta:** `Data/Combat/ReactionEffectBase.cs`
 
-**Responsabilidad:** Clase abstracta base para efectos de reacción elemental serializables en listas polimórficas. **S40:** Abstracción de resolución instantánea de reacciones (marcas de 2 elementos distintos detonando), eliminando hardcoding. Cada `ElementReaction` en `ElementTableSO` lleva lista `Effects` de `ReactionEffectBase` que se aplican en orden cuando la reacción se dispara. **S46:** `GrantEnergyEffect` eliminado (no se usaba en ningún asset). Todos los efectos son ahora orthogonales a Energy.
+**Responsabilidad:** Clase abstracta base para efectos de reacción elemental serializables en listas polimórficas. **S40:** Abstracción de resolución instantánea de reacciones (marcas de 2 elementos distintos detonando), eliminando hardcoding. Cada `ElementReaction` en `ElementTableSO` lleva lista `Effects` de `ReactionEffectBase` que se aplican en orden cuando la reacción se dispara. **S46:** `GrantEnergyEffect` eliminado (no se usaba en ningún asset). Todos los efectos son ahora orthogonales a Energy. **S62:** `RemoveRandomMarkEffect` refactorizado — ahora solo remueve marcas ALIADAS (AllySource=true); si no hay candidatas, no-op logueado. `DoubleShieldEffect` refactorizado — dual: si portador tiene escudo lo duplica; si no, otorga `GrantAmount` de escudo nuevo con TTL (`ShieldExpiresAfterRound = r.Round + 1`).
 
 ## Métodos Abstractos
 
@@ -46,11 +46,24 @@ public abstract void Apply(
 
 **Apply:** Busca primer estado negativo via `CombatElements.IsNegative()`, lo remueve, log y `r.RecordElement(ElementEventKind.StateRemoved, ...)`; else cura `bearer.MaxHp * HealPercent`, log y `r.RecordElement(ElementEventKind.Heal, ...)`.
 
-### DoubleShieldEffect
+### DoubleShieldEffect (S62 ACTUALIZADO)
 
-**Descripción:** Duplica el escudo actual del portador.
+**Descripción (S62):** Duplica el escudo actual del portador si existe, o otorga escudo nuevo con TTL.
 
-**Apply:** `bearer.Shield *= 2f`, log duplicación, `r.RecordElement(ElementEventKind.ShieldDoubled, bearer, amount: bearer.Shield, ...)`.
+**Campos:** 
+- `GrantAmount` (float, MinValue 0, LabelText "Escudo si no hay", defecto 2.0) **(S62 NEW)**
+
+**Apply (S62):**
+- Si `bearer.Shield > 0f`:
+  - Duplica: `bearer.Shield *= 2f`
+  - TTL setter: `bearer.ShieldExpiresAfterRound = r.Round + 1` **(S62)**
+  - Log duplicación: `"{reactionName} duplica el escudo de {bearer.Name} → {bearer.Shield}"`
+  - Evento: `r.RecordElement(ElementEventKind.ShieldDoubled, bearer, amount: bearer.Shield, reactionName: reactionName)`
+- Else (no hay escudo):
+  - Otorga: `bearer.Shield = GrantAmount`
+  - TTL setter: `bearer.ShieldExpiresAfterRound = r.Round + 1` **(S62)**
+  - Log otorgamiento: `"{reactionName} escuda a {bearer.Name} +{GrantAmount} → {bearer.Shield}"`
+  - Evento: `r.RecordElement(ElementEventKind.ShieldDoubled, bearer, amount: bearer.Shield, reactionName: reactionName)`
 
 ### LeechEffect
 
@@ -60,13 +73,24 @@ public abstract void Apply(
 
 **Apply:** `drained = min(bearer.Hp, Amount)`, `bearer.Hp -= Amount`, si reactor no null: `reactor.Hp += drained` (clamped a MaxHp), log drenaje + cura; emite `r.RecordElement(ElementEventKind.Damage, bearer, ...)` + `r.RecordElement(ElementEventKind.Heal, reactor, ...)`.
 
-### RemoveRandomMarkEffect
+### RemoveRandomMarkEffect (S62 ACTUALIZADO)
 
-**Descripción:** Remueve una marca elemental aleatoria del portador.
+**Descripción (S62):** Remueve una marca elemental ALIADA aleatoria del portador. Solo remueve marcas con AllySource=true.
 
-**Apply:** Si portador sin marcas, log sin efecto; else pick marca random via `rng.Range()`, remueve, log, `r.RecordElement(ElementEventKind.MarkRemoved, bearer, ...)`.
+**Apply (S62):**
+- Recolecta índices de todas las marcas ALIADAS: `for i in bearer.Marks: if (bearer.Marks[i].AllySource) candidates.Add(i)`
+- Si `candidates.Count == 0`:
+  - Log sin efecto: `"{reactionName} sobre {bearer.Name} — sin marcas aliadas que remover"`
+  - Return sin consumir rng
+- Else:
+  - Pick marca random: `idx = candidates[rng.Range(0, candidates.Count)]`
+  - Remueve: `var removed = bearer.Marks[idx]; bearer.Marks.RemoveAt(idx)`
+  - Log remoción: `"{reactionName} remueve marca {removed.Element} (aliada) de {bearer.Name}"`
+  - Evento: `r.RecordElement(ElementEventKind.MarkRemoved, bearer, element: removed.Element, allySource: removed.AllySource, reactionName: reactionName)`
 
-**Consumo RNG:** `rng.Range(0, marks.Count)`
+**Cambio S62:** Ahora solo remueve marcas aliadas (AllySource=true). Antes: removía cualquier marca.
+
+**Consumo RNG:** `rng.Range(0, candidates.Count)` solo si hay marcas aliadas; no-op sin consumir si vacío
 
 ### HealEffect
 
@@ -113,8 +137,21 @@ if (reaction != null)
 ## Determinismo
 
 - **Odin Serialization:** Polimórficas en inspector como lista editable
-- **RNG:** Solo RemoveRandomMarkEffect consume via `rng.Range()` si hay marcas
+- **RNG:** Solo RemoveRandomMarkEffect consume via `rng.Range()` si hay marcas aliadas (S62)
 - **Determinista:** Sin rolls condicionales (state armado vs instantáneo definido por effect type)
+- **S62:** DoubleShieldEffect no consume RNG; RemoveRandomMarkEffect solo consume si hay candidatas
+
+## Cambios S62
+
+**DoubleShieldEffect refactorizado (dual mode):**
+- Nuevo campo `GrantAmount` (float, defecto 2.0) para escudo otorgado si no hay escudo actual
+- Lógica: si `bearer.Shield > 0f`, duplica; else otorga `GrantAmount`
+- Ambas ramas setean TTL: `ShieldExpiresAfterRound = r.Round + 1`
+
+**RemoveRandomMarkEffect refactorizado (solo aliadas):**
+- Ahora solo remueve marcas con `AllySource = true`
+- Si no hay candidatas: log sin efecto, return sin consumir rng
+- Si hay candidatas: pick random, remueve, log, graba evento
 
 ## Cambios S46
 
@@ -143,8 +180,8 @@ if (reaction != null)
 
 - [[ElementTableSO]] — serializadas en `ElementReaction.Effects` lista polimórfica
 - [[CombatElements]] — invocador en `AddMark()` cuando reacción se dispara
-- [[CombatResolver]] — receptor de `RecordElement()`
-- [[Combatant]] — bearer/reactor context, Hp/Shield/States mutados
+- [[CombatResolver]] — receptor de `RecordElement()`; consulta `r.Round` para TTL de escudos (S62)
+- [[Combatant]] — bearer/reactor context, Hp/Shield/ShieldExpiresAfterRound (S62)/States mutados
 - [[CombatResult]], [[CombatRng]]
 - [[ElementalState]] (enum)
 - [[CombatManagerSO]]

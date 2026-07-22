@@ -8,7 +8,7 @@ public static class CreatureGenerator
     public const int StatMin    = 1;
     public const int StatMax    = 10;
 
-    public static CreatureDNA GenerateRandom(CreatureDatabaseSO database, RarityOddsTableSO oddsTable = null, FurTypeDatabaseSO furDb = null)
+    public static CreatureDNA GenerateRandom(CreatureDatabaseSO database, FurTypeDatabaseSO furDb = null)
     {
         if (database == null)
         {
@@ -16,10 +16,10 @@ public static class CreatureGenerator
             return new CreatureDNA();
         }
 
-        var bodyShape = Pick(database.BodyShapes, oddsTable);
-        var arm       = Pick(database.Arms,       oddsTable);
-        var eye       = Pick(database.Eyes,        oddsTable);
-        var mouth     = Pick(database.Mouths,      oddsTable);
+        var bodyShape = Pick(database.BodyShapes);
+        var arm       = Pick(database.Arms);
+        var eye       = Pick(database.Eyes);
+        var mouth     = Pick(database.Mouths);
 
         if (bodyShape == null || arm == null || eye == null || mouth == null)
             Debug.LogWarning("[CreatureGenerator] One or more part slots are empty — ensure all databases are populated.");
@@ -66,15 +66,8 @@ public static class CreatureGenerator
         return (stats[0], stats[1], stats[2]);
     }
 
-    // Each slot rolls its own rarity independently.
-    // Falls back to any random part if no parts match the rolled rarity.
-    private static T Pick<T>(PartDatabaseSO<T> db, RarityOddsTableSO odds) where T : BodyPart
+    private static T Pick<T>(PartDatabaseSO<T> db) where T : BodyPart
     {
-        if (odds != null)
-        {
-            var filtered = db?.GetRandomPart(odds.Roll());
-            if (filtered != null) return filtered;
-        }
         return db?.GetRandomPart();
     }
 }

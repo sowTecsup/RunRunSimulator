@@ -15,6 +15,7 @@ public class CombatResolver : ICombatContext
     public List<CombatProcEvent> TurnProcs;
     public bool                  BeforeStrike;
     public bool                  PassivePhase;
+    public int                   Round;
 
     public void DamageOpponent(float amount, string source)
     {

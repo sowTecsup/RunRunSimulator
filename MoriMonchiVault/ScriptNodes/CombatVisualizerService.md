@@ -6,7 +6,7 @@ tags: [combat, visualization, replay, ui, 3v3]
 
 **Ruta:** `Systems/CombatVisualizer/CombatVisualizerService.cs`
 
-**Responsabilidad:** Orquesta visualización local 3v3 de `CombatRecord`, construyendo árbol de nodos doblemente enlazados y generando secuencia de animaciones turno-a-turno. Play() resuelve equipos vía registry. Colaborador `CombatVisualUnits` spawn/lookup. Emite eventos UI (OnActionOrder, OnUnitElement, OnActiveUnit, etc.). **S58:** Animador retipado a `DragonAnimationDriver` (PlayAttack espera onImpact real, PlayHit, PlayDefeat, PlayVictory, PlayIdle, PlayBuff). Muertes persistentes con CorpseFade (MonchiVisualizer.SetGhost alpha). Facing con TurnTowards/TurnBack alrededor lunges. AnchorOf() público nuevo. **S59:** Anticipación de pasivas con knobs passiveAnticipationSeconds/Pullback. PushHp ganó parámetro animate (Restore pasa false → SnapHp). PushTimeScale propaga Speed a los drivers al spawn y en SetSpeed. **S59d:** Líneas de reacción del log via helper `ReactionLine` con formato compacto "{quien}: {ElemA}+{ElemB} → {Estado} — {consecuencia}"; elementos coloreados por UiColor, estado en negrita verde/rojo según set NegativeStates, Description truncada a 70 chars en gris.
+**Responsabilidad:** Orquesta visualización local 3v3 de `CombatRecord`, construyendo árbol de nodos doblemente enlazados y generando secuencia de animaciones turno-a-turno. Play() resuelve equipos vía registry. Colaborador `CombatVisualUnits` spawn/lookup. Emite eventos UI (OnActionOrder, OnUnitElement, OnActiveUnit, etc.). **S61b:** Knob `phasePauseSeconds` (0.9s, pausa de lectura entre etapa de pasivas y ataque, solo si hubo pasivas y hay ataque); emite `OnPhase(Passives/Attack/Rest, actorSide)` para sincronizar cámaras Cinemachine vía `CombatCameraDirector`. Loop de procs post-golpe (!BeforeStrike && !PassivePhase) movido dentro del bloque de ataque — se reproduce tras popup de daño y ANTES de esperar attackDone (afinidad/marcas sincronizadas con impacto). **S61:** ReactionLine simplificado — firma sin `who`, formato solo estado negrita + description truncada a 40, emite `LogAppend` tras `UnitElement`. Colores actualizados: PositiveStateColor 6FB7FF (azul), NegativeStateColor FF9090 (rojo). **S58:** Animador retipado a `DragonAnimationDriver` (PlayAttack espera onImpact real, PlayHit, PlayDefeat, PlayVictory, PlayIdle, PlayBuff). Muertes persistentes con CorpseFade (MonchiVisualizer.SetGhost alpha). Facing con TurnTowards/TurnBack alrededor lunges. AnchorOf() público nuevo. **S59:** Anticipación de pasivas con knobs passiveAnticipationSeconds/Pullback. PushHp ganó parámetro animate (Restore pasa false → SnapHp). PushTimeScale propaga Speed a los drivers al spawn y en SetSpeed.
 
 ## Métodos Públicos
 
@@ -39,6 +39,7 @@ tags: [combat, visualization, replay, ui, 3v3]
 | `deathPauseSeconds` | `float` | Pausa al morir |
 | `synergyPopupDelay` | `float` | Delay pre-popup reacción |
 | `stateBeatSeconds` | `float` | Pausa en estados armados |
+| `phasePauseSeconds` | `float` | **S61b NEW** Pausa entre etapa de pasivas y ataque (default 0.9) — solo si hubo pasivas y hay ataque próximo |
 | `corpseFadeDelay` | `float` | **S58** Delay antes de fade (default 2.5) |
 | `corpseFadeSeconds` | `float` | **S58** Duración fade (default 1.5) |
 | `corpseAlpha` | `float` | **S58** Alpha final del cadáver (default 0.35) |
@@ -76,6 +77,105 @@ private class CombatNode
 }
 ```
 
+## Cambios S61b (Pacing de turnos por etapas, sincronización Cinemachine)
+
+**Knob phasePauseSeconds nuevo:**
+```csharp
+[SerializeField, MinValue(0f)] private float phasePauseSeconds = 0.9f;
+```
+
+**Propósito:**
+- Pausa de lectura entre etapa de pasivas y etapa de ataque (solo si hubo ambas)
+- Permite que el jugador procese visualmente el cambio de fase
+- Knob serializado para tuneable por Juan
+
+**Flujo S61b en ForwardRoutine():**
+1. Anima pasivas aliadas (si existen) → emite `Phase(Passives, actorSide)` (cámara tablero actor)
+2. **Espera `phasePauseSeconds` segundos** (pausa de lectura)
+3. Emite `Phase(Attack, actorSide)` (cámara tablero opuesto/defensor)
+4. Anima ataque y procs post-golpe (sincronizados con impacto)
+5. Fin: emite `Phase(Rest, A)` (cámaras escena base)
+
+**Emisión de OnPhase:**
+```csharp
+// Inicio pasivas (si existen)
+if (hasPassives)
+{
+    CombatVisualEvents.Phase(CombatTurnPhase.Passives, atkUnit.Side);
+}
+
+// Pausa lectora entre fases
+yield return new WaitForSeconds(phasePauseSeconds / Speed);
+
+// Antes de ataque
+CombatVisualEvents.Phase(CombatTurnPhase.Attack, atkUnit.Side);
+
+// Anima ataque
+
+// Fin turno
+CombatVisualEvents.Phase(CombatTurnPhase.Rest, CombatVisualSide.A);
+```
+
+**Consumidor (CombatCameraDirector):**
+- Suscriptor a `OnPhase(phase, actorSide)`
+- Passives: sube cámara tablero actor (allyCamera si A, enemyCamera si B) a phasePriority=30
+- Attack: sube cámara tablero opuesto a phasePriority=30
+- Rest: ambas cámaras a prioridad 0 (escena base en 10)
+
+**Cambio en loop de procs (S61b específico):**
+- **Antes S61b:** Procs post-golpe (!BeforeStrike && !PassivePhase) se ejecutaban al final del turno (fuera del bloque de ataque)
+- **S61b:** Movidos **dentro** del bloque de ataque → se reproducen tras popup de daño y ANTES de esperar `attackDone`
+- **Impacto:** Afinidad y marcas aplicadas se sincronizan con el impacto visual del golpe (no desconectadas al final)
+
+**Propósito:**
+- Sincronización visual: cambio de cámara genera pausa natural para lectura de pasivas
+- Pacing: juego más respirable entre etapas
+- Futuro: permite tutoriales/explicaciones entre fases
+
+## Cambios S61 (ReactionLine simplificada)
+
+**ReactionLine(CombatProcEvent pe) firma actualizada:**
+```csharp
+private string ReactionLine(CombatProcEvent pe)
+{
+    bool parsed = System.Enum.TryParse<ElementalState>(pe.ReactionName, out var st);
+    string state = parsed
+        ? Colored($"<b>{StateName(st)}</b>", NegativeStates.Contains(st) ? NegativeStateColor : PositiveStateColor)
+        : pe.ReactionName;
+    if (!parsed) return state;
+    string desc = elementTable != null ? elementTable.GetState(st).Description : null;
+    if (string.IsNullOrEmpty(desc)) return state;
+    return $"{state} — {Colored(Truncate(desc, 40), DescriptionColor)}";
+}
+```
+
+**Cambios vs S59d:**
+- **Firma:** Antes `ReactionLine(CombatProcEvent pe, string who)`, ahora `ReactionLine(CombatProcEvent pe)` (sin `who`)
+- **Formato:** Eliminado prefijo `"{who}: {ElemA}+{ElemB} →"` → SOLO `"{estado negrita} — {descripción}"`
+- **Colores:**
+  - `PositiveStateColor = "6FB7FF"` (azul cielo, antes verde "86E3A0")
+  - `NegativeStateColor = "FF9090"` (rojo claro, sin cambio)
+- **Truncate:** `maxLength = 40` (antes 70)
+- **Propósito:** Visualización compacta, sin redundancia de nombres/elementos (ya mostrados en speech globos)
+
+**Ejemplo S61 vs S59d:**
+- S59d: `"Juan: Fuego+Hielo → Debilidad — Estado que reduce defensa en un 30%"`
+- S61:   `"**Debilidad** — Estado que reduce defensa…"` (40 chars max)
+
+**Consumo en PlayProc():**
+```csharp
+if (pe.ElementEvent == ElementEventKind.Reaction)
+{
+    CombatVisualEvents.UnitElement(new CombatElementEventData { /* ... */ });
+    CombatVisualEvents.LogAppend(Line(CombatVisualLogKind.Proc, ReactionLine(pe), true, side, pe.TargetIndex));  // S61 NEW
+}
+```
+
+**Impacto S61:**
+- ReactionLine ahora genera línea independiente (sin contexto de quién/qué elementos)
+- LogAppend emite DESPUÉS de UnitElement — sincronización visual en beat exacto del proc
+- Panel log actualiza incrementalmente (AddCard) en lugar de rebuild total
+
 ## Cambios S58 (Migración Suriyun + Retiro Pipeline Visual Legacy)
 
 **Animador retipado:**
@@ -100,23 +200,11 @@ private class CombatNode
 - Línea 781: `public Transform AnchorOf(CombatVisualSide side, int index) => units.Get(side, index)?.Anchor;`
 - Consumido por CombatPedestalHighlighter para aplicar shine al pedestal del unit activo
 
-**Log lines reformateadas (S58):**
-- Reacción (línea 289): `string reactionText = ReactionLine(pe, who)` — ahora usa helper dedicado
-- Muerte (línea 329, 335): `log.Add(Line(CombatVisualLogKind.Death, $"...", true, CombatVisualSide.A, i))` — emit con HasUnit=true
-
 ## Cambios S59 (Anticipación pasiva, PushHp animate, TimeScale)
 
 **Anticipación de pasivas:**
 - Línea 27–28: nuevos knobs `passiveAnticipationSeconds` y `passiveAnticipationPullback`
-- Línea 464–473: al animar lunge pasiva, ejecuta pullback anticipatorio:
-  ```csharp
-  var pullDir = units.PosOf(groupSide, groupIndex) - atkHome;
-  pullDir.y = 0f;
-  var pullbackDir = pullDir.sqrMagnitude > 0.0001f ? -pullDir.normalized : Vector3.zero;
-  lungeStart = atkHome + pullbackDir * passiveAnticipationPullback;
-  yield return StartCoroutine(MoveOverTime(atkUnit.Instance.transform, atkHome, lungeStart, passiveAnticipationSeconds * 0.6f / Speed));
-  yield return new WaitForSeconds(passiveAnticipationSeconds * 0.4f / Speed);
-  ```
+- Línea 464–473: al animar lunge pasiva, ejecuta pullback anticipatorio
 - Propósito: anticipación visual antes de la pasiva (como en DragonAnimationDriver con PlayAttack)
 
 **PushHp con animate:**
@@ -124,114 +212,84 @@ private class CombatNode
 - Si `animate=true`: llama `unit.Bar?.SetHp(hp, unit.MaxHp)` (anima con juice)
 - Si `animate=false`: llama `unit.Bar?.SnapHp(hp, unit.MaxHp)` (inmediato)
 - Usado por Restore(): pasa `animate=false` para no mostrar daño/curación falsas al retroceder
-- Línea 722: en PlayProc, siempre pasa `true` (default)
 
 **PushTimeScale propaga a animadores:**
-- Línea 207–211: 
-  ```csharp
-  private void PushTimeScale()
-  {
-      foreach (var unit in units.Team(CombatVisualSide.A)) unit.Anim?.SetTimeScale(Speed);
-      foreach (var unit in units.Team(CombatVisualSide.B)) unit.Anim?.SetTimeScale(Speed);
-  }
-  ```
-- Llamado en SetSpeed() (línea 203) y BeginRoutine() (línea 393) para sincronizar animations con playback speed
-- DragonAnimationDriver.SetTimeScale(float) escala Anim.speed y todas las esperas (via Scaled())
-
-## Cambios S59d (Líneas de reacción con formato compacto)
-
-**Helper ReactionLine (S59d NEW):**
-- Línea 916–931: `private string ReactionLine(CombatProcEvent pe, string who)`
-- Construye formato: `"{who}: {ElemA}+{ElemB} → {Estado} — {Description}"`
-- Elementos coloreados via `ElemNameColored()` (hexadecimal UiColor del elementTable)
-- Estado parseado como `ElementalState`: negrita, rojo si `NegativeStates.Contains(st)`, verde si positivo
-- Description truncada a 70 chars max, coloreada gris (DescriptionColor #B8B8B8)
-
-**Set NegativeStates (S59d NEW):**
-- Línea 896–900: `private static readonly HashSet<ElementalState> NegativeStates`
-- Contiene: Boiling, Debilidad, Confuso, Leech, Mareado, PisoTierra
-- Todos otros estados parseados se consideran positivos (verde)
-
-**Helpers de coloreo (S59d):**
-- Línea 906–911: `private string ElemNameColored(Element e)` — retorna nombre elemento con color hexadecimal de UiColor
-- Línea 890–891: `private string ElemName(Element e)` — DisplayName de elementTable
-- Línea 893–894: `private string StateName(ElementalState s)` — DisplayName parseado
-- Línea 913–914: `private static string Truncate(string text, int maxLength)` — trunca con "…"
-
-**Colores definidos (S59d):**
-- `PositiveStateColor = "86E3A0"` — verde claro
-- `NegativeStateColor = "FF9090"` — rojo claro
-- `DescriptionColor = "B8B8B8"` — gris neutro
-
-**Llamada en BuildStates():**
-- Línea 288–290: cuando `pe.ElementEvent == ElementEventKind.Reaction`:
-  ```csharp
-  string reactionText = ReactionLine(pe, who);
-  log.Add(Line(CombatVisualLogKind.Proc, reactionText, true, unitSide, pe.TargetIndex));
-  ```
-- Emite log con HasUnit=true para que CombatVisualizerPanelUITK lo renderice
-
-**Ejemplo de log S59d:**
-```
-Juan: Fuego+Hielo → Debilidad — Estado que reduce defensa en un 30%
-```
+- Línea 207–211: propaga Speed a todos los drivers vía SetTimeScale()
+- Llamado en SetSpeed() (línea 203) y BeginRoutine() (línea 393)
 
 ## Métodos Privados Clave
 
 | Método | Descripción |
 |--------|-------------|
-| `BuildStates()` | Construye árbol de CombatNode desde CombatRecord.Turns. Precomputa mapa roundOrders. **S59d:** usa ReactionLine() para reacciones elementales. |
+| `BuildStates()` | Construye árbol de CombatNode desde CombatRecord.Turns. Precomputa mapa roundOrders. |
 | `BeginRoutine()` | Spawns unidades vía CombatVisualUnits, emite OnVisualCombatStart, **S59** llama PushTimeScale() |
-| `ForwardRoutine()` | **S58:** Anima turno con TurnTowards/TurnBack alrededor lunges, PlayAttack espera onImpact, PlayHit(intensity), CorpseFade en muertes, AnchorOf para shine. **S59:** anticipación pasiva, PushHp(animate=true en proc, false en Restore) |
-| `PlayProc()` | Anima proc (shield/heal/reacción/estado). Emite OnUnitElement con ReactionName. |
+| `ForwardRoutine()` | **S61b:** Emite OnPhase(Passives/Attack/Rest, actorSide), espera phasePauseSeconds. Mueve procs post-golpe dentro bloque ataque. **S58:** Anima turno con TurnTowards/TurnBack alrededor lunges, PlayAttack espera onImpact, PlayHit(intensity), CorpseFade en muertes. **S59:** anticipación pasiva, PushHp(animate=true en proc, false en Restore). **S61:** PlayProc emite LogAppend |
+| `PlayProc()` | **S61** Anima proc (shield/heal/reacción/estado). Emite OnUnitElement, luego LogAppend (solo reacciones). Usa ReactionLine(pe) sin `who`. |
 | `CorpseFade()` | **S58 NEW** Corrutina que espera delay, luego lerp SetGhost(alpha) |
 | `TurnTowards()` | **S58 NEW** Lerpa rotación hacia objetivo (yaw) |
 | `TurnBack()` | **S58 NEW** Lerpa rotación a valor guardado |
 | `PushTimeScale()` | **S59 NEW** Propaga Speed a todos los animadores vía SetTimeScale |
-| `ReactionLine(pe, who)` | **S59d NEW** Construye línea de reacción "{who}: {ElemA}+{ElemB} → {Estado} — {Description}" con colores y formato compacto |
-| `ElemNameColored(e)` | **S59d NEW** Retorna nombre elemento coloreado por UiColor hexadecimal |
+| `ReactionLine(pe)` | **S61 SIMPLIFICADA** Construye línea `"**{Estado}** — {Description}"` (máx 40 chars), coloreada azul/rojo por positivo/negativo. SIN prefijo "{quien}: {ElemA}+{ElemB}" |
 | `Restore()` | Vuelve a estado de un nodo. SetGhost(1) para cadáveres si no está muerto ahora. **S59:** PushHp pasa animate=false |
 | `Publish()` | Emite OnPanelState |
 | `PublishOrder()` | Emite OnActionOrder |
-| `SetActiveFrames(side, index)` | Setea marco dorado al unit (début de turno) — probablemente deprecated con CombatPedestalHighlighter S58 |
+| `SetActiveFrames(side, index)` | Setea marco dorado al unit (début de turno) |
 
-## Consumo de eventos UI (S58–S59–S59d)
+## Consumo de eventos UI (S58–S59–S61–S61b)
 
+- `OnPhase` → **S61b NEW** CombatCameraDirector.HandlePhase() conmuta cámaras por etapa
 - `OnActiveUnit` → CombatPedestalHighlighter.HandleActiveUnit() llama AnchorOf() para shine
 - `OnHit/OnCrit/OnPopup` → CombatDamageNumbers renderiza popups
-- `OnUnitHpChanged` → CombatRadialHealthBar.SetHp() (antes: barras legacy)
-- `OnUnitDead` → registra log (antes: animaba barra)
+- `OnUnitHpChanged` → CombatRadialHealthBar.SetHp()
+- `OnUnitDead` → registra log
 - `OnUnitElement` → CombatOrderBarUITK.HandleUnitElement() dibuja chips (ReactionName parseado a ElementalState)
 - `OnActionOrder` → CombatOrderBarUITK.HandleOrder() reordena cartas
+- `OnLogAppend` → **S61 NEW** CombatVisualizerPanelUITK.HandleLogAppend() agrega línea incremental
 - `OnPanelState` → CombatVisualizerPanelUITK.HandleState() renderiza log filtrado (HasUnit=true || Kind=Result)
-- `OnVisualCombatEnd` → CombatPedestalHighlighter.HandleVisualCombatEnd() limpia shine, UI muestra "Final"
+- `OnVisualCombatEnd` → CombatPedestalHighlighter.HandleVisualCombatEnd() limpia shine
 
 ## Vinculado a
 
 - [[Index/03 - Combat System]]
 - [[Index/13 - Combat Design Direction]]
 - [[CombatRecord]] — fuente de datos
-- [[CombatVisualEvents]] — publisher de eventos
+- [[CombatVisualEvents]] — **S61b** emite OnPhase; **S61** emite OnLogAppend
 - [[CombatVisualUnits]] — spawn/lookup units
-- [[CombatPedestalHighlighter]] — **S58 NEW** shine pedestal (AnchorOf + shine materials)
-- [[CombatRadialHealthBar]] — **S58** barras radiales world-space; **S59** PushHp(animate) control; **S59d** siempre visible
-- [[MonchiAnimationDriver]] — **S58** animar ataques/hits/defeat/victory/buff; **S59** SetTimeScale
-- [[DragonAnimationDriver]] — **S59** implementa SetTimeScale(float), escala Anim.speed y Scaled()
-- [[MonchiVisualizer]] — **S58** SetGhost(alpha) para fade persistente
-- [[CombatOrderBarUITK]] — OnActionOrder, OnUnitElement, OnActiveUnit; **S59** emite OnUnitHover
-- [[CombatVisualizerPanelUITK]] — OnPanelState, log filtrado; **S59d** renderiza ReactionLine con colores
+- [[CombatPedestalHighlighter]] — **S58 NEW** shine pedestal
+- [[CombatRadialHealthBar]] — **S58** barras radiales; **S59** PushHp(animate)
+- [[MonchiAnimationDriver]] — **S58** animar ataques; **S59** SetTimeScale
+- [[MonchiVisualizer]] — **S58** SetGhost(alpha) para fade
+- [[CombatOrderBarUITK]] — OnActionOrder, OnUnitElement, OnActiveUnit; **S61b** accede ShortDescription de estado
+- [[CombatVisualizerPanelUITK]] — **S61** OnLogAppend handler nuevo; OnPanelState
 - [[CombatDamageNumbers]] — OnPopup
-- [[CombatCameraDirector]] — OnActiveUnit, VCamOf
-- [[ElementTableSO]] — DisplayName, UiColor, Description para reacciones
+- [[CombatCameraDirector]] — **S61b NEW** suscriptor OnPhase (gestiona prioridades vcam por etapa)
+- [[ElementTableSO]] — DisplayName, UiColor, Description para reacciones; **S61b** ShortDescription
+- [[CombatSpeechBubbles]] — OnSpeech
 
-## Notas S58–S59–S59d
+## Notas S61b
 
-- Animador nuevo: DragonAnimationDriver con callbacks onImpact y onDone (espera real en lugar de duration fija)
-- Muertes son **persistentes** — cadáveres transparentes quedan en tablero, no desaparecen
-- Facing dinámico: gira hacia objetivo en lunge, retorna después
-- AnchorOf() público permite que efectos de pedestal (shine) accedan al modelo raíz
-- Log lines de reacción/muerte llevan HasUnit=true para filtrado en "Eventos" UI
-- **S59:** Anticipación pasiva: pullback hacia atrás antes de lunge (visual feedback)
-- **S59:** PushHp animate control: Restore() snapea (false), proc/hit anima (true)
-- **S59:** TimeScale centralizado: SetSpeed propagates a todos los drivers (animaciones en sync)
-- **S59d:** Reacciones elementales tienen formato compacto, legible, coloreado (elemento + estado + descripción). Facilita feedback visual del combo elemental.
+- OnPhase emite en ForwardRoutine(): Passives (inicio), Attack (post-pausa), Rest (fin)
+- phasePauseSeconds solo tiene efecto si hubo pasivas armadas Y hay ataque próximo
+- Procs post-golpe ahora sincronizados: dentro bloque ataque, tras popup daño, antes attackDone
+- Cámaras conmutan automáticamente vía CombatCameraDirector (sin lógica manual en Service)
+
+## Notas S61
+
+- ReactionLine ahora sin `who` — contexto ya en speech globo + ReactionName en evento elemental
+- Formato compacto: solo estado negrita + descripción truncada (40 chars max)
+- Colores: PositiveStateColor azul claro (6FB7FF), NegativeStateColor rojo claro (FF9090)
+- LogAppend emite DESPUÉS de UnitElement en PlayProc (sincronización beat)
+- Panel log ahora actualiza incrementalmente vía AddCard (eficiente)
+
+## Notas S59
+
+- Anticipación pasiva: pullback hacia atrás antes de lunge (visual feedback)
+- PushHp animate control: Restore() snapea (false), proc/hit anima (true)
+- TimeScale centralizado: SetSpeed propagates a todos los drivers
+
+## Notas S58
+
+- Animador nuevo: DragonAnimationDriver con callbacks onImpact y onDone
+- Muertes son **persistentes** — cadáveres transparentes quedan en tablero
+- Facing dinámico: gira hacia objetivo, retorna después
+- AnchorOf() público para shine de pedestal

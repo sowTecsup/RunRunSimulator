@@ -17,6 +17,7 @@ public class Combatant
     public float       Hp;
     public float       MaxHp;
     public float       Shield;
+    public int         ShieldExpiresAfterRound;
     public float       Attack;
     public float       Speed;
     public float       Defense;

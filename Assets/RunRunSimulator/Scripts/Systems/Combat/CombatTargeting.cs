@@ -70,5 +70,22 @@ public static class CombatTargeting
         }
         return best;
     }
+
+    public static Combatant LowestHpPercentAlly(List<Combatant> team)
+    {
+        Combatant best = null;
+        float bestPercent = 0f;
+        foreach (var c in team)
+        {
+            if (!c.IsAlive) continue;
+            float percent = c.Hp / c.MaxHp;
+            if (best == null || percent < bestPercent || (percent == bestPercent && c.Index < best.Index))
+            {
+                best = c;
+                bestPercent = percent;
+            }
+        }
+        return best;
+    }
 }
 }

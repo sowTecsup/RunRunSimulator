@@ -22,6 +22,7 @@ public class StateDefinition
 {
     public string DisplayName;
     [TextArea] public string Description;
+    [TextArea] public string ShortDescription;
     [PropertyRange(0f, 1f), LabelText("Percent (0-1)"), PropertyTooltip("Magnitud porcentual del estado (0 = sin knob porcentual). Qué representa exactamente lo dice la Description de cada estado.")]
     public float Percent;
     [LabelText("Amount (flat)"), PropertyTooltip("Magnitud plana del estado en HP/daño (0 = sin knob plano). Qué representa exactamente lo dice la Description de cada estado.")]

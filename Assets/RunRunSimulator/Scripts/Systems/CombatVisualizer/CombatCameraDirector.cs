@@ -5,44 +5,72 @@ namespace MoriMonchiSimulator
 public class CombatCameraDirector : MonoBehaviour
 {
     [SerializeField] private Unity.Cinemachine.CinemachineCamera sceneCamera;
+    [SerializeField] private Unity.Cinemachine.CinemachineCamera allyCamera;
+    [SerializeField] private Unity.Cinemachine.CinemachineCamera enemyCamera;
     [SerializeField] private int scenePriority = 10;
-    [SerializeField] private int activePriority = 20;
-
-    private Unity.Cinemachine.CinemachineCamera lastActive;
+    [SerializeField] private int phasePriority = 30;
 
     private void OnEnable()
     {
-        CombatVisualEvents.OnActiveUnit += HandleActiveUnit;
         CombatVisualEvents.OnVisualCombatStart += HandleStart;
         CombatVisualEvents.OnVisualCombatEnd += HandleEnd;
+        CombatVisualEvents.OnPhase += HandlePhase;
     }
 
     private void OnDisable()
     {
-        CombatVisualEvents.OnActiveUnit -= HandleActiveUnit;
         CombatVisualEvents.OnVisualCombatStart -= HandleStart;
         CombatVisualEvents.OnVisualCombatEnd -= HandleEnd;
+        CombatVisualEvents.OnPhase -= HandlePhase;
     }
 
     private void HandleStart(CombatVisualContext ctx)
     {
         if (sceneCamera != null) sceneCamera.Priority = scenePriority;
-        if (lastActive != null) lastActive.Priority = 0;
-        lastActive = null;
-    }
-
-    private void HandleActiveUnit(CombatVisualSide side, int index)
-    {
-        var vcam = CombatVisualizerService.Instance != null ? CombatVisualizerService.Instance.VCamOf(side, index) : null;
-        if (lastActive != null && lastActive != vcam) lastActive.Priority = 0;
-        if (vcam != null) vcam.Priority = activePriority;
-        lastActive = vcam;
+        if (allyCamera != null) allyCamera.Priority = 0;
+        if (enemyCamera != null) enemyCamera.Priority = 0;
     }
 
     private void HandleEnd(CombatVisualSide winner, bool isDraw)
     {
-        if (lastActive != null) lastActive.Priority = 0;
-        lastActive = null;
+        if (sceneCamera != null) sceneCamera.Priority = scenePriority;
+        if (allyCamera != null) allyCamera.Priority = 0;
+        if (enemyCamera != null) enemyCamera.Priority = 0;
+    }
+
+    private void HandlePhase(CombatTurnPhase phase, CombatVisualSide actorSide)
+    {
+        if (phase == CombatTurnPhase.Passives)
+        {
+            if (actorSide == CombatVisualSide.A)
+            {
+                if (allyCamera != null) allyCamera.Priority = phasePriority;
+                if (enemyCamera != null) enemyCamera.Priority = 0;
+            }
+            else
+            {
+                if (enemyCamera != null) enemyCamera.Priority = phasePriority;
+                if (allyCamera != null) allyCamera.Priority = 0;
+            }
+        }
+        else if (phase == CombatTurnPhase.Attack)
+        {
+            if (actorSide == CombatVisualSide.A)
+            {
+                if (enemyCamera != null) enemyCamera.Priority = phasePriority;
+                if (allyCamera != null) allyCamera.Priority = 0;
+            }
+            else
+            {
+                if (allyCamera != null) allyCamera.Priority = phasePriority;
+                if (enemyCamera != null) enemyCamera.Priority = 0;
+            }
+        }
+        else
+        {
+            if (allyCamera != null) allyCamera.Priority = 0;
+            if (enemyCamera != null) enemyCamera.Priority = 0;
+        }
     }
 }
 }

@@ -6,7 +6,15 @@ tags: [script, combat, targeting, deterministic]
 
 **Ruta:** `Systems/Combat/CombatTargeting.cs`
 
-**Responsabilidad:** Utilitarios estáticos deterministas para selección de objetivos en simulador 3v3. Todo roll sale de `CombatRng` inyectado por el caller — nunca `UnityEngine.Random`. Soporta dos estrategias: golpear la fila frontal (por defecto) o backdoor la backline (rol Agresivo). Simétrico entre ambos clientes (local + async) porque comparten seed y equipo.
+**Responsabilidad:** Utilitarios estáticos deterministas para selección de objetivos en simulador 3v3. Todo roll sale de `CombatRng` inyectado por el caller — nunca `UnityEngine.Random`. Soporta dos estrategias: golpear la fila frontal (por defecto) o backdoor la backline (rol Agresivo). Simétrico entre ambos clientes (local + async) porque comparten seed y equipo. **S62:** Nuevo método `LowestHpPercentAlly()` que busca aliado con menor % de vida (tiebreak por Index) — usado por ShieldAllyPassive como targeting inteligente para escudos.
+
+## Cambios S62
+
+**Nuevo método LowestHpPercentAlly:**
+- Busca el aliado vivo con menor porcentaje de HP (Hp / MaxHp)
+- Tiebreak por Index ascendente (determinista)
+- Retorna null si no hay aliados vivos
+- Usado por ShieldAllyPassive para identificar el aliado con menor vida relativa
 
 ## Cambios S37
 
@@ -21,6 +29,7 @@ tags: [script, combat, targeting, deterministic]
 | `PickBacklineTarget(team, rng)` | `Combatant` | Itera candidatos vivos en filas NO-frontal (Mid/Back), elige uniforme, retorna null si none |
 | `PickAlly(team, rng)` | `Combatant` | Elige aliado vivo al azar uniforme, retorna null si none |
 | `LowestHpAlly(team)` | `Combatant` | Itera aliados vivos, retorna lowest HP (tiebreak por Index asc), null si none |
+| `LowestHpPercentAlly(team)` | `Combatant` | **S62 NEW** Itera aliados vivos, retorna lowest HP% (tiebreak por Index asc), null si none. Usado por ShieldAllyPassive. |
 
 ## Algoritmo: FrontRow (S37)
 
@@ -102,17 +111,37 @@ return best;
 
 **Semántica:** Encuentra el vivo con menor HP actual (tiebreak por Index ascendente para determinismo). Usado por rol Empático (cura al aliado más débil post-strike).
 
-## Consumo en CombatService (S37)
+## Algoritmo: LowestHpPercentAlly (S62 NEW)
+
+```csharp
+Combatant best = null;
+float bestPercent = 0f;
+foreach (var c in team)
+{
+    if (!c.IsAlive) continue;
+    float percent = c.Hp / c.MaxHp;
+    if (best == null || percent < bestPercent || (percent == bestPercent && c.Index < best.Index))
+    {
+        best = c;
+        bestPercent = percent;
+    }
+}
+return best;
+```
+
+**Semántica:** Encuentra el vivo con menor porcentaje de vida (Hp / MaxHp), tiebreak por Index ascendente. Usado por rol Protector en S62 para identificar al aliado más vulnerable proporcionalmente (no absoluto). Si todos están a 100%, retorna null y el caller cae a `PickAlly` random.
+
+## Consumo en CombatService (S37 + S62)
 
 **TakeTurn() flow:**
 1. Agresivo: `if (rng.NextFloat() < atk.Role == Agresivo ? 0.5f : 0)` → `target = PickBacklineTarget(team) ?? PickFrontTarget(team)`
-2. Protector: cada turno antes de atacar → `ally = PickAlly(myTeam)` → `resolver.ShieldTarget(ally, profile.ShieldPerTurn)`
+2. Protector (S62): `ally = LowestHpPercentAlly(myTeam)`; si ally.Hp >= ally.MaxHp (está al 100%), `ally = PickAlly(myTeam)` random → `resolver.ShieldTarget(ally, ...)`
 3. Empático: post-strike si golpea → `ally = LowestHpAlly(myTeam)` → cura `ally.Hp += damage * profile.HealPercentOfDamage`
 
-## Determinismo (S37)
+## Determinismo (S37 + S62)
 
 - **Cero randómicos globales:** Todo rng pasa explícitamente, inyectado por caller
-- **Orden de consumo fijo:** FrontRow evalúa cada Combatant exactamente 1 vez; PickFrontTarget/Backline/Ally consumen 1 rng.Range() call
+- **Orden de consumo fijo:** FrontRow evalúa cada Combatant exactamente 1 vez; PickFrontTarget/Backline/Ally consumen 1 rng.Range() call; LowestHpAlly/LowestHpPercent sin rng
 - **Simétrico:** Ambos clientes (local + async) corren mismo seed + mismas filas → mismos rolls → mismos objetivos
 - **Eficiencia:** O(n) por pick (n = team size, típicamente 3)
 
@@ -120,25 +149,26 @@ return best;
 
 - [[Index/13 - Combat Design Direction]]
 - [[Enums]] — `CombatRow` enum (Front=0, Mid=1, Back=2)
-- [[CombatService]] — TakeTurn usa PickFrontTarget/Backline/LowestHpAlly/PickAlly en rol logic
-- [[Combatant]] — equipo = List<Combatant>; cada uno tiene IsAlive, Row, Index, Hp
+- [[CombatService]] — TakeTurn usa PickFrontTarget/Backline/LowestHpAlly/LowestHpPercent/PickAlly en rol logic
+- [[Combatant]] — equipo = List<Combatant>; cada uno tiene IsAlive, Row, Index, Hp, MaxHp
 - [[RoleTableSO]] — perfiles define BacklineHitChance
 
 ## Conexiones
 
 **Entrada:**
-- `CombatService.TakeTurn(atk, def, ..., rng)` → llama PickFrontTarget, PickBacklineTarget, PickAlly, LowestHpAlly con rng inyectado
-- `CombatResolver` → similar (futuro si se mueve lógica)
+- `CombatService.TakeTurn(atk, def, ..., rng)` → llama PickFrontTarget, PickBacklineTarget, PickAlly, LowestHpAlly, LowestHpPercentAlly con rng inyectado
+- `RolePassiveBase.ShieldAllyPassive` → llama LowestHpPercentAlly primero, fallback a PickAlly (S62)
 
 **Salida:**
 - Retorna `Combatant` elegido (o null si no disponible)
-- Caller procede a atacar ese objetivo
+- Caller procede a atacar ese objetivo o aplicar efecto
 - No mutación de estado (lectura pura)
 
-## Notas (S37)
+## Notas (S37 + S62)
 
 - **Sin estado mutativo:** CombatTargeting es stateless utility class
 - **Null-safe:** Todos los métodos retornan null si no hay candidatos válidos; caller maneja
 - **Filas vivas:** Método `FrontRow` es clave — evaluado dinámicamente cada turno, reflejando cambios de muerte al pasar rondas
 - **Paridad Row:** Los `Combatant` tienen campo `Row` asignado en `CombatService.SimulateCore()` antes de combate, con default 2-3-2 (Front-Front-Mid per equipo)
-- **LowestHpAlly sin rng:** Único método sin CombatRng — selección determinista por HP + Index, sin roll (usado para curación Empático)
+- **LowestHpAlly sin rng:** Selección determinista por HP + Index, sin roll (usado para curación Empático)
+- **LowestHpPercentAlly sin rng (S62):** Selección determinista por HP% + Index, sin roll (usado para targeting de escudo Protector, con fallback a random si está al 100%)

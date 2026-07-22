@@ -6,7 +6,7 @@ tags: [combat, resolver, context, equipment, elements]
 
 **Ruta:** `Systems/Combat/CombatResolver.cs`
 
-**Responsabilidad:** Implementa `ICombatContext`, el contrato por el que los efectos de ítem (`ItemUseEffect`, S39) emiten acciones sin mutar el estado del combate directamente. Centraliza salvaguardas anti-permastun (no re-stun si ya stunned, inmunidad post-despertar), stacking independiente de estados (`AddStatus`), y la grabación de `CombatProcEvent` para el replay (`Record`, con `TargetIndex` S37 y `TargetStatusAfter` S35). **S39: el motor de sinergias fue RETIRADO COMPLETO** — `Synergies`/`CheckSynergies`/`FirstSatisfiedRule`/`ConsumeStacks` y los helpers bearer ya no existen. **S41:** Nuevo método `RecordElement()` para grabar eventos elementales en `CombatProcEvent` (marcas, reacciones, estados, energía) — coexisten con procs clásicos en `Turn.Procs`. **S47:** Nuevo campo público `PassivePhase` (bool) que CombatService seta a true durante ApplyPassives/HealAfterStrike y a false después — marca si el evento fue generado por una pasiva.
+**Responsabilidad:** Implementa `ICombatContext`, el contrato por el que los efectos de ítem (`ItemUseEffect`, S39) emiten acciones sin mutar el estado del combate directamente. Centraliza salvaguardas anti-permastun (no re-stun si ya stunned, inmunidad post-despertar), stacking independiente de estados (`AddStatus`), y la grabación de `CombatProcEvent` para el replay (`Record`, con `TargetIndex` S37 y `TargetStatusAfter` S35). **S39: el motor de sinergias fue RETIRADO COMPLETO** — `Synergies`/`CheckSynergies`/`FirstSatisfiedRule`/`ConsumeStacks` y los helpers bearer ya no existen. **S41:** Nuevo método `RecordElement()` para grabar eventos elementales en `CombatProcEvent` (marcas, reacciones, estados, energía) — coexisten con procs clásicos en `Turn.Procs`. **S47:** Nuevo campo público `PassivePhase` (bool) que CombatService seta a true durante ApplyPassives/HealAfterStrike y a false después — marca si el evento fue generado por una pasiva. **S62:** Nuevo campo público `Round` (int) seteado por CombatService al inicio de cada ronda — permite que pasivas y reacciones consulten la ronda actual para TTL de escudos.
 
 ## Métodos Públicos
 
@@ -31,6 +31,7 @@ tags: [combat, resolver, context, equipment, elements]
 | `TurnProcs` | `List<CombatProcEvent>` | Buffer del turno actual (fresh cada turno). Mixto: procs clásicos + eventos elementales (S41). |
 | `BeforeStrike` | `bool` | true antes del golpe del turno, false después. |
 | `PassivePhase` | `bool` | **S47 NEW** true durante ApplyPassives() y HealAfterStrike(), false en otros momentos. Todos los procs emitidos en PassivePhase=true llevan ese flag en CombatProcEvent, permitiendo al visualizador coreografía especial. |
+| `Round` | `int` | **S62 NEW** Ronda actual de combate. Seteado por CombatService al inicio de cada ronda (línea: `resolver.Round = round;`). Usado por ShieldAllyPassive y DoubleShieldEffect para setear TTL de escudos (`ShieldExpiresAfterRound = r.Round + 1`). |
 
 ## Métodos Privados
 
@@ -112,17 +113,19 @@ public void RecordElement(ElementEventKind ev, Combatant target, float amount = 
 
 - [[Index/03 - Combat]] · [[Index/13 - Combat Design Direction]]
 - [[ICombatContext]] — interfaz que implementa
-- [[CombatService]] — instancia un resolver por simulación (`new CombatResolver { Result = result, TurnProcs = turnProcs }`) y seta PassivePhase (S47)
+- [[CombatService]] — instancia un resolver por simulación (`new CombatResolver { Result = result, TurnProcs = turnProcs }`) y seta PassivePhase (S47) y Round (S62)
 - [[ItemUseEffect]] — recibe `this` (ICombatContext) en `Apply()` (S39)
 - [[CombatElements]] — emite `RecordElement()` para marcas/reacciones (S41)
 - [[ReactionEffectBase]] — emite `RecordElement()` en `Apply()` (S41)
 - [[CombatStrike]] — emite `RecordElement()` para consumos de estado (S41)
 - [[CombatRoleHooks]] — emite `RecordElement()` para energía (S41) y genera pasivas durante PassivePhase (S47)
+- [[RolePassiveBase]] — consulta `r.Round` para setear TTL de escudos (S62)
+- [[ReactionEffectBase]] — consulta `r.Round` para setear TTL de escudos (S62)
 - [[CombatRecord]] — los procs grabados terminan en `CombatTurn.Procs`
 
 ## Conexiones
 
-**Entrada:** `CombatService.SimulateCore()` lo crea y seta BeforeStrike/PassivePhase; cada `ItemUseEffect.Apply(ICombatContext)` llama a sus métodos; `CombatElements`/`ReactionEffectBase`/`CombatStrike`/`CombatRoleHooks` llaman `RecordElement` directo (S41/S47).
+**Entrada:** `CombatService.SimulateCore()` lo crea y seta BeforeStrike/PassivePhase/Round (S62); cada `ItemUseEffect.Apply(ICombatContext)` llama a sus métodos; `CombatElements`/`ReactionEffectBase`/`CombatStrike`/`CombatRoleHooks` llaman `RecordElement` directo (S41/S47).
 
 **Salida:** mutaciones a `Self`/`Opponent` (Hp, StunTurns, Active) + `CombatProcEvent` en `TurnProcs` → `CombatTurn.Procs` (mixto clásico + elemental S41, con PassivePhase S47).
 
@@ -134,6 +137,7 @@ public void RecordElement(ElementEventKind ev, Combatant target, float amount = 
 - **S39:** retirado el motor de sinergias completo y los helpers bearer; el contrato pasa de `CombatProcEffect` (borrado) a `ItemUseEffect`. Las reacciones elementales viven en `CombatElements`, no acá.
 - **S41:** Nuevo método `RecordElement()` para grabar eventos elementales. Coexisten con procs clásicos en `Turn.Procs`.
 - **S47:** Nuevo campo `PassivePhase` público. CombatService lo seta a true durante `ApplyPassives()` y `HealAfterStrike()`, permitiendo que todos los procs generados en esa fase sean marcados para coreografía especial en la replay.
+- **S62:** Nuevo campo `Round` público. CombatService lo seta al inicio de cada ronda. Permite que ShieldAllyPassive y DoubleShieldEffect setean TTL correcto de escudos (`ShieldExpiresAfterRound = r.Round + 1`).
 
 ## Notas
 
@@ -141,4 +145,5 @@ public void RecordElement(ElementEventKind ev, Combatant target, float amount = 
 - Post-S39 nada aplica statuses vía `ApplyStatusTo*` (los ítems v1 solo curan/dañan) — el engine de `Active`/`TickStatuses` queda como sustrato para ítems con estados futuros.
 - **S41:** Eventos clásicos y elementales coexisten sin conflicto — el lector de `CombatTurn.Procs` gatea por `ElementEvent` primero.
 - **S47:** PassivePhase es un boolean flag de timing, no afecta la simulación — solo importa para la visualización. CombatService lo controla estrictamente.
+- **S62:** Round es consultado por pasivas/reacciones al setear TTL de escudos. No afecta la matemática de daño (muerte súbita usa su propia lógica en CombatManagerSO).
 - Los `TargetStatusAfter` son null en eventos elementales (los estados elementales van en `CombatUnitState.ArmedStates` del record).

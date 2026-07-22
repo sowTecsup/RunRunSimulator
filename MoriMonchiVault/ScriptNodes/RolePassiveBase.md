@@ -6,7 +6,7 @@ tags: [script, combat, roles, effects, base-class, elements]
 
 **Ruta:** `Data/Combat/RolePassiveBase.cs`
 
-**Responsabilidad:** Clase abstracta base para efectos pasivos de rol serializables en listas polimórficas. **S40:** Abstracción de efectos pre-turno (OnTurnStart) y post-golpe (OnDamageDealt) heredables, eliminando branches enum-based. **S46:** Hook renombrado `OnTurnStart()` → `OnAfterStrike()` y relocado post-strike (paso 10). Ambos hooks corre SIEMPRE sin gate de Energy. `AddMark()` sin gates.
+**Responsabilidad:** Clase abstracta base para efectos pasivos de rol serializables en listas polimórficas. **S40:** Abstracción de efectos pre-turno (OnTurnStart) y post-golpe (OnDamageDealt) heredables, eliminando branches enum-based. **S46:** Hook renombrado `OnTurnStart()` → `OnAfterStrike()` y relocado post-strike (paso 10). Ambos hooks corre SIEMPRE sin gate de Energy. `AddMark()` sin gates. **S62:** `ShieldAllyPassive` refactorizado — ahora usa `LowestHpPercentAlly()` para targeting inteligente (aliado con menor % de vida), con fallback a `PickAlly()` random si todos están a 100%; escudo ahora tiene TTL seteado a `r.Round + 1`.
 
 ## Métodos Abstractos
 
@@ -20,20 +20,25 @@ tags: [script, combat, roles, effects, base-class, elements]
 
 ### ShieldAllyPassive
 
-**Descripción:** Cada turno (post-strike), elige aliado al azar y otorga `AmountPerTurn` de escudo. Marca el aliado con elemento de actor (aliada source).
+**Descripción (S62 actualizado):** Cada turno (post-strike), elige aliado con menor % de vida (o random si todos al 100%) y otorga `AmountPerTurn` de escudo con TTL. Marca el aliado con elemento de actor (aliada source).
 
 **Campos:**
 - `AmountPerTurn` (float, MinValue 0, LabelText "Shield per turn") — escudo otorgado, defecto 1.0
 
-**OnAfterStrike (S46):**
+**OnAfterStrike (S62):**
 - Si `AmountPerTurn <= 0`, retorna sin efecto
-- Pick aliado vivo al azar: `CombatTargeting.PickAlly(allies, rng)`
+- Pick aliado con menor HP%: `CombatTargeting.LowestHpPercentAlly(allies)`
+  - Si ese aliado tiene HP >= MaxHp (100%), fallback a random: `CombatTargeting.PickAlly(allies, rng)`
+  - Si ambos retornan null (equipo vacío), retorna sin efecto
 - `ally.Shield += AmountPerTurn`
+- `ally.ShieldExpiresAfterRound = r.Round + 1` **(S62 NEW)** — escudo vence al cierre de la siguiente ronda
 - Log: `"{actor.Name} escuda a {ally.Name} +{AmountPerTurn}"`
 - Record en resolver: `r.Record(ModifierEffectKind.Shield, ally, AmountPerTurn)`
 - Marca aliado: `CombatElements.AddMark(ally, actor.Element, true, actor, config, result, r, rng)` (ally-sourced)
 
-**Consumo RNG:** `PickAlly()` consume si hay múltiples candidatos
+**Consumo RNG:** `PickAlly()` consume si hay múltiples candidatos (fallback solo si 100% HP)
+
+**Cambios S62:** Targeting refactorizado — prioriza aliado más débil proporcionalmente (HP%), con fallback a random si está al tope.
 
 **Cambio S46:** Se eliminó el gate `if (actor.Energy > 0)` — la marca ahora se aplica SIEMPRE
 
@@ -118,6 +123,14 @@ public static void HealAfterStrike(Combatant actor, RoleProfile profile, ..., fl
 - **Odin Serialization:** Polimórficas en inspector como lista editable
 - **RNG:** Cada pasiva consume RNG según su lógica (PickAlly, LowestHpAlly); orden sincronizado con rol profile order
 - **Marcas:** Sin rolls, determinista (AddMark es puro y usa CombatRng para reacciones internas)
+- **S62:** LowestHpPercentAlly es determinista; PickAlly fallback consume RNG solo si necesario
+
+## Cambios S62
+
+**ShieldAllyPassive refactorizado:**
+- Antes: `PickAlly(allies, rng)` directo (random puro)
+- Ahora: `LowestHpPercentAlly(allies)` primero (targeting inteligente), fallback a `PickAlly(allies, rng)` si está a 100% HP
+- Escudo ahora tiene TTL: `ShieldExpiresAfterRound = r.Round + 1`
 
 ## Cambios S46
 
@@ -156,8 +169,8 @@ public static void HealAfterStrike(Combatant actor, RoleProfile profile, ..., fl
 
 - [[RoleTableSO]] — serializadas en `RoleProfile.Passives` lista polimórfica
 - [[CombatRoleHooks]] — invocador en `ApplyPassives()` (S46: renombrado de GrantShield) y `HealAfterStrike()`
-- [[CombatResolver]] — receptor de `Record()` y `RecordElement()`
+- [[CombatResolver]] — receptor de `Record()` y `RecordElement()`; consulta `r.Round` para TTL de escudos (S62)
 - [[CombatElements]] — llamada para `AddMark()`
-- [[Combatant]] — actor/allies context, Shield/Hp mutados
+- [[Combatant]] — actor/allies context, Shield/ShieldExpiresAfterRound (S62)/Hp mutados
 - [[CombatManagerSO]], [[CombatResult]], [[CombatRng]]
-- [[CombatTargeting]] — PickAlly, LowestHpAlly
+- [[CombatTargeting]] — PickAlly, LowestHpAlly, LowestHpPercentAlly (S62)

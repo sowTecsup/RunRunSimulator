@@ -29,6 +29,13 @@ MonoBehaviour:
   EvasionPerPoint: 0.1
   MaxRounds: 10
   MaxFightCount: 5
+  SuddenDeathStartRound: 6
+  SuddenDeathMultipliers:
+  - 1.4
+  - 1.8
+  - 2.2
+  - 2.6
+  - 3
   StunImmunityTurns: 1
   Roles: {fileID: 11400000, guid: fa410b146507e9d428679ec15066e519, type: 2}
   Elements: {fileID: 11400000, guid: 6412d61d67ea8584d800907d694be47f, type: 2}

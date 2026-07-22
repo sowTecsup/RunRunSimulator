@@ -4,8 +4,9 @@ namespace MoriMonchiSimulator
 {
 
 // Outcome of a single basic-attack strike: dodge/crit rolls, on-connect
-// damage math (DEF reduction, Boiling, Shield absorption, Charcoal
-// reflect), the enemy-sourced elemental mark and the DODGE/CRIT log line.
+// damage math (DEF reduction, Sudden Death round multiplier, Boiling,
+// Shield absorption, Charcoal reflect), the enemy-sourced elemental mark
+// and the DODGE/CRIT log line.
 public class StrikeOutcome
 {
     public bool  Dodged;
@@ -33,6 +34,7 @@ public static class CombatStrike
         float critRoll    = 1f;
         float damage      = 0f;
         float absorbed    = 0f;
+        float suddenDeath = 1f;
         if (!dodged)
         {
             critChance      = config.CritChance + actor.Luck * config.LuckCritPerPoint;
@@ -53,6 +55,8 @@ public static class CombatStrike
                 r.RecordElement(ElementEventKind.StateConsumed, target, state: ElementalState.Debilidad);
             }
             damage          = raw * (1f - reduction);
+            suddenDeath     = config.SuddenDeathMultiplier(r.Round);
+            if (suddenDeath > 1f) damage *= suddenDeath;
             if (target.ConsumeState(ElementalState.Boiling))
             {
                 damage *= (1f + (config.Elements != null ? config.Elements.StatePercent(ElementalState.Boiling) : 0f));
@@ -68,7 +72,7 @@ public static class CombatStrike
         string shieldNote  = absorbed > 0f ? $" (escudo -{absorbed:F1}, quedan {target.Shield:F1})" : "";
         result.Log.Add(dodged
             ? $"    [{dir}] DODGE!  {target.Name} HP:{target.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}%)"
-            : $"    [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}{shieldNote}  {target.Name} HP:{target.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}% · crit {critRoll * 100f:F0} vs {critChance * 100f:F0}%)");
+            : $"    [{dir}]{(crit ? " CRIT!" : "")} dmg:{damage:F1}{(suddenDeath > 1f ? $" MSx{suddenDeath:F1}" : "")}{shieldNote}  {target.Name} HP:{target.Hp:F1}   (eva {evaRoll * 100f:F0} vs {evaChance * 100f:F0}% · crit {critRoll * 100f:F0} vs {critChance * 100f:F0}%)");
 
         if (!dodged)
         {

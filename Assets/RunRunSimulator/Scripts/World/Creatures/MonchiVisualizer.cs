@@ -38,7 +38,11 @@ public class MonchiVisualizer : MonoBehaviour
     public void Assemble(CreatureDNA dna)
     {
         for (int i = modelRoot.childCount - 1; i >= 0; i--)
-            Object.Destroy(modelRoot.GetChild(i).gameObject);
+        {
+            var child = modelRoot.GetChild(i).gameObject;
+            child.SetActive(false);
+            Object.Destroy(child);
+        }
 
         bodyInstance = null;
         animator = null;

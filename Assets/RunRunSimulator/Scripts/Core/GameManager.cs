@@ -142,7 +142,7 @@ public class GameManager : MonoBehaviour
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
     public void MintRandomCreature()
     {
-        var dna        = CreatureGenerator.GenerateRandom(database, rarityOddsTable, furTypeDatabase);
+        var dna        = CreatureGenerator.GenerateRandom(database, furTypeDatabase);
         dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
         dna.Element = CreatureGenerator.RandomElement();
         dna.Role = CreatureGenerator.RandomRole();

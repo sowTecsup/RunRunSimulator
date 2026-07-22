@@ -31,6 +31,7 @@ public class CombatVisualizerService : MonoBehaviour
     [SerializeField, MinValue(0f)] private float synergyPopupDelay   = 0.6f;
     [SerializeField, MinValue(0f)] private float stateBeatSeconds    = 0.5f;
     [SerializeField, MinValue(0f)] private float turnSeconds         = 0.15f;
+    [SerializeField, MinValue(0f)] private float phasePauseSeconds   = 0.9f;
 
     [Title("Corpses")]
     [SerializeField, MinValue(0f)] private float corpseFadeDelay   = 2.5f;
@@ -285,7 +286,7 @@ public class CombatVisualizerService : MonoBehaviour
 
                     if (pe.ElementEvent == ElementEventKind.Reaction)
                     {
-                        string reactionText = ReactionLine(pe, who);
+                        string reactionText = ReactionLine(pe);
                         log.Add(Line(CombatVisualLogKind.Proc, reactionText, true, unitSide, pe.TargetIndex));
                         return;
                     }
@@ -433,9 +434,12 @@ public class CombatVisualizerService : MonoBehaviour
             foreach (var pe in t.Procs)
                 if (pe.BeforeStrike) yield return StartCoroutine(PlayProc(pe, target));
 
+        bool hadPassives = false;
         if (t.Procs != null)
         {
             var passiveProcs = t.Procs.Where(pe => !pe.BeforeStrike && pe.PassivePhase).ToList();
+            hadPassives = passiveProcs.Count > 0;
+            if (hadPassives) CombatVisualEvents.Phase(CombatTurnPhase.Passives, target.AttackerSide);
             int gi = 0;
             while (gi < passiveProcs.Count)
             {
@@ -490,8 +494,11 @@ public class CombatVisualizerService : MonoBehaviour
             }
         }
 
+        if (hadPassives && !t.NoAttack) yield return new WaitForSeconds(phasePauseSeconds / Speed);
+
         if (!t.NoAttack)
         {
+            CombatVisualEvents.Phase(CombatTurnPhase.Attack, target.AttackerSide);
             CombatVisualEvents.Attack(target.AttackerSide);
 
             EmitSpeech(target.AttackerSide, target.AttackerIndex, string.Format(attackLine, t.DefenderName), defSide, target.DefenderIndex, true);
@@ -532,13 +539,19 @@ public class CombatVisualizerService : MonoBehaviour
                     Side = defSide, Position = units.PosOf(defSide, target.DefenderIndex), Follow = units.TransformOf(defSide, target.DefenderIndex),
                     Kind = t.WasCrit ? CombatPopupKind.Crit : CombatPopupKind.Hit, Amount = t.Damage,
                 });
+
+            if (t.Procs != null)
+                foreach (var pe in t.Procs)
+                    if (!pe.BeforeStrike && !pe.PassivePhase) yield return StartCoroutine(PlayProc(pe, target));
+
             yield return new WaitUntil(() => attackDone);
             defUnit?.Bar?.SetTargeted(false);
         }
-
-        if (t.Procs != null)
+        else if (t.Procs != null)
+        {
             foreach (var pe in t.Procs)
                 if (!pe.BeforeStrike && !pe.PassivePhase) yield return StartCoroutine(PlayProc(pe, target));
+        }
 
         current = target;
         PushShieldAll(target);
@@ -579,6 +592,7 @@ public class CombatVisualizerService : MonoBehaviour
                 }
         }
 
+        CombatVisualEvents.Phase(CombatTurnPhase.Rest, target.AttackerSide);
         CombatVisualEvents.TurnEnd(t);
 
         if (current.IsEnd)
@@ -736,6 +750,9 @@ public class CombatVisualizerService : MonoBehaviour
                 Element = pe.Element, ElementB = pe.ElementB, AllySource = pe.AllySource, State = pe.State,
                 ReactionName = pe.ReactionName,
             });
+
+        if (pe.ElementEvent == ElementEventKind.Reaction)
+            CombatVisualEvents.LogAppend(Line(CombatVisualLogKind.Proc, ReactionLine(pe), true, side, pe.TargetIndex));
 
         bool beat = pe.ElementEvent == ElementEventKind.Reaction
                  || pe.ElementEvent == ElementEventKind.StateArmed
@@ -899,40 +916,32 @@ public class CombatVisualizerService : MonoBehaviour
         ElementalState.Leech, ElementalState.Mareado, ElementalState.PisoTierra,
     };
 
-    private const string PositiveStateColor = "86E3A0";
+    private const string PositiveStateColor = "6FB7FF";
     private const string NegativeStateColor = "FF9090";
     private const string DescriptionColor   = "B8B8B8";
-
-    private string ElemNameColored(Element e)
-    {
-        string name = ElemName(e);
-        if (elementTable == null) return name;
-        return Colored(name, ColorUtility.ToHtmlStringRGB(elementTable.GetIdentity(e).UiColor));
-    }
 
     private static string Truncate(string text, int maxLength)
         => text.Length <= maxLength ? text : text.Substring(0, maxLength) + "…";
 
-    private string ReactionLine(CombatProcEvent pe, string who)
+    private string ReactionLine(CombatProcEvent pe)
     {
-        string a = ElemNameColored(pe.Element);
-        string b = ElemNameColored(pe.ElementB);
         bool parsed = System.Enum.TryParse<ElementalState>(pe.ReactionName, out var st);
         string state = parsed
             ? Colored($"<b>{StateName(st)}</b>", NegativeStates.Contains(st) ? NegativeStateColor : PositiveStateColor)
             : pe.ReactionName;
-
-        string line = $"{who}: {a}+{b} → {state}";
-        if (!parsed) return line;
-
-        string desc = elementTable != null ? elementTable.GetState(st).Description : null;
-        if (string.IsNullOrEmpty(desc)) return line;
-        return $"{line} — {Colored(Truncate(desc, 70), DescriptionColor)}";
+        if (!parsed) return state;
+        var def = elementTable != null ? elementTable.GetState(st) : null;
+        string shortDesc = def != null ? def.ShortDescription : null;
+        if (!string.IsNullOrEmpty(shortDesc)) return $"{state} — {Colored(shortDesc, DescriptionColor)}";
+        string desc = def != null ? def.Description : null;
+        if (string.IsNullOrEmpty(desc)) return state;
+        return $"{state} — {Colored(Truncate(desc, 40), DescriptionColor)}";
     }
 
     private void Restore(CombatNode node)
     {
         if (node == null) return;
+        CombatVisualEvents.Phase(CombatTurnPhase.Rest, CombatVisualSide.A);
         current = node;
         ClearTargetedFrames();
 

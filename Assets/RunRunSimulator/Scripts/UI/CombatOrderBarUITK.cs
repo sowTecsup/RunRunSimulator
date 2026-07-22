@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.UIElements.Experimental;
 namespace MoriMonchiSimulator
 {
 
@@ -25,8 +26,12 @@ public class CombatOrderBarUITK : MonoBehaviour
         public VisualElement AffinityDot0;
         public VisualElement AffinityDot1;
         public Color         ElementColor;
+        public int           Affinity;
         public List<CombatElementMark> Marks  = new List<CombatElementMark>();
         public List<ElementalState>    States = new List<ElementalState>();
+        public CombatFighterSnapshot Snap;
+        public Element               Element;
+        public float                  CurrentHp;
     }
 
     private VisualElement root;
@@ -47,6 +52,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         CombatVisualEvents.OnUnitAffinity      += HandleAffinity;
         CombatVisualEvents.OnActiveUnit        += HandleActiveUnit;
         CombatVisualEvents.OnUnitElement       += HandleUnitElement;
+        CombatVisualEvents.OnUnitHpChanged     += HandleUnitHp;
     }
 
     private void OnDisable()
@@ -56,6 +62,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         CombatVisualEvents.OnUnitAffinity      -= HandleAffinity;
         CombatVisualEvents.OnActiveUnit        -= HandleActiveUnit;
         CombatVisualEvents.OnUnitElement       -= HandleUnitElement;
+        CombatVisualEvents.OnUnitHpChanged     -= HandleUnitHp;
     }
 
     private void Start()
@@ -143,6 +150,13 @@ public class CombatOrderBarUITK : MonoBehaviour
 
     private OrderCard CreateCard(CombatVisualSide side, CombatFighterSnapshot snap, Element element, CreatureDNA dna)
     {
+        var card = new OrderCard
+        {
+            Snap      = snap,
+            Element   = element,
+            CurrentHp = snap.MaxHp,
+        };
+
         var cardRoot = new VisualElement();
         cardRoot.AddToClassList("cv-order-card");
         cardRoot.AddToClassList(side == CombatVisualSide.A ? "cv-order-card--self" : "cv-order-card--opp");
@@ -159,7 +173,8 @@ public class CombatOrderBarUITK : MonoBehaviour
         var headshot = new VisualElement();
         headshot.AddToClassList("cv-ob-headshot");
         MonchiPortraitUI.ApplyHeadshot(headshot, dna);
-        RegisterTooltip(headshot, $"{snap.Name} — Elemento: {Identity(element).DisplayName}");
+        headshot.RegisterCallback<PointerEnterEvent>(_ => ShowTooltip(headshot, StatsTooltip(card)));
+        headshot.RegisterCallback<PointerLeaveEvent>(_ => HideTooltip());
         body.Add(headshot);
 
         var roleChip = new Label(RoleText(snap.Role));
@@ -213,16 +228,15 @@ public class CombatOrderBarUITK : MonoBehaviour
         var statesRow = new VisualElement();
         statesRow.AddToClassList("cv-ob-states-row");
 
-        return new OrderCard
-        {
-            Root          = cardRoot,
-            AllyMarksRow  = allyCol,
-            EnemyMarksRow = enemyCol,
-            StatesRow     = statesRow,
-            AffinityDot0  = dot0,
-            AffinityDot1  = dot1,
-            ElementColor  = elementColor,
-        };
+        card.Root          = cardRoot;
+        card.AllyMarksRow  = allyCol;
+        card.EnemyMarksRow = enemyCol;
+        card.StatesRow     = statesRow;
+        card.AffinityDot0  = dot0;
+        card.AffinityDot1  = dot1;
+        card.ElementColor  = elementColor;
+
+        return card;
     }
 
     private void HandleOrder(List<CombatOrderEntry> order)
@@ -243,9 +257,20 @@ public class CombatOrderBarUITK : MonoBehaviour
 
         foreach (var kvp in cards)
         {
-            bool isActive = kvp.Key.Side == side && kvp.Key.Index == index;
+            bool isActive  = kvp.Key.Side == side && kvp.Key.Index == index;
+            bool wasActive = kvp.Value.Root.ClassListContains("cv-order-card--active");
             kvp.Value.Root.EnableInClassList("cv-order-card--active", isActive);
+            if (isActive && !wasActive) PopActiveCard(kvp.Value.Root);
         }
+    }
+
+    private static void PopActiveCard(VisualElement root)
+    {
+        root.experimental.animation.Start(0f, 1f, 240, (ve, t) =>
+        {
+            float s = 1f + 0.10f * Mathf.Sin(Mathf.PI * t);
+            ve.style.scale = new Scale(new Vector3(s, s, 1f));
+        }).OnCompleted(() => root.style.scale = Scale.None());
     }
 
     private void ApplyState(OrderCard card, CombatOrderEntry entry)
@@ -255,6 +280,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         var state = entry.State;
         card.Marks  = state?.ElementMarks != null ? new List<CombatElementMark>(state.ElementMarks) : new List<CombatElementMark>();
         card.States = state?.ArmedStates  != null ? new List<ElementalState>(state.ArmedStates)     : new List<ElementalState>();
+        if (state != null) card.CurrentHp = state.Hp;
         RebuildElements(card);
         SetAffinity(card, state?.Affinity ?? 0);
     }
@@ -262,6 +288,9 @@ public class CombatOrderBarUITK : MonoBehaviour
     private void HandleUnitElement(CombatElementEventData d)
     {
         if (!EnsureRefs() || !cards.TryGetValue((d.Side, d.Index), out var card)) return;
+
+        bool reactedNew = false;
+        bool armedNew   = false;
 
         switch (d.Kind)
         {
@@ -276,10 +305,17 @@ public class CombatOrderBarUITK : MonoBehaviour
                 RemoveMark(card.Marks, d.ElementB, d.AllySource);
                 if (System.Enum.TryParse<ElementalState>(d.ReactionName, out var reacted)
                  && !card.States.Contains(reacted))
+                {
                     card.States.Add(reacted);
+                    reactedNew = true;
+                }
                 break;
             case ElementEventKind.StateArmed:
-                if (!card.States.Contains(d.State)) card.States.Add(d.State);
+                if (!card.States.Contains(d.State))
+                {
+                    card.States.Add(d.State);
+                    armedNew = true;
+                }
                 break;
             case ElementEventKind.StateConsumed:
             case ElementEventKind.StateRemoved:
@@ -287,6 +323,16 @@ public class CombatOrderBarUITK : MonoBehaviour
                 break;
         }
         RebuildElements(card);
+
+        if (d.Kind == ElementEventKind.MarkApplied)
+        {
+            var row = d.AllySource ? card.AllyMarksRow : card.EnemyMarksRow;
+            if (row.childCount > 0) PopIn(row[row.childCount - 1], 1.9f, 320);
+        }
+        else if ((d.Kind == ElementEventKind.Reaction && reactedNew) || (d.Kind == ElementEventKind.StateArmed && armedNew))
+        {
+            if (card.StatesRow.childCount > 0) PopIn(card.StatesRow[card.StatesRow.childCount - 1], 1.9f, 320);
+        }
     }
 
     private static void RemoveMark(List<CombatElementMark> marks, Element element, bool ally)
@@ -302,11 +348,24 @@ public class CombatOrderBarUITK : MonoBehaviour
         BuildStatesRow(card.StatesRow, card.States);
     }
 
+    private void HandleUnitHp(CombatVisualSide side, int index, float current, float max)
+    {
+        if (!cards.TryGetValue((side, index), out var card)) return;
+        card.CurrentHp = current;
+    }
+
     private void HandleAffinity(CombatVisualSide side, int index, int affinity)
     {
         if (!EnsureRefs() || !cards.TryGetValue((side, index), out var card)) return;
 
+        int prev = card.Affinity;
         SetAffinity(card, affinity);
+
+        if (affinity > prev)
+        {
+            if (prev < 1 && affinity >= 1) PopIn(card.AffinityDot0, 2.6f, 420);
+            if (prev < 2 && affinity >= 2) PopIn(card.AffinityDot1, 2.6f, 420);
+        }
     }
 
     private void BuildMarkRow(VisualElement row, List<CombatElementMark> marks, bool ally)
@@ -355,6 +414,7 @@ public class CombatOrderBarUITK : MonoBehaviour
 
     private void SetAffinity(OrderCard card, int affinity)
     {
+        card.Affinity = affinity;
         ApplyAffinityDot(card.AffinityDot0, affinity >= 1, card.ElementColor);
         ApplyAffinityDot(card.AffinityDot1, affinity >= 2, card.ElementColor);
     }
@@ -363,6 +423,30 @@ public class CombatOrderBarUITK : MonoBehaviour
     {
         dot.EnableInClassList("cv-ob-dot--filled", filled);
         dot.style.backgroundColor = filled ? (StyleColor)color : StyleKeyword.Null;
+    }
+
+    private static void PopIn(VisualElement el, float fromScale, int durationMs)
+    {
+        el.experimental.animation.Start(0f, 1f, durationMs, (ve, t) =>
+        {
+            float back = 1f + 2.70158f * Mathf.Pow(t - 1f, 3f) + 1.70158f * Mathf.Pow(t - 1f, 2f);
+            float s    = Mathf.LerpUnclamped(fromScale, 1f, back);
+            ve.style.scale   = new Scale(new Vector3(s, s, 1f));
+            ve.style.opacity = Mathf.Clamp01(t * 1.6f);
+        }).OnCompleted(() =>
+        {
+            el.style.scale   = Scale.None();
+            el.style.opacity = 1f;
+        });
+    }
+
+    private string StatsTooltip(OrderCard card)
+    {
+        var snap = card.Snap;
+        return $"{snap.Name} — {Identity(card.Element).DisplayName} · {RoleText(snap.Role)}\n" +
+               $"HP {card.CurrentHp:F0}/{snap.MaxHp:F0}\n" +
+               $"ATK {snap.Attack:F0} · DEF {snap.Defense:F0} · SPD {snap.Speed:F0}\n" +
+               $"Suerte {snap.Luck:F0} · Evasión {snap.Evasion:F0}";
     }
 
     private void RegisterTooltip(VisualElement chip, string text)

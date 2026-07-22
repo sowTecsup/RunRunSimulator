@@ -6,7 +6,7 @@ tags: [combat, core, deterministic, simulation]
 
 **Ruta:** `Systems/Combat/CombatService.cs`
 
-**Responsabilidad:** Servicio estático stateless que simula combate turn-based **3v3 team-based** (tolerancia 1..3 por lado), completamente determinista. Orquesta validación de equipos, simulación core pura (sin registry), construcción de records simétricos. **S40:** Descomposición de `TakeTurn()` — delegación de responsabilidades a `CombatRoleHooks` (targeting + shield/heal pasivos), `CombatItems` (paso N usos + CollectUses) / `CombatStrike` (daño y rolls). CombatService 747→607 líneas, núcleo delgado (validación, orden de ronda, secuencia, consecuencias); componedora de: `CombatRng` (inyectado por seed), `Combatant`, `CombatResolver`, `CombatStats`, `CombatEvolution`, `CombatTargeting`, `RoleTableSO`, `CombatElements` (S39). **S41:** Helper `UnitState()` nuevo para poblar `CombatUnitState` con campos elementales (ElementMarks, ArmedStates, Affinity, Energy); parámetro `r` en llamadas de mediadores. **S46:** Energy completamente eliminado. Affinity refactorizado: cada 2 acciones dispara auto-marca al actor mismo (ally-sourced, mismo turno). Orden de TakeTurn reorganizado: GainAffinity y pasivas se mueven post-strike. **S47:** Escudo ahora expira al cierre de cada ronda (ExpireShields), sin rng; nuevo campo CombatResolver.PassivePhase setea true durante ApplyPassives/HealAfterStrike para marcar procs de pasivas.
+**Responsabilidad:** Servicio estático stateless que simula combate turn-based **3v3 team-based** (tolerancia 1..3 por lado), completamente determinista. Orquesta validación de equipos, simulación core pura (sin registry), construcción de records simétricos. **S40:** Descomposición de `TakeTurn()` — delegación de responsabilidades a `CombatRoleHooks` (targeting + shield/heal pasivos), `CombatItems` (paso N usos + CollectUses) / `CombatStrike` (daño y rolls). CombatService 747→607 líneas, núcleo delgado (validación, orden de ronda, secuencia, consecuencias); componedora de: `CombatRng` (inyectado por seed), `Combatant`, `CombatResolver`, `CombatStats`, `CombatEvolution`, `CombatTargeting`, `RoleTableSO`, `CombatElements` (S39). **S41:** Helper `UnitState()` nuevo para poblar `CombatUnitState` con campos elementales (ElementMarks, ArmedStates, Affinity, Energy); parámetro `r` en llamadas de mediadores. **S46:** Energy completamente eliminado. Affinity refactorizado: cada 2 acciones dispara auto-marca al actor mismo (ally-sourced, mismo turno). Orden de TakeTurn reorganizado: GainAffinity y pasivas se mueven post-strike. **S47:** Escudo ahora expira al cierre de cada ronda (ExpireShields), sin rng; nuevo campo CombatResolver.PassivePhase setea true durante ApplyPassives/HealAfterStrike para marcar procs de pasivas. **S62:** Escudos ahora tienen TTL dinámico (`ShieldExpiresAfterRound`); `ExpireShields` consulta round actual; desempate por HP% cuando MaxRounds se alcanza (TIEBREAK); Sudden Death multiplier en CombatStrike.
 
 ## Métodos Públicos
 
@@ -16,18 +16,46 @@ tags: [combat, core, deterministic, simulation]
 | `SimulateCore(dnasA, dnasB, rowsA, rowsB, db, config, equipDb, rng)` | `CombatResult` | **S37** Puro determinista: sin registry. Muta ambas listas de DNAs (EvolvedSlot, IsDead). Retorna result con turnos simétricos |
 | `BuildRecord(result, selfDnas, oppDnas, self, isSelfTeamA, oppPlayerName, oppPlayerId, seed, date)` | `CombatRecord` | **S37** Construye un CombatRecord desde perspectiva de `self` (una DNA de un equipo ganador/perdedor) |
 
+## Cambios S62
+
+**Escudos con TTL dinámico:**
+- Campo `ShieldExpiresAfterRound` agregado a Combatant — seteado por pasivas/reacciones cuando otorgan escudo
+- `ExpireShields(List<Combatant> team, CombatResult result, int round)` (firma cambió, agregó parámetro `round`)
+- Se llama al final de cada ronda con: `ExpireShields(A, result, round); ExpireShields(B, result, round);`
+- Un escudo seteado en ronda R se inicializa con `ShieldExpiresAfterRound = r.Round + 1`, vence al cierre de ronda R+1
+- Log: `[escudo] {name} pierde su escudo (-{shield:F0})`
+
+**Desempate por HP% (tiebreak):**
+- Cuando se alcanzan MaxRounds sin wipe: compara `TeamHpPercent(team)` (suma HP / suma MaxHp de vivos)
+- Si `pctA == pctB` (exactamente igual), resultado es DRAW (ambos equipos ganan FightCount++, no evolucionan)
+- Si `pctA > pctB`, gana A; si `pctA < pctB`, gana B
+- Log: `=== TIEBREAK === Round limit — Team {winner} wins por vida restante ({pctA}% vs {pctB}%) | {summary}`
+
+**Wipe detection:**
+- Si equipo B está completamente muerto antes de MaxRounds: log `=== WIPE ===` (A gana)
+- Si equipo A está completamente muerto antes de MaxRounds: log `=== WIPE ===` (B gana)
+
+**CombatResolver.Round seteado en simulación:**
+- Línea: `resolver.Round = round;` al inicio de cada ronda (para que pasivas/reacciones usen r.Round)
+
+**Sudden Death en CombatStrike:**
+- `CombatStrike.Execute()` consulta `config.SuddenDeathMultiplier(r.Round)`
+- Multiplicador aplicado post-DEF, pre-Boiling
+- Log marca con "MSx{valor}" (ej: "MSx1.4")
+
 ## Cambios S47
 
 **Escudos expiran al cierre de cada ronda:**
-- Nuevo helper privado `ExpireShields(List<Combatant> team, CombatResult result)` (sin rng)
-- Se llama automático al final de cada ronda: `ExpireShields(A, result); ExpireShields(B, result);`
+- Nuevo helper privado `ExpireShields(List<Combatant> team, CombatResult result)` (S47; firma cambió en S62)
+- Se llama automático al final de cada ronda: `ExpireShields(A, result, round); ExpireShields(B, result, round);`
 - Cada unit que tenga `Shield > 0f` ve su escudo reducido a 0f al cerrar la ronda
 - Log: `[escudo] {name} pierde su escudo (-{amount:F0})`
 - Flujo visual en CombatVisualizerService: la barra azul de escudo desaparece entre turnos sin animación especial
 
-**Campos nuevos en CombatResolver (S47):**
-- `public bool PassivePhase` — CombatService seta a true justo antes de `ApplyPassives()` y `HealAfterStrike()`, false después
-- Todos los procs grabados dentro de ese bloque llevan `CombatProcEvent.PassivePhase = true`
+**Campos nuevos en CombatResolver (S47 + S62):**
+- `public bool PassivePhase` (S47) — CombatService seta a true justo antes de `ApplyPassives()` y `HealAfterStrike()`, false después
+- `public int Round` (S62) — Ronda actual, seteado al inicio de cada ronda
+- Todos los procs grabados dentro de PassivePhase=true llevan ese flag en CombatProcEvent
 - Permite visualizador coreografiar las pasivas especialmente (desplazamiento del atacante a aliados objetivo)
 
 **Frases y coreografía de pasivas en CombatVisualizerService:**
@@ -218,9 +246,10 @@ public static CombatResult SimulateCore(
 |--------|---------|-------------|
 | `ValidateTeam(ids, registry, config, outDnas)` | `bool` | **S37** Valida team size, IDs vivos, no busy, fights restantes |
 | `ResolveRows(count, rows, outResolved)` | `bool` | **S37** Valida/resuelve fila list; default 2-3-2 si null |
-| `TakeTurn(atk, myTeam, oppTeam, config, result, round, resolver, rng, teamA, teamB)` | `void` | **S46** Nuevo orden: TickStatuses → ResolveTarget → Energizado → Stun → Confuso → Mareado → Items → Strike → GainAffinity → ApplyPassives → HealAfterStrike → Lifesteal → EmitTurn. **S47:** Seta r.PassivePhase = true/false alrededor de ApplyPassives/HealAfterStrike |
+| `TakeTurn(atk, myTeam, oppTeam, config, result, round, resolver, rng, teamA, teamB)` | `void` | **S46** Nuevo orden: TickStatuses → ResolveTarget → Energizado → Stun → Confuso → Mareado → Items → Strike → GainAffinity → ApplyPassives → HealAfterStrike → Lifesteal → EmitTurn. **S47/S62:** Seta r.PassivePhase = true/false y r.Round = round alrededor de ApplyPassives/HealAfterStrike |
 | `GainAffinity(actor, config, result, r, rng)` | `void` | **S46 NEW** Incrementa actor.Affinity +1; al alcanzar 2, resetea a 0 y dispara auto-marca ally-sourced |
-| `ExpireShields(team, result)` | `void` | **S47 NEW** Privado static: al final de cada ronda, zeroea Shield de todos los units vivos. Sin rng. |
+| `ExpireShields(team, result, round)` | `void` | **S47/S62 NEW** Privado static: al final de cada ronda, comprueba `round >= c.ShieldExpiresAfterRound` para cada unit y zeroea Shield. Sin rng. |
+| `TeamHpPercent(team)` | `float` | **S62 NEW** Retorna suma(Hp) / suma(MaxHp) de vivos. Usado en tiebreak cuando MaxRounds alcanzado. |
 | `EmitTurn(result, round, atk, def, noAttack, damage, crit, defHpAfter, defShieldAfter, procs, teamA, teamB)` | `void` | **S46** Crea CombatTurn con indices, TeamStateA/B (S41: sin Energy). |
 | `TickStatuses(c, result, resolver)` | `void` | Aplica daño/curación por status activo |
 | `BuildCombatant(dna, db, equipDb, isA, index, row, roles)` | `Combatant` | **S37** Construye modelo con Row e Index; aplica RoleTableSO mods; colecta uses |
@@ -228,7 +257,7 @@ public static CombatResult SimulateCore(
 | `UnitState(Combatant)` | `CombatUnitState` | **S41** Extrae Hp/Shield/Marks + ElementMarks/ArmedStates/Affinity (S46: sin Energy) |
 | `StatusMarks(Combatant)` | `List<CombatStatusMark>` | Contea efectos activos |
 
-## Ciclo de Determinismo (S32 + S37 + S39 + S40 + S41 + S46 + S47)
+## Ciclo de Determinismo (S32 + S37 + S39 + S40 + S41 + S46 + S47 + S62)
 
 1. **Local:** `CombatController.SimulateLocal(idsA, idsB, rowsA, rowsB)`
    - Genera `seed = Guid.NewGuid().GetHashCode()`
@@ -243,7 +272,7 @@ public static CombatResult SimulateCore(
    - **Mismo seed + mismo DNA snapshots + mismo rows = resultado idéntico**
    - Construye record desde perspectiva propia vía `BuildRecord(...)`
 
-## Flujo de Turno Completo (S47)
+## Flujo de Turno Completo (S62)
 
 ```
 Per round per unit in turn order (sorted by EffSpeed desc):
@@ -254,9 +283,9 @@ Per round per unit in turn order (sorted by EffSpeed desc):
   5. Confuso check — consume, action fails, pero GANA AFFINITY
   6. Mareado check — consume, roll: si hit → ataque aliado al azar + GANA AFFINITY, si resist → continúa
   7. Items.UseItems() — equipped uses (deterministic)
-  8. Strike — evasion + crit + damage + shield + reflect + enemy mark
+  8. Strike — evasion + crit + Sudden Death multiplier (S62) + damage + shield + reflect + enemy mark
   9. GainAffinity() — +1, al alcanzar 2 → reset a 0 + auto-marca (ally-sourced, MISMO TURNO)
- 10. r.PassivePhase = true
+ 10. r.PassivePhase = true; r.Round = round (S62)
  11. ApplyPassives() — role passives (Protector/Empático/Agresivo, todas corren post-strike) — los procs se marcan PassivePhase=true
  12. HealAfterStrike() — Empático heal-on-damage — los procs se marcan PassivePhase=true
  13. r.PassivePhase = false
@@ -264,8 +293,10 @@ Per round per unit in turn order (sorted by EffSpeed desc):
  15. EmitTurn() → record state (sin Energy)
 
 End of round:
- 16. ExpireShields(A) — todos los units con Shield>0 lo setean a 0
- 17. ExpireShields(B) — sin rng, sin animación especial
+ 16. ExpireShields(A, result, round) — verifica ShieldExpiresAfterRound para cada unit
+ 17. ExpireShields(B, result, round) — sin rng, sin animación especial
+ 18. Check wipe: si alguien está completamente muerto, break
+ 19. Si no wiped y round == MaxRounds: tiebreak por TeamHpPercent (S62)
 ```
 
 ## Vinculado a
@@ -274,7 +305,7 @@ End of round:
 - [[Index/13 - Combat Design Direction]]
 - [[CreatureDNA]] — fuente de verdad, se muta si gana/muere
 - [[CreatureDatabaseSO]] — resuelve partes por ID
-- [[CombatManagerSO]] — config (MaxRounds, CritChance, Roles, Elements)
+- [[CombatManagerSO]] — config (MaxRounds, CritChance, Roles, Elements, SuddenDeathStartRound, SuddenDeathMultipliers)
 - [[EquipmentDatabaseSO]] — resuelve items equipados
 - [[EquipmentStats]] — aplica mods de equipment
 - [[CombatRng]] — RNG inyectado, determinista
@@ -282,10 +313,10 @@ End of round:
 - [[CombatRecord]], [[CombatTurn]], [[CombatProcEvent]], [[CombatStatusMark]], [[CombatUnitState]]
 - [[CombatFighterSnapshot]] — snapshot stats + tiers + color + nombre + role + fila
 - [[CombatElements]] — marcas y reacciones elementales
-- [[CombatTargeting]] — PickFrontTarget, PickBacklineTarget, PickAlly, LowestHpAlly
+- [[CombatTargeting]] — PickFrontTarget, PickBacklineTarget, PickAlly, LowestHpAlly, LowestHpPercentAlly (S62)
 - [[CombatRoleHooks]] — targeting + ApplyPassives (S46: post-strike) + nueva coreografía S47
 - [[CombatItems]] — usos equipados
-- [[CombatStrike]] — rolls y daño
+- [[CombatStrike]] — rolls y daño (S62: incluye Sudden Death multiplier)
 - [[ElementTableSO]] — tablas elementales
 - [[GameEvents]] — (GameManager/AsyncCombatService orquesta)
 - [[CombatVisualizerService]] — consume PassivePhase para coreografía especial S47
@@ -297,11 +328,12 @@ End of round:
 - `AsyncCombatService.ApplyResult()` → `SimulateCore(dnasA, dnasB, rowsA, rowsB, ..., rng)`
 
 **Salida:**
-- `CombatResult` — contiene `TeamA/TeamB` (snapshots sin Energy), `Turns` (S46: con Affinity en UnitState), `Log`, outcome, evolución, muerte
+- `CombatResult` — contiene `TeamA/TeamB` (snapshots sin Energy), `Turns` (S46: con Affinity en UnitState), `Log`, outcome (Win/Loss/Draw/DRAW por tiebreak S62), evolución, muerte
 - `CombatRecord` — SelfTeam/OpponentTeam/SelfTeamIds, persistido en `CreatureDNA.CombatHistory`
 
-## Notas (S32-S37-S39-S40-S41-S46-S47)
+## Notas (S32-S37-S39-S40-S41-S46-S47-S62)
 
+- **S62:** Escudos con TTL dinámico (ShieldExpiresAfterRound). ExpireShields ahora consulta round. Tiebreak por HP%. Sudden Death escalada de daño. TeamHpPercent helper nuevo.
 - **S47:** Escudos expiran ronda-a-ronda sin rng. PassivePhase es un flag de timing para coreografía visual.
 - **S46:** Energy completamente eliminado como recurso. Affinity es el único mecánica de acumulación para disparar auto-marcas.
 - **S46:** Pasivas ahora corren POST-STRIKE y SIEMPRE (sin gate de Energy).

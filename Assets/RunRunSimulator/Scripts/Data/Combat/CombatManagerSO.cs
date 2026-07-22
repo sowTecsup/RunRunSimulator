@@ -25,6 +25,18 @@ public class CombatManagerSO : SerializedScriptableObject
     [LabelWidth(160)] public int MaxRounds    = 50;
     [LabelWidth(160)] public int MaxFightCount = 5;
 
+    [Title("Sudden Death")]
+    [InfoBox("A partir de SuddenDeathStartRound, el daño de los golpes se multiplica por la entrada de la lista correspondiente a la ronda (la última entrada se mantiene para rondas posteriores). Si al llegar a MaxRounds ambos equipos siguen en pie, gana el equipo con mayor % de vida total; empate exacto = draw.")]
+    [LabelWidth(160)] public int SuddenDeathStartRound = 5;
+    [LabelWidth(160)] public System.Collections.Generic.List<float> SuddenDeathMultipliers = new System.Collections.Generic.List<float> { 1.4f, 1.8f, 2.2f, 2.6f, 3f };
+
+    public float SuddenDeathMultiplier(int round)
+    {
+        if (SuddenDeathMultipliers == null || SuddenDeathMultipliers.Count == 0 || round < SuddenDeathStartRound) return 1f;
+        int idx = Mathf.Min(round - SuddenDeathStartRound, SuddenDeathMultipliers.Count - 1);
+        return Mathf.Max(1f, SuddenDeathMultipliers[idx]);
+    }
+
     [Title("Status / Balance")]
     [InfoBox("Anti-permastun: un stun activo nunca se re-aplica, y al despertar el MoriMochi es inmune a nuevos stuns por N turnos propios.")]
     [LabelWidth(160)] public int StunImmunityTurns = 1;

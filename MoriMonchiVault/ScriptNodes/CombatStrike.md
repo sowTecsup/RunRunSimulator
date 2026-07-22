@@ -6,13 +6,13 @@ tags: [script, combat, strike, damage, elements]
 
 **Ruta:** `Systems/Combat/CombatStrike.cs`
 
-**Responsabilidad:** Mediador estático que ejecuta un golpe básico: roll de evasión (con bonus Vaporizado), roll de crítico (con bonus GolpePreciso), cálculo de daño (con Debilidad anulando DEF, Boiling amplificando), absorción de escudo, reflejos (Charcoal), marca elemental. **S40:** Extraída de `CombatService.TakeTurn()` toda la matemática de golpe. Retorna `StrikeOutcome` con flags Dodged/Crit y valores finales de HP/Shield. Log consumido por `CombatResult`. Determinista: todos los rolls vía `CombatRng` inyectado. **S41:** Parámetro `r` (CombatResolver) nuevo para grabar eventos elementales de consumos de estado (Vaporizado, GolpePreciso, Debilidad, Boiling, Charcoal) y marca enemiga.
+**Responsabilidad:** Mediador estático que ejecuta un golpe básico: roll de evasión (con bonus Vaporizado), roll de crítico (con bonus GolpePreciso), cálculo de daño (con Debilidad anulando DEF, Boiling amplificando, Sudden Death multiplicando), absorción de escudo, reflejos (Charcoal), marca elemental. **S40:** Extraída de `CombatService.TakeTurn()` toda la matemática de golpe. Retorna `StrikeOutcome` con flags Dodged/Crit y valores finales de HP/Shield. Log consumido por `CombatResult`. Determinista: todos los rolls vía `CombatRng` inyectado. **S41:** Parámetro `r` (CombatResolver) nuevo para grabar eventos elementales de consumos de estado (Vaporizado, GolpePreciso, Debilidad, Boiling, Charcoal) y marca enemiga. **S62:** Sudden Death multiplier consultado vía `config.SuddenDeathMultiplier(r.Round)` — daño se multiplica post-DEF, pre-Boiling, con log de marca "MSx{n}".
 
 ## Métodos Públicos
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
-| `Execute(actor, target, config, result, r, rng)` | `StrikeOutcome` | **S41 SIG CAMBIÓ** Resuelve un golpe completo: evasión → crit → daño → absorción escudo → reflejo → marca. Retorna outcome con flags y valores finales. Log agregado a result. Parámetro `r` nuevo S41 para emitir eventos elementales. |
+| `Execute(actor, target, config, result, r, rng)` | `StrikeOutcome` | **S41 SIG CAMBIÓ** Resuelve un golpe completo: evasión → crit → daño → absorción escudo → reflejo → marca. Retorna outcome con flags y valores finales. Log agregado a result. Parámetro `r` nuevo S41 para emitir eventos elementales. **S62:** Sudden Death multiplier aplicado post-DEF reduction. |
 
 ## Estructura: StrikeOutcome
 
@@ -27,7 +27,7 @@ public class StrikeOutcome
 }
 ```
 
-## Flujo de Execute (S40 + S41)
+## Flujo de Execute (S40 + S41 + S62)
 
 1. **Evasión:** `evaChance = target.EffEvasion * config.EvasionPerPoint`
    - Suma bonus `Vaporizado` si target lo tiene (vía `config.Elements.StatePercent(ElementalState.Vaporizado)`)
@@ -47,6 +47,9 @@ public class StrikeOutcome
      - Consume estado, log
      - `r.RecordElement(ElementEventKind.StateConsumed, target, state: ElementalState.Debilidad)` **(S41 NEW)**
    - Daño = `raw * (1 - reducción)`
+   - **Muerte Súbita (S62):** `suddenDeath = config.SuddenDeathMultiplier(r.Round)` (consulta tabla en CombatManagerSO, clamp a 1.0 si antes del round crítico)
+     - Si `suddenDeath > 1f`, multiplica daño: `damage *= suddenDeath`
+     - Log marca con "MSx{n}" (ej: "MSx1.4")
    - Si target tiene Boiling:
      - Daño *= (1 + `config.Elements.StatePercent(ElementalState.Boiling)`)
      - Log daño amplificado
@@ -72,15 +75,25 @@ public class StrikeOutcome
    - Parámetro `r` nuevo S41 para que AddMark grabe eventos de marca/reacción
 
 7. **Log:**
-   - Dodged: `"[dir] DODGE! ... (eva X% vs Y%)"`
-   - Hit: `"[dir] CRIT? dmg:X ... (eva X% vs Y% · crit X% vs Y%)"`
+   - Dodged: `"[dir] DODGE!  ... (eva X% vs Y%)"`
+   - Hit: `"[dir] CRIT? dmg:X MSx{n}? (escudo...)?  ... (eva X% vs Y% · crit X% vs Y%)"`
+   - El marker "MSx{n}" solo aparece si `suddenDeath > 1.0`
 
 ## Determinismo
 
 - **RNG consumption order:** evasión roll, crit roll (solo si no dodged)
 - **Estado consumo:** sincronizado con rolls y daño; eventos grabados en orden de consumo (S41)
-- **Configuración:** todos los coeficientes vía `config` (ElementTableSO para magnitudes de estado)
+- **Configuración:** todos los coeficientes vía `config` (ElementTableSO para magnitudes de estado, CombatManagerSO para Sudden Death)
 - **Backward compatible:** events elementales nuevos no afectan order de consumo RNG (estructura aditiva)
+
+## Cambios S62
+
+**Sudden Death multiplier:**
+- Nueva línea: `suddenDeath = config.SuddenDeathMultiplier(r.Round)`
+- Consulta tabla en `CombatManagerSO.SuddenDeathMultipliers` (default {1.4, 1.8, 2.2, 2.6, 3})
+- Aplicado post-DEF reduction, pre-Boiling amplification
+- Si > 1.0, daño se multiplica y se loga con marker "MSx{valor}"
+- `config.SuddenDeathStartRound` define cuándo comienza (default 6; round 1-5 no tienen multiplicador)
 
 ## Cambios S41
 
@@ -103,8 +116,8 @@ public class StrikeOutcome
 
 - [[CombatService]] — `TakeTurn()` llama `Execute()` y captura `StrikeOutcome` (parámetro `r` nuevo S41)
 - [[CombatElements]] — `AddMark()` llamado post-strike si damage > 0 (parámetro `r` nuevo S41)
-- [[CombatResolver]] — receptor de `RecordElement()` (S41 NEW)
+- [[CombatResolver]] — receptor de `RecordElement()` (S41 NEW), consulta `r.Round` (S62)
+- [[CombatManagerSO]] — `config.SuddenDeathMultiplier(r.Round)` para multiplicador por ronda (S62), `config.EvasionPerPoint`, `config.LuckCritPerPoint`, `config.CritChance`, `config.CritMultiplier`, `config.Elements` (StatePercent)
 - [[Combatant]] — actor/target, propiedades Attack/EffDefense/EffEvasion/Luck/Element/Shield/Hp/States
-- [[CombatManagerSO]] — `config.EvasionPerPoint`, `config.LuckCritPerPoint`, `config.CritChance`, `config.CritMultiplier`, `config.Elements` (StatePercent)
 - [[CombatResult]] — agregado de log
 - [[CombatRng]] — consumo de rolls (evasión, crit)

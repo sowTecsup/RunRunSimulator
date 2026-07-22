@@ -52,7 +52,7 @@ MonoBehaviour:
       Data: 2|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
     - Name: ConMod
       Entry: 4
-      Data: 4
+      Data: 3
     - Name: AtkMod
       Entry: 4
       Data: -2
@@ -74,7 +74,7 @@ MonoBehaviour:
       Data: 4|MoriMonchiSimulator.ShieldAllyPassive, Assembly-CSharp
     - Name: AmountPerTurn
       Entry: 4
-      Data: 1
+      Data: 2
     - Name: 
       Entry: 8
       Data: 
@@ -114,10 +114,10 @@ MonoBehaviour:
       Data: 6|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
     - Name: ConMod
       Entry: 4
-      Data: -3
+      Data: -2
     - Name: AtkMod
       Entry: 4
-      Data: 2
+      Data: 3
     - Name: SpdMod
       Entry: 4
       Data: 1
@@ -182,10 +182,10 @@ MonoBehaviour:
       Data: 11|MoriMonchiSimulator.RoleProfile, Assembly-CSharp
     - Name: ConMod
       Entry: 4
-      Data: 1
+      Data: 0
     - Name: AtkMod
       Entry: 4
-      Data: -3
+      Data: -2
     - Name: SpdMod
       Entry: 4
       Data: 2
@@ -204,7 +204,7 @@ MonoBehaviour:
       Data: 13|MoriMonchiSimulator.HealLowestAllyOnHitPassive, Assembly-CSharp
     - Name: PercentOfDamage
       Entry: 4
-      Data: 0.5
+      Data: 0.6
     - Name: 
       Entry: 8
       Data: 

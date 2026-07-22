@@ -227,11 +227,14 @@ MonoBehaviour:
       Data: Vaporizado
     - Name: Description
       Entry: 1
-      Data: Suma Percent como bonus plano a la chance de esquivar. Se consume al
-        lograr esquivar un ataque. (Aliado, Agua+Fuego)
+      Data: Suma un +40% a su probabilidad de esquivar. Se consume cuando logra esquivar
+        un ataque. (Aliado, Agua+Fuego)
+    - Name: ShortDescription
+      Entry: 1
+      Data: "Incrementa su evasi\xF3n"
     - Name: Percent
       Entry: 4
-      Data: 0.3
+      Data: 0.4
     - Name: Amount
       Entry: 4
       Data: 0
@@ -255,11 +258,14 @@ MonoBehaviour:
       Data: GolpePreciso
     - Name: Description
       Entry: 1
-      Data: "Suma Percent como bonus plano a la chance de cr\xEDtico. Se consume
-        al conectar un cr\xEDtico. (Aliado, Agua+Electricidad)"
+      Data: "Suma un +35% a su probabilidad de golpe cr\xEDtico. Se consume al conectar
+        un cr\xEDtico. (Aliado, Agua+Electricidad)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: "Incrementa su chance de cr\xEDtico"
     - Name: Percent
       Entry: 4
-      Data: 0.25
+      Data: 0.35
     - Name: Amount
       Entry: 4
       Data: 0
@@ -283,11 +289,14 @@ MonoBehaviour:
       Data: Boiling
     - Name: Description
       Entry: 1
-      Data: "El pr\xF3ximo golpe que reciba hace +Percent de da\xF1o extra (antes
-        del escudo). Se consume al recibir un golpe conectado. (Ofensivo, Agua+Fuego)"
+      Data: "El pr\xF3ximo golpe que reciba le hace un +40% de da\xF1o extra, calculado
+        antes del escudo. Se consume al recibir un golpe conectado. (Ofensivo, Agua+Fuego)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: "Recibe m\xE1s da\xF1o en el pr\xF3ximo golpe"
     - Name: Percent
       Entry: 4
-      Data: 0.3
+      Data: 0.4
     - Name: Amount
       Entry: 4
       Data: 0
@@ -311,8 +320,11 @@ MonoBehaviour:
       Data: Charcoal
     - Name: Description
       Entry: 1
-      Data: "Devuelve Percent del da\xF1o recibido al agresor (puede matarlo). Se
-        consume al recibir un golpe conectado. (Aliado, Fuego+Planta)"
+      Data: "Al recibir el pr\xF3ximo golpe conectado, devuelve el 50% de ese da\xF1o
+        al agresor (puede matarlo). Se consume al activarse. (Aliado, Fuego+Planta)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: "Devuelve parte del da\xF1o del pr\xF3ximo golpe"
     - Name: Percent
       Entry: 4
       Data: 0.5
@@ -339,10 +351,13 @@ MonoBehaviour:
       Data: Mareado
     - Name: Description
       Entry: 1
-      Data: "En su pr\xF3xima acci\xF3n: Percent de chance de golpear a un aliado
-        al azar (incluido \xE9l mismo) por Amount de da\xF1o fijo en vez de atacar;
-        si resiste el roll act\xFAa normal. Se consume al actuar e igual genera afinidad.
-        (Ofensivo, Fuego+Electricidad)"
+      Data: "En su pr\xF3xima acci\xF3n tiene un 50% de probabilidad de golpear a
+        un aliado al azar (incluido \xE9l mismo) por 3 de da\xF1o fijo en vez de
+        atacar; si lo resiste, act\xFAa normal. Se consume al actuar y aun as\xED
+        genera afinidad. (Ofensivo, Fuego+Electricidad)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: Tiene una chance de golpear a un aliado al azar
     - Name: Percent
       Entry: 4
       Data: 0.5
@@ -369,8 +384,11 @@ MonoBehaviour:
       Data: Energizado
     - Name: Description
       Entry: 1
-      Data: "Act\xFAa PRIMERO en el orden de la siguiente ronda (antes que la velocidad).
-        Se consume al actuar con prioridad. Sin knobs. (Aliado, Fuego+Electricidad)"
+      Data: "En la pr\xF3xima ronda act\xFAa primero, por delante del orden de velocidad.
+        Se consume al usar esa prioridad. (Aliado, Fuego+Electricidad)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: "\xA1Act\xFAa primero la pr\xF3xima ronda!"
     - Name: Percent
       Entry: 4
       Data: 0
@@ -397,9 +415,12 @@ MonoBehaviour:
       Data: Cleanse
     - Name: Description
       Entry: 1
-      Data: "Instant\xE1neo: purga el primer estado negativo armado del portador;
-        si no tiene ninguno, cura un % de su vida m\xE1xima. El % vive en el leaf
-        CleanseEffect de la reacci\xF3n, no ac\xE1. (Aliado, Agua+Planta)"
+      Data: "Efecto instant\xE1neo: purga el primer estado negativo que tenga armado;
+        si no tiene ninguno, se cura un porcentaje de su vida m\xE1xima. (Aliado,
+        Agua+Planta)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: Limpia un estado negativo
     - Name: Percent
       Entry: 4
       Data: 0
@@ -426,8 +447,11 @@ MonoBehaviour:
       Data: OverGrow
     - Name: Description
       Entry: 1
-      Data: "Instant\xE1neo: duplica el escudo actual del portador (0 queda 0). Sin
-        knobs. (Aliado, Electricidad+Planta)"
+      Data: "Efecto instant\xE1neo: duplica su escudo actual; si no tiene escudo,
+        gana 2 de escudo. (Aliado, Electricidad+Planta)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: Duplica su escudo o gana 2 de escudo
     - Name: Percent
       Entry: 4
       Data: 0
@@ -454,8 +478,11 @@ MonoBehaviour:
       Data: Debilidad
     - Name: Description
       Entry: 1
-      Data: "El pr\xF3ximo golpe que reciba IGNORA su DEF (reducci\xF3n = 0). Se
-        consume al recibir un golpe conectado. Sin knobs. (Ofensivo, Fuego+Planta)"
+      Data: "El pr\xF3ximo golpe que reciba ignora por completo su defensa. Se consume
+        al recibir un golpe conectado. (Ofensivo, Fuego+Planta)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: "El pr\xF3ximo golpe que reciba ignora su DEFENSA"
     - Name: Percent
       Entry: 4
       Data: 0
@@ -482,8 +509,11 @@ MonoBehaviour:
       Data: Confuso
     - Name: Description
       Entry: 1
-      Data: "Su pr\xF3xima acci\xF3n falla COMPLETA (no ataca, no traits, no \xEDtems);
-        igual genera afinidad. Se consume al actuar. Sin knobs. (Ofensivo, Agua+Electricidad)"
+      Data: "Su pr\xF3xima acci\xF3n falla por completo: no ataca ni activa pasivas.
+        Aun as\xED genera afinidad. Se consume al actuar. (Ofensivo, Agua+Electricidad)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: "Falla su pr\xF3xima acci\xF3n"
     - Name: Percent
       Entry: 4
       Data: 0
@@ -510,9 +540,12 @@ MonoBehaviour:
       Data: Leech
     - Name: Description
       Entry: 1
-      Data: "Instant\xE1neo: drena HP fijo del portador y se lo da a quien deton\xF3
-        la reacci\xF3n (no baja de 0, no cura sobre el m\xE1ximo). La cantidad vive
-        en el leaf LeechEffect de la reacci\xF3n, no ac\xE1. (Ofensivo, Agua+Planta)"
+      Data: "Efecto instant\xE1neo: drena una cantidad fija de su vida y se la entrega
+        a quien deton\xF3 la reacci\xF3n (no baja de 0 ni cura por encima del m\xE1ximo).
+        (Ofensivo, Agua+Planta)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: "Drena su vida hacia quien activ\xF3 la reacci\xF3n"
     - Name: Percent
       Entry: 4
       Data: 0
@@ -539,8 +572,11 @@ MonoBehaviour:
       Data: PisoTierra
     - Name: Description
       Entry: 1
-      Data: "Instant\xE1neo: remueve UNA marca al azar del portador (de cualquier
-        canal); sin marcas no hace nada. Sin knobs. (Ofensivo, Electricidad+Planta)"
+      Data: "Efecto instant\xE1neo: pierde una de sus marcas elementales aliadas
+        al azar; sin marcas aliadas, no pasa nada. (Ofensivo, Electricidad+Planta)"
+    - Name: ShortDescription
+      Entry: 1
+      Data: "\xA1Pierde una marca aliada al azar!"
     - Name: Percent
       Entry: 4
       Data: 0
@@ -791,6 +827,9 @@ MonoBehaviour:
     - Name: 
       Entry: 7
       Data: 38|MoriMonchiSimulator.DoubleShieldEffect, Assembly-CSharp
+    - Name: GrantAmount
+      Entry: 4
+      Data: 2
     - Name: 
       Entry: 8
       Data: 
