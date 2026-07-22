@@ -4,6 +4,38 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-07-22 (Session 63 — **SESIÓN DE DISEÑO: "MoriMonchis vivos" — diagnóstico del comportamiento en GameScene + roadmap V1-V6 de vida/socialización — ✅ CERRADA: solo diseño, 0 código tocado**)
+**Focus:** Juan con poco tiempo pidió sesión de diseño y planeación: diagnóstico del MoriMochi en GameScene y teorizar cómo lograr que se sientan vivos (interacción entre ellos, personalidades, petting real, curiosidad, entorno). Prioridades declaradas del juego: (1) criar/emparejar/cuidar, (2) combate, (3) manejar la tienda. Se planea REMOVER el sistema de building actual.
+
+1. **Diagnóstico (leído del vault, sin abrir .cs)**: la base es sólida — FSM de 9 estados compuesta (S55: Brain/Physics/Confinement/Context), necesidades H/E/A con estaciones y reserva, `RoleWorldProfileSO` por rol, `MonchiMoodDriver` (caras por Condition/Intent con stagger), física grab/throw/knock robusta, cortejo orbit/tend (código de comportamiento en pareja YA existe). Agujeros de "vida": (a) los monchis NO se perciben entre sí (toda la percepción apunta al jugador; entre ellos solo Knock físico accidental); (b) personalidad = tuning numérico, no conducta legible; (c) petting = E instantáneo sin animación; (d) entorno = solo estaciones de necesidad, cero curiosidad; (e) nada es iniciado por la criatura (agencia siempre del jugador).
+2. **Personalidades — propuesta acordada como dirección**: 3 arquetipos marcados ligados a rol (Protector = *guardián*: patrulla, se interpone, duerme cerca del triste; Agresivo = *gremlin*: territorial, roba Feeder, tira cosas, inicia peleas de juego; Empático = *social*: saluda, inicia juegos, te busca, se deprime en soledad) + 2 diales genéticos heredables que modulan sin romper el arquetipo (**Sociabilidad** y **Osadía**, herencia 50/30/20) — así el temperamento SE CRÍA (core loop #1). Los diales pueden diferirse si se quiere V1 minimalista.
+3. **Sistema social propuesto**: colaborador nuevo `AgentSocial` (encaja en la composición S55 sin tocar Brain/Physics) + percepción staggered cada 2-4s (patrón MoodDriver) + servicio runtime `SocialGraph` (score de afinidad por par de IDs; semillas: química elemental de ElementTable, rol, parentesco genético; muta con historia: jugar suma, pelear resta; persistencia regla NeedsState — NUNCA RegistryChanged, flush en quit/pause). Interacciones de a pares: jugar/perseguirse (variante del orbit de cortejo), pelea de gremlins (Knock existente + moods, sin daño real), dormir juntos (afinidad alta + Energy baja), evitarse (filtro en `NextRoamDestination`, casi gratis). Legibilidad: emote bubbles world-space (reciclar patrón NameTag/CombatSpeechBubbles).
+4. **Jugador y entorno propuestos**: petting hold-E con acercamiento + animación (boost escala con duración); dar de comer de la mano (Hotbar en mano → el monchi viene, los tímidos dudan); agencia de la criatura (el Empático te saluda al entrar, Affect crítico te sigue y llora — es Reacting iniciado por necesidad/personalidad); `PointOfInterest` en props (`WorldPropInstance` ya etiqueta) + estado `Investigating` (olfatear muebles, perseguir ThrowableObjects); hideouts (variante NeedStation sin refill) y escaparse si la puerta queda abierta (anécdota "¿dónde está Michi?").
+5. **Volar — recomendación: NO vuelo libre** (todo el stack es NavMesh+ragdoll; vuelo 3D = reescribir locomoción/contención/corrales). En cambio: saltitos/planeos/aleteos con la física Thrown existente + OffMeshLinks para superficies — 90% de la sensación a 10% del costo. Vuelo real queda como pregunta abierta post-remoción del building.
+
+> ### 📋 Roadmap "vivos" propuesto (V1-V6, ~1 sesión c/u, orden por vida-por-esfuerzo)
+> - **V1 — Fundamento social**: AgentSocial + percepción staggered + emote bubbles + acercarse/evitarse por afinidad estática (elemento/rol, sin historia). Sin dependencias.
+> - **V2 — Interacciones de a pares**: jugar/perseguirse, pelea de gremlins, dormir juntos; SocialGraph con historia y persistencia ligera. Depende V1.
+> - **V3 — Arquetipos legibles**: conductas firma por rol + diales genéticos Sociabilidad/Osadía en DNA y breeding. Depende V1 (mejor tras V2).
+> - **V4 — Momento de interacción**: petting hold-E animado, comer de la mano, la criatura te saluda/reclama. Independiente — adelantable si se quiere impacto visible rápido.
+> - **V5 — Entorno y travesura**: PointOfInterest, Investigating, perseguir objetos, hideouts, escaparse. Depende V1; diseñar POST-remoción del building (define el espacio/NavMesh).
+> - **V6 — Verticalidad**: saltitos/planeos con física Thrown + OffMeshLinks. Depende V5.
+> - **Primera sesión de implementación recomendada**: V1 + versión mínima de jugar/pelear de V2 — dos monchis persiguiéndose con emotes es el momento "están vivos"; el código base (orbit, knock, mood, stagger) ya existe.
+
+> ### 📋 Preguntas de diseño abiertas (S63, sin respuesta de Juan aún)
+> 1. ¿Diales genéticos de personalidad entran en V3 o arquetipos puros por ahora?
+> 2. ¿La pelea de gremlins puede bajar Health o solo Affect?
+> 3. ¿Un monchi escapado puede perderse DE VERDAD (fuera del registry visible hasta encontrarlo) o siempre recuperable a la vista?
+> 4. Remoción del building: decisión declarada pero sin sesión asignada — condiciona V5/V6 (NavMesh/áreas).
+
+**Files Touched (.cs):** NINGUNO — sesión de diseño puro (vault-documenter omitido).
+
+**Files Touched (no-ScriptNode):** solo esta nota.
+
+**Next session (S64+):** Juan decide entre: (a) arrancar el roadmap "vivos" por V1(+V2 mínima) o V4; (b) retomar async 3v3 (F5) del roadmap general; (c) sesión de remoción del building. Arrastres previos siguen: beats visuales muerte súbita, posicionamiento 2-3-2, limpieza VCamOf, bodyOverrides del bank, capa morada del escudo, sizing collider 0.7, borrar spider experiment, localization-ready.
+
+---
+
 **Session:** 2026-07-22 (Session 62 — **BALANCE DE COMBATE DATA-DRIVEN: ~10,000 simulaciones Monte Carlo vía MCP, rework pasiva Protector + escudos con TTL + PisoTierra/OverGrow, muerte súbita con desempate por vida, fix crash NRE — ✅ CERRADA: 0 errores, meta comprimido de 60pp a ~23pp de spread, 0% draws**)
 **Focus:** Análisis de balance pedido por Juan (S62 declarada): sus dos hipótesis (pasivas de Protector y Empático pobres) contrastadas con data. Metodología: 1 pelea real (solo había una en el registry) + Monte Carlo con `SimulateCore` vía `execute_code` — clones del roster (800 peleas), matriz de composiciones sintéticas (unidades 6/6/6 idénticas, 10 comps de rol vs referencia PAE × 250 seeds), ablaciones de knobs en copias en memoria de las tablas (`Object.Instantiate`, cero mutación de assets), y bucketing elemental. Todo determinista y verificado por log seeded antes de cada batería.
 
