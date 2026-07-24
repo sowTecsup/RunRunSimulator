@@ -10,9 +10,9 @@
     max-width: 900px;
     max-height: 55%;
     margin-bottom: 175px;
-    background-color: rgba(26, 26, 32, 0.96);
+    background-color: var(--mm-surface);
     border-width: 2px;
-    border-color: rgb(120, 120, 130);
+    border-color: var(--mm-frame);
     border-radius: 10px;
     padding: 17px;
 }
@@ -26,13 +26,13 @@
 
 .browser-title {
     font-size: 28px;
-    color: rgb(255, 214, 92);
+    color: var(--mm-gold);
     -unity-font-style: bold;
 }
 
 .browser-hint {
     font-size: 15px;
-    color: rgba(200, 200, 210, 0.7);
+    color: var(--mm-ink-soft);
 }
 
 .browser-tabs {
@@ -43,18 +43,18 @@
 .browser-tab {
     padding: 7px 20px;
     margin-right: 8px;
-    background-color: rgba(40, 40, 48, 0.9);
+    background-color: var(--mm-surface-2);
     border-radius: 8px;
     border-width: 2px;
     border-color: rgba(0, 0, 0, 0);
-    color: rgb(210, 210, 218);
+    color: var(--mm-ink-soft);
     font-size: 18px;
 }
 
 .browser-tab--active {
-    border-color: rgb(255, 214, 92);
-    color: rgb(255, 214, 92);
-    background-color: rgba(55, 50, 24, 0.95);
+    border-color: var(--mm-coral);
+    color: var(--mm-coral);
+    background-color: var(--mm-surface);
 }
 
 .browser-pieces {
@@ -73,18 +73,18 @@
     width: 134px;
     height: 134px;
     margin: 6px;
-    background-color: rgba(40, 40, 48, 0.9);
+    background-color: var(--mm-surface-2);
     border-radius: 8px;
     border-width: 2px;
     border-color: rgba(0, 0, 0, 0);
     align-items: center;
     justify-content: flex-end;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
 }
 
 .browser-piece--selected {
-    border-color: rgb(255, 214, 92);
-    background-color: rgba(55, 50, 24, 0.95);
+    border-color: var(--mm-coral);
+    background-color: var(--mm-surface);
     scale: 1.06 1.06;
 }
 
@@ -94,11 +94,11 @@
     white-space: normal;
     font-size: 14px;
     padding-bottom: 6px;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
 }
 
 .browser-empty {
-    color: rgba(200, 200, 210, 0.7);
+    color: var(--mm-ink-soft);
     font-size: 18px;
     -unity-text-align: middle-center;
     padding: 22px;

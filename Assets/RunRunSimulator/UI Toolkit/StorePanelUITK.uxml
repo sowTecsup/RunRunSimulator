@@ -1,9 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="StorePanelUITKStyle.uss" />
     <!-- Shop screen. The controller (StorePanelUITK) fills "balance" (Dabloons),
          builds tabs into "tabs", rows into "list" (name + price + stock + Buy),
          and shows "notify" as a transient purchase-feedback toast. -->
-    <ui:VisualElement name="root" class="store-root">
+    <ui:VisualElement name="root" class="mm-theme store-root">
         <ui:VisualElement name="panel" class="store-panel">
             <ui:VisualElement name="header" class="store-header">
                 <ui:Label text="Tienda" class="store-title" />

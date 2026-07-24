@@ -130,6 +130,7 @@ public class GameManager : MonoBehaviour
     public void FlushToCloud()
     {
         SaveSystem.SaveDatabase(creatureRegistry);
+        SaveSystem.SaveSocialGraph();
         PushToCloud();
     }
 

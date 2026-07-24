@@ -27,6 +27,7 @@ public class EquipmentBackpackUITK : MonoBehaviour
 
     [Title("UI Toolkit setup")]
     [Required, AssetsOnly] [SerializeField] private StyleSheet styleSheet;
+    [AssetsOnly] [SerializeField] private StyleSheet themeStyleSheet;
 
     [Title("Dev")]
     [SerializeField] private bool devNoConsume;
@@ -68,7 +69,9 @@ public class EquipmentBackpackUITK : MonoBehaviour
         root = anchor.panel.visualTree;
 
         popup = new VisualElement();
+        popup.AddToClassList("mm-theme");
         popup.AddToClassList("backpack");
+        if (themeStyleSheet != null) popup.styleSheets.Add(themeStyleSheet);
         if (styleSheet != null) popup.styleSheets.Add(styleSheet);
         popup.RegisterCallback<PointerMoveEvent>(OnPopupPointerMove);
         popup.RegisterCallback<PointerUpEvent>(OnPopupPointerUp);
@@ -385,8 +388,10 @@ public class EquipmentBackpackUITK : MonoBehaviour
     private void CreateGhost()
     {
         ghost = new VisualElement();
+        ghost.AddToClassList("mm-theme");
         ghost.AddToClassList("backpack__ghost");
         ghost.pickingMode = PickingMode.Ignore;
+        if (themeStyleSheet != null) ghost.styleSheets.Add(themeStyleSheet);
         if (styleSheet != null) ghost.styleSheets.Add(styleSheet);
         ApplyIconVisual(ghost, dragItem);
         root.Add(ghost);

@@ -1,9 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="MorimonchiDetailInfoUITKStyle.uss" />
     <!-- Full-screen backdrop sits above the grid (higher sortingOrder) and eats
          clicks, so the panel behind can't be touched until the X closes this.
          The window is centered inside it. -->
-    <ui:VisualElement name="backdrop" class="detail-backdrop">
+    <ui:VisualElement name="backdrop" class="mm-theme detail-backdrop">
         <ui:VisualElement name="window" class="detail-window">
 
             <ui:VisualElement name="detail-header" class="detail-header">

@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 namespace MoriMonchiSimulator
 {
 
-internal enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting }
+internal enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting, Socializing }
 
 internal class AgentContext
 {
@@ -25,6 +26,8 @@ internal class AgentContext
     internal int  ConfinedAreaMask;
     internal bool RebakeInProgress;
 
+    internal readonly List<Percept> Percepts = new List<Percept>();
+
     internal AgentContext(MoriMochiAgent owner, NavMeshAgent agent, Rigidbody rb, Collider col)
     {
         Owner = owner;
@@ -36,7 +39,8 @@ internal class AgentContext
 
     internal bool IsNavMeshControlled() =>
         State == AgentState.Idle        || State == AgentState.Roaming      || State == AgentState.Reacting ||
-        State == AgentState.SeekingNeed || State == AgentState.UsingStation || State == AgentState.Courting;
+        State == AgentState.SeekingNeed || State == AgentState.UsingStation || State == AgentState.Courting ||
+        State == AgentState.Socializing;
 
     internal bool IsBreeding => Dna != null && Dna.BusyState == BusyReason.Breeding;
 

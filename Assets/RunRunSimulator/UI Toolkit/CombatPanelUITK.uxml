@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="CombatPanelUITKStyle.uss" />
-    <ui:VisualElement name="backdrop" class="cbt-backdrop">
+    <ui:VisualElement name="backdrop" class="mm-theme cbt-backdrop">
         <ui:VisualElement name="window" class="cbt-window">
 
             <ui:VisualElement class="cbt-header">

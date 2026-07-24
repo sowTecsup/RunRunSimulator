@@ -5,12 +5,12 @@ namespace MoriMonchiSimulator
 {
 
 // A floating world-space label above a MoriMochi, rendered with UI Toolkit (a
-// world-space UIDocument driving NameTagUITK.uxml) instead of TextMeshPro. Shows
-// three lines: the creature's name, a busy/dead status, and what it's trying to do
-// RIGHT NOW (its CreatureIntent, read live from the MoriMochiAgent — "Te sigue",
-// "Busca comida", "Comiendo", …). Billboards toward the camera and only appears
-// when the player is near, so the world isn't a wall of text. Pure view — it reads
-// live state each frame and never mutates anything.
+// world-space UIDocument driving NameTagUITK.uxml) instead of TextMeshPro. In the
+// free-roam layout shows the name plus AT MOST one secondary line, picked by
+// priority: pet hint > busy/dead status > "interesting" CreatureIntent (Idle and
+// Wandering are the default and stay silent). Billboards toward the camera and
+// only appears when the player is near, so the world isn't a wall of text. Pure
+// view — it reads live state each frame and never mutates anything.
 //
 // Setup: a CHILD object of the creature prefab (NOT the body root — billboard
 // rotation would spin the mesh) carrying a UIDocument whose Panel Settings is
@@ -126,15 +126,26 @@ public class NameTag : MonoBehaviour
         Refresh();
 
         // Penned creatures get a raised, compact tag so the breeding layout clears the floor.
+        // Position is driven in WORLD space (parent position + world-up offset) so the tag's
+        // height never orbits with the parent's rotation when the body tumbles/rolls.
         bool penned = agent != null && agent.IsPenned;
-        transform.localScale    = penned ? baseLocalScale * penScale         : baseLocalScale;
-        transform.localPosition = penned ? baseLocalPos + Vector3.up * penRaise : baseLocalPos;
+        transform.localScale = penned ? baseLocalScale * penScale : baseLocalScale;
+
+        if (transform.parent != null)
+        {
+            float heightWorld = baseLocalPos.y + (penned ? penRaise : 0f);
+            transform.position = transform.parent.position + Vector3.up * heightWorld;
+        }
+        else
+        {
+            transform.localPosition = penned ? baseLocalPos + Vector3.up * penRaise : baseLocalPos;
+        }
 
         // Billboard: point the panel's front (+Z, the face UITK draws on) at the camera.
         Vector3 toCam = transform.position - cam.position;
         if (uprightOnly) toCam.y = 0f;
         if (toCam.sqrMagnitude > 0.0001f)
-            transform.rotation = Quaternion.LookRotation(toCam);
+            transform.rotation = Quaternion.LookRotation(toCam, Vector3.up);
     }
 
     private void SetShown(bool visible)
@@ -216,57 +227,50 @@ public class NameTag : MonoBehaviour
         if (breeding && timerLabel != null) timerLabel.text = CountdownText(dna.BreedReadyAt);
     }
 
+    // Free-roam layout: name (kept from Bind) + at most ONE secondary line, chosen by priority
+    // so the tag stays compact — pet hint beats status beats intent. Stage/age is pen-only.
     private void RefreshDefault()
     {
-        SetDisplay(priceLabel,       false);
-        SetDisplay(genderLabel,      false);
-        SetDisplay(roleLabel, false);
-        SetDisplay(breedLabel,       false);
-        SetDisplay(heartLabel,       false);
-        SetDisplay(timerLabel,       false);
+        SetDisplay(priceLabel,  false);
+        SetDisplay(genderLabel, false);
+        SetDisplay(roleLabel,   false);
+        SetDisplay(breedLabel,  false);
+        SetDisplay(heartLabel,  false);
+        SetDisplay(timerLabel,  false);
+        SetDisplay(stageLabel,  false);
 
-        if (stageLabel != null)
+        // Priority 1: pet hint — either the post-pet debug flash or the "[E] Acariciar" prompt
+        // shown only when the player is close enough and facing this creature.
+        bool isBeingPetted = agent != null && agent.IsBeingPetted;
+        bool showPetHint   = isBeingPetted ||
+                              (agent != null && !dna.IsDead &&
+                               agent.IsInFriendlyReaction && agent.IsPlayerFacingMe());
+
+        // Priority 2: busy/dead status, when it has something to say.
+        var (statusText, statusColor) = StatusOf(dna);
+        bool showStatus = !showPetHint && !string.IsNullOrEmpty(statusText);
+
+        // Priority 3: intent, but only the "interesting" ones — Idle/Wandering are the default
+        // state and carry no information, so they stay silent.
+        bool intentInteresting = agent != null && !dna.IsDead &&
+                                  agent.Intent != CreatureIntent.Idle &&
+                                  agent.Intent != CreatureIntent.Wandering;
+        bool showIntent = !showPetHint && !showStatus && intentInteresting;
+
+        SetDisplay(petHintLabel, showPetHint);
+        if (showPetHint && petHintLabel != null)
+            petHintLabel.text = isBeingPetted ? "Petting..." : "[E] Acariciar";
+
+        SetDisplay(statusLabel, showStatus);
+        if (showStatus && statusLabel != null)
         {
-            stageLabel.text = StageText(dna.AgeDays);
-            SetDisplay(stageLabel, true);
+            statusLabel.text        = statusText;
+            statusLabel.style.color = statusColor;
         }
 
-        if (statusLabel != null)
-        {
-            var (text, color) = StatusOf(dna);
-            statusLabel.text          = text;
-            statusLabel.style.color   = color;
-            statusLabel.style.display = string.IsNullOrEmpty(text) ? DisplayStyle.None : DisplayStyle.Flex;
-        }
-
-        if (intentLabel != null)
-        {
-            // A dead creature has no intent (and is about to despawn) — hide the line.
-            bool showIntent = !dna.IsDead && agent != null;
-            intentLabel.style.display = showIntent ? DisplayStyle.Flex : DisplayStyle.None;
-            if (showIntent) intentLabel.text = IntentText(agent.Intent);
-        }
-
-        if (petHintLabel != null)
-        {
-            if (agent != null && agent.IsBeingPetted)
-            {
-                // Debug visual: shows briefly after the player pets this creature.
-                petHintLabel.text          = "Petting...";
-                petHintLabel.style.display = DisplayStyle.Flex;
-            }
-            else
-            {
-                // Show "[E] Acariciar" only when: friendly reaction AND the player is facing
-                // this creature (IsPlayerFacingMe: player.forward · to-creature, XZ, petRadius + petLookAngle).
-                // Only one creature at a time ever shows the hint, even when surrounded.
-                bool showHint = agent != null && !dna.IsDead &&
-                                agent.IsInFriendlyReaction &&
-                                agent.IsPlayerFacingMe();
-                petHintLabel.text          = "[E] Acariciar";
-                petHintLabel.style.display = showHint ? DisplayStyle.Flex : DisplayStyle.None;
-            }
-        }
+        SetDisplay(intentLabel, showIntent);
+        if (showIntent && intentLabel != null)
+            intentLabel.text = IntentText(agent.Intent);
     }
 
     private static void SetDisplay(Label label, bool visible)
@@ -303,6 +307,10 @@ public class NameTag : MonoBehaviour
         CreatureIntent.Playing       => "Jugando",
         CreatureIntent.Held          => "En tus manos",
         CreatureIntent.Tumbling      => "¡Por los aires!",
+        CreatureIntent.Chasing       => "¡Persiguiendo!",
+        CreatureIntent.Socializing   => "Socializando",
+        CreatureIntent.SleepingTogether => "Durmiendo juntos",
+        CreatureIntent.Fighting     => "¡Peleando!",
         _                            => "",
     };
 

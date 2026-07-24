@@ -1,21 +1,23 @@
 /* Floating world-space name tag above a MoriMochi (UI Toolkit, world-space panel).
-   Sizes are in panel px; WorldUIPanelSettings maps 100 px = 1 world unit, so a 30px
-   font ≈ 0.3 world units tall. Tune the font sizes here if the tag reads too big/small. */
+   Sizes are in panel px; WorldUIPanelSettings maps 100 px = 1 world unit, so an 18px
+   font ≈ 0.18 world units tall. Tune the font sizes here if the tag reads too big/small. */
 
 /* The card hugs its content (no fixed width) so short names don't get a huge box.
    align-self keeps it centered even though the panel root centers it too. */
 .tag {
     align-items: center;
     align-self: center;
-    padding: 6px 12px;
-    background-color: rgba(20, 20, 28, 0.82);
-    border-radius: 10px;
+    padding: 4px 8px;
+    background-color: var(--mm-surface);
+    border-width: 2px;
+    border-color: var(--mm-frame);
+    border-radius: 7px;
 }
 
 .tag__name {
-    font-size: 30px;
+    font-size: 18px;
     -unity-font-style: bold;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
     -unity-text-align: middle-center;
     white-space: nowrap;
 }
@@ -24,17 +26,17 @@
    creature is displayed in a StoreContainer. Hidden by default. */
 .tag__price {
     display: none;
-    font-size: 24px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: rgb(255, 214, 120);
     -unity-text-align: middle-center;
     white-space: nowrap;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
 /* Color is set from code per status (busy/dead); empty text hides the line. */
 .tag__status {
-    font-size: 20px;
+    font-size: 12px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     white-space: nowrap;
@@ -43,7 +45,7 @@
 /* What the MoriMochi wants to do right now — soft blue accent so it reads as a
    separate "thought" line under the name/status. */
 .tag__intent {
-    font-size: 20px;
+    font-size: 12px;
     color: rgb(150, 200, 235);
     -unity-text-align: middle-center;
     white-space: nowrap;
@@ -54,7 +56,7 @@
    glyph is set per-gender from code. */
 .tag__gender {
     display: none;
-    font-size: 30px;
+    font-size: 18px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     white-space: nowrap;
@@ -62,7 +64,7 @@
 
 .tag__role {
     display: none;
-    font-size: 20px;
+    font-size: 12px;
     color: rgb(200, 200, 210);
     -unity-text-align: middle-center;
     white-space: nowrap;
@@ -70,7 +72,7 @@
 
 .tag__stage {
     display: none;
-    font-size: 18px;
+    font-size: 11px;
     color: rgb(180, 200, 180);
     -unity-text-align: middle-center;
     white-space: nowrap;
@@ -78,7 +80,7 @@
 
 .tag__breed {
     display: none;
-    font-size: 20px;
+    font-size: 12px;
     color: rgb(150, 235, 170);
     -unity-font-style: bold;
     -unity-text-align: middle-center;
@@ -87,16 +89,16 @@
 
 .tag__heart {
     display: none;
-    font-size: 26px;
+    font-size: 16px;
     color: rgb(235, 70, 90);
     -unity-text-align: middle-center;
     white-space: nowrap;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
 .tag__timer {
     display: none;
-    font-size: 20px;
+    font-size: 12px;
     color: rgb(255, 190, 210);
     -unity-font-style: bold;
     -unity-text-align: middle-center;
@@ -107,10 +109,10 @@
    in a friendly reaction and the player can interact with E. */
 .tag__pet-hint {
     display: none;
-    font-size: 18px;
+    font-size: 11px;
     color: rgb(255, 220, 100);
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     white-space: nowrap;
-    margin-top: 4px;
+    margin-top: 2px;
 }

@@ -3,16 +3,16 @@
     top: 0; left: 0; right: 0; bottom: 0;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 0.45);
+    background-color: var(--mm-scrim);
 }
 
 .storage-panel {
     width: 420px;
     max-height: 70%;
-    background-color: rgba(26, 26, 32, 0.97);
-    border-width: 2px;
-    border-color: rgb(120, 120, 130);
-    border-radius: 10px;
+    background-color: var(--mm-surface);
+    border-width: 3px;
+    border-color: var(--mm-frame);
+    border-radius: 22px;
     padding: 12px;
 }
 
@@ -25,14 +25,21 @@
 
 .storage-title {
     font-size: 20px;
-    color: rgb(255, 214, 92);
+    color: var(--mm-gold);
     -unity-font-style: bold;
 }
 
 .storage-close {
     width: 28px;
     height: 28px;
+    border-radius: 10px;
+    border-width: 3px;
+    border-color: var(--mm-frame);
+    color: var(--mm-ink);
+    background-color: var(--mm-surface-2);
 }
+
+.storage-close:hover { background-color: var(--mm-coral); color: rgb(255, 255, 255); }
 
 .storage-list {
     flex-grow: 1;
@@ -44,29 +51,36 @@
     align-items: center;
     padding: 6px 8px;
     margin-bottom: 4px;
-    background-color: rgba(40, 40, 48, 0.9);
-    border-radius: 6px;
+    background-color: var(--mm-surface-2);
+    border-radius: 10px;
     border-width: 2px;
     border-color: rgba(0, 0, 0, 0);
 }
 
 .storage-row--selected {
-    border-color: rgb(255, 214, 92);
-    background-color: rgba(55, 50, 24, 0.95);
+    border-color: var(--mm-gold);
+    background-color: var(--mm-surface);
 }
 
 .storage-row__name {
     font-size: 14px;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
 }
 
 .storage-row__eject {
     height: 26px;
     min-width: 70px;
+    border-radius: 8px;
+    border-width: 3px;
+    border-color: var(--mm-frame);
+    color: rgb(255, 255, 255);
+    background-color: var(--mm-coral);
 }
 
+.storage-row__eject:hover { background-color: var(--mm-coral-dark); }
+
 .storage-empty {
-    color: rgba(200, 200, 210, 0.7);
+    color: var(--mm-ink-soft);
     font-size: 13px;
     -unity-text-align: middle-center;
     padding: 16px;

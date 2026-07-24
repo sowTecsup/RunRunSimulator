@@ -1,0 +1,48 @@
+GIMP Palette
+Name: MoriMonchi - Diario del Pet Shop
+Columns: 4
+# Kit de pixel art UI "El Diario del Pet Shop"
+# Rampas de 4 pasos: outline -> sombra -> medio -> luz
+# Regla de oro: el outline es tinta marron #3E2A1D, NUNCA negro puro.
+#
+ 62  42  29	ink / outline #3E2A1D
+185 138  99	frame-soft #B98A63
+243 225 196	paper-2 #F3E1C4
+251 240 220	paper #FBF0DC
+#
+122  46  30	coral outline #7A2E1E
+194  68  40	coral dark #C24428
+239 100  64	coral mid #EF6440
+255 145 102	coral light #FF9166
+#
+ 14  79  69	teal outline #0E4F45
+ 22 122 108	teal dark #167A6C
+ 31 158 138	teal mid #1F9E8A
+ 76 203 181	teal light #4CCBB5
+#
+138  90  14	gold outline #8A5A0E
+192 126  20	gold dark #C07E14
+233 161  31	gold mid #E9A11F
+255 210 101	gold light #FFD265
+#
+ 91  42 105	plum outline #5B2A69
+126  59 146	plum dark #7E3B92
+158  79 178	plum mid #9E4FB2
+199 127 214	plum light #C77FD6
+#
+ 47 107  42	green outline #2F6B2A
+ 63 138  52	green dark #3F8A34
+ 90 166  70	green mid #5AA646
+134 201 111	green light #86C96F
+#
+# --- extras de escena / props ---
+234 211 174	ground light #EAD3AE
+221 191 147	ground deep #DDBF93
+239 226 206	polaroid white #EFE2CE
+120 120 120	orb neutral #787878
+#
+# --- cinta washi + semanticos ---
+127 203 184	tape teal #7FCBB8
+242 183 160	tape peach #F2B7A0
+220  74  56	crit red #DC4A38
+231 146  51	warn orange #E79233

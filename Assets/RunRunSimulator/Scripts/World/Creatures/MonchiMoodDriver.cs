@@ -41,6 +41,10 @@ namespace MoriMonchiSimulator
                 case CreatureIntent.Held: return MonchiMood.Asustado;
                 case CreatureIntent.Tumbling: return MonchiMood.Mareado;
                 case CreatureIntent.Fleeing: return MonchiMood.Asustado;
+                case CreatureIntent.Chasing: return MonchiMood.Emocionado;
+                case CreatureIntent.Socializing: return MonchiMood.Feliz;
+                case CreatureIntent.SleepingTogether: return MonchiMood.Dormido;
+                case CreatureIntent.Fighting: return MonchiMood.Enojado;
                 default: return Random.value < 0.35f ? MonchiMood.Feliz : MonchiMood.Neutral;
             }
         }

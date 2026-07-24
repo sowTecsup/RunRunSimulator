@@ -8,7 +8,7 @@
     right: 0;
     top: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.55);
+    background-color: var(--mm-scrim);
     align-items: center;
     justify-content: center;
 }
@@ -18,7 +18,7 @@
     height: 72%;
     padding: 14px;
     border-radius: 12px;
-    background-color: rgb(28, 28, 38);
+    background-color: var(--mm-surface);
 }
 
 /* Header: title + close X. */
@@ -37,22 +37,25 @@
     -unity-text-generator: advanced;
     -unity-text-auto-size: best-fit 24px 46px;
     -unity-font-style: bold;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
 }
 
 .detail-close {
     width: 36px;
     height: 36px;
     margin: 0;
-    border-radius: 6px;
+    border-radius: 10px;
+    border-width: 3px;
+    border-color: var(--mm-frame);
     -unity-font-style: bold;
     font-size: 18px;
-    color: rgb(235, 235, 240);
-    background-color: rgb(70, 70, 88);
+    color: var(--mm-ink);
+    background-color: var(--mm-surface-2);
 }
 
 .detail-close:hover {
-    background-color: rgb(95, 95, 120);
+    background-color: var(--mm-coral);
+    color: rgb(255, 255, 255);
 }
 
 .detail-tabs {
@@ -68,7 +71,7 @@
 .detail-tabs > .unity-tab-view__header-container {
     flex-direction: row;
     flex-wrap: nowrap;
-    background-color: rgb(22, 22, 30);
+    background-color: var(--mm-surface-2);
     border-radius: 8px;
     padding: 4px;
     margin-bottom: 10px;
@@ -100,23 +103,23 @@
     padding-top: 8px;
     padding-bottom: 8px;
     margin-right: 6px;
-    border-radius: 6px;
-    background-color: rgb(40, 40, 52);
+    border-radius: 8px;
+    background-color: var(--mm-surface);
 }
 
 .unity-tab__header:hover {
-    background-color: rgb(58, 58, 76);
+    background-color: var(--mm-surface-2);
 }
 
 /* Selected tab: highlighted pill. */
 .unity-tab__header:checked {
-    background-color: rgb(96, 74, 150);
+    background-color: var(--mm-plum);
 }
 
 .unity-tab__header-label {
     font-size: 18px;
     -unity-font-style: bold;
-    color: rgb(225, 225, 232);
+    color: var(--mm-ink);
 }
 
 /* We signal selection with the pill color, so drop the default underline. */
@@ -168,12 +171,12 @@
     margin-bottom: 4px;
 }
 
-.stat--con { color: rgb(110, 220, 120); }
-.stat--atk { color: rgb(235, 120, 100); }
-.stat--spd { color: rgb(110, 190, 235); }
-.stat--def { color: rgb(200, 200, 120); }
-.stat--lck { color: rgb(220, 170, 240); }
-.stat--eva { color: rgb(120, 230, 215); }
+.stat--con { color: var(--mm-good); }
+.stat--atk { color: var(--mm-crit); }
+.stat--spd { color: var(--mm-teal); }
+.stat--def { color: var(--mm-gold); }
+.stat--lck { color: var(--mm-plum); }
+.stat--eva { color: var(--mm-teal); }
 
 .info-right {
     flex-grow: 1;
@@ -183,7 +186,7 @@
     -unity-text-generator: advanced;
     -unity-text-auto-size: best-fit 16px 26px;
     -unity-font-style: bold;
-    color: rgb(170, 170, 185);
+    color: var(--mm-ink-soft);
     margin-top: 12px;
     margin-bottom: 4px;
 }
@@ -191,7 +194,7 @@
 .info-block {
     -unity-text-generator: advanced;
     -unity-text-auto-size: best-fit 16px 30px;
-    color: rgb(225, 225, 230);
+    color: var(--mm-ink);
     white-space: normal;
     margin-bottom: 6px;
 }
@@ -218,7 +221,7 @@
     flex-grow: 1;
     -unity-text-generator: advanced;
     -unity-text-auto-size: best-fit 14px 26px;
-    color: rgb(225, 225, 230);
+    color: var(--mm-ink);
     white-space: normal;
 }
 
@@ -231,15 +234,15 @@
 .combat-card {
     margin-bottom: 8px;
     padding: 10px;
-    border-radius: 8px;
-    background-color: rgb(40, 40, 52);
+    border-radius: 10px;
+    background-color: var(--mm-surface-2);
     border-left-width: 4px;
-    border-left-color: rgb(90, 90, 110);
+    border-left-color: var(--mm-frame-soft);
 }
 
-.combat-card--win  { border-left-color: rgb(120, 220, 130); }
-.combat-card--lose { border-left-color: rgb(235, 120, 110); }
-.combat-card--draw { border-left-color: rgb(160, 160, 175); }
+.combat-card--win  { border-left-color: var(--mm-good); }
+.combat-card--lose { border-left-color: var(--mm-crit); }
+.combat-card--draw { border-left-color: var(--mm-ink-soft); }
 
 .combat-card__header {
     flex-direction: row;
@@ -250,21 +253,21 @@
 .combat-card__badge {
     font-size: 14px;
     -unity-font-style: bold;
-    color: rgb(225, 225, 232);
+    color: var(--mm-ink);
 }
 
-.combat-card__badge--win  { color: rgb(120, 220, 130); }
-.combat-card__badge--lose { color: rgb(235, 120, 110); }
-.combat-card__badge--draw { color: rgb(160, 160, 175); }
+.combat-card__badge--win  { color: var(--mm-good); }
+.combat-card__badge--lose { color: var(--mm-crit); }
+.combat-card__badge--draw { color: var(--mm-ink-soft); }
 
 .combat-card__date {
     font-size: 12px;
-    color: rgb(160, 160, 175);
+    color: var(--mm-ink-soft);
 }
 
 .combat-card__opponent {
     font-size: 13px;
-    color: rgb(210, 210, 218);
+    color: var(--mm-ink);
     margin-top: 2px;
     margin-bottom: 6px;
 }
@@ -296,12 +299,12 @@
 .combat-card__col-title {
     font-size: 12px;
     -unity-font-style: bold;
-    color: rgb(170, 170, 185);
+    color: var(--mm-ink-soft);
 }
 
 .combat-card__stat {
     font-size: 12px;
-    color: rgb(210, 210, 218);
+    color: var(--mm-ink);
 }
 
 .combat-card__chips {
@@ -317,8 +320,8 @@
     padding-top: 1px;
     padding-bottom: 1px;
     border-radius: 8px;
-    background-color: rgb(30, 30, 38);
-    color: rgb(220, 190, 120);
+    background-color: var(--mm-surface);
+    color: var(--mm-gold);
     margin-right: 4px;
     margin-top: 2px;
 }
@@ -326,14 +329,14 @@
 .combat-card__nostats {
     font-size: 12px;
     -unity-font-style: italic;
-    color: rgb(160, 160, 175);
+    color: var(--mm-ink-soft);
     margin-top: 4px;
 }
 
 .combat-card__comment {
     font-size: 12px;
     -unity-font-style: italic;
-    color: rgb(180, 180, 195);
+    color: var(--mm-ink-soft);
     margin-top: 6px;
 }
 
@@ -348,14 +351,15 @@
     height: 24px;
     margin: 0;
     padding: 0;
-    border-radius: 5px;
+    border-radius: 8px;
     font-size: 12px;
-    color: rgb(225, 225, 232);
-    background-color: rgb(70, 70, 88);
+    color: var(--mm-ink);
+    background-color: var(--mm-surface-2);
 }
 
 .combat-card__play:hover {
-    background-color: rgb(95, 95, 120);
+    background-color: var(--mm-coral);
+    color: rgb(255, 255, 255);
 }
 
 .combat-card__play:disabled {
@@ -373,7 +377,7 @@
 .tree-children { flex-direction: row; justify-content: center; align-items: flex-start; }
 .tree-branch { align-items: center; margin-left: 10px; margin-right: 10px; }
 .tree-partner { align-items: center; margin-left: 14px; margin-right: 14px; }
-.tree-chip--partner { border-color: rgb(230, 150, 200); }
+.tree-chip--partner { border-color: var(--mm-plum); }
 
 /* One creature chip: color swatch header + name. */
 .tree-chip {
@@ -381,30 +385,30 @@
     align-items: center;
     padding: 6px;
     border-radius: 8px;
-    background-color: rgb(40, 40, 52);
-    border-width: 2px; border-color: rgb(60, 60, 76);
+    background-color: var(--mm-surface-2);
+    border-width: 2px; border-color: var(--mm-frame-soft);
 }
-.tree-chip--self    { border-color: rgb(150, 120, 230); }
-.tree-chip--unknown { background-color: rgb(30, 30, 38); border-color: rgb(50, 50, 60); }
+.tree-chip--self    { border-color: var(--mm-plum); }
+.tree-chip--unknown { background-color: var(--mm-surface); border-color: var(--mm-frame-soft); }
 .tree-swatch { width: 56px; height: 56px; border-radius: 6px; background-color: rgb(90, 90, 100); margin-bottom: 4px; }
 .tree-name {
-    width: 100%; font-size: 12px; -unity-font-style: bold; color: rgb(228, 228, 234);
+    width: 100%; font-size: 12px; -unity-font-style: bold; color: var(--mm-ink);
     -unity-text-align: middle-center;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.tree-role { font-size: 10px; color: rgb(150, 150, 165); -unity-text-align: middle-center; }
-.tree-dead .tree-name { color: rgb(200, 110, 100); }
+.tree-role { font-size: 10px; color: var(--mm-ink-soft); -unity-text-align: middle-center; }
+.tree-dead .tree-name { color: var(--mm-crit); }
 
 /* Simple connectors between generations. */
-.tree-connector-v { width: 2px; height: 14px; background-color: rgb(110, 110, 130); }
-.tree-connector-h { height: 2px; background-color: rgb(110, 110, 130); }
+.tree-connector-v { width: 2px; height: 14px; background-color: var(--mm-frame-soft); }
+.tree-connector-h { height: 2px; background-color: var(--mm-frame-soft); }
 
 /* Placeholder for the not-yet-built tabs. */
 .placeholder {
     flex-grow: 1;
     -unity-text-generator: advanced;
     -unity-text-auto-size: best-fit 14px 28px;
-    color: rgb(150, 150, 165);
+    color: var(--mm-ink-soft);
     -unity-text-align: middle-center;
 }
 
@@ -423,10 +427,10 @@
 
 .equip-card {
     flex-direction: row;
-    background-color: rgb(40, 40, 52);
-    border-radius: 8px;
+    background-color: var(--mm-surface-2);
+    border-radius: 10px;
     border-left-width: 4px;
-    border-left-color: rgb(90, 90, 110);
+    border-left-color: var(--mm-frame-soft);
     padding: 10px;
     margin-bottom: 8px;
     overflow: hidden;
@@ -443,16 +447,16 @@
 }
 
 .equip-card--empty {
-    background-color: rgb(30, 30, 38);
+    background-color: var(--mm-surface);
     opacity: 0.7;
 }
 
 .equip-card__icon {
     width: 64px;
     height: 64px;
-    border-radius: 6px;
+    border-radius: 8px;
     margin-right: 10px;
-    background-color: rgb(22, 22, 30);
+    background-color: var(--mm-surface);
     -unity-background-scale-mode: scale-to-fit;
 }
 
@@ -464,26 +468,26 @@
 .equip-card__name {
     font-size: 16px;
     -unity-font-style: bold;
-    color: rgb(228, 228, 234);
+    color: var(--mm-ink);
     white-space: normal;
 }
 
 .equip-card__meta {
     font-size: 12px;
-    color: rgb(150, 150, 165);
+    color: var(--mm-ink-soft);
     margin-bottom: 4px;
 }
 
 .equip-card__desc {
     font-size: 13px;
-    color: rgb(205, 205, 215);
+    color: var(--mm-ink);
     white-space: normal;
     margin-bottom: 3px;
 }
 
 .equip-card__effects {
     font-size: 13px;
-    color: rgb(150, 210, 170);
+    color: var(--mm-good);
     white-space: normal;
 }
 
@@ -497,7 +501,7 @@
 
 .equip-card__mods {
     font-size: 13px;
-    color: rgb(225, 195, 130);
+    color: var(--mm-gold);
     white-space: normal;
     -unity-text-align: middle-right;
 }
@@ -527,19 +531,19 @@
     padding-top: 3px;
     padding-bottom: 3px;
     border-bottom-width: 1px;
-    border-bottom-color: rgb(50, 50, 62);
+    border-bottom-color: var(--mm-frame-soft);
 }
 
 .equip-stat__name {
     font-size: 14px;
     -unity-font-style: bold;
-    color: rgb(170, 170, 185);
+    color: var(--mm-ink-soft);
 }
 
 .equip-stat__val {
     font-size: 14px;
-    color: rgb(225, 225, 230);
+    color: var(--mm-ink);
 }
 
-.equip-stat__val--up   { color: rgb(120, 220, 130); }
-.equip-stat__val--down { color: rgb(235, 120, 110); }
+.equip-stat__val--up   { color: var(--mm-good); }
+.equip-stat__val--down { color: var(--mm-crit); }

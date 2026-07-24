@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="CombatVisualizerPanel.uss" />
-    <ui:VisualElement name="root" class="cv-root">
+    <ui:VisualElement name="root" class="mm-theme cv-root">
         <ui:VisualElement name="order-bar" class="cv-order-bar" />
         <ui:VisualElement name="turn-box" class="cv-turn-box">
             <ui:Label name="turn-label" text="Turno" class="cv-turn" />

@@ -10,15 +10,15 @@
     top: 50%;
     translate: 0 -50%;
     padding: 6px 16px;
-    background-color: rgba(0, 0, 0, 0.65);
-    border-radius: 6px;
+    background-color: var(--mm-surface);
+    border-radius: 8px;
     border-width: 2px;
-    border-color: rgb(255, 255, 255);
+    border-color: var(--mm-frame);
 }
 
 .cv-turn {
     font-size: 18px;
-    color: rgb(255, 255, 255);
+    color: var(--mm-ink);
     -unity-font-style: bold;
     -unity-text-align: middle-center;
 }
@@ -43,10 +43,10 @@
     flex-direction: column;
     margin: 0 0 6px 0;
     padding: 7px 4px 4px 4px;
-    background-color: rgba(0, 0, 0, 0.78);
-    border-radius: 6px;
+    background-color: var(--mm-surface);
+    border-radius: 8px;
     border-width: 2px;
-    border-color: rgba(255, 255, 255, 0.45);
+    border-color: var(--mm-frame);
 }
 
 .cv-order-card--self {
@@ -104,7 +104,7 @@
 .cv-ob-marks-col--ally {
     border-top-color: rgb(90, 160, 255);
     border-right-width: 1px;
-    border-right-color: rgba(255, 255, 255, 0.25);
+    border-right-color: var(--mm-frame-soft);
 }
 
 .cv-ob-marks-col--enemy {
@@ -123,7 +123,7 @@
     margin: 1px;
     border-radius: 3px;
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.6);
+    border-color: var(--mm-frame-soft);
 }
 
 .cv-ob-body-row {
@@ -143,7 +143,7 @@
 }
 
 .cv-ob-name {
-    color: rgb(255, 255, 255);
+    color: var(--mm-ink);
     font-size: 11px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
@@ -195,7 +195,7 @@
 }
 
 .cv-ob-affinity-plus {
-    color: rgb(255, 255, 255);
+    color: var(--mm-ink);
     font-size: 10px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
@@ -203,7 +203,7 @@
 }
 
 .cv-ob-affinity-equals {
-    color: rgb(255, 255, 255);
+    color: var(--mm-ink);
     font-size: 10px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
@@ -221,7 +221,7 @@
     padding: 0 3px;
     border-radius: 3px;
     border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.6);
+    border-color: var(--mm-frame-soft);
 }
 
 .cv-ob-states-row {
@@ -258,14 +258,14 @@
     position: absolute;
     max-width: 260px;
     padding: 6px 8px;
-    background-color: rgba(15, 15, 15, 0.95);
-    border-radius: 6px;
+    background-color: var(--mm-surface);
+    border-radius: 8px;
     border-width: 1px;
-    border-color: rgb(255, 255, 255);
+    border-color: var(--mm-frame);
 }
 
 .cv-ob-tooltip-text {
-    color: rgb(240, 240, 240);
+    color: var(--mm-ink);
     font-size: 11px;
     white-space: normal;
 }
@@ -278,9 +278,9 @@
     max-height: 34%;
     flex-direction: column;
     padding: 8px 3% 10px 3%;
-    background-color: rgba(0, 0, 0, 0.82);
+    background-color: var(--mm-surface);
     border-top-width: 3px;
-    border-top-color: rgb(255, 255, 255);
+    border-top-color: var(--mm-frame);
 }
 
 .cv-log-header {
@@ -292,7 +292,7 @@
 }
 
 .cv-log-title {
-    color: rgb(255, 255, 255);
+    color: var(--mm-ink);
     font-size: 14px;
     -unity-font-style: bold;
 }
@@ -302,15 +302,15 @@
     height: 24px;
     font-size: 12px;
     -unity-font-style: bold;
-    color: rgb(255, 255, 255);
-    background-color: rgba(40, 40, 40, 0.95);
+    color: var(--mm-ink);
+    background-color: var(--mm-surface-2);
     border-width: 1px;
-    border-color: rgb(255, 255, 255);
-    border-radius: 4px;
+    border-color: var(--mm-frame);
+    border-radius: 8px;
 }
 
 .cv-btn-log-toggle:hover {
-    background-color: rgba(80, 80, 80, 0.95);
+    background-color: var(--mm-surface);
 }
 
 .cv-log-scroll {
@@ -406,10 +406,10 @@
     flex-direction: column;
     align-items: center;
     padding: 6px 8px;
-    background-color: rgba(0, 0, 0, 0.78);
+    background-color: var(--mm-surface);
     border-radius: 8px;
     border-width: 2px;
-    border-color: rgb(255, 255, 255);
+    border-color: var(--mm-frame);
 }
 
 .cv-btn {
@@ -418,15 +418,15 @@
     margin: 2px 0;
     font-size: 13px;
     -unity-font-style: bold;
-    color: rgb(255, 255, 255);
-    background-color: rgba(40, 40, 40, 0.95);
+    color: var(--mm-ink);
+    background-color: var(--mm-surface-2);
     border-width: 2px;
-    border-color: rgb(255, 255, 255);
-    border-radius: 6px;
+    border-color: var(--mm-frame);
+    border-radius: 8px;
 }
 
 .cv-btn:hover {
-    background-color: rgba(80, 80, 80, 0.95);
+    background-color: var(--mm-surface);
 }
 
 .cv-btn:disabled {
@@ -445,7 +445,7 @@
 }
 
 .cv-speed-label {
-    color: rgb(255, 255, 255);
+    color: var(--mm-ink);
     font-size: 9px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;

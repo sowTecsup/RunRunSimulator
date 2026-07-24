@@ -317,10 +317,19 @@ Front = 0, Mid = 1, Back = 2
 Verbo visible en NameTag (lo que ESTÁ HACIENDO ahora).
 
 ```
-Idle, Wandering, Following, Approaching, Fleeing, Retreating,
-SeekingFood, SeekingRest, SeekingPlay, Eating, Resting, Playing,
-Held, Tumbling
+Idle = 0, Wandering = 1, Following = 2, Approaching = 3, Fleeing = 4,
+Retreating = 5, SeekingFood = 6, SeekingRest = 7, SeekingPlay = 8,
+Eating = 9, Resting = 10, Playing = 11, Held = 12, Tumbling = 13,
+Socializing = 14, Chasing = 15, SleepingTogether = 16, Fighting = 17
 ```
+
+**Nuevos en S64 (Social V1):**
+- `Socializing = 14` — Acercándose a otro MoriMochi (AgentSocial.Approach mode)
+- `Chasing = 15` — Persiguiendo o siendo perseguido en juego social (Chaser/Runner mode)
+
+**Nuevos en S65 (Social V2):**
+- `SleepingTogether = 16` — Durmiendo juntos con otro MoriMochi (AgentSocial.Sleeping mode)
+- `Fighting = 17` — Peleando con otro MoriMochi (AgentSocial.Fighting mode, abalanzadas)
 
 ### ProximityReaction
 
@@ -434,6 +443,55 @@ Static, Pulse, Steel, Mist, Lifesteal, Shield, Reaction
 - `CombatVisualizerService.PlayProc()` — **S42 NUEVO** popup elemental con ReactionName + OverrideColor
 - `MoriMonchiCombatVisualizerUITK.MapKind()` — mapea para chips de estado
 
+### PerceivableKind
+
+**S64 NUEVO:** Clasifica qué tipo de entidad del mundo es perceptible por agentes MoriMochi para decisiones sociales.
+
+```
+Player = 0, Monchi = 1, Customer = 2, Prop = 3
+```
+
+**Descripción:**
+- `Player` — El jugador, siempre perceptible pero sin afinidad social
+- `Monchi` — Otro MoriMochi, con afinidad social computada por SocialAffinity
+- `Customer` — NPC cliente en la tienda, perceptible pero sin afinidad (futuro: negociación NPC)
+- `Prop` — Objeto del mundo (mueble, prop throwable), perceptible pero sin lógica social
+
+**Usado por:** AgentSenses.Tick, AgentSocial.TryEngage, ReactionRuleBase.Matches
+
+### EmoteKind
+
+**S64 NUEVO:** Pictogramas de emoción que emite un MoriMochi en burbuja world-space.
+
+```
+Curioso = 0, Feliz = 1, Jugando = 2, Molesto = 3, Corazon = 4, Zzz = 5
+```
+
+**Descripción y glifos:**
+- `Curioso` — "?" amarillo — curiosidad, investigación
+- `Feliz` — "☺" verde — felicidad, contento
+- `Jugando` — "♪" azul — jugando, divirtiéndose
+- `Molesto` — "!" rojo — enojo, frustración
+- `Corazon` — "♥" rosado — amor, afecto
+- `Zzz` — "Zz" púrpura — sueño, descanso
+
+**Usado por:** MoriMochiAgent.EmitEmote (evento OnEmote), MonchiEmoteBubble.Show, AgentSocial (emociones en transiciones sociales)
+
+### SocialInteractionKind
+
+**S65 NUEVO:** Clasifica tipos de interacción social que afectan el historial de afinidad en SocialGraphService.
+
+```
+PlayChase = 0, SleepTogether = 1, GremlinFight = 2
+```
+
+**Descripción:**
+- `PlayChase` — Juego de persecución: +0.06 afinidad al completar
+- `SleepTogether` — Siesta compartida: +0.08 afinidad al completar
+- `GremlinFight` — Pelea de gremlins: −0.1 afinidad al completar (almacenado como negativo)
+
+**Usado por:** `SocialGraphService.RecordInteraction()`, `AgentSocial.CompleteFromPartner()`, `AgentSocial.TickSocializing()` (al terminar juego/siesta/pelea)
+
 ## Vinculado a
 
 Prácticamente todo el codebase. Los enums son la base de type-safety.
@@ -513,6 +571,29 @@ Prácticamente todo el codebase. Los enums son la base de type-safety.
 - Valores: Neutral, Feliz, Triste, Dolor, Enojado, Dormido, Enfermo, Mareado, Asustado, Amoroso, Emocionado, KO
 
 **Impacto:** S57 — integración del modelo Suriyun con sistema visual de emociones por estado y pelaje ponderado al mintear.
+
+## Cambios Sesión 64
+
+**NUEVOS enums:**
+- `PerceivableKind = Player | Monchi | Customer | Prop` — clasifica entidades perceptibles (S64 sistema social V1)
+- `EmoteKind = Curioso | Feliz | Jugando | Molesto | Corazon | Zzz` — pictogramas de emoción en burbujas world-space
+
+**Ampliados en CreatureIntent:**
+- `Socializing = 14` — acercándose a otro MoriMochi (modo Approach de AgentSocial)
+- `Chasing = 15` — persiguiendo o siendo perseguido en juego social (modos Chaser/Runner)
+
+**Impacto:** S64 — sistema social V1 completo (percepción, afinidad, interacciones, reacciones, emociones visuales). Base para futuro SocialGraph V2 con historial de interacción.
+
+## Cambios Sesión 65
+
+**NUEVO enum:**
+- `SocialInteractionKind = PlayChase | SleepTogether | GremlinFight` — clasifica tipos de interacción social para historial (S65 Social V2)
+
+**Ampliados en CreatureIntent:**
+- `SleepingTogether = 16` — durmiendo juntos con otro MoriMochi (S65 modo Sleeping de AgentSocial)
+- `Fighting = 17` — peleando con otro MoriMochi (S65 modo Fighting de AgentSocial, abalanzadas)
+
+**Impacto:** S65 — sistema social V2 con historial de afinidad dinámico. SocialInteractionKind feed directo a SocialGraphService.RecordInteraction(); CreatureIntent nuevos para visualización en NameTag + mood en MonchiMoodDriver.
 
 ## Notas
 

@@ -6,16 +6,31 @@ tags: [script, core, singleton]
 
 **Ruta:** `Core/GameManager.cs`
 
-**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. **S58:** Getter `PartVisualBank` eliminado (migración Suriyun completa — solo MonchiVisualBank). **S61:** `MintRandomCreature()` llama `GenerateRandom(database, furTypeDatabase)` sin `rarityOddsTable`; el campo y getter `rarityOddsTable`/`RarityOddsTable` siguen existiendo (reserva para gemas futuro).
+**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. **S65:** `FlushToCloud()` también guarda el historial social (SaveSocialGraph). **S58:** Getter `PartVisualBank` eliminado (migración Suriyun completa — solo MonchiVisualBank). **S61:** `MintRandomCreature()` llama `GenerateRandom(database, furTypeDatabase)` sin `rarityOddsTable`; el campo y getter `rarityOddsTable`/`RarityOddsTable` siguen existiendo (reserva para gemas futuro).
 
 ## Métodos Públicos
 
 | Método | Descripción |
 |--------|-------------|
 | `PushToCloud()` | Fire-and-forget async push vía `CloudSyncService.PushAsync()` |
-| `FlushToCloud()` | Save local + push cloud; usado en `OnApplicationQuit/Pause` |
+| `FlushToCloud()` | **S65:** Save local (creatures + social graph) + push cloud; usado en `OnApplicationQuit/Pause` |
 | `FlushForSceneChange()` | Save local + push cloud ANTES de cambiar escena |
 | `MintRandomCreature()` | **S61** Genera random creature pastel vía `GenerateRandom(database, furTypeDatabase)`, asigna género, elemento, rol, stats, nombre, registra (sin rarityOddsTable) |
+
+## Cambios S65
+
+**FlushToCloud() actualizado:**
+- Ahora llama `SaveSystem.SaveSocialGraph()` además de `SaveSystem.SaveDatabase()` para persistir el historial de interacciones antes de pushear.
+- Orden: save creatures → save social graph → push cloud.
+
+```csharp
+public void FlushToCloud()
+{
+    SaveSystem.SaveDatabase(creatureRegistry);
+    SaveSystem.SaveSocialGraph();
+    PushToCloud();
+}
+```
 
 ## Cambios S61
 
@@ -58,7 +73,8 @@ tags: [script, core, singleton]
 
 ## Notas
 
-- S61: Mint ahora uniforme (sans rareza); rarityOddsTable reservado para gemas futuro
+- S65: Persistencia social graph local-only; sync a cloud es futuro.
+- S61: Mint uniforme, rarityOddsTable es reserva futura.
 - S58: Única capa visual es MonchiVisualBank (Suriyun rig + MonchiAnimationDriver)
 - Legacy PartVisualBankSO descartado completamente
 - MintRandomCreature() retorna pastel colors (S58: ColorGenetics.RandomBase())
@@ -74,5 +90,5 @@ tags: [script, core, singleton]
 ## Conexiones
 
 - **Entrada:** GameEvents (RegistryChanged, FurnitureChanged, InventoryChanged)
-- **Salida:** SaveSystem (persistencia local), CloudSyncService (persistencia cloud)
+- **Salida:** SaveSystem (persistencia local), CloudSyncService (persistencia cloud), SocialGraphService (histórico)
 - **Refs:** Todos los SO principales del proyecto

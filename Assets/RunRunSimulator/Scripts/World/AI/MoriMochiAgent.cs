@@ -28,6 +28,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private AgentBrain       brain;
     private AgentPhysics     physics;
     private AgentConfinement confinement;
+    private AgentSenses      senses;
+    private AgentSocial      social;
 
     // ── Lifecycle ─────────────────────────────────────────────────
 
@@ -58,6 +60,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         brain       = new AgentBrain(this, ctx);
         physics     = new AgentPhysics(this, ctx);
         confinement = new AgentConfinement(this, ctx);
+        senses      = new AgentSenses(this, ctx);
+        social      = new AgentSocial(this, ctx);
 
         ctx.Rb.isKinematic = true;          // NavMeshAgent drives until we get thrown
         ctx.Rb.useGravity  = false;
@@ -134,6 +138,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
         brain.ResetForReuse();
         physics.ResetForReuse();
+        social.ResetForReuse();
+        senses.ResetForReuse();
         ctx.RebakeInProgress = false;
         ctx.State            = AgentState.Idle;
     }
@@ -147,6 +153,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         // silent recycle, not a player exit: detach from the census without persisting or cancelling
         // domain state (egg) — Release belongs to OnGrab, where the player actually lifts the occupant.
         confinement.DetachForReuse();
+        social.ResetForReuse();
         if (ctx.Agent.enabled && ctx.Agent.isOnNavMesh) ctx.Agent.ResetPath();
     }
 
@@ -157,16 +164,18 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         physics.RecoverIfStuckOffMesh();
 
         brain.TickAlways(Time.deltaTime);
+        senses.Tick();
         switch (ctx.State)
         {
-            case AgentState.Idle:         brain.TickIdle();          break;
-            case AgentState.Roaming:      brain.TickRoaming();       break;
+            case AgentState.Idle:         brain.TickIdle();    if (ctx.State == AgentState.Idle)    social.TryEngage(); break;
+            case AgentState.Roaming:      brain.TickRoaming(); if (ctx.State == AgentState.Roaming) social.TryEngage(); break;
             case AgentState.Reacting:     brain.TickReacting();      break;
             case AgentState.Thrown:       physics.TickThrown();      break;
             case AgentState.Recovering:   physics.TickRecovering();  break;
             case AgentState.SeekingNeed:  brain.TickSeekingNeed();   break;
             case AgentState.UsingStation: brain.TickUsingStation();  break;
             case AgentState.Courting:     confinement.TickCourting(); break;
+            case AgentState.Socializing:  social.TickSocializing();  break;
             // Carried: nothing to tick — the carry-follow runs in FixedUpdate.
         }
     }
@@ -195,6 +204,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     // store layout (name + price) instead of the breeding pen layout.
     public bool IsForSale => ctx.CurrentContainer is StoreContainer;
     public bool IsCourting => ctx.State == AgentState.Courting;
+    public bool IsSocializing => ctx.State == AgentState.Socializing;
     public bool IsRecovering => ctx.State == AgentState.Recovering;
 
     // True while the creature is actively reacting to the player in a friendly way (not fleeing).
@@ -210,7 +220,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     // What this creature is trying to do RIGHT NOW, for the NameTag. Maps the internal
     // AgentState (+ active reaction / reserved need) to the player-facing CreatureIntent;
     // the tag turns it into words.
-    public CreatureIntent Intent => brain.Intent;
+    public CreatureIntent Intent => ctx.State == AgentState.Socializing ? social.Intent : brain.Intent;
+
+    // Fires when this creature plays an emote (e.g. social interaction beat) — the NameTag/bubble
+    // on the same prefab subscribes to react without this script knowing about presentation.
+    public event System.Action<EmoteKind> OnEmote;
+    internal void EmitEmote(EmoteKind kind) => OnEmote?.Invoke(kind);
 
     // True when the player is within petRadius AND their horizontal forward aligns with the
     // direction from the player to this creature (petLookAngle cone). Uses player.forward
@@ -250,6 +265,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public void EnterCourtship(MoriMochiAgent partner, Vector3 anchor) => confinement.EnterCourtship(partner, anchor);
     public void ExitCourtship() => confinement.ExitCourtship();
 
+    // Handshake: another agent's AgentSocial asks this one to join its social play.
+    internal bool TryJoinSocialPlay(MoriMochiAgent initiator) => social.TryJoinSocialPlay(initiator);
+    internal void CompleteSocialPlayFromPartner() => social.CompleteFromPartner();
+    internal bool TryJoinSocialSleep(MoriMochiAgent initiator, NeedStation station, Vector3 fallbackSpot) => social.TryJoinSleep(initiator, station, fallbackSpot);
+    internal bool TryJoinSocialFight(MoriMochiAgent initiator) => social.TryJoinFight(initiator);
+
     // ── Switchboard (used by AgentBrain / AgentPhysics / AgentConfinement) ──
 
     internal void RequestRoam() => brain.EnterRoaming();
@@ -258,6 +279,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     internal void RequestDetachToPhysics() => physics.DetachToPhysics();
     internal bool RequestRejoinNavMesh(Vector3 desired, int mask) => physics.RejoinNavMesh(desired, mask);
     internal void RequestReleaseFromPen() => confinement.ReleaseFromPen();
+    internal Vector3 AdjustRoamForAvoidance(Vector3 candidate) => social.AdjustRoamForAvoidance(candidate);
+    internal void RequestPlayfulKnock(Vector3 force) => physics.Knock(force, false);
 
     // ── Tuning (Odin tabs) ────────────────────────────────────────
     // Grouped to mirror the two concerns this component juggles — the NavMesh "brain"
@@ -524,6 +547,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     [TabGroup("Tuning", "Dev"), ShowInInspector, ReadOnly]
     private string CourtInfo => confinement != null ? confinement.DescribeCourtship() : "—";
+
+    [TabGroup("Tuning", "Dev"), ShowInInspector, ReadOnly]
+    private string SocialInfo => social != null ? social.Describe() : "—";
+
+    [TabGroup("Tuning", "Dev"), ShowInInspector, ReadOnly]
+    private int PerceptCount => ctx != null ? ctx.Percepts.Count : 0;
 
     [TabGroup("Tuning", "Dev"), Title("Debug toggles")]
     [Tooltip("Fuerza al agente a quedarse en ragdoll: nunca rejoina el NavMesh (aísla el handoff que lo pinea al piso).")]

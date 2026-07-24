@@ -85,6 +85,7 @@ public class CloudSyncService : MonoBehaviour
         // Scope local save by player + auto-sync from cloud
         SaveSystem.SetUserScope(auth.PlayerID);
         SaveSystem.LoadInto(registry);
+        SaveSystem.LoadSocialGraph(registry);
         // Reflect local data in the UI immediately: the cloud pull below raises its
         // own reload only when the cloud actually has data, so a local-only player
         // (fresh/anon/offline, or after a reset) would otherwise see an empty grid.

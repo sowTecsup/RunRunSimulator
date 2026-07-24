@@ -6,7 +6,7 @@ tags: [script, world, ai]
 
 **Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta la vida de una criatura en el mundo (comportamiento autónomo + física de lanzamiento). Compone cuatro colaboradores internos: `AgentContext` (estado compartido), `AgentBrain` (máquina de estados NavMesh), `AgentPhysics` (handoff ragdoll), `AgentConfinement` (pens/cortejo). Implementa `IThrowable` (agarrar/lanzar/knock) e `IInteractable` (petting). Ciclo de vida: `Initialize()` (wiring, setup NavMesh masks), `Rebind()` (reload rápido), `PrepareForPool()` (pooling). Update() despachador de ticks por estado; FixedUpdate() para FixedTick del physics. Expone fachada pública inmutable (`DNA`, `Intent`, `IsHeld`, `IsAirborne`, `IsPenned`, `CanBePetted`, etc.) y switchboard interno para que colaboradores pidan operaciones (`RequestRoam()`, `RequestReleaseStation()`, `RequestDetachToPhysics()`, etc.). **Resuelto S55:** ya NO es partial; compone mini-managers con una responsabilidad cada uno.
+**Responsabilidad:** Núcleo delgado que orquesta la vida de una criatura en el mundo (comportamiento autónomo + física de lanzamiento). Compone seis colaboradores internos: `AgentContext` (estado compartido), `AgentBrain` (máquina de estados NavMesh), `AgentPhysics` (handoff ragdoll), `AgentConfinement` (pens/cortejo), `AgentSenses` (percepción social throttled) y `AgentSocial` (decisiones y comportamiento social). Implementa `IThrowable` (agarrar/lanzar/knock) e `IInteractable` (petting). Ciclo de vida: `Initialize()` (wiring, setup NavMesh), `Rebind()` (reload rápido), `PrepareForPool()` (pooling). Update() despachador de ticks por estado; FixedUpdate() para FixedTick del physics. Expone fachada pública inmutable (`DNA`, `Intent`, `IsHeld`, `IsAirborne`, `IsPenned`, `CanBePetted`, etc.) y switchboard interno para que colaboradores pidan operaciones. **S55 RESUELTO:** ya NO es partial; composición pura. **S64:** agregados AgentSenses y AgentSocial. **S65:** AgentSocial nuevos modos Sleeping/Fighting.
 
 ## Máquina de Estados
 
@@ -21,15 +21,18 @@ tags: [script, world, ai]
 | `SeekingNeed` | AgentBrain | Navega a estación crítica |
 | `UsingStation` | AgentBrain | Consume de estación |
 | `Courting` | AgentConfinement | Danza de apareamiento |
+| `Socializing` | AgentSocial | Acercándose, persiguiendo, durmiendo o peleando con otro MoriMochi |
 
-## Estructura (Composición S55)
+## Estructura (Composición S55 + S64 + S65)
 
 ```
 MoriMochiAgent (fachada pública)
-  ├─ AgentContext (estado puro: componentes, DNA, profile, masks)
-  ├─ AgentBrain (ticks: Idle, Roaming, Reacting, SeekingNeed, UsingStation, Courting)
+  ├─ AgentContext (estado puro: componentes, DNA, profile, masks, percepts)
+  ├─ AgentBrain (ticks: Idle, Roaming, Reacting, SeekingNeed, UsingStation)
   ├─ AgentPhysics (handoff NavMesh ⇄ Rigidbody, ragdoll, bounce, recovery)
-  └─ AgentConfinement (pens, courtship, rebake prep)
+  ├─ AgentConfinement (pens, courtship, rebake prep)
+  ├─ AgentSenses (escaneo throttled de Perceivables, población de ctx.Percepts)
+  └─ AgentSocial (decisiones y tick de interacciones sociales: Approach/PlayChase/SleepTogether/Fight)
 ```
 
 Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachada pública.
@@ -43,7 +46,7 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 
 **Propiedades (fachada):**
 - `DNA → CreatureDNA` — read-only
-- `Intent → CreatureIntent` — intención actual (Idle, Wandering, Following, Eating, Fleeing, etc.)
+- `Intent → CreatureIntent` — intención actual (Idle, Wandering, Following, Eating, Fleeing, Socializing, Chasing, SleepingTogether, Fighting, etc.)
 - `IsHeld → bool` — en Carried
 - `IsAirborne → bool` — en Thrown
 - `IsPenned → bool` — confinado en pen
@@ -54,7 +57,11 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 - `CanBePetted → bool` — condiciones de petting cumplidas
 - `IsPlayerFacingMe() → bool` — player está a petRadius y mira hacia esta criatura
 - `IsCourting → bool` — en Courting
+- `IsSocializing → bool` — en Socializing (acercándose, jugando, durmiendo o peleando)
 - `Condition → CreatureCondition` — Healthy/Sick/InNeed (derived from needs vs thresholds)
+
+**Eventos:**
+- `OnEmote` — evento que dispara cuando AgentSocial emite emoción (suscriptor: MonchiEmoteBubble, NameTag)
 
 **Interacción:**
 - `Interact()` — E-acariciar (del gameplay)
@@ -63,6 +70,11 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 - `Knock(Vector3 force)` — golpeado por otra criatura
 - `EnterConfinement(MoriMochiContainer pen) → bool` — confinamiento a pen
 - `EnterCourtship(MoriMochiAgent partner, Vector3 anchor), ExitCourtship()` — cortejo
+- `TryJoinSocialPlay(MoriMochiAgent initiator) → bool` — **S64 NUEVO** handshake receptor: otro agente pide juego
+- `TryJoinSocialSleep(MoriMochiAgent initiator, NeedStation station, Vector3 fallbackSpot) → bool` — **S65 NUEVO** handshake receptor: otro agente invita a dormir juntos (pasa su estación reservada y el punto fallback)
+- `TryJoinSocialFight(MoriMochiAgent initiator) → bool` — **S65 NUEVO** handshake receptor: otro agente inicia pelea de juego
+- `RequestPlayfulKnock(Vector3 force)` — **S65 NUEVO** switchboard interno: knock sin penalización de Affect (AgentPhysics.Knock(force, stress:false)) para el final de la pelea
+- `CompleteSocialPlayFromPartner()` — **S64 NUEVO** notificación one-way: compañero completó juego
 
 **Switchboard interno (RequestRoam, etc.):**
 - `RequestRoam()` — AgentBrain.EnterRoaming()
@@ -71,6 +83,10 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 - `RequestDetachToPhysics()` — AgentPhysics.DetachToPhysics()
 - `RequestRejoinNavMesh(Vector3 desired, int mask) → bool` — AgentPhysics.RejoinNavMesh()
 - `RequestReleaseFromPen()` — AgentConfinement.ReleaseFromPen()
+- `AdjustRoamForAvoidance(Vector3) → Vector3` — **S64 NUEVO** AgentSocial.AdjustRoamForAvoidance() filtro repulsivo
+
+**Internal:**
+- `EmitEmote(EmoteKind) → void` — dispara OnEmote (usado por AgentSocial)
 
 ## Campos Tuning (Odin Tabs)
 
@@ -115,16 +131,20 @@ Update():
   if (forceRagdoll && NavMesh-controlled) → ragdoll
   physics.RecoverIfStuckOffMesh()
   brain.TickAlways(dt)  // needs decay
+  senses.Tick()  // S64: scan perceivables, populate ctx.Percepts
   
   switch (ctx.State):
     Idle       → brain.TickIdle()
+                 if (state still Idle) social.TryEngage()  // S64: intenta iniciar social
     Roaming    → brain.TickRoaming()
+                 if (state still Roaming) social.TryEngage()
     Reacting   → brain.TickReacting()
     Thrown     → physics.TickThrown()
     Recovering → physics.TickRecovering()
     SeekingNeed   → brain.TickSeekingNeed()
     UsingStation  → brain.TickUsingStation()
     Courting      → confinement.TickCourting()
+    Socializing   → social.TickSocializing()  // S64/S65: tick social modes
     Carried    → (nothing, follow runs in FixedUpdate)
 
 FixedUpdate():
@@ -156,22 +176,26 @@ Dibuja en Play mode (cuando initialized):
 
 - [[Index/06 - Player & World]]
 - [[Index/02 - Genetics & Breeding]]
+- [[MoriMonchiVault/Index/14 - Social V2]]
 
 ## Conexiones
 
 **Colaboradores internos:**
-- [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentConfinement]]
+- [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentConfinement]], [[AgentSenses]], [[AgentSocial]]
 
 **Datos & servicios:**
 - [[CreatureDNA]] — DNA viva
 - [[RoleWorldProfileSO]], [[RoleWorldProfile]] — perfil comportamiento
 - [[NeedStationRegistry]] — búsqueda de estaciones
+- [[PerceivableRegistry]] — S64 índice social
+- [[SocialGraphService]] — S65 historial dinámico
 - [[CombatStats]], [[EquipmentStats]] — stats (live readout)
 
 **Visualización & UI:**
 - [[MoriMonchiController]] — contiene este + visualizer
 - [[MoriMonchiVisualizer]] — assembly 3D
 - [[NameTag]] — label world-space
+- [[MonchiEmoteBubble]] — S64 burbuja de emoción
 - [[MoriMonchiProceduralAnimator]] — lee transforms para animation
 
 **Eventos & física:**
@@ -182,11 +206,25 @@ Dibuja en Play mode (cuando initialized):
 - [[MoriMochiContainer]] — pen/breeding confinement
 - [[NeedStation]] — estaciones (Feeder, RestZone, PlayZone)
 - [[MoriMochiSpawner]] — instancia y wirea
+- [[Perceivable]] — S64 marcas sociales
+
+## Notas S65
+
+- **Nuevos modos sociales:** AgentSocial ahora maneja Sleeping (busca RestZone, regen energía) y Fighting (abalanzadas, -Affect). Ambos son gateados por energía/salud.
+- **Historial dinámico:** AgentSenses consulta `SocialGraphService.EffectiveAffinity()` para afinidad seed + delta.
+- **Handshakes:** TryJoinSocialSleep y TryJoinSocialFight siguen el patrón de TryJoinSocialPlay (fachada → internos TryJoinSleep/TryJoinFight de AgentSocial).
+
+## Notas S64
+
+- **Percepción y conducta social:** AgentSenses scannea Perceivables en throttle (2–4s), poblando ctx.Percepts. AgentSocial consulta en TryEngage() para decidir acción.
+- **Estados nuevos:** Socializing mapea a CreatureIntent múltiples (Socializing, Chasing, SleepingTogether, Fighting).
+- **Emociones visuales:** OnEmote event dispara pictogramas en MonchiEmoteBubble.
+- **Evitación de roam:** AgentBrain.NextRoamDestination() llama AdjustRoamForAvoidance() para empujar puntos lejos de Avoid rules.
 
 ## Notas S55
 
-- **Refactor S55 resuelto:** Deuda Fase 8 cerrada. Ya NO partial class; composición de 4 mini-managers.
+- **Refactor S55 resuelto:** Deuda Fase 8 cerrada. Ya NO partial class; composición de mini-managers.
 - **Fachada intacta:** Métodos públicos y propiedades sin cambios desde vista externa.
-- **Switchboard:** RequestRoam, RequestReleaseStation, etc. son "puertas de entrada" de colaboradores hacia MoriMochiAgent.
-- **Tuning absorbido:** Todos los campos del viejo .Tuning.cs ahora viven en MoriMochiAgent.cs como tabs Odin.
-- **Gizmos preservados:** Los gizmos del viejo .Debug.cs ahora en OnDrawGizmos().
+- **Switchboard:** RequestRoam, RequestReleaseStation, etc. son puertas de entrada de colaboradores.
+- **Tuning absorbido:** Todos los campos del viejo .Tuning.cs ahora viven como tabs Odin.
+- **Gizmos preservados:** Los del viejo .Debug.cs ahora en OnDrawGizmos().

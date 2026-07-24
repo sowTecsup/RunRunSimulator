@@ -4,15 +4,15 @@
     align-items: center;
     justify-content: flex-start;  /* top anchor */
     padding-top: 24px;
-    background-color: rgba(0, 0, 0, 0.45);
+    background-color: var(--mm-scrim);
 }
 
 .store-panel {
     width: 728px;          /* 520 × 1.4 */
     max-height: 80%;
-    background-color: rgba(26, 26, 32, 0.97);
+    background-color: var(--mm-surface);
     border-width: 2px;
-    border-color: rgb(120, 120, 130);
+    border-color: var(--mm-frame);
     border-radius: 14px;   /* 10 × 1.4 */
     padding: 17px;         /* 12 × 1.4 */
 }
@@ -26,19 +26,31 @@
 
 .store-title {
     font-size: 30px;       /* 22 × 1.4 */
-    color: rgb(255, 214, 92);
+    color: var(--mm-gold);
     -unity-font-style: bold;
 }
 
 .store-close {
     width: 40px;           /* 28 × 1.4 */
     height: 40px;
+    margin: 0;
+    border-radius: 10px;
+    border-width: 3px;
+    border-color: var(--mm-frame);
+    -unity-font-style: bold;
+    color: var(--mm-ink);
+    background-color: var(--mm-surface-2);
+}
+
+.store-close:hover {
+    background-color: var(--mm-coral);
+    color: rgb(255, 255, 255);
 }
 
 /* Dabloons balance — right-aligned under the title. */
 .store-balance {
     font-size: 18px;
-    color: rgb(255, 214, 92);
+    color: var(--mm-gold);
     -unity-text-align: middle-right;
     margin-bottom: 12px;
     padding: 0 2px;
@@ -55,8 +67,8 @@
     padding: 8px 20px;     /* 6×14 × 1.4 */
     margin: 0 6px;         /* 4 × 1.4 */
     font-size: 20px;       /* 14 × 1.4 */
-    color: rgb(200, 200, 210);
-    background-color: rgba(40, 40, 48, 0.9);
+    color: var(--mm-ink-soft);
+    background-color: var(--mm-surface-2);
     border-radius: 20px;   /* 14 × 1.4 */
     border-width: 2px;
     border-color: rgba(0, 0, 0, 0);
@@ -64,22 +76,22 @@
 }
 
 .store-tab--active {
-    color: rgb(26, 26, 32);
-    background-color: rgb(255, 214, 92);
+    color: var(--mm-ink);
+    background-color: var(--mm-gold);
     -unity-font-style: bold;
 }
 
 /* Transient feedback toast shown on purchase failure. */
 .store-notify {
     font-size: 18px;
-    color: rgb(255, 130, 110);
-    background-color: rgba(80, 20, 15, 0.90);
+    color: var(--mm-crit);
+    background-color: var(--mm-surface-2);
     border-radius: 8px;
     padding: 8px 14px;
     margin-bottom: 8px;
     -unity-text-align: middle-center;
     border-width: 1px;
-    border-color: rgba(255, 130, 110, 0.4);
+    border-color: var(--mm-crit);
 }
 
 .store-list {
@@ -93,20 +105,20 @@
     align-items: center;
     padding: 11px 14px;    /* 8×10 × 1.4 */
     margin-bottom: 7px;    /* 5 × 1.4 */
-    background-color: rgba(40, 40, 48, 0.9);
+    background-color: var(--mm-surface-2);
     border-radius: 8px;    /* 6 × 1.4 */
     border-width: 2px;
     border-color: rgba(0, 0, 0, 0);
 }
 
 .store-row--selected {
-    border-color: rgb(255, 214, 92);
-    background-color: rgba(55, 50, 24, 0.95);
+    border-color: var(--mm-gold);
+    background-color: var(--mm-surface);
 }
 
 .store-row__name {
     font-size: 21px;       /* 15 × 1.4 */
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
     flex-grow: 1;
 }
 
@@ -118,55 +130,60 @@
 
 .store-price__now {
     font-size: 21px;       /* 15 × 1.4 */
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
     -unity-font-style: bold;
 }
 
 .store-price__now--sale {
     font-size: 21px;       /* 15 × 1.4 */
-    color: rgb(120, 230, 130);
+    color: var(--mm-good);
     -unity-font-style: bold;
 }
 
 /* Original price shown atenuated when a discount is active. */
 .store-price__was {
     font-size: 17px;       /* 12 × 1.4 */
-    color: rgba(200, 200, 210, 0.6);
+    color: var(--mm-ink-soft);
     margin-right: 8px;     /* 6 × 1.4 */
 }
 
 /* Stock count (hidden for unlimited items). */
 .store-row__stock {
     font-size: 17px;
-    color: rgba(200, 200, 210, 0.75);
+    color: var(--mm-ink-soft);
     min-width: 48px;
     margin-right: 12px;
     -unity-text-align: middle-right;
 }
 
 .store-row__stock--low {
-    color: rgb(255, 160, 80);   /* orange warning when stock is 1-2 */
+    color: var(--mm-warn);   /* orange warning when stock is 1-2 */
     -unity-font-style: bold;
 }
 
 .store-row__stock--empty {
-    color: rgba(255, 100, 80, 0.85);
+    color: var(--mm-crit);
     -unity-font-style: bold;
 }
 
 .store-row__buy {
     height: 40px;          /* 28 × 1.4 */
     min-width: 126px;      /* 90 × 1.4 */
+    border-radius: 10px;
+    border-width: 3px;
+    border-color: var(--mm-frame);
+    background-color: var(--mm-coral);
+    color: rgb(255, 255, 255);
 }
 
 /* Disabled look when out of stock (SetEnabled(false) also grays Unity's default). */
 .store-row__buy--disabled {
     opacity: 0.4;
-    background-color: rgba(60, 60, 68, 0.8);
+    background-color: var(--mm-surface-2);
 }
 
 .store-empty {
-    color: rgba(200, 200, 210, 0.7);
+    color: var(--mm-ink-soft);
     font-size: 18px;       /* 13 × 1.4 */
     -unity-text-align: middle-center;
     padding: 22px;         /* 16 × 1.4 */

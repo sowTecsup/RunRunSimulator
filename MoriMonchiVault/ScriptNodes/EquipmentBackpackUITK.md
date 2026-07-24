@@ -6,7 +6,7 @@ tags: [script, ui, equipment, popup]
 
 **Ruta:** `UI/EquipmentBackpackUITK.cs`
 
-**Responsabilidad:** Popup/tooltip mochila de equipo — permite equipar items a un MoriMochi desde el inventory del jugador. Grilla 3×3 por página con pestañas, cell 0 = "None" (desequipa), click equipa (swap en DNA), drag&drop free placement. Cierra con click afuera. **S34:** devNoConsume fix simetrico — ambas operaciones (EquipItem y OnNoneCellPointerDown) respetan flag identicamente. Sin persistencia directa — muta `inventory`/`dna` y dispara `GameEvents.InventoryChanged + RegistryChanged`.
+**Responsabilidad:** Popup/tooltip mochila de equipo — permite equipar items a un MoriMochi desde el inventory del jugador. Grilla 3×3 por página con pestañas, cell 0 = "None" (desequipa), click equipa (swap en DNA), drag&drop free placement. Cierra con click afuera. **S34:** devNoConsume fix simetrico — ambas operaciones (EquipItem y OnNoneCellPointerDown) respetan flag identicamente. **S66:** integración visual con Theme.uss (design system compartido "El Diario del Pet Shop") — popup y ghost llevan clase `mm-theme` + cargan `themeStyleSheet` para resolver tokens `var(--mm-*)`. Sin persistencia directa — muta `inventory`/`dna` y dispara `GameEvents.InventoryChanged + RegistryChanged`.
 
 ## API Pública
 
@@ -86,13 +86,25 @@ private void OnNoneCellPointerDown(PointerDownEvent evt)
 | `inventory` | `PlayerInventorySO` | Fuente de verdad de items |
 | `equipmentDatabase` | `EquipmentDatabaseSO` | Resuelve IDs a EquipmentSO |
 | `equipmentPalette` | `EquipmentPaletteSO` | Colores rareza + nombre item |
-| `styleSheet` | `StyleSheet` | USS clases (backpack__*) |
+| `styleSheet` | `StyleSheet` | USS clases (backpack__*) — estilos locales del popup |
+| `themeStyleSheet` | `StyleSheet` | **S66** Design system compartido (Theme.uss) con tokens `var(--mm-*)`. Se agrega a popup y ghost para que resuelvan colores unificados |
 | `devNoConsume` | `bool` | **S34** Si true, equipar no toca inventory (testing). Aplica simétrico a EquipItem y OnNoneCellPointerDown |
+
+## S66: Integración visual con Theme.uss
+
+**Problema:** El popup y el ghost (VisualElement draggable durante drag&drop) viven fuera del árbol principal que lleva la clase `mm-theme`. Sin esa clase, no resuelven los tokens CSS `var(--mm-*)` del design system compartido.
+
+**Solución:**
+- **Open():** Popup recibe clase `mm-theme` (`popup.AddToClassList("mm-theme")`) y carga `themeStyleSheet` si existe (`popup.styleSheets.Add(themeStyleSheet)`)
+- **CreateGhost():** Ghost recibe la misma clase y stylesheet (líneas 391 y 394)
+- **Orden de stylesheets:** `themeStyleSheet` primero, luego `styleSheet` (specificity)
+
+**Impacto:** Popup y ghost son ahora **visualmente coherentes** con el resto del UI bajo "El Diario del Pet Shop" (tokens de color centralizados en Theme.uss).
 
 ## Drag&Drop Internals
 
 - **dragStart, DragThreshold (6px):** Umbral para distinguir click de drag
-- **ghost:** VisualElement con icon del item, se posiciona bajo cursor
+- **ghost:** VisualElement con icon del item, se posiciona bajo cursor. **S66:** Recibe clase `mm-theme` y stylesheet para resolver tokens
 - **dragOriginCell/dragTargetCell:** CSS classes para visual feedback
 - **pointer capture:** Crítico para confiabilidad
 - **Hover tab switching:** `SwitchPageUnderPointer()` detecta hit sobre botones tab durante drag y cambia página (rebuild si ocurre)
@@ -141,6 +153,7 @@ private void OnNoneCellPointerDown(PointerDownEvent evt)
 ## Notas
 
 - **S34 devNoConsume fix:** Simetrico en EquipItem y OnNoneCellPointerDown — si devNoConsume=true, inventory nunca se toca en ambas operaciones
+- **S66 visual unification:** Popup y ghost llevan `mm-theme` + Theme.uss para coherencia con "El Diario del Pet Shop"
 - **No persiste directo:** GameManager escucha y persiste automáticamente
 - **Pointer capture:** Crítico para drag&drop confiable
 - **cell 0 = "None":** Siempre existe, no almacenada (cell lógica)

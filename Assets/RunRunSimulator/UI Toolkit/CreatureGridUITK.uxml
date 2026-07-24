@@ -1,9 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="CreatureGridUITKStyle.uss" />
     <!-- Root document assigned to the UIDocument component. The controller
          (CreatureGridUITK) queries "grid-container" and fills it with cards.
          The ScrollView's contentContainer is where the cards land. -->
-    <ui:VisualElement name="root" class="grid-root">
+    <ui:VisualElement name="root" class="mm-theme grid-root">
         <ui:VisualElement name="header" class="grid-header">
             <ui:Label text="MoriMonchis" class="grid-title" />
             <ui:Button name="close-button" text="X" class="grid-close" />

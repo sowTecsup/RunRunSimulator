@@ -346,6 +346,10 @@ public enum CreatureIntent
     Playing     = 11,  // using a PlayZone
     Held        = 12,  // in the player's hand
     Tumbling    = 13,  // thrown / recovering after a landing
+    Socializing = 14,  // socializing with another creature
+    Chasing     = 15,  // chasing another creature in play
+    SleepingTogether = 16,
+    Fighting    = 17,
 }
 
 // How a MoriMochi reacts when the player enters its proximity radius. The reaction
@@ -478,5 +482,32 @@ public enum ElementEventKind
     AffinityGained = 10,
     EnergyGained   = 11,
     EnergySpent    = 12,
+}
+
+// Classifies what kind of entity a Perceivable is, for MoriMonchi social perception.
+public enum PerceivableKind
+{
+    Player   = 0,
+    Monchi   = 1,
+    Customer = 2,
+    Prop     = 3,
+}
+
+// Emotional pictogram a MoriMochi emits in a world-space bubble.
+public enum EmoteKind
+{
+    Curioso  = 0,
+    Feliz    = 1,
+    Jugando  = 2,
+    Molesto  = 3,
+    Corazon  = 4,
+    Zzz      = 5,
+}
+
+public enum SocialInteractionKind
+{
+    PlayChase     = 0,
+    SleepTogether = 1,
+    GremlinFight  = 2,
 }
 }

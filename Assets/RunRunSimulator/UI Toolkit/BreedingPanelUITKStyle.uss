@@ -5,7 +5,7 @@
 .breed-backdrop {
     position: absolute;
     left: 0; right: 0; top: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.55);
+    background-color: var(--mm-scrim);
     align-items: center;
     justify-content: center;
 }
@@ -14,8 +14,10 @@
     width: 90%;
     height: 88%;
     padding: 14px;
-    border-radius: 12px;
-    background-color: rgb(28, 28, 38);
+    border-radius: 22px;
+    background-color: var(--mm-surface);
+    border-width: 3px;
+    border-color: var(--mm-frame);
 }
 
 /* Header */
@@ -32,20 +34,22 @@
     -unity-text-generator: advanced;
     -unity-text-auto-size: best-fit 24px 42px;
     -unity-font-style: bold;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
 }
 
 .breed-close {
     width: 36px; height: 36px;
     margin: 0;
-    border-radius: 6px;
+    border-radius: 10px;
+    border-width: 3px;
+    border-color: var(--mm-frame);
     -unity-font-style: bold;
     font-size: 18px;
-    color: rgb(235, 235, 240);
-    background-color: rgb(70, 70, 88);
+    color: var(--mm-ink);
+    background-color: var(--mm-surface-2);
 }
 
-.breed-close:hover { background-color: rgb(95, 95, 120); }
+.breed-close:hover { background-color: var(--mm-coral); color: rgb(255, 255, 255); }
 
 /* ── 3-column body ── */
 .breed-body {
@@ -55,15 +59,17 @@
 
 .breed-col-side {
     width: 27%;
-    background-color: rgb(24, 24, 32);
-    border-radius: 10px;
+    background-color: var(--mm-surface-2);
+    border-radius: 14px;
     padding: 8px;
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
 }
 
 .breed-col-title {
     font-size: 16px;
     -unity-font-style: bold;
-    color: rgb(170, 170, 185);
+    color: var(--mm-ink-soft);
     margin-bottom: 6px;
     -unity-text-align: middle-center;
 }
@@ -81,8 +87,8 @@
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;   /* tabs centered over the middle column */
-    background-color: rgb(22, 22, 30);
-    border-radius: 8px;
+    background-color: var(--mm-surface-2);
+    border-radius: 10px;
     padding: 4px;
     margin-bottom: 10px;
 }
@@ -96,13 +102,13 @@
     padding-left: 22px; padding-right: 22px;
     padding-top: 8px; padding-bottom: 8px;
     margin-right: 6px;
-    border-radius: 6px;
-    background-color: rgb(40, 40, 52);
+    border-radius: 8px;
+    background-color: var(--mm-surface);
 }
 
-.unity-tab__header:hover { background-color: rgb(58, 58, 76); }
-.unity-tab__header:checked { background-color: rgb(150, 90, 120); }
-.unity-tab__header-label { font-size: 18px; -unity-font-style: bold; color: rgb(225, 225, 232); }
+.unity-tab__header:hover { background-color: var(--mm-frame-soft); }
+.unity-tab__header:checked { background-color: var(--mm-coral); }
+.unity-tab__header-label { font-size: 18px; -unity-font-style: bold; color: var(--mm-ink); }
 .unity-tab__header-underline { display: none; }
 
 .breed-tabs .unity-tab-view__content-container,
@@ -130,22 +136,22 @@
     align-items: center;
     justify-content: flex-start;
     padding: 10px;
-    border-radius: 10px;
-    background-color: rgb(40, 40, 52);
+    border-radius: 14px;
+    background-color: var(--mm-surface-2);
     /* transparent 3px border reserved for the focus ring (no reflow) */
     border-width: 3px;
     border-color: rgba(0, 0, 0, 0);
 }
 
-.breed-slot:hover { background-color: rgb(54, 54, 70); }
-.breed-slot-role { font-size: 14px; color: rgb(170, 170, 185); margin-bottom: 6px; }
+.breed-slot:hover { background-color: var(--mm-surface); }
+.breed-slot-role { font-size: 14px; color: var(--mm-ink-soft); margin-bottom: 6px; }
 
 /* Square portrait placeholder (tinted with the parent's PrimaryColor in code). */
 .breed-slot-img {
     width: 120px;
     height: 120px;
-    border-radius: 8px;
-    background-color: rgb(60, 60, 72);
+    border-radius: 12px;
+    background-color: var(--mm-surface);
     margin-bottom: 8px;
 }
 
@@ -154,7 +160,7 @@
     width: 100%;
     font-size: 20px;
     -unity-font-style: bold;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
     -unity-text-align: middle-center;
     white-space: nowrap;
     overflow: hidden;
@@ -164,29 +170,29 @@
 .breed-heart { font-size: 36px; margin-left: 16px; margin-right: 16px; }
 
 .breed-egg { align-items: center; margin-top: 14px; }
-.breed-egg-icon { font-size: 48px; color: rgb(200, 200, 210); }
-.breed-time { font-size: 16px; color: rgb(180, 180, 195); margin-top: 4px; }
+.breed-egg-icon { font-size: 48px; color: var(--mm-ink-soft); }
+.breed-time { font-size: 16px; color: var(--mm-ink-soft); margin-top: 4px; }
 
 .breed-action {
     min-width: 220px;
     margin-top: 14px;
     padding-top: 10px; padding-bottom: 10px;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 18px;
     -unity-font-style: bold;
-    color: rgb(245, 240, 245);
-    background-color: rgb(190, 90, 130);
+    color: rgb(255, 255, 255);
+    background-color: var(--mm-coral);
     border-width: 3px;
-    border-color: rgba(0, 0, 0, 0);
+    border-color: var(--mm-frame);
 }
 
-.breed-action:hover { background-color: rgb(210, 110, 150); }
+.breed-action:hover { background-color: var(--mm-coral-dark); }
 
 /* Breed in flight — grayed + non-interactive until the async update lands. */
 .breed-action--busy,
 .breed-action--busy:hover {
-    background-color: rgb(90, 90, 100);
-    color: rgb(180, 180, 185);
+    background-color: var(--mm-surface-2);
+    color: var(--mm-ink-soft);
 }
 
 /* Both-parents preview fills the remaining lower space. */
@@ -202,15 +208,15 @@
     width: 50%;
     padding: 10px;
     margin: 4px;
-    border-radius: 8px;
-    background-color: rgb(34, 34, 46);
+    border-radius: 12px;
+    background-color: var(--mm-surface-2);
 }
 
-.preview-name { font-size: 18px; -unity-font-style: bold; color: rgb(235, 235, 240); margin-bottom: 4px; white-space: normal; }
-.preview-stats { font-size: 15px; -unity-font-style: bold; color: rgb(200, 200, 210); margin-bottom: 6px; }
+.preview-name { font-size: 18px; -unity-font-style: bold; color: var(--mm-ink); margin-bottom: 4px; white-space: normal; }
+.preview-stats { font-size: 15px; -unity-font-style: bold; color: var(--mm-ink-soft); margin-bottom: 6px; }
 .preview-part-row { flex-direction: row; align-items: center; margin-bottom: 3px; }
 .preview-swatch { width: 16px; height: 16px; border-radius: 4px; margin-right: 6px; }
-.preview-part-text { flex-grow: 1; font-size: 13px; color: rgb(220, 220, 228); white-space: normal; }
+.preview-part-text { flex-grow: 1; font-size: 13px; color: var(--mm-ink); white-space: normal; }
 
 /* ── Side lists (always visible) ── */
 .breed-list { flex-grow: 1; }
@@ -218,14 +224,14 @@
 .breed-candidate {
     padding: 8px;
     margin-bottom: 6px;
-    border-radius: 8px;
-    background-color: rgb(40, 40, 52);
+    border-radius: 10px;
+    background-color: var(--mm-surface);
     border-width: 3px;
     border-color: rgba(0, 0, 0, 0);
 }
 
-.breed-candidate:hover { background-color: rgb(54, 54, 70); }
-.breed-candidate-text { font-size: 14px; color: rgb(228, 228, 234); white-space: normal; }
+.breed-candidate:hover { background-color: var(--mm-surface-2); }
+.breed-candidate-text { font-size: 14px; color: var(--mm-ink); white-space: normal; }
 
 /* ── Incubando tab: egg list ── */
 .egg-list { flex-grow: 1; }
@@ -236,40 +242,40 @@
     justify-content: space-between;
     padding: 10px;
     margin-bottom: 8px;
-    border-radius: 8px;
-    background-color: rgb(40, 40, 52);
+    border-radius: 10px;
+    background-color: var(--mm-surface);
     border-width: 3px;
     border-color: rgba(0, 0, 0, 0);
 }
 
-.egg-pair { flex-grow: 1; font-size: 17px; -unity-font-style: bold; color: rgb(235, 235, 240); white-space: normal; }
-.egg-time { font-size: 16px; color: rgb(180, 180, 195); margin-left: 10px; margin-right: 10px; }
+.egg-pair { flex-grow: 1; font-size: 17px; -unity-font-style: bold; color: var(--mm-ink); white-space: normal; }
+.egg-time { font-size: 16px; color: var(--mm-ink-soft); margin-left: 10px; margin-right: 10px; }
 
 .egg-hatch {
     min-width: 110px;
     padding-top: 8px; padding-bottom: 8px;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 16px;
     -unity-font-style: bold;
-    color: rgb(30, 30, 30);
-    background-color: rgb(245, 215, 90);
+    color: var(--mm-ink);
+    background-color: var(--mm-gold);
 }
 
-.egg-hatch:hover { background-color: rgb(255, 230, 120); }
+.egg-hatch:hover { background-color: var(--mm-warn); }
 
 /* Hatch in flight — grayed out + non-interactive until the server answers.
    The :hover variant keeps it gray (otherwise the base :hover repaints it yellow). */
 .egg-hatch--busy,
 .egg-hatch--busy:hover {
-    background-color: rgb(90, 90, 100);
-    color: rgb(180, 180, 185);
+    background-color: var(--mm-surface-2);
+    color: var(--mm-ink-soft);
 }
 
 /* Focus ring (keyboard/gamepad) — toggled by the controller on the focused element. */
-.breed-focus { border-color: rgb(150, 120, 230); }
+.breed-focus { border-color: var(--mm-plum); }
 
 /* Tab bar focused (region == TabBar) — outline the header so A/D feels intentional. */
 .breed-tabs.tabbar-focused > .unity-tab-view__header-container {
     border-width: 2px;
-    border-color: rgb(150, 120, 230);
+    border-color: var(--mm-plum);
 }

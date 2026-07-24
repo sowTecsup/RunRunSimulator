@@ -98,7 +98,9 @@ internal class AgentPhysics
     // Knocked by another thrown object (IThrowable contract). If currently NavMesh-
     // controlled, hand off to physics like a throw; then apply the impulse so it
     // ragdolls away and can bounce / chain into others.
-    internal void Knock(Vector3 force)
+    internal void Knock(Vector3 force) => Knock(force, true);
+
+    internal void Knock(Vector3 force, bool stress)
     {
         if (ctx.State == AgentState.Carried) return;   // in the player's hand — don't yank it out
         if (ctx.CurrentContainer != null || ctx.IsBreeding) return;   // penned or incubating: tackle-proof — only the player can take it out
@@ -112,7 +114,7 @@ internal class AgentPhysics
         EnterRagdoll();
         if (wasAirborne) thrownTimer = keepThrown;
 
-        ctx.Dna?.Needs.AddAffect(-owner.affectOnThrow);   // being slammed around is stressful
+        if (stress) ctx.Dna?.Needs.AddAffect(-owner.affectOnThrow);   // being slammed around is stressful
         ctx.Rb.AddForce(force, ForceMode.Impulse);
         owner.onThrow?.Invoke();
     }

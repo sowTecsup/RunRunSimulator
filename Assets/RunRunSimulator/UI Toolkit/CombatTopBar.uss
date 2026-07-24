@@ -6,18 +6,18 @@
 }
 
 .topbar-home {
-    background-color: rgba(0, 0, 0, 0.72);
-    color: rgb(255, 255, 255);
+    background-color: var(--mm-surface-2);
+    color: var(--mm-ink);
     font-size: 12px;
     -unity-font-style: bold;
     border-width: 2px;
-    border-color: rgb(255, 255, 255);
-    border-radius: 6px;
+    border-color: var(--mm-frame);
+    border-radius: 8px;
     padding: 6px 10px;
 }
 
 .topbar-home:hover {
-    background-color: rgba(50, 50, 50, 0.9);
+    background-color: var(--mm-surface);
 }
 
 .topbar-home:active {

@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 5095481499270891542}
   - component: {fileID: 6709186628378203780}
   - component: {fileID: 7225401909400924455}
+  - component: {fileID: 7504713732778206602}
   m_Layer: 8
   m_Name: MorimonchiAgent
   m_TagString: Untagged
@@ -233,6 +234,14 @@ MonoBehaviour:
   turnSpeed: 540
   arriveDistance: 0.06
   attackImpactFraction: 0.45
+  anticipationSeconds: 0.3
+  anticipationPullback: 0.35
+  takeoffSeconds: 0.3
+  flightHeight: 1.1
+  flightSpeed: 5.5
+  strikeDistance: 1.1
+  hitStopSeconds: 0.12
+  landSeconds: 0.28
 --- !u!114 &6709186628378203780
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,6 +260,8 @@ MonoBehaviour:
   walkThreshold: 0.15
   runThreshold: 2.6
   crossFade: 0.2
+  flyChance: 0.25
+  flyLandCrossFade: 0.25
 --- !u!114 &7225401909400924455
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -267,6 +278,20 @@ MonoBehaviour:
   visualizer: {fileID: 7322393538792137441}
   combatDriver: {fileID: 5095481499270891542}
   tickSeconds: {x: 2.5, y: 5}
+--- !u!114 &7504713732778206602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3990977039202299874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df259620508ada64bbf8134ccdd8ffb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.Perceivable
+  kind: 1
+  tags: []
 --- !u!1 &5433115026417847636
 GameObject:
   m_ObjectHideFlags: 0
@@ -278,6 +303,7 @@ GameObject:
   - component: {fileID: 2979730703620325569}
   - component: {fileID: 1653583709362797035}
   - component: {fileID: 227817693175286306}
+  - component: {fileID: 2361125113172771009}
   m_Layer: 8
   m_Name: WorldUITKInfo
   m_TagString: Untagged
@@ -339,6 +365,23 @@ MonoBehaviour:
   m_PivotReferenceSize: 0
   m_Pivot: 0
   m_WorldSpaceCollider: {fileID: 0}
+--- !u!114 &2361125113172771009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5433115026417847636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f165353a27dc064dbab77f084a5ad47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.MonchiEmoteBubble
+  agent: {fileID: 992515727134330810}
+  visibleSeconds: 2
+  popSeconds: 0.18
+  fadeSeconds: 0.35
+  fontSize: 25
 --- !u!1 &5628189210837853605
 GameObject:
   m_ObjectHideFlags: 0

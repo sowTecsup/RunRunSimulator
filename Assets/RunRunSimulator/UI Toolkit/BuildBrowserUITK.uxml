@@ -1,10 +1,11 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="BuildBrowserUITKStyle.uss" />
     <!-- Furniture browser, shown only in build mode (Tab toggles). Standalone — NOT
          a UIManager panel, so opening it does NOT raise OnUIFocusChanged (which would
          exit build mode). The controller (BuildBrowserUITK) fills "tabs" with one tab
          per FurnitureCategory and "pieces" with the owned pieces in the active tab. -->
-    <ui:VisualElement name="root" class="browser-root">
+    <ui:VisualElement name="root" class="mm-theme browser-root">
         <ui:VisualElement name="panel" class="browser-panel">
             <ui:VisualElement name="header" class="browser-header">
                 <ui:Label text="Construcción" class="browser-title" />

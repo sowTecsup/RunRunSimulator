@@ -268,9 +268,10 @@ internal class AgentBrain
         if (ctx.CurrentContainer != null)
             return AgentContext.RandomPointInBounds(ctx.CurrentContainer.InteriorBounds);
 
-        return (Random.value < ctx.Profile.AreaPreference && TryGetPreferredPoint(out var pref))
+        Vector3 candidate = (Random.value < ctx.Profile.AreaPreference && TryGetPreferredPoint(out var pref))
             ? pref
             : ctx.Body.position + Random.insideUnitSphere * ctx.Profile.RoamRadius;
+        return owner.AdjustRoamForAvoidance(candidate);
     }
 
     // Samples a point on the creature's preferred NavMesh area. Fails gracefully if the

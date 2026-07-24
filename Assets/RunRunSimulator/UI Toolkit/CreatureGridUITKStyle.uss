@@ -1,23 +1,22 @@
 /* Grid layout for the MoriMonchis panel (UI Toolkit).
+   Colors come from Theme.uss tokens (mm-theme on the root) — "El Diario del Pet Shop".
    - 10% inset from every screen edge, always (responsive).
    - Cards are a wrapping flex row; their size is driven from C# (cardSize).
    - Vertical scroll kicks in automatically when the cards overflow. */
 
 .grid-root {
-    /* 10% margin on all four edges. left/right resolve against parent width,
-       top/bottom against parent height → an exact, responsive 10% inset that
-       stays 10% on any resolution (PanelSettings = Scale With Screen Size). */
     position: absolute;
     left: 10%;
     right: 10%;
     top: 10%;
     bottom: 10%;
-    padding: 12px;
-    background-color: rgba(20, 20, 28, 0.9);
-    border-radius: 10px;
+    padding: 14px;
+    background-color: var(--mm-surface);
+    border-width: 3px;
+    border-color: var(--mm-frame);
+    border-radius: 22px;
 }
 
-/* Header row: title on the left, close button on the right. */
 .grid-header {
     flex-direction: row;
     justify-content: space-between;
@@ -28,99 +27,90 @@
 .grid-title {
     font-size: 28px;
     -unity-font-style: bold;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
 }
 
-/* Close button — sits at the title's height; clicking it toggles the panel shut,
-   same as tapping E. */
 .grid-close {
     width: 36px;
     height: 36px;
     margin: 0;
-    border-radius: 6px;
+    border-radius: 10px;
+    border-width: 3px;
+    border-color: var(--mm-frame);
     -unity-font-style: bold;
     font-size: 18px;
-    color: rgb(235, 235, 240);
-    background-color: rgb(70, 70, 88);
+    color: var(--mm-ink);
+    background-color: var(--mm-surface-2);
 }
 
 .grid-close:hover {
-    background-color: rgb(95, 95, 120);
+    background-color: var(--mm-coral);
+    color: rgb(255, 255, 255);
 }
 
-/* ScrollView fills the leftover space below the title. Because grid-root has a
-   bounded height (the 10% inset box), this height is bounded too → the moment the
-   wrapped cards are taller than it, the vertical scrollbar appears. */
 .grid-container {
     flex-grow: 1;
 }
 
-/* The cards wrap into rows inside the scroll content. */
 .grid-container .unity-scroll-view__content-container {
     flex-direction: row;
     flex-wrap: wrap;
     align-content: flex-start;
 }
 
-/* One card = one MoriMochi. width/height come from C# (cardSize); the card is a
-   vertical column split 20% / 60% / 20%: name on top, icon in the middle, state
-   at the bottom. The % heights resolve against the card's definite height. */
+/* One card = one MoriMochi. width/height come from C# (cardSize). Warm paper card
+   with an inked border; slightly rounded like a taped-in photo. */
 .card {
     margin: 6px;
-    padding: 4px;
-    border-radius: 8px;
-    background-color: rgb(40, 40, 52);
+    padding: 5px;
+    border-radius: 14px;
+    background-color: var(--mm-surface-2);
     align-items: center;
-    /* Always reserve a 3px transparent border so toggling the selection color
-       never reflows the grid. */
     border-width: 3px;
-    border-color: rgba(0, 0, 0, 0);
+    border-color: var(--mm-frame-soft);
 }
 
-/* Clickable feedback — cards open the detail window. */
 .card:hover {
-    background-color: rgb(58, 58, 76);
+    background-color: var(--mm-surface);
+    border-color: var(--mm-coral);
 }
 
-/* Keyboard/gamepad selection highlight (set by CreatureGridUITK). */
 .card--selected {
-    border-color: rgb(150, 120, 230);
-    background-color: rgb(70, 60, 95);
+    border-color: var(--mm-coral);
+    background-color: var(--mm-surface);
 }
 
-/* Top 20% — name. Auto-sizes to fit its box (needs the advanced text generator). */
 .card__name {
     height: 20%;
     width: 100%;
     -unity-text-generator: advanced;
     -unity-text-auto-size: best-fit 8px 22px;
     -unity-font-style: bold;
-    color: rgb(235, 235, 240);
+    color: var(--mm-ink);
     -unity-text-align: middle-center;
     white-space: normal;
 }
 
-/* Middle 60% — icon. Tinted with PrimaryColor from code until real sprites exist. */
+/* Middle 60% — portrait. Framed like a photo; tinted with the creature color from
+   code until the live 3D render / pixel frame lands. */
 .card__icon {
     height: 60%;
     width: 80%;
-    border-radius: 6px;
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
     background-color: rgb(120, 120, 120);
 }
 
-/* Bottom 20% — state. Auto-sizes to fit its box (matched to the name's max so
-   short states like "Free" actually fill the footer instead of capping small). */
 .card__state {
     height: 20%;
     width: 100%;
     -unity-text-generator: advanced;
     -unity-text-auto-size: best-fit 6px 22px;
-    color: rgb(180, 180, 190);
+    color: var(--mm-ink-soft);
     -unity-text-align: middle-center;
 }
 
-/* Equipment row — three clickable slot swatches (weapon/armor/amulet) below the
-   state label. Each slot opens the equipment backpack for that creature/slot. */
 .card__equip-row {
     flex-direction: row;
     justify-content: center;
@@ -131,9 +121,10 @@
     width: 22px;
     height: 22px;
     margin: 1px;
-    border-width: 1px;
-    border-radius: 4px;
-    background-color: rgba(30, 30, 40, 0.6);
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
+    border-radius: 6px;
+    background-color: var(--mm-surface);
 }
 
 .card__equip-slot--empty {

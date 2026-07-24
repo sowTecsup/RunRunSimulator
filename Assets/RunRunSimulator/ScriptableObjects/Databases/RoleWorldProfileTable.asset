@@ -102,6 +102,58 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: Reactions
+      Entry: 7
+      Data: 3|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionRuleBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 3
+    - Name: 
+      Entry: 7
+      Data: 4|MoriMonchiSimulator.ApproachFriendRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MinAffinity
+      Entry: 4
+      Data: 0.3
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 5|MoriMonchiSimulator.AvoidDislikedRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MaxAffinity
+      Entry: 4
+      Data: -0.35
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 6|MoriMonchiSimulator.SleepTogetherRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MinAffinity
+      Entry: 4
+      Data: 0.35
+    - Name: PriorityBonus
+      Entry: 4
+      Data: 0.2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -116,7 +168,7 @@ MonoBehaviour:
       Data: 1
     - Name: $v
       Entry: 7
-      Data: 3|MoriMonchiSimulator.RoleWorldProfile, Assembly-CSharp
+      Data: 7|MoriMonchiSimulator.RoleWorldProfile, Assembly-CSharp
     - Name: MoveSpeed
       Entry: 4
       Data: 2.6
@@ -168,6 +220,76 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: Reactions
+      Entry: 7
+      Data: 8|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionRuleBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 7
+      Data: 9|MoriMonchiSimulator.PlayChaseRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 20
+    - Name: MinAffinity
+      Entry: 4
+      Data: 0.25
+    - Name: PriorityBonus
+      Entry: 4
+      Data: 0.15
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 10|MoriMonchiSimulator.AvoidDislikedRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MaxAffinity
+      Entry: 4
+      Data: -0.5
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 11|MoriMonchiSimulator.SleepTogetherRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MinAffinity
+      Entry: 4
+      Data: 0.5
+    - Name: PriorityBonus
+      Entry: 4
+      Data: 0.2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 12|MoriMonchiSimulator.GremlinFightRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MaxAffinity
+      Entry: 4
+      Data: 0.05
+    - Name: PriorityBonus
+      Entry: 4
+      Data: 0.15
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 8
       Data: 
@@ -182,7 +304,7 @@ MonoBehaviour:
       Data: 2
     - Name: $v
       Entry: 7
-      Data: 4|MoriMonchiSimulator.RoleWorldProfile, Assembly-CSharp
+      Data: 13|MoriMonchiSimulator.RoleWorldProfile, Assembly-CSharp
     - Name: MoveSpeed
       Entry: 4
       Data: 2.8
@@ -231,6 +353,73 @@ MonoBehaviour:
     - Name: 
       Entry: 4
       Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: Reactions
+      Entry: 7
+      Data: 14|System.Collections.Generic.List`1[[MoriMonchiSimulator.ReactionRuleBase,
+        Assembly-CSharp]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 4
+    - Name: 
+      Entry: 7
+      Data: 15|MoriMonchiSimulator.ApproachFriendRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MinAffinity
+      Entry: 4
+      Data: 0.15
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 16|MoriMonchiSimulator.PlayChaseRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MinAffinity
+      Entry: 4
+      Data: 0.35
+    - Name: PriorityBonus
+      Entry: 4
+      Data: 0.15
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 17|MoriMonchiSimulator.AvoidDislikedRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MaxAffinity
+      Entry: 4
+      Data: -0.6
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 18|MoriMonchiSimulator.SleepTogetherRule, Assembly-CSharp
+    - Name: Cooldown
+      Entry: 4
+      Data: 10
+    - Name: MinAffinity
+      Entry: 4
+      Data: 0.25
+    - Name: PriorityBonus
+      Entry: 4
+      Data: 0.2
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 13
+      Data: 
     - Name: 
       Entry: 8
       Data: 

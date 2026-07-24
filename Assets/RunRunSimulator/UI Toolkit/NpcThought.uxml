@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="NpcThoughtStyle.uss" />
-    <ui:VisualElement name="thought-root" class="npc-tag">
+    <ui:VisualElement name="thought-root" class="mm-theme npc-tag">
         <ui:Label name="npc-name-label" text="Cliente" class="npc-tag__name" />
         <ui:Label name="thought-label"  text=""        class="npc-tag__thought" />
     </ui:VisualElement>

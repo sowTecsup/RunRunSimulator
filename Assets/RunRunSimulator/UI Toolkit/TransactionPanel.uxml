@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+  <Style src="Theme.uss" />
   <Style src="TransactionPanel.uss" />
-  <ui:VisualElement name="backdrop" class="tx-backdrop">
+  <ui:VisualElement name="backdrop" class="mm-theme tx-backdrop">
     <ui:VisualElement name="panel-root" class="panel">
       <ui:VisualElement class="panel__header">
         <ui:Label text="OFERTA DE COMPRA" class="panel__title" />

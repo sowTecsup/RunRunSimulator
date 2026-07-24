@@ -35,6 +35,23 @@ public class RoleWorldProfileSO : SerializedScriptableObject
             { Role.Agresivo,  Make(2.6f, 0.25f, 0.6f, 4f, 7f, ProximityReaction.Approach, 1.5f, WorldArea.ShopFrontDesk, 0.60f, 1.4f, new Color(1.00f, 0.30f, 0.25f)) },
             { Role.Empatico,  Make(2.8f, 0.25f, 0.7f, 5f, 9f, ProximityReaction.Follow,   2.2f, WorldArea.ShopFrontDesk, 0.50f, 1.3f, new Color(1.00f, 0.50f, 0.85f)) },
         };
+
+        profiles[Role.Protector].Reactions = new List<ReactionRuleBase>
+        {
+            new ApproachFriendRule { MinAffinity = 0.3f },
+            new AvoidDislikedRule { MaxAffinity = -0.35f },
+        };
+        profiles[Role.Agresivo].Reactions = new List<ReactionRuleBase>
+        {
+            new PlayChaseRule { MinAffinity = 0.25f, Cooldown = 20f },
+            new AvoidDislikedRule { MaxAffinity = -0.5f },
+        };
+        profiles[Role.Empatico].Reactions = new List<ReactionRuleBase>
+        {
+            new ApproachFriendRule { MinAffinity = 0.15f },
+            new PlayChaseRule { MinAffinity = 0.35f },
+            new AvoidDislikedRule { MaxAffinity = -0.6f },
+        };
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
 #endif
@@ -78,6 +95,7 @@ public class RoleWorldProfile
     public float                               AreaPreference  = 0.5f;   // odds a roam point heads to PreferredArea (0 = ignores it, fully free; 1 = always homes)
     [LabelWidth(150)] public float             RecoverySpeed   = 1f;     // get-up pace after a throw (>1 faster, <1 groggier)
     [LabelWidth(150)] public Color             Tint            = Color.white;  // debug/visible body color per role
+    [LabelWidth(150)] public List<ReactionRuleBase> Reactions   = new List<ReactionRuleBase>();
 
     public static RoleWorldProfile Neutral() => new RoleWorldProfile();
 }

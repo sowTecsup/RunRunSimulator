@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="CombatHpBar.uss" />
-    <ui:VisualElement name="root" class="hp-root">
+    <ui:VisualElement name="root" class="mm-theme hp-root">
         <ui:Label name="name" text="?" class="hp-name" />
         <ui:VisualElement name="track" class="hp-track">
             <ui:VisualElement name="fill" class="hp-fill" />

@@ -1,7 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
     <Style src="BreedingPanelUITKStyle.uss" />
     <!-- Full-screen modal backdrop (eats clicks). Window centered inside. -->
-    <ui:VisualElement name="backdrop" class="breed-backdrop">
+    <ui:VisualElement name="backdrop" class="mm-theme breed-backdrop">
         <ui:VisualElement name="window" class="breed-window">
 
             <ui:VisualElement name="breed-header" class="breed-header">

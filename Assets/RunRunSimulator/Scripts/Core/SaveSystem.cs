@@ -14,6 +14,7 @@ public static class SaveSystem
     private const string DB_FILENAME        = "creature_database.json";
     private const string FURNITURE_FILENAME = "furniture_registry.json";
     private const string INVENTORY_FILENAME = "player_inventory.json";
+    private const string SOCIAL_FILENAME    = "social_graph.json";
 
     private static string _userScope = "";
 
@@ -150,6 +151,28 @@ public static class SaveSystem
             File.ReadAllText(path), Settings);
         inventory.LoadFrom(data);
        // Debug.Log($"[SaveSystem] Loaded inventory from {path}");
+    }
+
+    // ── Social graph ───────────────────────────────────────────────
+
+    public static void SaveSocialGraph()
+    {
+        string path = ScopedPath(SOCIAL_FILENAME);
+        File.WriteAllText(path, JsonConvert.SerializeObject(SocialGraphService.ExportData(), Settings));
+    }
+
+    public static void LoadSocialGraph(CreatureRegistrySO registry)
+    {
+        string path = ScopedPath(SOCIAL_FILENAME);
+        if (!File.Exists(path))
+        {
+            SocialGraphService.Clear();
+            return;
+        }
+
+        var data = JsonConvert.DeserializeObject<Dictionary<string, float>>(
+            File.ReadAllText(path), Settings);
+        SocialGraphService.ImportData(data, id => registry != null && registry.TryGet(id, out _));
     }
 
     // Serializes UnityEngine.Color as a 6-character hex string (e.g. "FF00AA").
