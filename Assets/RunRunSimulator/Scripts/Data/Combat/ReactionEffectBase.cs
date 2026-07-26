@@ -36,7 +36,7 @@ public class ArmStateEffect : ReactionEffectBase
 
     public override string Summary()
     {
-        return $"Arma el estado {State} sobre el portador";
+        return Loc.Tr("effect.arm_state.summary", State);
     }
 }
 
@@ -73,7 +73,7 @@ public class CleanseEffect : ReactionEffectBase
 
     public override string Summary()
     {
-        return $"Purga el primer estado negativo o cura {HealPercent:P0} de MaxHp";
+        return Loc.Tr("effect.cleanse.summary", HealPercent);
     }
 }
 
@@ -102,7 +102,7 @@ public class DoubleShieldEffect : ReactionEffectBase
 
     public override string Summary()
     {
-        return $"Duplica el escudo del portador; si no tiene, otorga {GrantAmount:F0}";
+        return Loc.Tr("effect.double_shield.summary", GrantAmount);
     }
 }
 
@@ -133,7 +133,7 @@ public class LeechEffect : ReactionEffectBase
 
     public override string Summary()
     {
-        return $"Drena {Amount:F0} HP del portador y cura al reactor";
+        return Loc.Tr("effect.leech.summary", Amount);
     }
 }
 
@@ -162,7 +162,7 @@ public class RemoveRandomMarkEffect : ReactionEffectBase
 
     public override string Summary()
     {
-        return "Remueve una marca elemental aliada aleatoria del portador";
+        return Loc.Tr("effect.remove_random_mark.summary");
     }
 }
 
@@ -182,7 +182,7 @@ public class HealEffect : ReactionEffectBase
 
     public override string Summary()
     {
-        return $"Cura {Amount:F0} HP planos al portador";
+        return Loc.Tr("effect.heal.summary", Amount);
     }
 }
 
@@ -201,7 +201,7 @@ public class DamageEffect : ReactionEffectBase
 
     public override string Summary()
     {
-        return $"Inflige {Amount:F0} de daño plano al portador";
+        return Loc.Tr("effect.damage.summary", Amount);
     }
 }
 

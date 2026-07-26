@@ -101,6 +101,8 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
         tabs        = root.Q<TabView>("tabs");
         closeButton = root.Q<Button>("close-button");
 
+        WireStaticLabels(root);
+
         breed = new BreedingBreedTabPresenter(root, () => registry, database, asyncBreedingService, OnBred);
         eggs  = new BreedingEggsTabPresenter(root, () => registry, asyncBreedingService);
 
@@ -109,6 +111,49 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
         wired = true;
         RebuildAll();
         ResetFocus();
+    }
+
+    private static void WireStaticLabels(VisualElement root)
+    {
+        SetLabelText(root, "title", "ui.breeding.title");
+        SetTabLabel(root, "tab-criar", "ui.breeding.tab.breed");
+        SetTabLabel(root, "tab-incubando", "ui.breeding.tab.eggs");
+        SetButtonText(root, "breed-button", "ui.breeding.breed.action");
+
+        SetSideColumnTitle(root, "father-list", "ui.breeding.column.fathers");
+        SetSideColumnTitle(root, "mother-list", "ui.breeding.column.mothers");
+        SetSlotRoleLabel(root, "father-slot", "ui.breeding.role.father");
+        SetSlotRoleLabel(root, "mother-slot", "ui.breeding.role.mother");
+    }
+
+    private static void SetLabelText(VisualElement root, string name, string key)
+    {
+        var label = root.Q<Label>(name);
+        if (label != null) label.text = Loc.Tr(key);
+    }
+
+    private static void SetButtonText(VisualElement root, string name, string key)
+    {
+        var btn = root.Q<Button>(name);
+        if (btn != null) btn.text = Loc.Tr(key);
+    }
+
+    private static void SetTabLabel(VisualElement root, string tabName, string key)
+    {
+        var tab = root.Q<Tab>(tabName);
+        if (tab != null) tab.label = Loc.Tr(key);
+    }
+
+    private static void SetSideColumnTitle(VisualElement root, string listName, string key)
+    {
+        var label = root.Q<ScrollView>(listName)?.parent?.Q<Label>(className: "breed-col-title");
+        if (label != null) label.text = Loc.Tr(key);
+    }
+
+    private static void SetSlotRoleLabel(VisualElement root, string slotName, string key)
+    {
+        var label = root.Q<VisualElement>(slotName)?.Q<Label>(className: "breed-slot-role");
+        if (label != null) label.text = Loc.Tr(key);
     }
 
     private void OnClose() => UIManager.RequestPanelToggle(panel);

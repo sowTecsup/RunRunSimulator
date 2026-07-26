@@ -30,6 +30,24 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
     // ── Element inheritance ──────────────────────────────────────
     [LabelWidth(190), Range(0f, 1f)] public float ElementMutationChance = 0.10f;
 
+    // ── Dial inheritance (Sociability / Boldness) ──────────────────
+    public enum DialSlot { Average, Copy, Mutation }
+
+    [LabelWidth(190)] public float DialAverageWeight  = 50f;
+    [LabelWidth(190)] public float DialCopyWeight     = 30f;
+    [LabelWidth(190)] public float DialMutationWeight = 20f;
+    [LabelWidth(190), Range(0f, 0.2f)] public float DialJitter = 0.05f;
+
+    public DialSlot RollDial()
+    {
+        float total = DialAverageWeight + DialCopyWeight + DialMutationWeight;
+        if (total <= 0f) return DialSlot.Average;
+        float roll = UnityEngine.Random.Range(0f, total);
+        if (roll < DialAverageWeight) return DialSlot.Average;
+        if (roll < DialAverageWeight + DialCopyWeight) return DialSlot.Copy;
+        return DialSlot.Mutation;
+    }
+
     // ── Roll ──────────────────────────────────────────────────────
     public Slot Roll()
     {

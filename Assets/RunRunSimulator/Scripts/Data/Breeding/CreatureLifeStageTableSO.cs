@@ -33,15 +33,7 @@ public class CreatureLifeStageTableSO : SerializedScriptableObject
         return stage;
     }
 
-    public string Label(LifeStage stage) => stage switch
-    {
-        LifeStage.Newborn => "Recién nacido",
-        LifeStage.Child   => "Cría",
-        LifeStage.Teen    => "Adolescente",
-        LifeStage.Adult   => "Adulto",
-        LifeStage.Elder   => "Anciano",
-        _                 => stage.ToString(),
-    };
+    public string Label(LifeStage stage) => LocEnumMaps.LifeStageName(stage);
 
     [Button("Seed Defaults", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f)]
     private void SeedDefaults()

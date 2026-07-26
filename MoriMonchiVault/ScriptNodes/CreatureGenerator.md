@@ -6,7 +6,7 @@ tags: [script, genetics]
 
 **Ruta:** `Core/CreatureGenerator.cs`
 
-**Responsabilidad:** Generador estático de criaturas aleatorias. Crea `CreatureDNA` con partes aleatorias por slot (cada uno con su propio roll uniforme), color base aleatorio via `ColorGenetics.RandomBase()`, color secundario derivado deterministico via `ColorGenetics.DeriveSecondary(baseColor)`, `FurType` aleatorio (ponderado si se pasa `FurTypeDatabaseSO`, uniform si null). `RandomRole()` asigna rol no heredado (metadata, 1/3 aleatorio). `RandomElement()` asigna elemento no heredado (metadata, 1/4 aleatorio) para mint. `RandomBaseStats()` genera los 3 stats iniciales (Constitution/Attack/Speed) via point-buy: distribuye `StatBudget` (18 points) entre 3 stats, clampeados a [StatMin..StatMax] (1..10).
+**Responsabilidad:** Generador estático de criaturas aleatorias. Crea `CreatureDNA` con partes aleatorias por slot (cada uno con su propio roll uniforme), color base aleatorio via `ColorGenetics.RandomBase()`, color secundario derivado deterministico via `ColorGenetics.DeriveSecondary(baseColor)`, `FurType` aleatorio (ponderado si se pasa `FurTypeDatabaseSO`, uniform si null). `RandomRole()` asigna rol no heredado (metadata, 1/3 aleatorio). `RandomElement()` asigna elemento no heredado (metadata, 1/4 aleatorio) para mint. **S69:** `RandomDial()` = Random.Range(0.15f, 0.85f) asigna dial genético para mint. `RandomBaseStats()` genera los 3 stats iniciales (Constitution/Attack/Speed) via point-buy: distribuye `StatBudget` (18 points) entre 3 stats, clampeados a [StatMin..StatMax] (1..10).
 
 ## Constantes
 
@@ -23,7 +23,23 @@ tags: [script, genetics]
 | `GenerateRandom(CreatureDatabaseSO, FurTypeDatabaseSO)` | `CreatureDNA` | **S61** Partes uniforme + color base/secundario + FurType aleatorio (ponderado si furDb != null, uniforme si null) + IsShiny roll (sin stats base). Firma simplificada: eliminado `RarityOddsTableSO` (rareza reservada para gemas). |
 | `RandomRole()` | `Role` | **S37** Role aleatorio no heredado (1/3). |
 | `RandomElement()` | `Element` | **S39** Element aleatorio no heredado (1/4). |
+| `RandomDial()` | `float` | **S69** Retorna `Random.Range(0.15f, 0.85f)` para asignar diales genéticos (Sociability/Boldness) en mint. Rango evita extremos (0 ó 1) para variedad de comportamiento. |
 | `RandomBaseStats()` | `(float, float, float)` | Point-buy: distribuye 18 puntos entre CON/ATK/SPD, cada uno 1–10. |
+
+## Cambios S69
+
+**Nuevo método `RandomDial()`:**
+```csharp
+public static float RandomDial() => Random.Range(0.15f, 0.85f);
+```
+
+**Propósito:** Asigna valores iniciales para diales genéticos (`Sociability` y `Boldness`) en mint. Rango 0.15..0.85 evita extremos absolutos (nunca 0 ó 1 puro) para garantizar variedad de comportamiento sin outliers.
+
+**Consumo:**
+- `GameManager.MintRandomCreature()` → llama `RandomDial()` dos veces (Sociability, Boldness)
+- En breeding: `BreedingService.InheritDial()` hereda con Average/Copy/Mutation, no llama RandomDial
+
+**Metadata:** Diales no son genéticos (no parte de ToStringID). Se asignan al random en mint; se heredan en breeding vía InheritanceOddsTableSO.
 
 ## Cambios S61
 
@@ -115,4 +131,4 @@ public static Element RandomElement()
 
 ## Conexiones
 
-[[CreatureDNA]], [[PartDatabaseSO]], [[GameManager]], [[ColorGenetics]], [[FurType]], [[Enums]], [[Role]], [[Element]], [[BreedingService]], [[FurTypeDatabaseSO]]
+[[CreatureDNA]], [[PartDatabaseSO]], [[GameManager]], [[ColorGenetics]], [[FurType]], [[Enums]], [[Role]], [[Element]], [[BreedingService]], [[FurTypeDatabaseSO]], [[SocialTuningSO]]

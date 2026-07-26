@@ -185,7 +185,7 @@ public class NameTag : MonoBehaviour
         {
             var svc = CustomerService.Instance;
             int price = svc != null ? svc.EstimateAverage(dna) : 0;
-            priceLabel.text = $"{price} D";
+            priceLabel.text = Loc.Tr("nametag.price", price);
             SetDisplay(priceLabel, true);
         }
     }
@@ -207,7 +207,7 @@ public class NameTag : MonoBehaviour
         }
         if (roleLabel != null)
         {
-            roleLabel.text = RoleText(dna.Role);
+            roleLabel.text = LocEnumMaps.RoleName(dna.Role);
             SetDisplay(roleLabel, true);
         }
         if (stageLabel != null)
@@ -259,7 +259,7 @@ public class NameTag : MonoBehaviour
 
         SetDisplay(petHintLabel, showPetHint);
         if (showPetHint && petHintLabel != null)
-            petHintLabel.text = isBeingPetted ? "Petting..." : "[E] Acariciar";
+            petHintLabel.text = isBeingPetted ? Loc.Tr("nametag.petting") : Loc.Tr("nametag.pethint");
 
         SetDisplay(statusLabel, showStatus);
         if (showStatus && statusLabel != null)
@@ -270,7 +270,7 @@ public class NameTag : MonoBehaviour
 
         SetDisplay(intentLabel, showIntent);
         if (showIntent && intentLabel != null)
-            intentLabel.text = IntentText(agent.Intent);
+            intentLabel.text = LocEnumMaps.IntentName(agent.Intent);
     }
 
     private static void SetDisplay(Label label, bool visible)
@@ -281,38 +281,14 @@ public class NameTag : MonoBehaviour
     // (text, color) for the busy/dead status line. Empty text → the line hides.
     private static (string, Color) StatusOf(CreatureDNA dna)
     {
-        if (dna.IsDead) return ("Muerto", new Color(1f, 0.39f, 0.39f));
+        if (dna.IsDead) return (Loc.Tr("status.dead"), new Color(1f, 0.39f, 0.39f));
         return dna.BusyState switch
         {
-            BusyReason.QueuedForCombat => ("En cola",   new Color(1f, 0.71f, 0.39f)),
-            BusyReason.Breeding        => ("Incubando", new Color(1f, 0.61f, 0.82f)),
+            BusyReason.QueuedForCombat => (Loc.Tr("status.queued"),   new Color(1f, 0.71f, 0.39f)),
+            BusyReason.Breeding        => (Loc.Tr("status.breeding"), new Color(1f, 0.61f, 0.82f)),
             _                          => ("", Color.clear),
         };
     }
-
-    // Player-facing phrasing of the agent's current intent (Spanish, neutral).
-    private static string IntentText(CreatureIntent intent) => intent switch
-    {
-        CreatureIntent.Idle         => "Quieto",
-        CreatureIntent.Wandering    => "Paseando",
-        CreatureIntent.Following     => "Te sigue",
-        CreatureIntent.Approaching   => "Se acerca",
-        CreatureIntent.Fleeing       => "¡Huye!",
-        CreatureIntent.Retreating    => "Se aleja",
-        CreatureIntent.SeekingFood   => "Busca comida",
-        CreatureIntent.SeekingRest   => "Va a descansar",
-        CreatureIntent.SeekingPlay   => "Busca jugar",
-        CreatureIntent.Eating        => "Comiendo",
-        CreatureIntent.Resting       => "Durmiendo",
-        CreatureIntent.Playing       => "Jugando",
-        CreatureIntent.Held          => "En tus manos",
-        CreatureIntent.Tumbling      => "¡Por los aires!",
-        CreatureIntent.Chasing       => "¡Persiguiendo!",
-        CreatureIntent.Socializing   => "Socializando",
-        CreatureIntent.SleepingTogether => "Durmiendo juntos",
-        CreatureIntent.Fighting     => "¡Peleando!",
-        _                            => "",
-    };
 
     // ── Pen layout helpers ────────────────────────────────────────
 
@@ -330,27 +306,19 @@ public class NameTag : MonoBehaviour
         _                     => new Color(0.7f, 0.7f, 0.7f),
     };
 
-    private static string RoleText(Role r) => r switch
-    {
-        Role.Protector => "Protector",
-        Role.Agresivo  => "Agresivo",
-        Role.Empatico  => "Empático",
-        _              => r.ToString(),
-    };
-
     private static string StageText(int ageDays)
     {
         var table = BreedingController.Instance != null ? BreedingController.Instance.LifeStageTable : null;
         return table != null
-            ? $"{table.Label(table.GetStage(ageDays))} · {ageDays}d"
+            ? Loc.Tr("nametag.stageage", LocEnumMaps.LifeStageName(table.GetStage(ageDays)), ageDays)
             : $"{ageDays}d";
     }
 
-    // Live mm:ss until the egg can hatch (server epoch ms); "¡Listo! [E]" once due.
+    // Live mm:ss until the egg can hatch (server epoch ms); ready prompt once due.
     private static string CountdownText(long readyAtMs)
     {
         long left = readyAtMs - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        return left <= 0 ? "¡Listo! [E]" : $"{TimeSpan.FromMilliseconds(left):mm\\:ss}";
+        return left <= 0 ? Loc.Tr("nametag.ready") : $"{TimeSpan.FromMilliseconds(left):mm\\:ss}";
     }
 }
 }

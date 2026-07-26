@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
@@ -49,6 +50,7 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     private DetailCombatTabPresenter combat;
     private DetailTreesPresenter trees;
     private DetailEquipTabPresenter equip;
+    private DetailRelationsPresenter relations;
 
     // Kept from the latest Show() so the tab presenters can resolve opponents
     // and ancestors by ID (the event carries it — the panel never touches the grid).
@@ -125,12 +127,56 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         closeButton = root.Q<Button>("close-button");
         if (closeButton != null) closeButton.clicked += OnClose;
 
+        WireStaticLabels(root);
+
         info   = new DetailInfoTabPresenter(root, database, equipmentDatabase);
         combat = new DetailCombatTabPresenter(root, () => registry);
         trees  = new DetailTreesPresenter(root, database, () => registry);
         equip  = new DetailEquipTabPresenter(root, database, equipmentDatabase, equipmentPalette, backpack, () => registry);
+        relations = new DetailRelationsPresenter(root, () => registry);
 
         wired = true;
+    }
+
+    private static void WireStaticLabels(VisualElement root)
+    {
+        SetTabLabel(root, "tab-info", "ui.detail.tab.info");
+        SetTabLabel(root, "tab-combat", "ui.detail.tab.combat");
+        SetTabLabel(root, "tab-breed", "ui.detail.tab.breed");
+        SetTabLabel(root, "tab-lineage", "ui.detail.tab.lineage");
+        SetTabLabel(root, "tab-team", "ui.detail.tab.equipment");
+        SetTabLabel(root, "tab-relations", "ui.detail.tab.relations");
+
+        SetSectionTitles(root, "tab-info", "ui.detail.section.identity", "ui.detail.section.role_element",
+            "ui.detail.section.parts", "ui.detail.section.progression");
+        SetSectionTitles(root, "tab-team", "ui.detail.section.stats");
+        SetSectionTitles(root, "tab-relations", "ui.detail.section.friends", "ui.detail.section.foes");
+
+        SetLabelText(root, "combat-empty", "ui.detail.placeholder.combat_empty");
+        SetLabelText(root, "breed-empty", "ui.detail.placeholder.breed_empty");
+        SetLabelText(root, "lineage-empty", "ui.detail.placeholder.lineage_empty");
+        SetLabelText(root, "relations-empty", "ui.detail.placeholder.relations_empty");
+    }
+
+    private static void SetTabLabel(VisualElement root, string tabName, string key)
+    {
+        var tab = root.Q<Tab>(tabName);
+        if (tab != null) tab.label = Loc.Tr(key);
+    }
+
+    private static void SetSectionTitles(VisualElement root, string tabName, params string[] keys)
+    {
+        var tab = root.Q<Tab>(tabName);
+        if (tab == null) return;
+        var labels = tab.Query<Label>(className: "section-title").ToList();
+        for (int i = 0; i < keys.Length && i < labels.Count; i++)
+            labels[i].text = Loc.Tr(keys[i]);
+    }
+
+    private static void SetLabelText(VisualElement root, string name, string key)
+    {
+        var label = root.Q<Label>(name);
+        if (label != null) label.text = Loc.Tr(key);
     }
 
     // Populate then show. Repopulates if already open (clicking another card).
@@ -180,6 +226,7 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         combat.Rebuild(dna);
         trees.Rebuild(dna);
         equip.Rebuild(dna);
+        relations.Rebuild(dna);
     }
 }
 }

@@ -67,6 +67,17 @@ public class HotbarController : MonoBehaviour
     public string ActiveItemId => Inventory != null ? Inventory.GetHotbarSlot(activeSlot) : null;
     public bool HasActiveItem => !string.IsNullOrEmpty(ActiveItemId);
 
+    public bool IsOfferingFood
+    {
+        get
+        {
+            string id = ActiveItemId;
+            if (string.IsNullOrEmpty(id) || database == null) return false;
+            var def = database.GetById(id);
+            return def != null && def.Category == WorldPropCategory.Food;
+        }
+    }
+
     // ── Selection ─────────────────────────────────────────────────
 
     // Mouse wheel: step the active slot, wrapping around the 6 slots.
@@ -132,6 +143,19 @@ public class HotbarController : MonoBehaviour
         if (string.IsNullOrEmpty(id)) return;
         Debug.Log($"[HotbarController] Use '{id}'.");
         OnItemUsed?.Invoke(id);
+    }
+
+    public bool TryConsumeActiveFood()
+    {
+        if (!IsOfferingFood) return false;
+        var inv = Inventory;
+        if (inv == null) return false;
+
+        inv.ClearHotbarSlot(activeSlot);
+        if (heldVisual != null) { Destroy(heldVisual); heldVisual = null; }
+        GameEvents.InventoryChanged(inv);
+        OnHotbarChanged?.Invoke();
+        return true;
     }
 
     // ── Throw (hold E) / Drop (Q) ─────────────────────────────────

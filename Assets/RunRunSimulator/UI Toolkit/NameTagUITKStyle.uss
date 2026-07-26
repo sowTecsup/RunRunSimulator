@@ -8,10 +8,14 @@
     align-items: center;
     align-self: center;
     padding: 4px 8px;
-    background-color: var(--mm-surface);
-    border-width: 2px;
-    border-color: var(--mm-frame);
-    border-radius: 7px;
+    background-color: transparent;
+    border-width: 0;
+}
+
+/* Without the paper plate behind them, every line gets a soft ink shadow so the
+   text stays readable against any world background. */
+.tag Label {
+    text-shadow: 1px 1px 0 rgba(62, 42, 29, 0.85);
 }
 
 .tag__name {

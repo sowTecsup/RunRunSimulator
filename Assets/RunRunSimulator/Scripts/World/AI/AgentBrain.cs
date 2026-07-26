@@ -18,6 +18,16 @@ internal class AgentBrain
     private ProximityReaction activeReaction;
     private NeedStation reservedStation;
 
+    private bool petting;
+    private float petTimer;
+    private float petEmoteTimer;
+
+    private float feedCooldownTimer;
+    private float feedHesitateTimer;
+    private float feedEatTimer;
+    private bool feedHesitated;
+    private bool feedEating;
+
     internal AgentBrain(MoriMochiAgent owner, AgentContext ctx)
     {
         this.owner = owner;
@@ -51,6 +61,7 @@ internal class AgentBrain
         AgentState.UsingStation => UseIntent(),
         AgentState.Reacting     => ReactIntent(),
         AgentState.Idle         => CreatureIntent.Idle,
+        AgentState.HandFeed     => feedEating ? CreatureIntent.Eating : CreatureIntent.SeekingFood,
         _                       => CreatureIntent.Wandering,   // Roaming
     };
 
@@ -81,6 +92,7 @@ internal class AgentBrain
     internal void TickIdle()
     {
         if (TryEnterNeedSeeking()) return;
+        if (TryEnterHandFeed()) return;
         if (ReactIfPlayerNear()) return;
 
         idleTimer += Time.deltaTime;
@@ -90,6 +102,7 @@ internal class AgentBrain
     internal void TickRoaming()
     {
         if (TryEnterNeedSeeking()) return;
+        if (TryEnterHandFeed()) return;
         if (ReactIfPlayerNear()) return;
 
         if (!ctx.Agent.isOnNavMesh) return;
@@ -103,6 +116,7 @@ internal class AgentBrain
 
     internal void TickReacting()
     {
+        if (petting) { TickPetting(); return; }
         // A need takes priority over any reaction, same as Idle/Roaming. If a station is
         // free, go use it. Otherwise, a friendly reaction (approach/follow/retreat) must
         // NOT keep it glued to the player once it's no longer Healthy — drop back to the
@@ -165,6 +179,28 @@ internal class AgentBrain
                 Vector3 stop = ctx.Player.position - toPlayer.normalized * ctx.Profile.FollowDistance;
                 ctx.SetDestinationSafe(stop);
                 break;
+        }
+    }
+
+    private void TickPetting()
+    {
+        if (ctx.Player == null || petTimer >= owner.petMaxDuration || !IsPlayerFacingMe())
+        {
+            EndPetSession();
+            return;
+        }
+        float dt = Time.deltaTime;
+        petTimer += dt;
+        pettingDisplayTimer = 0.3f;
+        Vector3 dir = ctx.Player.position - ctx.Body.position; dir.y = 0f;
+        if (dir.sqrMagnitude > 0.001f)
+            ctx.Body.rotation = Quaternion.Slerp(ctx.Body.rotation, Quaternion.LookRotation(dir.normalized, Vector3.up), 8f * dt);
+        ctx.Dna?.Needs.AddAffect(owner.petAffectPerSecond * (1f + petTimer * owner.petRampPerSecond) * dt);
+        petEmoteTimer -= dt;
+        if (petEmoteTimer <= 0f)
+        {
+            petEmoteTimer = owner.petEmoteInterval;
+            owner.EmitEmote(EmoteKind.Corazon);
         }
     }
     // ── Needs (decay + seeking) ───────────────────────────────────
@@ -239,6 +275,103 @@ internal class AgentBrain
         if (reservedStation == null) return;
         reservedStation.Release(ctx.Owner);
         reservedStation = null;
+    }
+
+    private bool TryEnterHandFeed()
+    {
+        if (ctx.CurrentContainer != null) return false;
+        if (feedCooldownTimer > 0f) return false;
+        if (ctx.Player == null) return false;
+        var hotbar = HotbarController.Instance;
+        if (hotbar == null || !hotbar.IsOfferingFood) return false;
+        if (ctx.Dna == null || ctx.Dna.Needs.Health >= owner.feedHungerThreshold) return false;
+        if (ctx.PlanarDistanceToPlayer() > owner.feedNoticeRadius) return false;
+
+        feedHesitated      = ctx.Dna.Sociability >= owner.feedShyBelow;
+        feedHesitateTimer  = owner.feedHesitateSeconds;
+        feedEating         = false;
+        feedEatTimer       = owner.feedEatSeconds;
+        repathTimer        = 0f;
+        ctx.State          = AgentState.HandFeed;
+        ctx.Agent.updateRotation = true;
+        ctx.SetStopped(false);
+        owner.EmitEmote(EmoteKind.Curioso);
+        return true;
+    }
+
+    internal void TickHandFeed()
+    {
+        var hotbar = HotbarController.Instance;
+        if (ctx.Player == null || hotbar == null || !hotbar.IsOfferingFood ||
+            ctx.PlanarDistanceToPlayer() > owner.feedNoticeRadius * 1.5f)
+        {
+            feedCooldownTimer = 5f;
+            EnterRoaming();
+            return;
+        }
+
+        float dt   = Time.deltaTime;
+        float dist = ctx.PlanarDistanceToPlayer();
+        Vector3 toPlayer = ctx.Player.position - ctx.Body.position; toPlayer.y = 0f;
+
+        if (feedEating)
+        {
+            ctx.SetStopped(true);
+            if (toPlayer.sqrMagnitude > 0.001f)
+                ctx.Body.rotation = Quaternion.Slerp(ctx.Body.rotation, Quaternion.LookRotation(toPlayer.normalized, Vector3.up), 8f * dt);
+            feedEatTimer -= dt;
+            if (feedEatTimer <= 0f)
+            {
+                if (hotbar.TryConsumeActiveFood())
+                {
+                    ctx.Dna?.Needs.AddHealth(owner.feedHealthBoost);
+                    ctx.Dna?.Needs.AddAffect(owner.feedAffectBoost);
+                    owner.EmitEmote(EmoteKind.Feliz);
+                }
+                feedCooldownTimer = owner.feedCooldown;
+                EnterRoaming();
+            }
+            return;
+        }
+
+        if (!feedHesitated)
+        {
+            if (dist > owner.feedShyDistance)
+            {
+                ctx.SetStopped(false);
+                repathTimer -= dt;
+                if (repathTimer <= 0f)
+                {
+                    repathTimer = owner.repathInterval;
+                    ctx.SetDestinationSafe(ctx.Player.position - toPlayer.normalized * owner.feedShyDistance);
+                }
+            }
+            else
+            {
+                ctx.SetStopped(true);
+                if (toPlayer.sqrMagnitude > 0.001f)
+                    ctx.Body.rotation = Quaternion.Slerp(ctx.Body.rotation, Quaternion.LookRotation(toPlayer.normalized, Vector3.up), 8f * dt);
+                feedHesitateTimer -= dt;
+                if (feedHesitateTimer <= 0f) feedHesitated = true;
+            }
+            return;
+        }
+
+        if (dist > owner.feedDistance)
+        {
+            ctx.SetStopped(false);
+            repathTimer -= dt;
+            if (repathTimer <= 0f)
+            {
+                repathTimer = owner.repathInterval;
+                ctx.SetDestinationSafe(ctx.Player.position - toPlayer.normalized * owner.feedDistance);
+            }
+        }
+        else
+        {
+            feedEating = true;
+            ctx.SetStopped(true);
+        }
     }
     // ── Transitions ───────────────────────────────────────────────
 
@@ -346,17 +479,32 @@ internal class AgentBrain
         return Vector3.Dot(playerFwd.normalized, toMe.normalized) >= threshold;
     }
 
+    internal bool BeginPetSession()
+    {
+        if (petting || !CanBePetted) return false;
+        petting      = true;
+        petTimer     = 0f;
+        petEmoteTimer = 0f;
+        ctx.SetStopped(true);
+        return true;
+    }
+
+    internal void EndPetSession()
+    {
+        if (!petting) return;
+        petting             = false;
+        reactCooldownTimer  = owner.reactCooldown;
+        pettingDisplayTimer = 1.5f;
+        owner.onPet?.Invoke();
+        EnterRoaming();
+    }
+
     // IInteractable — tap E while facing a creature in a friendly reaction to pet it.
     // Gives an Affect boost, starts the cooldown so it won't immediately follow again,
     // and sends the creature back to its own business.
     internal void Interact()
     {
-        if (!CanBePetted) return;
-        ctx.Dna?.Needs.AddAffect(owner.affectOnPet);
-        reactCooldownTimer  = owner.reactCooldown;
-        pettingDisplayTimer = 1.5f;   // NameTag shows "Petting…" for 1.5 s
-        owner.onPet?.Invoke();
-        EnterRoaming();
+        BeginPetSession();
     }
 
     internal void TickAlways(float dt)
@@ -364,11 +512,13 @@ internal class AgentBrain
         TickNeeds(dt);
         if (reactCooldownTimer > 0f) reactCooldownTimer -= dt;
         if (pettingDisplayTimer > 0f) pettingDisplayTimer -= dt;
+        if (feedCooldownTimer > 0f) feedCooldownTimer -= dt;
     }
 
     internal void ResetForReuse()
     {
         idleTimer = repathTimer = reactingTimer = reactCooldownTimer = pettingDisplayTimer = 0f;
+        petting = false; feedEating = false; feedHesitated = false; feedCooldownTimer = 0f;
     }
 }
 }

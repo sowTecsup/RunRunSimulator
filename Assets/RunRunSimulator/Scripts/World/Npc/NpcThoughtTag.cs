@@ -84,7 +84,7 @@ public class NpcThoughtTag : MonoBehaviour
         if (nameLabel != null)
             nameLabel.text = !string.IsNullOrEmpty(agent.DisplayName) ? agent.DisplayName
                            : agent.Archetype != null ? agent.Archetype.DisplayName
-                           : "Cliente";
+                           : Loc.Tr("npc.customer");
 
         UpdateThought();
     }
@@ -101,7 +101,7 @@ public class NpcThoughtTag : MonoBehaviour
             lastState     = state;
             lastReason    = reason;
             string name   = agent.TargetMM != null && !string.IsNullOrEmpty(agent.TargetMM.CustomName)
-                          ? agent.TargetMM.CustomName : "ese";
+                          ? agent.TargetMM.CustomName : Loc.Tr("npc.unnamed");
             pendingLine   = NpcDialogueBank.Pick(state, reason, name);
             responseTimer = agent.ReactionDelay;
         }

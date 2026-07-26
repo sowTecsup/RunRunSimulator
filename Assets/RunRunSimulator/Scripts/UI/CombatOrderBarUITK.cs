@@ -177,10 +177,10 @@ public class CombatOrderBarUITK : MonoBehaviour
         headshot.RegisterCallback<PointerLeaveEvent>(_ => HideTooltip());
         body.Add(headshot);
 
-        var roleChip = new Label(RoleText(snap.Role));
+        var roleChip = new Label(LocEnumMaps.RoleName(snap.Role));
         roleChip.AddToClassList("cv-ob-role-chip");
         roleChip.AddToClassList(RoleChipClass(snap.Role));
-        RegisterTooltip(roleChip, $"Rol: {RoleText(snap.Role)}");
+        RegisterTooltip(roleChip, Loc.Tr("ui.visualizer.orderbar.role_tooltip", LocEnumMaps.RoleName(snap.Role)));
         body.Add(roleChip);
 
         var elementColor = MarkColor(element);
@@ -208,7 +208,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         var affinityElement = new Label(Identity(element).DisplayName);
         affinityElement.AddToClassList("cv-ob-affinity-element");
         affinityElement.style.backgroundColor = elementColor;
-        RegisterTooltip(affinityElement, $"Cada acción llena un punto; con 2 se aplica su marca de {Identity(element).DisplayName} sobre sí mismo");
+        RegisterTooltip(affinityElement, Loc.Tr("ui.visualizer.orderbar.affinity_tooltip", Identity(element).DisplayName));
         affinityRow.Add(affinityElement);
 
         var marksSplit = new VisualElement();
@@ -386,8 +386,10 @@ public class CombatOrderBarUITK : MonoBehaviour
         chip.AddToClassList("cv-ob-mark-chip");
         chip.style.backgroundColor = MarkColor(mark.Element);
 
-        string source = mark.AllySource ? "aliada" : "enemiga";
-        string text   = $"Marca {Identity(mark.Element).DisplayName} ({source}) — reacciona al juntarse con otra marca {source} de distinto elemento";
+        string source = mark.AllySource
+            ? Loc.Tr("ui.visualizer.orderbar.mark_source_ally")
+            : Loc.Tr("ui.visualizer.orderbar.mark_source_enemy");
+        string text = Loc.Tr("ui.visualizer.orderbar.mark_tooltip", Identity(mark.Element).DisplayName, source);
         RegisterTooltip(chip, text);
         return chip;
     }
@@ -408,7 +410,7 @@ public class CombatOrderBarUITK : MonoBehaviour
         chip.AddToClassList("cv-ob-state-chip");
         chip.AddToClassList(NegativeStates.Contains(state) ? "cv-ob-state-chip--negative" : "cv-ob-state-chip--positive");
 
-        RegisterTooltip(chip, $"{def.DisplayName}: {def.Description}");
+        RegisterTooltip(chip, Loc.Tr("ui.visualizer.orderbar.state_tooltip", def.DisplayName, def.Description));
         return chip;
     }
 
@@ -443,10 +445,9 @@ public class CombatOrderBarUITK : MonoBehaviour
     private string StatsTooltip(OrderCard card)
     {
         var snap = card.Snap;
-        return $"{snap.Name} — {Identity(card.Element).DisplayName} · {RoleText(snap.Role)}\n" +
-               $"HP {card.CurrentHp:F0}/{snap.MaxHp:F0}\n" +
-               $"ATK {snap.Attack:F0} · DEF {snap.Defense:F0} · SPD {snap.Speed:F0}\n" +
-               $"Suerte {snap.Luck:F0} · Evasión {snap.Evasion:F0}";
+        return Loc.Tr("ui.visualizer.orderbar.stats_tooltip",
+            snap.Name, Identity(card.Element).DisplayName, LocEnumMaps.RoleName(snap.Role),
+            card.CurrentHp, snap.MaxHp, snap.Attack, snap.Defense, snap.Speed, snap.Luck, snap.Evasion);
     }
 
     private void RegisterTooltip(VisualElement chip, string text)
@@ -483,14 +484,6 @@ public class CombatOrderBarUITK : MonoBehaviour
         var color = Identity(e).UiColor;
         return color.a <= 0f ? Color.white : color;
     }
-
-    private static string RoleText(Role role) => role switch
-    {
-        Role.Protector => "Protector",
-        Role.Agresivo  => "Agresivo",
-        Role.Empatico  => "Empático",
-        _              => role.ToString(),
-    };
 
     private static string RoleChipClass(Role role) => role switch
     {

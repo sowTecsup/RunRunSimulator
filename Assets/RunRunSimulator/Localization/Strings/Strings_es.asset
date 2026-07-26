@@ -1,0 +1,1487 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Strings_es
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: es
+  m_SharedData: {fileID: 11400000, guid: 8f46963f1a93ef449bc2beb3f4c28e5e, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 4172413173760
+    m_Localized: Protector
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172467699712
+    m_Localized: Agresivo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172467699713
+    m_Localized: "Emp\xE1tico"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172467699714
+    m_Localized: Agua
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088320
+    m_Localized: Fuego
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088321
+    m_Localized: Electricidad
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088322
+    m_Localized: Planta
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088323
+    m_Localized: Arma
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088324
+    m_Localized: Armadura
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088325
+    m_Localized: Amuleto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088326
+    m_Localized: Cuerpo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088327
+    m_Localized: Brazo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088328
+    m_Localized: Ojo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088329
+    m_Localized: Boca
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088330
+    m_Localized: "Reci\xE9n nacido"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088331
+    m_Localized: "Cr\xEDa"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088332
+    m_Localized: Adolescente
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088333
+    m_Localized: Adulto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088334
+    m_Localized: Anciano
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088335
+    m_Localized: Quieto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088336
+    m_Localized: Paseando
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088337
+    m_Localized: Te sigue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088338
+    m_Localized: Se acerca
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088339
+    m_Localized: "\xA1Huye!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088340
+    m_Localized: Se aleja
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088341
+    m_Localized: Busca comida
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088342
+    m_Localized: Va a descansar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088343
+    m_Localized: Busca jugar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088344
+    m_Localized: Comiendo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088345
+    m_Localized: Durmiendo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088346
+    m_Localized: Jugando
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088347
+    m_Localized: En tus manos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088348
+    m_Localized: "\xA1Por los aires!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088349
+    m_Localized: Socializando
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088350
+    m_Localized: "\xA1Persiguiendo!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088351
+    m_Localized: Durmiendo juntos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088352
+    m_Localized: "\xA1Peleando!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088353
+    m_Localized: Macho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088354
+    m_Localized: Hembra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088355
+    m_Localized: Desconocido
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088356
+    m_Localized: "\xA1Ganaste!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088357
+    m_Localized: "\xA1Perdiste!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088358
+    m_Localized: Empate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088359
+    m_Localized: CON
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088360
+    m_Localized: ATK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088361
+    m_Localized: SPD
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088362
+    m_Localized: DEF
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088363
+    m_Localized: LCK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088364
+    m_Localized: EVA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088365
+    m_Localized: Muerto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088366
+    m_Localized: En cola
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088367
+    m_Localized: Incubando
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088368
+    m_Localized: Vendido
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088369
+    m_Localized: Libre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088370
+    m_Localized: "Com\xFAn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088371
+    m_Localized: "Poco com\xFAn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088372
+    m_Localized: Raro
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088373
+    m_Localized: "\xC9pico"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088374
+    m_Localized: Legendario
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088375
+    m_Localized: Golpe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088376
+    m_Localized: Veneno
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088377
+    m_Localized: Quemadura
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088378
+    m_Localized: Espinas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088379
+    m_Localized: Cura
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088380
+    m_Localized: "Regeneraci\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088381
+    m_Localized: Aturdido
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088382
+    m_Localized: Static
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088383
+    m_Localized: Pulse
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088384
+    m_Localized: Steel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088385
+    m_Localized: Mist
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088386
+    m_Localized: Robo de vida
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088387
+    m_Localized: Escudo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088388
+    m_Localized: CLIENTE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088389
+    m_Localized: MORIMONCHI
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088390
+    m_Localized: Cancelar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088391
+    m_Localized: "{0} \xB7 {1}d"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088392
+    m_Localized: Disponibles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088393
+    m_Localized: Equipo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088394
+    m_Localized: "Pr\xF3ximamente"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088395
+    m_Localized: "Pr\xF3ximo combate en"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088396
+    m_Localized: Equipo A
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088397
+    m_Localized: Equipo B
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088398
+    m_Localized: "Cr\xEDa"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088399
+    m_Localized: Criar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088400
+    m_Localized: Incubando
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088401
+    m_Localized: Padres
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088402
+    m_Localized: Madres
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088403
+    m_Localized: Padre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088404
+    m_Localized: Madre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088405
+    m_Localized: "Vac\xEDo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088406
+    m_Localized: "\u2248 {0} min"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088407
+    m_Localized: Cruzar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088408
+    m_Localized: Cruzando...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088409
+    m_Localized: "\xA1Listo!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088410
+    m_Localized: ???
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088411
+    m_Localized: Eclosionar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088412
+    m_Localized: Eclosionando...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088413
+    m_Localized: ES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088414
+    m_Localized: Combate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088415
+    m_Localized: Batalla Online
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088416
+    m_Localized: Resultados
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088417
+    m_Localized: Historial
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088418
+    m_Localized: Equipo 3v3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088419
+    m_Localized: "Batalla Instant\xE1nea"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088420
+    m_Localized: Encolar (Timer)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088421
+    m_Localized: Selecciona un MoriMochi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088422
+    m_Localized: "{0}  \xB7  {1} {2:0} {3} {4:0} {5} {6:0} {7} {8:0} {9} {10:0} {11}
+      {12:0}  \xB7  {13}/{14}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088423
+    m_Localized: '{0} {1:0}   {2} {3:0}   {4} {5:0}   {6} {7:0}   {8} {9:0}   {10}
+      {11:0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088424
+    m_Localized: Revisando...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088425
+    m_Localized: Revisar resultados
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088426
+    m_Localized: No hay MoriMonchis en cola.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088427
+    m_Localized: encolado {0:HH:mm}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088428
+    m_Localized: "\xA1Gan\xF3 el Equipo A!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088429
+    m_Localized: "\xA1Gan\xF3 el Equipo B!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088430
+    m_Localized: "Evolucion\xF3 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088431
+    m_Localized: "Muri\xF3 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088432
+    m_Localized: "\xA1Listos para pelear!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088433
+    m_Localized: Arrastra un MoriMochi a un slot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088434
+    m_Localized: PRO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088435
+    m_Localized: AGR
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088436
+    m_Localized: EMP
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088437
+    m_Localized: FRONT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088438
+    m_Localized: MID
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088439
+    m_Localized: BACK
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172476088440
+    m_Localized: '{0} {1}  {2} {3}  {4} {5}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282624
+    m_Localized: "G\xE9nero: {0}\nEstado: {1}\nNacimiento: {2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282625
+    m_Localized: "{0} \xB7 {1}\n{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282626
+    m_Localized: "Guardi\xE1n calmo; escuda a sus aliados y vive tranquilo cerca
+      del almac\xE9n."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282627
+    m_Localized: Territorial; caza la retaguardia enemiga y vive en el bullicio del
+      mostrador.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282628
+    m_Localized: Sociable; cura a sus aliados y sigue al jugador por el mostrador.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282629
+    m_Localized: "Combates: {0} ({1} victorias)\nCr\xEDas: {2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282630
+    m_Localized: Cuerpo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282631
+    m_Localized: Brazos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282632
+    m_Localized: Ojos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282633
+    m_Localized: Boca
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282634
+    m_Localized: "{0}: {1}  \xB7  {2} \xB7 {3} \xB7 Tier{4}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282635
+    m_Localized: "{0}: \u2014"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282636
+    m_Localized: "Combate antiguo \u2014 sin stats registradas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282637
+    m_Localized: "Victoria \u2014 sin mejora"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282638
+    m_Localized: "Se mejor\xF3 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282639
+    m_Localized: "Muri\xF3 en combate"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282640
+    m_Localized: "Regres\xF3 derrotado"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282641
+    m_Localized: "Empate \u2014 sin consecuencias"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282642
+    m_Localized: "T\xFA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282643
+    m_Localized: Rival
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282644
+    m_Localized: '{0} T{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282645
+    m_Localized: "vs {0} \xB7 local"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282646
+    m_Localized: "vs {0} \xB7 de {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282647
+    m_Localized: Victoria
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282648
+    m_Localized: Derrota
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282649
+    m_Localized: Empate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282650
+    m_Localized: "T\xFA"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282651
+    m_Localized: Madre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282652
+    m_Localized: Padre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282653
+    m_Localized: Pareja
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282654
+    m_Localized: "Cr\xEDa"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282655
+    m_Localized: "\xBF?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282656
+    m_Localized: Sin equipar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282657
+    m_Localized: Ninguno
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282658
+    m_Localized: "{0}: vac\xEDo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282659
+    m_Localized: "{0} \xB7 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282660
+    m_Localized: Info
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282661
+    m_Localized: Combate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282662
+    m_Localized: "Cr\xEDa"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282663
+    m_Localized: Linaje
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282664
+    m_Localized: Equipo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282665
+    m_Localized: Relaciones
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282666
+    m_Localized: Identidad
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282667
+    m_Localized: Rol y Elemento
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282668
+    m_Localized: Partes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282669
+    m_Localized: "Progresi\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282670
+    m_Localized: Stats
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282671
+    m_Localized: Le caen bien
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282672
+    m_Localized: Le caen mal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282673
+    m_Localized: Sin combates registrados.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282674
+    m_Localized: Sin descendencia registrada.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282675
+    m_Localized: Sin ascendencia registrada (linaje silvestre).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282676
+    m_Localized: "Todav\xEDa no conoce a nadie."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282677
+    m_Localized: Arma el estado {0} sobre el portador
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282678
+    m_Localized: Purga el primer estado negativo o cura {0:P0} de MaxHp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282679
+    m_Localized: Duplica el escudo del portador; si no tiene, otorga {0:F0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282680
+    m_Localized: Drena {0:F0} HP del portador y cura al reactor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282681
+    m_Localized: Remueve una marca elemental aliada aleatoria del portador
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282682
+    m_Localized: Cura {0:F0} HP planos al portador
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282683
+    m_Localized: "Inflige {0:F0} de da\xF1o plano al portador"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282684
+    m_Localized: Escuda +{0:0.##} por turno al aliado con menos % de vida
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282685
+    m_Localized: "Cura {0:P0} del da\xF1o infligido al aliado con menos HP"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282686
+    m_Localized: Comparte su elemento con un aliado al azar cada turno
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282687
+    m_Localized: '{0:P0} de probabilidad de cazar la backline enemiga'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282688
+    m_Localized: "[{0} uso(s) \xB7 {1}] cura {2} HP"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282689
+    m_Localized: "[{0} uso(s) \xB7 {1}] inflige {2} de da\xF1o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282690
+    m_Localized: Sin modificadores
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282691
+    m_Localized: "\xA1Tu MoriMochi ha muerto permanentemente!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282692
+    m_Localized: MoriMonchis
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282693
+    m_Localized: "Construcci\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282694
+    m_Localized: "\u2191\u2193 categor\xEDa \xB7 \u2190\u2192 pieza \xB7 Enter coloca
+      \xB7 Tab cierra"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282695
+    m_Localized: "No tienes muebles en esta categor\xEDa."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282696
+    m_Localized: "Decoraci\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282697
+    m_Localized: "Exhibici\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282698
+    m_Localized: Funcional
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282699
+    m_Localized: Todos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282700
+    m_Localized: '{0}  vs  {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282701
+    m_Localized: dd/MM HH:mm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282702
+    m_Localized: "dddd dd/MM/yyyy \xB7 HH:mm"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282703
+    m_Localized: '{0} ({1})'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282704
+    m_Localized: "R{0}  {1} \u2192 {2}  \xB7  {3:0} da\xF1o{4}  \xB7  HP {5:0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282705
+    m_Localized: "  \xA1CRIT!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282706
+    m_Localized: "  \xB7  evolucion\xF3 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282707
+    m_Localized: "  \xB7  muri\xF3"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282708
+    m_Localized: "\u25B6 Ver replay"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282709
+    m_Localized: "Gan\xF3"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282710
+    m_Localized: "Muri\xF3"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282711
+    m_Localized: "Perdi\xF3"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282712
+    m_Localized: Empate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282713
+    m_Localized: "\xA1Victoria!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282714
+    m_Localized: Derrota
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282715
+    m_Localized: Acariciando...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282716
+    m_Localized: '[E] Acariciar'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282717
+    m_Localized: "\xA1Listo! [E]"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282718
+    m_Localized: '{0} D'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282719
+    m_Localized: "{0} \xB7 {1}d"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282720
+    m_Localized: "\xBFQu\xE9 tendr\xE1n hoy?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282721
+    m_Localized: "A ver qu\xE9 me encuentro\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282722
+    m_Localized: Vengo a darme una vuelta.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282723
+    m_Localized: Mmm, huele a criaturas nuevas.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282724
+    m_Localized: "\xBFHabr\xE1 algo bonito?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282725
+    m_Localized: Vamos a chismear los estantes.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282726
+    m_Localized: "Mmm, d\xE9jame ver\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282727
+    m_Localized: "\xBFSer\xE1 este el indicado?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282728
+    m_Localized: "Qu\xE9 ojitos tiene\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282729
+    m_Localized: "A ver, a ver\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282730
+    m_Localized: "No s\xE9, no s\xE9\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282731
+    m_Localized: "Interesante\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282732
+    m_Localized: "\xA1Me llevo a {0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282733
+    m_Localized: "\xA1{0} es perfecto!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282734
+    m_Localized: "\xA1Lo decid\xED: {0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480282735
+    m_Localized: "\xA1A la caja con {0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476928
+    m_Localized: "\xA1{0} se viene conmigo\u2026 si me alcanza!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476929
+    m_Localized: "Esperar\xE9 mi turno\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476930
+    m_Localized: "Uf, qu\xE9 fila."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476931
+    m_Localized: "Ah\xED voy, ah\xED voy."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476932
+    m_Localized: "Paciencia\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476933
+    m_Localized: "\xBFFalta mucho?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476934
+    m_Localized: "\xBFHay alguien en la caja?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476935
+    m_Localized: "\xBFHola? \xBFAtienden?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476936
+    m_Localized: "Tum, tum, tum\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476937
+    m_Localized: "\xBFMe escuchan?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476938
+    m_Localized: "Aqu\xED espero\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476939
+    m_Localized: "\xBFCu\xE1nto por {0}?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476940
+    m_Localized: "\xBFMe hace precio por {0}?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476941
+    m_Localized: "\xBFLo deja m\xE1s barato?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476942
+    m_Localized: "\xBFHacemos trato por {0}?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476943
+    m_Localized: "Mmm\u2026 \xBFes negociable?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476944
+    m_Localized: "\xA1{0} se viene conmigo!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476945
+    m_Localized: "\xA1M\xEDo, m\xEDo! \xA1{0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476946
+    m_Localized: "\xA1Qu\xE9 felicidad, {0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476947
+    m_Localized: "\xA1Gracias! \xA1Cuidar\xE9 a {0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476948
+    m_Localized: "\xA1{0} y yo seremos felices!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476949
+    m_Localized: "\xA1Me ganaron a {0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476950
+    m_Localized: "\xA1No! \xA1Quer\xEDa a {0}\u2026!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476951
+    m_Localized: "Llegu\xE9 tarde por {0}."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476952
+    m_Localized: Ash, se llevaron a {0}.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476953
+    m_Localized: "\xA1{0} ya ten\xEDa due\xF1o! Qu\xE9 rabia."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476954
+    m_Localized: "\xA1Est\xE1 muy lleno!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476955
+    m_Localized: "Uf, cu\xE1nta gente."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476956
+    m_Localized: Mejor vuelvo luego.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476957
+    m_Localized: No aguanto esta multitud.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476958
+    m_Localized: "\xA1Ni de chiste hago esa fila!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476959
+    m_Localized: "Ser\xE1 en otra ocasi\xF3n\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476960
+    m_Localized: Ni modo.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476961
+    m_Localized: "Quiz\xE1 la pr\xF3xima."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476962
+    m_Localized: "No era mi d\xEDa."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476963
+    m_Localized: Bah, me voy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476964
+    m_Localized: Cliente
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476965
+    m_Localized: ese
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476966
+    m_Localized: '{0} {1} de {2}, {3}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476967
+    m_Localized: 'Dabloons: {0:N0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476968
+    m_Localized: Mover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476969
+    m_Localized: Interactuar / Agarrar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476970
+    m_Localized: Usar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476971
+    m_Localized: Soltar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476972
+    m_Localized: Cambiar slot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476973
+    m_Localized: Construir
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476974
+    m_Localized: "Cat\xE1logo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476975
+    m_Localized: Tienda
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476976
+    m_Localized: "No hay nada a la venta en esta categor\xEDa."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476977
+    m_Localized: Muebles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476978
+    m_Localized: Objetos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476979
+    m_Localized: Consumibles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476980
+    m_Localized: Comprar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476981
+    m_Localized: Agotado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476982
+    m_Localized: x{0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476983
+    m_Localized: "\xA2{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476984
+    m_Localized: 'Saldo: {0:N0} Dabloons'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476985
+    m_Localized: "\xA1Art\xEDculo agotado!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476986
+    m_Localized: "\xA1Dabloons insuficientes!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476987
+    m_Localized: "\xA1Ya tienes ese mueble!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476988
+    m_Localized: Sin clientes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476989
+    m_Localized: Cliente
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476990
+    m_Localized: MoriMochi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476991
+    m_Localized: +{0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476992
+    m_Localized: OFERTA DE COMPRA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476993
+    m_Localized: OFRECE
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476994
+    m_Localized: Aceptar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476995
+    m_Localized: "Pedir m\xE1s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476996
+    m_Localized: Dabloons
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476997
+    m_Localized: "Almac\xE9n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476998
+    m_Localized: "Vac\xEDo \u2014 tira objetos aqu\xED para guardarlos."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172484476999
+    m_Localized: Sacar (Q)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671232
+    m_Localized: '{0}   VS   {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671233
+    m_Localized: "\xA1CR\xCDTICO! {0} \u2192 {1} \xB7 {2} de da\xF1o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671234
+    m_Localized: "{0} golpea a {1} \xB7 {2} de da\xF1o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671235
+    m_Localized: '{0} cae derrotado'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671236
+    m_Localized: Empate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671237
+    m_Localized: 'Ganador: tu equipo'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671238
+    m_Localized: 'Ganador: equipo rival'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671239
+    m_Localized: '{0} es envenenado'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671240
+    m_Localized: '{0} se incendia'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671241
+    m_Localized: "{0} entra en regeneraci\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671242
+    m_Localized: '{0} queda aturdido {1}t'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671243
+    m_Localized: '{0} recibe escudo (+{1})'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671244
+    m_Localized: "{0} \u2014 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671245
+    m_Localized: '{0} sufre {1} de veneno'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671246
+    m_Localized: '{0} sufre {1} de quemadura'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671247
+    m_Localized: '{0} recibe {1} de espinas'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671248
+    m_Localized: '{0} pierde {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671249
+    m_Localized: '{0} regenera {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671250
+    m_Localized: '{0} se cura {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671251
+    m_Localized: '{0} recupera {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671252
+    m_Localized: "\xA1{0}! sobre {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671253
+    m_Localized: '{0} queda {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671254
+    m_Localized: '{0} consume {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671255
+    m_Localized: '{0} pierde {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671256
+    m_Localized: '{0} recibe marca {1} aliada'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671257
+    m_Localized: '{0} recibe marca {1} enemiga'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671258
+    m_Localized: '{0} pierde la marca {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671259
+    m_Localized: '{0} se cura {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671260
+    m_Localized: '{0} recibe {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671261
+    m_Localized: '{0} duplica su escudo'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671262
+    m_Localized: "\xA1TOMA, {0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671263
+    m_Localized: "\xA1Toma, prot\xE9gete!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671264
+    m_Localized: "\xA1Me escudar\xE9!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671265
+    m_Localized: "\xA1{0}, te curo!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671266
+    m_Localized: "\xA1Qu\xE9 alivio!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671267
+    m_Localized: "\xA1Te comparto mi esp\xEDritu de pelea!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671268
+    m_Localized: "\xA1Me toca a m\xED!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671269
+    m_Localized: "\xA1Qued\xE9 {0}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671270
+    m_Localized: "\xA1Cr\xEDtico!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671271
+    m_Localized: "\xA1Sinergia!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671272
+    m_Localized: "\xA1Reacci\xF3n!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671273
+    m_Localized: 'Rol: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671274
+    m_Localized: "Cada acci\xF3n llena un punto; con 2 se aplica su marca de {0}
+      sobre s\xED mismo"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671275
+    m_Localized: aliada
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671276
+    m_Localized: enemiga
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671277
+    m_Localized: "Marca {0} ({1}) \u2014 reacciona al juntarse con otra marca {1}
+      de distinto elemento"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671278
+    m_Localized: '{0}: {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671279
+    m_Localized: "{0} \u2014 {1} \xB7 {2}\nHP {3:F0}/{4:F0}\nATK {5:F0} \xB7 DEF
+      {6:F0} \xB7 SPD {7:F0}\nSuerte {8:F0} \xB7 Evasi\xF3n {9:F0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671280
+    m_Localized: Eventos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671281
+    m_Localized: Empate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671282
+    m_Localized: Final
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671283
+    m_Localized: Turno {0} / {1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671284
+    m_Localized: Turno {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671285
+    m_Localized: Velocidad x{0:0.0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172488671286
+    m_Localized: "\u25C0 Volver"
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

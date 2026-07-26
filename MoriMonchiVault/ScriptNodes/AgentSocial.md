@@ -6,7 +6,7 @@ tags: [script, world, agent, internal, social]
 
 **Ruta:** `World/AI/AgentSocial.cs`
 
-**Responsabilidad:** Colaborador interno de la composición del agente (espejo de AgentConfinement.courtship). Lee ctx.Percepts (escrito por AgentSenses) contra la lista polimórfica ReactionRuleBase del RoleWorldProfile para decidir acercarse, evitar, invitar a juego de persecución, dormir juntos o pelear. Luego posee el estado Socializing end-to-end. El handshake de persecución/siesta/pelea refleja EnterCourtship: el iniciador pregunta TryJoinSocialPlay/TryJoinSocialSleep/TryJoinSocialFight (fachada de MoriMochiAgent → internos TryJoinSocialPlay/TryJoinSleep/TryJoinFight) al objetivo y solo procede si acepta. Una vez ambos dentro, NO hay más cross-calls — cada lado detecta pasivamente si el compañero salió del juego, consultando partner.IsSocializing cada tick. **S65:** Nuevos modos Sleeping (busca RestZone vía NeedStationRegistry, regen 4/s, +5 Affect) y Fighting (abalanzadas, −4 Affect ambos, knock final sin estrés). Tickeado por MoriMochiAgent.Update cuando el estado es Socializing.
+**Responsabilidad:** Colaborador interno de la composición del agente (espejo de AgentConfinement.courtship). Lee ctx.Percepts (escrito por AgentSenses) contra la lista polimórfica ReactionRuleBase del RoleWorldProfile para decidir acercarse, evitar, invitar a juego de persecución, dormir juntos o pelear. Luego posee el estado Socializing end-to-end. El handshake de persecución/siesta/pelea refleja EnterCourtship: el iniciador pregunta TryJoinSocialPlay/TryJoinSocialSleep/TryJoinSocialFight (fachada de MoriMochiAgent → internos TryJoinSocialPlay/TryJoinSleep/TryJoinFight) al objetivo y solo procede si acepta. Una vez ambos dentro, NO hay más cross-calls — cada lado detecta pasivamente si el compañero salió del juego, consultando partner.IsSocializing cada tick. **S65:** Nuevos modos Sleeping (busca RestZone vía NeedStationRegistry, regen 4/s, +5 Affect) y Fighting (abalanzadas, −4 Affect ambos, knock final sin estrés). **S69:** El método `End()` ahora usa `t.ScaledSocialCooldown(ctx.Dna.Sociability)` en vez de `SocialCooldown` plano, permitiendo que Sociability escale el tiempo de espera entre interacciones. Tickeado por MoriMochiAgent.Update cuando el estado es Socializing.
 
 **Campos internos:**
 - `mode` — SocialMode enum (None/Approach/Chaser/Runner/Sleeping/Fighting, estado de la interacción)
@@ -26,6 +26,7 @@ tags: [script, world, agent, internal, social]
 - `TryJoinSleep(MoriMochiAgent initiator, NeedStation station, Vector3 fallbackSpot) → bool` — **S65 NUEVO** lado receptor de invitación de siesta: valida energía ≤ MaxEnergyToSleep y no-Sick; intenta reservar su propio slot en la MISMA estación del iniciador, si no puede duerme junto al fallbackSpot.
 - `TryJoinFight(MoriMochiAgent initiator) → bool` — **S65 NUEVO** lado receptor de invitación de pelea: mismas validaciones que TryJoinSocialPlay (Healthy + Energy ≥ MinEnergyToPlay). Ambos se abalanzan mutuamente durante FightDuration.
 - `TickSocializing() → void` — tick cuando el estado es Socializing: mueve hacia compañero (Approach), lo persigue (Chaser), huye (Runner), duerme juntos (Sleeping), se abalanza (Fighting). Termina por timeout o si el compañero se fue. Genera emoción EmitEmote y bonus de Affect al completar. Registra interacción en SocialGraphService.
+- `End() → void` — **S69** Completa la interacción: registra delta de afinidad en SocialGraphService, asigna cooldown vía `t.ScaledSocialCooldown(ctx.Dna.Sociability)` (Sociable → cooldown corto, Tímido → cooldown largo).
 - `CompleteFromPartner() → void` — **S65 ACTUALIZADO** notificación one-way: el compañero terminó el juego, sincroniza ambos lados para cobrar el reward juntos. SOLO el lado que notifica registra en SocialGraphService (evita doble delta).
 - `AdjustRoamForAvoidance(Vector3) → Vector3` — filtro repulsivo barato: empuja un punto de roam alejado de Perceivables que coinciden reglas Avoid. Usado por AgentBrain.NextRoamDestination
 - `ResetForReuse() → void` — pooling: restaura estado inicial
@@ -39,6 +40,25 @@ tags: [script, world, agent, internal, social]
 - `Runner` — siendo perseguido, consume energía
 - `Sleeping` — **S65 NUEVO** durmiendo juntos en RestZone, regenera energía
 - `Fighting` — **S65 NUEVO** peleando, consume energía como el chase, abalanzadas cada FightLungeInterval; −FightAffectLoss y knock final sin estrés al terminar
+
+**Cambios S69:**
+
+**Método `End()` con ScaledSocialCooldown:**
+```csharp
+cooldownUntil = Time.time + (t != null ? 
+    t.ScaledSocialCooldown(ctx.Dna != null ? ctx.Dna.Sociability : 0.5f) 
+    : 20f);
+```
+
+**Interpretación:**
+- **Sociable alto (dial 0.8):** cooldown corto → quiere jugar nuevamente pronto
+- **Sociable bajo (dial 0.2):** cooldown largo → prefiere esperar antes de siguiente interacción
+- Si `ctx.Dna` es null, fallback a Sociability neutral 0.5
+
+**Impacto:**
+- Permite selección artificial: criar Sociable alto → agentes que interactúan más frecuentemente
+- Interacciones más dinámicas: sociables generan chain reactions, tímidos son solitarios
+- No cambia duración de la interacción en sí (ChaseDuration, SleepDuration, etc.), solo espera entre ellas
 
 **Notas:**
 - SocialMode es enum interno (None/Approach/Chaser/Runner/Sleeping/Fighting), no visible afuera
@@ -77,6 +97,7 @@ tags: [script, world, agent, internal, social]
 ## Vinculado a
 
 - [[Index/06 - Player & World]]
+- [[Index/02 - Genetics & Breeding]]
 - [[MoriMonchiVault/Index/14 - Social V2]]
 
 ## Conexiones
@@ -84,7 +105,7 @@ tags: [script, world, agent, internal, social]
 **Entrada:**
 - `AgentSenses.Percepts` — lista de entes perceptibles cada tick
 - `RoleWorldProfileSO.Rules` — reglas de reacción por rol
-- `SocialTuningSO` — parámetros de duración, energía, cooldowns
+- `SocialTuningSO` — parámetros de duración, energía, cooldowns, ScaledSocialCooldown (S69)
 - `NeedStationRegistry` — para buscar RestZone en modo Sleeping
 
 **Salida:**

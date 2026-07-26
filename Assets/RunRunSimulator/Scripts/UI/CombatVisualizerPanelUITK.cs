@@ -51,12 +51,14 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
         speedSlider     = root.Q<Slider>("speed-slider");
         speedLabel      = root.Q<Label>("speed-label");
         logToggleButton = root.Q<Button>("btn-log-toggle");
+        var logTitle    = root.Q<Label>(className: "cv-log-title");
 
         if (backButton  != null) backButton.clicked += () => Service?.Back();
         if (playButton  != null) playButton.clicked += () => Service?.TogglePlay();
         if (nextButton  != null) nextButton.clicked += () => Service?.Next();
         if (speedSlider != null) speedSlider.RegisterValueChangedCallback(e => Service?.SetSpeed(e.newValue));
         if (logToggleButton != null) logToggleButton.clicked += ToggleLog;
+        if (logTitle != null) logTitle.text = Loc.Tr("ui.visualizer.panel.log_title");
 
         ApplyLogExpanded();
         SetVisible(false);
@@ -74,15 +76,17 @@ public class CombatVisualizerPanelUITK : MonoBehaviour
 
         if (turnLabel != null)
             turnLabel.text = st.Ended
-                ? (st.IsDraw ? "Empate" : "Final")
-                : (st.TotalTurns > 0 ? $"Turno {st.TurnNumber} / {st.TotalTurns}" : $"Turno {st.TurnNumber}");
+                ? (st.IsDraw ? Loc.Tr("ui.visualizer.panel.turn_draw") : Loc.Tr("ui.visualizer.panel.turn_final"))
+                : (st.TotalTurns > 0
+                    ? Loc.Tr("ui.visualizer.panel.turn_of_total", st.TurnNumber, st.TotalTurns)
+                    : Loc.Tr("ui.visualizer.panel.turn_number", st.TurnNumber));
 
         RebuildLog(st.Log);
 
         backButton?.SetEnabled(st.CanBack);
         nextButton?.SetEnabled(st.CanForward);
         if (playButton != null) playButton.text = st.IsAuto ? "❚❚" : "▶";
-        if (speedLabel != null) speedLabel.text = $"Velocidad x{st.Speed:0.0}";
+        if (speedLabel != null) speedLabel.text = Loc.Tr("ui.visualizer.panel.speed_value", st.Speed);
         if (speedSlider != null && !Mathf.Approximately(speedSlider.value, st.Speed))
             speedSlider.SetValueWithoutNotify(st.Speed);
     }

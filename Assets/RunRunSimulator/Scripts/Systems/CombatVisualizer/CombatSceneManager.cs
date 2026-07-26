@@ -22,7 +22,11 @@ public class CombatSceneManager : MonoBehaviour
         var root = document.rootVisualElement;
         if (root == null) return;
         homeButton = root.Q<Button>("btn-home");
-        if (homeButton != null) homeButton.clicked += ReturnToGameScene;
+        if (homeButton != null)
+        {
+            homeButton.text = Loc.Tr("ui.visualizer.topbar.back");
+            homeButton.clicked += ReturnToGameScene;
+        }
 
         if (CombatReplayRequest.Pending)
             StartCoroutine(ConsumeReplayRequest());

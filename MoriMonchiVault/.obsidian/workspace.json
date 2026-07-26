@@ -11,10 +11,14 @@
             "id": "904556343679102e",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Vista gráfica"
+              "type": "markdown",
+              "state": {
+                "file": "Index/14 - Art Prompts.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "14 - Art Prompts"
             }
           }
         ]
@@ -167,6 +171,10 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
+    "ScriptNodes/MorimonchiDetailInfoUITK.md.tmp.33944.00b473c8b9af",
+    "ScriptNodes/DetailRelationsPresenter.md",
+    "ScriptNodes/DetailRelationsPresenter.md.tmp.33944.3e97fe66d0d6",
+    "Index/09 - Active Context.md.tmp.33944.59ff2f7f0e66",
     "ScriptNodes/SuriyunSimDriver.md",
     "ScriptNodes/SuriyunSimDriver.md.tmp.21204.21f67a6ee8a6",
     "Index/09 - Active Context.md.tmp.21204.c20cab25cc8d",
@@ -177,9 +185,7 @@
     "ScriptNodes/MoriMochiSpawner.md.tmp.21204.6c38d5eda7ec",
     "ScriptNodes/SpawnerDevConsole.md",
     "ScriptNodes/SpawnerDevConsole.md.tmp.21204.a2292190d53a",
-    "ScriptNodes/MoriMochiAgent.md.tmp.21204.0404a038ad8a",
     "ScriptNodes/AgentConfinement.md",
-    "ScriptNodes/AgentConfinement.md.tmp.21204.0d8c15280a9f",
     "ScriptNodes/AgentPhysics.md",
     "ScriptNodes/AgentBrain.md",
     "ScriptNodes/AgentContext.md",
@@ -201,8 +207,6 @@
     "ScriptNodes/SpiderArmDriver.md",
     "ScriptNodes/SpiderAnimationDriver.md",
     "ScriptNodes/MonchiAnimationDriver.md",
-    "ScriptNodes/CombatService.md",
-    "ScriptNodes/CreatureDNA.md",
     "Sin título.canvas",
     "ScriptsNodes/Sin título.canvas"
   ]

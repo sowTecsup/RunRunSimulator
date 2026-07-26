@@ -6,23 +6,25 @@ tags: [script, world, ui, uitk]
 
 **Ruta:** `World/Creatures/NameTag.cs`
 
-**Responsabilidad:** Label world-space UITK sobre criaturas. Billboard (opcional `uprightOnly`). Tres layouts: **store** (nombre + precio, para `IsForSale`), **pen** (glyph género + nombre + rol + etapa+días + contador crías + corazón/timer si incubando, elevación `penRaise` y escala `penScale` para no clipar el suelo) y **default** (nombre + estado busy/dead + intent + "[E] Acariciar" si reacción amistosa y jugador mirando). El nombre se colorea por género en `Bind()` (azul claro ♂ / rosa ♀) reutilizando helper `GenderColor`. Muestra "Petting..." 1.5s tras acariciar. `CountdownText` para huevo (mm:ss / "¡Listo! [E]"). Distancia de visibilidad configurable. Lee `LifeStageTable` de `BreedingController.Instance` para traducir `AgeDays` a etapa. **S65:** Nuevos textos para SleepingTogether ("Durmiendo juntos") y Fighting ("¡Peleando!").
+**Responsabilidad:** Label world-space UITK sobre criaturas. Billboard (opcional `uprightOnly`). Tres layouts: **store** (nombre + precio, para `IsForSale`), **pen** (glyph género + nombre + rol + etapa+días + contador crías + corazón/timer si incubando, elevación `penRaise` y escala `penScale` para no clipar el suelo) y **default** (nombre + estado busy/dead + intent + "[E] Acariciar" si reacción amistosa y jugador mirando). El nombre se colorea por género en `Bind()` (azul claro ♂ / rosa ♀) reutilizando helper `GenderColor`. Muestra "Petting..." 1.5s tras acariciar. `CountdownText` para huevo (mm:ss / "¡Listo! [E]"). Distancia de visibilidad configurable. Lee `LifeStageTable` de `BreedingController.Instance` para traducir `AgeDays` a etapa. **S65:** Nuevos textos para SleepingTogether ("Durmiendo juntos") y Fighting ("¡Peleando!"). **S68:** IntentText y RoleText eliminados — delegan en LocEnumMaps.
 
-## Cambios S65
+## Cambios S68 (Localization-ready)
 
-**Ampliados en IntentText(CreatureIntent intent):**
-- `CreatureIntent.SleepingTogether` → `"Durmiendo juntos"`
-- `CreatureIntent.Fighting` → `"¡Peleando!"`
+**Eliminados los helpers privados:**
+- `IntentText(CreatureIntent intent)` → ahora `LocEnumMaps.IntentName(agent.Intent)` (línea 273)
+- Métodos de nombre de rol privados reemplazados → `LocEnumMaps.RoleName(dna.Role)` (línea 210)
 
-**Contexto:** S65 introduce modos sociales Sleeping y Fighting con sus propios intents. IntentText debe mapearlos para que NameTag muestre mensajes legibles cuando el agente está durmiendo/peleando con otro MoriMochi.
-
-## Cambios S64
-
-**UIDocument compartido:**
-- NameTag y MonchiEmoteBubble comparten el mismo GO hijo "WorldUITKInfo" con UIDocument
-- NameTag posee la transform (billboard + distance gate, posición world-up desacoplada del tumble del padre)
-- MonchiEmoteBubble inserta Label pictográfico en "tag-root" sin tocar la transform
-- Ambos re-resuelven referencias en OnEnable/cuando el UIDocument reconstruye (pooling)
+**Líneas de localización agregadas:**
+- Línea 188: `Loc.Tr("nametag.price", price)` (store layout)
+- Línea 210: `LocEnumMaps.RoleName(dna.Role)` (pen layout)
+- Línea 213: `Loc.Tr("nametag.stageage", LocEnumMaps.LifeStageName(...), ageDays)` (pen layout)
+- Línea 262: `Loc.Tr("nametag.petting")` (pet hint cuando acariciando)
+- Línea 262: `Loc.Tr("nametag.pethint")` (pet hint cuando disponible)
+- Línea 273: `LocEnumMaps.IntentName(agent.Intent)` (default layout, intent interesante)
+- Línea 284: `Loc.Tr("status.dead")` (dead status)
+- Línea 287: `Loc.Tr("status.queued")` (busy queued status)
+- Línea 288: `Loc.Tr("status.breeding")` (busy breeding status)
+- Línea 321: `Loc.Tr("nametag.ready")` (egg ready)
 
 ## Campos Principales
 
@@ -37,14 +39,14 @@ tags: [script, world, ui, uitk]
 ## Layouts de NameTag
 
 ### Store Layout
-- Método `RefreshStore()`: lee `CustomerService.EstimateAverage(dna)` para el precio, muestra "X D".
+- Método `RefreshStore()`: lee `CustomerService.EstimateAverage(dna)` para el precio, muestra vía `Loc.Tr("nametag.price", price)`.
 - Campo `priceLabel` (ocultado en layouts default/pen).
 - Mostrado cuando `agent.IsForSale == true`.
 
 ### Pen Layout
-- Método `RefreshPenned()`: 
+- Método `RefreshPenned()`:
   - Glyph género (♂/♀) con color genérico
-  - **Nombre de rol** ("Protector" / "Agresivo" / "Empático", S39)
+  - **Nombre de rol** vía `LocEnumMaps.RoleName()` ("Protector" / "Agresivo" / "Empático", S39)
   - Etapa de vida (etiqueta + días, e.g. "Adolescente · 5d")
   - Contador de crías ("X/MaxBreedCount")
   - Corazón + timer si incubando
@@ -53,7 +55,7 @@ tags: [script, world, ui, uitk]
 ### Default Layout
 - Método `RefreshDefault()`:
   - Estado (busy: "En cola", "Incubando"; dead: "Muerto") con color
-  - Intent actual (Quieto, Paseando, Te sigue, Huye, Busca comida, Socializando [S64], **Durmiendo juntos** [S65], **¡Peleando!** [S65], etc.)
+  - Intent actual vía `LocEnumMaps.IntentName()` (Quieto, Paseando, Te sigue, Huye, Busca comida, Socializando [S64], Durmiendo juntos [S65], ¡Peleando! [S65], etc.)
   - "[E] Acariciar" si `IsInFriendlyReaction && IsPlayerFacingMe()`
   - "Petting..." transitorio si `IsBeingPetted`
 - Mostrado por defecto (libre roaming).
@@ -62,13 +64,11 @@ tags: [script, world, ui, uitk]
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
-| `RoleText(Role r)` | `string` | "Protector" / "Agresivo" / "Empático" (S39) |
 | `GenderGlyph(CreatureGender g)` | `string` | "♂" / "♀" / "?" |
 | `GenderColor(CreatureGender g)` | `Color` | Azul claro (♂) / Rosa (♀) / Gris (?) |
-| `StageText(int ageDays)` | `string` | "Etapa · XdY" o "XdY" si tabla ausente |
+| `StageText(int ageDays)` | `string` | "Etapa · XdY" via LocEnumMaps o "XdY" si tabla ausente |
 | `CountdownText(long readyAtMs)` | `string` | "mm:ss" o "¡Listo! [E]" si due |
-| `IntentText(CreatureIntent intent)` | `string` | "Quieto", "Paseando", "Te sigue", "Socializando" [S64], "Durmiendo juntos" [S65], "¡Peleando!" [S65], etc. |
-| `StatusOf(CreatureDNA dna)` | `(string, Color)` | ("Muerto" / "En cola" / "Incubando" / "", color) |
+| `StatusOf(CreatureDNA dna)` | `(string, Color)` | ("Muerto" / "En cola" / "Incubando" / "", color) — ahora vía Loc.Tr |
 
 ## Vinculado a
 
@@ -78,7 +78,8 @@ tags: [script, world, ui, uitk]
 - [[CustomerService]] — price estimate en RefreshStore
 - [[MoriMochiAgent]] — resolve intent + petting state
 - [[CreatureDNA]] — source de datos (Role S39, AgeDays, BusyState, Gender, CustomName)
-- [[Role]] — enum Protector/Agresivo/Empático
+- [[Loc]] (wrapper localización)
+- [[LocEnumMaps]] (traducciones enum)
 
 ## Conexiones
 
@@ -96,9 +97,10 @@ tags: [script, world, ui, uitk]
 ## Notas
 
 - **Odin:** Sin dependencia de Odin, puro UIToolkit.
-- **S39 cambio:** Rol reemplaza Personalidad en display pen layout. RoleText() retorna nombre legible del Role enum.
-- **S64 cambio:** UIDocument compartido con MonchiEmoteBubble. La posición/rotación del GO es world-up (desacoplada del tumble del padre) para que ambos elementos acompañen al creature head.
-- **S65 cambio:** IntentText extendido con SleepingTogether ("Durmiendo juntos") y Fighting ("¡Peleando!") para nueos modos sociales.
-- **Live data:** Todos los valores (nombre, etapa, intent, estado) se leen cada frame de DNA/agent; no hay cache (Refresh deja de ejecutarse si no visible).
+- **S39 cambio:** Rol reemplaza Personalidad en display pen layout.
+- **S64 cambio:** UIDocument compartido con MonchiEmoteBubble. La posición/rotación del GO es world-up.
+- **S65 cambio:** IntentText extendido con SleepingTogether y Fighting.
+- **S68 cambio:** IntentText y RoleText eliminados (delegados a LocEnumMaps); todas las strings del display ahora vía Loc.Tr/LocEnumMaps.
+- **Live data:** Todos los valores (nombre, etapa, intent, estado) se leen cada frame de DNA/agent.
 - **Query robusta:** Si UXML element no existe, el Label ref se deja null, y SetDisplay se cuida de nulls.
-- **Backward compat:** Si BreedingController ausente, StageText solo muestra días (sin etapa).
+- **Backward compat:** Si BreedingController ausente, StageText solo muestra días.

@@ -95,6 +95,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         ctx.Agent.areaMask   = ctx.FreeAreaMask;     // free movement — personality is a preference, never a fence
 
         brain.EnterRoaming();
+        physics.CaptureNavAnchor(transform.position);
     }
 
     public void Rebind(CreatureDNA creature, RoleWorldProfileSO profileTable)
@@ -176,6 +177,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
             case AgentState.UsingStation: brain.TickUsingStation();  break;
             case AgentState.Courting:     confinement.TickCourting(); break;
             case AgentState.Socializing:  social.TickSocializing();  break;
+            case AgentState.HandFeed:     brain.TickHandFeed();      break;
             // Carried: nothing to tick — the carry-follow runs in FixedUpdate.
         }
     }
@@ -237,6 +239,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     // Gives an Affect boost, starts the cooldown so it won't immediately follow again,
     // and sends the creature back to its own business.
     public void Interact() => brain.Interact();
+    public bool BeginPetting() => brain.BeginPetSession();
+    public void EndPetting() => brain.EndPetSession();
 
     // Knocked by another thrown object (IThrowable contract). If currently NavMesh-
     // controlled, hand off to physics like a throw; then apply the impulse so it
@@ -403,8 +407,48 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [SerializeField, Min(0f)] internal float hardImpactThreshold = 4f;
 
     [TabGroup("Tuning", "Needs"), Title("Player interaction")]
-    [Tooltip("Affect boost granted when the player pets this creature from the front.")]
-    [SerializeField, Min(0f)] internal float affectOnPet = 20f;
+    [Tooltip("Affect por segundo mientras el jugador mantiene la caricia.")]
+    [SerializeField, Min(0f)] internal float petAffectPerSecond = 6f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Cuánto crece la tasa de caricia por segundo sostenido (0.3 = +30% por segundo).")]
+    [SerializeField, Min(0f)] internal float petRampPerSecond = 0.3f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Duración máxima de una sesión de caricia (s).")]
+    [SerializeField, Min(1f)] internal float petMaxDuration = 6f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Cada cuántos segundos emite un corazón durante la caricia.")]
+    [SerializeField, Min(0.2f)] internal float petEmoteInterval = 1.5f;
+
+    [TabGroup("Tuning", "Needs"), Title("Comer de la mano")]
+    [Tooltip("Radio (m) en el que un monchi con hambre nota la comida ofrecida en la mano.")]
+    [SerializeField, Min(1f)] internal float feedNoticeRadius = 6f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Distancia (m) a la que se detiene a comer de la mano.")]
+    [SerializeField, Min(0.5f)] internal float feedDistance = 1.2f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Sociabilidad por debajo de la cual el monchi duda antes de acercarse del todo.")]
+    [SerializeField, Range(0f, 1f)] internal float feedShyBelow = 0.35f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Distancia (m) a la que el tímido se frena a dudar antes de animarse.")]
+    [SerializeField, Min(1f)] internal float feedShyDistance = 3f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Segundos que el tímido duda antes de animarse a acercarse.")]
+    [SerializeField, Min(0f)] internal float feedHesitateSeconds = 2f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Segundos que tarda el bocado una vez al lado de la mano.")]
+    [SerializeField, Min(0.2f)] internal float feedEatSeconds = 1.5f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Solo viene a comer de la mano si su Health está por debajo de este valor.")]
+    [SerializeField, Range(0f, 100f)] internal float feedHungerThreshold = 70f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Health que restaura el bocado de la mano.")]
+    [SerializeField, Min(0f)] internal float feedHealthBoost = 35f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Affect extra por comer de la mano del jugador.")]
+    [SerializeField, Min(0f)] internal float feedAffectBoost = 5f;
+    [TabGroup("Tuning", "Needs")]
+    [Tooltip("Segundos antes de volver a buscar comida de la mano tras un bocado.")]
+    [SerializeField, Min(0f)] internal float feedCooldown = 20f;
 
     // ── Stats (live readout) ──
     [TabGroup("Tuning", "Stats"), Title("Base (con partes) → Final (con equipo) — play mode")]
@@ -485,6 +529,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [Tooltip("Red de seguridad de carga en frío: si queda kinematic pero FUERA del NavMesh (handoff fallido) este tiempo (s), se recupera — el penned se re-ancla a su corral, el libre cae a física. Sube si en la 1ª carga aparece flotando un rato.")]
     [SerializeField, Min(0.1f)] internal float offMeshRecoverDelay = 1.5f;
 
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Red anti-vacío: si cae más de estos metros por debajo de su último punto válido de NavMesh, se lo rescata teleportándolo de vuelta.")]
+    [SerializeField, Min(1f)] internal float voidFallDrop = 20f;
+
     [TabGroup("Tuning", "Physics"), Title("Bounce (plushie throw)")]
     [Tooltip("Fraction of speed kept on each bounce (0 = dead drop, 1 = no energy loss). Lower settles sooner.")]
     [Range(0f, 1f)]
@@ -553,6 +601,9 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     [TabGroup("Tuning", "Dev"), ShowInInspector, ReadOnly]
     private int PerceptCount => ctx != null ? ctx.Percepts.Count : 0;
+
+    [TabGroup("Tuning", "Dev"), ShowInInspector, ReadOnly]
+    private string Dials => ctx?.Dna != null ? $"Sociabilidad {ctx.Dna.Sociability:0.00} · Osadía {ctx.Dna.Boldness:0.00}" : "—";
 
     [TabGroup("Tuning", "Dev"), Title("Debug toggles")]
     [Tooltip("Fuerza al agente a quedarse en ragdoll: nunca rejoina el NavMesh (aísla el handoff que lo pinea al piso).")]

@@ -6,7 +6,7 @@ tags: [script, world, ai]
 
 **Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta la vida de una criatura en el mundo (comportamiento autónomo + física de lanzamiento). Compone seis colaboradores internos: `AgentContext` (estado compartido), `AgentBrain` (máquina de estados NavMesh), `AgentPhysics` (handoff ragdoll), `AgentConfinement` (pens/cortejo), `AgentSenses` (percepción social throttled) y `AgentSocial` (decisiones y comportamiento social). Implementa `IThrowable` (agarrar/lanzar/knock) e `IInteractable` (petting). Ciclo de vida: `Initialize()` (wiring, setup NavMesh), `Rebind()` (reload rápido), `PrepareForPool()` (pooling). Update() despachador de ticks por estado; FixedUpdate() para FixedTick del physics. Expone fachada pública inmutable (`DNA`, `Intent`, `IsHeld`, `IsAirborne`, `IsPenned`, `CanBePetted`, etc.) y switchboard interno para que colaboradores pidan operaciones. **S55 RESUELTO:** ya NO es partial; composición pura. **S64:** agregados AgentSenses y AgentSocial. **S65:** AgentSocial nuevos modos Sleeping/Fighting.
+**Responsabilidad:** Núcleo delgado que orquesta la vida de una criatura en el mundo (comportamiento autónomo + física de lanzamiento). Compone seis colaboradores internos: `AgentContext` (estado compartido), `AgentBrain` (máquina de estados NavMesh), `AgentPhysics` (handoff ragdoll), `AgentConfinement` (pens/cortejo), `AgentSenses` (percepción social throttled) y `AgentSocial` (decisiones y comportamiento social). Implementa `IThrowable` (agarrar/lanzar/knock) e `IInteractable` (petting). Ciclo de vida: `Initialize()` (wiring, setup NavMesh, llama `physics.CaptureNavAnchor()` si on-mesh), `Rebind()` (reload rápido), `PrepareForPool()` (pooling). Update() despachador de ticks por estado; FixedUpdate() para FixedTick del physics. Expone fachada pública inmutable (`DNA`, `Intent`, `IsHeld`, `IsAirborne`, `IsPenned`, `CanBePetted`, etc.) y switchboard interno para que colaboradores pidan operaciones. **S55 RESUELTO:** ya NO es partial; composición pura. **S64:** agregados AgentSenses y AgentSocial. **S65:** AgentSocial nuevos modos Sleeping/Fighting. **S69:** Petting hold-E `BeginPetting()/EndPetting()`, HandFeed state, diales genéticos (Sociability/Boldness) modulan knobs comportamiento, nuevos knobs de petting y handFeed, `physics.CaptureNavAnchor()` en Initialize.
 
 ## Máquina de Estados
 
@@ -14,7 +14,7 @@ tags: [script, world, ai]
 |--------|-------------|-------------|
 | `Idle` | AgentBrain | Esperando aleatorio |
 | `Roaming` | AgentBrain | NavMesh autónomo |
-| `Reacting` | AgentBrain | Persigue/huye del jugador |
+| `Reacting` | AgentBrain | Persigue/huye del jugador (o petting hold-E) |
 | `Carried` | AgentPhysics | Agarrado por el jugador |
 | `Thrown` | AgentPhysics | Ragdoll en aire, refleja bounces |
 | `Recovering` | AgentPhysics | Get-up post-lanzamiento |
@@ -22,14 +22,15 @@ tags: [script, world, ai]
 | `UsingStation` | AgentBrain | Consume de estación |
 | `Courting` | AgentConfinement | Danza de apareamiento |
 | `Socializing` | AgentSocial | Acercándose, persiguiendo, durmiendo o peleando con otro MoriMochi |
+| `HandFeed` | **S69 NUEVO** AgentBrain | Aceptando comida de la mano del jugador |
 
-## Estructura (Composición S55 + S64 + S65)
+## Estructura (Composición S55 + S64 + S65 + S69)
 
 ```
 MoriMochiAgent (fachada pública)
   ├─ AgentContext (estado puro: componentes, DNA, profile, masks, percepts)
-  ├─ AgentBrain (ticks: Idle, Roaming, Reacting, SeekingNeed, UsingStation)
-  ├─ AgentPhysics (handoff NavMesh ⇄ Rigidbody, ragdoll, bounce, recovery)
+  ├─ AgentBrain (ticks: Idle, Roaming, Reacting, SeekingNeed, UsingStation, HandFeed; S69: petting+handFeed)
+  ├─ AgentPhysics (handoff NavMesh ⇄ Rigidbody, ragdoll, bounce, recovery; S69: void-fall rescue)
   ├─ AgentConfinement (pens, courtship, rebake prep)
   ├─ AgentSenses (escaneo throttled de Perceivables, población de ctx.Percepts)
   └─ AgentSocial (decisiones y tick de interacciones sociales: Approach/PlayChase/SleepTogether/Fight)
@@ -40,21 +41,21 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 ## Métodos Públicos
 
 **Lifecycle:**
-- `Initialize(CreatureDNA dna, RoleWorldProfileSO profileTable, Transform player)` — wiring inicial, setup NavMesh, NameTag binding
+- `Initialize(CreatureDNA dna, RoleWorldProfileSO profileTable, Transform player)` — **S69** wiring inicial, setup NavMesh, NameTag binding, **llama `physics.CaptureNavAnchor(pos)` si on-mesh** para rescate de void-fall
 - `Rebind(CreatureDNA dna, RoleWorldProfileSO profileTable)` — reload: rebind DNA + profile, NO reinicia NavMesh
 - `PrepareForPool()` — pre-pool: libera estaciones, detach si es necesario
 
 **Propiedades (fachada):**
 - `DNA → CreatureDNA` — read-only
-- `Intent → CreatureIntent` — intención actual (Idle, Wandering, Following, Eating, Fleeing, Socializing, Chasing, SleepingTogether, Fighting, etc.)
+- `Intent → CreatureIntent` — intención actual (Idle, Wandering, Following, Eating, Fleeing, Socializing, Chasing, SleepingTogether, Fighting, SeekingFood, **HandFeed**, etc.)
 - `IsHeld → bool` — en Carried
 - `IsAirborne → bool` — en Thrown
 - `IsPenned → bool` — confinado en pen
 - `IsForSale → bool` — ocupante de StoreContainer
 - `IsRecovering → bool` — en Recovering
 - `IsInFriendlyReaction → bool` — Reacting pero no fleeing
-- `IsBeingPetted → bool` — petting display (1.5s)
-- `CanBePetted → bool` — condiciones de petting cumplidas
+- `IsBeingPetted → bool` — **S69** petting display (mientras petTimer > 0)
+- `CanBePetted → bool` — **S69** condiciones de petting cumplidas (Reacting + amistosa + facing)
 - `IsPlayerFacingMe() → bool` — player está a petRadius y mira hacia esta criatura
 - `IsCourting → bool` — en Courting
 - `IsSocializing → bool` — en Socializing (acercándose, jugando, durmiendo o peleando)
@@ -64,19 +65,21 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 - `OnEmote` — evento que dispara cuando AgentSocial emite emoción (suscriptor: MonchiEmoteBubble, NameTag)
 
 **Interacción:**
-- `Interact()` — E-acariciar (del gameplay)
+- `BeginPetting()` — **S69 NUEVO** press-E: entra petting dentro de Reacting vía `brain.BeginPetSession()`
+- `EndPetting()` — **S69 NUEVO** release-E: cancela petting vía `brain.EndPetSession()`
 - `Launch(Vector3 launchPos, launchVelocity)` — cannon spawn
 - `OnGrab(Transform anchor), OnRelease(), OnThrow(Vector3)` — IThrowable contract
 - `Knock(Vector3 force)` — golpeado por otra criatura
+- `Knock(Vector3 force, bool stress)` — **S65 NUEVO** golpeado con opción de estrés
 - `EnterConfinement(MoriMochiContainer pen) → bool` — confinamiento a pen
 - `EnterCourtship(MoriMochiAgent partner, Vector3 anchor), ExitCourtship()` — cortejo
 - `TryJoinSocialPlay(MoriMochiAgent initiator) → bool` — **S64 NUEVO** handshake receptor: otro agente pide juego
-- `TryJoinSocialSleep(MoriMochiAgent initiator, NeedStation station, Vector3 fallbackSpot) → bool` — **S65 NUEVO** handshake receptor: otro agente invita a dormir juntos (pasa su estación reservada y el punto fallback)
+- `TryJoinSocialSleep(MoriMochiAgent initiator, NeedStation station, Vector3 fallbackSpot) → bool` — **S65 NUEVO** handshake receptor: otro agente invita a dormir juntos
 - `TryJoinSocialFight(MoriMochiAgent initiator) → bool` — **S65 NUEVO** handshake receptor: otro agente inicia pelea de juego
-- `RequestPlayfulKnock(Vector3 force)` — **S65 NUEVO** switchboard interno: knock sin penalización de Affect (AgentPhysics.Knock(force, stress:false)) para el final de la pelea
+- `RequestPlayfulKnock(Vector3 force)` — **S65 NUEVO** switchboard interno: knock sin penalización de Affect para el final de la pelea
 - `CompleteSocialPlayFromPartner()` — **S64 NUEVO** notificación one-way: compañero completó juego
 
-**Switchboard interno (RequestRoam, etc.):**
+**Switchboard interno:**
 - `RequestRoam()` — AgentBrain.EnterRoaming()
 - `RequestReleaseStation()` — AgentBrain.ReleaseStation()
 - `RequestEnterRagdoll()` — AgentPhysics.EnterRagdoll()
@@ -103,7 +106,9 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 - Live readouts (play mode): `Health`, `Energy`, `Affect` (progress bars)
 - Decay per second: `healthDecayPerSecond`, `energyDecayPerSecond`, `affectDecayPerSecond`
 - Critical thresholds: `criticalHealth`, `criticalEnergy`, `criticalAffect`
-- Stress events: `affectOnThrow`, `affectOnHardCollision`, `hardImpactThreshold`, `affectOnPet`
+- Stress events: `affectOnThrow`, `affectOnHardCollision`, `hardImpactThreshold`
+- **S69 NUEVOS (Petting):** `petAffectPerSecond` (2), `petRampPerSecond` (0.1), `petMaxDuration` (30), `petEmoteInterval` (2)
+- **S69 NUEVOS (HandFeed):** `feedNoticeRadius` (3), `feedDistance` (1.5), `feedShyBelow` (0.4), `feedShyDistance` (3), `feedHesitateSeconds` (5), `feedEatSeconds` (3), `feedHungerThreshold` (40), `feedHealthBoost` (30), `feedAffectBoost` (5), `feedCooldown` (10)
 
 **Tuning > Stats:**
 - Live readouts (play mode): `StatCon`, `StatAtk`, `StatSpd`, `StatDef`, `StatLck`, `StatEva` (Base → Final + delta)
@@ -114,12 +119,13 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 - Bounce: `bounciness`, `maxBounces`, `minBounceSpeed`, `bounceSpin`
 - Knock: `knockTransfer`, `knockUpBias`
 - Recovery: `downedDelay`, `getUpDuration`, `getUpJitter`
+- **S69 NUEVO:** `voidFallDrop` (20) — threshold de caída bajo el cual dispara rescate de void-fall
 
 **Tuning > Presentation:**
-- UnityEvents: `onGrab`, `onThrow`, `onBounce`, `onLand`, `onGetUp`, `onPet`
+- UnityEvents: `onGrab`, `onThrow`, `onBounce`, `onLand`, `onGetUp`, `onPet` (S69: onPet nuevo)
 
 **Tuning > Dev:**
-- Live readouts: `CurrentState`, `NavStatus`, `CourtInfo`
+- Live readouts: `CurrentState`, `NavStatus`, `CourtInfo`, **S69 NUEVO:** `Dials` (muestra Sociability/Boldness)
 - Toggles: `forceRagdoll`, `logStateTransitions`, `snapWarnThreshold`
 - Buttons: `DevForceRagdoll()`, `DevForceRoam()`
 
@@ -139,12 +145,13 @@ Update():
     Roaming    → brain.TickRoaming()
                  if (state still Roaming) social.TryEngage()
     Reacting   → brain.TickReacting()
-    Thrown     → physics.TickThrown()
+    Thrown     → physics.TickThrown()  // S69: con detección void-fall
     Recovering → physics.TickRecovering()
     SeekingNeed   → brain.TickSeekingNeed()
     UsingStation  → brain.TickUsingStation()
     Courting      → confinement.TickCourting()
     Socializing   → social.TickSocializing()  // S64/S65: tick social modes
+    HandFeed      → brain.TickHandFeed()  // S69 NUEVO
     Carried    → (nothing, follow runs in FixedUpdate)
 
 FixedUpdate():
@@ -172,6 +179,36 @@ Dibuja en Play mode (cuando initialized):
 - Punto coloreado: rol tint
 - Línea magenta: destino actual si tiene path
 
+## Cambios S69
+
+**Nuevos métodos públicos:**
+- `BeginPetting()` — delega a `brain.BeginPetSession()`
+- `EndPetting()` — delega a `brain.EndPetSession()`
+
+**Nuevos campos tuning:**
+- Petting: petAffectPerSecond, petRampPerSecond, petMaxDuration, petEmoteInterval
+- HandFeed: feedNoticeRadius, feedDistance, feedShyBelow, feedShyDistance, feedHesitateSeconds, feedEatSeconds, feedHungerThreshold, feedHealthBoost, feedAffectBoost, feedCooldown
+- Physics: voidFallDrop (20)
+
+**Update() cambio:**
+- case HandFeed: dispara brain.TickHandFeed()
+
+**Initialize() cambio:**
+- Llama `physics.CaptureNavAnchor(pos)` si agente está on-mesh para rescate de void-fall
+
+**State enum ampliado:**
+- Ahora incluye `HandFeed` (manejado por AgentBrain)
+
+## Impacto Diales Genéticos (S69)
+
+Los knobs petting/handFeed NO son afectados directamente por Sociability/Boldness. Sin embargo:
+- AgentBrain.TickHandFeed() chequea `ctx.Dna.Sociability < feedShyBelow` para dudar
+- AgentSocial.End() usa `ScaledSocialCooldown(ctx.Dna.Sociability)` para cooldown social
+
+Esto permite:
+- **Sociable (0.8):** come rápido, interactúa frecuentemente
+- **Tímido (0.2):** duda antes de comer, espera más entre interacciones
+
 ## Vinculado a
 
 - [[Index/06 - Player & World]]
@@ -184,11 +221,11 @@ Dibuja en Play mode (cuando initialized):
 - [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentConfinement]], [[AgentSenses]], [[AgentSocial]]
 
 **Datos & servicios:**
-- [[CreatureDNA]] — DNA viva
+- [[CreatureDNA]] — DNA viva, diales Sociability/Boldness
 - [[RoleWorldProfileSO]], [[RoleWorldProfile]] — perfil comportamiento
 - [[NeedStationRegistry]] — búsqueda de estaciones
 - [[PerceivableRegistry]] — S64 índice social
-- [[SocialGraphService]] — S65 historial dinámico
+- [[SocialGraphService]] — S65/S69 historial dinámico
 - [[CombatStats]], [[EquipmentStats]] — stats (live readout)
 
 **Visualización & UI:**
@@ -197,34 +234,5 @@ Dibuja en Play mode (cuando initialized):
 - [[NameTag]] — label world-space
 - [[MonchiEmoteBubble]] — S64 burbuja de emoción
 - [[MoriMonchiProceduralAnimator]] — lee transforms para animation
-
-**Eventos & física:**
-- [[GameEvents]] — OnNavMeshRebake, etc.
-- [[IThrowable]], [[IInteractable]] — interfaces
-
-**Mundo:**
-- [[MoriMochiContainer]] — pen/breeding confinement
-- [[NeedStation]] — estaciones (Feeder, RestZone, PlayZone)
-- [[MoriMochiSpawner]] — instancia y wirea
-- [[Perceivable]] — S64 marcas sociales
-
-## Notas S65
-
-- **Nuevos modos sociales:** AgentSocial ahora maneja Sleeping (busca RestZone, regen energía) y Fighting (abalanzadas, -Affect). Ambos son gateados por energía/salud.
-- **Historial dinámico:** AgentSenses consulta `SocialGraphService.EffectiveAffinity()` para afinidad seed + delta.
-- **Handshakes:** TryJoinSocialSleep y TryJoinSocialFight siguen el patrón de TryJoinSocialPlay (fachada → internos TryJoinSleep/TryJoinFight de AgentSocial).
-
-## Notas S64
-
-- **Percepción y conducta social:** AgentSenses scannea Perceivables en throttle (2–4s), poblando ctx.Percepts. AgentSocial consulta en TryEngage() para decidir acción.
-- **Estados nuevos:** Socializing mapea a CreatureIntent múltiples (Socializing, Chasing, SleepingTogether, Fighting).
-- **Emociones visuales:** OnEmote event dispara pictogramas en MonchiEmoteBubble.
-- **Evitación de roam:** AgentBrain.NextRoamDestination() llama AdjustRoamForAvoidance() para empujar puntos lejos de Avoid rules.
-
-## Notas S55
-
-- **Refactor S55 resuelto:** Deuda Fase 8 cerrada. Ya NO partial class; composición de mini-managers.
-- **Fachada intacta:** Métodos públicos y propiedades sin cambios desde vista externa.
-- **Switchboard:** RequestRoam, RequestReleaseStation, etc. son puertas de entrada de colaboradores.
-- **Tuning absorbido:** Todos los campos del viejo .Tuning.cs ahora viven como tabs Odin.
-- **Gizmos preservados:** Los del viejo .Debug.cs ahora en OnDrawGizmos().
+- [[PlayerController]] — press-E para BeginPetting, release-E para EndPetting
+- [[HotbarController]] — IsOfferingFood para HandFeed

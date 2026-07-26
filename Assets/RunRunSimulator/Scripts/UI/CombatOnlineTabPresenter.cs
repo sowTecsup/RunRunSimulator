@@ -45,8 +45,8 @@ public class CombatOnlineTabPresenter : ITabPresenter
         btnInstant  = root.Q<Button>("btn-instant");
         btnTimer    = root.Q<Button>("btn-timer");
 
-        if (btnInstant != null) btnInstant.clicked += OnInstantClicked;
-        if (btnTimer   != null) btnTimer.clicked   += OnTimerClicked;
+        if (btnInstant != null) { btnInstant.text = Loc.Tr("ui.combat.online.instant"); btnInstant.clicked += OnInstantClicked; }
+        if (btnTimer   != null) { btnTimer.text   = Loc.Tr("ui.combat.online.timer");   btnTimer.clicked   += OnTimerClicked; }
     }
 
     private void OnInstantClicked() => EnqueueOnline(instant: true);
@@ -147,7 +147,15 @@ public class CombatOnlineTabPresenter : ITabPresenter
         row.userData = dna.UniqueID;
 
         var eff = StatsOf(dna);
-        var l = new Label($"{dna.CustomName}  ·  CON {eff.Constitution:0} ATK {eff.Attack:0} SPD {eff.Speed:0} DEF {eff.Defense:0} LCK {eff.Luck:0} EVA {eff.Evasion:0}  ·  {dna.FightCount}/{MaxFights()}");
+        var l = new Label(Loc.Tr("ui.combat.online.candidate",
+            dna.CustomName,
+            LocEnumMaps.StatAbbrev(StatType.Constitution), eff.Constitution,
+            LocEnumMaps.StatAbbrev(StatType.Attack),       eff.Attack,
+            LocEnumMaps.StatAbbrev(StatType.Speed),        eff.Speed,
+            LocEnumMaps.StatAbbrev(StatType.Defense),      eff.Defense,
+            LocEnumMaps.StatAbbrev(StatType.Luck),         eff.Luck,
+            LocEnumMaps.StatAbbrev(StatType.Evasion),      eff.Evasion,
+            dna.FightCount, MaxFights()));
         l.AddToClassList("cbt-candidate-text");
         row.Add(l);
 
@@ -166,11 +174,21 @@ public class CombatOnlineTabPresenter : ITabPresenter
         if (!string.IsNullOrEmpty(onlineSelectedId) && registry != null) registry.TryGet(onlineSelectedId, out dna);
 
         if (onlineImg != null) MonchiPortraitUI.Apply(onlineImg, dna);
-        if (onlineName != null) onlineName.text = dna != null ? dna.CustomName : "Selecciona un MoriMochi";
+        if (onlineName != null) onlineName.text = dna != null ? dna.CustomName : Loc.Tr("ui.combat.online.select_prompt");
 
         if (onlineStats != null)
         {
-            if (dna != null) { var e = StatsOf(dna); onlineStats.text = $"CON {e.Constitution:0}   ATK {e.Attack:0}   SPD {e.Speed:0}   DEF {e.Defense:0}   LCK {e.Luck:0}   EVA {e.Evasion:0}"; }
+            if (dna != null)
+            {
+                var e = StatsOf(dna);
+                onlineStats.text = Loc.Tr("ui.combat.online.stats",
+                    LocEnumMaps.StatAbbrev(StatType.Constitution), e.Constitution,
+                    LocEnumMaps.StatAbbrev(StatType.Attack),       e.Attack,
+                    LocEnumMaps.StatAbbrev(StatType.Speed),        e.Speed,
+                    LocEnumMaps.StatAbbrev(StatType.Defense),      e.Defense,
+                    LocEnumMaps.StatAbbrev(StatType.Luck),         e.Luck,
+                    LocEnumMaps.StatAbbrev(StatType.Evasion),      e.Evasion);
+            }
             else onlineStats.text = "";
         }
 

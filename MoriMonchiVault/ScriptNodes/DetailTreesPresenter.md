@@ -6,7 +6,7 @@ tags: [script, ui, presenter]
 
 **Ruta:** `UI/DetailTreesPresenter.cs`
 
-**Responsabilidad (S54):** Presenter colaborador de MorimonchiDetailInfoUITK — cubre DOS tabs (Linaje + Descendencia) por ser un dominio único (comparten `MakeChip()` y `ParseGenetics()`). Implementa ro `Rebuild(dna)` — no navegación.
+**Responsabilidad (S54):** Presenter colaborador de MorimonchiDetailInfoUITK — cubre DOS tabs (Linaje + Descendencia) por ser un dominio único (comparten `MakeChip()` y `ParseGenetics()`). Implementa ro `Rebuild(dna)` — no navegación. **S68:** Strings de labels role extraídos a Loc.Tr (sin cambio de contrato).
 
 **Tab 1: Linaje (árbol ancestral 2 generaciones)**
 - Construye bloques recursivos: self (chip) → [padres row + conector V] → [abuelos row + conector V]
@@ -38,4 +38,6 @@ tags: [script, ui, presenter]
 **Métodos públicos:**
 - `Rebuild(dna)` — limpia ambos trees, invoca BuildLineage + BuildBreed
 
-**Conexiones:** [[MorimonchiDetailInfoUITK]], [[CreatureDatabaseSO]], [[CreatureRegistrySO]], [[MonchiPortraitUI]]
+**Cambios S68:** Strings de labels (Tú, Madre, Padre, Pareja, Cría) extraídos a Loc.Tr sin cambio de interfaz pública.
+
+**Conexiones:** [[MorimonchiDetailInfoUITK]], [[CreatureDatabaseSO]], [[CreatureRegistrySO]], [[MonchiPortraitUI]], [[Loc]]

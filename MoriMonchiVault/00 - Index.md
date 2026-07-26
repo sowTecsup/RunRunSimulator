@@ -44,6 +44,7 @@ MoriMonchiVault/
 | **Current work session** | [[Index/09 - Active Context]] | — |
 | **Unity MCP (editor en vivo, escena, SOs, Play, ProBuilder)** | [[Index/12 - Unity MCP]] | — |
 | **Dirección de diseño del combate (autobattler 3v3, roles)** | [[Index/13 - Combat Design Direction]] | — |
+| **Prompts de referencias de arte (pixel kit "Diario del Pet Shop")** | [[Index/14 - Art Prompts]] | — |
 
 ---
 

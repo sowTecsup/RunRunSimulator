@@ -133,5 +133,31 @@ public class SocialTuningSO : SerializedScriptableObject
 
     [Tooltip("Tope absoluto del delta de historia acumulado por par.")]
     public float HistoryDeltaClamp = 0.5f;
+
+    [Title("Pestaña Relaciones")]
+    [Tooltip("Afinidad mínima para que otro MoriMochi aparezca en 'Le caen bien'.")]
+    public float RelationsFriendThreshold = 0.25f;
+
+    [Tooltip("Afinidad máxima para que otro MoriMochi aparezca en 'Le caen mal'.")]
+    public float RelationsFoeThreshold = 0.05f;
+
+    [Title("Diales genéticos (V3)")]
+    [Tooltip("Cuánto desplaza la Sociabilidad los umbrales de afinidad de Approach/PlayChase/SleepTogether. Sociable alto = umbral más bajo (interactúa más). 0 = diales sin efecto en umbrales.")]
+    public float SociabilityAffinityShift = 0.15f;
+
+    [Tooltip("Cuánto escala la Sociabilidad el cooldown social. Sociable alto = menos espera entre interacciones. 0 = cooldown plano para todos.")]
+    [Range(0f, 1f)]
+    public float SociabilityCooldownScale = 0.4f;
+
+    [Tooltip("Cuánto desplaza la Osadía el umbral de la pelea de gremlins. Osado alto = pelea con menos motivo. 0 = sin efecto.")]
+    public float BoldnessFightShift = 0.15f;
+
+    [Tooltip("Cuánto desplaza la Osadía el umbral de evitación. Osado alto = evita menos; tímido = evita más. 0 = sin efecto.")]
+    public float BoldnessAvoidShift = 0.15f;
+
+    public static float DialShift(float dial, float shift) => (Mathf.Clamp01(dial) - 0.5f) * 2f * shift;
+
+    public float ScaledSocialCooldown(float sociability) =>
+        SocialCooldown * Mathf.Lerp(1f + SociabilityCooldownScale, 1f - SociabilityCooldownScale, Mathf.Clamp01(sociability));
 }
 }

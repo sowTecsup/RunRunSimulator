@@ -22,8 +22,15 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private StoreManager store;
 
     private enum Tab { Furniture, WorldProps, Consumables }
-    private static readonly Tab[]   Tabs      = (Tab[])Enum.GetValues(typeof(Tab));
-    private static readonly string[] TabLabels = { "Muebles", "Objetos", "Consumibles" };
+    private static readonly Tab[] Tabs = (Tab[])Enum.GetValues(typeof(Tab));
+
+    private static string TabLabel(Tab tab) => tab switch
+    {
+        Tab.Furniture   => Loc.Tr("ui.store.tab.furniture"),
+        Tab.WorldProps  => Loc.Tr("ui.store.tab.worldprops"),
+        Tab.Consumables => Loc.Tr("ui.store.tab.consumables"),
+        _               => "",
+    };
 
     private const string TabClass         = "store-tab";
     private const string TabActiveClass   = "store-tab--active";
@@ -122,7 +129,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     private void RefreshBalance(PlayerInventorySO inv)
     {
         if (balanceLabel == null) return;
-        balanceLabel.text = inv != null ? $"Saldo: {inv.Dabloons:N0} Dabloons" : "";
+        balanceLabel.text = inv != null ? Loc.Tr("ui.store.balance", inv.Dabloons) : "";
     }
 
     // ── Toast notify ──────────────────────────────────────────────
@@ -154,7 +161,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         for (int i = 0; i < Tabs.Length; i++)
         {
             int idx = i;
-            var tab = new Label(TabLabels[i]);
+            var tab = new Label(TabLabel(Tabs[i]));
             tab.AddToClassList(TabClass);
             tab.RegisterCallback<ClickEvent>(_ => SetTab(idx));
             tabsContainer.Add(tab);
@@ -265,7 +272,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         el.Add(BuildStock(row.Shop));
 
         bool canBuy = row.Shop == null || row.Shop.InStock;
-        var buy = new Button(() => Purchase(row)) { text = "Comprar" };
+        var buy = new Button(() => Purchase(row)) { text = Loc.Tr("ui.store.buy") };
         buy.AddToClassList("store-row__buy");
         buy.SetEnabled(canBuy);
         if (!canBuy) buy.AddToClassList("store-row__buy--disabled");
@@ -284,12 +291,12 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
         if (discounted)
         {
-            var was = new Label($"¢{shop.BasePrice}");
+            var was = new Label(Loc.Tr("ui.store.price", shop.BasePrice));
             was.AddToClassList("store-price__was");
             box.Add(was);
         }
 
-        var now = new Label($"¢{final}");
+        var now = new Label(Loc.Tr("ui.store.price", final));
         now.AddToClassList(discounted ? "store-price__now--sale" : "store-price__now");
         box.Add(now);
 
@@ -309,12 +316,12 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
         if (shop.CurrentStock <= 0)
         {
-            label.text = "Agotado";
+            label.text = Loc.Tr("ui.store.stock_empty");
             label.AddToClassList("store-row__stock--empty");
         }
         else
         {
-            label.text = $"x{shop.CurrentStock}";
+            label.text = Loc.Tr("ui.store.stock_count", shop.CurrentStock);
             if (shop.CurrentStock <= 2) label.AddToClassList("store-row__stock--low");
         }
         return label;
@@ -333,13 +340,13 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
                 Rebuild();   // refresh stock counts + button state
                 break;
             case BuyResult.OutOfStock:
-                ShowNotify("¡Artículo agotado!");
+                ShowNotify(Loc.Tr("ui.store.toast.out_of_stock"));
                 break;
             case BuyResult.InsufficientFunds:
-                ShowNotify("¡Dabloons insuficientes!");
+                ShowNotify(Loc.Tr("ui.store.toast.insufficient_funds"));
                 break;
             case BuyResult.AlreadyOwned:
-                ShowNotify("¡Ya tienes ese mueble!");
+                ShowNotify(Loc.Tr("ui.store.toast.already_owned"));
                 break;
         }
     }
@@ -378,6 +385,9 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         notifyLabel   = root.Q<Label>("notify");
         closeButton   = root.Q<Button>("close-button");
 
+        var titleLabel = root.Q<Label>(className: "store-title");
+        if (titleLabel  != null) titleLabel.text          = Loc.Tr("ui.store.title");
+        if (emptyLabel  != null) emptyLabel.text          = Loc.Tr("ui.store.empty");
         if (notifyLabel  != null) notifyLabel.style.display  = DisplayStyle.None;
         if (closeButton  != null) closeButton.clicked        += OnCloseClicked;
     }

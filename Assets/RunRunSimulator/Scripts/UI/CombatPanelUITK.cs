@@ -102,6 +102,40 @@ public class CombatPanelUITK : MonoBehaviour, IUINavigable
         tabs        = root.Q<TabView>("tabs");
         closeButton = root.Q<Button>("close-button");
 
+        var titleLabel = root.Q<Label>("title");
+        if (titleLabel != null) titleLabel.text = Loc.Tr("ui.combat.title");
+
+        var tabOnline  = root.Q<Tab>("tab-online");
+        var tabResults = root.Q<Tab>("tab-results");
+        var tabHistory = root.Q<Tab>("tab-history");
+        var tabLineup  = root.Q<Tab>("tab-lineup");
+        if (tabOnline  != null) tabOnline.label  = Loc.Tr("ui.combat.tab.online");
+        if (tabResults != null) tabResults.label = Loc.Tr("ui.combat.tab.results");
+        if (tabHistory != null) tabHistory.label = Loc.Tr("ui.combat.tab.history");
+        if (tabLineup  != null) tabLineup.label  = Loc.Tr("ui.combat.tab.lineup");
+
+        if (tabOnline != null)
+        {
+            var sideTitles = tabOnline.Query<Label>(className: "cbt-col-title").ToList();
+            if (sideTitles.Count > 0) sideTitles[0].text = Loc.Tr("ui.combat.available");
+            if (sideTitles.Count > 1) sideTitles[1].text = Loc.Tr("ui.combat.team");
+            var placeholder = tabOnline.Q<Label>(className: "cbt-placeholder");
+            if (placeholder != null) placeholder.text = Loc.Tr("ui.combat.comingsoon");
+        }
+
+        if (tabResults != null)
+        {
+            var clockCaption = tabResults.Q<Label>(className: "cbt-clock-caption");
+            if (clockCaption != null) clockCaption.text = Loc.Tr("ui.combat.nextcombat");
+        }
+
+        if (tabLineup != null)
+        {
+            var rosterTitles = tabLineup.Query<Label>(className: "cbt-col-title").ToList();
+            if (rosterTitles.Count > 0) rosterTitles[0].text = Loc.Tr("ui.combat.teama");
+            if (rosterTitles.Count > 1) rosterTitles[1].text = Loc.Tr("ui.combat.teamb");
+        }
+
         online  = new CombatOnlineTabPresenter(root, () => registry, database, asyncCombatService, OnEnqueued);
         results = new CombatResultsTabPresenter(root, () => registry, asyncCombatService);
         history = new CombatHistoryTabPresenter(root, () => registry);

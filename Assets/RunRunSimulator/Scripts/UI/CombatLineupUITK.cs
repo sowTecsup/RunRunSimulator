@@ -249,7 +249,9 @@ public class CombatLineupUITK : MonoBehaviour
 
         if (resultOutcome != null)
         {
-            resultOutcome.text = result.IsDraw ? "Empate" : (result.TeamAWon ? "¡Ganó el Equipo A!" : "¡Ganó el Equipo B!");
+            resultOutcome.text = result.IsDraw
+                ? LocEnumMaps.OutcomeName(CombatOutcome.Draw)
+                : (result.TeamAWon ? Loc.Tr("ui.lineup.teamwin.a") : Loc.Tr("ui.lineup.teamwin.b"));
             resultOutcome.EnableInClassList("cbt-lu-result-outcome--a", !result.IsDraw && result.TeamAWon);
             resultOutcome.EnableInClassList("cbt-lu-result-outcome--b", !result.IsDraw && !result.TeamAWon);
         }
@@ -257,8 +259,8 @@ public class CombatLineupUITK : MonoBehaviour
         if (resultSub != null)
         {
             var parts = new List<string>();
-            if (!string.IsNullOrEmpty(result.EvolvedUnitName)) parts.Add($"Evolucionó {result.EvolvedUnitName}");
-            if (!string.IsNullOrEmpty(result.DiedUnitName)) parts.Add($"Murió {result.DiedUnitName}");
+            if (!string.IsNullOrEmpty(result.EvolvedUnitName)) parts.Add(Loc.Tr("ui.lineup.evolved", result.EvolvedUnitName));
+            if (!string.IsNullOrEmpty(result.DiedUnitName)) parts.Add(Loc.Tr("ui.lineup.died", result.DiedUnitName));
             resultSub.text = string.Join(" · ", parts);
         }
 
@@ -411,9 +413,9 @@ public class CombatLineupUITK : MonoBehaviour
     {
         switch (role)
         {
-            case Role.Protector: return "PRO";
-            case Role.Agresivo:  return "AGR";
-            default:             return "EMP";
+            case Role.Protector: return Loc.Tr("ui.lineup.roleabbr.protector");
+            case Role.Agresivo:  return Loc.Tr("ui.lineup.roleabbr.agresivo");
+            default:             return Loc.Tr("ui.lineup.roleabbr.empatico");
         }
     }
 
@@ -427,24 +429,14 @@ public class CombatLineupUITK : MonoBehaviour
         }
     }
 
-    private static string ElementText(Element element)
-    {
-        switch (element)
-        {
-            case Element.Agua:         return "Agua";
-            case Element.Fuego:        return "Fuego";
-            case Element.Electricidad: return "Electricidad";
-            case Element.Planta:       return "Planta";
-            default:                   return element.ToString();
-        }
-    }
+    private static string ElementText(Element element) => LocEnumMaps.ElementName(element);
 
     private void RefreshCounts()
     {
         if (countA != null) countA.text = $"{boardA.Count}/{CombatLineupBoard.TeamSize}";
         if (countB != null) countB.text = $"{boardB.Count}/{CombatLineupBoard.TeamSize}";
         bool ready = boardA.IsFull && boardB.IsFull;
-        if (hint != null) hint.text = ready ? "¡Listos para pelear!" : "Arrastrá un MoriMochi a un slot";
+        if (hint != null) hint.text = ready ? Loc.Tr("ui.lineup.ready") : Loc.Tr("ui.lineup.drag_hint");
         btnFight?.SetEnabled(ready);
     }
 
@@ -500,7 +492,10 @@ public class CombatLineupUITK : MonoBehaviour
         roleChip.AddToClassList(RoleModifierClass(dna.Role));
         meta.Add(roleChip);
 
-        var stats = new Label($"CON {Mathf.RoundToInt(dna.BaseConstitution)}  ATK {Mathf.RoundToInt(dna.BaseAttack)}  SPD {Mathf.RoundToInt(dna.BaseSpeed)}");
+        var stats = new Label(Loc.Tr("ui.lineup.roster.stats",
+            LocEnumMaps.StatAbbrev(StatType.Constitution), Mathf.RoundToInt(dna.BaseConstitution),
+            LocEnumMaps.StatAbbrev(StatType.Attack),       Mathf.RoundToInt(dna.BaseAttack),
+            LocEnumMaps.StatAbbrev(StatType.Speed),        Mathf.RoundToInt(dna.BaseSpeed)));
         stats.AddToClassList("cbt-lu-roster-stats");
         card.Add(stats);
 
@@ -559,12 +554,12 @@ public class CombatLineupUITK : MonoBehaviour
         detailStats.Clear();
 
         var final = StatsOf(dna);
-        AddDetailStatRow(detailStats, "CON", dna.BaseConstitution, final.Constitution);
-        AddDetailStatRow(detailStats, "ATK", dna.BaseAttack,       final.Attack);
-        AddDetailStatRow(detailStats, "SPD", dna.BaseSpeed,        final.Speed);
-        AddDetailStatRow(detailStats, "DEF", dna.BaseDefense,      final.Defense);
-        AddDetailStatRow(detailStats, "LCK", dna.BaseLuck,         final.Luck);
-        AddDetailStatRow(detailStats, "EVA", dna.BaseEvasion,      final.Evasion);
+        AddDetailStatRow(detailStats, LocEnumMaps.StatAbbrev(StatType.Constitution), dna.BaseConstitution, final.Constitution);
+        AddDetailStatRow(detailStats, LocEnumMaps.StatAbbrev(StatType.Attack),       dna.BaseAttack,       final.Attack);
+        AddDetailStatRow(detailStats, LocEnumMaps.StatAbbrev(StatType.Speed),        dna.BaseSpeed,        final.Speed);
+        AddDetailStatRow(detailStats, LocEnumMaps.StatAbbrev(StatType.Defense),      dna.BaseDefense,      final.Defense);
+        AddDetailStatRow(detailStats, LocEnumMaps.StatAbbrev(StatType.Luck),         dna.BaseLuck,         final.Luck);
+        AddDetailStatRow(detailStats, LocEnumMaps.StatAbbrev(StatType.Evasion),      dna.BaseEvasion,      final.Evasion);
     }
 
     private static void AddDetailStatRow(VisualElement container, string label, float baseVal, float finalVal)
@@ -616,13 +611,7 @@ public class CombatLineupUITK : MonoBehaviour
         }
     }
 
-    private static string SlotName(EquipmentSlot s) => s switch
-    {
-        EquipmentSlot.Weapon => "Arma",
-        EquipmentSlot.Armor  => "Armadura",
-        EquipmentSlot.Amulet => "Amuleto",
-        _                    => s.ToString(),
-    };
+    private static string SlotName(EquipmentSlot s) => LocEnumMaps.EquipmentSlotName(s);
 
     // ── Drag & drop ───────────────────────────────────────────────
 

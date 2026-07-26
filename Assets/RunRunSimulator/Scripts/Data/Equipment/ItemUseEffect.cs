@@ -44,7 +44,7 @@ public class HealUseEffect : ItemUseEffect
 
     public override string Summary()
     {
-        return $"[{Uses} uso(s) · {RuleTag}] cura {Amount} HP";
+        return Loc.Tr("effect.item_heal.summary", Uses, RuleTag, Amount);
     }
 }
 
@@ -61,7 +61,7 @@ public class DamageUseEffect : ItemUseEffect
 
     public override string Summary()
     {
-        return $"[{Uses} uso(s) · {RuleTag}] inflige {Amount} de daño";
+        return Loc.Tr("effect.item_damage.summary", Uses, RuleTag, Amount);
     }
 }
 }

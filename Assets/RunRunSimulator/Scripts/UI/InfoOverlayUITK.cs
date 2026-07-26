@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
@@ -17,8 +18,8 @@ public class InfoOverlayUITK : MonoBehaviour
     [Serializable]
     public struct InputHint
     {
-        public string Key;      // "E", "Rueda", "Tab"…
-        public string Action;   // "Interactuar", "Cambiar slot"…
+        public string Key;
+        public string ActionKey;
     }
 
     [SerializeField] private UIDocument document;
@@ -26,24 +27,21 @@ public class InfoOverlayUITK : MonoBehaviour
     [Tooltip("Control legend shown top-left. Edit to match the current bindings.")]
     [SerializeField] private InputHint[] hints =
     {
-        new InputHint { Key = "WASD",  Action = "Mover" },
-        new InputHint { Key = "E",     Action = "Interactuar / Agarrar" },
-        new InputHint { Key = "Click", Action = "Usar" },
-        new InputHint { Key = "Q",     Action = "Soltar" },
-        new InputHint { Key = "Rueda", Action = "Cambiar slot" },
-        new InputHint { Key = "B",     Action = "Construir" },
-        new InputHint { Key = "Tab",   Action = "Catálogo" },
+        new InputHint { Key = "WASD",  ActionKey = "ui.overlay.hint.move" },
+        new InputHint { Key = "E",     ActionKey = "ui.overlay.hint.interact" },
+        new InputHint { Key = "Click", ActionKey = "ui.overlay.hint.use" },
+        new InputHint { Key = "Q",     ActionKey = "ui.overlay.hint.drop" },
+        new InputHint { Key = "Rueda", ActionKey = "ui.overlay.hint.slot" },
+        new InputHint { Key = "B",     ActionKey = "ui.overlay.hint.build" },
+        new InputHint { Key = "Tab",   ActionKey = "ui.overlay.hint.catalog" },
     };
 
     // Refresh the date once a second — it never changes faster, and rebuilding each
     // frame is wasted work for a label that turns over at midnight.
     private const float DateRefreshInterval = 1f;
 
-    private static readonly string[] DayNames =
-        { "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado" };
-    private static readonly string[] MonthNames =
-        { "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-          "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
+    private const string DateFormatKey = "ui.overlay.date.format";
+    private const string DabloonsKey   = "ui.overlay.dabloons";
 
     private Label dateLabel;
     private Label dabloonsLabel;
@@ -54,16 +52,20 @@ public class InfoOverlayUITK : MonoBehaviour
     {
         GameEvents.OnInventoryChanged  += RefreshDabloons;
         GameEvents.OnInventoryReloaded += RefreshDabloons;
+        UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged += HandleLocaleChanged;
     }
 
     private void OnDisable()
     {
         GameEvents.OnInventoryChanged  -= RefreshDabloons;
         GameEvents.OnInventoryReloaded -= RefreshDabloons;
+        UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged -= HandleLocaleChanged;
     }
 
     private void Start()
     {
+        Loc.ApplySavedLocale();
+
         var root = document != null ? document.rootVisualElement : null;
         if (root == null) { Debug.LogWarning("[InfoOverlayUITK] No UIDocument / root."); return; }
 
@@ -90,16 +92,25 @@ public class InfoOverlayUITK : MonoBehaviour
     {
         if (dateLabel == null) return;
         var now = DateTime.Now;
-        string text = $"{DayNames[(int)now.DayOfWeek]} {now.Day} de {MonthNames[now.Month - 1]}, {now.Year}";
+        var culture = Loc.Culture;
+        string dayName = Capitalize(culture.DateTimeFormat.GetDayName(now.DayOfWeek), culture);
+        string monthName = Capitalize(culture.DateTimeFormat.GetMonthName(now.Month), culture);
+        string text = Loc.Tr(DateFormatKey, dayName, now.Day, monthName, now.Year);
         if (!force && text == lastDateText) return;
         lastDateText = text;
         dateLabel.text = text;
     }
 
+    private static string Capitalize(string value, CultureInfo culture)
+    {
+        if (string.IsNullOrEmpty(value)) return value;
+        return char.ToUpper(value[0], culture) + value.Substring(1);
+    }
+
     private void RefreshDabloons(PlayerInventorySO inv)
     {
         if (dabloonsLabel == null || inv == null) return;
-        dabloonsLabel.text = $"Dabloons: {inv.Dabloons:N0}";
+        dabloonsLabel.text = Loc.Tr(DabloonsKey, inv.Dabloons);
     }
 
     private void BuildHints(VisualElement container)
@@ -116,12 +127,36 @@ public class InfoOverlayUITK : MonoBehaviour
             key.AddToClassList("hint-key");
             row.Add(key);
 
-            var action = new Label(hint.Action);
+            var action = new Label(Loc.Tr(hint.ActionKey));
             action.AddToClassList("hint-action");
             row.Add(action);
 
             container.Add(row);
         }
+
+        var langRow = new VisualElement();
+        langRow.AddToClassList("lang-row");
+        langRow.Add(MakeLangButton("en", "EN"));
+        langRow.Add(MakeLangButton("es", "ES"));
+        container.Add(langRow);
+    }
+
+    private Button MakeLangButton(string code, string label)
+    {
+        var btn = new Button(() => Loc.SetLocale(code)) { text = label };
+        btn.AddToClassList("lang-btn");
+        if (Loc.CurrentCode == code) btn.AddToClassList("lang-btn--active");
+        return btn;
+    }
+
+    private void HandleLocaleChanged(UnityEngine.Localization.Locale locale)
+    {
+        var root = document != null ? document.rootVisualElement : null;
+        if (root == null) return;
+        BuildHints(root.Q<VisualElement>("hints"));
+        RefreshDate(force: true);
+        var inv = GameManager.Instance != null ? GameManager.Instance.Inventory : null;
+        if (inv != null) RefreshDabloons(inv);
     }
 }
 }

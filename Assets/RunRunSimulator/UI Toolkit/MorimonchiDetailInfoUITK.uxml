@@ -80,6 +80,18 @@
                     </ui:VisualElement>
                 </ui:Tab>
 
+                <!-- Social relations: who this MoriMochi likes and dislikes, read
+                     straight from SocialGraphService (seed + history). -->
+                <ui:Tab label="Relaciones" name="tab-relations">
+                    <ui:ScrollView class="relations-body" mode="Vertical">
+                        <ui:Label text="Le caen bien" class="section-title" />
+                        <ui:VisualElement name="relations-good" class="relations-list" />
+                        <ui:Label text="Le caen mal" class="section-title" />
+                        <ui:VisualElement name="relations-bad" class="relations-list" />
+                        <ui:Label name="relations-empty" text="Todavía no conoce a nadie." class="placeholder" />
+                    </ui:ScrollView>
+                </ui:Tab>
+
             </ui:TabView>
 
         </ui:VisualElement>

@@ -38,14 +38,7 @@ public class CombatVisualizerService : MonoBehaviour
     [SerializeField, MinValue(0f)] private float corpseFadeSeconds = 1.5f;
     [SerializeField, Range(0f, 1f)] private float corpseAlpha      = 0.35f;
 
-    [Title("Speech (frases tweakeables)")]
-    [SerializeField] private string protectorLine = "¡Toma, protégete!";
-    [SerializeField] private string empaticoLine  = "¡{0}, te curo!";
-    [SerializeField] private string agresivoLine  = "¡Te comparto mi espíritu de pelea!";
-    [SerializeField] private string protectorSelfLine = "¡Me escudaré!";
-    [SerializeField] private string empaticoSelfLine  = "¡Qué alivio!";
-    [SerializeField] private string agresivoSelfLine  = "¡Me toca a mí!";
-    [SerializeField] private string attackLine    = "¡TOMA, {0}!";
+    [Title("Speech")]
     [SerializeField, MinValue(0.2f)] private float speechSeconds = 1.6f;
 
     [Title("Playback")]
@@ -230,7 +223,7 @@ public class CombatVisualizerService : MonoBehaviour
 
         var log = new List<CombatVisualLogLine>
         {
-            Line(CombatVisualLogKind.Versus, $"{NamesColored(snapsA, SelfColor)}   VS   {NamesColored(snapsB, OppColor)}"),
+            Line(CombatVisualLogKind.Versus, Loc.Tr("combat.log.versus", NamesColored(snapsA, SelfColor), NamesColored(snapsB, OppColor))),
         };
 
         head = new CombatNode
@@ -307,8 +300,8 @@ public class CombatVisualizerService : MonoBehaviour
                     string def = Colored(t.DefenderName, attackerIsSelf ? OppColor : SelfColor);
                     string dmg = Colored($"{t.Damage:F0}", DamageColor);
                     log.Add(t.WasCrit
-                        ? Line(CombatVisualLogKind.Crit, $"¡CRÍTICO! {atk} → {def} · {dmg} de daño")
-                        : Line(CombatVisualLogKind.Hit,  $"{atk} golpea a {def} · {dmg} de daño"));
+                        ? Line(CombatVisualLogKind.Crit, Loc.Tr("combat.log.crit", atk, def, dmg))
+                        : Line(CombatVisualLogKind.Hit,  Loc.Tr("combat.log.hit", atk, def, dmg)));
 
                     if (defenderSide == CombatVisualSide.A) hpA[t.DefenderIndex] = t.DefenderHpAfter;
                     else                                    hpB[t.DefenderIndex] = t.DefenderHpAfter;
@@ -327,13 +320,13 @@ public class CombatVisualizerService : MonoBehaviour
                     if (stateA[i].Hp <= 0f && aliveA[i])
                     {
                         diedHereA[i] = true; aliveA[i] = false;
-                        log.Add(Line(CombatVisualLogKind.Death, $"{Colored(snapsA[i].Name, SelfColor)} cae derrotado", true, CombatVisualSide.A, i));
+                        log.Add(Line(CombatVisualLogKind.Death, Loc.Tr("combat.log.death", Colored(snapsA[i].Name, SelfColor)), true, CombatVisualSide.A, i));
                     }
                 for (int i = 0; i < stateB.Count; i++)
                     if (stateB[i].Hp <= 0f && aliveB[i])
                     {
                         diedHereB[i] = true; aliveB[i] = false;
-                        log.Add(Line(CombatVisualLogKind.Death, $"{Colored(snapsB[i].Name, OppColor)} cae derrotado", true, CombatVisualSide.B, i));
+                        log.Add(Line(CombatVisualLogKind.Death, Loc.Tr("combat.log.death", Colored(snapsB[i].Name, OppColor)), true, CombatVisualSide.B, i));
                     }
 
                 totalTurns++;
@@ -355,10 +348,10 @@ public class CombatVisualizerService : MonoBehaviour
         endIsDraw = activeRecord.Outcome == CombatOutcome.Draw;
         endWinner = activeRecord.Outcome == CombatOutcome.Won ? CombatVisualSide.A : CombatVisualSide.B;
         node.Log.Add(endIsDraw
-            ? Line(CombatVisualLogKind.Result, "Empate")
+            ? Line(CombatVisualLogKind.Result, Loc.Tr("combat.log.draw"))
             : Line(CombatVisualLogKind.Result, endWinner == CombatVisualSide.A
-                ? Colored("Ganador: tu equipo", SelfColor)
-                : Colored("Ganador: equipo rival", OppColor)));
+                ? Colored(Loc.Tr("combat.log.winner.ally"), SelfColor)
+                : Colored(Loc.Tr("combat.log.winner.enemy"), OppColor)));
 
         current = head;
     }
@@ -501,7 +494,7 @@ public class CombatVisualizerService : MonoBehaviour
             CombatVisualEvents.Phase(CombatTurnPhase.Attack, target.AttackerSide);
             CombatVisualEvents.Attack(target.AttackerSide);
 
-            EmitSpeech(target.AttackerSide, target.AttackerIndex, string.Format(attackLine, t.DefenderName), defSide, target.DefenderIndex, true);
+            EmitSpeech(target.AttackerSide, target.AttackerIndex, Loc.Tr("combat.voice.attack", t.DefenderName), defSide, target.DefenderIndex, true);
 
             bool impacted = false;
             bool attackDone = false;
@@ -524,11 +517,11 @@ public class CombatVisualizerService : MonoBehaviour
             if (t.WasCrit)
             {
                 CombatVisualEvents.Crit(hit);
-                CombatVisualEvents.Log($"¡CRÍTICO! {t.AttackerName} → {t.DefenderName} · {t.Damage:F0} de daño");
+                CombatVisualEvents.Log(Loc.Tr("combat.log.crit", t.AttackerName, t.DefenderName, $"{t.Damage:F0}"));
             }
             else
             {
-                CombatVisualEvents.Log($"{t.AttackerName} golpea a {t.DefenderName} · {t.Damage:F0} de daño");
+                CombatVisualEvents.Log(Loc.Tr("combat.log.hit", t.AttackerName, t.DefenderName, $"{t.Damage:F0}"));
             }
 
             PushHp(defSide, target.DefenderIndex, t.DefenderHpAfter);
@@ -712,26 +705,26 @@ public class CombatVisualizerService : MonoBehaviour
         if (pe.ElementEvent == ElementEventKind.None && pe.Kind == ModifierEffectKind.Shield)
         {
             if (esSelf)
-                EmitSpeech(node.AttackerSide, node.AttackerIndex, protectorSelfLine, side, pe.TargetIndex, false);
+                EmitSpeech(node.AttackerSide, node.AttackerIndex, Loc.Tr("combat.voice.protectorself"), side, pe.TargetIndex, false);
             else
-                EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(protectorLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
+                EmitSpeech(node.AttackerSide, node.AttackerIndex, Loc.Tr("combat.voice.protector", SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
         }
         else if (pe.ElementEvent == ElementEventKind.None && pe.Kind == ModifierEffectKind.Heal && !pe.BeforeStrike)
         {
             if (esSelf)
-                EmitSpeech(node.AttackerSide, node.AttackerIndex, empaticoSelfLine, side, pe.TargetIndex, false);
+                EmitSpeech(node.AttackerSide, node.AttackerIndex, Loc.Tr("combat.voice.healself"), side, pe.TargetIndex, false);
             else
-                EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(empaticoLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
+                EmitSpeech(node.AttackerSide, node.AttackerIndex, Loc.Tr("combat.voice.heal", SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
         }
         else if (pe.ElementEvent == ElementEventKind.MarkApplied && pe.AllySource && pe.PassivePhase
               && SnapRole(node.AttackerSide, node.AttackerIndex) == Role.Agresivo && esSelf)
-            EmitSpeech(node.AttackerSide, node.AttackerIndex, agresivoSelfLine, side, pe.TargetIndex, false);
+            EmitSpeech(node.AttackerSide, node.AttackerIndex, Loc.Tr("combat.voice.aggroself"), side, pe.TargetIndex, false);
         else if (pe.ElementEvent == ElementEventKind.MarkApplied && pe.AllySource
               && SnapRole(node.AttackerSide, node.AttackerIndex) == Role.Agresivo
               && !esSelf)
-            EmitSpeech(node.AttackerSide, node.AttackerIndex, string.Format(agresivoLine, SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
+            EmitSpeech(node.AttackerSide, node.AttackerIndex, Loc.Tr("combat.voice.aggro", SnapName(side, pe.TargetIndex)), side, pe.TargetIndex, true);
         else if (pe.ElementEvent == ElementEventKind.StateArmed)
-            EmitSpeech(side, pe.TargetIndex, $"¡Quedé {StateName(pe.State)}!", side, pe.TargetIndex, false);
+            EmitSpeech(side, pe.TargetIndex, Loc.Tr("combat.voice.statearmed", StateName(pe.State)), side, pe.TargetIndex, false);
 
         PushHp(side, pe.TargetIndex, pe.TargetHpAfter);
 
@@ -863,12 +856,12 @@ public class CombatVisualizerService : MonoBehaviour
         {
             return pe.Kind switch
             {
-                ModifierEffectKind.Poison => $"{who} es envenenado",
-                ModifierEffectKind.Burn   => $"{who} se incendia",
-                ModifierEffectKind.Regen  => $"{who} entra en regeneración",
-                ModifierEffectKind.Stun   => $"{who} queda aturdido {pe.Amount:F0}t",
-                ModifierEffectKind.Shield => $"{who} recibe escudo (+{pe.Amount:F0})",
-                _                         => $"{who} — {pe.Kind}",
+                ModifierEffectKind.Poison => Loc.Tr("combat.log.poisoned", who),
+                ModifierEffectKind.Burn   => Loc.Tr("combat.log.burning", who),
+                ModifierEffectKind.Regen  => Loc.Tr("combat.log.regenstart", who),
+                ModifierEffectKind.Stun   => Loc.Tr("combat.log.stunned", who, $"{pe.Amount:F0}"),
+                ModifierEffectKind.Shield => Loc.Tr("combat.log.shielded", who, $"{pe.Amount:F0}"),
+                _                         => Loc.Tr("combat.log.generic", who, pe.Kind),
             };
         }
         string mag = $"{Mathf.Abs(delta):F0}";
@@ -876,31 +869,33 @@ public class CombatVisualizerService : MonoBehaviour
         {
             return pe.Kind switch
             {
-                ModifierEffectKind.Poison       => $"{who} sufre {Colored(mag, DamageColor)} de veneno",
-                ModifierEffectKind.Burn         => $"{who} sufre {Colored(mag, DamageColor)} de quemadura",
-                ModifierEffectKind.ReturnDamage => $"{who} recibe {Colored(mag, DamageColor)} de espinas",
-                _                               => $"{who} pierde {Colored(mag, DamageColor)}",
+                ModifierEffectKind.Poison       => Loc.Tr("combat.log.poisondamage", who, Colored(mag, DamageColor)),
+                ModifierEffectKind.Burn         => Loc.Tr("combat.log.burndamage", who, Colored(mag, DamageColor)),
+                ModifierEffectKind.ReturnDamage => Loc.Tr("combat.log.thornsdamage", who, Colored(mag, DamageColor)),
+                _                               => Loc.Tr("combat.log.damageloss", who, Colored(mag, DamageColor)),
             };
         }
         return pe.Kind switch
         {
-            ModifierEffectKind.Regen => $"{who} regenera {mag}",
-            ModifierEffectKind.Heal  => $"{who} se cura {mag}",
-            _                        => $"{who} recupera {mag}",
+            ModifierEffectKind.Regen => Loc.Tr("combat.log.procregen", who, mag),
+            ModifierEffectKind.Heal  => Loc.Tr("combat.log.procheal", who, mag),
+            _                        => Loc.Tr("combat.log.procrecover", who, mag),
         };
     }
 
     private string ElementText(CombatProcEvent pe, string who, float delta) => pe.ElementEvent switch
     {
-        ElementEventKind.Reaction      => $"¡{pe.ReactionName}! sobre {who}",
-        ElementEventKind.StateArmed    => $"{who} queda {StateName(pe.State)}",
-        ElementEventKind.StateConsumed => $"{who} consume {StateName(pe.State)}",
-        ElementEventKind.StateRemoved  => $"{who} pierde {StateName(pe.State)}",
-        ElementEventKind.MarkApplied   => $"{who} recibe marca {ElemName(pe.Element)} {(pe.AllySource ? "aliada" : "enemiga")}",
-        ElementEventKind.MarkRemoved   => $"{who} pierde la marca {ElemName(pe.Element)}",
-        ElementEventKind.Heal          => $"{who} se cura {Mathf.Abs(delta):F0}",
-        ElementEventKind.Damage        => $"{who} recibe {Colored($"{Mathf.Abs(delta):F0}", DamageColor)}",
-        ElementEventKind.ShieldDoubled => $"{who} duplica su escudo",
+        ElementEventKind.Reaction      => Loc.Tr("combat.log.reaction", pe.ReactionName, who),
+        ElementEventKind.StateArmed    => Loc.Tr("combat.log.statearmed", who, StateName(pe.State)),
+        ElementEventKind.StateConsumed => Loc.Tr("combat.log.stateconsumed", who, StateName(pe.State)),
+        ElementEventKind.StateRemoved  => Loc.Tr("combat.log.stateremoved", who, StateName(pe.State)),
+        ElementEventKind.MarkApplied   => pe.AllySource
+            ? Loc.Tr("combat.log.markapplied.ally", who, ElemName(pe.Element))
+            : Loc.Tr("combat.log.markapplied.enemy", who, ElemName(pe.Element)),
+        ElementEventKind.MarkRemoved   => Loc.Tr("combat.log.markremoved", who, ElemName(pe.Element)),
+        ElementEventKind.Heal          => Loc.Tr("combat.log.elementheal", who, $"{Mathf.Abs(delta):F0}"),
+        ElementEventKind.Damage        => Loc.Tr("combat.log.elementdamage", who, Colored($"{Mathf.Abs(delta):F0}", DamageColor)),
+        ElementEventKind.ShieldDoubled => Loc.Tr("combat.log.shielddoubled", who),
         _                               => null,
     };
 

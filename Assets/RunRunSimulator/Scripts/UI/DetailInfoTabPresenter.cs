@@ -48,15 +48,15 @@ public class DetailInfoTabPresenter
         SetStat(statEva, "EVA", eff.Evasion,      dna.BaseEvasion);
 
         if (identityLabel != null)
-            identityLabel.text = $"Género: {dna.Gender}\nEstado: {StateOf(dna)}\nNacimiento: {Born(dna)}";
+            identityLabel.text = Loc.Tr("ui.detail.identity", LocEnumMaps.GenderName(dna.Gender), StateOf(dna), Born(dna));
 
         if (roleElementLabel != null)
-            roleElementLabel.text = $"{RoleName(dna.Role)} · {ElementName(dna.Element)}\n{RoleDesc(dna.Role)}";
+            roleElementLabel.text = Loc.Tr("ui.detail.roleline", LocEnumMaps.RoleName(dna.Role), LocEnumMaps.ElementName(dna.Element), RoleDesc(dna.Role));
 
         BuildParts(dna);
 
         if (progressionLabel != null)
-            progressionLabel.text = $"Combates: {dna.FightCount} ({dna.WinCount} victorias)\nCrías: {dna.BreedCount}";
+            progressionLabel.text = Loc.Tr("ui.detail.progression", dna.FightCount, dna.WinCount, dna.BreedCount);
     }
 
     // ── Parts ────────────────────────────────────────────────────
@@ -74,13 +74,13 @@ public class DetailInfoTabPresenter
         partsContainer.Clear();
         if (database == null) return;
 
-        AddPartRow("Cuerpo", database.GetBodyShape(dna.BodyShapeID), dna.BodyTier);
-        AddPartRow("Brazos", database.GetArm(dna.ArmID),             dna.ArmTier);
-        AddPartRow("Ojos",   database.GetEye(dna.EyeID),             dna.EyeTier);
-        AddPartRow("Boca",   database.GetMouth(dna.MouthID),         dna.MouthTier);
+        AddPartRow(PartRole.Body,  database.GetBodyShape(dna.BodyShapeID), dna.BodyTier);
+        AddPartRow(PartRole.Arm,   database.GetArm(dna.ArmID),             dna.ArmTier);
+        AddPartRow(PartRole.Eye,   database.GetEye(dna.EyeID),             dna.EyeTier);
+        AddPartRow(PartRole.Mouth, database.GetMouth(dna.MouthID),         dna.MouthTier);
     }
 
-    private void AddPartRow(string slot, BodyPart part, Tier tier)
+    private void AddPartRow(PartRole slot, BodyPart part, Tier tier)
     {
         var row = new VisualElement();
         row.AddToClassList("part-row");
@@ -93,8 +93,8 @@ public class DetailInfoTabPresenter
         var text = new Label();
         text.AddToClassList("part-text");
         text.text = part != null
-            ? $"{slot}: {part.Name}  ·  {part.Set} · {part.Rarity} · Tier{(int)tier}"
-            : $"{slot}: —";
+            ? Loc.Tr("ui.detail.partrow", SlotName(slot), part.Name, part.Set, LocEnumMaps.RarityName(part.Rarity), (int)tier)
+            : Loc.Tr("ui.detail.partrow.empty", SlotName(slot));
         row.Add(text);
 
         partsContainer.Add(row);
@@ -102,37 +102,29 @@ public class DetailInfoTabPresenter
 
     // ── Role / Element ───────────────────────────────────────────
 
-    private static string RoleName(Role r) => r switch
+    private static string SlotName(PartRole r) => r switch
     {
-        Role.Protector => "Protector",
-        Role.Agresivo  => "Agresivo",
-        Role.Empatico  => "Empático",
+        PartRole.Body  => Loc.Tr("ui.detail.slot.body"),
+        PartRole.Arm   => Loc.Tr("ui.detail.slot.arm"),
+        PartRole.Eye   => Loc.Tr("ui.detail.slot.eye"),
+        PartRole.Mouth => Loc.Tr("ui.detail.slot.mouth"),
         _              => r.ToString(),
     };
 
     private static string RoleDesc(Role r) => r switch
     {
-        Role.Protector => "Guardián calmo; escuda a sus aliados y vive tranquilo cerca del almacén.",
-        Role.Agresivo  => "Territorial; caza la retaguardia enemiga y vive en el bullicio del mostrador.",
-        Role.Empatico  => "Sociable; cura a sus aliados y sigue al jugador por el mostrador.",
+        Role.Protector => Loc.Tr("ui.detail.roledesc.protector"),
+        Role.Agresivo  => Loc.Tr("ui.detail.roledesc.agresivo"),
+        Role.Empatico  => Loc.Tr("ui.detail.roledesc.empatico"),
         _              => "",
     };
 
-    private static string ElementName(Element e) => e switch
-    {
-        Element.Agua         => "Agua",
-        Element.Fuego        => "Fuego",
-        Element.Electricidad => "Electricidad",
-        Element.Planta       => "Planta",
-        _                    => e.ToString(),
-    };
-
     private static string StateOf(CreatureDNA d) =>
-        d.IsSold                                  ? "SOLD"     :
-        d.IsDead                                  ? "DEAD"     :
-        d.BusyState == BusyReason.Breeding        ? "Breeding" :
-        d.BusyState == BusyReason.QueuedForCombat ? "In Queue" :
-        "Free";
+        d.IsSold                                  ? Loc.Tr("status.sold")     :
+        d.IsDead                                  ? Loc.Tr("status.dead")     :
+        d.BusyState == BusyReason.Breeding        ? Loc.Tr("status.breeding") :
+        d.BusyState == BusyReason.QueuedForCombat ? Loc.Tr("status.queued")   :
+        Loc.Tr("status.free");
 
     private static string Born(CreatureDNA d) =>
         d.BirthDate == default ? "—" : d.BirthDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");

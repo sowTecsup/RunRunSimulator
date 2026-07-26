@@ -113,7 +113,7 @@ public class BuildBrowserUITK : MonoBehaviour
         for (int i = 0; i < Categories.Length; i++)
         {
             int idx = i;
-            var tab = new Label(Categories[i].ToString());
+            var tab = new Label(LocEnumMaps.FurnitureCategoryName(Categories[i]));
             tab.AddToClassList(TabClass);
             tab.RegisterCallback<ClickEvent>(_ => SetCategory(idx));
             tabsContainer.Add(tab);
@@ -213,6 +213,18 @@ public class BuildBrowserUITK : MonoBehaviour
         piecesContainer = root.Q<ScrollView>("pieces");
         emptyLabel      = root.Q<Label>("empty");
         SetupPiecesGrid();
+        WireStaticLabels();
+    }
+
+    private void WireStaticLabels()
+    {
+        var title = root.Q<Label>(className: "browser-title");
+        if (title != null) title.text = Loc.Tr("ui.build.title");
+
+        var hint = root.Q<Label>(className: "browser-hint");
+        if (hint != null) hint.text = Loc.Tr("ui.build.hints");
+
+        if (emptyLabel != null) emptyLabel.text = Loc.Tr("ui.build.empty");
     }
 
     // USS child-selector flex-wrap isn't always picked up by the runtime — enforce in code.

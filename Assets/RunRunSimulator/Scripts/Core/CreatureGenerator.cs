@@ -52,6 +52,8 @@ public static class CreatureGenerator
         return (Element)values.GetValue(Random.Range(0, values.Length));
     }
 
+    public static float RandomDial() => Random.Range(0.15f, 0.85f);
+
     public static (float hp, float atk, float spd) RandomBaseStats()
     {
         int[] stats     = { StatMin, StatMin, StatMin };

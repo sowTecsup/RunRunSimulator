@@ -89,6 +89,7 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
     private void Start()
     {
         WireCloseButton();
+        WireTitle();
         UIManager.RegisterNavigable(panel, this);
     }
 
@@ -268,6 +269,15 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
 
     private void OnCloseClicked() => UIManager.RequestPanelToggle(panel);
 
+    private void WireTitle()
+    {
+        var root = document != null ? document.rootVisualElement : null;
+        if (root == null) return;
+
+        var title = root.Q<Label>(className: "grid-title");
+        if (title != null) title.text = Loc.Tr("ui.grid.title");
+    }
+
     // Re-resolves if the cached scroll view got detached (panel == null), which
     // happens if the document tree was rebuilt.
     private ScrollView ResolveContainer()
@@ -280,10 +290,10 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
     }
 
     private static string StateOf(CreatureDNA d) =>
-        d.IsSold                                  ? "SOLD"     :
-        d.IsDead                                  ? "DEAD"     :
-        d.BusyState == BusyReason.Breeding        ? "Breeding" :
-        d.BusyState == BusyReason.QueuedForCombat ? "In Queue" :
-        "Free";
+        d.IsSold                                  ? Loc.Tr("status.sold")     :
+        d.IsDead                                  ? Loc.Tr("status.dead")     :
+        d.BusyState == BusyReason.Breeding        ? Loc.Tr("status.breeding") :
+        d.BusyState == BusyReason.QueuedForCombat ? Loc.Tr("status.queued")   :
+        Loc.Tr("status.free");
 }
 }

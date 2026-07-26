@@ -44,6 +44,9 @@ public class CreatureDNA
     // metadata fuera del genetic string (igual que Role).
     public Element Element = Element.Agua;
 
+    public float Sociability = 0.5f;
+    public float Boldness    = 0.5f;
+
     // ── Progression ───────────────────────────────────────────────
     public int FightCount = 0;
     public int WinCount   = 0;

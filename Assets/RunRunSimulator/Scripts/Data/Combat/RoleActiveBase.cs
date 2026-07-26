@@ -39,7 +39,7 @@ public class BacklineHunterActive : RoleActiveBase
 
     public override string Summary()
     {
-        return $"{Chance:P0} de probabilidad de cazar la backline enemiga";
+        return Loc.Tr("effect.backline_hunter.summary", Chance);
     }
 }
 }

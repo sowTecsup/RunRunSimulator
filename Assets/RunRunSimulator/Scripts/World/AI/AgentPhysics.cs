@@ -24,10 +24,20 @@ internal class AgentPhysics
     private Vector3    getUpFromPos;
     private Vector3    getUpToPos;
 
+    private Vector3 lastNavAnchor;
+    private bool    hasNavAnchor;
+    private int     voidRescues;
+
     internal AgentPhysics(MoriMochiAgent owner, AgentContext ctx)
     {
         this.owner = owner;
         this.ctx   = ctx;
+    }
+
+    internal void CaptureNavAnchor(Vector3 pos)
+    {
+        lastNavAnchor = pos;
+        hasNavAnchor  = true;
     }
 
     internal void FixedTick()
@@ -151,6 +161,22 @@ internal class AgentPhysics
         if (ctx.RebakeInProgress) return;
         if (owner.forceRagdoll) return;
 
+        if (hasNavAnchor && ctx.Body.position.y < lastNavAnchor.y - owner.voidFallDrop)
+        {
+            voidRescues++;
+            if (voidRescues >= 2 && RejoinNavMesh(lastNavAnchor, ctx.Agent.areaMask))
+            {
+                owner.RequestRoam();
+                return;
+            }
+            ctx.Rb.linearVelocity  = Vector3.zero;
+            ctx.Rb.angularVelocity = Vector3.zero;
+            ctx.Body.position      = lastNavAnchor + Vector3.up * 1f;
+            settleTimer = 0f;
+            thrownTimer = 0f;
+            return;
+        }
+
         thrownTimer += Time.deltaTime;
 
         // Settle only when it's actually slow AND resting on the floor — a low velocity
@@ -254,6 +280,7 @@ internal class AgentPhysics
     // call when already detached. Callers set the gravity/damping for their specific case after.
     internal void DetachToPhysics()
     {
+        if (ctx.Agent.enabled && ctx.Agent.isOnNavMesh) CaptureNavAnchor(ctx.Body.position);
         if (ctx.Agent.enabled) ctx.Agent.enabled = false;
         ctx.Rb.isKinematic = false;
         ctx.SetColliderTrigger(false);      // physics owns it now → solid, so it collides/bounces
@@ -269,6 +296,7 @@ internal class AgentPhysics
         settleTimer           = 0f;
         thrownTimer           = 0f;
         bounceCount           = 0;
+        voidRescues           = 0;
     }
 
     // Hand the body back to the NavMeshAgent at 'desired' (snapped onto 'mask'). Returns false if it
@@ -337,6 +365,7 @@ internal class AgentPhysics
     {
         settleTimer = thrownTimer = recoverTimer = 0f;
         bounceCount = 0;
+        voidRescues = 0;
     }
 }
 }

@@ -53,6 +53,7 @@ public class PlayerController : MonoBehaviour
     private float verticalVelocity;
     private IThrowable held;          // currently grabbed object, or null
     private Transform  heldTransform; // its transform, so the throw-aim ray can ignore it
+    private MoriMochiAgent petTarget; // creature currently being petted (hold-E), or null
 
     // Hold-to-grab tracking (only while free and E is held down).
     private bool  grabbing;
@@ -128,6 +129,13 @@ public class PlayerController : MonoBehaviour
         Cursor.visible   = !firstPerson;
 
         if (lookAxis != null) lookAxis.enabled = firstPerson;
+
+        // Safety net: opening a menu or entering build mode mid-pet ends the session.
+        if (next != PlayerStateType.Exploring && petTarget != null)
+        {
+            petTarget.EndPetting();
+            petTarget = null;
+        }
     }
 
     private void Update()
@@ -168,6 +176,7 @@ public class PlayerController : MonoBehaviour
 
     // ── Grab / Interact / Throw ───────────────────────────────────
     // E means different things by context:
+    //   • free + PRESS E over a pettable creature → petting session (held for as long as E is down)
     //   • free + TAP E                       → interact with an IInteractable
     //   • free + HOLD E (≥ grabHoldDuration) → grab an IThrowable
     //   • carrying + PRESS E                 → drop it in place
@@ -183,6 +192,12 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (TryBeginPetting(out var pettable))
+        {
+            petTarget = pettable;
+            return;
+        }
+
         // Free: start timing. Release decides tap(interact); the timer decides hold(grab).
         grabbing  = true;
         grabTimer = 0f;
@@ -190,17 +205,21 @@ public class PlayerController : MonoBehaviour
 
     private void OnInteractReleased()
     {
+        if (petTarget != null)
+        {
+            petTarget.EndPetting();
+            petTarget = null;
+            grabbing  = false;
+            return;
+        }
+
         if (state != PlayerStateType.Exploring) { grabbing = false; return; }
         if (!grabbing) return;   // the hold already resolved into a grab — ignore this release
         grabbing = false;
 
         // Released before the threshold → it was a TAP.
-        // Pet check first (OverlapSphere + dot, no raycast → NameTag panels can't block it).
-        // Falls through to the general IInteractable raycast if no creature is pettable.
-        if (TryPetNearbyCreature()) return;
-
         Debug.Log("[PlayerController] E tapped → trying to interact.");
-        if (TryFindInView<IInteractable>(out var interactable))
+        if (TryFindInView<IInteractable>(out var interactable) && interactable is not MoriMochiAgent)
             interactable.Interact();
         else
             Debug.Log("[PlayerController] Nothing interactable in front of the camera.");
@@ -292,17 +311,18 @@ public class PlayerController : MonoBehaviour
     }
 
     // Pet check: OverlapSphere (no raycast → NameTag panels can't block it).
-    // CanBePetted already includes the IsPlayerFacingMe() dot-product check.
-    private bool TryPetNearbyCreature()
+    // BeginPetting already validates CanBePetted internally.
+    private bool TryBeginPetting(out MoriMochiAgent target)
     {
+        target = null;
         var cols = Physics.OverlapSphere(transform.position, grabRange, creatureLayer);
         foreach (var col in cols)
         {
             var a = col.GetComponent<MoriMochiAgent>();
             if (a == null && col.attachedRigidbody != null)
                 a = col.attachedRigidbody.GetComponent<MoriMochiAgent>();
-            if (a == null || !a.CanBePetted) continue;
-            a.Interact();
+            if (a == null || !a.BeginPetting()) continue;
+            target = a;
             return true;
         }
         return false;

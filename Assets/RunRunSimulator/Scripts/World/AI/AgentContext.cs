@@ -4,7 +4,7 @@ using UnityEngine.AI;
 namespace MoriMonchiSimulator
 {
 
-internal enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting, Socializing }
+internal enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting, Socializing, HandFeed }
 
 internal class AgentContext
 {

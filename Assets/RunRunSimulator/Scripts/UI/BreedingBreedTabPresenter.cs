@@ -197,7 +197,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
         CreatureDNA dna = null;
         if (!string.IsNullOrEmpty(id) && registry != null) registry.TryGet(id, out dna);
 
-        if (nameLabel != null) nameLabel.text = dna != null ? dna.CustomName : "Vacío";
+        if (nameLabel != null) nameLabel.text = dna != null ? dna.CustomName : Loc.Tr("ui.breeding.slot.empty");
         if (img != null) MonchiPortraitUI.Apply(img, dna);
     }
 
@@ -221,7 +221,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
         preview.Add(ParentSummary(mother));
 
         int mins = (BreedingController.Instance != null && BreedingController.Instance.InheritanceOdds != null) ? BreedingController.Instance.InheritanceOdds.BreedDurationMinutes : 30;
-        if (timeLabel != null) timeLabel.text = $"≈ {mins} min";
+        if (timeLabel != null) timeLabel.text = Loc.Tr("ui.breeding.time.estimate", mins);
     }
 
     private VisualElement ParentSummary(CreatureDNA dna)
@@ -317,7 +317,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
         breedBusy = busy;
         if (breedButton == null) return;
         breedButton.SetEnabled(!busy);
-        breedButton.text = busy ? "Breeding..." : "Breed";
+        breedButton.text = busy ? Loc.Tr("ui.breeding.breed.busy") : Loc.Tr("ui.breeding.breed.action");
         breedButton.EnableInClassList("breed-action--busy", busy);
     }
 

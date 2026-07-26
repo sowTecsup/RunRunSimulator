@@ -6,15 +6,16 @@ tags: [script, ui, detail]
 
 **Ruta:** `UI/MorimonchiDetailInfoUITK.cs`
 
-**Responsabilidad (S54 — Fase 7 composición, S57c, S57d):** Resumen detallado de MoriMochi (ventana modal, FireRed-summary inspired, 4 tabs). Núcleo delgado MonoBehaviour que orquesta: Tab 0 "Información" (stats+equipo, género/estado/nacimiento, rol+elemento, partes, contadores), Tab 1 "Combate" (historial 3v3 newest-first con replay), Tab 2-3 "Linaje + Descendencia" (árbol genealógico), Tab 4 "Equipo" (3 slots + stats Base→Final). Escucha `UIManager.OnCreatureSelected` (evento carga dna + registry en campo). Implementa `IUINavigable` (solo A/D navega tabs — no Submit/Cancel internos). Setup: `Wire()` instancia presenters, obtiene refs via `document.Q<>()`. Eventos: `OnRegistryChanged` repopula en-place (equipping desde mochila actualiza tab Equipo sin mover foco). **S57d fix:** `OnRegistryChanged` ahora chequea `document.rootVisualElement.resolvedStyle.display == DisplayStyle.None` antes de Populate — evita loop infinito donde panel oculto rearmaba la cámara live justo después de su auto-apagado de MonchiLivePortrait; Show() siempre llama Populate al reabrir así que no se pierde frescura. Backdrop modal con sortingOrder > grid. **S57b:** Retrato del header vía [[MonchiPortraitUI]].Apply(). **S57c:** Retrato del header ahora vía [[MonchiPortraitUI]].ApplyLive() — cámara live si criatura está spawneada, foto fotomatón si no.
+**Responsabilidad (S54 — Fase 7 composición, S57c, S57d, S67, S68):** Resumen detallado de MoriMochi (ventana modal, FireRed-summary inspired, 5 tabs). Núcleo delgado MonoBehaviour que orquesta: Tab 0 "Información" (stats+equipo, género/estado/nacimiento, rol+elemento, partes, contadores), Tab 1 "Combate" (historial 3v3 newest-first con replay), Tab 2-3 "Linaje + Descendencia" (árbol genealógico), Tab 4 "Equipo" (3 slots + stats Base→Final), Tab 5 "Relaciones" (visualizador SocialGraph: amigos/enemigos por afinidad efectiva). Escucha `UIManager.OnCreatureSelected` (evento carga dna + registry en campo). Implementa `IUINavigable` (solo A/D navega tabs — no Submit/Cancel internos). Setup: `Wire()` instancia presenters, obtiene refs via `document.Q<>()`. Eventos: `OnRegistryChanged` repopula en-place (equipping desde mochila actualiza tab Equipo sin mover foco). **S57d fix:** `OnRegistryChanged` ahora chequea `document.rootVisualElement.resolvedStyle.display == DisplayStyle.None` antes de Populate — evita loop infinito donde panel oculto rearmaba la cámara live justo después de su auto-apagado de MonchiLivePortrait; Show() siempre llama Populate al reabrir así que no se pierde frescura. Backdrop modal con sortingOrder > grid. **S57b:** Retrato del header vía [[MonchiPortraitUI]].Apply(). **S57c:** Retrato del header ahora vía [[MonchiPortraitUI]].ApplyLive() — cámara live si criatura está spawneada, foto fotomatón si no. **S67:** Tab 5 "Relaciones" via [[DetailRelationsPresenter]] (patrón S54). **S68:** Strings de labels/títulos extraídos a Loc.Tr (sin cambio de contrato).
 
-**Organización (S54 composición — Fase 7):**
+**Organización (S54 composición — Fase 7, S67 +1 presenter):**
 - `MorimonchiDetailInfoUITK.cs` — núcleo MonoBehaviour: lifecycle, wiring, población, IUINavigable routing (A/D tabs)
-- Cuatro presenters colaboradores (NO implementan ITabPresenter — son ro Rebuild sin navegación interna):
+- Cinco presenters colaboradores (NO implementan ITabPresenter — son ro Rebuild sin navegación interna):
   - `DetailInfoTabPresenter.cs` — Tab 0: stats (base + bonus equipo), gender/state/nacimiento, rol+elemento, partes, contadores
   - `DetailCombatTabPresenter.cs` — Tab 1: historial 3v3 (replay, outcomes, stats)
   - `DetailTreesPresenter.cs` — Tab 2-3: Linaje (ancestros 2gen) + Descendencia (cría, agrupa por pareja) — comparten dominio genetics
   - `DetailEquipTabPresenter.cs` — Tab 4: 3 slots (Arma/Armadura/Amuleto) + cards clickeables abren mochila + stats tabla
+  - `DetailRelationsPresenter.cs` — Tab 5: SocialGraph (amigos ≥ threshold, enemigos ≤ threshold, ordenados por afinidad efectiva)
 
 **Decisión de arquitectura S54:**
 - Presenters del Detail NO son `ITabPresenter` (son ro Rebuild, sin navegación A/D internas ni state jerárquico)
@@ -50,6 +51,7 @@ tags: [script, ui, detail]
 | `combat` | `DetailCombatTabPresenter` | Tab 1 presenter |
 | `trees` | `DetailTreesPresenter` | Tab 2-3 presenter |
 | `equip` | `DetailEquipTabPresenter` | Tab 4 presenter |
+| `relations` | `DetailRelationsPresenter` | Tab 5 presenter (S67) |
 | `registry` | `CreatureRegistrySO` | Guardado desde OnCreatureSelected (para genealogía) |
 | `current` | `CreatureDNA` | Guardado desde OnCreatureSelected (para re-populate) |
 
@@ -95,6 +97,7 @@ Una sola vez: obtiene refs UITree via Q<>, instancia presenters, wirea closeButt
    - `new DetailCombatTabPresenter(root, () => registry)` → combat
    - `new DetailTreesPresenter(root, database, () => registry)` → trees
    - `new DetailEquipTabPresenter(root, database, equipmentDatabase, equipmentPalette, backpack, () => registry)` → equip
+   - `new DetailRelationsPresenter(root, () => registry)` → relations (S67)
 9. Asigna `wired = true`
 
 **Nota:** Presenters reciben `Func<CreatureRegistrySO>` para lazy-load (resuélvese en tiempo de rebuild, no ctor).
@@ -149,6 +152,7 @@ Llena título + retrato + todos presenters con DNA actual.
    - `combat.Rebuild(dna)`
    - `trees.Rebuild(dna)`
    - `equip.Rebuild(dna)`
+   - `relations.Rebuild(dna)` — S67
 
 **Nota:** ApplyLive intenta montar cámara live (si criatura en mundo), cae a foto fotomatón (si no está spawneada).
 
@@ -181,6 +185,7 @@ Llena título + retrato + todos presenters con DNA actual.
 - [[DetailCombatTabPresenter]]
 - [[DetailTreesPresenter]]
 - [[DetailEquipTabPresenter]]
+- [[DetailRelationsPresenter]]
 - [[UIManager]]
 - [[GameManager]]
 - [[GameEvents]]
@@ -191,6 +196,7 @@ Llena título + retrato + todos presenters con DNA actual.
 - [[CombatReplayRequest]]
 - [[MonchiPortraitUI]] — ApplyLive (S57c)
 - [[MonchiLivePortrait]] — motor live (S57c, S57d)
+- [[Loc]] — S68 localización
 
 ## Conexiones
 
@@ -205,12 +211,17 @@ Llena título + retrato + todos presenters con DNA actual.
 - Presenters rebuild llenan tabs (sin mutación de estado exterior)
 - `backpack?.Close()` — cierra submenu
 
+## Notas S68
+
+- Strings de labels/títulos ahora vía Loc.Tr (sin cambio de interfaz pública)
+- Todos los presenters populados delegaron strings de display a Loc.Tr/LocEnumMaps
+
 ## Notas S54
 
 - Presenters son clases planas (no MonoBehaviour) sin estado excepto UI; reciben `Func<CreatureRegistrySO>` para lazy-load
 - Callbacks de botones (equipo: mochila, combate: replay) se recrean en cada Rebuild
 - OnRegistryChanged repopula in-place sin mover tab (user mantiene foco)
-- IUINavigable: OnUINavigate A/D navega tabs (0-3), OnUISubmit vacío, OnUICancel retorna false (cierra vía UIManager)
+- IUINavigable: OnUINavigate A/D navega tabs (0-4), OnUISubmit vacío, OnUICancel retorna false (cierra vía UIManager)
 - Stats en Info/Equipo usan `CombatStats.GetEffectiveStats()` + `EquipmentStats.Apply()` (S32+S26)
 - Rol/Elemento heredables desde DNA (S39)
 
@@ -224,6 +235,12 @@ Llena título + retrato + todos presenters con DNA actual.
 ## Notas S57d
 
 - **Loop infinito fix:** OnRegistryChanged ahora chequea `document.rootVisualElement.resolvedStyle.display == DisplayStyle.None` y corta si el panel está oculto
-- **Raíz del bug:** Panel oculto + OnRegistryChanged → Populate → ApplyLive(Begin) → cámara se activa → LateUpdate detecta IsHidden(element) → End() → repinta Apply → MonchiPortraitUI.Apply pide foto fotomatón... pero el elemento está oculto así que MonchiLivePortrait no ve que Begin falló y deja la cámara activa — loop
+- **Raíz del bug:** Panel oculto + OnRegistryChanged → Populate → ApplyLive(Begin) → cámara se activa → LateUpdate detecta IsHidden(element) → End() → repinta Apply → MonchiPortraitUI.Apply pide foto fotomatón... pero el elemento está oculto así que MonchiLivePortrait no ve que Begin falló y deja la cámara activa — loop infinito
 - **La solución:** No repoblar (y por tanto no activar cámara live) si el panel UI está oculto (display:none). Show() siempre llama Populate cuando se abre, así que datos no quedan stale
 - **Garantía de frescura:** Al reabrir el panel, Show() es llamado por UIManager o el panel abre via RequestPanelSet + Show, así que Populate se dispara automático con el registry actual
+
+## Notas S67
+
+- **Tab 5 Relaciones:** Presenter independiente [[DetailRelationsPresenter]] — renderiza dos listas (amigos/enemigos) por afinidad efectiva (seed + historia)
+- **Patrón S54:** Constructor ctor(root, deps) + Rebuild(dna), sin ITabPresenter, sin state jerárquico
+- **Decisión UI:** Muestra solo monchis vivos con afinidad dentro de los thresholds (no intermedio)

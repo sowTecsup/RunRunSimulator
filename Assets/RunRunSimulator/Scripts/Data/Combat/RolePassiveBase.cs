@@ -49,7 +49,7 @@ public class ShieldAllyPassive : RolePassiveBase
 
     public override string Summary()
     {
-        return $"Escuda +{AmountPerTurn:0.##} por turno al aliado con menos % de vida";
+        return Loc.Tr("effect.shield_ally.summary", AmountPerTurn);
     }
 }
 
@@ -76,7 +76,7 @@ public class HealLowestAllyOnHitPassive : RolePassiveBase
 
     public override string Summary()
     {
-        return $"Cura {PercentOfDamage:P0} del daño infligido al aliado con menos HP";
+        return Loc.Tr("effect.heal_lowest_ally.summary", PercentOfDamage);
     }
 }
 
@@ -94,7 +94,7 @@ public class MarkRandomAllyPassive : RolePassiveBase
 
     public override string Summary()
     {
-        return "Comparte su elemento con un aliado al azar cada turno";
+        return Loc.Tr("effect.mark_random_ally.summary");
     }
 }
 }

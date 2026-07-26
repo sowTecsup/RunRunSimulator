@@ -26,12 +26,12 @@ public class StatModifierEffect : EquipmentEffectBase
 
     public override string Summary()
     {
-        if (Modifiers == null || Modifiers.Count == 0) return "Sin modificadores";
+        if (Modifiers == null || Modifiers.Count == 0) return Loc.Tr("effect.stat_modifier.none");
         return string.Join(", ", Modifiers.Select(m =>
         {
             string sign = m.Value >= 0 ? "+" : "";
             string unit = m.Type == ModifierType.Flat ? "" : "%";
-            return $"{sign}{m.Value:0.##}{unit} {m.Stat}";
+            return $"{sign}{m.Value:0.##}{unit} {LocEnumMaps.StatAbbrev(m.Stat)}";
         }));
     }
 }

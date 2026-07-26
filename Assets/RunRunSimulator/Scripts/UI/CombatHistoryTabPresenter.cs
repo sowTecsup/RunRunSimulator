@@ -110,7 +110,7 @@ public class CombatHistoryTabPresenter : ITabPresenter
     {
         if (historyFilter == null) return;
 
-        var choices = new List<string> { "Todos" };
+        var choices = new List<string> { Loc.Tr("ui.history.filter.all") };
         filterIds.Clear();
         filterIds.Add("");
 
@@ -158,14 +158,14 @@ public class CombatHistoryTabPresenter : ITabPresenter
         row.AddToClassList("cbt-result-row");
         row.userData = historyCards.Count;   // index into the filtered render order
 
-        var n = new Label($"{it.Self.CustomName}  vs  {rec.OpponentName}");
+        var n = new Label(Loc.Tr("ui.history.matchup", it.Self.CustomName, rec.OpponentName));
         n.AddToClassList("cbt-result-name");
 
         var s = new Label(OutcomeShort(rec.Outcome, rec.Died));
         s.AddToClassList("cbt-result-status");
         s.AddToClassList(OutcomeClass(rec.Outcome));
 
-        var meta = new Label(rec.Date.ToLocalTime().ToString("dd/MM HH:mm"));
+        var meta = new Label(rec.Date.ToLocalTime().ToString(Loc.Tr("ui.history.dateshort"), Loc.Culture));
         meta.AddToClassList("cbt-hist-meta");
 
         row.Add(n); row.Add(s); row.Add(meta);
@@ -191,15 +191,16 @@ public class CombatHistoryTabPresenter : ITabPresenter
         var rec = it.Rec;
         string opp = string.IsNullOrEmpty(rec.OpponentPlayerName)
             ? rec.OpponentName
-            : $"{rec.OpponentName} ({rec.OpponentPlayerName})";
-        if (histOpponent != null) histOpponent.text = $"{it.Self.CustomName}  vs  {opp}";
-        if (histDate != null) histDate.text = rec.Date.ToLocalTime().ToString("dddd dd/MM/yyyy · HH:mm");
+            : Loc.Tr("ui.history.opponent.withplayer", rec.OpponentName, rec.OpponentPlayerName);
+        if (histOpponent != null) histOpponent.text = Loc.Tr("ui.history.matchup", it.Self.CustomName, opp);
+        if (histDate != null) histDate.text = rec.Date.ToLocalTime().ToString(Loc.Tr("ui.history.datelong"), Loc.Culture);
 
         if (rec.Turns != null)
             foreach (var t in rec.Turns)
             {
+                string critSuffix = t.WasCrit ? Loc.Tr("ui.history.turn.critsuffix") : "";
                 var l = new Label(
-                    $"R{t.TurnNumber}  {t.AttackerName} → {t.DefenderName}  ·  {t.Damage:0} daño{(t.WasCrit ? " ¡CRIT!" : "")}  ·  HP {t.DefenderHpAfter:0}");
+                    Loc.Tr("ui.history.turn.line", t.TurnNumber, t.AttackerName, t.DefenderName, t.Damage, critSuffix, t.DefenderHpAfter));
                 l.AddToClassList("cbt-log-line");
                 histLines.Add(l);
             }
@@ -207,15 +208,15 @@ public class CombatHistoryTabPresenter : ITabPresenter
         if (histOutcome != null)
         {
             string evolved = rec.Outcome == CombatOutcome.Won && !string.IsNullOrEmpty(rec.EvolvedSlot)
-                ? $"  ·  evolucionó {rec.EvolvedSlot}" : "";
-            string died = rec.Died ? "  ·  murió" : "";
+                ? Loc.Tr("ui.history.detail.evolved", rec.EvolvedSlot) : "";
+            string died = rec.Died ? Loc.Tr("ui.history.detail.died") : "";
             histOutcome.text = OutcomeLong(rec.Outcome) + evolved + died;
             histOutcome.EnableInClassList("cbt-log-outcome--win",  rec.Outcome == CombatOutcome.Won);
             histOutcome.EnableInClassList("cbt-log-outcome--lose", rec.Outcome == CombatOutcome.Lost);
 
             if (histReplayBtn == null)
             {
-                histReplayBtn = new Button { text = "▶ Ver replay" };
+                histReplayBtn = new Button { text = Loc.Tr("ui.history.replay") };
                 histReplayBtn.AddToClassList("cbt-replay-btn");
                 histReplayBtn.clicked += () =>
                 {
@@ -232,16 +233,16 @@ public class CombatHistoryTabPresenter : ITabPresenter
 
     private static string OutcomeShort(CombatOutcome o, bool died) => o switch
     {
-        CombatOutcome.Won  => "Ganó",
-        CombatOutcome.Lost => died ? "Murió" : "Perdió",
-        _                  => "Empate",
+        CombatOutcome.Won  => Loc.Tr("ui.history.outcome.won"),
+        CombatOutcome.Lost => died ? Loc.Tr("ui.history.outcome.died") : Loc.Tr("ui.history.outcome.lost"),
+        _                  => Loc.Tr("ui.history.outcome.draw"),
     };
 
     private static string OutcomeLong(CombatOutcome o) => o switch
     {
-        CombatOutcome.Won  => "¡Victoria!",
-        CombatOutcome.Lost => "Derrota",
-        _                  => "Empate",
+        CombatOutcome.Won  => Loc.Tr("ui.history.outcome.victory"),
+        CombatOutcome.Lost => Loc.Tr("ui.history.outcome.defeat"),
+        _                  => Loc.Tr("ui.history.outcome.draw"),
     };
 
     private static string OutcomeClass(CombatOutcome o) => o switch

@@ -157,7 +157,7 @@ public class EquipmentBackpackUITK : MonoBehaviour
     {
         var header = new VisualElement();
         header.AddToClassList("backpack__header");
-        header.Add(new Label(SlotName(slot)));
+        header.Add(new Label(LocEnumMaps.EquipmentSlotName(slot)));
         popup.Add(header);
     }
 
@@ -198,7 +198,7 @@ public class EquipmentBackpackUITK : MonoBehaviour
             if (displayIndex == 0)
             {
                 cell.AddToClassList("backpack__cell--none");
-                cell.Add(new Label("None"));
+                cell.Add(new Label(Loc.Tr("ui.equip.none")));
                 cell.RegisterCallback<PointerDownEvent>(OnNoneCellPointerDown);
                 grid.Add(cell);
                 continue;
@@ -450,7 +450,7 @@ public class EquipmentBackpackUITK : MonoBehaviour
             return;
         }
 
-        nameLabel.text = $"{(string.IsNullOrEmpty(item.Name) ? item.ID : item.Name)} · {item.Rarity}";
+        nameLabel.text = $"{(string.IsNullOrEmpty(item.Name) ? item.ID : item.Name)} · {LocEnumMaps.RarityName(item.Rarity)}";
         nameLabel.style.color = RarityColor(item.Rarity);
     }
 
@@ -475,13 +475,5 @@ public class EquipmentBackpackUITK : MonoBehaviour
 
     private Color RarityColor(Rarity r) =>
         equipmentPalette != null ? equipmentPalette.RarityColor(r) : BodyPart.RarityColor(r);
-
-    private static string SlotName(EquipmentSlot s) => s switch
-    {
-        EquipmentSlot.Weapon => "Arma",
-        EquipmentSlot.Armor  => "Armadura",
-        EquipmentSlot.Amulet => "Amuleto",
-        _                    => s.ToString(),
-    };
 }
 }

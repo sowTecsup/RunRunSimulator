@@ -82,6 +82,29 @@ public class TransactionPanelUITK : MonoBehaviour
         if (acceptBtn  != null) acceptBtn.clicked  += OnAccept;
         if (counterBtn != null) counterBtn.clicked += OnCounter;
         if (rejectBtn  != null) rejectBtn.clicked  += OnReject;
+
+        var titleLabel = root.Q<Label>(className: "panel__title");
+        if (titleLabel != null) titleLabel.text = Loc.Tr("ui.transaction.title");
+
+        var customerCol      = root.Q<VisualElement>(className: "col--customer");
+        var customerColLabel = customerCol?.Q<Label>(className: "col__label");
+        if (customerColLabel != null) customerColLabel.text = Loc.Tr("ui.transaction.customer_label");
+
+        var mmCol      = root.Q<VisualElement>(className: "col--mm");
+        var mmColLabel = mmCol?.Q<Label>(className: "col__label");
+        if (mmColLabel != null) mmColLabel.text = Loc.Tr("ui.transaction.mm_label");
+
+        var offerCol      = root.Q<VisualElement>(className: "col--value");
+        var offerColLabel = offerCol?.Q<Label>(className: "col__label");
+        if (offerColLabel != null) offerColLabel.text = Loc.Tr("ui.transaction.offer_label");
+
+        var unitLabel = root.Q<Label>(className: "offer-unit");
+        if (unitLabel != null) unitLabel.text = Loc.Tr("ui.transaction.dabloons_unit");
+
+        if (acceptBtn  != null) acceptBtn.text  = Loc.Tr("ui.transaction.accept");
+        if (counterBtn != null) counterBtn.text = Loc.Tr("ui.transaction.counter");
+        if (rejectBtn  != null) rejectBtn.text  = Loc.Tr("ui.transaction.reject");
+
         bound = true;
     }
 
@@ -98,7 +121,7 @@ public class TransactionPanelUITK : MonoBehaviour
 
         if (currentCustomer == null || currentCustomer.TargetMM == null)
         {
-            if (customerNameLbl != null) customerNameLbl.text = "Sin clientes";
+            if (customerNameLbl != null) customerNameLbl.text = Loc.Tr("ui.transaction.no_customer");
             if (archetypeLbl    != null) archetypeLbl.text    = "";
             if (targetNameLbl   != null) targetNameLbl.text   = "";
             if (targetInfoLbl   != null) targetInfoLbl.text   = "";
@@ -112,12 +135,12 @@ public class TransactionPanelUITK : MonoBehaviour
 
         var arch = currentCustomer.Archetype;
         var mm   = currentCustomer.TargetMM;
-        if (customerNameLbl != null) customerNameLbl.text = "Cliente";
+        if (customerNameLbl != null) customerNameLbl.text = Loc.Tr("ui.transaction.customer");
         if (archetypeLbl    != null) archetypeLbl.text    = arch != null ? arch.DisplayName : "";
         if (mmSwatch        != null) MonchiPortraitUI.Apply(mmSwatch, mm);
-        if (targetNameLbl   != null) targetNameLbl.text   = string.IsNullOrEmpty(mm.CustomName) ? "MoriMochi" : mm.CustomName;
-        if (targetInfoLbl   != null) targetInfoLbl.text   = $"{GenderGlyph(mm.Gender)} · {mm.AgeDays}d";
-        if (offerLbl        != null) offerLbl.text        = $"+{currentCustomer.CurrentOffer}";
+        if (targetNameLbl   != null) targetNameLbl.text   = string.IsNullOrEmpty(mm.CustomName) ? Loc.Tr("ui.transaction.default_mm_name") : mm.CustomName;
+        if (targetInfoLbl   != null) targetInfoLbl.text   = Loc.Tr("ui.transaction.target_info", GenderGlyph(mm.Gender), mm.AgeDays);
+        if (offerLbl        != null) offerLbl.text        = Loc.Tr("ui.transaction.offer_amount", currentCustomer.CurrentOffer);
         if (acceptBtn  != null) acceptBtn.SetEnabled(true);
         if (counterBtn != null) counterBtn.SetEnabled(!currentCustomer.HasCounteredOnce);
         if (rejectBtn  != null) rejectBtn.SetEnabled(true);

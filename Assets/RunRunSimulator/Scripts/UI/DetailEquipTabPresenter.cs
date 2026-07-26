@@ -82,12 +82,12 @@ public class DetailEquipTabPresenter
 
         var name = new Label(item != null
             ? (string.IsNullOrEmpty(item.Name) ? item.ID : item.Name)
-            : $"{SlotName(slot)}: vacío");
+            : Loc.Tr("ui.equip.slot_empty", LocEnumMaps.EquipmentSlotName(slot)));
         name.AddToClassList("equip-card__name");
         if (item != null) name.style.color = RarityColor(item.Rarity);
         info.Add(name);
 
-        var meta = new Label(item != null ? $"{SlotName(item.Slot)} · {item.Rarity}" : "Sin equipar");
+        var meta = new Label(item != null ? Loc.Tr("ui.equip.slot_rarity", LocEnumMaps.EquipmentSlotName(item.Slot), LocEnumMaps.RarityName(item.Rarity)) : Loc.Tr("ui.equip.empty"));
         meta.AddToClassList("equip-card__meta");
         info.Add(meta);
 
@@ -146,12 +146,12 @@ public class DetailEquipTabPresenter
             : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
         var finalEff = EquipmentStats.Apply(baseEff, dna, equipmentDatabase);
 
-        AddStatRow("CON", baseEff.Constitution, finalEff.Constitution);
-        AddStatRow("ATK", baseEff.Attack,       finalEff.Attack);
-        AddStatRow("SPD", baseEff.Speed,        finalEff.Speed);
-        AddStatRow("DEF", baseEff.Defense,      finalEff.Defense);
-        AddStatRow("LCK", baseEff.Luck,         finalEff.Luck);
-        AddStatRow("EVA", baseEff.Evasion,      finalEff.Evasion);
+        AddStatRow(LocEnumMaps.StatAbbrev(StatType.Constitution), baseEff.Constitution, finalEff.Constitution);
+        AddStatRow(LocEnumMaps.StatAbbrev(StatType.Attack),       baseEff.Attack,       finalEff.Attack);
+        AddStatRow(LocEnumMaps.StatAbbrev(StatType.Speed),        baseEff.Speed,        finalEff.Speed);
+        AddStatRow(LocEnumMaps.StatAbbrev(StatType.Defense),      baseEff.Defense,      finalEff.Defense);
+        AddStatRow(LocEnumMaps.StatAbbrev(StatType.Luck),         baseEff.Luck,         finalEff.Luck);
+        AddStatRow(LocEnumMaps.StatAbbrev(StatType.Evasion),      baseEff.Evasion,      finalEff.Evasion);
     }
 
     private void AddStatRow(string name, float baseVal, float finalVal)
@@ -233,13 +233,5 @@ public class DetailEquipTabPresenter
         }
         return sb.Length == 0 ? null : sb.ToString();
     }
-
-    private static string SlotName(EquipmentSlot s) => s switch
-    {
-        EquipmentSlot.Weapon => "Arma",
-        EquipmentSlot.Armor  => "Armadura",
-        EquipmentSlot.Amulet => "Amuleto",
-        _                    => s.ToString(),
-    };
 }
 }

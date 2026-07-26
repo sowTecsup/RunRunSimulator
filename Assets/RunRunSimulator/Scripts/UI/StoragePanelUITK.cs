@@ -126,7 +126,7 @@ public class StoragePanelUITK : MonoBehaviour, IUINavigable
         name.AddToClassList("storage-row__name");
         row.Add(name);
 
-        var eject = new Button(() => Eject(id)) { text = "Sacar (Q)" };
+        var eject = new Button(() => Eject(id)) { text = Loc.Tr("ui.storage.eject") };
         eject.AddToClassList("storage-row__eject");
         row.Add(eject);
 
@@ -165,6 +165,10 @@ public class StoragePanelUITK : MonoBehaviour, IUINavigable
         if (root == null) return;
         emptyLabel  = root.Q<Label>("empty");
         closeButton = root.Q<Button>("close-button");
+
+        var titleLabel = root.Q<Label>(className: "storage-title");
+        if (titleLabel != null) titleLabel.text = Loc.Tr("ui.storage.title");
+        if (emptyLabel != null) emptyLabel.text = Loc.Tr("ui.storage.empty");
         if (closeButton != null) closeButton.clicked += OnCloseClicked;
     }
 

@@ -360,9 +360,9 @@ public class AsyncCombatService : MonoBehaviour
         string opponentLabel = string.IsNullOrEmpty(r.OpponentPlayerName)
             ? $"\"{r.OpponentName}\""
             : $"\"{r.OpponentName}\" <= {r.OpponentPlayerName}";
-        string outcome  = result.IsDraw ? "Empate" : won ? "¡Ganaste!" : "¡Perdiste!";
+        string outcome  = result.IsDraw ? Loc.Tr("outcome.draw") : won ? Loc.Tr("outcome.won") : Loc.Tr("outcome.lost");
         string evolved  = won && !string.IsNullOrEmpty(result.EvolvedSlot) ? $"  |  Evolved: {result.EvolvedSlot}" : "";
-        string diedLine = died ? "  |  ¡Tu MoriMochi ha muerto permanentemente!" : "";
+        string diedLine = died ? $"  |  {Loc.Tr("combat.permadeath")}" : "";
 
         Debug.Log($"[AsyncCombat]  {myLabel}  vs  {opponentLabel}  ——  {outcome}{evolved}{diedLine}");
 

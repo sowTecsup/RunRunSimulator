@@ -56,8 +56,9 @@ public class DetailCombatTabPresenter
 
         card.Add(header);
 
-        string owner = string.IsNullOrEmpty(rec.OpponentPlayerName) ? " · local" : $" · de {rec.OpponentPlayerName}";
-        var opponent = new Label($"vs {rec.OpponentName}{owner}");
+        var opponent = new Label(string.IsNullOrEmpty(rec.OpponentPlayerName)
+            ? Loc.Tr("ui.detail.combat.opponent.local", rec.OpponentName)
+            : Loc.Tr("ui.detail.combat.opponent.online", rec.OpponentName, rec.OpponentPlayerName));
         opponent.AddToClassList("combat-card__opponent");
         card.Add(opponent);
 
@@ -65,13 +66,13 @@ public class DetailCombatTabPresenter
         {
             var body = new VisualElement();
             body.AddToClassList("combat-card__body");
-            body.Add(BuildCombatColumn("Tú", rec.SelfStats, dna.BaseColor));
-            body.Add(BuildCombatColumn("Rival", rec.OpponentStats, new Color(0.22f, 0.22f, 0.28f)));
+            body.Add(BuildCombatColumn(Loc.Tr("ui.detail.combat.you"), rec.SelfStats, dna.BaseColor));
+            body.Add(BuildCombatColumn(Loc.Tr("ui.detail.combat.rival"), rec.OpponentStats, new Color(0.22f, 0.22f, 0.28f)));
             card.Add(body);
         }
         else
         {
-            var noStats = new Label("Combate antiguo — sin stats registradas");
+            var noStats = new Label(Loc.Tr("ui.detail.combat.nostats"));
             noStats.AddToClassList("combat-card__nostats");
             card.Add(noStats);
         }
@@ -135,18 +136,18 @@ public class DetailCombatTabPresenter
         var chips = new VisualElement();
         chips.AddToClassList("combat-card__chips");
 
-        AddTierChip(chips, "Cuerpo", s.BodyTier);
-        AddTierChip(chips, "Brazo",  s.ArmTier);
-        AddTierChip(chips, "Ojo",    s.EyeTier);
-        AddTierChip(chips, "Boca",   s.MouthTier);
+        AddTierChip(chips, PartRole.Body,  s.BodyTier);
+        AddTierChip(chips, PartRole.Arm,   s.ArmTier);
+        AddTierChip(chips, PartRole.Eye,   s.EyeTier);
+        AddTierChip(chips, PartRole.Mouth, s.MouthTier);
 
         if (chips.childCount > 0) col.Add(chips);
     }
 
-    private static void AddTierChip(VisualElement chips, string partEs, int tier)
+    private static void AddTierChip(VisualElement chips, PartRole part, int tier)
     {
         if (tier <= 1) return;
-        var chip = new Label($"{partEs} T{tier}");
+        var chip = new Label(Loc.Tr("ui.detail.combat.tierchip", LocEnumMaps.PartRoleName(part), tier));
         chip.AddToClassList("combat-card__tierchip");
         chips.Add(chip);
     }
@@ -154,26 +155,22 @@ public class DetailCombatTabPresenter
     private static string CommentText(CombatRecord rec)
     {
         if (rec.Outcome == CombatOutcome.Won)
-            return string.IsNullOrEmpty(rec.EvolvedSlot) ? "Victoria — sin mejora" : $"Se mejoró {PartEs(rec.EvolvedSlot)}";
+            return string.IsNullOrEmpty(rec.EvolvedSlot)
+                ? Loc.Tr("ui.detail.combat.win.noupgrade")
+                : Loc.Tr("ui.detail.combat.win.upgraded", PartName(rec.EvolvedSlot));
         if (rec.Outcome == CombatOutcome.Lost)
-            return rec.Died ? "Murió en combate" : "Regresó derrotado";
-        return "Empate — sin consecuencias";
+            return rec.Died ? Loc.Tr("ui.detail.combat.died") : Loc.Tr("ui.detail.combat.retreated");
+        return Loc.Tr("ui.detail.combat.draw");
     }
 
-    private static string PartEs(string slot) => slot switch
-    {
-        "Body"  => "Cuerpo",
-        "Arm"   => "Brazo",
-        "Eye"   => "Ojo",
-        "Mouth" => "Boca",
-        _       => slot,
-    };
+    private static string PartName(string slot) =>
+        Enum.TryParse<PartRole>(slot, out var role) ? LocEnumMaps.PartRoleName(role) : slot;
 
     private static string BadgeText(CombatOutcome o) => o switch
     {
-        CombatOutcome.Won  => "Victoria",
-        CombatOutcome.Lost => "Derrota",
-        _                  => "Empate",
+        CombatOutcome.Won  => Loc.Tr("ui.detail.combat.badge.won"),
+        CombatOutcome.Lost => Loc.Tr("ui.detail.combat.badge.lost"),
+        _                  => Loc.Tr("ui.detail.combat.badge.draw"),
     };
 }
 }

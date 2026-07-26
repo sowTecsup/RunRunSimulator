@@ -8,7 +8,14 @@ tags: [script, genetics]
 
 ## Responsabilidad
 
-Modelo central: string genético (`ToStringID()`/`FromID()`: `"BODYSHAPE-ARM-EYE-MOUTH-RRGGBB"`), identidad (`UniqueID` con timestamp), linaje (`MotherID`/`FatherID`/`ChildrenIDs`), género, rol de combate, afinidad elemental, stats base 3 iniciales (`BaseConstitution`/`BaseAttack`/`BaseSpeed`) heredables + 3 derivados de equipo (`BaseDefense`/`BaseLuck`/`BaseEvasion`), combat history, needs, busy state (`BusyReason`), propiedad `IsSold` (true iff BusyState == Sold), timers de cría (`BreedReadyAt`/`BreedPartnerID`), ubicación anchada (`LocationKey`/`LocationSlot`), timestamps (`QueuedAt` enqueue async, `SaleDate` venta a NPC), `FurType` (metadata), `IsShiny` (bool 0.5% en mint/breed, reemplaza todo el tintado normal con gema), equipo equipado (`Equipped` dict de `EquipmentSlot` → ID string), y colores (`BaseColor` solo en la genetic string, `SecondaryColor` derivado determinista). `FromID()` parsea solo la parte genética; la deserialización JSON maneja el estado completo. `SecondaryColor` se regenera automático en `ReconcileColors()` (CreatureRegistrySO).
+Modelo central: string genético (`ToStringID()`/`FromID()`: `"BODYSHAPE-ARM-EYE-MOUTH-RRGGBB"`), identidad (`UniqueID` con timestamp), linaje (`MotherID`/`FatherID`/`ChildrenIDs`), género, rol de combate, afinidad elemental, **S69:** diales genéticos no-heredables (`Sociability`/`Boldness` float 0..1, default 0.5), stats base 3 iniciales (`BaseConstitution`/`BaseAttack`/`BaseSpeed`) heredables + 3 derivados de equipo (`BaseDefense`/`BaseLuck`/`BaseEvasion`), combat history, needs, busy state (`BusyReason`), propiedad `IsSold` (true iff BusyState == Sold), timers de cría (`BreedReadyAt`/`BreedPartnerID`), ubicación anchada (`LocationKey`/`LocationSlot`), timestamps (`QueuedAt` enqueue async, `SaleDate` venta a NPC), `FurType` (metadata), `IsShiny` (bool 0.5% en mint/breed, reemplaza todo el tintado normal con gema), equipo equipado (`Equipped` dict de `EquipmentSlot` → ID string), y colores (`BaseColor` solo en la genetic string, `SecondaryColor` derivado determinista). `FromID()` parsea solo la parte genética; la deserialización JSON maneja el estado completo. `SecondaryColor` se regenera automático en `ReconcileColors()` (CreatureRegistrySO).
+
+## Cambios en S69
+
+- **NUEVO:** Campos `Sociability` y `Boldness` (float, rango 0..1, default 0.5 cada uno). Metadata NO genética (fuera de `ToStringID()`), heredable en breeding vía `BreedingService.InheritDial()` con herencia por Average/Copy/Mutation.
+- Sociability modula afinidad social (Approach/PlayChase/SleepTogether) y cooldown entre interacciones (via `SocialTuningSO.DialShift()` y `ScaledSocialCooldown()`)
+- Boldness modula agresividad en peleas + evitación social (via `SocialTuningSO.DialShift()`)
+- Ambos diales se asignan al random en `GameManager.MintRandomCreature()` vía `CreatureGenerator.RandomDial()`
 
 ## Cambios en S21
 
@@ -49,6 +56,8 @@ Modelo central: string genético (`ToStringID()`/`FromID()`: `"BODYSHAPE-ARM-EYE
 | `Gender` | `CreatureGender` | Metadata (Unknown, Male, Female). No genético. |
 | `Role` | `Role` | **S37** Rol de combate 3v3 (Protector, Agresivo, Empático). No genético, al azar 1/3 en mint, 50/50 padres en breeding. |
 | `Element` | `Element` | **S39** Afinidad elemental (Agua, Fuego, Electricidad, Planta). No genético, al azar en mint, 50/50 padres en breeding. |
+| `Sociability` | float | **S69** Dial genético 0..1 (default 0.5). Modula afinidad social + cooldown. No genético (fuera de ToStringID). |
+| `Boldness` | float | **S69** Dial genético 0..1 (default 0.5). Modula agresividad en pelea + evitación. No genético (fuera de ToStringID). |
 | `LocationKey` | string | Clave del lugar anclado ("x_y" del AnchorRegistry); "" = libre. |
 | `LocationSlot` | int | Slot dentro del lugar (-1 = unassigned). |
 | `BreedReadyAt` | long | Epoch ms del servidor cuando la cría lista; 0 = no incubando. |
@@ -64,7 +73,7 @@ Modelo central: string genético (`ToStringID()`/`FromID()`: `"BODYSHAPE-ARM-EYE
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
 | `Stamp()` | `void` | Asigna Timestamp (UTC ticks) y BirthDate antes de registrar en CreatureRegistry |
-| `ToStringID()` | `string` | Retorna genetic string: `"BODY-ARM-EYE-MOUTH-RRGGBB"` (no incluye Role/Gender/Element/FurType/IsShiny) |
+| `ToStringID()` | `string` | Retorna genetic string: `"BODY-ARM-EYE-MOUTH-RRGGBB"` (no incluye Role/Gender/Element/FurType/IsShiny/Sociability/Boldness) |
 | `UniqueID` { get; } | `string` | Retorna `"{ToStringID()}-{Timestamp}"` (clave del registry); "" si no stampado |
 | `AgeDays` { get; } | `int` | Retorna días vivos desde BirthDate (0 si no stampado) |
 | `GetDisplayName(db)` | `string` | Retorna nombres temáticos de partes (body + arm + eye + mouth) vía PartNameBank |
@@ -75,55 +84,12 @@ Modelo central: string genético (`ToStringID()`/`FromID()`: `"BODYSHAPE-ARM-EYE
 - **S37:** Role también additive (default Protector si no serializado)
 - **S39:** Element también additive (default Agua si no serializado)
 - **S57:** IsShiny y FurType son additive (default false/Pattern00 si no serializados)
+- **S69:** Sociability/Boldness son additive (default 0.5 si no serializados)
 
 ## Serialización
 
-JSON con Newtonstein.Json, campos PascalCase (match contrato JS). `Role`, `Element`, `FurType` se serializan como int (enum values). `IsShiny` como bool. Diccionario `Equipped` se serializa con clave string (EquipmentSlot enum convertido).
+JSON con Newtonstein.Json, campos PascalCase (match contrato JS). `Role`, `Element`, `FurType` se serializan como int (enum values). `IsShiny` como bool. `Sociability` y `Boldness` como float. Diccionario `Equipped` se serializa con clave string (EquipmentSlot enum convertido).
 
 **Vinculado a:** [[Index/02 - Genetics & Breeding]], [[Index/03 - Combat System]], [[Index/10 - Visualization]]
 
-**Conexiones:** [[CreatureRegistrySO]], [[CreatureStats]], [[NeedsState]], [[CombatRecord]], [[MoriMochiAgent]], [[BreedingService]], [[PartDatabaseSO]], [[CreatureDatabaseSO]], [[ColorGenetics]], [[FurTypeDatabaseSO]], [[MonchiVisualBankSO]], [[EquipmentSO]], [[EquipmentDatabaseSO]], [[Enums]], [[RoleWorldProfileSO]], [[CombatElements]], [[Element]], [[ElementalState]]
-
-## Cambios Sesión S37
-
-**NUEVO campo `Role`:**
-- Tipo: `Role` enum (Protector=0, Agresivo=1, Empático=2)
-- Asignación: Al azar 1/3 en MintRandomCreature; hereda 50/50 padres en breeding (aleatorio si un solo padre)
-- NO genético: No incluido en `ToStringID()` ni en genetic string
-- Metadata como Gender/Personality: Independiente, hereda separadamente
-- Consumo: `RoleWorldProfileSO.GetProfile(role)` → comportamiento en world; `CombatService` evalúa role para modificadores de stats (ConMod, AtkMod, SpdMod) + efectos de rol (Shield, BacklineHit, Heal)
-- Uso en combate: `CombatService.TakeTurn()` evalúa role de atacante/defensor, aplica modificadores y efectos de rol cada turno
-
-**Impacto genético:** Role NO afecta string genético (no contribuye a heredabilidad visual); es puramente jugabilidad + combate. Dos criaturas con identical parts + color + role = still different DNA (timestamp es diferenciador).
-
-## Cambios Sesión S39
-
-**NUEVO campo `Element`:**
-- Tipo: `Element` enum (Agua=0, Fuego=1, Electricidad=2, Planta=3)
-- Asignación: Al azar en MintRandomCreature; hereda 50/50 padres en BreedingService (con chance de mutación)
-- NO genético: No incluido en `ToStringID()` ni en genetic string
-- Metadata como Gender/Role: Independiente
-- Consumo: `CombatElements.AddMark()` aplica marca elemental; dos elementos distintos de la misma fuente detonan reacción vía `CombatElements.ReactionFor()`
-- Uso en combate: Marcas elementales + reacciones (instantáneas vs armadas); determinista vía CombatRng
-
-**Impacto genético:** Element NO afecta string genético. Afinidad elemental es atributo gameplay que interactúa con el sistema de elementos del combate 3v3.
-
-## Cambios Sesión S57
-
-**NUEVO campo `FurType`:**
-- Tipo: `FurType` enum (Pattern00-32, 33 valores)
-- Asignación: Al azar uniforme en mint (default), o ponderado vía `FurTypeDatabaseSO.RollMintFurType()` si se pasa tabla; hereda 50/50 padres en breeding (sin pesar)
-- Default al mint: Pattern00 si no especificado
-- NO genético: No incluido en `ToStringID()`
-- Consumo: `MonchiVisualizer` aplica material `MonchiFur_{FurType}` al cuerpo
-- Metadata como Gender/Role/Element: Independiente
-
-**NUEVO campo `IsShiny`:**
-- Tipo: bool
-- Asignación: `ColorGenetics.RollShiny()` (0.5% probabilidad) en mint (CreatureGenerator.GenerateRandom); hereda `ColorGenetics.RollShiny()` (0.5% roll nuevo) en breed (BreedingService.Breed)
-- Default: false
-- NO genético: No incluido en `ToStringID()`
-- Consumo: Si true, `MonchiVisualizer.ApplyLook()` reemplaza todo tintado normal con material gema determinístico (hash FNV-1a del UniqueID)
-- Impacto visual: Rarity cosmética 0.5%, reemplaza colores + patrones con gema brillante (no afecta gameplay)
-
-**Impacto genético:** Ni FurType ni IsShiny contribuyen al genetic string. Son metadata puramente visuales. Timestamp es diferenciador.
+**Conexiones:** [[CreatureRegistrySO]], [[CreatureStats]], [[NeedsState]], [[CombatRecord]], [[MoriMochiAgent]], [[BreedingService]], [[PartDatabaseSO]], [[CreatureDatabaseSO]], [[ColorGenetics]], [[FurTypeDatabaseSO]], [[MonchiVisualBankSO]], [[EquipmentSO]], [[EquipmentDatabaseSO]], [[Enums]], [[RoleWorldProfileSO]], [[CombatElements]], [[Element]], [[ElementalState]], [[SocialTuningSO]], [[InheritanceOddsTableSO]]

@@ -49,7 +49,8 @@ public class ApproachFriendRule : ReactionRuleBase
     {
         score = 0f;
         if (p.Kind != PerceivableKind.Monchi) return false;
-        if (p.Affinity < MinAffinity) return false;
+        float minAff = MinAffinity - SocialTuningSO.DialShift(self.DNA != null ? self.DNA.Sociability : 0.5f, tuning.SociabilityAffinityShift);
+        if (p.Affinity < minAff) return false;
         if (!TargetFree(p)) return false;
         score = p.Affinity;
         return true;
@@ -70,7 +71,8 @@ public class AvoidDislikedRule : ReactionRuleBase
     {
         score = 0f;
         if (p.Kind != PerceivableKind.Monchi) return false;
-        if (p.Affinity > MaxAffinity) return false;
+        float maxAff = MaxAffinity - SocialTuningSO.DialShift(self.DNA != null ? self.DNA.Boldness : 0.5f, tuning.BoldnessAvoidShift);
+        if (p.Affinity > maxAff) return false;
         score = -p.Affinity;
         return true;
     }
@@ -92,7 +94,8 @@ public class PlayChaseRule : ReactionRuleBase
     {
         score = 0f;
         if (p.Kind != PerceivableKind.Monchi) return false;
-        if (p.Affinity < MinAffinity) return false;
+        float minAff = MinAffinity - SocialTuningSO.DialShift(self.DNA != null ? self.DNA.Sociability : 0.5f, tuning.SociabilityAffinityShift);
+        if (p.Affinity < minAff) return false;
         if (self.Condition != CreatureCondition.Healthy) return false;
         if (self.DNA.Needs.Energy < tuning.MinEnergyToPlay) return false;
         if (!TargetFree(p)) return false;
@@ -121,7 +124,8 @@ public class SleepTogetherRule : ReactionRuleBase
     {
         score = 0f;
         if (p.Kind != PerceivableKind.Monchi) return false;
-        if (p.Affinity < MinAffinity) return false;
+        float minAff = MinAffinity - SocialTuningSO.DialShift(self.DNA != null ? self.DNA.Sociability : 0.5f, tuning.SociabilityAffinityShift);
+        if (p.Affinity < minAff) return false;
         if (!TargetFree(p)) return false;
         if (self.Condition == CreatureCondition.Sick) return false;
         if (self.DNA.Needs.Energy > tuning.MaxEnergyToSleep) return false;
@@ -150,7 +154,8 @@ public class GremlinFightRule : ReactionRuleBase
     {
         score = 0f;
         if (p.Kind != PerceivableKind.Monchi) return false;
-        if (p.Affinity > MaxAffinity) return false;
+        float maxAff = MaxAffinity + SocialTuningSO.DialShift(self.DNA != null ? self.DNA.Boldness : 0.5f, tuning.BoldnessFightShift);
+        if (p.Affinity > maxAff) return false;
         if (!TargetFree(p)) return false;
         if (self.Condition != CreatureCondition.Healthy) return false;
         if (self.DNA.Needs.Energy < tuning.MinEnergyToPlay) return false;

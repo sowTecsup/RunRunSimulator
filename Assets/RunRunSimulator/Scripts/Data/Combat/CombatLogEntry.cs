@@ -16,6 +16,6 @@ public class CombatLogEntry
     public bool Won;
     public bool Died;
 
-    public string Outcome => Won ? "¡Ganaste!" : "¡Perdiste!";
+    public string Outcome => Won ? Loc.Tr("outcome.won") : Loc.Tr("outcome.lost");
 }
 }

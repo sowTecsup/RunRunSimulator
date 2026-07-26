@@ -461,7 +461,7 @@ internal class AgentSocial
 
         if (sleepStation != null) { sleepStation.Release(owner); sleepStation = null; }
 
-        cooldownUntil = Time.time + (t != null ? t.SocialCooldown : 20f);
+        cooldownUntil = Time.time + (t != null ? t.ScaledSocialCooldown(ctx.Dna != null ? ctx.Dna.Sociability : 0.5f) : 20f);
         partner       = null;
         mode          = SocialMode.None;
         swapped       = false;

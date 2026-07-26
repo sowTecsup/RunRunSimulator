@@ -44,7 +44,7 @@ public class DetailTreesPresenter
         if (lineageEmpty != null) lineageEmpty.style.display = hasAncestry ? DisplayStyle.None : DisplayStyle.Flex;
 
         // depth 2 → self (chip) + parents + grandparents.
-        lineageTree.Add(BuildBlock(dna, "Tú", depth: 2, isSelf: true));
+        lineageTree.Add(BuildBlock(dna, Loc.Tr("ui.detail.tree.self"), depth: 2, isSelf: true));
     }
 
     // A generation block stacks vertically: [parents row] → [vertical connector] →
@@ -61,8 +61,8 @@ public class DetailTreesPresenter
         {
             var parents = new VisualElement();
             parents.AddToClassList("tree-parents");
-            parents.Add(WrapBranch(BuildAncestor(dna.MotherID, "Madre", depth - 1)));
-            parents.Add(WrapBranch(BuildAncestor(dna.FatherID, "Padre", depth - 1)));
+            parents.Add(WrapBranch(BuildAncestor(dna.MotherID, Loc.Tr("ui.detail.tree.mother"), depth - 1)));
+            parents.Add(WrapBranch(BuildAncestor(dna.FatherID, Loc.Tr("ui.detail.tree.father"), depth - 1)));
             block.Add(parents);
 
             var conn = new VisualElement();
@@ -124,7 +124,7 @@ public class DetailTreesPresenter
 
     private string ChipName(CreatureDNA dna)
     {
-        if (dna == null) return "¿?";
+        if (dna == null) return Loc.Tr("ui.detail.tree.unknown");
         if (!string.IsNullOrEmpty(dna.CustomName)) return dna.CustomName;
         return database != null ? dna.GetDisplayName(database) : dna.ToStringID();
     }
@@ -175,7 +175,7 @@ public class DetailTreesPresenter
 
         var root = new VisualElement();
         root.AddToClassList("tree-block");
-        root.Add(MakeChip(dna, "Tú", isSelf: true, dead: false));
+        root.Add(MakeChip(dna, Loc.Tr("ui.detail.tree.self"), isSelf: true, dead: false));
 
         var conn = new VisualElement();
         conn.AddToClassList("tree-connector-v");
@@ -204,7 +204,7 @@ public class DetailTreesPresenter
             else { pdna = ParseGenetics(partnerId); dead = true; }
         }
 
-        var pchip = MakeChip(pdna, "Pareja", isSelf: false, dead: dead);
+        var pchip = MakeChip(pdna, Loc.Tr("ui.detail.tree.partner"), isSelf: false, dead: dead);
         pchip.AddToClassList("tree-chip--partner");
         col.Add(pchip);
 
@@ -218,7 +218,7 @@ public class DetailTreesPresenter
         {
             var branch = new VisualElement();
             branch.AddToClassList("tree-branch");
-            branch.Add(MakeChip(kid, "Cría", isSelf: false, dead: false));
+            branch.Add(MakeChip(kid, Loc.Tr("ui.detail.tree.child"), isSelf: false, dead: false));
             kidsRow.Add(branch);
         }
         col.Add(kidsRow);

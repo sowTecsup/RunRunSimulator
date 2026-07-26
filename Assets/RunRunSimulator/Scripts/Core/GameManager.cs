@@ -148,6 +148,8 @@ public class GameManager : MonoBehaviour
         dna.Element = CreatureGenerator.RandomElement();
         dna.Role = CreatureGenerator.RandomRole();
         (dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed) = CreatureGenerator.RandomBaseStats();
+        dna.Sociability = CreatureGenerator.RandomDial();
+        dna.Boldness    = CreatureGenerator.RandomDial();
         dna.CustomName = CreatureNameBank.GetRandomName();
         dna.Stamp();
 

@@ -101,7 +101,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
 
         foreach (var mother in mothers)
         {
-            string fatherName = registry.TryGet(mother.BreedPartnerID, out var father) ? father.CustomName : "???";
+            string fatherName = registry.TryGet(mother.BreedPartnerID, out var father) ? father.CustomName : Loc.Tr("ui.breeding.eggs.unknownfather");
 
             var row = new VisualElement();
             row.AddToClassList("egg-row");
@@ -113,7 +113,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
             var time = new Label();
             time.AddToClassList("egg-time");
 
-            var hatch = new Button { text = "Hatch" };
+            var hatch = new Button { text = Loc.Tr("ui.breeding.hatch.action") };
             hatch.AddToClassList("egg-hatch");
             hatch.style.display = DisplayStyle.None;
             string motherId = mother.UniqueID;
@@ -136,7 +136,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
             long rem = e.ReadyAt - now;
             if (rem <= 0)
             {
-                e.Time.text = "¡Listo!";
+                e.Time.text = Loc.Tr("ui.breeding.eggs.ready");
                 e.Hatch.style.display = DisplayStyle.Flex;
             }
             else
@@ -160,7 +160,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
         if (btn != null)
         {
             btn.SetEnabled(false);
-            btn.text = "Hatching...";
+            btn.text = Loc.Tr("ui.breeding.hatch.busy");
             btn.AddToClassList("egg-hatch--busy");
         }
 
@@ -169,7 +169,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
         if (btn != null && btn.panel != null)   // still attached → the egg didn't hatch (not_ready)
         {
             btn.SetEnabled(true);
-            btn.text = "Hatch";
+            btn.text = Loc.Tr("ui.breeding.hatch.action");
             btn.RemoveFromClassList("egg-hatch--busy");
         }
     }

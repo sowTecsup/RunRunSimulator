@@ -6,7 +6,7 @@ tags: [script, core, singleton]
 
 **Ruta:** `Core/GameManager.cs`
 
-**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. **S65:** `FlushToCloud()` también guarda el historial social (SaveSocialGraph). **S58:** Getter `PartVisualBank` eliminado (migración Suriyun completa — solo MonchiVisualBank). **S61:** `MintRandomCreature()` llama `GenerateRandom(database, furTypeDatabase)` sin `rarityOddsTable`; el campo y getter `rarityOddsTable`/`RarityOddsTable` siguen existiendo (reserva para gemas futuro).
+**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. **S65:** `FlushToCloud()` también guarda el historial social (SaveSocialGraph). **S58:** Getter `PartVisualBank` eliminado (migración Suriyun completa — solo MonchiVisualBank). **S61:** `MintRandomCreature()` llama `GenerateRandom(database, furTypeDatabase)` sin `rarityOddsTable`; el campo y getter `rarityOddsTable`/`RarityOddsTable` siguen existiendo (reserva para gemas futuro). **S69:** `MintRandomCreature()` asigna `Sociability` y `Boldness` via `CreatureGenerator.RandomDial()`.
 
 ## Métodos Públicos
 
@@ -15,7 +15,39 @@ tags: [script, core, singleton]
 | `PushToCloud()` | Fire-and-forget async push vía `CloudSyncService.PushAsync()` |
 | `FlushToCloud()` | **S65:** Save local (creatures + social graph) + push cloud; usado en `OnApplicationQuit/Pause` |
 | `FlushForSceneChange()` | Save local + push cloud ANTES de cambiar escena |
-| `MintRandomCreature()` | **S61** Genera random creature pastel vía `GenerateRandom(database, furTypeDatabase)`, asigna género, elemento, rol, stats, nombre, registra (sin rarityOddsTable) |
+| `MintRandomCreature()` | **S69** Genera random creature pastel vía `GenerateRandom(database, furTypeDatabase)`, asigna género, elemento, rol, stats, **diales (Sociability/Boldness)**, nombre, registra (sin rarityOddsTable) |
+
+## Cambios S69
+
+**MintRandomCreature() actualizado:**
+```csharp
+[Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
+public void MintRandomCreature()
+{
+    var dna        = CreatureGenerator.GenerateRandom(database, furTypeDatabase);
+    dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
+    dna.Element = CreatureGenerator.RandomElement();
+    dna.Role = CreatureGenerator.RandomRole();
+    (dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed) = CreatureGenerator.RandomBaseStats();
+    dna.Sociability = CreatureGenerator.RandomDial();  // NEW S69
+    dna.Boldness    = CreatureGenerator.RandomDial();  // NEW S69
+    dna.CustomName = CreatureNameBank.GetRandomName();
+    dna.Stamp();
+
+    if (!creatureRegistry.Register(dna)) return;
+
+    GameEvents.CreatureMinted(dna);
+    GameEvents.RegistryChanged(creatureRegistry);
+    lastMintedID = dna.UniqueID;
+    Debug.Log($"[GameManager] Minted: \"{dna.CustomName}\"  {dna.UniqueID}  ({dna.Gender})");
+}
+```
+
+**Cambios principales:**
+- Llama `CreatureGenerator.RandomDial()` dos veces: una para Sociability, otra para Boldness
+- Rango 0.15..0.85 garantiza variedad sin extremos absolutos
+- Ambos diales son metadata (no genéticos), heredables en breeding vía `BreedingService.InheritDial()`
+- Sociability modula afinidad social + cooldown; Boldness modula agresividad + evitación
 
 ## Cambios S65
 
@@ -73,6 +105,7 @@ public void FlushToCloud()
 
 ## Notas
 
+- S69: Mint asigna Sociability/Boldness random (0.15..0.85). Herencia en breeding vía InheritanceOddsTableSO.
 - S65: Persistencia social graph local-only; sync a cloud es futuro.
 - S61: Mint uniforme, rarityOddsTable es reserva futura.
 - S58: Única capa visual es MonchiVisualBank (Suriyun rig + MonchiAnimationDriver)
@@ -83,6 +116,7 @@ public void FlushToCloud()
 
 - [[Index/07 - Persistence & Identity]]
 - [[Index/10 - Visualization]]
+- [[Index/02 - Genetics & Breeding]]
 - [[CombatVisualUnits]] — consume MonchiVisualBank (S58)
 - [[CreatureGenerator]] — usa Database, FurTypeDatabase
 - [[BreedingService]] — usa Registry

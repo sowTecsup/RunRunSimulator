@@ -36,7 +36,8 @@ public class CombatResultsTabPresenter : ITabPresenter
         queueClock  = root.Q<Label>("queue-clock");
         queueEmpty  = root.Q<Label>("queue-empty");
 
-        if (btnRefresh != null) btnRefresh.clicked += DoRefresh;
+        if (queueEmpty != null) queueEmpty.text = Loc.Tr("ui.combat.results.empty");
+        if (btnRefresh != null) { btnRefresh.text = Loc.Tr("ui.combat.results.review_button"); btnRefresh.clicked += DoRefresh; }
     }
 
     // ── ITabPresenter ────────────────────────────────────────────
@@ -85,11 +86,11 @@ public class CombatResultsTabPresenter : ITabPresenter
         if (asyncCombatService == null) { Debug.LogError("[CombatPanel] AsyncCombatService not assigned."); return; }
         if (refreshBusy) return;
         refreshBusy = true;
-        if (btnRefresh != null) { btnRefresh.SetEnabled(false); btnRefresh.text = "Revisando..."; btnRefresh.AddToClassList("cbt-action--busy"); }
+        if (btnRefresh != null) { btnRefresh.SetEnabled(false); btnRefresh.text = Loc.Tr("ui.combat.results.reviewing"); btnRefresh.AddToClassList("cbt-action--busy"); }
 
         await asyncCombatService.PollResultsAsync();   // applies → fires OnCombatLogged per result
 
-        if (btnRefresh != null) { btnRefresh.SetEnabled(true); btnRefresh.text = "Revisar resultados"; btnRefresh.RemoveFromClassList("cbt-action--busy"); }
+        if (btnRefresh != null) { btnRefresh.SetEnabled(true); btnRefresh.text = Loc.Tr("ui.combat.results.review_button"); btnRefresh.RemoveFromClassList("cbt-action--busy"); }
         refreshBusy = false;
         RebuildResults();
     }
@@ -130,7 +131,7 @@ public class CombatResultsTabPresenter : ITabPresenter
         row.userData = id;
 
         var n = new Label(name); n.AddToClassList("cbt-result-name");
-        var q = new Label(queuedAt == default ? "" : $"encolado {queuedAt.ToLocalTime():HH:mm}");
+        var q = new Label(queuedAt == default ? "" : Loc.Tr("ui.combat.results.queued_at", queuedAt.ToLocalTime()));
         q.AddToClassList("cbt-result-queued");
         var t = new Label("--:--"); t.AddToClassList("cbt-result-time");
         row.Add(n); row.Add(q); row.Add(t);

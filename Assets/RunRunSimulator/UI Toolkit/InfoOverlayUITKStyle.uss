@@ -37,6 +37,31 @@
     color: var(--mm-ink);
 }
 
+/* Language switch row, bottom of the legend. */
+.lang-row {
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-top: 9px;
+}
+
+.lang-btn {
+    min-width: 48px;
+    font-size: 16px;
+    color: var(--mm-ink);
+    -unity-font-style: bold;
+    background-color: var(--mm-scrim);
+    border-radius: 6px;
+    border-width: 0;
+    padding: 3px 9px;
+    margin-right: 8px;
+}
+
+.lang-btn--active {
+    color: var(--mm-gold);
+    border-width: 2px;
+    border-color: var(--mm-gold);
+}
+
 /* Date + currency column, top-right. */
 .overlay-top-right {
     position: absolute;

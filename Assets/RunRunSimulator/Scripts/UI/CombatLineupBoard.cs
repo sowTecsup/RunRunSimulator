@@ -84,9 +84,9 @@ public class CombatLineupBoard
     {
         switch (row)
         {
-            case CombatRow.Front: return "FRONT";
-            case CombatRow.Mid:   return "MID";
-            default:              return "BACK";
+            case CombatRow.Front: return Loc.Tr("ui.lineup.row.front");
+            case CombatRow.Mid:   return Loc.Tr("ui.lineup.row.mid");
+            default:              return Loc.Tr("ui.lineup.row.back");
         }
     }
 
@@ -126,9 +126,9 @@ public class CombatLineupBoard
     {
         switch (role)
         {
-            case Role.Protector: return "PRO";
-            case Role.Agresivo:  return "AGR";
-            default:             return "EMP";
+            case Role.Protector: return Loc.Tr("ui.lineup.roleabbr.protector");
+            case Role.Agresivo:  return Loc.Tr("ui.lineup.roleabbr.agresivo");
+            default:             return Loc.Tr("ui.lineup.roleabbr.empatico");
         }
     }
 
