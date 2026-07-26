@@ -26754,19 +26754,19 @@ MonoBehaviour:
   document: {fileID: 1023503744}
   hints:
   - Key: WASD
-    Action: Mover
+    ActionKey: ui.overlay.hint.move
   - Key: E
-    Action: Interactuar / Agarrar
+    ActionKey: ui.overlay.hint.interact
   - Key: Click
-    Action: Usar
+    ActionKey: ui.overlay.hint.use
   - Key: Q
-    Action: Soltar
+    ActionKey: ui.overlay.hint.drop
   - Key: Rueda
-    Action: Cambiar slot
+    ActionKey: ui.overlay.hint.slot
   - Key: B
-    Action: Construir
+    ActionKey: ui.overlay.hint.build
   - Key: Tab
-    Action: "Cat\xE1logo"
+    ActionKey: ui.overlay.hint.catalog
 --- !u!114 &1218711435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35319,6 +35319,8 @@ MonoBehaviour:
     Gender: 0
     Role: 0
     Element: 0
+    Sociability: 0.5
+    Boldness: 0.5
     FightCount: 0
     WinCount: 0
     BreedCount: 0
