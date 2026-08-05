@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2422cdaba12beab40b2f700e602c21e3, type: 3}
-  m_Name: ItemMop
-  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinitionSO
+  m_Name: ItemSnack
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ItemDefinitionSO
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
@@ -21,7 +21,7 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  Id: I0
-  DisplayName: Mop
-  Category: 0
-  Prefab: {fileID: 2298916383030475663, guid: 0f6b3201c4f15c44aa5c05489755a463, type: 3}
+  Id: I1
+  DisplayName: Snack Monchi
+  Category: 1
+  Prefab: {fileID: 4597857602551343232, guid: 429e2957d28e62e42b44b1c6174992c2, type: 3}

@@ -343,7 +343,7 @@ internal class AgentBrain
                 if (repathTimer <= 0f)
                 {
                     repathTimer = owner.repathInterval;
-                    ctx.SetDestinationSafe(ctx.Player.position - toPlayer.normalized * owner.feedShyDistance);
+                    ctx.SetDestinationSafe(ctx.Player.position - toPlayer.normalized * (owner.feedShyDistance * 0.9f));
                 }
             }
             else
@@ -364,7 +364,7 @@ internal class AgentBrain
             if (repathTimer <= 0f)
             {
                 repathTimer = owner.repathInterval;
-                ctx.SetDestinationSafe(ctx.Player.position - toPlayer.normalized * owner.feedDistance);
+                ctx.SetDestinationSafe(ctx.Player.position - toPlayer.normalized * (owner.feedDistance * 0.75f));
             }
         }
         else

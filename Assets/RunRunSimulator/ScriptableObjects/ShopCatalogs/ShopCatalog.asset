@@ -43,3 +43,11 @@ MonoBehaviour:
       MaxStock: 10
       TypeFilter: 0
       Tags: []
+  - Item: {fileID: 11400000, guid: 96132c048a9740c4bb5caafdbab6e54b, type: 2}
+    Shop:
+      BasePrice: 3
+      DiscountBase: 0
+      CurrentStock: 10
+      MaxStock: 10
+      TypeFilter: 0
+      Tags: []

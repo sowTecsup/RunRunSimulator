@@ -4,6 +4,33 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-08-05 (Session 70 — **ÍTEM DE COMIDA REAL (Snack Monchi, I1/Food) — assets por MCP, cero código nuevo + FIX del stall del hand-feed — ✅ CERRADA: circuito completo compra→delivery→pickup→feed verificado en Play, 0 errores**)
+**Focus:** Juan eligió el pendiente (1) de S69: crear el ítem de comida que le faltaba al hand-feed. Decisiones de Juan: un solo ítem genérico ("Snack Monchi", 3 Dabloons), visual placeholder ProBuilder, obtención tienda + unidad de test en escena. Todo por Unity MCP; el único .cs tocado fue un bug fix descubierto en verificación.
+
+1. **Assets creados**: `Snack.prefab` (`Resources/Prefabs/Items/`, receta espejo del Mop: MeshRenderer + SphereCollider r=0.15 + Rigidbody masa 1/damp 2/4 + `WorldPropInstance`; esfera ProBuilder achatada 0.72y, queda `ProBuilderMesh` en el prefab — placeholder a reemplazar por arte real) + `Snack.mat` (URP/Lit naranja cálido) + `ItemSnack.asset` (`Id: I1`, `Category: Food`, DisplayName "Snack Monchi" hardcodeado — localization de SO es fase 2, S68 nota 9).
+2. **Registro**: `ItemDatabase` vía dict Odin por `execute_code` (mutación por referencia + `SyncIds()` por reflexión → I0 Mop / I1 Snack; verificado con `ImportAsset ForceUpdate` — el blob Odin persistió). `ShopCatalog.itemListings` += listing I1 (BasePrice 3, stock 10/10, TypeFilter 0, espejo del Mop). Unidad de test en escena en (-22.5, 1.0, 30.9) con `itemId=I1` estampado (el prefab lo lleva vacío; se estampa al spawn, igual que el Mop).
+3. **BUG REAL CAZADO EN VERIFICACIÓN (fix vía morimonchi-coder, 2 líneas)**: en `AgentBrain.TickHandFeed()` el destino de approach caía EXACTO sobre el anillo del umbral (`player.pos - dir * feedDistance`) → el NavMeshAgent llegaba y quedaba a `planarDist == feedDistance` (medido 1.2000 clavado) y el gate `dist > feedDistance` nunca cedía por ruido de float → monchi clavado en `SeekingFood` para siempre, sin comer (mordía también en juego real, no solo en test). Fix: el destino ahora apunta ADENTRO del anillo (`feedDistance * 0.75f` rama normal, `feedShyDistance * 0.9f` rama tímida); gates intactos, sin knobs nuevos.
+4. **Verificado en Play por MCP (0 errores)**: `StoreManager.BuyWorldProp` → Success, 3 Dabloons debitados, stock 10→9, `DeliveryBox` spawneado → `Interact()` → prop con I1 estampado por `Configure` → `HotbarController.PickUp` → `IsOfferingFood=true` → monchi con hp 55 a 3m → approach → `Eating` → **hp +35, Affect +5, slot vaciado**, vuelta a Roaming, exactamente 1 prop en mundo (cero huérfanos). También verificado el flujo espontáneo: con el roster hambreado, un monchi salvaje se comió el snack solo (gate funciona sin setup).
+
+> ### 📌 Notas S70
+> 1. **QUIRK MCP NUEVO — `create_from_gameobject` + mover la instancia después**: la posición terminó CRUZADA (el prefab asset quedó con la pos de escena bakeada y la instancia con la pos vieja de creación (0,0.5,0), sin piso → el snack caía al void en cada Play y parecía un leak del hotbar). Normalizado: prefab root en identity, instancia re-ubicada y escena guardada. Patrón seguro: mover ANTES de crear el prefab, o normalizar el root del asset después.
+> 2. `ItemDefinitionSO` ya NO tiene campos `Type`/`FurnitureDef` — el YAML de `ItemMop.asset` tenía data serializada huérfana de una versión vieja (se limpió sola al resavear). Campos reales: `Id/DisplayName/Category/Prefab`.
+> 3. Los ScriptNodes de `HotbarController` describían API aproximada (`TryEquipItem`/`ActiveSlotIndex`); la real es `PickUp`/`ActiveSlot`. Confirmar contra el .cs antes de escribir código contra esa API.
+> 4. Gate de prioridad confirmado en vivo: un monchi con needs CRÍTICAS (hp ~20, energía 0) NO entra al hand-feed (busca estación); el feed entra con hp bajo-pero-no-crítico. Y un monchi en reacción (Fleeing/Retreating) tampoco — solo desde Idle/Roaming.
+> 5. La rama tímida del feed (Sociability < `feedShyBelow` 0.35) quedó SIN test en vivo (no hay monchi tímido en el roster; mismo fix aplicado con multiplicador 0.9).
+> 6. Pendiente eyeball de Juan: agarrar el snack con E de verdad y sentir el feel del hand-feed completo con input real (arrastre de S69 nota 2 + esto).
+> 7. Suciedad de test inocua: needs del roster curadas (hp≥80/energía≥60) y flusheadas; Dabloons neto 0 (inyectados 3, gastados 3); stock del catálogo restaurado a 10/10; hotbar y storage vacíos al cierre.
+> 8. El snack es UN bocado (TryConsumeActiveFood vacía el slot entero); stacks o boosts por ítem (hoy son knobs del agente: feedHealthBoost/feedAffectBoost) serían cambio de código futuro.
+
+**Files Touched (.cs — input ScriptNodes):**
+- `World/AI/AgentBrain.cs` (MODIFICADO): fix stall del hand-feed — destinos de approach adentro del anillo (0.75×feedDistance / 0.9×feedShyDistance). Sin cambio de contrato ni firma.
+
+**Files Touched (no-ScriptNode):** `Snack.prefab` + `Snack.mat` + `ItemSnack.asset` (NUEVOS), `ItemDatabase.asset` (+I1 en dict Odin), `ShopCatalog.asset` (+listing I1), `ItemMop.asset` (limpieza automática de data huérfana al resavear), `GameScene.unity` (unidad de test Snack), screenshots de verificación. Registries/inventory dirty por Play del test (no ediciones deliberadas).
+
+**Next session (S71+):** Juan pidió **sesión de theorycrafting** al cierre de esta. Pendientes que arrastran: (2) animación de pataleo en ragdoll (plan recomendado S69: clips Suriyun gateados por IsAirborne en MonchiLocomotionAnimator); (3) eyeball del feel de petting/hand-feed con input real (notas 5-6); arte S66/S67 (referencias + marco Aseprite → enchufe Theme.uss); localization fase 2; async 3v3 (F5); V4 (c) agencia/saludo; remoción del building.
+
+---
+
 **Session:** 2026-07-25 (Session 69 — **V3 DIALES GENÉTICOS + VOID-FALL Y-MÍNIMA + PETTING V4 (hold-E) + COMER DE LA MANO — ✅ CERRADA: 0 errores, los 4 sistemas verificados en Play por MCP (10 sub-agentes morimonchi-coder en paralelo, archivos disjuntos, compiló al primer intento)**)
 **Focus:** Juan pidió los 3 arrastres: V3 diales, red anti-void-fall (S65 nota 2) y petting V4. Decisiones de Juan: diales **dev-only** (sin UI de jugador todavía); scope V4 = (a) hold-E + (b) comer de la mano, (c) agencia/saludo queda fuera.
 

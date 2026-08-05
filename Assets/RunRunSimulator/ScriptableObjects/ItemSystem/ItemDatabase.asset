@@ -17,6 +17,7 @@ MonoBehaviour:
     SerializedBytes: 
     ReferencedUnityObjects:
     - {fileID: 11400000, guid: c32c36a4dafd59047a5a0c7191796964, type: 2}
+    - {fileID: 11400000, guid: 96132c048a9740c4bb5caafdbab6e54b, type: 2}
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
@@ -24,7 +25,7 @@ MonoBehaviour:
     SerializationNodes:
     - Name: items
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[ItemDefinitionSO,
+      Data: 0|System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[MoriMonchiSimulator.ItemDefinitionSO,
         Assembly-CSharp]], mscorlib
     - Name: comparer
       Entry: 7
@@ -35,7 +36,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 2
     - Name: 
       Entry: 7
       Data: 
@@ -49,6 +50,18 @@ MonoBehaviour:
       Entry: 8
       Data: 
     - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 1
+      Data: I1
+    - Name: $v
+      Entry: 10
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
       Entry: 13
       Data: 
     - Name: 
@@ -56,8 +69,8 @@ MonoBehaviour:
       Data: 
     - Name: dropBuffer
       Entry: 7
-      Data: 2|System.Collections.Generic.List`1[[ItemDefinitionSO, Assembly-CSharp]],
-        mscorlib
+      Data: 2|System.Collections.Generic.List`1[[MoriMonchiSimulator.ItemDefinitionSO,
+        Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 12
       Data: 0
