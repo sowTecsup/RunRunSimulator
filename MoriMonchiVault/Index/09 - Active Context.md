@@ -4,6 +4,56 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-08-07 (Session 72 — **DIAGNÓSTICO POR FRENTES + REFUNDACIÓN DEL COMBATE — dos notas de diseño, cero código escrito — ✅ CERRADA: `Index/16` e `Index/17` entregadas, Juan escribiendo un manuscrito propio con sus conclusiones**)
+**Focus:** Sesión larga en dos mitades. **(1)** Juan pidió retomar "el análisis por distintos frentes del juego" → diagnóstico completo verificado contra el código (nota 16). **(2)** Tras leer los informes 15 y 16 completos, Juan eligió el rumbo: *"hay potencial en la idea, el pilar que siento más endeble es el del sistema de combate; olvidate de todo lo demás por el momento"* → sesión de refundación del combate (nota 17). Regla de la primera mitad: ninguna afirmación entra a la nota sin haberse leído del `.cs`, del asset por MCP o del archivo de save — las notas Index solo sirvieron para saber dónde mirar, y varias resultaron stale.
+
+1. **Entregable**: [[Index/16 - Diagnostico por Frentes]] — 7 frentes (criatura/genética · crianza/ciclo de vida · combate · economía/clientes · mundo vivo · presentación · infraestructura), cada uno con qué existe / qué falta / entradas y salidas / salud / riesgo, más matriz de conexiones, tabla de sistemas huérfanos, ranking de cuellos de botella y 3 sesiones sugeridas.
+2. **Hallazgo 1 — el fenotipo son 4 cuerpos**: hay 500 genotipos (4 body × 5 brazo × 5 ojo × 5 boca) pero `MonchiVisualizer.Assemble` instancia UN prefab por `BodyShapeID` (`MonchiVisualBankSO.GetBody` hashea contra una lista de **4**). Brazos/ojos/bocas no se leen en el pipeline visual: son stats invisibles. `PartVisualBankSO` ya no existe en el código.
+3. **Hallazgo 2 — el combate 3v3 no tiene rival**: `CombatLineupUITK` te hace llenar los DOS tableros con tus propias criaturas (y el sim aplica muerte permanente real, 5%). El async sigue siendo 1v1 (payload de una sola criatura). ⇒ la Recomendación B de S71 ("mostrar la composición rival") y el Gauntlet son la misma sesión.
+4. **Hallazgo 3 — el sumidero del mundo vivo, confirmado con 3 pruebas**: (a) `Affect` no lo lee nadie fuera de `World/`+`Data/Social`; (b) `CreatureCondition` solo alimenta gates sociales y la cara de humor; (c) **cero archivos de `UI/` mencionan Health/Energy/Affect** — el cuidado ni siquiera se ve. `Energy` se descuenta al criar/encolar pero ningún chequeo lo exige.
+5. **Hallazgo 4 — la economía es el frente más sano** (loop cerrado completo NPC→oferta→negociación→Dabloons→tienda) y su valuación ignora cuidado, rol, elemento, rareza, edad, shiny y linaje. `RoleTableSO.PriceModifier` está poblado y **no lo lee nadie**. Los 3 arquetipos son el mismo comprador (todos eligen la criatura más cara).
+6. **Hallazgo 5 — riesgo medido**: `creature_database_<playerId>.json` pesa **1,48 MB** con 18 criaturas y solo 6 combates guardados (~240 procs / ~1440 marcas); `CombatHistory` está declarado ilimitado y el blob va entero a Cloud Save.
+7. **Estado actual del save**: `furniture_registry_*.json` y `social_graph_*.json` están **vacíos** (2 bytes cada uno) — no hay muebles colocados (ni estaciones, ni vitrina) y el grafo social perdió su historia.
+
+**— Segunda mitad: refundación del combate ([[Index/17 - Refundacion del Combate]]) —**
+
+8. **El juego por los lentes de Schell**: juego como está **5/10**, potencial de la idea **8/10**, pilar de combate **3/10**. Fuerte en The Toy (9), Curiosity (8), Endogenous Value / Character / Resonance (7). Débil en Judgment (3), Skill vs Chance (3), Meaningful Choices (3), Unification (3), Simplicity/Complexity (3). Hallazgo: **el combate es el único subsistema que puntúa mal en TODOS los lentes no negociables de Schell** — todo lo demás está entre aceptable y bueno. Diagnóstico en una frase: *el juego no está roto, está desintegrado*.
+9. **Por qué la pelea no se entiende (verificado en el visualizador)**: los indicadores NO faltan — hay 22 eventos en el bus visual, popups, burbujas, chips, pips y 6 cartas con 4 filas de info cada una. El problema es exceso sin jerarquía + causa lejos del efecto. Cinco causas: (A) estado simultáneo excesivo — la decisión "el volumen alto de marcas es INTENCIONAL" de la nota 13 **es el bug**; (B) la misma pareja de elementos significa dos cosas según fuente; (C) causalidad no local ni inmediata; (D) el resultado es un dado; (E) sin jerarquía dramática. **A-D son de sistema, solo E es de presentación** ⇒ más texto flotante sería un parche sobre la causa menos grave.
+10. **Tesis registrada**: *en un autobattler la satisfacción de ver no viene del suspenso sino de la CONFIRMACIÓN* (ITB / Opus Magnum / SAP: el momento dramático es el commit). De ahí dos filtros operativos: **criterio de la hipótesis** (si el jugador no puede formular una hipótesis antes de la pelea, la pelea no puede satisfacer) y **criterio del texto plano** (formulado por Juan con Pokémon Rojo: toda mecánica debe explicarse en una frase, sin tabla).
+11. **Las dos palancas grandes**: (a) **vida en HITS** (idea de Juan) — habilita todo lo demás y rompe `CombatStats`, escudo, los 12 estados, `CombatRecord` y la valuación; (b) **el TERRENO como segundo tablero** — las casillas de la grilla 2-3-2 llevan elemento, colocar es elegir qué terreno pisás, y la reacción nace de criatura×terreno o atacante×terreno-de-la-víctima. **Conserva la tabla de 12 reacciones intacta**, mata el estado oculto, y convierte al escenario en el oponente barato que hoy no existe.
+12. **Tres planteamientos completos** (A: puzzle de formación ITB+Darkest Dungeon · B: tablero de adyacencia Backpack+SAP · C: plan comprometido Mechabellum+RoboRally) + tabla de 8 géneros a saquear + **19 formatos de enfrentamiento con su conducta emergente** (4 de ellos ideas de Juan: relevo 1v1, arena con grilla, hordas paralelas, tower defense central).
+
+> ### 📌 Notas S72
+> 1. **QUIRK MCP NUEVO**: `execute_code` corre como **cuerpo de método** — las directivas `using` en la cabecera son error de compilación ("Identifier expected"). Calificar todo (`UnityEditor.AssetDatabase`, `System.Text.StringBuilder`, `System.Reflection.BindingFlags`) y desambiguar `UnityEngine.Object` de `object`. Complementa la nota S68 sobre Roslyn en [[Index/12 - Unity MCP]].
+> 2. Quirk de reflexión: `BindingFlags.FlattenHierarchy` NO devuelve campos privados de clases base — para leer `parts` de `PartDatabaseSO<T>` hay que caminar `BaseType` con `DeclaredOnly`.
+> 3. Se detectaron 7 divergencias vault↔código (notas 02, 06, 13, 08, `00 - Index`, `CLAUDE.md`, y el dominio de clientes sin nota Index). Están listadas en la sección "Deuda de documentación" de la nota 16 — **no se corrigieron**, son una sesión aparte.
+> 4. Cero mutaciones: no se tocó escena, prefab ni asset. Todo el acceso a Unity fue de lectura.
+> 5. **Corrección de rumbo de Juan (importante para sesiones futuras)**: (a) unificar el canal de marcas YA SE EXPLORÓ y se descartó — con marca de significado único, atacar a un enemigo podía **beneficiarlo**; la ambigüedad de fuente existe por una razón. (b) **No se buscan soluciones visuales**: *"los visuales solo sirven cuando una idea está bien implementada; una buena idea es legible en sus simientos"*. (c) El resto del loop (tienda, breeding, traits, consumibles) Juan lo considera ya entretenido — el combate es lo único que necesita replanteo.
+> 6. `Index/14 - Art Prompts.md` aparece modificado en git pero **no lo tocó esta sesión** (edición previa de Juan en Obsidian, sin commitear).
+
+**Files Touched (.cs — input ScriptNodes):** ninguno. **No se invocó `vault-documenter`** (regla de CLAUDE.md: solo con scripts `.cs` tocados).
+
+**Files Touched (no-ScriptNode):** `MoriMonchiVault/Index/16 - Diagnostico por Frentes.md` (NUEVO), `MoriMonchiVault/Index/17 - Refundacion del Combate.md` (NUEVO), `MoriMonchiVault/00 - Index.md` (+3 filas de routing: notas 15, 16 y 17), `MoriMonchiVault/Index/15 - Theorycrafting S71...md` (bloque "Actualización S72" + enlace), este archivo.
+
+**Next session (S73+):** **BLOQUEANTE — Juan está escribiendo un manuscrito con sus conclusiones de diseño y lo va a entregar en una sesión futura. Nada del combate baja a código hasta que llegue ese manuscrito.** Las decisiones abiertas están listadas al final de [[Index/17 - Refundacion del Combate]]: vida en hits sí/no · cuál es el formato de enfrentamiento (la decisión más upstream) · de dónde nacen los estados (terreno / adyacencia / golpe) · planteamiento A, B, C o híbrido · sacar o no el azar de la resolución · cuántos estados sobreviven. Fuera del combate siguen vivas las 3 sesiones sugeridas por la nota 16 (Gauntlet · que el cuidado pague · decisión de fenotipo) y las 5 decisiones de S71. Arrastres: animación de pataleo en ragdoll, eyeball del feel de petting/hand-feed, arte S66/S67, localization fase 2, async 3v3 (F5), V4 (c) agencia/saludo, remoción del building, y la **deuda de documentación** de 7 puntos detectada en la nota 16.
+
+---
+
+**Session:** 2026-08-05 (Session 71 — **THEORYCRAFTING: EL AUTOBATTLER Y LA LLEGADA AL PÚBLICO — ⚠️ REGISTRADA RETROACTIVAMENTE EN S72 (la sesión no se cerró y este archivo quedó encabezado por S70)**)
+**Focus:** Juan abrió sesión pidiendo theorycrafting y planteó el bloqueo real: *"mi mayor problema es el autobattler, ¿siquiera será divertido? [...] no dejo de pensar en eso"* (10 días sin avanzar). Se ofrecieron 4 temas; Juan eligió pivotear a autobattler + marketing.
+
+1. **Entregable**: [[Index/15 - Theorycrafting S71 - Autobattler y Marketing]] — diagnóstico de diseño, análisis de mercado con datos verificados y fuentes, y el experimento propuesto para desbloquear.
+2. **Tesis central**: el combate automático NO es el problema (Backpack Battles, Super Auto Pets y Mechabellum son 100% automáticos); el problema es la **velocidad del ciclo**. MoriMonchis está en el peor cuadrante: cero info del rival + decisiones irreversibles + permadeath + ciclo de horas.
+3. **Recomendaciones**: (A) sacar los timers de reloj del núcleo del loop y reemplazar la escasez de reloj por escasez de recursos; (B) ⭐ mostrar la composición rival antes de confirmar el lineup; (C) "gambit-lite" con moderación (los diales genéticos como materia prima, no un editor de scripts).
+4. **Marketing**: el que va adelante en el pitch es **la criatura**, no la tienda ni el autobattler. Permadeath se vende como legado (Wildermyth), no como amenaza. Tensión sin resolver: cozy vs estrategia.
+5. **5 decisiones abiertas** que Juan no tomó, listadas al final de la nota 15.
+
+**Files Touched (.cs — input ScriptNodes):** ninguno.
+
+**Files Touched (no-ScriptNode):** `MoriMonchiVault/Index/15 - Theorycrafting S71 - Autobattler y Marketing.md` (NUEVO).
+
+---
+
 **Session:** 2026-08-05 (Session 70 — **ÍTEM DE COMIDA REAL (Snack Monchi, I1/Food) — assets por MCP, cero código nuevo + FIX del stall del hand-feed — ✅ CERRADA: circuito completo compra→delivery→pickup→feed verificado en Play, 0 errores**)
 **Focus:** Juan eligió el pendiente (1) de S69: crear el ítem de comida que le faltaba al hand-feed. Decisiones de Juan: un solo ítem genérico ("Snack Monchi", 3 Dabloons), visual placeholder ProBuilder, obtención tienda + unidad de test en escena. Todo por Unity MCP; el único .cs tocado fue un bug fix descubierto en verificación.
 

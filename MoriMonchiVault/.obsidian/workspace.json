@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Index/14 - Art Prompts.md",
+                "file": "Index/16 - Diagnostico por Frentes.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "14 - Art Prompts"
+              "title": "16 - Diagnostico por Frentes"
             }
           }
         ]
@@ -171,20 +171,24 @@
   },
   "active": "904556343679102e",
   "lastOpenFiles": [
+    "Index/09 - Active Context.md.tmp.13316.a98b89033e1c",
+    "Index/09 - Active Context.md.tmp.13316.972d71f7d23e",
+    "Index/09 - Active Context.md.tmp.13316.57ec3439c21b",
+    "00 - Index.md.tmp.13316.c76f57da9a2a",
+    "Index/17 - Refundacion del Combate.md",
+    "Index/17 - Refundacion del Combate.md.tmp.13316.d16fa11ae190",
+    "Index/15 - Theorycrafting S71 - Autobattler y Marketing.md",
+    "00 - Index.md.tmp.13316.867f031851f4",
+    "Index/16 - Diagnostico por Frentes.md",
+    "Index/16 - Diagnostico por Frentes.md.tmp.13316.cab58de638b8",
+    "Index/14 - Art Prompts.md",
     "ScriptNodes/MorimonchiDetailInfoUITK.md.tmp.33944.00b473c8b9af",
     "ScriptNodes/DetailRelationsPresenter.md",
     "ScriptNodes/DetailRelationsPresenter.md.tmp.33944.3e97fe66d0d6",
     "Index/09 - Active Context.md.tmp.33944.59ff2f7f0e66",
     "ScriptNodes/SuriyunSimDriver.md",
     "ScriptNodes/SuriyunSimDriver.md.tmp.21204.21f67a6ee8a6",
-    "Index/09 - Active Context.md.tmp.21204.c20cab25cc8d",
-    "Index/09 - Active Context.md.tmp.21204.8fe9fbef4c7c",
-    "Index/09 - Active Context.md.tmp.21204.7bbc92b5881b",
-    "Index/09 - Active Context.md.tmp.21204.beb7703255a5",
-    "ScriptNodes/MoriMonchiController.md.tmp.21204.46592bba316a",
-    "ScriptNodes/MoriMochiSpawner.md.tmp.21204.6c38d5eda7ec",
     "ScriptNodes/SpawnerDevConsole.md",
-    "ScriptNodes/SpawnerDevConsole.md.tmp.21204.a2292190d53a",
     "ScriptNodes/AgentConfinement.md",
     "ScriptNodes/AgentPhysics.md",
     "ScriptNodes/AgentBrain.md",
@@ -203,10 +207,6 @@
     "ScriptNodes/ICombatTabPresenter.md",
     "ScriptNodes/CloudSyncOps.md",
     "ScriptNodes/CloudAuth.md",
-    "ScriptNodes/SpiderPaletteApplier.md",
-    "ScriptNodes/SpiderArmDriver.md",
-    "ScriptNodes/SpiderAnimationDriver.md",
-    "ScriptNodes/MonchiAnimationDriver.md",
     "Sin título.canvas",
     "ScriptsNodes/Sin título.canvas"
   ]

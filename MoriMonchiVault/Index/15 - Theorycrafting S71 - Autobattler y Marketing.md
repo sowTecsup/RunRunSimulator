@@ -2,6 +2,7 @@
 tags: [index, design, theorycrafting, marketing]
 ---
 
+
 # 15 - Theorycrafting S71 — El autobattler y la llegada al público
 
 > **Sesión 71 (2026-08-05).** Juan abrió sesión pidiendo theorycrafting y planteó el bloqueo real: *"mi mayor problema es el autobattler, ¿siquiera será divertido? Deberíamos optar por algo donde el jugador tenga que tomar decisiones. Esa es de las razones por las que no he avanzado en este proyecto por 10 días, no dejo de pensar en eso."*
@@ -33,13 +34,13 @@ Cuando el combate llega horas después de la decisión, pierde esa función. Ya 
 
 ### 1.2 El ciclo de MoriMonchis hoy vs. los referentes
 
-| Juego | Dónde vive la decisión | Duración del ciclo completo | Info del rival antes de comprometerse | Reversibilidad |
-|---|---|---|---|---|
-| **Super Auto Pets** | compra + posicionamiento, sin timer | ~1-3 min por turno, combate ~30s | **CERO** | baja por turno, **alta por run** (runs de ~5 min) |
-| **Backpack Battles** | tienda + tetris de mochila | 2-4 min por ronda, combate 20-40s | **CERO** (conocés el meta, no el snapshot) | **alta** dentro de la ronda (recolocar es gratis) |
-| **Mechabellum** | despliegue por rondas | 1-2 min por ronda | **MÁXIMA del género** (ves el ejército rival completo) | **nula** — por eso cada despliegue pesa |
-| **The Bazaar** ⚠️ | día PvE + compras | runs de 45-60+ min | CERO | el run entero es el commit, y es larguísimo |
-| **MoriMonchis hoy** | cría + equipo + grilla 2-3-2 | **horas o días** | **CERO** | **nula** (permadeath, cría irreversible) |
+| Juego                | Dónde vive la decisión              | Duración del ciclo completo       | Info del rival antes de comprometerse                  | Reversibilidad                                    |
+| -------------------- | ----------------------------------- | --------------------------------- | ------------------------------------------------------ | ------------------------------------------------- |
+| **Super Auto Pets**  | compra + posicionamiento, sin timer | ~1-3 min por turno, combate ~30s  | **CERO**                                               | baja por turno, **alta por run** (runs de ~5 min) |
+| **Backpack Battles** | tienda + tetris de mochila          | 2-4 min por ronda, combate 20-40s | **CERO** (conocés el meta, no el snapshot)             | **alta** dentro de la ronda (recolocar es gratis) |
+| **Mechabellum**      | despliegue por rondas               | 1-2 min por ronda                 | **MÁXIMA del género** (ves el ejército rival completo) | **nula** — por eso cada despliegue pesa           |
+| **The Bazaar** ⚠️    | día PvE + compras                   | runs de 45-60+ min                | CERO                                                   | el run entero es el commit, y es larguísimo       |
+| **MoriMonchis hoy**  | cría + equipo + grilla 2-3-2        | **horas o días**                  | **CERO**                                               | **nula** (permadeath, cría irreversible)          |
 
 ⚠️ The Bazaar es la advertencia: mismo cuadrante que MoriMonchis. Pasó de 17.136 CCU de pico a ~2.900 (−83%).
 
@@ -242,7 +243,9 @@ Juan tiene que decidir el rumbo. Las decisiones abiertas, en orden de impacto:
 - [ ] **¿Cuál es el género que va adelante en el pitch?** (Parte 2 — la criatura, según los datos)
 - [ ] **¿De qué lado cae el mensaje: estrategia/supervivencia o cozy?** (2.4 — determina si el permadeath suma o resta)
 
-Relacionado: [[Index/13 - Combat Design Direction]], [[Index/01 - GDD Core]], [[Index/09 - Active Context]], [[Index/11 - Technical Debt]].
+> **Actualización S72:** [[Index/16 - Diagnostico por Frentes]] verificó contra el código el estado real de cada sistema y corrige el alcance de dos cosas de esta nota. (a) La Recomendación B —"mostrar la composición rival"— no es un cambio barato sobre algo existente: **hoy no hay ninguna fuente de oponentes 3v3** (el lineup te hace llenar los dos tableros con tus propias criaturas, y el async sigue siendo 1v1), así que la Rec. B y el Gauntlet de la Parte 3 son la misma sesión. (b) El hallazgo lateral 3 ("el cuidado no paga nada") quedó confirmado con evidencia dura, y además resultó peor de lo pensado: el cuidado tampoco **se ve** — ninguna de las 17 pantallas muestra las necesidades.
+
+Relacionado: [[Index/16 - Diagnostico por Frentes]], [[Index/13 - Combat Design Direction]], [[Index/01 - GDD Core]], [[Index/09 - Active Context]], [[Index/11 - Technical Debt]].
 
 ---
 
