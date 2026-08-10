@@ -377,6 +377,141 @@ Con eso, los 3 niveles dejan de ser 3 niveles sueltos y se vuelven **una partida
 
 ---
 
+# PARTE 8 — S74: el archipiélago, y la costura del lore
+
+> **Sesión 74 (2026-08-10).** Juan pidió explícitamente *"que encuentres huecos a mi diseño con preguntas, así lo redondeamos"*. Dos rondas de interrogatorio + una decisión estructural nueva de Juan (el tablero que crece). **Sigue siendo DRAFT.** Misma convención: ⭐ = idea de Juan; el resto es exploración del orquestador.
+
+## 8.1 · Lo que Juan cerró en S74 (fuente de verdad)
+
+| Tema | Decisión |
+|---|---|
+| **Roster** | Se elige **antes de la aventura** (ejemplo dado: 6). En **cada una de las 3 etapas se eligen 2** para que sean **tus partes**. |
+| **Piezas por etapa** | 3 partes × 2 MoriMonchis = **6 piezas por etapa** → acumulado **6 · 12 · 18**. |
+| **Persistencia** | Al cambiar de nivel **los desviadores se mantienen**. |
+| **Quién recorre** | ⭐ **Los MoriMonchis mismos** — *"no son pelotitas [...] son como bombarderos que van moviéndose en direcciones y tú anticipas el camino que tomarán, en orden"*. |
+| **Objetivo por etapa** | **Umbral de materiales pedido** por etapa (cuota). |
+| **La presión** | ⭐ En el mapa **siempre hay algo que hace daño**, y con el tiempo escala **x2 · x3 · x4** hasta que eventualmente mueres. **Descartado**: límite de rebotes / durabilidad de las piezas (*"no lo veo"*). |
+| **El multiplicador** | ⭐ **Ítems en el mapa, estilo pinball** — golpear ciertas cosas da multiplicadores. Las **Cutie Marks** pueden sumar bonificadores al cumplirse ciertas condiciones. |
+| **Salir del mapa** | ⭐ Sale de este intento; **se va con lo que recolectó**. |
+| **Grilla** | ⭐ **Cuadrícula sin diagonales** (4 direcciones). Propuesta de Juan, respaldada por el orquestador (§8.4). |
+
+**Diferidos por Juan a una iteración posterior:** bordes vs. interior (*"se me ocurre una solución limpia, seguiremos desarrollando"*) · roles vs. genes (§5 de esta nota) · cuántos tipos de conector son *meaningful* (§6).
+
+## 8.2 · ⭐ EL ARCHIPIÉLAGO — la idea estructural de S74
+
+> Palabras de Juan: *"desarrollas tu mecanismo, se prueba, pasas el límite que se pide y en ese momento **boom, aparece otra grilla n×n pegada a la antigua**, mismas condiciones. Ahora ya no se pierde, no hay azar: simplemente es adaptar cómo tu mecanismo te conecta al otro mapa y diseñar los recorridos. Y así 3 veces. Una vez completas los 3, entras al **modo infinito**, que es solo ver cuánto aguantas."*
+
+Esto reemplaza el modelo de "3 tableros distintos" de §7.5. **El tablero no cambia: crece.** Tamaño de la grilla base sin definir (decisión diferida por Juan).
+
+**Las tres consecuencias que se derivan solas:**
+
+1. **Los bordes MIGRAN.** Cuando la isla 2 se pega, el borde compartido **deja de ser borde** y las piezas que pusiste ahí quedan en el interior del tablero nuevo. → *La regla "solo colocas en el perímetro" se mantiene pura, y aun así el interior se llena de estructura, porque **el interior de hoy es el perímetro de ayer.*** **Esto contesta solo el dilema bordes-vs-interior de §7.4/§8.1** sin tener que elegir.
+2. **Dificultad que escala sin costo de contenido.** Las salidas de la cara que se unió desaparecen → cada isla nueva alarga la ruta de extracción.
+3. **Estructura de la partida**: las 3 etapas son un **puzzle determinista y sin azar** (Juan: *"ya no se pierde"*); el **modo infinito** es la corrida. Ver §8.8-D3: ahí es donde puede vivir la muerte permanente.
+
+## 8.3 · Tres cosas que la estructura de S74 resolvió sin proponérselo
+
+1. **El dilema bordes vs. interior** — resuelto por §8.2-1 (los bordes migran).
+2. **La duplicación rol/gen que la §5.3 dejó marcada** — desaparece si hay dos poblaciones de MoriMonchis en juego: del que **sostiene el borde** se leen los **genes** (qué conector aporta); del que **recorre** se lee el **rol** (ataca / recolecta / altera). Mismo bicho, dos lecturas según el trabajo. Deja de ser redundancia y pasa a ser **dos ejes ortogonales**, con la crianza importando por los dos lados.
+3. **La decisión (a) de §7.4 ("permanente" = compromiso o recurso)** — queda cerrada del lado de **recurso**, y el número no hay que inventarlo: lo define la genética (3 partes × 2 MM = 6 por etapa).
+
+## 8.4 · Sin diagonales — respaldado, con un costo consciente
+
+**A favor:** (1) la hipótesis se traza con el dedo — con 4 direcciones el jugador simula la trayectoria sin esfuerzo, con 8 el costo mental se duplica; (2) las diagonales rompen la velocidad (un paso diagonal cubre 1,41 casillas → o el que va en diagonal es más rápido o hay que maquillarlo); (3) con 4 direcciones el alfabeto de un desviador es chico y completo (izquierda · derecha · atrás · pasar de largo), y los juegos profundos salen de alfabetos chicos; (4) ChuChu Rocket ya lo probó.
+
+**El costo:** las trayectorias ortogonales se ven mecánicas, no orgánicas. En este juego es virtud disfrazada — el tablero se lee como un circuito.
+
+## 8.5 · Cuota · rampa · multiplicador
+
+**Por qué descartar el límite de rebotes es correcto** (validación del instinto de Juan): un contador de rebotes castiga *exactamente lo que se quiere premiar* (la cadena larga). La rampa de daño castiga **el tiempo**. Consecuencia práctica: con contador de rebotes el jugador optimiza **cadenas cortas**; con rampa optimiza **densidad** — muchos impactos por tick, varias unidades trabajando a la vez. **Densidad es el espectáculo buscado.**
+
+**Sobre el hueco que S74 detectó antes del archipiélago:** un juego con solo condición de derrota no premia la buena estrategia, solo **retrasa** la pérdida — Balatro no premia aguantar, premia **pasar el umbral por mucho**. La cuota por etapa (§8.1) es lo que arregla eso, y de paso vuelve inofensivo el *"tiempo indeterminado por etapa"*: **la etapa termina por eficiencia, no por reloj.**
+
+**Abierto sobre el número:** ¿el multiplicador es de la unidad o del intento (¿hay *crescendo* entre las 3 corridas?)? · ¿la unidad que cae **pierde la carga** que juntó? (si sale = cobra y cae = pierde, el *push-your-luck* se cierra solo) · **¿el multiplicador multiplica el MATERIAL o un puntaje aparte?** (si es aparte, el jugador persigue dos números; si multiplica el material, todo el tablero apunta al mismo lado).
+
+## 8.6 · ⭐❓ LA COSTURA ABIERTA: qué tienen que ver las partes del cuerpo con los conectores
+
+> Planteo de Juan al cierre: *"lo único que no puedo cerrar lore-wise es qué tienen que ver las partes de su cuerpo con que generen estos conectores que se ponen alrededor del mapa."*
+
+**Diagnóstico del orquestador: no es un problema de lore, es una costura del sistema.**
+
+> Se le está pidiendo a un MoriMochi que **esté en dos lugares a la vez**: el bicho recorre el tablero, pero su cuerno está clavado en la pared.
+
+Ninguna ficción cierra eso porque la junta está floja, no el cuento. Es la propia regla de Juan (*"una buena idea es legible en sus simientos"*): si no se puede contar, hay una pieza mal puesta. **Solo hay dos familias de solución.**
+
+### Familia A — el MoriMochi ESTÁ ahí (no genera nada)
+
+| # | Qué es | Qué compra | Qué cuesta |
+|---|---|---|---|
+| **A1** ⭐recomendada | **El MoriMochi se acuesta en el perímetro y ocupa 3 casillas**, una por parte, en su orden genético (alas·cuerno·espalda). El que pasa por cada casilla recibe lo de esa parte. | Cero lore que inventar (el cuerno está donde siempre estuvo) · **la aritmética 6·12·18 sobrevive intacta** · el **orden de las partes es genético y fijo** → colocar es **dónde** y **hacia qué lado lo acuestas** (restricción espacial gratis y profunda) · la crianza pasa a ser *"quiero esta secuencia"*, casi un Tetris genético · **se ve**: miras el tablero y ves a tu equipo bordeando la arena · **le da trabajo a las islas viejas** (los veteranos quedan embebidos en lo que ahora es interior: el equipo se vuelve el mobiliario de la máquina) | Un MoriMochi apostado **no recorre** esa etapa |
+| **A2** | Ocupa 1 casilla y lo **orientas** (qué parte mira hacia adentro) | Más limpio de leer | Deja **2 piezas por etapa** → hay que reescalar todo. No recomendada |
+| **A3** | No desvía: **llama** (el cuerno brama, las alas abanican un olor, el lomo golpea como tambor) y el que pasa gira hacia el llamado | La más elegante y la más Furby/Gremlin · explica el determinismo sin esfuerzo · texto plano: *"van derecho hasta que algo los llama"* | Un llamado es menos legible que un golpe: no ves el impacto, ves un giro |
+
+**La salida a la aritmética que abre A1** (si los apostados no recorren, ¿quién recorre?):
+
+> ⭐ **Los adultos sostienen el perímetro. Los jóvenes corren.**
+
+Coherente con un juego de crianza; le da sentido a la evolución (un corredor que sobrevive **se gradúa a poste**); y **le da casa a la muerte permanente**: la que cae en el tablero es la generación joven, no la inversión.
+
+### Familia B — la parte SE SEPARA del bicho
+
+| # | Qué es | Qué compra | Qué cuesta |
+|---|---|---|---|
+| **B1** | **Muda.** Los MoriMonchis mudan cuerno, alas y caparazón; se clavan en la pared | Ficción sólida (ciervos, insectos, gremlins) · explica por qué es **separable** (se cayó sola), **permanente** (objeto muerto clavado) y **escasa** (se muda cada tanto) · **fusiona el material de la economía con la pieza del tablero** → mata una de las 4 monedas que §5.1 marcó como riesgo · no rompe la aritmética | El tono: *mudar* es tierno, *arrancar* es carnicería · se pierde la imagen de A1 (el borde deja de ser tu equipo y pasa a ser un muro de trofeos) |
+| **B2** | **Taller ochentero**: las partes son moldes/cabezales que enroscas a la máquina del perímetro | El más barato · encaja con el 80s retro · no le pasa nada al MoriMochi | Frío: cero vínculo emocional entre el bicho y la pieza |
+| **B3** | El tablero **es el sueño** de la franja 23:00–6:00 → ahí no hay cuerpos, hay instintos | Justifica cualquier cosa | **Señalada para NO tomarla**: un sueño explica todo y por eso no explica nada, y borra lo único que se quiere del sistema (que mirar al bicho te diga lo que va a pasar) |
+
+### Recomendación del orquestador (registrada, NO decidida)
+
+> **A1, con verbo físico** (el apostado engancha con el cuerno, abanica con el ala, frena con el lomo), y **"los adultos sostienen, los jóvenes corren"** como marco.
+
+Es la única de las seis que no exige inventar ficción nueva, no obliga a recalcular los números, da una restricción espacial con profundidad de sobra, y le encuentra trabajo a las islas viejas sin sistemas extra. **A1 y B1 pueden convivir**: se plantan los adultos, y la **muda** de un adulto es el material con el que se fabrican las Cutie Marks.
+
+**Las dos preguntas que deciden esto (pendientes de Juan):**
+1. **¿El MoriMochi que sostiene el borde es el mismo que recorre, o son dos poblaciones?** Si son dos → A1 se cierra solo. Si insiste en que sea el mismo bicho → la Familia A entera se cae y queda obligada la B.
+2. **¿Ver el impacto o ver el giro?** Golpe físico (A1) = más legible y toony; llamado (A3) = más elegante y más criatura. Cambia arte y animación, **no cambia una sola regla**.
+
+## 8.7 · El bucle tal como quedó al cierre de S74
+
+```
+ANTES DE LA AVENTURA
+  · Se elige el roster (ejemplo de Juan: 6)
+
+ETAPA k (k = 1, 2, 3)
+  1. Aparece la isla n×n (la 1ª sola; las siguientes PEGADAS a lo anterior)
+  2. Se mira el tablero completo + la cuota de material de la etapa
+  3. Se eligen 2 MoriMonchis -> 6 piezas (3 partes x 2)
+  4. Se colocan las 6 en el perimetro          <- ? todo el perimetro o solo el nuevo (D4)
+  5. Se lanzan los MoriMonchis que recorren     <- ? quienes son, juntos o de a uno (D1)
+  6. Recorren / recolectan / multiplican -> SALEN (cobran) o CAEN (pierden carga?)
+  7. Cuota alcanzada -> boom, isla k+1          <- ? que pasa si no se alcanza (D3)
+
+TRAS LA ETAPA 3
+  · MODO INFINITO: la rampa de dano sube hasta que caes
+     ? sigue creciendo el tablero  ? de donde salen piezas nuevas si el roster ya se monto entero
+```
+
+## 8.8 · Dudas generales abiertas al cierre (ordenadas por cuánto bloquean)
+
+- **D1 · ¿Quiénes recorren, y salen juntos o de a uno?** *Parcialmente contestada*: Juan aclaró que **son los MoriMonchis mismos**. Sigue abierto: con roster de 6 y 2 montados por etapa (2→4→6), para la etapa 3 el roster entero está montado y no queda nadie para recorrer. Y — **si salen de a uno, el choque entre dos MoriMonchis (pilar declarado en §7.1) nunca ocurre**. Propuesta sin decidir: *salen de a uno, pero el anterior sigue en el tablero si no salió* → el choque solo pasa cuando dejaste a alguien adentro, y decidir si esperas o lanzas encima se vuelve una decisión.
+- **D2 · ¿Qué trabajo tiene la isla vieja después?** *(la más cara)*. Si el material no se recarga, la máquina construida en la isla 1 queda de adorno y el tablero se vuelve un pasillo que avanza — lo contrario de *"adaptar cómo tu mecanismo te conecta al otro mapa"*. Dos formas de darle trabajo: **(a) la isla vieja se recarga** → lo construido sigue **produciendo** (engine building, la satisfacción de los números que suben); **(b) la isla vieja es la zona de cobro** → recolectas en la frontera y ruteas de vuelta a través de tu máquina vieja para salir (*construyes hacia afuera, extraes hacia adentro*).
+- **D3 · ¿Se puede fallar una etapa? ¿Dónde vive la muerte permanente?** Juan dijo *"ya no se pierde, no hay azar"* pero también que la rampa escala *"hasta que eventualmente mueres"* → solo son compatibles si la rampa es **cronómetro de intento**, no condición de derrota. Lectura estructural propuesta: **las 3 etapas = puzzle reintentable** · **el modo infinito = la corrida, y lo que se pierde ahí es real**. Eso le da casa al permadeath (que hoy quedó sin lugar) y al modo infinito una razón más allá del leaderboard.
+- **D4 · ¿Cómo se pegan las islas?** ¿El jugador elige de qué lado crece (decisión estratégica gratis) o lo elige el juego (palanca de diseño)? · ¿el borde compartido **se abre entero** (la pared que construiste de ese lado se vuelve un colador) **o queda una puerta de 1-2 casillas** (y el desafío pasa a ser *llevar mi flujo hasta esa puerta*)? · ¿se pueden colocar piezas nuevas en el perímetro viejo o solo en el de la isla nueva?
+- **D5 · Pinball o ChuChu: ¿cuál es el placer primario?** Se nombra pinball todo el tiempo (multiplicadores, golpear cosas, combos) pero se construye ChuChu (grilla, ticks, sin diagonales, determinista). Pinball = caos que aprendes a surfear (no hay hipótesis, hay reflejo); ChuChu/Zachtronics = determinismo que resuelves (**la hipótesis ES el juego**, criterio duro de la nota 17). **Híbrido posible y probablemente el correcto: trayectoria 100% determinista, y el caos viene de la DENSIDAD** — nada azaroso, pero tantos objetos interactuando que predices lo grueso y te sorprende lo fino (Opus Magnum / Rube Goldberg). Si es ese: **cero azar en el lanzamiento**, velocidad constante, y la complejidad se sube metiendo más piezas, no más ruido.
+- **D6 · ¿Las piezas de etapas anteriores se pueden mover?** Si se reubican libremente el juego se vuelve arenero y muere la adaptación retroactiva; si están clavadas, cada etapa se juega **con la deuda de las decisiones viejas** (que es la idea original).
+
+**Menores, aparcadas a pedido de Juan** (*"las menores será una vez asentemos la idea"*): orden de resolución del tick cuando dos unidades quieren la misma casilla · si dos piezas comparten casilla de borde · si obligas a colocar las 6 o puedes guardarte piezas para la etapa siguiente · dónde y cómo se elige el punto de lanzamiento.
+
+## 8.9 · Sobre mapas a mano y rutas óptimas (respuesta a la consulta de S74)
+
+**Mapas a mano:** el editor **no es la parte cara**. Basta un `BoardLayoutSO` (grilla de enteros) + una ventana que la pinte. **Lo caro y lo que de verdad importa es el simulador headless** — correr un tablero N ticks sin abrir Play. Con eso, validar un mapa hecho a mano cuesta segundos y hacer 30 deja de dar miedo.
+
+**Rutas óptimas, como riesgo:** todo puzzle determinista con mapa fijo tiene solución óptima; alguien la publica y el nivel muere. El diseño ya tiene **tres defensas nativas** — (1) los conectores vienen de **tus** genes → mi óptimo no es tu óptimo y un solo walkthrough no sirve para todos; (2) **el perímetro persiste** → el óptimo de la etapa 3 depende de lo que hiciste en la 1 (dependencia de camino: no hay *la* solución, hay *la solución dado tu historial*); (3) el puntaje es **una escala, no un binario**. Si se mantienen las tres, el riesgo baja de fatal a sano.
+
+**Rutas óptimas, como herramienta:** un solver sobre el simulador headless es el **instrumento de balance**, y contesta la única pregunta que importa de un mapa hecho a mano: *¿cuántas soluciones distintas tiene?* Uno con 1 solución es una cerradura (frustra); con 50 es un arenero (aburre); los buenos tienen 3–6 — **y no se puede saber mirándolo, solo corriéndolo**.
+
+---
+
 ## Estado
 
-**DRAFT. Idea abierta, nada decidido, cero código.** La Parte 7 es la candidata en pie; las preguntas 1 y 3 de la Parte 6 quedan resueltas si se confirma.
+**DRAFT. Idea abierta, cero código.** La Parte 7 sigue siendo la mecánica en pie; la **Parte 8** la reescribe en dos puntos grandes (el **archipiélago** reemplaza los "3 tableros distintos" de §7.5, y las **piezas vienen del roster** vía §8.1). Las preguntas 1 y 3 de la Parte 6 quedan resueltas si se confirma. **El bloqueante actual es §8.6** (la costura del lore) y sus dos preguntas.
