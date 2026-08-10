@@ -48,6 +48,7 @@ MoriMonchiVault/
 | **Rumbo del proyecto: autobattler, mercado y pitch** | [[Index/15 - Theorycrafting S71 - Autobattler y Marketing]] | — |
 | **Estado real de cada frente, acoples y cuellos de botella** | [[Index/16 - Diagnostico por Frentes]] | — |
 | **Refundación del combate: lentes, géneros, formatos** | [[Index/17 - Refundacion del Combate]] | — |
+| **Pilares del rediseño: ciclo día/noche, genes visibles, Cutie Marks** ⚠️ DRAFT | [[Index/18 - Pilares del Rediseno (Draft)]] | — |
 
 ---
 
