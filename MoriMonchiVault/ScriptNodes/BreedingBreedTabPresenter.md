@@ -33,9 +33,11 @@ tags: [script, ui, presenter]
 - `Teardown()` — desuscribe breedButton.clicked
 
 **Métodos privados:**
-- `MakeCandidate(dna, bucket, isFather)` — fila con nombre + 6 stats + contador BreedCount/Max. Usa `CombatStats.GetEffectiveStats()` o fallback. **S57b:** Retrato fotomatón vía [[MonchiPortraitUI]].Apply()
+- `MakeCandidate(dna, bucket, isFather)` — fila con nombre + 6 stats + contador BreedCount/Max. **S75:** usa `CreatureStats.GetEffectiveStats()` en lugar de CombatStats. Retrato fotomatón vía [[MonchiPortraitUI]].Apply()
 - `RefreshSlots()` — SetSlot (nombre + retrato fotomatón) + BuildPreview
-- `BuildPreview()` — muestra resumen columnar de padre/madre + duración ≈X min via InheritanceOdds
+- `BuildPreview()` — muestra resumen columnar de padre/madre + duración ≈X min via InheritanceOdds. **S75:** Agrega 5 filas de partes genéticas: `GetBodyShape()`, `GetHorn()`, `GetBack()`, `GetWing()`, `GetFace()` (cada una es un BodyPart con swatch color Set + nombre + Set name)
+- `ParentSummary()` — resumen de una criatura para preview (nombre + 6 stats + 5 partes)
+- `AddPartRow()` — fila visual de parte: swatch (color Set) + nombre parte y Set
 - `TryBreed()` — await `asyncBreedingService.StartBreedingAsync()`, clearear slots, invocar `onBred()` callback si éxito (madre en estado Breeding)
 
-**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CombatStats]], [[CreatureDatabaseSO]], [[MonchiPortraitUI]]
+**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CreatureStats]], [[CreatureDatabaseSO]], [[MonchiPortraitUI]], [[BodyPart]]

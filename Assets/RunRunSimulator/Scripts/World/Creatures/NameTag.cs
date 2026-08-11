@@ -284,9 +284,8 @@ public class NameTag : MonoBehaviour
         if (dna.IsDead) return (Loc.Tr("status.dead"), new Color(1f, 0.39f, 0.39f));
         return dna.BusyState switch
         {
-            BusyReason.QueuedForCombat => (Loc.Tr("status.queued"),   new Color(1f, 0.71f, 0.39f)),
-            BusyReason.Breeding        => (Loc.Tr("status.breeding"), new Color(1f, 0.61f, 0.82f)),
-            _                          => ("", Color.clear),
+            BusyReason.Breeding => (Loc.Tr("status.breeding"), new Color(1f, 0.61f, 0.82f)),
+            _                   => ("", Color.clear),
         };
     }
 

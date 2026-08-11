@@ -6,8 +6,15 @@ tags: [script, data, customer]
 
 **Ruta:** `Data/Customers/CustomerPricingSO.cs`
 
-**Responsabilidad:** SO que centraliza los parámetros de valuación de MoriMonchis. Posee: `BasePricePerTier` (dict Tier→int), multiplicadores (`StatsMultiplier`, `BreedCountMultiplier`, `CombatWinrateMultiplier`, `TierMultiplier`), `RenegotiationStep` (0-1). Método botón `SeedDefaults()` para cargar valores base (Tier1=20, Tier2=50, Tier3=120).
+**Responsabilidad:** SO que centraliza parámetros de valuación de MoriMonchis. `BasePricePerTier` (dict Tier→int), multiplicadores (`StatsMultiplier`, `BreedCountMultiplier`, `TierMultiplier`), `RenegotiationStep`. **S75:** Sin `CombatWinrateMultiplier` (demolición del combate).
 
-**Vinculado a:** [[Index/04 - Customer System]]
+## Cambios en S75
 
-**Conexiones:** [[ValuationHandler]], [[NegotiationFlow]], [[CustomerService]]
+- **ELIMINADO:** `CombatWinrateMultiplier`
+- **MANTIENE:** BasePricePerTier, StatsMultiplier, BreedCountMultiplier, TierMultiplier
+
+## Vinculado a
+
+- [[Index/06 - Customer System]]
+
+**Conexiones:** [[ValuationHandler]], [[CustomerArchetypeSO]]

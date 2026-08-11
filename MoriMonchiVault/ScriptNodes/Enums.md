@@ -47,50 +47,30 @@ Newborn = 0, Child = 1, Teen = 2, Adult = 3, Elder = 4
 
 ### FurType
 
-Patrón de pelaje del modelo Suriyun (S57). Mapea 1:1 a MonchiFur_XX material en `FurTypeDatabaseSO`. Hereda 50/50 en breeding (sin usar tabla de pesos); al mintear criatura nueva, la tabla de pesos (`mintWeights`) determina qué patrón es más probable. Default al mintear: FurType.Pattern00. El valor persiste en CreatureDNA.FurType pero NO es parte del genetic string (metadata como Gender/Role).
+Patrón de pelaje del modelo Suriyun (S57). 33 patrones (Pattern00-32). Mapea 1:1 a MonchiFur_XX material. Hereda 50/50 en breeding. Metadata, no genética.
 
 ```
-Pattern00 = 0, Pattern01 = 1, Pattern02 = 2, Pattern03 = 3, Pattern04 = 4,
-Pattern05 = 5, Pattern06 = 6, Pattern07 = 7, Pattern08 = 8, Pattern09 = 9,
-Pattern10 = 10, Pattern11 = 11, Pattern12 = 12, Pattern13 = 13, Pattern14 = 14,
-Pattern15 = 15, Pattern16 = 16, Pattern17 = 17, Pattern18 = 18, Pattern19 = 19,
-Pattern20 = 20, Pattern21 = 21, Pattern22 = 22, Pattern23 = 23, Pattern24 = 24,
-Pattern25 = 25, Pattern26 = 26, Pattern27 = 27, Pattern28 = 28, Pattern29 = 29,
-Pattern30 = 30, Pattern31 = 31, Pattern32 = 32
+Pattern00 = 0, Pattern01 = 1, ... Pattern32 = 32
 ```
-
-**S57 ACTUALIZADO:** 33 patrones (Pattern00-32) mapeados 1:1 a assets MonchiFur_00.mat–MonchiFur_32.mat. Herencia sigue siendo 50/50; mint usa tabla de pesos opcional.
 
 ### MonchiMood
 
-Humor/emoción visible del MoriMochi (S57 sistema de caras). 12 estados mapeados 1:1 a listas de materiales de caras en `MonchiMoodSetSO`. Determinan qué renderer Face muestra en cada momento via `MonchiMoodDriver` (por Intent/Condition del agent) y `DragonAnimationDriver` (durante acciones de combate). Default Neutral.
+Humor/emoción visible (12 estados mapeados a caras). Determinados por Intent/Condition del agent.
 
 ```
 Neutral = 0, Feliz = 1, Triste = 2, Dolor = 3, Enojado = 4, Dormido = 5,
 Enfermo = 6, Mareado = 7, Asustado = 8, Amoroso = 9, Emocionado = 10, KO = 11
 ```
 
-**Descripción:**
-- `Neutral` — Estado base, sin emoción
-- `Feliz` — Comiendo, jugando, feliz
-- `Triste` — Necesidad crítica (Energy/Affect)
-- `Dolor` — Bajo daño en combate
-- `Enojado` — Atacando en combate
-- `Dormido` — Descansando
-- `Enfermo` — Condition.Sick
-- `Mareado` — Tumbling (thrown), efectos de aturdimiento
-- `Asustado` — Fleeing, Held, reacción de miedo
-- `Amoroso` — Buff visual, victoria positiva
-- `Emocionado` — Victoria en combate, Achievement
-- `KO` — Derrotado en combate
-
 ### PartRole
 
-Slot anatómico (Body, Arm, Eye, Mouth). Para generación temática de nombres.
+**S75 ACTUALIZADO:** Slot anatómico de partes genéticas (Body, Horn, Back, Wing, Face). Para generación temática de nombres.
 
 ```
-Body = 0, Arm = 1, Eye = 2, Mouth = 3
+Body = 0, Horn = 1, Back = 2, Wing = 3, Face = 4
 ```
+
+**Cambio S75:** Reemplazó Arm/Eye/Mouth (valores 1, 2, 3) con Horn/Back/Wing (valores 1, 2, 3) + Face (valor 4). Refleja nuevo genetic string "BODYSHAPE-HORN-BACK-WING-FACE-RRGGBB".
 
 ### Tier
 
@@ -102,11 +82,13 @@ Tier1 = 1, Tier2 = 2, Tier3 = 3
 
 ### BusyReason
 
-Por qué una criatura no está disponible para acciones.
+**S75 ACTUALIZADO:** Por qué una criatura no está disponible para acciones.
 
 ```
-None = 0, QueuedForCombat = 1, Breeding = 2, Sold = 3
+None = 0, Breeding = 2, Sold = 3
 ```
+
+**Cambio S75:** Eliminado `QueuedForCombat = 1` (relacionado con demolición del combate async). Ahora solo `None`, `Breeding`, `Sold`.
 
 ### UIPanelType
 
@@ -114,8 +96,10 @@ Canvas panels jugables.
 
 ```
 None = 0, CreatureGrid = 1, MorimonchiDetail = 2, Breeding = 3,
-Combat = 4, Storage = 5, Store = 6, Transaction = 7
+Storage = 5, Store = 6, Transaction = 7
 ```
+
+**S75 ACTUALIZADO:** Eliminado `Combat = 4` (demolición del combate). Los valores se han reordenado numéricamente sin reasignar (se deja el hueco en 4 para backward-compatibility).
 
 ### PlayerStateType
 
@@ -148,6 +132,20 @@ Objetos del mundo (herramientas, comida, medicina).
 ```
 Tool = 0, Food = 1, Medicine = 2
 ```
+
+### ItemTriggerKind
+
+**S75 NUEVO:** Cuándo se dispara un item consumible.
+
+```
+None = 0, LowHealth = 1, Collision = 2, Collected = 3
+```
+
+**Descripción:**
+- `None` — Item sin comportamiento automático
+- `LowHealth` — Se activa cuando portador bajo de HP
+- `Collision` — Se activa al impactar contra algo
+- `Collected` — Se activa al ser recogido/cosechado
 
 ### DiscountDay
 
@@ -207,23 +205,15 @@ Healthy = 0, InNeed = 1, Sick = 2
 
 ### Element
 
-Afinidad elemental innata de un MoriMochi (S39). Hereda 50/50 de los padres en breeding (aleatorio en mint) con chance de mutación. NO es parte del genetic string (metadata como Gender/Role). Conduce reacciones elementales en combate.
+Afinidad elemental innata de un MoriMochi (S39). Hereda 50/50 de los padres en breeding (aleatorio en mint) con chance de mutación. NO es parte del genetic string. Metadata como Gender/Role.
 
 ```
 Agua = 0, Fuego = 1, Electricidad = 2, Planta = 3
 ```
 
-**Descripción:**
-- `Agua` — Afinidad acuática
-- `Fuego` — Afinidad ígnea
-- `Electricidad` — Afinidad eléctrica
-- `Planta` — Afinidad botánica
-
-**Uso en combate:** Las marcas elementales se aplican vía acciones de combate; dos elementos distintos de la misma fuente (aliada/enemiga) detonan reacciones vía `CombatElements.ReactionFor()`.
-
 ### ElementalState
 
-Los 12 estados de reacción elemental únicos de un solo uso (S39). Estados positivos vienen de fuente aliada, negativos de fuente enemiga; todos se consumen una vez disparan su condición de trigger.
+Los 12 estados de reacción elemental únicos de un solo uso (S39).
 
 ```
 Energizado = 0, Cleanse = 1, Vaporizado = 2, GolpePreciso = 3,
@@ -231,86 +221,13 @@ Charcoal = 4, OverGrow = 5, Boiling = 6, Debilidad = 7,
 Confuso = 8, Leech = 9, Mareado = 10, PisoTierra = 11
 ```
 
-**Reacciones aliadas (fuente aliada):**
-- `Energizado` — Fuego × Electricidad: ataque potenciado
-- `Vaporizado` — Agua × Fuego: escape/reducción de daño
-- `GolpePreciso` — Agua × Electricidad: crítico garantizado
-- `Cleanse` — Agua × Planta: purga estado negativo O cura
-- `Charcoal` — Fuego × Planta: bloqueo/armadura
-- `OverGrow` — Electricidad × Planta: duplica escudo
-
-**Reacciones enemigas (fuente enemiga):**
-- `Boiling` — Agua × Fuego: daño periódico
-- `Confuso` — Agua × Electricidad: decisiones aleatorias
-- `Leech` — Agua × Planta: robo de HP al atacante
-- `Mareado` — Fuego × Electricidad: reducción de precisión
-- `Debilidad` — Fuego × Planta: daño amplificado
-- `PisoTierra` — Electricidad × Planta: elimina marca elemental aleatoria
-
-### ElementEventKind
-
-**S41:** Tipos de eventos elementales que se graban en `CombatProcEvent.ElementEvent` dentro de `CombatTurn.Procs`. Cada evento elemental captura el tipo de acción (marca aplicada, reacción, estado consumido, etc.) y sus parámetros asociados (Element, ElementB, AllySource, State, etc.). Los campos del evento solo son significativos si `ElementEvent != None` (campos None quedan en default). La mayoría de eventos ocupan CombatProcEvent que antes llevaba `ModifierEffectKind` (lo cual sigue vigente para procs de equipo/rol).
-
-```
-None = 0, MarkApplied = 1, MarkRemoved = 2, Reaction = 3,
-StateArmed = 4, StateConsumed = 5, StateRemoved = 6,
-Heal = 7, Damage = 8, ShieldDoubled = 9,
-AffinityGained = 10, EnergyGained = 11, EnergySpent = 12
-```
-
-**Descripción:**
-- `None` — No es evento elemental (proc clásico, usa ModifierEffectKind)
-- `MarkApplied` — Marca elemental aplicada al portador (Element + AllySource)
-- `MarkRemoved` — Marca elemental removida (por PisoTierra random o reacción)
-- `Reaction` — Reacción elemental detonada (ElementA × ElementB, ReactionName)
-- `StateArmed` — Estado elemental armado (State + reactionName)
-- `StateConsumed` — Estado elemental consumido por trigger (State)
-- `StateRemoved` — Estado elemental removido (State)
-- `Heal` — Curación por reacción (Amount)
-- `Damage` — Daño por reacción (Amount)
-- `ShieldDoubled` — Escudo duplicado (Amount = escudo resultante)
-- `AffinityGained` — Afinidad ganada (Amount = afinidad total resultante)
-- `EnergyGained` — Energía ganada (Amount = energía total resultante)
-- `EnergySpent` — Energía gastada por acción de rol (Amount = energía restante)
-
-**Campos de CombatProcEvent (S41):**
-```csharp
-public ElementEventKind ElementEvent;   // enum event type
-public Element Element;                 // primer elemento (o único)
-public Element ElementB;                // segundo elemento (en reacciones)
-public bool AllySource;                 // true = marca aliada, false = marca enemiga
-public ElementalState State;            // estado elemental (armado, consumido, removido)
-public string ReactionName;             // nombre de reacción (p.ej. "Vaporizado")
-// + campos legacy: Kind (ModifierEffectKind), TargetIsA, TargetIndex, Amount, TargetHpAfter, BeforeStrike, TargetStatusAfter
-```
-
-**Convención de Amount:** Afinidad/Energía → TOTAL resultante; Heal/Damage → magnitud; ShieldDoubled → escudo resultante; Consumo de estado → magnitud de impacto (p.ej. Boiling daño amplificado).
-
 ### Role
 
-Rol de combate 3v3 heredable (50/50 padres en breeding, al azar en mint), NOT part of genetic string (metadata como Gender/Personality). Mapped 1:1 a RoleWorldProfileSO con modificadores de stats + efectos tácticos.
+Rol de combate 3v3 heredable (50/50 padres en breeding, al azar en mint), NOT part of genetic string (metadata).
 
 ```
 Protector = 0, Agresivo = 1, Empatico = 2
 ```
-
-**Descripción:**
-- `Protector` — Tanque: +CON, escudos al equipo (Protector), +DEF playstyle
-- `Agresivo` — Pegador: +ATK/+SPD, caza la backline (rol ofensivo)
-- `Empatico` — Soporte: +SPD, convierte daño en cura (soporte defensivo)
-
-### CombatRow
-
-Fila que ocupa un combatiente en grid 2-3-2 de combate 3v3.
-
-```
-Front = 0, Mid = 1, Back = 2
-```
-
-**Descripción:**
-- `Front` — Primera línea (tanques, primera defensa)
-- `Mid` — Segunda línea (soporte, posición media)
-- `Back` — Tercera línea (atacantes, riesgo alto-recompensa)
 
 ### CreatureIntent
 
@@ -322,14 +239,6 @@ Retreating = 5, SeekingFood = 6, SeekingRest = 7, SeekingPlay = 8,
 Eating = 9, Resting = 10, Playing = 11, Held = 12, Tumbling = 13,
 Socializing = 14, Chasing = 15, SleepingTogether = 16, Fighting = 17
 ```
-
-**Nuevos en S64 (Social V1):**
-- `Socializing = 14` — Acercándose a otro MoriMochi (AgentSocial.Approach mode)
-- `Chasing = 15` — Persiguiendo o siendo perseguido en juego social (Chaser/Runner mode)
-
-**Nuevos en S65 (Social V2):**
-- `SleepingTogether = 16` — Durmiendo juntos con otro MoriMochi (AgentSocial.Sleeping mode)
-- `Fighting = 17` — Peleando con otro MoriMochi (AgentSocial.Fighting mode, abalanzadas)
 
 ### ProximityReaction
 
@@ -345,14 +254,6 @@ Sectores del shop (mapean a NavMesh Areas).
 
 ```
 ShopFrontDesk = 0, ShopBackroom = 1, Storage = 2
-```
-
-### CombatOutcome
-
-Resultado de pelea (POV de criatura).
-
-```
-Won = 0, Lost = 1, Draw = 2
 ```
 
 ### MMAnimationType
@@ -389,215 +290,52 @@ Weapon = 0, Armor = 1, Amulet = 2
 
 ### ModifierEffectKind
 
-Tipos de efectos de procs en combate.
+Tipos de efectos de procs en combate (legacy, actualmente sin uso en S75+).
 
 ```
 ReturnDamage = 0, Heal = 1, Poison = 2, Burn = 3, Stun = 4, Regen = 5,
 Synergy = 6, Static = 7, Pulse = 8, Steel = 9, Mist = 10, Lifesteal = 11, Shield = 12
 ```
 
-**Descripción por tipo:**
-- `ReturnDamage` — Espinas/thorns: daño al atacante
-- `Heal` — Curación de equipo
-- `Poison` — Daño periódico (veneno)
-- `Burn` — Daño periódico (quemadura)
-- `Stun` — Aturdimiento
-- `Regen` — Curación periódica
-- `Synergy` — Efectos de recetas de sinergias (S32)
-- `Static` — Reduce SPD rival vía stacks (S35)
-- `Pulse` — Cura por turno, estado emergente (S35)
-- `Steel` — Suma DEF, estado emergente (S35)
-- `Mist` — Suma EVA, estado emergente (S35)
-- `Lifesteal` — % del daño vuelve como cura, estado emergente (S35)
-- `Shield` — Escudo al equipo, rol Protector (S37)
-
-**ACTUALIZADO S35:** 4 elementos nuevos (Static, Pulse, Steel, Mist) + Lifesteal como estado emergente. Se aplican como stacks vía equipment procs y se activan dinámicamente en Combatant properties (EffDefense, EffEvasion, EffSpeed, LifestealPercent).
-
-**ACTUALIZADO S37:** Nuevo `Shield = 12` para efectos de rol Protector (escudo por turno a aliado).
-
-### CombatPopupKind
-
-**S42 ACTUALIZADO:** Tipos de popups flotantes (visualización de replay) con `Reaction` append-only para eventos elementales.
-
-```
-Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun, Synergy,
-Static, Pulse, Steel, Mist, Lifesteal, Shield, Reaction
-```
-
-**Propósito:** Mapea cada tipo de evento visual a un color/label en `CombatPopupPaletteSO` y `CombatDamageNumbers`. Es el intermediario entre `ModifierEffectKind` (simulación) y la visualización UI.
-
-**Valores:**
-- `Hit` — golpe normal
-- `Crit` — crítico
-- `Poison`, `Burn`, `Thorns`, `Heal`, `Regen` — procs de status/curación
-- `Stun` — aturdimiento (solo texto, sin número de daño)
-- `Synergy` — receta de sinergia disparada (solo texto, S32)
-- `Static`, `Pulse`, `Steel`, `Mist`, `Lifesteal` — elementos nuevos (solo texto visual, S35)
-- `Shield` — escudo aplicado (solo texto visual, S37)
-- `Reaction` — **S42 NUEVO** reacción elemental con ReactionName custom + color del elemento (EventElementKind.Reaction)
-
-**Consumido por:**
-- `CombatPopupPaletteSO.colors` — diccionario tipo → color
-- `CombatDamageNumbers.Label()` — genera texto descriptivo (S42: ReactionName si Reaction)
-- `CombatVisualizerService.RaiseProcPopup()` — convierte ModifierEffectKind → CombatPopupKind
-- `CombatVisualizerService.PlayProc()` — **S42 NUEVO** popup elemental con ReactionName + OverrideColor
-- `MoriMonchiCombatVisualizerUITK.MapKind()` — mapea para chips de estado
-
 ### PerceivableKind
 
-**S64 NUEVO:** Clasifica qué tipo de entidad del mundo es perceptible por agentes MoriMochi para decisiones sociales.
+Clasifica qué tipo de entidad del mundo es perceptible por agentes MoriMochi (S64).
 
 ```
 Player = 0, Monchi = 1, Customer = 2, Prop = 3
 ```
 
-**Descripción:**
-- `Player` — El jugador, siempre perceptible pero sin afinidad social
-- `Monchi` — Otro MoriMochi, con afinidad social computada por SocialAffinity
-- `Customer` — NPC cliente en la tienda, perceptible pero sin afinidad (futuro: negociación NPC)
-- `Prop` — Objeto del mundo (mueble, prop throwable), perceptible pero sin lógica social
-
-**Usado por:** AgentSenses.Tick, AgentSocial.TryEngage, ReactionRuleBase.Matches
-
 ### EmoteKind
 
-**S64 NUEVO:** Pictogramas de emoción que emite un MoriMochi en burbuja world-space.
+Pictogramas de emoción que emite un MoriMochi en burbuja world-space (S64).
 
 ```
 Curioso = 0, Feliz = 1, Jugando = 2, Molesto = 3, Corazon = 4, Zzz = 5
 ```
 
-**Descripción y glifos:**
-- `Curioso` — "?" amarillo — curiosidad, investigación
-- `Feliz` — "☺" verde — felicidad, contento
-- `Jugando` — "♪" azul — jugando, divirtiéndose
-- `Molesto` — "!" rojo — enojo, frustración
-- `Corazon` — "♥" rosado — amor, afecto
-- `Zzz` — "Zz" púrpura — sueño, descanso
-
-**Usado por:** MoriMochiAgent.EmitEmote (evento OnEmote), MonchiEmoteBubble.Show, AgentSocial (emociones en transiciones sociales)
-
 ### SocialInteractionKind
 
-**S65 NUEVO:** Clasifica tipos de interacción social que afectan el historial de afinidad en SocialGraphService.
+Clasifica tipos de interacción social para historial (S65).
 
 ```
 PlayChase = 0, SleepTogether = 1, GremlinFight = 2
 ```
 
-**Descripción:**
-- `PlayChase` — Juego de persecución: +0.06 afinidad al completar
-- `SleepTogether` — Siesta compartida: +0.08 afinidad al completar
-- `GremlinFight` — Pelea de gremlins: −0.1 afinidad al completar (almacenado como negativo)
+## Cambios en S75 (Demolición de combate)
 
-**Usado por:** `SocialGraphService.RecordInteraction()`, `AgentSocial.CompleteFromPartner()`, `AgentSocial.TickSocializing()` (al terminar juego/siesta/pelea)
+- **PartRole:** Reemplazó Arm(1), Eye(2), Mouth(3) con Horn(1), Back(2), Wing(3), + Face(4). Refleja genetic string BODYSHAPE-HORN-BACK-WING-FACE-RRGGBB.
+- **BusyReason:** Eliminado QueuedForCombat (1). Ahora None(0), Breeding(2), Sold(3).
+- **UIPanelType:** Eliminado Combat (4). Hueco dejado en valor 4 para backward-compatibility.
+- **ItemTriggerKind:** NUEVO enum para triggers de items consumibles (None, LowHealth, Collision, Collected).
+- **Enums de combate:** CombatRow, CombatOutcome, CombatPopupKind, ElementEventKind, y otros relacionados con combate siguen existiendo pero están fuera de uso. Se documentan en histórico.
 
 ## Vinculado a
 
-Prácticamente todo el codebase. Los enums son la base de type-safety.
-
-## Cambios Sesión 31
-
-**NUEVO:** `CombatPopupKind` enum con 8 valores (Hit, Crit, Poison, Burn, Thorns, Heal, Regen, Stun). Es paralelo a `ModifierEffectKind` pero específico para visualización (UI popups), no simulación.
-
-**Sin cambios:** `ModifierEffectKind` sigue siendo la fuente de verdad de procs en combate (solo tiene 6 valores: ReturnDamage, Heal, Poison, Burn, Stun, Regen).
-
-## Cambios Sesión 32
-
-**NUEVO:** `ModifierEffectKind.Synergy = 6` — marca efectos provenientes de recetas de sinergias. Grabados automáticamente por `CombatResolver.DamageBearer()`, `HealBearer()`, `AddStatusTo()`, `StunBearer()`.
-
-**NUEVO:** `CombatPopupKind.Synergy` — mapeo visual para popups de sinergias disparadas (texto "¡Sinergia!", color violeta, sin número).
-
-## Cambios Sesión 35
-
-**NUEVOS en ModifierEffectKind:** 4 elementos + 1 estado emergente:
-- `Static = 7` — reduce SPD rival (aplicado por ItemEquipped vía stack, se resta dinámicamente en Combatant.EffSpeed)
-- `Pulse = 8` — cura por turno (estado emergente de receta Regeneración: PUL×3+STE×1)
-- `Steel = 9` — suma DEF (estado emergente de receta Regeneración, sumado en Combatant.EffDefense)
-- `Mist = 10` — suma EVA (estado emergente de receta Cortocircuito, sumado en Combatant.EffEvasion)
-- `Lifesteal = 11` — % del daño a cura (estado emergente de receta Robo de vida: PUL×2+MIS×1, usado post-strike en CombatService)
-
-**NUEVOS en CombatPopupKind:** mismo set + 5 entradas de visualización (Static, Pulse, Steel, Mist, Lifesteal).
-
-**Impacto:** Los stacks de elementos no solo aplican daño/cura en turno, sino que actúan como modificadores dinámicos de stats durante la simulación. No hay rolls nuevos.
-
-## Cambios Sesión 37
-
-**NUEVOS enums:**
-- `Role = Protector | Agresivo | Empatico` — rol heredable de combate 3v3, metadata NO genética
-- `CombatRow = Front | Mid | Back` — filas del grid 2-3-2
-
-**NUEVOS en ModifierEffectKind:**
-- `Shield = 12` — escudo al equipo vía rol Protector (ShieldPerTurn)
-
-**NUEVOS en CombatPopupKind:**
-- `Shield` — visualización de escudo aplicado
-
-**Impacto:** Cambio de 1v1 → 3v3 team-based. Los enums Role y CombatRow son centrales al nuevo modelo de combate.
-
-## Cambios Sesión 39
-
-**NUEVOS enums:**
-- `Element = Agua | Fuego | Electricidad | Planta` — afinidad elemental innata (S39 core elemental system)
-- `ElementalState = Energizado | Cleanse | Vaporizado | ... | PisoTierra` — 12 estados de reacción elemental de un solo uso
-
-**Impacto:** Sistema de marcas elementales + reacciones 3v3. Cada acción de combate puede aplicar marca elemental via `CombatElements.AddMark()`; dos elementos distintos en la misma fuente detonan reacción que puede ser instantánea (Cleanse, OverGrow, Leech, PisoTierra) o armada (estado que se consume en trigger). Determinista: rolls vía CombatRng.
-
-## Cambios Sesión 41
-
-**NUEVO enum:**
-- `ElementEventKind = None | MarkApplied | MarkRemoved | Reaction | StateArmed | StateConsumed | StateRemoved | Heal | Damage | ShieldDoubled | AffinityGained | EnergyGained | EnergySpent` — tipos de eventos elementales grabados en CombatProcEvent (S41 paso 0). Cada evento lleva parámetros específicos (Element, ElementB, AllySource, State, ReactionName); los campos son significativos SOLO si ElementEvent != None.
-
-**Impacto:** Paso 0 de F4 (visualizer 3v3) — eventos elementales dejan de ser log-only y se graban en el CombatRecord de manera aditiva (coexisten con procs clásicos en Turn.Procs, el lector gatea por ElementEvent para diferenciar). Backward-compatible: records viejos quedan sin eventos elementales.
-
-## Cambios Sesión 42
-
-**NUEVO en CombatPopupKind:**
-- `Reaction` — **append-only** para popups de reacciones elementales (ElementEventKind.Reaction). Lleva ReactionName custom (p.ej. "¡Vaporizado!") + OverrideColor del elemento de la reacción, sin número de daño.
-
-**Impacto:** S42 Fase 4 capa visual — popups flotantes de reacciones elementales con narración de nombre + color distintivo del elemento. Integrado en CombatDamageNumbers.Label() para renderizar ReactionName en lugar de números.
-
-## Cambios Sesión 57
-
-**ACTUALIZADO FurType:**
-- Expandido de 5 valores (Smooth, Fluffy, Spiky, Shaggy, Scaly) a 33 patrones (Pattern00-Pattern32) mapeados 1:1 a MonchiFur_00.mat–MonchiFur_32.mat del modelo Suriyun
-- Herencia sigue siendo 50/50 desde padres; mint ahora usa tabla de pesos opcional (`FurTypeDatabaseSO.mintWeights`)
-- Default: FurType.Pattern00
-
-**NUEVO MonchiMood:**
-- 12 emociones mapeadas a renderizadores Face del modelo Suriyun
-- Determinadas por Intent/Condition del agent (MonchiMoodDriver) y acciones de combate (DragonAnimationDriver)
-- Cada mood es lista de materiales en MonchiMoodSetSO; GetFace() selecciona aleatorio, fallback a Neutral
-- Valores: Neutral, Feliz, Triste, Dolor, Enojado, Dormido, Enfermo, Mareado, Asustado, Amoroso, Emocionado, KO
-
-**Impacto:** S57 — integración del modelo Suriyun con sistema visual de emociones por estado y pelaje ponderado al mintear.
-
-## Cambios Sesión 64
-
-**NUEVOS enums:**
-- `PerceivableKind = Player | Monchi | Customer | Prop` — clasifica entidades perceptibles (S64 sistema social V1)
-- `EmoteKind = Curioso | Feliz | Jugando | Molesto | Corazon | Zzz` — pictogramas de emoción en burbujas world-space
-
-**Ampliados en CreatureIntent:**
-- `Socializing = 14` — acercándose a otro MoriMochi (modo Approach de AgentSocial)
-- `Chasing = 15` — persiguiendo o siendo perseguido en juego social (modos Chaser/Runner)
-
-**Impacto:** S64 — sistema social V1 completo (percepción, afinidad, interacciones, reacciones, emociones visuales). Base para futuro SocialGraph V2 con historial de interacción.
-
-## Cambios Sesión 65
-
-**NUEVO enum:**
-- `SocialInteractionKind = PlayChase | SleepTogether | GremlinFight` — clasifica tipos de interacción social para historial (S65 Social V2)
-
-**Ampliados en CreatureIntent:**
-- `SleepingTogether = 16` — durmiendo juntos con otro MoriMochi (S65 modo Sleeping de AgentSocial)
-- `Fighting = 17` — peleando con otro MoriMochi (S65 modo Fighting de AgentSocial, abalanzadas)
-
-**Impacto:** S65 — sistema social V2 con historial de afinidad dinámico. SocialInteractionKind feed directo a SocialGraphService.RecordInteraction(); CreatureIntent nuevos para visualización en NameTag + mood en MonchiMoodDriver.
+- [[Index/02 - Genetics & Breeding]]
+- [[Index/04 - World & AI]]
 
 ## Notas
 
 - Enums son [System.Serializable] implícitamente en C#
 - [Flags] enums para bitwise operations (DiscountDay, DiscountMonth, StoreItemTypeFilter)
-- Valores numeric son explícitos para permitir serialización sin sorpresas
-- Comúnmente extendidos: agregar enum nuevo siempre aquí primero antes de touchear lógica
+- Valores numéricos son explícitos para permitir serialización

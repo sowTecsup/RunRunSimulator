@@ -107,7 +107,6 @@ public class CloudSyncService : MonoBehaviour
 
         await auth.FetchServerTimeAsync();
         await syncOps.PullAsync();
-        await syncOps.NotifyPendingCombatResultsAsync();
     }
 
     // ── Buttons ───────────────────────────────────────────────────

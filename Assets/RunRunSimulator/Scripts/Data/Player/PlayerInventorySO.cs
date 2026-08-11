@@ -47,6 +47,15 @@ public class PlayerInventorySO : SerializedScriptableObject
     [OdinSerialize, ReadOnly]
     private int dabloons;
 
+    [OdinSerialize, ReadOnly]
+    private int adventureMaterial;
+
+    [OdinSerialize, ReadOnly]
+    private int passiveMaterial;
+
+    [OdinSerialize, ReadOnly]
+    private int evolutionEssence;
+
     // ── Furniture ─────────────────────────────────────────────────
 
     // Ownership is a set — owning a piece lets you place it any number of times.
@@ -186,6 +195,63 @@ public class PlayerInventorySO : SerializedScriptableObject
         MarkDirty();
     }
 
+    // ── Adventure Material ───────────────────────────────────────────
+
+    public int AdventureMaterial => adventureMaterial;
+
+    public void AddAdventureMaterial(int amount)
+    {
+        if (amount <= 0) return;
+        adventureMaterial += amount;
+        MarkDirty();
+    }
+
+    public bool SpendAdventureMaterial(int amount)
+    {
+        if (amount <= 0 || adventureMaterial < amount) return false;
+        adventureMaterial -= amount;
+        MarkDirty();
+        return true;
+    }
+
+    // ── Passive Material ──────────────────────────────────────────────
+
+    public int PassiveMaterial => passiveMaterial;
+
+    public void AddPassiveMaterial(int amount)
+    {
+        if (amount <= 0) return;
+        passiveMaterial += amount;
+        MarkDirty();
+    }
+
+    public bool SpendPassiveMaterial(int amount)
+    {
+        if (amount <= 0 || passiveMaterial < amount) return false;
+        passiveMaterial -= amount;
+        MarkDirty();
+        return true;
+    }
+
+    // ── Evolution Essence ─────────────────────────────────────────────
+
+    public int EvolutionEssence => evolutionEssence;
+
+    public void AddEvolutionEssence(int amount)
+    {
+        if (amount <= 0) return;
+        evolutionEssence += amount;
+        MarkDirty();
+    }
+
+    public bool SpendEvolutionEssence(int amount)
+    {
+        if (amount <= 0 || evolutionEssence < amount) return false;
+        evolutionEssence -= amount;
+        MarkDirty();
+        return true;
+    }
+
     // ── Clear helpers (DEV / reset flows) ────────────────────────
 
     public void ClearFurnitureOwned()
@@ -240,6 +306,9 @@ public class PlayerInventorySO : SerializedScriptableObject
         public Dictionary<EquipmentSlot, List<string>> EquipmentGrids = new Dictionary<EquipmentSlot, List<string>>();
         public string[]      HotbarSlots      = new string[HotbarSize];
         public int           Dabloons         = 0;
+        public int           AdventureMaterial = 0;
+        public int           PassiveMaterial   = 0;
+        public int           EvolutionEssence  = 0;
     }
 
     public InventoryData GetData() => new InventoryData
@@ -249,6 +318,9 @@ public class PlayerInventorySO : SerializedScriptableObject
         EquipmentGrids   = equipmentGrids.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value)),
         HotbarSlots      = (string[])hotbarSlots.Clone(),
         Dabloons         = dabloons,
+        AdventureMaterial = adventureMaterial,
+        PassiveMaterial   = passiveMaterial,
+        EvolutionEssence  = evolutionEssence,
     };
 
     public void LoadFrom(InventoryData data)
@@ -260,6 +332,9 @@ public class PlayerInventorySO : SerializedScriptableObject
             : new Dictionary<EquipmentSlot, List<string>>();
         hotbarSlots      = NormalizeHotbar(data?.HotbarSlots);
         dabloons         = data?.Dabloons ?? 0;
+        adventureMaterial = data?.AdventureMaterial ?? 0;
+        passiveMaterial   = data?.PassiveMaterial   ?? 0;
+        evolutionEssence  = data?.EvolutionEssence  ?? 0;
         MarkDirty();
     }
 

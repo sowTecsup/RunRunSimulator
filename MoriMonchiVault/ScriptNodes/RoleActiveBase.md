@@ -2,6 +2,8 @@
 tags: [script, combat, roles, targeting, base-class, elements]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # RoleActiveBase.cs
 
 **Ruta:** `Data/Combat/RoleActiveBase.cs`

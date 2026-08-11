@@ -469,7 +469,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         if (ctx?.Dna == null) return default;
         var db = GameManager.Instance != null ? GameManager.Instance.Database : null;
         return db != null
-            ? CombatStats.GetEffectiveStats(ctx.Dna, db)
+            ? CreatureStats.GetEffectiveStats(ctx.Dna, db)
             : new EffectiveStats(ctx.Dna.BaseConstitution, ctx.Dna.BaseAttack, ctx.Dna.BaseSpeed, ctx.Dna.BaseDefense, ctx.Dna.BaseLuck, ctx.Dna.BaseEvasion);
     }
 

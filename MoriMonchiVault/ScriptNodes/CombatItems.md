@@ -2,6 +2,8 @@
 tags: [script, combat, equipment, items]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatItems.cs
 
 **Ruta:** `Systems/Combat/CombatItems.cs`

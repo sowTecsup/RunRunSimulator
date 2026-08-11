@@ -6,7 +6,7 @@ tags: [script, ui]
 
 **Ruta:** `UI/CreatureVisualUI.cs`
 
-**Responsabilidad:** Renderiza criatura en 3D dentro de paneles UI (RenderTexture). **S57b:** Icono swatch ahora es retrato fotomatón vía [[MonchiPortraitUI]].Apply() en lugar de backgroundColor BaseColor.
+**Responsabilidad:** Renderiza criatura en 3D dentro de paneles UI (RenderTexture). **S57b:** Icono swatch ahora es retrato fotomatón vía [[MonchiPortraitUI]].Apply() en lugar de backgroundColor BaseColor. **S75:** Eliminado estado "In Queue" que requería QueuedForCombat (desapareció en demolición del combate). Estados posibles: "SOLD" / "DEAD" / "Breeding" / "Free".
 
 **Vinculado a:** [[Index/05 - UI System]]
 

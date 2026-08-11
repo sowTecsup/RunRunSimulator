@@ -2,6 +2,8 @@
 tags: [combat, visualization, ui, scriptableobject, odin]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatPopupPaletteSO
 
 ScriptableObject (Odin `SerializedScriptableObject`) que mapea cada tipo de popup de combate a su color de visualización. Centraliza la paleta visual para que `CombatDamageNumbers` dibuje con estilo consistente.

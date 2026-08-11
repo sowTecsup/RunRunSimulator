@@ -63,15 +63,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088327
-    m_Localized: Brazo
+    m_Localized: Cuerno
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088328
-    m_Localized: Ojo
+    m_Localized: Espalda
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088329
-    m_Localized: Boca
+    m_Localized: Alas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480283000
+    m_Localized: Rostro
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088330
@@ -543,7 +547,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282629
-    m_Localized: "Combates: {0} ({1} victorias)\nCr\xEDas: {2}"
+    m_Localized: 'Crías: {0}'
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282630
@@ -551,15 +555,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282631
-    m_Localized: Brazos
+    m_Localized: Cuerno
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282632
-    m_Localized: Ojos
+    m_Localized: Espalda
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282633
-    m_Localized: Boca
+    m_Localized: Alas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 4172480283001
+    m_Localized: Rostro
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282634

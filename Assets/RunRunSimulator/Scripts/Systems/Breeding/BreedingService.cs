@@ -59,10 +59,11 @@ public static class BreedingService
 
         var child = new CreatureDNA
         {
-            BodyShapeID    = ResolveSlot(PartRole.Body,  motherID, fatherID, registry, partDb, odds),
-            ArmID          = ResolveSlot(PartRole.Arm,   motherID, fatherID, registry, partDb, odds),
-            EyeID          = ResolveSlot(PartRole.Eye,   motherID, fatherID, registry, partDb, odds),
-            MouthID        = ResolveSlot(PartRole.Mouth, motherID, fatherID, registry, partDb, odds),
+            BodyShapeID    = ResolveSlot(PartRole.Body, motherID, fatherID, registry, partDb, odds),
+            HornID         = ResolveSlot(PartRole.Horn, motherID, fatherID, registry, partDb, odds),
+            BackID         = ResolveSlot(PartRole.Back, motherID, fatherID, registry, partDb, odds),
+            WingID         = ResolveSlot(PartRole.Wing, motherID, fatherID, registry, partDb, odds),
+            FaceID         = ResolveSlot(PartRole.Face, motherID, fatherID, registry, partDb, odds),
             BaseColor      = childBase,
             SecondaryColor = ColorGenetics.DeriveSecondary(childBase),
             FurType        = ColorGenetics.Inherit(mother.FurType, father.FurType),
@@ -156,20 +157,22 @@ public static class BreedingService
 
     private static string SlotPartID(CreatureDNA dna, PartRole role) => role switch
     {
-        PartRole.Body  => dna.BodyShapeID,
-        PartRole.Arm   => dna.ArmID,
-        PartRole.Eye   => dna.EyeID,
-        PartRole.Mouth => dna.MouthID,
-        _              => ""
+        PartRole.Body => dna.BodyShapeID,
+        PartRole.Horn => dna.HornID,
+        PartRole.Back => dna.BackID,
+        PartRole.Wing => dna.WingID,
+        PartRole.Face => dna.FaceID,
+        _             => ""
     };
 
     private static string RandomPartID(PartRole role, CreatureDatabaseSO partDb) => role switch
     {
-        PartRole.Body  => partDb.BodyShapes?.GetRandomPart()?.ID ?? "",
-        PartRole.Arm   => partDb.Arms?.GetRandomPart()?.ID       ?? "",
-        PartRole.Eye   => partDb.Eyes?.GetRandomPart()?.ID       ?? "",
-        PartRole.Mouth => partDb.Mouths?.GetRandomPart()?.ID     ?? "",
-        _              => ""
+        PartRole.Body => partDb.BodyShapes?.GetRandomPart()?.ID ?? "",
+        PartRole.Horn => partDb.Horns?.GetRandomPart()?.ID      ?? "",
+        PartRole.Back => partDb.Backs?.GetRandomPart()?.ID      ?? "",
+        PartRole.Wing => partDb.Wings?.GetRandomPart()?.ID      ?? "",
+        PartRole.Face => partDb.Faces?.GetRandomPart()?.ID      ?? "",
+        _             => ""
     };
 
     // 50/50 inherit from mother or father, then apply a random delta of -1, 0, or +1.

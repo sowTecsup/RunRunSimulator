@@ -83,7 +83,6 @@ public class CreatureGridView : MonoBehaviour
         [ReadOnly, TableColumnWidth(45, Resizable = false)] public float LCK;
         [ReadOnly, TableColumnWidth(45, Resizable = false)] public float EVA;
         [ReadOnly, TableColumnWidth(170)] public string Equip;
-        [ReadOnly, TableColumnWidth(70, Resizable = false), LabelText("Fights (W)")] public string Fights;
         [ReadOnly, TableColumnWidth(55, Resizable = false)] public int Breeds;
         [ReadOnly, TableColumnWidth(120)] public string Mother;
         [ReadOnly, TableColumnWidth(120)] public string Father;
@@ -102,7 +101,6 @@ public class CreatureGridView : MonoBehaviour
             LCK    = d.BaseLuck,
             EVA    = d.BaseEvasion,
             Equip  = EquipSummary(d, equipmentDb),
-            Fights = $"{d.FightCount} ({d.WinCount})",
             Breeds = d.BreedCount,
             Mother = ParentName(d.MotherID, registry),
             Father = ParentName(d.FatherID, registry),
@@ -130,10 +128,9 @@ public class CreatureGridView : MonoBehaviour
         }
 
         private static string StateOf(CreatureDNA d) =>
-            d.IsSold                                  ? "SOLD"     :
-            d.IsDead                                  ? "DEAD"     :
-            d.BusyState == BusyReason.Breeding        ? "Breeding" :
-            d.BusyState == BusyReason.QueuedForCombat ? "In Queue" :
+            d.IsSold                           ? "SOLD"     :
+            d.IsDead                           ? "DEAD"     :
+            d.BusyState == BusyReason.Breeding ? "Breeding" :
             "Free";
 
         // Red = dead, amber = busy, green = free. Tints the whole row.

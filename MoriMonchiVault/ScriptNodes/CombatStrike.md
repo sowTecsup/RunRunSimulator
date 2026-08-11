@@ -2,11 +2,13 @@
 tags: [script, combat, strike, damage, elements]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatStrike.cs
 
 **Ruta:** `Systems/Combat/CombatStrike.cs`
 
-**Responsabilidad:** Mediador estático que ejecuta un golpe básico: roll de evasión (con bonus Vaporizado), roll de crítico (con bonus GolpePreciso), cálculo de daño (con Debilidad anulando DEF, Boiling amplificando, Sudden Death multiplicando), absorción de escudo, reflejos (Charcoal), marca elemental. **S40:** Extraída de `CombatService.TakeTurn()` toda la matemática de golpe. Retorna `StrikeOutcome` con flags Dodged/Crit y valores finales de HP/Shield. Log consumido por `CombatResult`. Determinista: todos los rolls vía `CombatRng` inyectado. **S41:** Parámetro `r` (CombatResolver) nuevo para grabar eventos elementales de consumos de estado (Vaporizado, GolpePreciso, Debilidad, Boiling, Charcoal) y marca enemiga. **S62:** Sudden Death multiplier consultado vía `config.SuddenDeathMultiplier(r.Round)` — daño se multiplica post-DEF, pre-Boiling, con log de marca "MSx{n}".
+**Responsabilidad:** Mediador estático que ejecuta un golpe básico: roll de evasión (con bonus Vaporizado), roll de crítico (con bonus GolpePreciso), cálculo de daño (con Debilidad anulando DEF, Boiling amplificando, Sudden Death multiplicando), absorción de escudo, reflejos (Charcoal), marca elemental. **S40:** Extraída de `CombatService.TakeTurn()` toda la matemática de golpe. Retorna `StrikeOutcome` con flags Dodged/Crit y valores finales de HP/Shield. Log consumido por `CombatResult`. Determinista: todos los rolls vía `CombatRng` inyectado. **S41:** Parámetro `r` (CombatResolver) nuevo para grabar eventos elementales de consumos de estado (Vaporizado, GolpePreciso, Debilidad, Boiling, Charcoal) y marca elemental. **S62:** Sudden Death multiplier consultado vía `config.SuddenDeathMultiplier(r.Round)` — daño se multiplica post-DEF, pre-Boiling, con log de marca "MSx{n}".
 
 ## Métodos Públicos
 

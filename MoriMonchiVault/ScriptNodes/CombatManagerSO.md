@@ -2,6 +2,8 @@
 tags: [scriptable-object, combat, config]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatManagerSO
 
 **Ruta:** `Data/Combat/CombatManagerSO.cs`

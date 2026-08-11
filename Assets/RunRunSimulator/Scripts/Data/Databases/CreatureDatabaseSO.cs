@@ -13,13 +13,16 @@ public class CreatureDatabaseSO : SerializedScriptableObject
     public BodyShapeDatabaseSO BodyShapes;
 
     [Required, AssetsOnly, BoxGroup("Sub-Databases")]
-    public ArmDatabaseSO Arms;
+    public HornDatabaseSO Horns;
 
     [Required, AssetsOnly, BoxGroup("Sub-Databases")]
-    public EyeDatabaseSO Eyes;
+    public BackDatabaseSO Backs;
 
     [Required, AssetsOnly, BoxGroup("Sub-Databases")]
-    public MouthDatabaseSO Mouths;
+    public WingDatabaseSO Wings;
+
+    [Required, AssetsOnly, BoxGroup("Sub-Databases")]
+    public FaceDatabaseSO Faces;
 
     // ──────────────── Validation ────────────────
 
@@ -31,9 +34,10 @@ public class CreatureDatabaseSO : SerializedScriptableObject
         int dupCount = 0;
 
         Check("BodyShapes", BodyShapes?.GetAllIDs(), seen, ref dupCount);
-        Check("Arms",       Arms?.GetAllIDs(),       seen, ref dupCount);
-        Check("Eyes",       Eyes?.GetAllIDs(),        seen, ref dupCount);
-        Check("Mouths",     Mouths?.GetAllIDs(),      seen, ref dupCount);
+        Check("Horns",      Horns?.GetAllIDs(),      seen, ref dupCount);
+        Check("Backs",      Backs?.GetAllIDs(),      seen, ref dupCount);
+        Check("Wings",      Wings?.GetAllIDs(),      seen, ref dupCount);
+        Check("Faces",      Faces?.GetAllIDs(),      seen, ref dupCount);
 
         if (dupCount == 0)
             Debug.Log("[CreatureDB] Validation PASSED — no duplicate IDs found across all databases.");
@@ -57,8 +61,9 @@ public class CreatureDatabaseSO : SerializedScriptableObject
     // ──────────────── API ────────────────
 
     public BodyShapePart GetBodyShape(string id) => BodyShapes?.GetPartByID(id);
-    public ArmPart       GetArm(string id)        => Arms?.GetPartByID(id);
-    public EyePart       GetEye(string id)         => Eyes?.GetPartByID(id);
-    public MouthPart     GetMouth(string id)       => Mouths?.GetPartByID(id);
+    public HornPart      GetHorn(string id)       => Horns?.GetPartByID(id);
+    public BackPart      GetBack(string id)       => Backs?.GetPartByID(id);
+    public WingPart      GetWing(string id)       => Wings?.GetPartByID(id);
+    public FacePart      GetFace(string id)       => Faces?.GetPartByID(id);
 }
 }

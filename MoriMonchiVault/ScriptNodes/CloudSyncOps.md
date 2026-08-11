@@ -6,8 +6,22 @@ tags: [script, cloud]
 
 **Ruta:** `Systems/Cloud/CloudSyncOps.cs`
 
-**Responsabilidad:** Operaciones de sincronización pura con Cloud Save. Dueño único de: Push/Pull/Reset de registry/furniture/inventory/combat_results, SyncMeta anti-cheat (LocalPulledAt/LocalKnownCloudAt/CloudPushedAt — timestamps Ticks UTC en JSON local por PlayerID), `ValidateBeforePush()` (compara local token vs cloud token; CHEAT ALERT en S53 permite push, Etapa 2.3 lo bloquea), `NotifyPendingCombatResultsAsync()` (lee cola de resultados pendientes post-pull para avisar al jugador). Seguridad: comprueba auth before every op. Push: serializa estado + muta LocalKnownCloudAt. Pull: deserializa + dispara OnRegistryReloaded/FurnitureReloaded/InventoryReloaded. ResetProgressAsync: cancela hijos vía CloudEndpoint + desencola combates + borra 5 keys cloud + vacía local (sin re-push). Reads identity de CloudAuth (readonly).
+**Responsabilidad:** Operaciones de sincronización pura con Cloud Save. Push/Pull/Reset de registry/furniture/inventory. SyncMeta anti-cheat (timestamps locales). **S75:** Sin operaciones de combate (quitadas NotifyPendingCombatResultsAsync, combat queue keys).
 
-**Vinculado a:** [[Index/04 - UGS & Cloud]]
+## Métodos
 
-**Conexiones:** [[CloudAuth]], [[CloudSyncService]], [[GameEvents]], [[SaveSystem]], [[CloudEndpoint]]
+- **PushAsync()** — Serializa estado local, empuja a Cloud Save, muta timestamps locales
+- **PullAsync()** — Descarga desde Cloud, deserializa, dispara eventos Reloaded
+- **ResetProgressAsync()** — Cancela progreso, limpia cloud, vacía local
+
+## Cambios en S75
+
+- **ELIMINADO:** `NotifyPendingCombatResultsAsync()` (demolición del combate async)
+- **ELIMINADO:** keys de combat queue de cloud operations
+- **MANTIENE:** Push/Pull/Reset de creatures/furniture/inventory
+
+## Vinculado a
+
+- [[Index/07 - Persistence & Identity]]
+
+**Conexiones:** [[CloudSyncService]], [[GameEvents]], [[SaveSystem]]

@@ -2,6 +2,8 @@
 tags: [script, ui, uitk, combat, visualization, order-bar, animations]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatOrderBarUITK
 
 **Ruta:** `UI/CombatOrderBarUITK.cs`

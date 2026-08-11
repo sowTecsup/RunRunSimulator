@@ -2,6 +2,8 @@
 tags: [combat, evolution, tier-up]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatEvolution
 
 **Ruta:** `Systems/Combat/CombatEvolution.cs`

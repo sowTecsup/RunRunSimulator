@@ -21,6 +21,7 @@ public class ItemDefinitionSO : SerializedScriptableObject
     [ReadOnly] public string Id;
     public string DisplayName = "";
     public WorldPropCategory Category = WorldPropCategory.Tool;
+    public ItemTriggerKind Trigger = ItemTriggerKind.None;
 
     [Title("World Prop")]
     // The 3D object spawned into the world (from a DeliveryBox or ejected from

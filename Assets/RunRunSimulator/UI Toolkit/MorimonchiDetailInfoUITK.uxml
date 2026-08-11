@@ -45,14 +45,6 @@
                     </ui:VisualElement>
                 </ui:Tab>
 
-                <!-- Combat history (one foldout per finished fight, newest first). -->
-                <ui:Tab label="Combate" name="tab-combat">
-                    <ui:VisualElement class="combat-body">
-                        <ui:ScrollView name="combat-history" class="combat-history" mode="Vertical" />
-                        <ui:Label name="combat-empty" text="Sin combates registrados." class="placeholder" />
-                    </ui:VisualElement>
-                </ui:Tab>
-
                 <!-- Partners this MoriMochi bred with + the children from each. -->
                 <ui:Tab label="Breed" name="tab-breed">
                     <ui:ScrollView class="lineage-body" mode="VerticalAndHorizontal">

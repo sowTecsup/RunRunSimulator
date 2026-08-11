@@ -2,6 +2,8 @@
 tags: [script, ui]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatLineupBoard
 
 **Ruta:** `UI/CombatLineupBoard.cs`

@@ -103,10 +103,11 @@ public enum MonchiMood
 // Identifies the anatomical slot a part occupies — used for thematic name generation.
 public enum PartRole
 {
-    Body  = 0,
-    Arm   = 1,
-    Eye   = 2,
-    Mouth = 3,
+    Body = 0,
+    Horn = 1,
+    Back = 2,
+    Wing = 3,
+    Face = 4,
 }
 
 public enum Tier
@@ -121,7 +122,6 @@ public enum Tier
 public enum BusyReason
 {
     None              = 0,
-    QueuedForCombat   = 1,  // Waiting for async matchmaking
     Breeding          = 2,  // Occupied in a timed breeding process (future)
     Sold              = 3,
 }
@@ -135,7 +135,6 @@ public enum UIPanelType
     CreatureGrid     = 1,  // The in-game MoriMonchis grid (CreatureGridUI)
     MorimonchiDetail = 2,  // Detailed summary window for one MoriMochi
     Breeding         = 3,  // Breeding screen: parent selection + incubating eggs
-    Combat           = 4,  // Combat screen: online battle + local combat + results
     Storage          = 5,  // Storage box: list of stored world props + eject
     Store            = 6,  // Shop screen: catalog of furniture + world props with prices
     Transaction      = 7,
@@ -307,22 +306,13 @@ public enum ElementalState
     PisoTierra   = 11,
 }
 
-// Combat role of a MoriMochi, inherited 50/50 from the parents at breed time
+// Role of a MoriMochi, inherited 50/50 from the parents at breed time
 // (random at mint), NOT part of the genetic string (metadata like Gender/Element).
-// A RoleTableSO maps each value to concrete combat tuning.
 public enum Role
 {
     Protector = 0,  // Tanque — +CON, escudos al equipo
     Agresivo  = 1,  // Pegador — +ATK/+SPD, caza la backline
     Empatico  = 2,  // Soporte — +SPD, convierte daño en cura
-}
-
-// The row a combatant occupies in the 2-3-2 grid of a 3v3 combat.
-public enum CombatRow
-{
-    Front = 0,
-    Mid   = 1,
-    Back  = 2,
 }
 
 // Player-facing read of what a MoriMochi is trying to do RIGHT NOW — the verb the
@@ -373,15 +363,6 @@ public enum WorldArea
     ShopFrontDesk = 0,  // High-traffic counter — Social / Curious / Aggressive
     ShopBackroom  = 1,  // Neutral middle ground — Lazy
     Storage       = 2,  // Out-of-the-way corner — Skittish / Grumpy
-}
-
-// Result of a single combat from ONE creature's point of view. Stored per fight
-// in CreatureDNA.CombatHistory.
-public enum CombatOutcome
-{
-    Won  = 0,
-    Lost = 1,
-    Draw = 2,
 }
 
 public enum MMAnimationType
@@ -444,46 +425,6 @@ public enum ModifierEffectKind
     Shield       = 12,
 }
 
-public enum CombatPopupKind
-{
-    Hit,
-    Crit,
-    Poison,
-    Burn,
-    Thorns,
-    Heal,
-    Regen,
-    Stun,
-    Synergy,
-    Static,
-    Pulse,
-    Steel,
-    Mist,
-    Lifesteal,
-    Shield,
-    Reaction,
-}
-
-// Kind of elemental event recorded into CombatTurn.Procs for the 3v3 replay
-// (CombatProcEvent.ElementEvent). None = classic proc event (pre-F4 records
-// and item/role procs keep using ModifierEffectKind).
-public enum ElementEventKind
-{
-    None           = 0,
-    MarkApplied    = 1,
-    MarkRemoved    = 2,
-    Reaction       = 3,
-    StateArmed     = 4,
-    StateConsumed  = 5,
-    StateRemoved   = 6,
-    Heal           = 7,
-    Damage         = 8,
-    ShieldDoubled  = 9,
-    AffinityGained = 10,
-    EnergyGained   = 11,
-    EnergySpent    = 12,
-}
-
 // Classifies what kind of entity a Perceivable is, for MoriMonchi social perception.
 public enum PerceivableKind
 {
@@ -509,5 +450,13 @@ public enum SocialInteractionKind
     PlayChase     = 0,
     SleepTogether = 1,
     GremlinFight  = 2,
+}
+
+public enum ItemTriggerKind
+{
+    None      = 0,
+    LowHealth = 1,
+    Collision = 2,
+    Collected = 3,
 }
 }

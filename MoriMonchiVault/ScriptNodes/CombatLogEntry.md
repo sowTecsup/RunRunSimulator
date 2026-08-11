@@ -2,6 +2,8 @@
 tags: [script, combat]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatLogEntry.cs
 
 **Ruta:** `Data/Combat/CombatLogEntry.cs`

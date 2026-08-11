@@ -2,6 +2,8 @@
 tags: [script, combat, elements, reactions, effects, base-class]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # ReactionEffectBase.cs
 
 **Ruta:** `Data/Combat/ReactionEffectBase.cs`

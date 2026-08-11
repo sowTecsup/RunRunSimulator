@@ -2,6 +2,8 @@
 tags: [script, combat, data, result]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatResult.cs
 
 **Ruta:** `Data/Combat/CombatResult.cs`

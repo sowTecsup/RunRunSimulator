@@ -13,12 +13,11 @@ namespace MoriMonchiSimulator
 
             int basePrice =
                 pricing.BasePricePerTier.GetValueOrDefault(dna.BodyTier, 0)
-              + pricing.BasePricePerTier.GetValueOrDefault(dna.ArmTier, 0)
-              + pricing.BasePricePerTier.GetValueOrDefault(dna.EyeTier, 0)
-              + pricing.BasePricePerTier.GetValueOrDefault(dna.MouthTier, 0);
+              + pricing.BasePricePerTier.GetValueOrDefault(dna.HornTier, 0)
+              + pricing.BasePricePerTier.GetValueOrDefault(dna.BackTier, 0)
+              + pricing.BasePricePerTier.GetValueOrDefault(dna.WingTier, 0);
 
             float wBreed    = archetype != null ? archetype.WeightBreed    : 1f;
-            float wCombat   = archetype != null ? archetype.WeightCombat   : 1f;
             float wStats    = archetype != null ? archetype.WeightStats    : 1f;
             float wTier     = archetype != null ? archetype.WeightTier     : 1f;
             float budgetMul = archetype != null ? archetype.BudgetMultiplier : 1f;
@@ -26,11 +25,9 @@ namespace MoriMonchiSimulator
             float statsBonus  = (dna.BaseConstitution + dna.BaseAttack + dna.BaseSpeed
                                + dna.BaseDefense + dna.BaseLuck + dna.BaseEvasion) * wStats * pricing.StatsMultiplier;
             float breedBonus  = dna.BreedCount * wBreed * pricing.BreedCountMultiplier;
-            float winrate     = dna.FightCount > 0 ? (float)dna.WinCount / dna.FightCount : 0f;
-            float combatBonus = winrate * wCombat * pricing.CombatWinrateMultiplier;
-            float tierBonus   = ((int)dna.BodyTier + (int)dna.ArmTier + (int)dna.EyeTier + (int)dna.MouthTier) * wTier * pricing.TierMultiplier;
+            float tierBonus   = ((int)dna.BodyTier + (int)dna.HornTier + (int)dna.BackTier + (int)dna.WingTier) * wTier * pricing.TierMultiplier;
 
-            float objective = basePrice + statsBonus + breedBonus + combatBonus + tierBonus;
+            float objective = basePrice + statsBonus + breedBonus + tierBonus;
             return Mathf.Max(0, Mathf.RoundToInt(objective * budgetMul));
         }
     }

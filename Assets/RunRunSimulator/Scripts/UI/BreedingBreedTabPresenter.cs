@@ -168,7 +168,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
         row.userData = dna.UniqueID;
 
         var eff = database != null
-            ? CombatStats.GetEffectiveStats(dna, database)
+            ? CreatureStats.GetEffectiveStats(dna, database)
             : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
 
         var l = new Label($"{dna.CustomName}  ·  CON {eff.Constitution:0} ATK {eff.Attack:0} SPD {eff.Speed:0} DEF {eff.Defense:0} LCK {eff.Luck:0} EVA {eff.Evasion:0}  ·  {dna.BreedCount}/{BreedingService.MaxBreedCount}");
@@ -234,7 +234,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
         col.Add(name);
 
         var eff = database != null
-            ? CombatStats.GetEffectiveStats(dna, database)
+            ? CreatureStats.GetEffectiveStats(dna, database)
             : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
         var stats = new Label($"CON {eff.Constitution:0}   ATK {eff.Attack:0}   SPD {eff.Speed:0}   DEF {eff.Defense:0}   LCK {eff.Luck:0}   EVA {eff.Evasion:0}");
         stats.AddToClassList("preview-stats");
@@ -243,9 +243,10 @@ public class BreedingBreedTabPresenter : ITabPresenter
         if (database != null)
         {
             AddPartRow(col, database.GetBodyShape(dna.BodyShapeID));
-            AddPartRow(col, database.GetArm(dna.ArmID));
-            AddPartRow(col, database.GetEye(dna.EyeID));
-            AddPartRow(col, database.GetMouth(dna.MouthID));
+            AddPartRow(col, database.GetHorn(dna.HornID));
+            AddPartRow(col, database.GetBack(dna.BackID));
+            AddPartRow(col, database.GetWing(dna.WingID));
+            AddPartRow(col, database.GetFace(dna.FaceID));
         }
         return col;
     }

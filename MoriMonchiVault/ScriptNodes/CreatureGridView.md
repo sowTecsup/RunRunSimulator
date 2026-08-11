@@ -6,7 +6,7 @@ tags: [script, ui]
 
 **Ruta:** `UI/CreatureGridView.cs`
 
-**Responsabilidad:** Herramienta dev de inspector (Odin TableList), NO el grid de cartas del jugador que es [[CreatureGridUITK]]. Grid read-only de todas las criaturas registradas. Impulsado por eventos `GameEvents.OnRegistryChanged/OnRegistryReloaded`. Reconstruye cada cambio. Muestra tabla de rows con: nombre, color swatch, género, 6 stats base (CON/ATK/SPD/DEF/LCK/EVA), columna Equip (items equipados resueltos desde EquipmentDatabaseSO), combates, crianzas, padres, estado, fecha de nacimiento.
+**Responsabilidad:** Herramienta dev de inspector (Odin TableList), NO el grid de cartas del jugador que es [[CreatureGridUITK]]. Grid read-only de todas las criaturas registradas. Impulsado por eventos `GameEvents.OnRegistryChanged/OnRegistryReloaded`. Reconstruye cada cambio. Muestra tabla de rows con: nombre, color swatch, género, 6 stats base (CON/ATK/SPD/DEF/LCK/EVA), columna Equip (items equipados resueltos desde EquipmentDatabaseSO), crianzas, padres, estado, fecha de nacimiento. **S75:** Removidas columnas `Fights` e "In Queue" state (demolición del combate).
 
 **Campos principales**
 
@@ -34,11 +34,10 @@ tags: [script, ui]
 | `LCK` | float | BaseLuck. |
 | `EVA` | float | BaseEvasion. |
 | `Equip` | string | Resumen de items equipados (nombres resueltos o IDs). |
-| `Fights` | string | "X (Y)" = FightCount (WinCount). |
 | `Breeds` | int | BreedCount. |
 | `Mother` | string | CustomName del MotherID o "—" / "???". |
 | `Father` | string | CustomName del FatherID o "—" / "???". |
-| `State` | string | "SOLD" / "DEAD" / "Breeding" / "In Queue" / "Free". |
+| `State` | string | "SOLD" / "DEAD" / "Breeding" / "Free". |
 | `Born` | string | "dd/MM/yyyy HH:mm" o "—". |
 
 **Métodos principales**

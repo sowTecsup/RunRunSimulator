@@ -14,7 +14,7 @@ namespace MoriMonchiSimulator
 // Event-driven: it never references the grid. It listens to UIManager's static
 // OnCreatureSelected — the event carries the creature AND the registry (for
 // parent names). This is a thin core: each tab's content is built by its own
-// presenter (Info/Combate/Linaje+Descendencia/Equipo), all sharing the same root.
+// presenter (Info/Linaje+Descendencia/Equipo), all sharing the same root.
 [DisallowMultipleComponent]
 public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 {
@@ -47,7 +47,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
     // One presenter per tab (Linaje + Descendencia share DetailTreesPresenter).
     private DetailInfoTabPresenter info;
-    private DetailCombatTabPresenter combat;
     private DetailTreesPresenter trees;
     private DetailEquipTabPresenter equip;
     private DetailRelationsPresenter relations;
@@ -130,7 +129,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         WireStaticLabels(root);
 
         info   = new DetailInfoTabPresenter(root, database, equipmentDatabase);
-        combat = new DetailCombatTabPresenter(root, () => registry);
         trees  = new DetailTreesPresenter(root, database, () => registry);
         equip  = new DetailEquipTabPresenter(root, database, equipmentDatabase, equipmentPalette, backpack, () => registry);
         relations = new DetailRelationsPresenter(root, () => registry);
@@ -141,7 +139,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     private static void WireStaticLabels(VisualElement root)
     {
         SetTabLabel(root, "tab-info", "ui.detail.tab.info");
-        SetTabLabel(root, "tab-combat", "ui.detail.tab.combat");
         SetTabLabel(root, "tab-breed", "ui.detail.tab.breed");
         SetTabLabel(root, "tab-lineage", "ui.detail.tab.lineage");
         SetTabLabel(root, "tab-team", "ui.detail.tab.equipment");
@@ -152,7 +149,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         SetSectionTitles(root, "tab-team", "ui.detail.section.stats");
         SetSectionTitles(root, "tab-relations", "ui.detail.section.friends", "ui.detail.section.foes");
 
-        SetLabelText(root, "combat-empty", "ui.detail.placeholder.combat_empty");
         SetLabelText(root, "breed-empty", "ui.detail.placeholder.breed_empty");
         SetLabelText(root, "lineage-empty", "ui.detail.placeholder.lineage_empty");
         SetLabelText(root, "relations-empty", "ui.detail.placeholder.relations_empty");
@@ -223,7 +219,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
             MonchiPortraitUI.ApplyLive(portrait, dna);
 
         info.Rebuild(dna);
-        combat.Rebuild(dna);
         trees.Rebuild(dna);
         equip.Rebuild(dna);
         relations.Rebuild(dna);

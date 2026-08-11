@@ -2,9 +2,11 @@
 tags: [combat, stats, calculation]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica. Reemplazado por [[CreatureStats]].
+
 # CombatStats
 
-**Ruta:** `Systems/Combat/CombatStats.cs`
+**Ruta:** `Systems/Combat/CombatStats.cs` (ELIMINADO)
 
 **Responsabilidad:** Clase estática que calcula stats efectivos (CON/ATK/SPD/DEF/LCK/EVA) de una criatura sumando base + **S37** modificadores de rol (si tabla pasada) + acumulación de partes por tier. No aplica equipment (eso lo hace `EquipmentStats`). Dos sobrecargas: `GetEffectiveStats(dna, db)` sin roles, `GetEffectiveStats(dna, db, roles)` con mods de rol.
 

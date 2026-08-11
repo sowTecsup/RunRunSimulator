@@ -6,8 +6,21 @@ tags: [script, data, customer]
 
 **Ruta:** `Data/Customers/CustomerArchetypeSO.cs`
 
-**Responsabilidad:** Defines un arquetipo NPC único (persona en la tienda). Campos: `DisplayName`, `Icon`, `AgentPrefab`. Pesos de preferencia: `WeightBreed`, `WeightCombat`, `WeightStats`, `WeightTier` (afectan valuación). `BudgetMultiplier` (presupuesto máximo del cliente). `RenegotiationTolerance` (0-1: probabilidad de aceptar contraoferta). Browsing: `MinInspections`, `MaxInspections`, `InspectionDuration` (segundos mirando cada display). `WaitTimeoutSeconds` (timeout antes de irse si espera demasiado).
+**Responsabilidad:** Define un arquetipo NPC único (persona en la tienda). `DisplayName`, `Icon`, `AgentPrefab`. Pesos de preferencia: `WeightBreed`, `WeightStats`, `WeightTier` (afectan valuación). `BudgetMultiplier`, `RenegotiationTolerance`. Comportamiento: `MinInspections`, `MaxInspections`, `InspectionDuration`, `WaitTimeoutSeconds`.
 
-**Vinculado a:** [[Index/04 - Customer System]]
+## Pesos (Reemplazados en S75)
 
-**Conexiones:** [[ValuationHandler]], [[NegotiationFlow]], [[CustomerArchetypeDatabaseSO]], [[NpcController]], [[NpcAgent]]
+- **WeightBreed** — Preferencia por criados más veces
+- **WeightStats** — Preferencia por stats altos
+- **WeightTier** — Preferencia por tiers altos
+- **SIN:** WeightCombat (demolición del combate)
+
+## Cambios en S75
+
+- **ELIMINADO:** `WeightCombat`
+
+## Vinculado a
+
+- [[Index/06 - Customer System]]
+
+**Conexiones:** [[ValuationHandler]], [[CustomerPricingSO]]

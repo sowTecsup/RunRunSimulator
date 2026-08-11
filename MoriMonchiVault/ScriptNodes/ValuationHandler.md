@@ -6,8 +6,22 @@ tags: [script, system, customer]
 
 **Ruta:** `Systems/Customers/ValuationHandler.cs`
 
-**Responsabilidad:** Clase pura (serializable pero sin MonoBehaviour) que calcula el precio de un MoriMochi. API: `Estimate(CreatureDNA, CustomerArchetypeSO, CustomerPricingSO)`. Suma base (4 tiers) + bonos derivados: stats (suma de los 6 base: Constitution + Attack + Speed + Defense + Luck + Evasion), breed count (historial), combat winrate, tier bonus. Aplica pesos del arquetipo si existe, multiplicadores de pricing, y presupuesto final. Devuelve int >= 0.
+**Responsabilidad:** Clase pura que calcula el precio de un MoriMochi. API: `Estimate(CreatureDNA, CustomerArchetypeSO, CustomerPricingSO)`. Suma de: base (por tier de partes), stats base (Constitution + Attack + Speed), rarity de partes, breed count. Aplica multiplicadores del arquetipo y presupuesto final. **S75:** Sin term de combat winrate (demolición del combate).
 
-**Vinculado a:** [[Index/04 - Customer System]]
+## Factores de Precio
 
-**Conexiones:** [[CustomerPricingSO]], [[CustomerArchetypeSO]], [[CreatureDNA]], [[CustomerService]], [[NpcAgent]], [[Enums]]
+- **Base por tier:** Body/Horn/Back/Wing (4 partes con tiers)
+- **Stats:** Suma de Constitution + Attack + Speed + Defense + Luck + Evasion
+- **Breed count:** Progresión por número de veces criada
+- **Arqueipo weights:** Multiplicadores por Customer Archetype (si aplica)
+
+## Cambios en S75
+
+- **ELIMINADO:** Término de combat winrate
+- **MANTIENE:** Bases, stats, breed count, rarity, archetype weights
+
+## Vinculado a
+
+- [[Index/06 - Customer System]]
+
+**Conexiones:** [[CustomerPricingSO]], [[CustomerArchetypeSO]], [[CreatureDNA]]

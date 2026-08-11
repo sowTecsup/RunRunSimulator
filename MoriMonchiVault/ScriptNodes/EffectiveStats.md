@@ -1,12 +1,12 @@
 ---
-tags: [combat, data, stats, readonly]
+tags: [data, stats, readonly]
 ---
 
 # EffectiveStats
 
-**Ruta:** `Data/Combat/EffectiveStats.cs`
+**Ruta:** `Data/Genetics/EffectiveStats.cs`
 
-**Responsabilidad:** Struct readonly que almacena los 6 stats finales de una criatura en combate, derivados de DNA base + partes + equipment. Inmutable una vez construido.
+**Responsabilidad:** Struct readonly que almacena los 6 stats finales de una criatura (CON, ATK, SPD, DEF, LCK, EVA), derivados de DNA base + acumulación de partes. Inmutable una vez construido.
 
 ## Estructura
 
@@ -39,40 +39,38 @@ public EffectiveStats(float con, float atk, float spd, float def, float lck, flo
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
-| `Constitution` | `float` | Resistencia base (escalada a HP via BaseHpCombatMultiplier) |
-| `Attack` | `float` | Daño por golpe |
-| `Speed` | `float` | Orden de turno en combate |
-| `Defense` | `float` | Reducción de daño entrante |
-| `Luck` | `float` | Incremento de crit chance |
+| `Constitution` | `float` | Resistencia base (HP virtual) |
+| `Attack` | `float` | Daño ofensivo |
+| `Speed` | `float` | Velocidad / agilidad |
+| `Defense` | `float` | Resistencia defensiva |
+| `Luck` | `float` | Probabilidad de eventos favorables |
 | `Evasion` | `float` | Chance de esquivar |
 
 ## Cálculo
 
-Producido por `CombatStats.GetEffectiveStats(dna, db)`:
-1. DNA base (6 campos)
-2. Suma acumulativa de partes Body/Arm/Eye/Mouth según tier
-3. Mod de equipment aplicado por `EquipmentStats.Apply(baseStats, dna, equipDb)`
+Producido por `CreatureStats.GetEffectiveStats(dna, db)`:
+1. DNA base (CON, ATK, SPD de `BaseConstitution`, `BaseAttack`, `BaseSpeed`)
+2. Suma acumulativa de bonificadores por partes (BodyShape, Horn, Back, Wing) según tier
+3. DEF, LCK, EVA provenientes de DNA base sin acumulación de partes
 
 ## Vinculado a
 
-- [[Index/03 - Combat]]
-- [[CombatStats]] — calcula stats base+partes → retorna como `EffectiveStats`
+- [[Index/02 - Genetics & Breeding]]
+- [[CreatureStats]] — calcula stats base+partes → retorna como `EffectiveStats`
 - [[EquipmentStats]] — aplica equipment mods a un `EffectiveStats`
-- [[CombatService]] — accede en `BuildCombatant()`
 
 ## Conexiones
 
 **Entrada:**
-- `CombatStats.GetEffectiveStats()` → retorna nueva instancia
-- `EquipmentStats.Apply(EffectiveStats, dna, equipDb)` → mutación funcional (retorna struct nuevo)
+- `CreatureStats.GetEffectiveStats(dna, db)` → retorna nueva instancia
 
 **Salida:**
 - Pasado a `EquipmentStats.Apply()` para aplicar mods de equipment
-- Resultado final usado para inicializar `Combatant.{Attack,Speed,Defense,Luck,Evasion}`
+- Accedida por UI y sistemas de display de stats
 
 ## Notas
 
 - Es `readonly struct`, por lo que es value type y copiable.
 - Inmutable tras construcción (ningún método muta).
 - No se serializa; es un cálculo en tiempo real.
-- **Constitution** se convierte a HP via `Combatant.MaxHp = eff.Constitution * BaseHpCombatMultiplier`.
+- DEF/LCK/EVA NO se acumulan de partes; vienen íntegros del DNA base.

@@ -2,6 +2,8 @@
 tags: [combat, data, persistence, history]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatRecord
 
 **Ruta:** `Data/Combat/CombatRecord.cs`

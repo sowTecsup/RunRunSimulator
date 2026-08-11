@@ -2,6 +2,8 @@
 tags: [combat, visualization, replay, ui, 3v3]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatVisualizerService
 
 **Ruta:** `Systems/CombatVisualizer/CombatVisualizerService.cs`

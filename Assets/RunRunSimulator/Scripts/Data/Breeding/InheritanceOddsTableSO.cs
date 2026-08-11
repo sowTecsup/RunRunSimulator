@@ -23,7 +23,7 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
     // ── Breeding timer ────────────────────────────────────────────
     // Display/reference only. The authoritative duration is hardcoded server-side
     // in start-breeding.js (BREED_DURATION_MS). Changing this does NOT change the
-    // real timer — same known limitation as CombatManagerSO.DeathChance.
+    // real timer.
     [InfoBox("Solo display/referencia. La duración real está hardcoded en start-breeding.js (server-side).")]
     [LabelWidth(190)] public int BreedDurationMinutes = 30;
 

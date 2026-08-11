@@ -10,7 +10,7 @@ namespace MoriMonchiSimulator
 // to balance how every role moves and reacts in the world, and the reserved "endpoint"
 // for making roles matter to other systems later (combat, breeding).
 //
-// Singleton (Current) set in OnEnable, same pattern as CombatManagerSO /
+// Singleton (Current) set in OnEnable, same pattern as
 // InheritanceOddsTableSO. Press "Populate Defaults" once to fill all three.
 [CreateAssetMenu(fileName = "RoleWorldProfileTable", menuName = "RunRunSimulator/Genetics/Role World Profile Table")]
 public class RoleWorldProfileSO : SerializedScriptableObject

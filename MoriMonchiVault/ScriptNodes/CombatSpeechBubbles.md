@@ -2,6 +2,8 @@
 tags: [script, combat, ui, uitk]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatSpeechBubbles.cs
 
 **Ruta:** `Systems/CombatVisualizer/CombatSpeechBubbles.cs`

@@ -14,9 +14,9 @@ namespace MoriMonchiSimulator
 // tab are delegated to BreedingBreedTabPresenter / BreedingEggsTabPresenter, both
 // reached via GameManager's registry and AsyncBreedingService.
 //
-// Keyboard/gamepad: implements IUINavigable with the same hierarchical focus model
-// (TabBar ⇄ content) as CombatPanelUITK. ESC steps one level up (OnUICancel consumes
-// it) and only closes the panel when already at the TabBar.
+// Keyboard/gamepad: implements IUINavigable with a hierarchical focus model
+// (TabBar ⇄ content). ESC steps one level up (OnUICancel consumes it) and only
+// closes the panel when already at the TabBar.
 [DisallowMultipleComponent]
 public class BreedingPanelUITK : MonoBehaviour, IUINavigable
 {

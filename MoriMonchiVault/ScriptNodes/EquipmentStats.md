@@ -1,18 +1,18 @@
 ---
-tags: [combat, equipment, modifiers]
+tags: [equipment, modifiers, stats]
 ---
 
 # EquipmentStats
 
-**Ruta:** `Systems/Combat/EquipmentStats.cs`
+**Ruta:** `Systems/Stats/EquipmentStats.cs`
 
-**Responsabilidad:** Clase estática pura que aplica modificadores de equipo a stats base. Resuelve ítems equipados contra `EquipmentDatabaseSO`, extrae sus `StatModifierEffect` y los aplica escalonadamente: Flat (suma) → PercentAdd (suma %, mult 1+Σ/100) → PercentMult (compuesto, cada 1+v/100), con piso en 0. Motor del "StatSheet" de visualización y del pipeline de combate. Usado por `CombatService.BuildCombatant()` para stats finales.
+**Responsabilidad:** Clase estática pura que aplica modificadores de equipamiento a stats efectivos. Resuelve ítems equipados contra `EquipmentDatabaseSO`, extrae sus `StatModifierEffect` y los aplica escalonadamente: Flat (suma) → PercentAdd (suma %, mult 1+Σ/100) → PercentMult (compuesto, cada 1+v/100), con piso en 0.
 
 ## Método Público
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
-| `Apply(EffectiveStats baseStats, CreatureDNA dna, EquipmentDatabaseSO db)` | `EffectiveStats` | Aplica mods de equipment, retorna nuevo struct (S32: firma top-level `EffectiveStats`) |
+| `Apply(EffectiveStats baseStats, CreatureDNA dna, EquipmentDatabaseSO db)` | `EffectiveStats` | Aplica mods de equipment, retorna nuevo struct con 6 stats modificados |
 
 ## Algoritmo
 
@@ -26,21 +26,17 @@ tags: [combat, equipment, modifiers]
 4. **Piso:** `Mathf.Max(0f, valor)` para prevenir stats negativos
 5. **Retorna:** Nuevo `EffectiveStats` con todos los 6 campos modificados
 
-## Firma Actualizada (S32)
+## Firma Actual
 
 ```csharp
 public static EffectiveStats Apply(EffectiveStats baseStats, CreatureDNA dna, EquipmentDatabaseSO db)
 ```
 
-**Antes:** `public static CombatService.EffectiveStats Apply(...)`
-
-**Ahora:** `public static EffectiveStats Apply(...)` (struct público top-level)
-
 ## Vinculado a
 
-- [[Index/03 - Combat]]
-- [[EffectiveStats]] — struct de entrada/salida (S32)
-- [[CombatStats]] — proporciona baseStats
+- [[Index/02 - Genetics & Breeding]]
+- [[EffectiveStats]] — struct de entrada/salida
+- [[CreatureStats]] — proporciona baseStats
 - [[EquipmentDatabaseSO]] — resuelve ítems
 - [[StatModifierEffect]] — tipo de modificador
 - [[CreatureDNA]] — `.Equipped` dict
@@ -48,15 +44,14 @@ public static EffectiveStats Apply(EffectiveStats baseStats, CreatureDNA dna, Eq
 ## Conexiones
 
 **Entrada:**
-- `CombatService.BuildCombatant()` → llama `EquipmentStats.Apply(baseStats, dna, equipDb)`
-- MoriMochiAgent.Tuning (display UI) → llama para readout
+- Consumidores futuros de stats efectivos (UI, sistemas de display, etc.)
+- `CreatureDNA.Equipped` — dict de items equipados
 
 **Salida:**
-- `EffectiveStats` → usado para `Combatant.{Attack,Speed,Defense,Luck,Evasion}` inicialización
-- HP = `EffectiveStats.Constitution * BaseHpCombatMultiplier`
+- `EffectiveStats` — stats finales con bonificadores aplicados
 
 ## Notas
 
 - **No serializa:** Es cálculo puro en tiempo real.
 - **Determinista:** Orden de aplicación de mods es fijo (Flat, PercentAdd, PercentMult).
-- **S32:** Refactor extrajo `EffectiveStats` a struct top-level; firma simplificada.
+- Movilidad de `Systems/Combat/` a `Systems/Stats/` refleja el foco en estadísticas fuera del combate.

@@ -36,7 +36,7 @@ public class DetailInfoTabPresenter
 
         // Final stat with its (base + bonus-from-parts/tier/equipment) breakdown.
         var baseEff = database != null
-            ? CombatStats.GetEffectiveStats(dna, database)
+            ? CreatureStats.GetEffectiveStats(dna, database)
             : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
         var eff = EquipmentStats.Apply(baseEff, dna, equipmentDatabase);
 
@@ -56,7 +56,7 @@ public class DetailInfoTabPresenter
         BuildParts(dna);
 
         if (progressionLabel != null)
-            progressionLabel.text = Loc.Tr("ui.detail.progression", dna.FightCount, dna.WinCount, dna.BreedCount);
+            progressionLabel.text = Loc.Tr("ui.detail.progression", dna.BreedCount);
     }
 
     // ── Parts ────────────────────────────────────────────────────
@@ -74,10 +74,11 @@ public class DetailInfoTabPresenter
         partsContainer.Clear();
         if (database == null) return;
 
-        AddPartRow(PartRole.Body,  database.GetBodyShape(dna.BodyShapeID), dna.BodyTier);
-        AddPartRow(PartRole.Arm,   database.GetArm(dna.ArmID),             dna.ArmTier);
-        AddPartRow(PartRole.Eye,   database.GetEye(dna.EyeID),             dna.EyeTier);
-        AddPartRow(PartRole.Mouth, database.GetMouth(dna.MouthID),         dna.MouthTier);
+        AddPartRow(PartRole.Body, database.GetBodyShape(dna.BodyShapeID), dna.BodyTier);
+        AddPartRow(PartRole.Horn, database.GetHorn(dna.HornID),           dna.HornTier);
+        AddPartRow(PartRole.Back, database.GetBack(dna.BackID),           dna.BackTier);
+        AddPartRow(PartRole.Wing, database.GetWing(dna.WingID),           dna.WingTier);
+        AddPartRow(PartRole.Face, database.GetFace(dna.FaceID),           Tier.Tier1);
     }
 
     private void AddPartRow(PartRole slot, BodyPart part, Tier tier)
@@ -104,11 +105,12 @@ public class DetailInfoTabPresenter
 
     private static string SlotName(PartRole r) => r switch
     {
-        PartRole.Body  => Loc.Tr("ui.detail.slot.body"),
-        PartRole.Arm   => Loc.Tr("ui.detail.slot.arm"),
-        PartRole.Eye   => Loc.Tr("ui.detail.slot.eye"),
-        PartRole.Mouth => Loc.Tr("ui.detail.slot.mouth"),
-        _              => r.ToString(),
+        PartRole.Body => Loc.Tr("ui.detail.slot.body"),
+        PartRole.Horn => Loc.Tr("ui.detail.slot.horn"),
+        PartRole.Back => Loc.Tr("ui.detail.slot.back"),
+        PartRole.Wing => Loc.Tr("ui.detail.slot.wing"),
+        PartRole.Face => Loc.Tr("ui.detail.slot.face"),
+        _             => r.ToString(),
     };
 
     private static string RoleDesc(Role r) => r switch
@@ -120,10 +122,9 @@ public class DetailInfoTabPresenter
     };
 
     private static string StateOf(CreatureDNA d) =>
-        d.IsSold                                  ? Loc.Tr("status.sold")     :
-        d.IsDead                                  ? Loc.Tr("status.dead")     :
-        d.BusyState == BusyReason.Breeding        ? Loc.Tr("status.breeding") :
-        d.BusyState == BusyReason.QueuedForCombat ? Loc.Tr("status.queued")   :
+        d.IsSold                           ? Loc.Tr("status.sold")     :
+        d.IsDead                           ? Loc.Tr("status.dead")     :
+        d.BusyState == BusyReason.Breeding ? Loc.Tr("status.breeding") :
         Loc.Tr("status.free");
 
     private static string Born(CreatureDNA d) =>

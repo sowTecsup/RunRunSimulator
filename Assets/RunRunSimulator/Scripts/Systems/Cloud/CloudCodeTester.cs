@@ -34,26 +34,6 @@ public class CloudCodeTester : MonoBehaviour
         }
     }
 
-    [Button("Force Matchmaking Tick (DEV)", ButtonSizes.Large), GUIColor(0.4f, 1f, 0.5f)]
-    public async void ForceMatchmakingTick()
-    {
-        if (!RequireSignedIn()) return;
-        try
-        {
-            lastResponse = "Running process-matchmaking...";
-            var raw    = await CloudCodeService.Instance.CallEndpointAsync<string>(
-                "process-matchmaking", new Dictionary<string, object>());
-            var parsed = JsonConvert.DeserializeObject<MatchmakingResponse>(raw);
-            lastResponse = $"Tick OK\nMatched: {parsed?.matched}\nRemaining: {parsed?.remaining}\nDropped: {parsed?.dropped}";
-            Debug.Log($"[CloudCodeTester] process-matchmaking: {raw}");
-        }
-        catch (Exception e)
-        {
-            lastResponse = $"ERROR → {e.Message}";
-            Debug.LogError($"[CloudCodeTester] process-matchmaking failed: {e}");
-        }
-    }
-
     [Button("Test: Custom Data write/read", ButtonSizes.Large), GUIColor(1f, 0.7f, 0.3f)]
     public async void TestCustomData()
     {
@@ -87,14 +67,6 @@ public class CloudCodeTester : MonoBehaviour
     private class TestResponse
     {
         public List<string> log;
-    }
-
-    [Serializable]
-    private class MatchmakingResponse
-    {
-        public int matched;
-        public int remaining;
-        public int dropped;
     }
 }
 }

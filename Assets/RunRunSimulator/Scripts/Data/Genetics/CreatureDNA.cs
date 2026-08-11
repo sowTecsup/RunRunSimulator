@@ -4,7 +4,7 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Genetic string format: "BODYSHAPE-ARM-EYE-MOUTH-RRGGBB"  (e.g. "BS0-A3-E1-M2-FF00AA")
+// Genetic string format: "BODYSHAPE-HORN-BACK-WING-FACE-RRGGBB"  (e.g. "BS0-H2-BK1-W0-FC3-FF00AA")
 // Registry key (UniqueID): "<genetic_string>-<timestamp_ticks>"
 // Part IDs must not contain '-'.
 [Serializable]
@@ -12,9 +12,10 @@ public class CreatureDNA
 {
     // ── Genetics ──────────────────────────────────────────────────
     public string BodyShapeID = "";
-    public string ArmID       = "";
-    public string EyeID       = "";
-    public string MouthID     = "";
+    public string HornID      = "";
+    public string BackID      = "";
+    public string WingID      = "";
+    public string FaceID      = "";
 
     [ColorUsage(false)]
     public Color BaseColor = Color.white;
@@ -48,15 +49,13 @@ public class CreatureDNA
     public float Boldness    = 0.5f;
 
     // ── Progression ───────────────────────────────────────────────
-    public int FightCount = 0;
-    public int WinCount   = 0;
     public int BreedCount = 0;
 
     // ── Tier per slot ─────────────────────────────────────────────
-    public Tier BodyTier  = Tier.Tier1;
-    public Tier ArmTier   = Tier.Tier1;
-    public Tier EyeTier   = Tier.Tier1;
-    public Tier MouthTier = Tier.Tier1;
+    public Tier BodyTier = Tier.Tier1;
+    public Tier HornTier = Tier.Tier1;
+    public Tier BackTier = Tier.Tier1;
+    public Tier WingTier = Tier.Tier1;
 
     // ── Base Stats (point-buy en Mint, heredados en Breed) ─
     public float BaseConstitution = 0f;
@@ -68,18 +67,12 @@ public class CreatureDNA
     public float BaseLuck     = 0f;
     public float BaseEvasion  = 0f;
 
-    // ── Combat history ────────────────────────────────────────────
-    // One CombatRecord per finished fight (local + async), turn-by-turn for the
-    // future Combat Visualizer. Persisted with the DNA (local + cloud), unbounded
-    // — MaxFightCount can change, so we don't cap it here.
-    public List<CombatRecord> CombatHistory = new List<CombatRecord>();
-
     // ── Mortality ─────────────────────────────────────────────────
     public bool IsDead = false;
 
     // ── Runtime needs (World) ─────────────────────────────────────
     // Mutable wellbeing (health/energy/affect) the MoriMochiAgent ticks while spawned. Lives here
-    // because CreatureDNA is already the persisted save record (like CombatHistory/BusyState) — so
+    // because CreatureDNA is already the persisted save record (like BusyState) — so
     // it rides the local + Cloud Save with zero extra plumbing. NOT part of the genetic string.
     public NeedsState Needs = new NeedsState();
 
@@ -88,10 +81,6 @@ public class CreatureDNA
     public bool IsBusy => BusyState != BusyReason.None;
     public bool IsSold => BusyState == BusyReason.Sold;
 
-    // When this creature was enqueued for async combat (UTC). Display-only metadata
-    // for the Resultados tab ("encolado a las HH:mm"); set on enqueue, not part of
-    // the genetic string. default = never queued.
-    public DateTime QueuedAt;
     public DateTime SaleDate;
 
     // ── Breeding timer (local cache for display; server is authoritative) ─
@@ -106,6 +95,10 @@ public class CreatureDNA
     // (hidden raw so the drag-drop slots are the single edit surface).
     [HideInInspector]
     public Dictionary<EquipmentSlot, string> Equipped = new Dictionary<EquipmentSlot, string>();
+
+    public const int MaxCutieMarks = 2;
+    [HideInInspector] public List<string> CutieMarks = new List<string>();
+    [HideInInspector] public string HeldItemId = "";
 
 #if UNITY_EDITOR
     [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.BoxGroup("Equipment"), Sirenix.OdinInspector.AssetsOnly, Sirenix.OdinInspector.LabelText("Weapon")]
@@ -146,19 +139,19 @@ public class CreatureDNA
     }
 
     public string ToStringID() =>
-        $"{BodyShapeID}-{ArmID}-{EyeID}-{MouthID}-{ColorUtility.ToHtmlStringRGB(BaseColor)}";
+        $"{BodyShapeID}-{HornID}-{BackID}-{WingID}-{FaceID}-{ColorUtility.ToHtmlStringRGB(BaseColor)}";
 
-    // Returns "{body} {arm} {eye} {mouth}" using part Name fields; falls back to part IDs.
+    // Returns "{body} {horn} {back} {wing}" using part Name fields; falls back to part IDs.
     public string GetDisplayName(CreatureDatabaseSO db)
     {
-        string body  = db?.GetBodyShape(BodyShapeID)?.Name ?? BodyShapeID;
-        string arm   = db?.GetArm(ArmID)?.Name             ?? ArmID;
-        string eye   = db?.GetEye(EyeID)?.Name             ?? EyeID;
-        string mouth = db?.GetMouth(MouthID)?.Name         ?? MouthID;
-        return $"{body} {arm} {eye} {mouth}";
+        string body = db?.GetBodyShape(BodyShapeID)?.Name ?? BodyShapeID;
+        string horn = db?.GetHorn(HornID)?.Name            ?? HornID;
+        string back = db?.GetBack(BackID)?.Name            ?? BackID;
+        string wing = db?.GetWing(WingID)?.Name            ?? WingID;
+        return $"{body} {horn} {back} {wing}";
     }
 
-    // Parses only the genetic string (BODYSHAPE-ARM-EYE-MOUTH-RRGGBB).
+    // Parses only the genetic string (BODYSHAPE-HORN-BACK-WING-FACE-RRGGBB).
     // Does not parse Timestamp or lineage — use JSON deserialization for full state.
     public static CreatureDNA FromID(string id)
     {
@@ -171,25 +164,26 @@ public class CreatureDNA
         int lastDash = id.LastIndexOf('-');
         if (lastDash < 0 || id.Length - lastDash - 1 != 6)
         {
-            Debug.LogError($"[CreatureDNA] Invalid ID '{id}'. Expected: BODYSHAPE-ARM-EYE-MOUTH-RRGGBB");
+            Debug.LogError($"[CreatureDNA] Invalid ID '{id}'. Expected: BODYSHAPE-HORN-BACK-WING-FACE-RRGGBB");
             return new CreatureDNA();
         }
 
         string   colorHex = id.Substring(lastDash + 1);
         string[] parts    = id.Substring(0, lastDash).Split('-');
 
-        if (parts.Length != 4)
+        if (parts.Length != 5)
         {
-            Debug.LogError($"[CreatureDNA] Expected 4 part tokens, got {parts.Length} in '{id}'.");
+            Debug.LogError($"[CreatureDNA] Expected 5 part tokens, got {parts.Length} in '{id}'.");
             return new CreatureDNA();
         }
 
         var dna = new CreatureDNA
         {
             BodyShapeID = parts[0],
-            ArmID       = parts[1],
-            EyeID       = parts[2],
-            MouthID     = parts[3],
+            HornID      = parts[1],
+            BackID      = parts[2],
+            WingID      = parts[3],
+            FaceID      = parts[4],
         };
 
         if (!ColorUtility.TryParseHtmlString("#" + colorHex, out dna.BaseColor))

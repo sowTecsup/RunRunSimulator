@@ -2,6 +2,8 @@
 tags: [scriptable-object, combat, elements, data]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # ElementTableSO.cs
 
 **Ruta:** `Data/Combat/ElementTableSO.cs`

@@ -2,6 +2,8 @@
 tags: [script, combat, targeting, deterministic]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatTargeting.cs
 
 **Ruta:** `Systems/Combat/CombatTargeting.cs`

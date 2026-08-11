@@ -28,14 +28,17 @@ public class GeneticsLabPreview : MonoBehaviour
     [BoxGroup("Current Creature/Rarity")]
     private Rarity rarityBodyShape;
 
-    [ShowInInspector, ReadOnly, LabelText("Arms"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
-    private Rarity rarityArms;
+    [ShowInInspector, ReadOnly, LabelText("Horn"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
+    private Rarity rarityHorn;
 
-    [ShowInInspector, ReadOnly, LabelText("Eyes"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
-    private Rarity rarityEyes;
+    [ShowInInspector, ReadOnly, LabelText("Back"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
+    private Rarity rarityBack;
 
-    [ShowInInspector, ReadOnly, LabelText("Mouth"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
-    private Rarity rarityMouth;
+    [ShowInInspector, ReadOnly, LabelText("Wing"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
+    private Rarity rarityWing;
+
+    [ShowInInspector, ReadOnly, LabelText("Face"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
+    private Rarity rarityFace;
 
     [ShowInInspector, ReadOnly, LabelText("Score"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
     private string rarityScore = "---";
@@ -43,7 +46,7 @@ public class GeneticsLabPreview : MonoBehaviour
     // ── Load by ID ────────────────────────────────────────────────
 
     [BoxGroup("Load by ID")]
-    [InfoBox("Format: BODYSHAPEID-ARMID-EYEID-MOUTHID-RRGGBB   (e.g.  BS0-A3-E1-M2-FF00AA)")]
+    [InfoBox("Format: BODYSHAPEID-HORNID-BACKID-WINGID-FACEID-RRGGBB   (e.g.  BS0-H3-K1-W2-F4-FF00AA)")]
     [FormerlySerializedAs("_loadIDInput")]
     [SerializeField, LabelText("DNA String")]
     private string loadIDInput = "";
@@ -82,16 +85,18 @@ public class GeneticsLabPreview : MonoBehaviour
         if (database == null) return;
 
         var bodyShape = database.GetBodyShape(currentDNA.BodyShapeID);
-        var arm       = database.GetArm(currentDNA.ArmID);
-        var eye       = database.GetEye(currentDNA.EyeID);
-        var mouth     = database.GetMouth(currentDNA.MouthID);
+        var horn      = database.GetHorn(currentDNA.HornID);
+        var back      = database.GetBack(currentDNA.BackID);
+        var wing      = database.GetWing(currentDNA.WingID);
+        var face      = database.GetFace(currentDNA.FaceID);
 
         rarityBodyShape = bodyShape?.Rarity ?? Rarity.Common;
-        rarityArms      = arm?.Rarity       ?? Rarity.Common;
-        rarityEyes      = eye?.Rarity       ?? Rarity.Common;
-        rarityMouth     = mouth?.Rarity     ?? Rarity.Common;
+        rarityHorn      = horn?.Rarity      ?? Rarity.Common;
+        rarityBack      = back?.Rarity      ?? Rarity.Common;
+        rarityWing      = wing?.Rarity      ?? Rarity.Common;
+        rarityFace      = face?.Rarity      ?? Rarity.Common;
 
-        float avg   = ((int)rarityBodyShape + (int)rarityArms + (int)rarityEyes + (int)rarityMouth) / 4f;
+        float avg   = ((int)rarityBodyShape + (int)rarityHorn + (int)rarityBack + (int)rarityWing + (int)rarityFace) / 5f;
         rarityScore = $"{(Rarity)Mathf.RoundToInt(avg)}  (avg {avg:F2})";
     }
 
@@ -99,10 +104,11 @@ public class GeneticsLabPreview : MonoBehaviour
     {
         var database = gameManager.Database;
         if (database == null) return;
-        LogPart("Body",  database.GetBodyShape(dna.BodyShapeID), dna.BodyShapeID);
-        LogPart("Arms",  database.GetArm(dna.ArmID),             dna.ArmID);
-        LogPart("Eyes",  database.GetEye(dna.EyeID),             dna.EyeID);
-        LogPart("Mouth", database.GetMouth(dna.MouthID),         dna.MouthID);
+        LogPart("Body", database.GetBodyShape(dna.BodyShapeID), dna.BodyShapeID);
+        LogPart("Horn", database.GetHorn(dna.HornID),           dna.HornID);
+        LogPart("Back", database.GetBack(dna.BackID),           dna.BackID);
+        LogPart("Wing", database.GetWing(dna.WingID),           dna.WingID);
+        LogPart("Face", database.GetFace(dna.FaceID),           dna.FaceID);
     }
 
     private static void LogPart(string label, BodyPart part, string id)

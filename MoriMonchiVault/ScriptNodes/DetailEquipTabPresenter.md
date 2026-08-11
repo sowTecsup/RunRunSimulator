@@ -25,7 +25,7 @@ tags: [script, ui, presenter]
 - `PaintDiagonal()` — dibuja wedge 45° derecho-abajo (rarity color) usando Painter2D (para accent visual)
 - `EffectsText()` — formatea StatModifierEffect como "• [Summary]" (multiline)
 - `ModifiersText()` — formatea ItemUseEffect como "◆ [Summary]" (multiline, procs)
-- `BuildEquipStats()` — tabla 6 filas (CON/ATK/SPD/DEF/LCK/EVA) mostrando base (from parts/tier) + final (con bonificación equipo)
+- `BuildEquipStats()` — tabla 6 filas (CON/ATK/SPD/DEF/LCK/EVA) mostrando base (from parts/tier) + final (con bonificación equipo). **S75:** usa `CreatureStats.GetEffectiveStats(dna, database)` en lugar de CombatStats
 - `AddStatRow()` — label "NAME base → final" con clases `equip-stat__val--up` (verde) o `equip-stat__val--down` (rojo)
 - `SlotName()` — "Arma"/"Armadura"/"Amuleto"
 - `RarityColor()` / `SlotColor()` — via `equipmentPalette` o fallback BodyPart.RarityColor
@@ -36,4 +36,4 @@ tags: [script, ui, presenter]
 **Callbacks:**
 - Card click → abre backpack (sin teardown de presenters, card solo callback)
 
-**Conexiones:** [[MorimonchiDetailInfoUITK]], [[EquipmentBackpackUITK]], [[EquipmentStats]], [[CreatureDatabaseSO]], [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]], [[MonchiPortraitUI]]
+**Conexiones:** [[MorimonchiDetailInfoUITK]], [[EquipmentBackpackUITK]], [[EquipmentStats]], [[CreatureDatabaseSO]], [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]], [[MonchiPortraitUI]], [[CreatureStats]]

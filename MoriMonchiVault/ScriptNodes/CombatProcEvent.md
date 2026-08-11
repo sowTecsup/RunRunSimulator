@@ -2,6 +2,8 @@
 tags: [combat, data, dto, procs, elements]
 ---
 
+> ⚰️ **RETIRADO-S75** — script borrado del proyecto en la demolición del combate (2026-08-11). Nodo conservado como referencia histórica.
+
 # CombatProcEvent
 
 DTO [Serializable] que registra un evento de proc dentro de un turno de combate. Captura la magnitud, el objetivo afectado y el timing (antes o después del golpe), junto con el estado HP resultante del objetivo y los status marks tras el proc para la replay del visualizador. **S37:** Campo `TargetIndex` captura el índice (0..2) del unit target dentro su equipo en combate 3v3. **S41:** Campos aditivos para eventos elementales (marca, reacción, estado armado/consumido, energía gasto). **S47:** Nuevo campo `PassivePhase` marca si el proc proviene de una pasiva de rol (Protector shield, Empático heal, Agresivo mark) durante el step 14 (post-strike).

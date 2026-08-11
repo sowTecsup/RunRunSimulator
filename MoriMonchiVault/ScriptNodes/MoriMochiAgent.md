@@ -6,7 +6,7 @@ tags: [script, world, ai]
 
 **Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta la vida de una criatura en el mundo (comportamiento autónomo + física de lanzamiento). Compone seis colaboradores internos: `AgentContext` (estado compartido), `AgentBrain` (máquina de estados NavMesh), `AgentPhysics` (handoff ragdoll), `AgentConfinement` (pens/cortejo), `AgentSenses` (percepción social throttled) y `AgentSocial` (decisiones y comportamiento social). Implementa `IThrowable` (agarrar/lanzar/knock) e `IInteractable` (petting). Ciclo de vida: `Initialize()` (wiring, setup NavMesh, llama `physics.CaptureNavAnchor()` si on-mesh), `Rebind()` (reload rápido), `PrepareForPool()` (pooling). Update() despachador de ticks por estado; FixedUpdate() para FixedTick del physics. Expone fachada pública inmutable (`DNA`, `Intent`, `IsHeld`, `IsAirborne`, `IsPenned`, `CanBePetted`, etc.) y switchboard interno para que colaboradores pidan operaciones. **S55 RESUELTO:** ya NO es partial; composición pura. **S64:** agregados AgentSenses y AgentSocial. **S65:** AgentSocial nuevos modos Sleeping/Fighting. **S69:** Petting hold-E `BeginPetting()/EndPetting()`, HandFeed state, diales genéticos (Sociability/Boldness) modulan knobs comportamiento, nuevos knobs de petting y handFeed, `physics.CaptureNavAnchor()` en Initialize.
+**Responsabilidad:** Núcleo delgado que orquesta la vida de una criatura en el mundo (comportamiento autónomo + física de lanzamiento). Compone seis colaboradores internos: `AgentContext` (estado compartido), `AgentBrain` (máquina de estados NavMesh), `AgentPhysics` (handoff ragdoll), `AgentConfinement` (pens/cortejo), `AgentSenses` (percepción social throttled) y `AgentSocial` (decisiones y comportamiento social). Implementa `IThrowable` (agarrar/lanzar/knock) e `IInteractable` (petting). Ciclo de vida: `Initialize()` (wiring, setup NavMesh, llama `physics.CaptureNavAnchor()` si on-mesh), `Rebind()` (reload rápido), `PrepareForPool()` (pooling). Update() despachador de ticks por estado; FixedUpdate() para FixedTick del physics. Expone fachada pública inmutable (`DNA`, `Intent`, `IsHeld`, `IsAirborne`, `IsPenned`, `CanBePetted`, etc.) y switchboard interno para que colaboradores pidan operaciones. **S55 RESUELTO:** ya NO es partial; composición pura. **S64:** agregados AgentSenses y AgentSocial. **S65:** AgentSocial nuevos modos Sleeping/Fighting. **S69:** Petting hold-E `BeginPetting()/EndPetting()`, HandFeed state, diales genéticos (Sociability/Boldness) modulan knobs comportamiento, nuevos knobs de petting y handFeed, `physics.CaptureNavAnchor()` en Initialize. **S75:** usa `CreatureStats.GetEffectiveStats()` en lugar de CombatStats.
 
 ## Máquina de Estados
 
@@ -111,7 +111,7 @@ Cada colaborador tiene UNA responsabilidad; MoriMochiAgent = dispatcher + fachad
 - **S69 NUEVOS (HandFeed):** `feedNoticeRadius` (3), `feedDistance` (1.5), `feedShyBelow` (0.4), `feedShyDistance` (3), `feedHesitateSeconds` (5), `feedEatSeconds` (3), `feedHungerThreshold` (40), `feedHealthBoost` (30), `feedAffectBoost` (5), `feedCooldown` (10)
 
 **Tuning > Stats:**
-- Live readouts (play mode): `StatCon`, `StatAtk`, `StatSpd`, `StatDef`, `StatLck`, `StatEva` (Base → Final + delta)
+- Live readouts (play mode): `StatCon`, `StatAtk`, `StatSpd`, `StatDef`, `StatLck`, `StatEva` (Base → Final + delta). **S75:** usa `CreatureStats.GetEffectiveStats()` para base
 
 **Tuning > Physics:**
 - Hold feel: `followSpeed`, `settleSpeed`, `settleDelay`
@@ -226,7 +226,7 @@ Esto permite:
 - [[NeedStationRegistry]] — búsqueda de estaciones
 - [[PerceivableRegistry]] — S64 índice social
 - [[SocialGraphService]] — S65/S69 historial dinámico
-- [[CombatStats]], [[EquipmentStats]] — stats (live readout)
+- [[CreatureStats]], [[EquipmentStats]] — stats (live readout). **S75:** cambio de CombatStats a CreatureStats
 
 **Visualización & UI:**
 - [[MoriMonchiController]] — contiene este + visualizer

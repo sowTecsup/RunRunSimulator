@@ -16,8 +16,6 @@ namespace MoriMonchiSimulator
 
         public static string GenderName(CreatureGender gender) => Loc.Tr("gender." + KeyOf(gender));
 
-        public static string OutcomeName(CombatOutcome outcome) => Loc.Tr("outcome." + KeyOf(outcome));
-
         public static string StatAbbrev(StatType stat) => Loc.Tr("stat." + KeyOf(stat));
 
         public static string RarityName(Rarity rarity) => Loc.Tr("rarity." + KeyOf(rarity));

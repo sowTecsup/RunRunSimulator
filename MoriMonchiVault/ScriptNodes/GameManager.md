@@ -6,123 +6,33 @@ tags: [script, core, singleton]
 
 **Ruta:** `Core/GameManager.cs`
 
-**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (database, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. **S65:** `FlushToCloud()` también guarda el historial social (SaveSocialGraph). **S58:** Getter `PartVisualBank` eliminado (migración Suriyun completa — solo MonchiVisualBank). **S61:** `MintRandomCreature()` llama `GenerateRandom(database, furTypeDatabase)` sin `rarityOddsTable`; el campo y getter `rarityOddsTable`/`RarityOddsTable` siguen existiendo (reserva para gemas futuro). **S69:** `MintRandomCreature()` asigna `Sociability` y `Boldness` via `CreatureGenerator.RandomDial()`.
+**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (databases, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` y ejecuta persistencia local/cloud. Asigna referencias a CreatureDatabaseSO, FurnitureRegistrySO, PlayerInventorySO, **S75:** CutieMarkDatabaseSO. **S65:** `FlushToCloud()` también guarda el historial social. **S69:** `MintRandomCreature()` asigna `Sociability` y `Boldness`.
 
 ## Métodos Públicos
 
 | Método | Descripción |
 |--------|-------------|
 | `PushToCloud()` | Fire-and-forget async push vía `CloudSyncService.PushAsync()` |
-| `FlushToCloud()` | **S65:** Save local (creatures + social graph) + push cloud; usado en `OnApplicationQuit/Pause` |
+| `FlushToCloud()` | Save local (creatures + social graph) + push cloud |
 | `FlushForSceneChange()` | Save local + push cloud ANTES de cambiar escena |
-| `MintRandomCreature()` | **S69** Genera random creature pastel vía `GenerateRandom(database, furTypeDatabase)`, asigna género, elemento, rol, stats, **diales (Sociability/Boldness)**, nombre, registra (sin rarityOddsTable) |
+| `MintRandomCreature()` | Genera random creature vía `GenerateRandom()`, asigna género, elemento, rol, stats, diales, nombre, registra |
 
-## Cambios S69
+## Cambios en S75
 
-**MintRandomCreature() actualizado:**
-```csharp
-[Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
-public void MintRandomCreature()
-{
-    var dna        = CreatureGenerator.GenerateRandom(database, furTypeDatabase);
-    dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
-    dna.Element = CreatureGenerator.RandomElement();
-    dna.Role = CreatureGenerator.RandomRole();
-    (dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed) = CreatureGenerator.RandomBaseStats();
-    dna.Sociability = CreatureGenerator.RandomDial();  // NEW S69
-    dna.Boldness    = CreatureGenerator.RandomDial();  // NEW S69
-    dna.CustomName = CreatureNameBank.GetRandomName();
-    dna.Stamp();
+- **NUEVO getter:** `CutieMarkDatabase` (referencia al SO de marcas distintivas)
+- Sin cambios de lógica principal (persiste, procesa eventos, etc.)
 
-    if (!creatureRegistry.Register(dna)) return;
+## Getters de Referencias
 
-    GameEvents.CreatureMinted(dna);
-    GameEvents.RegistryChanged(creatureRegistry);
-    lastMintedID = dna.UniqueID;
-    Debug.Log($"[GameManager] Minted: \"{dna.CustomName}\"  {dna.UniqueID}  ({dna.Gender})");
-}
-```
-
-**Cambios principales:**
-- Llama `CreatureGenerator.RandomDial()` dos veces: una para Sociability, otra para Boldness
-- Rango 0.15..0.85 garantiza variedad sin extremos absolutos
-- Ambos diales son metadata (no genéticos), heredables en breeding vía `BreedingService.InheritDial()`
-- Sociability modula afinidad social + cooldown; Boldness modula agresividad + evitación
-
-## Cambios S65
-
-**FlushToCloud() actualizado:**
-- Ahora llama `SaveSystem.SaveSocialGraph()` además de `SaveSystem.SaveDatabase()` para persistir el historial de interacciones antes de pushear.
-- Orden: save creatures → save social graph → push cloud.
-
-```csharp
-public void FlushToCloud()
-{
-    SaveSystem.SaveDatabase(creatureRegistry);
-    SaveSystem.SaveSocialGraph();
-    PushToCloud();
-}
-```
-
-## Cambios S61
-
-**MintRandomCreature() simplificado:**
-- Llama `CreatureGenerator.GenerateRandom(database, furTypeDatabase)` (sin rarityOddsTable)
-- Decisión de diseño: Partes con probabilidad uniforme; rareza reservada para gemas futuras
-- Campo `rarityOddsTable` y getter `RarityOddsTable` siguen serializados (reserva de arq.)
-- MintRandomCreature NO usa rarityOddsTable (future: eventualmente solo para roll de gemas en breeding)
-
-**Impacto S61:**
-- Mint ahora es 100% uniforme (excepto FurType si tabla ponderada)
-- Simplificación: una sola ruta de generación, sin branching de rareza
-- Compatibilidad: campo rarityOddsTable sigue en inspector (no rompe serialización)
-
-## Cambios S58
-
-**Eliminado:**
-- Campo `[SerializeField] private PartVisualBankSO partVisualBank;`
-- Getter `public PartVisualBankSO PartVisualBank => partVisualBank;`
-- Referencia completamente removida (no más legacy part system)
-
-**Impacto:**
-- CombatVisualUnits usa `GameManager.MonchiVisualBank` (Suriyun)
-- Ningún código restante referencia PartVisualBank
-- Limpieza de deuda técnica (deprecation finalizado)
-
-## Getters Públicos
-
-| Getter | Tipo | Descripción |
-|--------|------|-------------|
-| `Registry` | `CreatureRegistrySO` | Creature registry |
-| `FurnitureRegistry` | `FurnitureRegistrySO` | Furniture registry |
-| `Inventory` | `PlayerInventorySO` | Player inventory |
-| `Database` | `CreatureDatabaseSO` | Creature database |
-| `RarityOddsTable` | `RarityOddsTableSO` | **S61 RESERVA FUTURA** Rarity odds table (sin uso en S61, campo serializado para gemas) |
-| `RoleWorldProfiles` | `RoleWorldProfileSO` | Role profiles |
-| `MonchiVisualBank` | `MonchiVisualBankSO` | **S58 ÚNICA OPCIÓN** Suriyun model bank |
-| `FurTypeDatabase` | `FurTypeDatabaseSO` | Fur type database |
-| `EquipmentDatabase` | `EquipmentDatabaseSO` | Equipment database |
-
-## Notas
-
-- S69: Mint asigna Sociability/Boldness random (0.15..0.85). Herencia en breeding vía InheritanceOddsTableSO.
-- S65: Persistencia social graph local-only; sync a cloud es futuro.
-- S61: Mint uniforme, rarityOddsTable es reserva futura.
-- S58: Única capa visual es MonchiVisualBank (Suriyun rig + MonchiAnimationDriver)
-- Legacy PartVisualBankSO descartado completamente
-- MintRandomCreature() retorna pastel colors (S58: ColorGenetics.RandomBase())
+- `Registry` — CreatureRegistrySO
+- `CreatureDatabase` — CreatureDatabaseSO (con Horns, Backs, Wings, Faces)
+- `FurnitureRegistry` — FurnitureRegistrySO
+- `PlayerInventory` — PlayerInventorySO
+- `CutieMarkDatabase` — CutieMarkDatabaseSO
+- `FurTypeDatabase` — FurTypeDatabaseSO
 
 ## Vinculado a
 
 - [[Index/07 - Persistence & Identity]]
-- [[Index/10 - Visualization]]
-- [[Index/02 - Genetics & Breeding]]
-- [[CombatVisualUnits]] — consume MonchiVisualBank (S58)
-- [[CreatureGenerator]] — usa Database, FurTypeDatabase
-- [[BreedingService]] — usa Registry
 
-## Conexiones
-
-- **Entrada:** GameEvents (RegistryChanged, FurnitureChanged, InventoryChanged)
-- **Salida:** SaveSystem (persistencia local), CloudSyncService (persistencia cloud), SocialGraphService (histórico)
-- **Refs:** Todos los SO principales del proyecto
+**Conexiones:** [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[CutieMarkDatabaseSO]], [[CloudSyncService]], [[CreatureGenerator]], [[GameEvents]]

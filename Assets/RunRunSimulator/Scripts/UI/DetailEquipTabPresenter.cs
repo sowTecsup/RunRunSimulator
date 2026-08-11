@@ -142,7 +142,7 @@ public class DetailEquipTabPresenter
         equipStats.Clear();
 
         var baseEff = database != null
-            ? CombatStats.GetEffectiveStats(dna, database)
+            ? CreatureStats.GetEffectiveStats(dna, database)
             : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
         var finalEff = EquipmentStats.Apply(baseEff, dna, equipmentDatabase);
 

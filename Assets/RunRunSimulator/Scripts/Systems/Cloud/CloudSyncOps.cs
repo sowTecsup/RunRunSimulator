@@ -15,9 +15,7 @@ public class CloudSyncOps
     private const string META_KEY      = "sync_meta";
     private const string FURNITURE_KEY = "furnitureregistry";
     private const string INVENTORY_KEY = "playerinventory";
-    private const string COMBAT_RESULTS_KEY  = "combat_results";
     private const string CANCEL_ALL_BREEDING = "cancel-all-breeding";
-    private const string DEQUEUE_COMBAT      = "dequeue-combat";
 
     [Serializable]
     private class SyncMeta
@@ -240,19 +238,11 @@ public class CloudSyncOps
 
             try { await CloudEndpoint.CallAsync(CANCEL_ALL_BREEDING, new Dictionary<string, object>()); } catch { }
 
-            foreach (var dna in registry.GetAll().Values)
-            {
-                if (dna.BusyState != BusyReason.QueuedForCombat) continue;
-                try { await CloudEndpoint.CallAsync(DEQUEUE_COMBAT, new Dictionary<string, object> { { "creatureId", dna.UniqueID } }); }
-                catch { }
-            }
-
             // Clear cloud keys (ignore errors if key doesn't exist)
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY,       new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY,           new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY,      new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY,      new PlayerDeleteOptions()); } catch { }
-            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(COMBAT_RESULTS_KEY, new PlayerDeleteOptions()); } catch { }
 
             // Clear local data and JSON — do NOT push back (we just cleared the cloud)
             registry.LoadFrom(new System.Collections.Generic.Dictionary<string, CreatureDNA>());
@@ -286,21 +276,5 @@ public class CloudSyncOps
         }
     }
 
-    public async Task NotifyPendingCombatResultsAsync()
-    {
-        try
-        {
-            var data = await CloudSaveService.Instance.Data.Player.LoadAsync(
-                new HashSet<string> { "combat_results" });
-            if (!data.ContainsKey("combat_results")) return;
-
-            var json    = data["combat_results"].Value.GetAs<string>();
-            var results = JsonConvert.DeserializeObject<List<object>>(json);
-            if (results == null || results.Count == 0) return;
-
-            Debug.Log($"[CloudSync] ¡Bienvenido, {auth.PlayerName}! Tienes {results.Count} MoriMochi(s) con resultado de combate pendiente. Presiona 'Check Pending Results' para aplicarlos.");
-        }
-        catch { /* silent — non-critical notification */ }
-    }
 }
 }

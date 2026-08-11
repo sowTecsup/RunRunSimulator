@@ -6,7 +6,7 @@ tags: [script, genetics]
 
 **Ruta:** `Core/CreatureGenerator.cs`
 
-**Responsabilidad:** Generador estático de criaturas aleatorias. Crea `CreatureDNA` con partes aleatorias por slot (cada uno con su propio roll uniforme), color base aleatorio via `ColorGenetics.RandomBase()`, color secundario derivado deterministico via `ColorGenetics.DeriveSecondary(baseColor)`, `FurType` aleatorio (ponderado si se pasa `FurTypeDatabaseSO`, uniform si null). `RandomRole()` asigna rol no heredado (metadata, 1/3 aleatorio). `RandomElement()` asigna elemento no heredado (metadata, 1/4 aleatorio) para mint. **S69:** `RandomDial()` = Random.Range(0.15f, 0.85f) asigna dial genético para mint. `RandomBaseStats()` genera los 3 stats iniciales (Constitution/Attack/Speed) via point-buy: distribuye `StatBudget` (18 points) entre 3 stats, clampeados a [StatMin..StatMax] (1..10).
+**Responsabilidad:** Generador estático de criaturas aleatorias. Crea `CreatureDNA` con 5 partes aleatorias (Body/Horn/Back/Wing/Face), color base aleatorio, color secundario derivado, FurType aleatorio, IsShiny roll. Métodos para rol/elemento/diales aleatorios (metadata). Point-buy de stats base (Constitution/Attack/Speed).
 
 ## Constantes
 
@@ -20,115 +20,45 @@ tags: [script, genetics]
 
 | Método | Retorna | Propósito |
 |--------|---------|----------|
-| `GenerateRandom(CreatureDatabaseSO, FurTypeDatabaseSO)` | `CreatureDNA` | **S61** Partes uniforme + color base/secundario + FurType aleatorio (ponderado si furDb != null, uniforme si null) + IsShiny roll (sin stats base). Firma simplificada: eliminado `RarityOddsTableSO` (rareza reservada para gemas). |
-| `RandomRole()` | `Role` | **S37** Role aleatorio no heredado (1/3). |
-| `RandomElement()` | `Element` | **S39** Element aleatorio no heredado (1/4). |
-| `RandomDial()` | `float` | **S69** Retorna `Random.Range(0.15f, 0.85f)` para asignar diales genéticos (Sociability/Boldness) en mint. Rango evita extremos (0 ó 1) para variedad de comportamiento. |
-| `RandomBaseStats()` | `(float, float, float)` | Point-buy: distribuye 18 puntos entre CON/ATK/SPD, cada uno 1–10. |
+| `GenerateRandom(CreatureDatabaseSO, FurTypeDatabaseSO)` | `CreatureDNA` | **S75** Genera 5 partes aleatorias (Body/Horn/Back/Wing/Face), colores, FurType, IsShiny. Sin stats base ni metadata (los asigna GameManager). |
+| `RandomRole()` | `Role` | Role aleatorio (1/3). |
+| `RandomElement()` | `Element` | Element aleatorio (1/4). |
+| `RandomDial()` | `float` | `Random.Range(0.15f, 0.85f)` para diales (Sociability/Boldness). |
+| `RandomBaseStats()` | `(float, float, float)` | Point-buy: distribuye 18 puntos entre CON/ATK/SPD. |
 
-## Cambios S69
+## GenerateRandom (S75)
 
-**Nuevo método `RandomDial()`:**
-```csharp
-public static float RandomDial() => Random.Range(0.15f, 0.85f);
-```
+**S75 ACTUALIZADO:** Reemplazó Arm/Eye/Mouth con Horn/Back/Wing/Face.
 
-**Propósito:** Asigna valores iniciales para diales genéticos (`Sociability` y `Boldness`) en mint. Rango 0.15..0.85 evita extremos absolutos (nunca 0 ó 1 puro) para garantizar variedad de comportamiento sin outliers.
-
-**Consumo:**
-- `GameManager.MintRandomCreature()` → llama `RandomDial()` dos veces (Sociability, Boldness)
-- En breeding: `BreedingService.InheritDial()` hereda con Average/Copy/Mutation, no llama RandomDial
-
-**Metadata:** Diales no son genéticos (no parte de ToStringID). Se asignan al random en mint; se heredan en breeding vía InheritanceOddsTableSO.
-
-## Cambios S61
-
-**GenerateRandom() firma actualizada:**
 ```csharp
 public static CreatureDNA GenerateRandom(CreatureDatabaseSO database, FurTypeDatabaseSO furDb = null)
 {
-    // ... Pick<T>(db.BodyShapes) etc. → uniforme (sin rarity filter)
-    var furValues = System.Enum.GetValues(typeof(FurType));
-    
+    var bodyShape = Pick(database.BodyShapes);
+    var horn      = Pick(database.Horns);         // NUEVO S75
+    var back      = Pick(database.Backs);         // NUEVO S75
+    var wing      = Pick(database.Wings);         // NUEVO S75
+    var face      = Pick(database.Faces);         // NUEVO S75
+
+    if (bodyShape == null || horn == null || back == null || wing == null || face == null)
+        Debug.LogWarning("[CreatureGenerator] One or more part slots are empty — ensure all databases are populated.");
+
     return new CreatureDNA
     {
         BodyShapeID  = bodyShape?.ID ?? "",
-        ArmID        = arm?.ID       ?? "",
-        EyeID        = eye?.ID       ?? "",
-        MouthID      = mouth?.ID     ?? "",
-        BaseColor      = baseColor,
+        HornID       = horn?.ID       ?? "",       // NUEVO S75
+        BackID       = back?.ID       ?? "",       // NUEVO S75
+        WingID       = wing?.ID       ?? "",       // NUEVO S75
+        FaceID       = face?.ID       ?? "",       // NUEVO S75
+        BaseColor      = ColorGenetics.RandomBase(),
         SecondaryColor = ColorGenetics.DeriveSecondary(baseColor),
-        FurType        = furDb != null ? furDb.RollMintFurType() : (FurType)furValues.GetValue(Random.Range(0, furValues.Length)),
+        FurType        = furDb != null ? furDb.RollMintFurType() : random uniform,
         IsShiny        = ColorGenetics.RollShiny(),
     };
 }
 ```
 
-**Cambios principales:**
-- **Eliminado parámetro `RarityOddsTableSO oddsTable`** — firma anterior: `GenerateRandom(CreatureDatabaseSO, RarityOddsTableSO, FurTypeDatabaseSO)`
-- **Partes ahora uniform** — `Pick<T>(db)` llama `GetRandomPart()` sin filtro de rareza
-- **Decisión de diseño:** Rareza por parte es irrelevante en mint (todas las partes spawn con igual probabilidad). Rareza reservada para gemas (IsShiny future).
-- **FurType decision:** ponderado si `furDb` != null (consulta `furDb.RollMintFurType()`), uniforme fallback si null
-
-**Consumo:**
-- `GameManager.MintRandomCreature()` → llama `GenerateRandom(database, furTypeDatabase)` (sin rarityOddsTable)
-- `GeneticsLabPreview.GenerateRandomCreature()` → llama `GenerateRandom(gameManager.Database)` (sin odds, sin fur type)
-
-**Impacto S61:**
-- Simplificación: una sola ruta de generación, sin branch de rareza
-- Mint es ahora 100% uniforme por parte (si se pasa null, fur type también uniforme)
-- RarityOddsTable en GameManager sigue serializado (reserva para gemas futuro)
-
-## Cambios S57
-
-**FurType ponderado en mint:**
-- Si `furDb != null`: llama `furDb.RollMintFurType()` para FurType ponderado (mintWeights)
-- Si `furDb == null`: FurType aleatorio uniforme (fallback legacy)
-- Llama `ColorGenetics.RollShiny()` para `IsShiny` (0.5% probabilidad)
-- Retorna DNA con `IsShiny` y `FurType` seteados
-
-## Cambios S37
-
-**Nuevo método `RandomRole()`:**
-```csharp
-public static Role RandomRole()
-{
-    var values = System.Enum.GetValues(typeof(Role));
-    return (Role)values.GetValue(Random.Range(0, values.Length));
-}
-```
-
-**Propósito:** Asigna rol aleatorio 1/3 (Protector, Agresivo, Empático) en mint. En breeding, el rol hereda 50/50 de padres vía `BreedingService` (NOT vía CreatureGenerator).
-
-**Metadata:** Role es metadata (no genético), como Gender/Personality. Se asigna al azar en mint; se hereda en breeding por otra ruta (BreedingService roll 50/50 de padres).
-
-**Consumo:**
-- `GameManager.MintRandomCreature()` → llama `GenerateRandom()` + asigna stats base + **llama `RandomRole()`** → popula `Dna.Role`
-- `BreedingService.Breed()` → hereda role 50/50 de padres (no llama RandomRole)
-
-## Cambios S39
-
-**Nuevo método `RandomElement()`:**
-```csharp
-public static Element RandomElement()
-{
-    var values = System.Enum.GetValues(typeof(Element));
-    return (Element)values.GetValue(Random.Range(0, values.Length));
-}
-```
-
-**Propósito:** Asigna afinidad elemental aleatoria 1/4 (Agua, Fuego, Electricidad, Planta) en mint. En breeding, el elemento hereda 50/50 de padres vía `BreedingService` con chance de mutación.
-
-**Metadata:** Element es metadata (no genético), como Gender/Role. Se asigna al azar en mint; se hereda en breeding con chance de mutación.
-
-**Consumo:**
-- `GameManager.MintRandomCreature()` → llama `GenerateRandom()` + **llama `RandomElement()`** → popula `Dna.Element`
-- `BreedingService.Breed()` → hereda element 50/50 de padres con mutación (no llama RandomElement)
-
 ## Vinculado a
 
-[[Index/02 - Genetics & Breeding]], [[Index/03 - Combat System]], [[Index/13 - Combat Design Direction]]
+- [[Index/02 - Genetics & Breeding]]
 
-## Conexiones
-
-[[CreatureDNA]], [[PartDatabaseSO]], [[GameManager]], [[ColorGenetics]], [[FurType]], [[Enums]], [[Role]], [[Element]], [[BreedingService]], [[FurTypeDatabaseSO]], [[SocialTuningSO]]
+**Conexiones:** [[CreatureDNA]], [[CreatureDatabaseSO]], [[GameManager]], [[ColorGenetics]], [[BreedingService]]

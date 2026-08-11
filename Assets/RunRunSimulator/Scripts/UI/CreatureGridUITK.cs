@@ -290,10 +290,9 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
     }
 
     private static string StateOf(CreatureDNA d) =>
-        d.IsSold                                  ? Loc.Tr("status.sold")     :
-        d.IsDead                                  ? Loc.Tr("status.dead")     :
-        d.BusyState == BusyReason.Breeding        ? Loc.Tr("status.breeding") :
-        d.BusyState == BusyReason.QueuedForCombat ? Loc.Tr("status.queued")   :
+        d.IsSold                           ? Loc.Tr("status.sold")     :
+        d.IsDead                           ? Loc.Tr("status.dead")     :
+        d.BusyState == BusyReason.Breeding ? Loc.Tr("status.breeding") :
         Loc.Tr("status.free");
 }
 }

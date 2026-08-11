@@ -17,11 +17,12 @@ public static class CreatureGenerator
         }
 
         var bodyShape = Pick(database.BodyShapes);
-        var arm       = Pick(database.Arms);
-        var eye       = Pick(database.Eyes);
-        var mouth     = Pick(database.Mouths);
+        var horn      = Pick(database.Horns);
+        var back      = Pick(database.Backs);
+        var wing      = Pick(database.Wings);
+        var face      = Pick(database.Faces);
 
-        if (bodyShape == null || arm == null || eye == null || mouth == null)
+        if (bodyShape == null || horn == null || back == null || wing == null || face == null)
             Debug.LogWarning("[CreatureGenerator] One or more part slots are empty — ensure all databases are populated.");
 
         var baseColor = ColorGenetics.RandomBase();
@@ -30,9 +31,10 @@ public static class CreatureGenerator
         return new CreatureDNA
         {
             BodyShapeID  = bodyShape?.ID ?? "",
-            ArmID        = arm?.ID       ?? "",
-            EyeID        = eye?.ID       ?? "",
-            MouthID      = mouth?.ID     ?? "",
+            HornID       = horn?.ID       ?? "",
+            BackID       = back?.ID       ?? "",
+            WingID       = wing?.ID       ?? "",
+            FaceID       = face?.ID       ?? "",
             BaseColor      = baseColor,
             SecondaryColor = ColorGenetics.DeriveSecondary(baseColor),
             FurType        = furDb != null ? furDb.RollMintFurType() : (FurType)furValues.GetValue(Random.Range(0, furValues.Length)),

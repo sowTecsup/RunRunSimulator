@@ -14,7 +14,6 @@ public class CustomerArchetypeSO : SerializedScriptableObject
 
     [Title("Preference (weights for valuation)")]
     [MinValue(0)] public float WeightBreed = 1f;
-    [MinValue(0)] public float WeightCombat = 1f;
     [MinValue(0)] public float WeightStats = 1f;
     [MinValue(0)] public float WeightTier = 1f;
 
