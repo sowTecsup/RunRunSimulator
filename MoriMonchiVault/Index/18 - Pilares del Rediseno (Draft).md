@@ -4,6 +4,8 @@ tags: [index, design, draft, rediseno]
 
 # 18 - Pilares del Rediseño (DRAFT)
 
+> 🪦 **ACTUALIZACIÓN S76 (2026-08-11): LAS PARTES 7 Y 8 QUEDARON DESCARTADAS.** Juan descartó el tablero de desvíos y el archipiélago (*"al final no me gustó"*) y entregó un concepto de combate totalmente nuevo: ver [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]]. Con ellas caen "genes=conectores", la costura del lore (§8.6), las dudas D1–D6 **y el PvP por snapshot de §1.6** (competencia pasa a leaderboard + mercado futuro). **La Parte 1 sigue viva** (día/noche, 6 genes, ítem único, Cutie Marks, monedas) y el combate nuevo la reutiliza.
+>
 > **Sesión 73 (2026-08-09).** Juan entregó la base de su manuscrito: ciclo día/noche, moneda de evolución, genes visibles, ítem único consumible y **Cutie Marks** en reemplazo del panel de equipo.
 >
 > ⚠️ **ESTADO: DRAFT — LA IDEA NO ESTÁ CERRADA.** Este archivo existe para que la base no se pierda mientras se sigue explorando. **Nada de esto baja a código.** Cuando la idea se cierre, esta nota se promueve a documento de diseño y recién ahí se planea implementación.
@@ -514,4 +516,4 @@ TRAS LA ETAPA 3
 
 ## Estado
 
-**DRAFT. Idea abierta, cero código.** La Parte 7 sigue siendo la mecánica en pie; la **Parte 8** la reescribe en dos puntos grandes (el **archipiélago** reemplaza los "3 tableros distintos" de §7.5, y las **piezas vienen del roster** vía §8.1). Las preguntas 1 y 3 de la Parte 6 quedan resueltas si se confirma. **El bloqueante actual es §8.6** (la costura del lore) y sus dos preguntas.
+**PARTES 7–8: DESCARTADAS EN S76** — reemplazadas por [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]]. La §8.6 y las D1–D6 quedan sin objeto. **La Parte 1 sigue siendo fuente de verdad** de los pilares no-combate (con §1.6 modificada por S76: el PvP se descartó, la competencia es indirecta). Las Partes 2–6 conservan valor como análisis de esos pilares.

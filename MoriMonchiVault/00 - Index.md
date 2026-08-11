@@ -48,7 +48,8 @@ MoriMonchiVault/
 | **Rumbo del proyecto: autobattler, mercado y pitch** | [[Index/15 - Theorycrafting S71 - Autobattler y Marketing]] | — |
 | **Estado real de cada frente, acoples y cuellos de botella** | [[Index/16 - Diagnostico por Frentes]] | — |
 | **Refundación del combate: lentes, géneros, formatos** | [[Index/17 - Refundacion del Combate]] | — |
-| **Pilares del rediseño + LA MECÁNICA (tablero de desvíos · archipiélago · genes=conectores)** ⚠️ DRAFT | [[Index/18 - Pilares del Rediseno (Draft)]] | — |
+| **Pilares del rediseño (día/noche · genes · ítem · Cutie Marks)** — Partes 7-8 (tablero) 🪦 descartadas S76 | [[Index/18 - Pilares del Rediseno (Draft)]] | — |
+| **COMBATE NUEVO: Predictive Tactical Extraction (expedición · plantillas · secuencia · extracción)** ⚠️ DRAFT | [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]] | — |
 
 ---
 
