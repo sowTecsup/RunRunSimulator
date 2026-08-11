@@ -4,6 +4,27 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-08-11 (Session 76 — **EL HANDOFF: rumbo nuevo del combate = Predictive Tactical Extraction — 🪦 tablero de desvíos DESCARTADO — sesión de diseño puro, cero código — ✅ CERRADA: `Index/19` creada, 5 decisiones cerradas, ronda 3 lista**)
+**Focus:** Juan trajo un handoff de gameplay escrito por él y pidió evaluarlo juntos para cerrar huecos antes de codear. Primera declaración clave: *"es un concepto totalmente nuevo, olvídate de lo que estuvimos hablando antes respecto al gameplay de combate — descarta lo del board de desvíos, al final no me gustó"*. Se mantiene todo lo demás (Parte 1 de la nota 18: día/noche, 6 genes, ítem único, Cutie Marks, monedas). El orquestador evaluó el handoff contra las notas 17/18, confirmó que pasa los filtros duros (hipótesis, confirmación>suspenso, fracaso≠RNG, estado oculto solo ENTRE encuentros), y corrió dos rondas de preguntas.
+
+1. **Entregable**: [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]] (NUEVA) — Parte 1 = handoff verbatim (fuente de verdad) · Parte 2 = las 5 decisiones de Juan · Parte 3 = lectura del orquestador + abiertos de ronda 3. Sigue DRAFT: **nada baja a código hasta el documento de mecánica en limpio**.
+2. **🪦 DESCARTADO por Juan**: el tablero de desvíos + archipiélago (Partes 7–8 de la nota 18) y con ellos "genes=conectores", la costura del lore §8.6, las dudas D1–D6, **y el PvP por snapshot+mailing** (§1.6). La nota 18 quedó con banner de descarte y Estado reescrito; `00 - Index` con fila nueva de ruteo.
+3. **Las 5 decisiones de S76 (fuente de verdad, detalle en la 19 Parte 2)**: (1) ⭐ **genes = catálogo de habilidades** — el tipo de cuerno/espalda/alas define qué habilidades-plantilla tiene el bicho → criar es criar movesets (el eslabón nuevo de integración crianza↔combate); (2) ⭐ planificación = **plantillas sobre cuadrícula + secuencia programada** ("habilidad 1 de M1 → habilidad 3 de M3...") — geometría + secuenciación; (3) determinismo **diferido** (intención: escenarios que varían cómo funcionan los enemigos, ej. rebotes — el filtro nota 17 sigue siendo el criterio); (4) ⭐ **PvP descartado** → competencia indirecta: leaderboards + mercado futuro; (5) ⭐ **muerte permanente confirmada** (ciertos eventos matan) + los muertos quedan como **legacy** para contenido futuro aún no diseñado.
+4. **Estado del código respecto al rumbo nuevo**: la demolición S75 sigue 100% válida (las bases Horn/Back/Wing/Face, CutieMarkSO, HeldItemId y monedas son genéricas). ⚠️ Revisar `ItemTriggerKind { LowHealth, Collision, Collected }` cuando el combate tenga forma (se definieron pensando en el tablero). El pendiente de editor de S75 (assets + rewiring + escena) no cambia.
+5. **Memoria persistente del orquestador actualizada** (`project_refundacion_combate`) para que ninguna sesión futura resucite el tablero.
+
+> ### 📝 Notas S76
+> 1. **Ronda 3 pendiente (lista completa en la 19 §3.3, ordenada por bloqueo)**: qué es espacialmente un encuentro (grilla, movimiento autónomo) · economía de acciones/secuencia · el corte exacto del determinismo · expedición ↔ bloque nocturno + duración del día en minutos reales · qué eventos matan · métrica del leaderboard · Cutie Marks en la coreografía. La lista del §22 del handoff queda deliberadamente abierta — no cerrarla de a pedazos sin Juan.
+> 2. Cero `.cs`, cero Unity, cero Notion. Todo lo commiteado por Juan en `3d610bd`.
+
+**Files Touched (.cs — input ScriptNodes):** ninguno. **No se invocó `vault-documenter`** (sesión de diseño puro).
+
+**Files Touched (no-ScriptNode):** `MoriMonchiVault/Index/19 - Combate Nuevo - Predictive Tactical Extraction.md` (NUEVA), `Index/18 - Pilares del Rediseno (Draft).md` (banner 🪦 + Estado), `00 - Index.md` (+1 fila de ruteo, fila 18 marcada), este archivo. Memoria del orquestador: `project_refundacion_combate.md` + `MEMORY.md`.
+
+**Next session (S77):** dos caminos válidos — **(a) diseño**: ronda 3 sobre la 19 §3.3 (los 3 primeros abiertos bastan para empezar el **documento de mecánica en limpio**, el primer artefacto prototipable); **(b) editor**: el pendiente obligatorio de S75 nota 1 (assets nuevos + rewiring CreatureDatabase/GameManager + limpieza de GameScene + consola 0 errores), que es independiente del diseño y desbloquea Play. Arrastres previos sin cambios (ver S75): despublicar los 5 endpoints Cloud Code + keys de localización huérfanas + deuda de documentación (tabla de eventos de CLAUDE.md).
+
+---
+
 **Session:** 2026-08-11 (Session 75 — **LA GRAN DEMOLICIÓN: terreno limpio para el rediseño — combate borrado, genes migrados, bases nuevas — ✅ CERRADA: compila 0 errores por MSBuild; queda la sesión de editor para assets + escena**)
 **Focus:** Juan autorizó explícitamente ("tienes el permiso de ir actualizando los archivos de juego") usar la ventana previa a su reset semanal para preparar el terreno de las mecánicas nuevas. Alcance confirmado por Juan vía preguntas: (1) desconectar SOLO el combate cloud (Auth y Cloud Save siguen vivos), (2) BORRAR el 3v3 local completo, (3) crear las 4 bases de data: genes nuevos, Cutie Marks, ítem único, monedas. Ejecución: 3 agentes Explore mapearon el radio de ruptura, el orquestador demolió, 8 morimonchi-coder en paralelo con dueño único por archivo. **Unity MCP NO estaba conectado**: la verificación fue MSBuild sobre un csproj corregido a mano (fuentes reales + DLLs de `Library/ScriptAssemblies`) → **0 errores, 30 warnings preexistentes**. La excepción a "nada baja a código hasta el documento de mecánica" fue orden directa de Juan.
 
