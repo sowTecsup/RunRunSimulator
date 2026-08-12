@@ -10,7 +10,7 @@ tags: [index, design, draft, rediseno, combate]
 >
 > **ESTADO: DRAFT — rumbo elegido, mecánica sin cerrar.** Sigue vigente que **nada baja a código** hasta el documento de mecánica en limpio.
 >
-> **Convención (igual que la nota 18):** Parte 1 = el handoff de Juan, verbatim (fuente de verdad, no interpretar). Parte 2 = lo que Juan cerró en la sesión de evaluación. Parte 3 = lectura del orquestador.
+> **Convención (igual que la nota 18):** Parte 1 = el handoff de Juan, verbatim (fuente de verdad, no interpretar). Parte 2 = lo que Juan cerró en la sesión de evaluación. Parte 3 = lectura del orquestador. **Parte 4 (S77) = la visualización concreta de Juan del flujo completo** — cierra la pregunta madre de la ronda 3 y deja la ronda 4 lista.
 
 Relacionado: [[Index/18 - Pilares del Rediseno (Draft)]] · [[Index/17 - Refundacion del Combate]] · [[Index/16 - Diagnostico por Frentes]]
 
@@ -236,6 +236,8 @@ Respuestas a la ronda de preguntas de la sesión de evaluación:
 
 ## 3.3 · Abiertos para la ronda 3 (próxima sesión de diseño)
 
+> ⚠️ **Actualización S77**: la Parte 4 cerró o encaminó varios de estos — el **1** quedó parcialmente cerrado (3 MoriMonchis por expedición, entran al tablero vía su primer despliegue, isla-cuadrícula estilo Bad North; tamaño sin número), el **2** parcialmente (habilidades = las 3 partes en la card; economía sin cerrar → Q5 de §4.4), el **7** cerrado (Cutie Marks = modificadores de coreografía). La herida persistente entre niveles también quedó confirmada. **La ronda 4 vive en §4.4.**
+
 Ordenados por cuánto bloquean el documento de mecánica:
 
 1. **¿Qué es espacialmente un encuentro?** Tamaño de la cuadrícula, cuántos MoriMonchis entran, cómo se mueven durante la resolución (la parte "autobattle" del movimiento es autónoma — ¿con qué reglas?).
@@ -251,6 +253,64 @@ Ordenados por cuánto bloquean el documento de mecánica:
 
 ---
 
+# PARTE 4 — La visualización de Juan (S77, 2026-08-12 — fuente de verdad)
+
+> Braindump entregado por Juan al abrir la ronda 3. Es la descripción más concreta que existe del combate: el flujo de punta a punta como él lo ve. Deliberadamente **sin números todavía** (vidas, daño, N de contadores, tamaño de grilla) — Juan pidió asentar primero la idea general.
+
+## 4.1 · El flujo completo
+
+1. **Marco**: llega la tarde → se hace de noche → **la tienda cierra** → se sale de aventura **por la parte trasera de la tienda**.
+2. **Roster**: se eligen **3 MoriMonchis** que van con vos.
+3. **Preview**: en el **celular** se ve **por simbología** cuáles son las etapas a enfrentar antes de llegar a la **salida / punto de extracción**.
+4. **El tablero**: al aventurarse, se visualiza una cuadrícula **estilo isla — referencia: Bad North**, pero con las cuadrículas **más marcadas** (estilo tuning). Se ven **algunos enemigos**. **Aún no pasa nada: hay que desplegar la coreografía.**
+5. **Las cards**: en la parte inferior, **3 cards** de tus MoriMonchis. Card = **imagen del MoriMonchi + las 3 partes que dan habilidades**. *(La card ES el genoma legible.)*
+6. **Enemigos reactivos**: se sabe que **se mueven en reacción a cómo interactúes con ellos** — por eso el planeamiento. Cada enemigo tiene **N interacciones** que se hacen con él antes de ejecutar su acción. **Imaginarlos como bombas**: las golpeás N veces, el **siguiente** que la golpee **la detona** (ej.: al ser atacada, en su siguiente turno ataca a todos alrededor). ⭐ **La bomba es el primer enemigo para testear.**
+7. **⭐ El despliegue define la posición**: el **primer despliegue es gratis** — podés tirar la plantilla desde donde quieras, y **tu MoriMonchi se queda en el lugar donde tiró la plantilla**. → **Las plantillas y ataques TAMBIÉN definen la posición de tus MoriMonchis sobre el tablero.**
+8. **Controles descritos**: `F1/F2/F3` selecciona MoriMonchi · `1/2/3` selecciona su habilidad · `WASD` mueve el cursor sobre el tablero (se van mostrando las plantillas) · `Q/E` rota la plantilla 90° · `Enter`/click confirma la posición.
+9. **Cada habilidad es un sistema de plantillas + efectos**: algunas son **de ataque**, otras sirven **para recolectar**, y **las de las alas son meramente movimientos**.
+10. **Ejemplo de coreografía (de Juan, verbatim en estructura)**: *despliego MM A → golpeo → golpeo con el segundo → sé que le queda un tick a la bomba para explotar → me alejo → voy a las zonas de recolección → aplico la habilidad de recolección → listo.*
+11. **Cutie Marks = el rol de equipo**: del tipo *"al golpear a tal, repite el ataque"*, *"te desplaza a tal lugar"*, *"lo empuja"*.
+12. **Consumibles**: mismo concepto de siempre — se cumple una condición → se usan.
+13. **Entre niveles**: al terminar el nivel se pasa al siguiente **con las mismas heridas**, y se continúa nivel a nivel **hasta llegar al punto de extracción**.
+
+## 4.2 · Lectura del orquestador (S77)
+
+- **⭐ La regla que unifica todo — "posición = consecuencia del ataque"**: no existe "mover" como sistema separado; actuar Y posicionarse son la misma acción (reubicarse cuesta una habilidad de alas). Una pieza, dos funciones — la economía de reglas que la nota 17 marcó como faltante (Elegance 4/10). **Resuelve la pregunta madre de la ronda 3 eliminándola**: no era "movimiento autónomo vs. programado" — el movimiento propio no existe.
+- **El enemigo-contador es la versión más legible posible de "predicción"**: no se simula IA en la cabeza, **se cuenta**. Texto plano: *"cada enemigo aguanta N toques; el siguiente lo activa"* ✅. E invierte la presión: el peligro no viene de que el enemigo actúe — **viene de que VOS lo activás al interactuar**. Tu propio plan es el reloj de la bomba.
+- **La card-genoma cierra crianza↔combate sin reglas extra**: criar es literalmente criar la card.
+- **Técnicamente más barato que el handoff original**: sin pathfinding, sin IA autónoma, determinista, por eventos discretos. El simulador headless es trivial y el solver sale casi gratis.
+- **⚠️ El autobattle se evaporó (decidir con ojos abiertos)**: el handoff decía *plan → PLAY → observar* (§2, §8); el flujo descrito es **acción-por-acción con lectura de estado entre medio** — un táctico por turnos tipo puzzle. Al orquestador le parece MEJOR, pero es un cambio de identidad que Juan debe elegir conscientemente (→ Q1).
+- **⚠️ Falta la fuente de presión**: si los enemigos solo reaccionan al toque, ignorarlos es siempre seguro (recolecto, esquivo, salgo) — y sin riesgo no hay push-your-luck (→ Q3, **la más importante de la ronda 4**).
+- **El riesgo de contenido (PE.1) sigue intacto**, aunque este modelo lo abarata: un enemigo = contador + reacción + forma, no una IA.
+
+## 4.3 · Qué cerró esta parte respecto a rondas anteriores
+
+| Qué | Estado |
+|---|---|
+| Pregunta madre ronda 3 (autonomía vs. coreografía) | ✅ Eliminada: posición = consecuencia de la plantilla; sin movimiento autónomo propio |
+| Abierto 1 (espacio del encuentro) | 🟡 Parcial: 3 MM por expedición · entran vía primer despliegue gratis · isla-cuadrícula estilo Bad North · tamaño sin número |
+| Abierto 2 (economía de acciones) | 🟡 Parcial: habilidades = las 3 partes en la card · límite de acciones sin definir (→ Q5) |
+| Abierto 7 (Cutie Marks) | ✅ Modificadores de coreografía ("al golpear: repite / desplaza / empuja") |
+| D2 ronda 2 (¿curación entre encuentros?) | ✅ Heridas persistentes nivel a nivel hasta la extracción |
+| Ítems (ItemTriggerKind de S75) | ✅ Concepto confirmado: condición → uso → desaparece |
+
+## 4.4 · RONDA 4 — las preguntas guardadas (abrir la próxima sesión por acá)
+
+Juan pidió explícitamente guardarlas para contestarlas en detalle al retomar. Por orden de bloqueo:
+
+1. **Q1 · ¿Lote o paso a paso?** *(la de identidad)* ¿Se arma TODA la coreografía y se da PLAY (resolución en cadena, mirás), o cada acción se ejecuta al confirmarla y ves la reacción antes de decidir la siguiente? El ejemplo de Juan suena a paso-a-paso; el handoff (§2, §8) dice lote. Ambas válidas — cambian qué juego es.
+2. **Q2 · ¿Preview o memoria?** Al apuntar una plantilla sobre un enemigo con el contador lleno, ¿el juego muestra qué va a pasar (flechitas estilo Into the Breach) o hay que saberlo de memoria por haber aprendido al enemigo? Decide dónde vive la maestría del §4.
+3. **Q3 · ¿De dónde viene el daño?** *(la más importante)* ¿Los enemigos actúan alguna vez por su cuenta (cada X acciones tuyas, al entrar a su zona, por nivel) o solo al llenarse el contador? ¿Qué obliga a interactuar con ellos en vez de ignorarlos? Sin esto no hay riesgo; sin riesgo no hay extracción.
+4. **Q4 · ¿Qué termina un nivel?** ¿Matar todo, llegar a la salida, cuota de recolección, o "la salida está abierta desde el principio y el resto es opcional" (la más extraction)?
+5. **Q5 · ¿Qué limita las acciones?** ¿Usos por habilidad por nivel, presupuesto por monchi, o ilimitado con el daño como único costo? (Enlaza con Q3: con presión real puede no hacer falta límite artificial.)
+6. **Q6 · Mapeo parte→verbo**: ¿cuerno = ataque, espalda = recolección, alas = movimiento? ¿Cada parte da UNA habilidad (card de 3) o el tipo de parte elige entre varias?
+7. **C4 (arrastre ronda 3) · ¿Vida en hits?** Este modelo la pide: con contadores enteros en enemigos, la vida propia en enteros chicos es el mismo idioma. Recomendación del orquestador: sí.
+8. **PE.1 (arrastre) · Presupuesto de contenido**: ¿con cuántos enemigos / escenarios / habilidades esto es jugable y demostrable? El número decide si el diseño se recorta o se expande, y es el presupuesto del documento de mecánica.
+
+Los números finos (grilla, N de contadores, daño) vienen después de estas ocho.
+
+---
+
 ## Estado
 
-**DRAFT — rumbo elegido y evaluado (S76), mecánica sin cerrar.** Este documento reemplaza a las Partes 7–8 de la nota 18 como dirección del combate. Nada baja a código hasta el documento de mecánica en limpio.
+**DRAFT — rumbo elegido y evaluado (S76), flujo concreto visualizado (S77), mecánica sin cerrar.** Este documento reemplaza a las Partes 7–8 de la nota 18 como dirección del combate. La próxima sesión de diseño abre por la **ronda 4 (§4.4)**; con Q1–Q6 contestadas se escribe **el documento de mecánica en limpio**. Nada baja a código hasta ese documento.

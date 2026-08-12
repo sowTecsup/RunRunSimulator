@@ -4,6 +4,26 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-08-12 (Session 77 — **RONDA 3: LA VISUALIZACIÓN DEL FLUJO COMPLETO — sesión de diseño puro, cero código — ✅ CERRADA (corta, Juan sin tiempo): `Index/19` Parte 4 escrita, ronda 4 guardada con 8 preguntas**)
+**Focus:** Se abrió por la ronda 3 de la nota 19 §3.3. El orquestador presentó la ronda completa (pregunta madre autonomía-vs-coreografía + baterías A–E + valoración de viabilidad) y Juan respondió con un **braindump del flujo completo** que es la descripción más concreta del combate hasta la fecha: tienda cierra → puerta trasera → 3 MoriMonchis → celular con simbología → isla-cuadrícula estilo Bad North → cards con las 3 partes como habilidades → enemigos-contador reactivos (la bomba como primer enemigo de test) → ⭐ **el primer despliegue es gratis y el MoriMonchi queda donde tiró la plantilla** (posición = consecuencia del ataque; alas = movimiento) → Cutie Marks = modificadores de coreografía → heridas persistentes nivel a nivel hasta la extracción. Juan pidió cerrar rápido y **guardar las preguntas pendientes para abrir la próxima sesión con sus respuestas en detalle**.
+
+1. **Entregable**: [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]] **Parte 4** (§4.1 flujo verbatim en estructura · §4.2 lectura del orquestador · §4.3 qué cerró · **§4.4 ronda 4 = las 8 preguntas guardadas**). Banner de §3.3 actualizado con qué quedó cerrado/parcial. Sigue DRAFT: **nada baja a código hasta el documento de mecánica en limpio**.
+2. **⭐ Lo que cerró el braindump**: la pregunta madre de la ronda 3 quedó **eliminada** (no hay movimiento autónomo propio: actuar y posicionarse son la misma acción) · abierto 1 parcial (3 MM, entran vía despliegue, Bad North, tamaño sin número) · abierto 2 parcial (habilidades = las 3 partes en la card) · abierto 7 cerrado (Cutie Marks = "al golpear: repite/desplaza/empuja") · heridas persistentes confirmadas · consumibles sin cambio de concepto.
+3. **Los dos huecos que la valoración del orquestador dejó marcados** (registrados en §4.2): **(a)** el autobattle del handoff se evaporó — el flujo descrito es acción-por-acción, cambio de identidad vs. §2/§8 que Juan debe decidir consciente (Q1); **(b)** falta la fuente de presión — si los enemigos solo reaccionan al toque, ignorarlos es siempre seguro (Q3, la más importante).
+4. **Valoración sincera entregada** (pedida por Juan): el núcleo posición-consecuencia + enemigo-contador son las dos primeras ideas del rediseño que pasan el texto plano sin empujarlas; lo técnico es barato (determinista, por eventos, sin IA); el riesgo real sigue siendo **volumen de contenido** (PE.1, sin número aún).
+
+> ### 📝 Notas S77
+> 1. **La próxima sesión de diseño ABRE por `Index/19` §4.4**: Juan dijo textual *"seran con lo que empezamos la siguiente sesion [...] te contesto a detalle"*. Las 8: Q1 lote/paso-a-paso · Q2 preview/memoria · Q3 origen del daño · Q4 fin de nivel · Q5 límite de acciones · Q6 mapeo parte→verbo · C4 vida en hits · PE.1 presupuesto de contenido. Con eso contestado se escribe **el documento de mecánica en limpio**.
+> 2. Cero `.cs`, cero Unity, cero Notion. Solo vault (nota 19 + este archivo) + memoria del orquestador.
+
+**Files Touched (.cs — input ScriptNodes):** ninguno. **No se invocó `vault-documenter`** (sesión de diseño puro).
+
+**Files Touched (no-ScriptNode):** `MoriMonchiVault/Index/19 - Combate Nuevo - Predictive Tactical Extraction.md` (Parte 4 nueva + banner §3.3 + Estado), este archivo. Memoria del orquestador: `project_refundacion_combate.md` actualizada.
+
+**Next session (S78):** dos caminos — **(a) diseño**: ronda 4 (`Index/19` §4.4, Juan trae las respuestas en detalle) → documento de mecánica en limpio; **(b) editor**: el pendiente obligatorio de S75 nota 1 (assets nuevos + rewiring CreatureDatabase/GameManager + limpieza de GameScene + consola 0 errores), independiente del diseño. Arrastres sin cambios: despublicar los 5 endpoints Cloud Code + keys de localización huérfanas + deuda de documentación (tabla de eventos de CLAUDE.md).
+
+---
+
 **Session:** 2026-08-11 (Session 76 — **EL HANDOFF: rumbo nuevo del combate = Predictive Tactical Extraction — 🪦 tablero de desvíos DESCARTADO — sesión de diseño puro, cero código — ✅ CERRADA: `Index/19` creada, 5 decisiones cerradas, ronda 3 lista**)
 **Focus:** Juan trajo un handoff de gameplay escrito por él y pidió evaluarlo juntos para cerrar huecos antes de codear. Primera declaración clave: *"es un concepto totalmente nuevo, olvídate de lo que estuvimos hablando antes respecto al gameplay de combate — descarta lo del board de desvíos, al final no me gustó"*. Se mantiene todo lo demás (Parte 1 de la nota 18: día/noche, 6 genes, ítem único, Cutie Marks, monedas). El orquestador evaluó el handoff contra las notas 17/18, confirmó que pasa los filtros duros (hipótesis, confirmación>suspenso, fracaso≠RNG, estado oculto solo ENTRE encuentros), y corrió dos rondas de preguntas.
 
