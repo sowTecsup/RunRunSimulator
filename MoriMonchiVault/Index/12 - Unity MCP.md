@@ -94,8 +94,27 @@ Puede crear **formas complejas** (no solo primitivas): `create_poly_shape` desde
 
 ---
 
+## Unity CLI oficial (evaluado 2026-08-24 — NO adoptado, candidato a complemento)
+
+Unity publicó en Unite Seoul (julio 2026) el **Unity CLI** oficial: binario standalone **gratis** (sin suscripción Unity AI, sin límite de conexiones) con modo servidor MCP (`unity mcp`), construido sobre el paquete `com.unity.pipeline` (beta, requiere Unity 6.0 LTS+ — el proyecto está en 6000.3.9f1 ✓). Unity deprecó su viejo server MCP in-editor (`com.unity.ai.assistant`); eso **NO afecta** al "MCP for Unity" de CoplayDev que usamos (independiente, MIT, activo — v10.0.0 de junio 2026, sigue gratis).
+
+**Veredicto S79: seguir con CoplayDev como driver del editor.** Razones:
+
+1. **Bug crítico reportado**: entrar a Play mode (domain reload) invalida los tokens del Pipeline y **rompe la sesión MCP** hasta reiniciar — le pega exactamente a nuestro loop central de "verificar en Play antes de declarar hecho".
+2. **Catálogo más chico**: sin equivalente de `manage_probuilder` ni `manage_scriptable_object`; gira alrededor de eval + editor/builds/tests. Todo el pipeline Odin validado (quirk #1) depende del server actual.
+3. **Beta con quirks propios**: a veces exige el editor en foreground, diálogos modales bloquean (mitigable con `-automated`), ~16x más lento por llamada en modo MCP (benchmark de comunidad, ~0.8s vs 0.05s), y el agente necesita skills instaladas aparte (`npx skills add Unity-Technologies/skills`) para descubrir capacidades.
+
+**Dónde SÍ interesa (como complemento — pueden convivir sin conflicto):** builds headless, `unity test` con salida NUnit, CI/CD, gestión de editores/licencias, y sobre todo **`unity eval`** — ejecuta C# en el editor **sin domain reload**; vale probar si esquiva la limitación de C# 6 del quirk #2 (Roslyn roto). **Cuándo reevaluar:** cuando arreglen el bug de Play mode (al momento del análisis prometían fixes semanales).
+
+**Alternativas también gratis, descartadas por ahora:** CLI cliente del propio CoplayDev (`unity-mcp status/scene/...` — habla con el server que ya tenemos, útil para CI, no reemplaza nada) · IvanMurzak/Unity-MCP (Apache-2.0, 70+ tools, CLI propio, corre también en builds compiladas).
+
+Fuentes: [docs oficiales — Unity CLI reemplaza el MCP in-editor](https://docs.unity.com/en-us/unity-cli/replace-mcp-server-unity-cli) · [Unity Pipeline package](https://docs.unity.com/en-us/unity-production-pipeline/local-tools-cli/unity-pipeline-package) · [análisis Vindler (bugs y benchmarks)](https://vindler.solutions/blog/unity-cli-agent-automation) · [CoplayDev/unity-mcp](https://github.com/CoplayDev/unity-mcp) · [IvanMurzak/Unity-MCP](https://github.com/IvanMurzak/Unity-MCP)
+
+---
+
 ## Historial
 
+- **2026-08-24 (S79):** investigado el Unity CLI oficial con modo MCP (y los CLI de CoplayDev e IvanMurzak). Decisión: no migrar; candidato a complemento. Ver sección de arriba.
 - **2026-07-09 (sesión de exploración):** instalado el MCP; validados lectura de escena, escritura a diccionarios Odin (smoke test), reorg de GameScene (27→14 raíces, grupos WORLD/TEMPLATES/POOLS), ProBuilder. GameScene y CombatVisualizerMM son las 2 escenas de proyecto (build 0 y 1), en `Assets/RunRunSimulator/Resources/Scenes/`.
 
 Relacionado: [[MoriMonchiVault/Index/11 - Technical Debt]], [[MoriMonchiVault/Index/09 - Active Context]].

@@ -4,6 +4,22 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-08-24 (Session 79 — **INVESTIGACIÓN: Unity CLI oficial con modo MCP — sesión corta de research, cero código, cero Unity — ✅ CERRADA: comparativa entregada, decisión documentada en la nota 12**)
+**Focus:** Juan pidió investigar "el nuevo CLI de Unity MCP" publicado hace poco: si es mejor que el que tenemos (MCP for Unity de CoplayDev) y si es gratis. Se investigó el **Unity CLI oficial** (Unite Seoul, julio 2026) más las dos alternativas de comunidad con CLI reciente (CLI cliente del propio CoplayDev · IvanMurzak/Unity-MCP). Juan cerró con *"documenta y pushea, quizá lo probamos"*.
+
+1. **Es gratis** (sin suscripción Unity AI, sin límite de conexiones concurrentes) y el proyecto cumple el requisito: el paquete Pipeline necesita Unity 6.0 LTS+ y estamos en **6000.3.9f1**.
+2. **Decisión: NO migrar por ahora.** El modo MCP oficial está en beta con un bug que **rompe la sesión al entrar a Play mode** (justo nuestro loop central de verificación), es ~16x más lento por llamada según benchmarks de comunidad, y su catálogo no cubre ProBuilder ni ScriptableObjects — el pipeline Odin validado depende del server actual. Detalle completo, alternativas y fuentes en la sección nueva de [[Index/12 - Unity MCP]].
+3. **Candidato a COMPLEMENTO** (pueden convivir sin conflicto): builds headless, `unity test` con salida NUnit, CI/CD, y `unity eval` (C# sin domain reload — probar si esquiva la limitación de C# 6 del quirk #2). **Reevaluar cuando arreglen el bug de Play mode** (prometían fixes semanales).
+4. Nota tranquilizadora: Unity deprecó su viejo server MCP **in-editor** (`com.unity.ai.assistant`) — no afecta al de CoplayDev, que sigue activo (v10.0.0 junio 2026) y gratis (MIT).
+
+**Files Touched (.cs — input ScriptNodes):** ninguno. **No se invocó `vault-documenter`** (sesión de investigación pura, cero scripts).
+
+**Files Touched (no-ScriptNode):** `MoriMonchiVault/Index/12 - Unity MCP.md` (sección "Unity CLI oficial" + entrada de Historial), este archivo.
+
+**Next session (S80):** sin cambios respecto a lo listado en S78 — **(a) diseño**: confirmar el brief del loop, después ronda 4 en orden **Q6 → Q3 → Q1** con las propuestas 3 y 4 de S78 sobre la mesa; **(b) editor**: el pendiente obligatorio de S75 nota 1 (assets nuevos + rewiring + limpieza de GameScene + consola 0 errores). Arrastres iguales (endpoints Cloud Code, keys huérfanas, deuda de documentación, reescritura de `Index/02`).
+
+---
+
 **Session:** 2026-08-14 (Session 78 — **REFERENCIAS + EL MALENTENDIDO DE LOS DRAGONES — sesión de diseño puro, cero código — ✅ CERRADA (corta, Juan sin tiempo): propuestas entregadas, NADA bajado a la nota 19 todavía**)
 **Focus:** Juan pidió, antes de retomar la ronda 4, **juegos de referencia para el pacing**: *"me gusta el tema de las plantillas y secuenciar ataques pero el pacing de en qué orden reaccionan los enemigos o cómo los dragones se moverán por el mapa es lo que más me sigue rondando"*. La sesión fue de referencias + dos propuestas de mecánica, **ninguna decidida por Juan**. Cerró pidiendo continuar la próxima.
 
