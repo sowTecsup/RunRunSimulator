@@ -50,6 +50,7 @@ MoriMonchiVault/
 | **Refundación del combate: lentes, géneros, formatos** | [[Index/17 - Refundacion del Combate]] | — |
 | **Pilares del rediseño (día/noche · genes · ítem · Cutie Marks)** — Partes 7-8 (tablero) 🪦 descartadas S76 | [[Index/18 - Pilares del Rediseno (Draft)]] | — |
 | **COMBATE NUEVO: Predictive Tactical Extraction (expedición · plantillas · secuencia · extracción)** ⚠️ DRAFT | [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]] | — |
+| **MVP DE COMBATE: plan aprobado S80 (beats · ticks · juggle · enemigos reactivos)** ✅ FUENTE DE VERDAD de la mecánica del prototipo | [[Index/20 - Combat Prototype MVP (Plan)]] | — |
 
 ---
 

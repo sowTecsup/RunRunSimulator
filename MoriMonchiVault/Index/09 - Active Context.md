@@ -4,6 +4,28 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-08-25 (Session 80 — **EL PLAN DEL MVP DE COMBATE — sesión de diseño + planificación, cero código — ✅ CERRADA: `Index/20` creada (plan aprobado), ronda 4 mayormente cerrada, gate de código levantado SOLO para el prototipo**)
+**Focus:** Juan trajo un draft de MVP/prototipo aislado del combate (escena independiente, unidades simplificadas, primitivas) para validar planificación + lectura de intenciones + ejecución simultánea ANTES de integrar Horn/Back/Wings/Personalidad/Cutie Marks/Equipment. Referencias: Mewgenics (tablero) + Bad North (verticalidad ligera). El orquestador contrastó el draft contra la 19, marcó las contradicciones con S77, y en 3 rondas de decisiones (AskUser + 2 mensajes de Juan) quedó cerrada la mecánica v0 del encuentro. Juan cerró con *"guarda, documenta exhaustivamente esto para que no se pise con otras cosas, guarda lo avanzado y pushéalo"*.
+
+1. **Entregable**: [[Index/20 - Combat Prototype MVP (Plan)]] (NUEVA — fuente de verdad de la mecánica del prototipo, prevalece sobre la 19 donde contradigan). Contiene: 16 decisiones S80, reglas v0, kits, enemigos, arquitectura (~20 archivos, `Assets/RunRunSimulator/Scripts/CombatPrototype/`, escena `CombatPrototype.unity`), 5 fases de ejecución con verificación MCP, evaluación (las 7 preguntas del MVP → observables), riesgos y prohibiciones.
+2. **⭐ El modelo final v0**: todo es plantilla (vuelo + ataques, sin movimiento por pasos ni BFS) · coreografía por BEATS con acciones simultáneas (resolución contra snapshot, orden de slots, muertes al cierre) · vida en TICKS con daño uniforme 1 (dragones 5, enemigos 3 = guardia 2 + golpe de gracia) · el entorno es la única fuente de ticks extra (muros/caídas) · altura = acceso y defensa, sin bonus de daño · 1 uso por plantilla por planificación · enemigos con intención telegrafiada RELATIVA (viaja con el enemigo, estilo ITB real) que atacan al fin de la coreografía · **reactivos en movimiento** (golpeado en un beat → reposicionamiento determinista al cierre; anti-cargamontón; contras: arrinconar/juggle/ráfaga) · **juggle determinista** (Voltereta lanza al aire → Agarre aéreo del Tanque estrella donde elijas; aéreo no reacciona) · determinismo total, cero RNG.
+3. **Ronda 4 de la 19 mayormente cerrada**: Q1 lote ✅ · Q2 preview total ✅ · Q3 enemigos con iniciativa ✅ (revoca "solo reaccionan al toque" de S77; la Bomba sobrevive como enemigo-contador traducido a ticks) · Q5 un uso por plantilla ✅ · C4 vida en ticks ✅. Abiertas: Q4 (MVP usa "matar todo" placeholder), Q6, PE.1, corte del determinismo de escenarios. Banners de actualización S80 puestos en la 19 (cabecera, §4.4 y Estado) para que nada se pise.
+4. **Regla técnica innegociable del prototipo**: `ActionResolver` único que resuelve cada beat, consumido por la proyección Y la ejecución — si divergen, el jugador pierde confianza en el preview y muere el pilar. Es el punto delicado #1 de la implementación.
+5. **Ganchos futuros registrados (NO implementar en v0)**: countdown de intents ("actúa en el beat N", generaliza la bomba) · recuperación de guardia en ciertos turnos · gracia-solo-ataque — los tres como experimentos de fase 5. Prohibido en v0: niebla, extracción, consumibles, Cutie Marks, personalidad, permadeath, curación, arte.
+
+> ### 📝 Notas S80
+> 1. **El gate "nada baja a código" se levantó SOLO para el prototipo aislado** (autorización explícita de Juan en esta sesión, incluye crear escena + .assets del prototipo por MCP). La integración con el juego sigue congelada hasta que el MVP valide.
+> 2. **El "documento de mecánica en limpio" ya no es el entregable**: lo reemplaza el prototipo como instrumento de validación (la 20 es su spec).
+> 3. Cero `.cs`, cero Unity, cero Notion. **No se invocó `vault-documenter`** (sin scripts tocados).
+
+**Files Touched (.cs — input ScriptNodes):** ninguno.
+
+**Files Touched (no-ScriptNode):** `MoriMonchiVault/Index/20 - Combat Prototype MVP (Plan).md` (NUEVA), `00 - Index.md` (+1 fila de ruteo), `Index/19` (banner S80 en cabecera + callout §4.4 + Estado reescrito), este archivo. Memoria del orquestador: `project_refundacion_combate.md` actualizada + `MEMORY.md`.
+
+**Next session (S81):** **Fase 1 del MVP** (tablero: SOs de layout, `CombatBoard`, `CombatBoardBuilder`, `BoardHighlighter`, escena `CombatPrototype.unity`, cámara isométrica) vía `morimonchi-coder` + verificación MCP (consola 0 errores + Play) — el plan completo está en la 20 §6-§7, no re-derivar nada. El pendiente obligatorio de editor de S75 (assets Horn/Back/Wing/Face/CutieMark + rewiring + limpieza de GameScene) sigue vigente e independiente. Arrastres iguales (endpoints Cloud Code, keys huérfanas, reescritura de `Index/02`, deuda de documentación).
+
+---
+
 **Session:** 2026-08-24 (Session 79 — **INVESTIGACIÓN: Unity CLI oficial con modo MCP — sesión corta de research, cero código, cero Unity — ✅ CERRADA: comparativa entregada, decisión documentada en la nota 12**)
 **Focus:** Juan pidió investigar "el nuevo CLI de Unity MCP" publicado hace poco: si es mejor que el que tenemos (MCP for Unity de CoplayDev) y si es gratis. Se investigó el **Unity CLI oficial** (Unite Seoul, julio 2026) más las dos alternativas de comunidad con CLI reciente (CLI cliente del propio CoplayDev · IvanMurzak/Unity-MCP). Juan cerró con *"documenta y pushea, quizá lo probamos"*.
 
