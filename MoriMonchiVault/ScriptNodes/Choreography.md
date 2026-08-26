@@ -6,7 +6,7 @@ tags: [script, combat-prototype, data]
 
 **Ruta:** `Systems/CombatPrototype/Choreography.cs`
 
-**Responsabilidad:** Plan del jugador: secuencia de Beats (cada Beat es lista de PlannedActions paralelas). Ofrece operaciones: Add/AddBeat/UndoLast/Clear, consultas sobre abilitySoUsed.
+**Responsabilidad:** Contenedor de la planificación del jugador: lista de Beats (cada beat es un conjunto de PlannedAction simultáneas). **Novedades S82:** MaxActions = 2 (presupuesto global por planificación). Métodos: Add (acción al beat actual), AddBeat (nuevo beat), UndoLast, IsAbilityUsed, TotalActions, AllActions (enumeración).
 
 **Vinculado a:** [[Index/20 - Combat Prototype MVP (Plan)]]
 

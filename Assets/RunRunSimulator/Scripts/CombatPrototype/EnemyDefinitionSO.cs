@@ -12,11 +12,8 @@ namespace MoriMonchiSimulator.CombatPrototype
         public int GuardTicks;
         public int FinisherTicks;
         public EnemyPattern Pattern;
-        public int MoveRange;
         public int AttackRange;
-        public int PreferredMin;
-        public int PreferredMax;
-        public int ReactionDistance;
+        public Vector2Int[] MoveOffsets;
         public string[] BriefLines;
         public GameObject VisualPrefab;
         public Color Tint;

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MoriMonchiSimulator.CombatPrototype
 {
-    public enum HighlightKind { Template, Intent, Path, Landing }
+    public enum HighlightKind { Template, Intent, Path, Landing, Selection }
 
     public class BoardHighlighter : MonoBehaviour
     {
@@ -12,6 +12,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private Color intentColor = new Color(1f, 0.25f, 0.2f, 0.45f);
         [SerializeField] private Color pathColor = new Color(1f, 0.9f, 0.2f, 0.45f);
         [SerializeField] private Color landingColor = new Color(0.3f, 1f, 0.35f, 0.45f);
+        [SerializeField] private Color selectionColor = new Color(1f, 1f, 1f, 0.65f);
 
         private readonly List<GameObject> pool = new List<GameObject>();
         private readonly Dictionary<HighlightKind, List<GameObject>> active = new Dictionary<HighlightKind, List<GameObject>>();
@@ -93,6 +94,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                 case HighlightKind.Template: return templateColor;
                 case HighlightKind.Intent: return intentColor;
                 case HighlightKind.Path: return pathColor;
+                case HighlightKind.Selection: return selectionColor;
                 default: return landingColor;
             }
         }

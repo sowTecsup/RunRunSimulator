@@ -8,8 +8,11 @@ namespace MoriMonchiSimulator.CombatPrototype
     {
         public int UnitId { get; private set; }
 
+        private const float BaseYawOffset = 180f;
+
         private CombatBoard _board;
         private TextMeshPro _label;
+        private Transform _visual;
 
         public void Init(CombatUnit unit, CombatBoard board)
         {
@@ -34,17 +37,20 @@ namespace MoriMonchiSimulator.CombatPrototype
             {
                 GameObject visual = Instantiate(prefab, transform);
                 visual.transform.localPosition = Vector3.zero;
-                visual.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                visual.transform.localRotation = Quaternion.Euler(0f, BaseYawOffset, 0f);
                 visual.transform.localScale = Vector3.one * 0.55f;
+                _visual = visual.transform;
             }
             else
             {
                 GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 capsule.transform.SetParent(transform);
                 capsule.transform.localPosition = new Vector3(0f, 0.4f, 0f);
+                capsule.transform.localRotation = Quaternion.Euler(0f, BaseYawOffset, 0f);
                 capsule.transform.localScale = new Vector3(0.55f, 0.4f, 0.55f);
                 capsule.GetComponent<Renderer>().material.color = tint;
                 Destroy(capsule.GetComponent<CapsuleCollider>());
+                _visual = capsule.transform;
             }
 
             GameObject disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -64,7 +70,43 @@ namespace MoriMonchiSimulator.CombatPrototype
             _label.color = Color.white;
 
             transform.position = board.CellToWorld(unit.Cell);
+
+            if (unit is EnemyUnit facingEnemy)
+            {
+                SetFacingInstant(facingEnemy.Facing);
+            }
+
             RefreshTicks(unit);
+        }
+
+        public void SetFacingInstant(Vector2Int facing)
+        {
+            float yaw = Mathf.Atan2(facing.x, facing.y) * Mathf.Rad2Deg + BaseYawOffset;
+            _visual.localRotation = Quaternion.Euler(0f, yaw, 0f);
+        }
+
+        public IEnumerator RotateTo(Vector2Int facing, float duration)
+        {
+            float yaw = Mathf.Atan2(facing.x, facing.y) * Mathf.Rad2Deg + BaseYawOffset;
+            Quaternion target = Quaternion.Euler(0f, yaw, 0f);
+            Quaternion start = _visual.localRotation;
+
+            if (duration <= 0f)
+            {
+                _visual.localRotation = target;
+                yield break;
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float normalized = Mathf.Clamp01(elapsed / duration);
+                _visual.localRotation = Quaternion.Slerp(start, target, normalized);
+                yield return null;
+            }
+
+            _visual.localRotation = target;
         }
 
         public void RefreshTicks(CombatUnit unit)

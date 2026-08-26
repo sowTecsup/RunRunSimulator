@@ -19,10 +19,11 @@ MonoBehaviour:
   Range: 0
   RangeMin: 0
   TemplateOffsets:
-  - {x: 1, y: 0}
+  - {x: 0, y: 0}
   PushDistance: 0
   LaunchesAirborne: 1
   SlamTargeted: 0
   SlamRange: 0
   IgnoresHeight: 0
   IgnoresObstacles: 0
+  Landing: 2

@@ -17,14 +17,13 @@ MonoBehaviour:
   GuardTicks: 2
   FinisherTicks: 1
   Pattern: 0
-  MoveRange: 2
   AttackRange: 1
-  PreferredMin: 0
-  PreferredMax: 0
-  ReactionDistance: 2
+  MoveOffsets:
+  - {x: 1, y: 0}
+  - {x: 2, y: 0}
   BriefLines:
-  - Se acerca al dragon mas cercano
-  - Prefiere la derecha
-  - Al ser golpeado se reacomoda 2 casillas
+  - Siempre golpea la casilla de su frente
+  - 'Si lo golpeas: avanza 2 al frente (Torre-2)'
+  - 'Sin lugar para avanzar: gira 90'
   VisualPrefab: {fileID: 0}
   Tint: {r: 0.9, g: 0.25, b: 0.2, a: 1}

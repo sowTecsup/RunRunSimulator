@@ -257,6 +257,7 @@ GameObject:
   - component: {fileID: 277935666}
   - component: {fileID: 277935665}
   - component: {fileID: 277935664}
+  - component: {fileID: 277935667}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -281,6 +282,7 @@ MonoBehaviour:
   intentColor: {r: 1, g: 0.25, b: 0.2, a: 0.45}
   pathColor: {r: 1, g: 0.9, b: 0.2, a: 0.45}
   landingColor: {r: 0.3, g: 1, b: 0.35, a: 0.45}
+  selectionColor: {r: 1, g: 1, b: 1, a: 0.65}
 --- !u!114 &277935665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -293,10 +295,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a22c8990b012da4084ecc2386bc4723, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.CombatBoardBuilder
-  layout: {fileID: 11400000, guid: 7fc3ac8a0744e344bbdd6957cf4e8619, type: 2}
+  layout: {fileID: 11400000, guid: cd06eb2e100b1954ab1489ebd7487e7a, type: 2}
   lightColor: {r: 0.78, g: 0.78, b: 0.72, a: 1}
   darkColor: {r: 0.52, g: 0.55, b: 0.5, a: 1}
   baseThickness: 0.25
+  levelHeight: 1.06
+  wiggleAmplitude: {x: 0.07, y: 0.14, z: 0.07}
+  wiggleFrequency: 0.05
 --- !u!4 &277935666
 Transform:
   m_ObjectHideFlags: 0
@@ -312,6 +317,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &277935667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 277935663}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 219980f6fca6c3a4f9621909ec0ac472, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.BoardImpactFeedback
+  builder: {fileID: 277935665}
+  extraFeedback: {fileID: 0}
+  radius: 1
+  wiggleDuration: 0.45
 --- !u!1 &1529069611
 GameObject:
   m_ObjectHideFlags: 0
@@ -406,6 +427,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1696017950}
   - component: {fileID: 1696017949}
+  - component: {fileID: 1696017951}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -479,6 +501,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1696017951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1696017948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16c104094cbe752498ed0116e1eae3ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.CombatCameraController
+  builder: {fileID: 277935665}
+  rotateDuration: 0.35
+  zoomStep: 0.15
+  minZoom: 0.5
+  maxZoom: 1.6
+  zoomDuration: 0.25
 --- !u!1 &1753282160
 GameObject:
   m_ObjectHideFlags: 0
@@ -526,6 +566,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: babfce271ae03a14ea36fb3e5ca46abf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.ResolutionAnimator
+  impact: {fileID: 277935667}
 --- !u!114 &1753282163
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -581,7 +622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.CombatPrototypeManager
   builder: {fileID: 277935665}
-  boardLayout: {fileID: 11400000, guid: 7fc3ac8a0744e344bbdd6957cf4e8619, type: 2}
+  boardLayout: {fileID: 11400000, guid: cd06eb2e100b1954ab1489ebd7487e7a, type: 2}
   highlighter: {fileID: 277935664}
   targeting: {fileID: 1753282161}
   executor: {fileID: 1753282164}

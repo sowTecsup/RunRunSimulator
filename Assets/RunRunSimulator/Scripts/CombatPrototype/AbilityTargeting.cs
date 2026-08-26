@@ -45,110 +45,63 @@ namespace MoriMonchiSimulator.CombatPrototype
             return board.GetElevation(cell) >= board.GetElevation(fromCell) + 2;
         }
 
-        public static List<Vector2Int> GetValidTargets(CombatSimState state, CombatUnit unit, CombatAbilitySO ability)
+        public static Vector2Int GetLandingCell(CombatUnit unit, CombatAbilitySO ability, PlannedAction action)
         {
-            List<Vector2Int> result = new List<Vector2Int>();
-            CombatBoard board = state.Board;
-            Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-
-            switch (ability.Targeting)
+            switch (ability.Landing)
             {
-                case TargetingMode.FreeCell:
-                    for (int x = 0; x < board.Width; x++)
-                        for (int z = 0; z < board.Depth; z++)
-                        {
-                            Vector2Int cell = new Vector2Int(x, z);
-                            int distance = Chebyshev(unit.Cell, cell);
-                            if (distance >= 1 && distance <= ability.Range && state.IsCellFree(cell))
-                                result.Add(cell);
-                        }
-                    break;
-
-                case TargetingMode.StraightLine:
-                    for (int d = 0; d < directions.Length; d++)
-                        for (int dist = 1; dist <= ability.Range; dist++)
-                        {
-                            Vector2Int cell = unit.Cell + directions[d] * dist;
-                            if (state.IsCellFree(cell))
-                                result.Add(cell);
-                        }
-                    break;
-
-                case TargetingMode.DirectionalTemplate:
-                    for (int d = 0; d < directions.Length; d++)
-                    {
-                        List<Vector2Int> cells = GetAffectedCellsForDirection(state, unit.Cell, ability, directions[d]);
-                        for (int i = 0; i < cells.Count; i++)
-                            if (!result.Contains(cells[i]))
-                                result.Add(cells[i]);
-                    }
-                    break;
-
-                case TargetingMode.RangeBand:
-                    for (int x = 0; x < board.Width; x++)
-                        for (int z = 0; z < board.Depth; z++)
-                        {
-                            Vector2Int cell = new Vector2Int(x, z);
-                            int distance = Chebyshev(unit.Cell, cell);
-                            if (distance >= ability.RangeMin && distance <= ability.Range)
-                                result.Add(cell);
-                        }
-                    break;
-
-                case TargetingMode.AirborneEnemy:
-                    for (int i = 0; i < state.Units.Count; i++)
-                    {
-                        CombatUnit candidate = state.Units[i];
-                        if (candidate.Airborne && candidate.Alive && Chebyshev(unit.Cell, candidate.Cell) <= ability.Range)
-                            result.Add(candidate.Cell);
-                    }
-                    break;
+                case LandingKind.Stay:
+                    return unit.Cell;
+                case LandingKind.AtAnchor:
+                    return action.TargetCell;
+                case LandingKind.BehindAnchor:
+                    return action.TargetCell - action.Direction;
+                default:
+                    return unit.Cell;
             }
-
-            return result;
         }
 
-        public static List<Vector2Int> GetAffectedCellsForDirection(CombatSimState state, Vector2Int origin, CombatAbilitySO ability, Vector2Int direction)
+        public static bool IsLandingFree(CombatSimState state, CombatUnit unit, Vector2Int landing)
         {
-            List<Vector2Int> cells = new List<Vector2Int>();
-            CombatBoard board = state.Board;
-
-            for (int i = 0; i < ability.TemplateOffsets.Length; i++)
-            {
-                Vector2Int cell = origin + RotateOffset(ability.TemplateOffsets[i], direction);
-
-                if (!board.InBounds(cell))
-                    break;
-                if (!ability.IgnoresHeight && IsWall(board, origin, cell))
-                    break;
-
-                if (state.GetUnitAt(cell) != null)
-                {
-                    cells.Add(cell);
-                    if (!ability.IgnoresObstacles)
-                        break;
-                    continue;
-                }
-
-                cells.Add(cell);
-            }
-
-            return cells;
+            return state.Board.InBounds(landing) && (landing == unit.Cell || state.GetUnitAt(landing) == null);
         }
 
-        public static List<Vector2Int> GetAffectedCells(CombatSimState state, CombatUnit unit, CombatAbilitySO ability, PlannedAction action)
+        public static List<Vector2Int> GetAffectedCells(CombatSimState state, CombatAbilitySO ability, PlannedAction action)
         {
-            if (ability.Type == AbilityType.Movement)
+            if (ability.Type != AbilityType.Attack)
                 return new List<Vector2Int>();
 
             switch (ability.Targeting)
             {
-                case TargetingMode.DirectionalTemplate:
-                    return GetAffectedCellsForDirection(state, unit.Cell, ability, action.Direction);
-                case TargetingMode.RangeBand:
-                    return new List<Vector2Int> { action.TargetCell };
                 case TargetingMode.AirborneEnemy:
                     return new List<Vector2Int> { action.TargetCell };
+
+                case TargetingMode.DirectionalTemplate:
+                    {
+                        List<Vector2Int> cells = new List<Vector2Int>();
+                        CombatBoard board = state.Board;
+                        Vector2Int anchor = action.TargetCell;
+
+                        for (int i = 0; i < ability.TemplateOffsets.Length; i++)
+                        {
+                            Vector2Int cell = anchor + RotateOffset(ability.TemplateOffsets[i], action.Direction);
+
+                            if (!board.InBounds(cell))
+                                break;
+
+                            if (state.GetUnitAt(cell) != null)
+                            {
+                                cells.Add(cell);
+                                if (!ability.IgnoresObstacles)
+                                    break;
+                                continue;
+                            }
+
+                            cells.Add(cell);
+                        }
+
+                        return cells;
+                    }
+
                 default:
                     return new List<Vector2Int>();
             }
@@ -156,21 +109,19 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         public static bool IsValidTarget(CombatSimState state, CombatUnit unit, CombatAbilitySO ability, PlannedAction action)
         {
+            if (ability.Type == AbilityType.Movement)
+                return state.Board.InBounds(action.TargetCell) && state.IsCellFree(action.TargetCell);
+
             switch (ability.Targeting)
             {
-                case TargetingMode.FreeCell:
-                case TargetingMode.StraightLine:
-                    return GetValidTargets(state, unit, ability).Contains(action.TargetCell);
-
                 case TargetingMode.DirectionalTemplate:
                     if (!IsCardinal(action.Direction))
                         return false;
-                    return GetAffectedCells(state, unit, ability, action).Count > 0;
-
-                case TargetingMode.RangeBand:
-                    return state.Board.InBounds(action.TargetCell)
-                        && Chebyshev(unit.Cell, action.TargetCell) >= ability.RangeMin
-                        && Chebyshev(unit.Cell, action.TargetCell) <= ability.Range;
+                    if (!state.Board.InBounds(action.TargetCell))
+                        return false;
+                    if (GetAffectedCells(state, ability, action).Count == 0)
+                        return false;
+                    return IsLandingFree(state, unit, GetLandingCell(unit, ability, action));
 
                 case TargetingMode.AirborneEnemy:
                     return IsValidAirborneSlam(state, unit, ability, action);
@@ -180,37 +131,9 @@ namespace MoriMonchiSimulator.CombatPrototype
             }
         }
 
-        public static List<Vector2Int> GetLineCells(CombatSimState state, Vector2Int from, Vector2Int direction, int length, bool stopAtUnits)
-        {
-            List<Vector2Int> cells = new List<Vector2Int>();
-            CombatBoard board = state.Board;
-
-            for (int i = 1; i <= length; i++)
-            {
-                Vector2Int cell = from + direction * i;
-
-                if (!board.InBounds(cell) || IsWall(board, from, cell))
-                    break;
-
-                if (state.GetUnitAt(cell) != null)
-                {
-                    cells.Add(cell);
-                    if (stopAtUnits)
-                        break;
-                    continue;
-                }
-
-                cells.Add(cell);
-            }
-
-            return cells;
-        }
-
         private static bool IsValidAirborneSlam(CombatSimState state, CombatUnit unit, CombatAbilitySO ability, PlannedAction action)
         {
             if (FindAirborneUnitAt(state, action.TargetCell) == null)
-                return false;
-            if (Chebyshev(unit.Cell, action.TargetCell) > ability.Range)
                 return false;
 
             int slamDistance = Chebyshev(action.TargetCell, action.SlamCell);
@@ -219,7 +142,10 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             bool sameRow = action.SlamCell.y == action.TargetCell.y;
             bool sameColumn = action.SlamCell.x == action.TargetCell.x;
-            return sameRow || sameColumn;
+            if (!sameRow && !sameColumn)
+                return false;
+
+            return IsLandingFree(state, unit, GetLandingCell(unit, ability, action));
         }
 
         private static CombatUnit FindAirborneUnitAt(CombatSimState state, Vector2Int cell)

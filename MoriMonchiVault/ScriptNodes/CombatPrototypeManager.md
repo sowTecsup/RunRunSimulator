@@ -6,8 +6,8 @@ tags: [script, combat-prototype, orchestration]
 
 **Ruta:** `Systems/CombatPrototype/CombatPrototypeManager.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta fase: Planning → Executing → EnemyTurn → loop o Victory/Defeat. Respons: spawn unidades (Canonical state), mantener Plan (Choreography), RefreshProjection (PlanProjection), transiciones (ExecutePlan, callbacks).
+**Responsabilidad:** Orquestador principal del combate prototipo. Fases: Planning → Executing → EnemyTurn (ciclo). **Novedades S82:** spawns enemigos con facing del layout (GetEnemySpawnsWithFacing); guard presupuesto (MaxActions = 2) en ConfirmAction. RefreshProjection calcula proyección y pinta intents de enemigos.
 
 **Vinculado a:** [[Index/20 - Combat Prototype MVP (Plan)]]
 
-**Conexiones:** [[CombatSimState]], [[Choreography]], [[PlanProjection]], [[TargetingController]], [[PlanExecutor]], [[EnemyTurnController]], [[CombatPrototypeHUD]], [[EnemyBriefPanel]]
+**Conexiones:** [[CombatBoardBuilder]], [[BoardLayoutSO]], [[TargetingController]], [[PlanExecutor]], [[EnemyTurnController]], [[CombatPrototypeHUD]], [[PlayerUnitDefinitionSO]], [[EnemyDefinitionSO]]

@@ -3,6 +3,12 @@ using UnityEngine;
 
 namespace MoriMonchiSimulator.CombatPrototype
 {
+    public struct EnemySpawn
+    {
+        public Vector2Int Cell;
+        public Vector2Int Facing;
+    }
+
     [CreateAssetMenu(fileName = "BoardLayout", menuName = "MoriMonchi/Combat Prototype/Board Layout")]
     public class BoardLayoutSO : ScriptableObject
     {
@@ -24,6 +30,18 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             char c = row[x];
             return char.IsDigit(c) ? c - '0' : 0;
+        }
+
+        public bool IsHole(int x, int z)
+        {
+            if (HeightRows == null || z < 0 || z >= HeightRows.Length)
+                return false;
+
+            string row = HeightRows[z];
+            if (row == null || x < 0 || x >= row.Length)
+                return false;
+
+            return row[x] == '.';
         }
 
         public List<Vector2Int> GetPlayerSpawns()
@@ -49,9 +67,9 @@ namespace MoriMonchiSimulator.CombatPrototype
             return spawns;
         }
 
-        public List<Vector2Int> GetEnemySpawns()
+        public List<EnemySpawn> GetEnemySpawnsWithFacing()
         {
-            List<Vector2Int> spawns = new List<Vector2Int>();
+            List<EnemySpawn> spawns = new List<EnemySpawn>();
 
             if (SpawnRows == null)
                 return spawns;
@@ -64,8 +82,21 @@ namespace MoriMonchiSimulator.CombatPrototype
 
                 for (int x = 0; x < row.Length; x++)
                 {
-                    if (row[x] == 'E')
-                        spawns.Add(new Vector2Int(x, z));
+                    char c = row[x];
+                    Vector2Int facing;
+
+                    if (c == 'E' || c == '>')
+                        facing = new Vector2Int(1, 0);
+                    else if (c == '<')
+                        facing = new Vector2Int(-1, 0);
+                    else if (c == '^')
+                        facing = new Vector2Int(0, 1);
+                    else if (c == 'v')
+                        facing = new Vector2Int(0, -1);
+                    else
+                        continue;
+
+                    spawns.Add(new EnemySpawn { Cell = new Vector2Int(x, z), Facing = facing });
                 }
             }
 

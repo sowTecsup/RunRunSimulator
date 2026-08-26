@@ -6,8 +6,8 @@ tags: [script, combat-prototype, data]
 
 **Ruta:** `Systems/CombatPrototype/EnemyDefinitionSO.cs`
 
-**Responsabilidad:** SO plano que define enemigo: ID, nombre, GuardTicks/FinisherTicks, patrón IA (ChaseMelee/RangedLine), ranges (move/attack), preferencia distancia, rango reacción, líneas brief, prefab visual, tint.
+**Responsabilidad:** SO de definición de enemigo: ID, nombre, GuardTicks/FinisherTicks (presupuesto defensivo), Pattern (ChaseMelee/RangedLine), AttackRange (para RangedLine), **Nuevo:** MoveOffsets (array de offsets ajedrez en espacio local facing=+x), BriefLines, VisualPrefab, Tint. **Cambios S82:** pierde MoveRange, PreferredMin/Max, ReactionDistance; gana MoveOffsets (patrón ajedrez de movimiento post-golpe bloqueado).
 
 **Vinculado a:** [[Index/20 - Combat Prototype MVP (Plan)]]
 
-**Conexiones:** [[EnemyUnit]], [[EnemyBrain]], [[CombatPrototypeManager]], [[EnemyBriefPanel]]
+**Conexiones:** [[EnemyUnit]], [[EnemyBrain]], [[ActionResolver]], [[CombatPrototypeManager]]

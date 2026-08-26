@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MoriMonchiSimulator.CombatPrototype
 {
-    public enum ResolutionEventType { Move, Hit, Push, Launch, Land, Die, Reaction, EnemyAttack }
+    public enum ResolutionEventType { Move, Hit, Push, Launch, Land, Die, EnemyAttack, Rotate, Fizzle, Impact }
 
     public class ResolutionEvent
     {
@@ -12,6 +12,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         public int SourceId;
         public Vector2Int From;
         public Vector2Int To;
+        public Vector2Int Facing;
         public List<Vector2Int> Cells;
         public int TicksAfter;
         public bool Environmental;

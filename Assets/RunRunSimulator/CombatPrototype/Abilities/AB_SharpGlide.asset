@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: sharp_glide
   DisplayName: Planeo
   Type: 0
-  Targeting: 1
+  Targeting: 0
   Range: 3
   RangeMin: 0
   TemplateOffsets: []
@@ -25,3 +25,4 @@ MonoBehaviour:
   SlamRange: 0
   IgnoresHeight: 1
   IgnoresObstacles: 0
+  Landing: 1

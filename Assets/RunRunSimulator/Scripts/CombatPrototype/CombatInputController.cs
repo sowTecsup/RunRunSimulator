@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MoriMonchiSimulator.CombatPrototype
@@ -61,8 +62,11 @@ namespace MoriMonchiSimulator.CombatPrototype
             {
                 if (TryRaycastCell(mousePosition, out Vector2Int cell) && builder.Board.InBounds(cell))
                 {
-                    targeting.SetCursor(cell);
-                    manager.ConfirmAction();
+                    if (!TrySelectPlayerAt(cell))
+                    {
+                        targeting.SetCursor(cell);
+                        manager.ConfirmAction();
+                    }
                 }
 
                 manager.HideBrief();
@@ -75,6 +79,21 @@ namespace MoriMonchiSimulator.CombatPrototype
                     manager.ShowBriefAt(cell, mousePosition);
                 }
             }
+        }
+
+        private bool TrySelectPlayerAt(Vector2Int cell)
+        {
+            List<PlayerUnit> players = manager.Canonical.GetPlayers();
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (players[i].Alive && players[i].Cell == cell)
+                {
+                    targeting.SelectUnit(i);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool TryRaycastCell(Vector2 screenPosition, out Vector2Int cell)

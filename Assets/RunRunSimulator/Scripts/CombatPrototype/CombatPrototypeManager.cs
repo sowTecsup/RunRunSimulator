@@ -69,16 +69,18 @@ namespace MoriMonchiSimulator.CombatPrototype
                 Views[unit.Id] = view;
             }
 
-            List<Vector2Int> enemySpawns = boardLayout.GetEnemySpawns();
+            List<EnemySpawn> enemySpawns = boardLayout.GetEnemySpawnsWithFacing();
             for (int i = 0; i < enemySpawns.Count; i++)
             {
+                EnemySpawn spawn = enemySpawns[i];
                 EnemyDefinitionSO def = enemyLoadout[i % enemyLoadout.Length];
                 int maxTicks = def.GuardTicks + def.FinisherTicks;
                 EnemyUnit unit = new EnemyUnit
                 {
                     Id = nextId++,
                     IsPlayer = false,
-                    Cell = enemySpawns[i],
+                    Cell = spawn.Cell,
+                    Facing = spawn.Facing,
                     MaxTicks = maxTicks,
                     Ticks = maxTicks,
                     Definition = def
@@ -101,6 +103,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         public void ConfirmAction()
         {
             if (Phase != CombatPhase.Planning) return;
+            if (Plan.TotalActions >= Choreography.MaxActions) return;
 
             PlannedAction action = targeting.TryConfirm();
             if (action == null) return;

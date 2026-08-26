@@ -5,7 +5,6 @@ namespace MoriMonchiSimulator.CombatPrototype
 {
     public class EnemyIntent
     {
-        public List<Vector2Int> MoveSteps = new List<Vector2Int>();
         public Vector2Int AttackDirection;
         public Vector2Int[] AttackOffsets;
 
@@ -27,7 +26,6 @@ namespace MoriMonchiSimulator.CombatPrototype
         public EnemyIntent Clone()
         {
             EnemyIntent clone = new EnemyIntent();
-            clone.MoveSteps = new List<Vector2Int>(MoveSteps);
             clone.AttackDirection = AttackDirection;
             clone.AttackOffsets = AttackOffsets;
             return clone;

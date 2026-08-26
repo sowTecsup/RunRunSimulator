@@ -11,13 +11,15 @@ namespace MoriMonchiSimulator.CombatPrototype
         private CombatPrototypeManager manager;
         private VisualElement bottomBar;
         private VisualElement beatStrip;
+        private Label actionBudgetLabel;
         private Label bannerLabel;
+        private Label selectionLabel;
         private Button executeButton;
         private readonly List<PlayerCardView> playerCards = new List<PlayerCardView>();
 
         private static readonly Dictionary<CombatPhase, (string Text, int Size, Color Bg)> BannerByPhase = new Dictionary<CombatPhase, (string, int, Color)>
         {
-            { CombatPhase.Planning, ("PLANIFICACIÓN — F1-F3 dragón · 1-3 plantilla · Enter confirma · Tab beat · Backspace deshace", 13, new Color(0f, 0f, 0f, 0.55f)) },
+            { CombatPhase.Planning, ("PLANIFICACIÓN — F1-F3 dragón · 1-3 plantilla · Enter confirma · Tab beat · Backspace deshace\n←/→ girar cámara · rueda: zoom · clic derecho sobre enemigo: info", 13, new Color(0f, 0f, 0f, 0.55f)) },
             { CombatPhase.Executing, ("EJECUTANDO...", 18, new Color(0f, 0f, 0f, 0.55f)) },
             { CombatPhase.EnemyTurn, ("TURNO ENEMIGO", 18, new Color(0f, 0f, 0f, 0.55f)) },
             { CombatPhase.Victory, ("VICTORIA — R para reiniciar", 18, new Color(0.1f, 0.35f, 0.12f, 0.85f)) },
@@ -30,6 +32,21 @@ namespace MoriMonchiSimulator.CombatPrototype
             BuildUi();
         }
 
+        private void OnEnable()
+        {
+            if (targeting != null) targeting.SelectionChanged += OnSelectionChanged;
+        }
+
+        private void OnDisable()
+        {
+            if (targeting != null) targeting.SelectionChanged -= OnSelectionChanged;
+        }
+
+        private void OnSelectionChanged()
+        {
+            Refresh();
+        }
+
         public bool IsPointerOver(Vector2 screenPosition)
         {
             return false;
@@ -40,7 +57,9 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (manager == null) return;
             if (bannerLabel == null || bannerLabel.panel == null) BuildUi();
             UpdateBanner();
+            UpdateSelectionLabel();
             UpdateBeatStrip();
+            UpdateActionBudget();
             UpdatePlayerCards();
             UpdateExecuteButton();
         }
@@ -63,6 +82,13 @@ namespace MoriMonchiSimulator.CombatPrototype
             SetPadding(bannerLabel, 6, 14);
             SetRadius(bannerLabel, 6);
 
+            selectionLabel = MakeLabel(root, "", 14, Color.white, true);
+            AnchorHorizontal(selectionLabel);
+            selectionLabel.style.top = 56;
+            selectionLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+            SetPadding(selectionLabel, 4, 12);
+            SetRadius(selectionLabel, 6);
+
             beatStrip = new VisualElement();
             AnchorHorizontal(beatStrip);
             beatStrip.style.bottom = 152;
@@ -70,6 +96,11 @@ namespace MoriMonchiSimulator.CombatPrototype
             beatStrip.style.justifyContent = Justify.Center;
             beatStrip.pickingMode = PickingMode.Ignore;
             root.Add(beatStrip);
+
+            actionBudgetLabel = MakeLabel(root, "", 13, Color.white, true);
+            AnchorHorizontal(actionBudgetLabel);
+            actionBudgetLabel.style.bottom = 178;
+            actionBudgetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
 
             bottomBar = new VisualElement();
             AnchorHorizontal(bottomBar);
@@ -125,6 +156,52 @@ namespace MoriMonchiSimulator.CombatPrototype
             bannerLabel.style.backgroundColor = phaseData.Bg;
         }
 
+        private void UpdateSelectionLabel()
+        {
+            if (selectionLabel == null) return;
+            if (manager.Phase != CombatPhase.Planning || targeting == null)
+            {
+                selectionLabel.style.display = DisplayStyle.None;
+                return;
+            }
+
+            selectionLabel.style.display = DisplayStyle.Flex;
+            selectionLabel.style.backgroundColor = new Color(0f, 0f, 0f, 0.55f);
+
+            if (targeting.SelectedUnitId < 0)
+            {
+                selectionLabel.text = "Elegí un dragón: F1-F3 o clic sobre él";
+                selectionLabel.style.color = Color.white;
+                return;
+            }
+
+            PlayerUnit player = manager.Canonical != null ? manager.Canonical.GetUnit(targeting.SelectedUnitId) as PlayerUnit : null;
+            if (player == null)
+            {
+                selectionLabel.style.display = DisplayStyle.None;
+                return;
+            }
+
+            Color tint = player.Definition.Tint;
+            tint.a = 1f;
+            selectionLabel.style.color = tint;
+
+            if (targeting.SelectedAbilityIndex < 0)
+            {
+                selectionLabel.text = player.Definition.DisplayName + " — elegí plantilla: 1-3";
+                return;
+            }
+
+            CombatAbilitySO[] abilities = player.Definition.Abilities;
+            string abilityName = abilities != null && targeting.SelectedAbilityIndex < abilities.Length && abilities[targeting.SelectedAbilityIndex] != null
+                ? abilities[targeting.SelectedAbilityIndex].DisplayName
+                : "";
+
+            selectionLabel.text = targeting.AwaitingSlamCell
+                ? player.Definition.DisplayName + " — " + abilityName + ": objetivo fijado — elegí la celda del slam y confirmá"
+                : player.Definition.DisplayName + " — " + abilityName + " · WASD/mouse apunta · Q/E rota · Enter o clic confirma";
+        }
+
         private void UpdateBeatStrip()
         {
             if (beatStrip == null) return;
@@ -142,6 +219,14 @@ namespace MoriMonchiSimulator.CombatPrototype
                 chip.style.marginLeft = 3;
                 chip.style.marginRight = 3;
             }
+        }
+
+        private void UpdateActionBudget()
+        {
+            if (actionBudgetLabel == null) return;
+            int used = manager.Plan != null ? manager.Plan.TotalActions : 0;
+            actionBudgetLabel.text = "Acciones " + used + "/" + Choreography.MaxActions;
+            actionBudgetLabel.style.color = used >= Choreography.MaxActions ? Hex("#FFD34D") : Color.white;
         }
 
         private void UpdatePlayerCards()
@@ -164,6 +249,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
                 bool selected = targeting != null && targeting.SelectedUnitId == view.UnitId;
                 SetBorderColor(view.Card, selected ? Color.white : view.Definition.Tint);
+                view.Card.style.backgroundColor = selected ? new Color(0.16f, 0.19f, 0.28f, 0.95f) : new Color(0.08f, 0.09f, 0.12f, 0.92f);
 
                 CombatAbilitySO[] abilities = view.Definition.Abilities;
                 for (int a = 0; a < view.AbilityLabels.Count; a++)
@@ -175,12 +261,27 @@ namespace MoriMonchiSimulator.CombatPrototype
                         continue;
                     }
 
-                    label.text = "[" + (a + 1) + "] " + abilities[a].DisplayName;
                     bool used = manager.Plan != null && manager.Plan.IsAbilityUsed(view.UnitId, a);
                     bool isSelected = selected && targeting != null && targeting.SelectedAbilityIndex == a;
-                    if (used) label.style.color = Hex("#666");
-                    else if (isSelected) label.style.color = Hex("#FFD34D");
-                    else label.style.color = Color.white;
+                    SetRadius(label, 4);
+                    if (used)
+                    {
+                        label.text = "[" + (a + 1) + "] " + abilities[a].DisplayName + " — usada";
+                        label.style.color = Hex("#666");
+                        label.style.backgroundColor = Color.clear;
+                    }
+                    else if (isSelected)
+                    {
+                        label.text = "[" + (a + 1) + "] " + abilities[a].DisplayName;
+                        label.style.color = Hex("#1B1E27");
+                        label.style.backgroundColor = Hex("#FFD34D");
+                    }
+                    else
+                    {
+                        label.text = "[" + (a + 1) + "] " + abilities[a].DisplayName;
+                        label.style.color = Color.white;
+                        label.style.backgroundColor = Color.clear;
+                    }
                 }
             }
         }

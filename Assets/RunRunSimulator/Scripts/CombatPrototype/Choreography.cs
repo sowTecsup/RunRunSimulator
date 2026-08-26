@@ -9,6 +9,8 @@ namespace MoriMonchiSimulator.CombatPrototype
 
     public class Choreography
     {
+        public const int MaxActions = 2;
+
         public List<Beat> Beats;
 
         public Choreography()

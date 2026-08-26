@@ -7,10 +7,13 @@ namespace MoriMonchiSimulator.CombatPrototype
     {
         [SerializeField] private BoardHighlighter highlighter;
 
+        public event System.Action SelectionChanged;
+
         public int SelectedUnitId { get; private set; } = -1;
         public int SelectedAbilityIndex { get; private set; } = -1;
         public Vector2Int CursorCell { get; private set; }
         public Vector2Int CurrentDirection { get; private set; } = new Vector2Int(1, 0);
+        public bool AwaitingSlamCell { get { return pendingSlamTarget != null; } }
 
         private CombatSimState projectedState;
         private Vector2Int? pendingSlamTarget;
@@ -34,6 +37,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             SelectedAbilityIndex = -1;
             pendingSlamTarget = null;
             RefreshHighlights();
+            SelectionChanged?.Invoke();
         }
 
         public void SelectAbility(int abilityIndex)
@@ -44,6 +48,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             SelectedAbilityIndex = abilityIndex;
             pendingSlamTarget = null;
             RefreshHighlights();
+            SelectionChanged?.Invoke();
         }
 
         public void SetCursor(Vector2Int cell)
@@ -56,7 +61,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             CombatAbilitySO ability = GetSelectedAbility();
             CombatUnit unit = ability != null ? projectedState.GetUnit(SelectedUnitId) : null;
-            if (ability != null && ability.Targeting == TargetingMode.DirectionalTemplate && unit != null && CursorCell != unit.Cell)
+            if (ability != null && ability.Type == AbilityType.Attack && ability.Targeting == TargetingMode.DirectionalTemplate && unit != null && CursorCell != unit.Cell)
                 CurrentDirection = AbilityTargeting.DominantCardinal(unit.Cell, CursorCell);
 
             RefreshHighlights();
@@ -104,17 +109,20 @@ namespace MoriMonchiSimulator.CombatPrototype
             pendingSlamTarget = null;
             highlighter.Clear(HighlightKind.Template);
             highlighter.Clear(HighlightKind.Landing);
+            highlighter.Clear(HighlightKind.Selection);
+            SelectionChanged?.Invoke();
         }
 
         private PlannedAction TryConfirmSlam(CombatUnit unit, CombatAbilitySO ability)
         {
             if (pendingSlamTarget == null)
             {
-                if (!HasAirborneTargetAt(unit, ability, CursorCell))
+                if (!HasAirborneTargetAt(CursorCell))
                     return null;
 
                 pendingSlamTarget = CursorCell;
                 RefreshHighlights();
+                SelectionChanged?.Invoke();
                 return null;
             }
 
@@ -131,14 +139,12 @@ namespace MoriMonchiSimulator.CombatPrototype
                 return null;
 
             pendingSlamTarget = null;
+            SelectionChanged?.Invoke();
             return action;
         }
 
-        private bool HasAirborneTargetAt(CombatUnit unit, CombatAbilitySO ability, Vector2Int cell)
+        private bool HasAirborneTargetAt(Vector2Int cell)
         {
-            if (AbilityTargeting.Chebyshev(unit.Cell, cell) > ability.Range)
-                return false;
-
             for (int i = 0; i < projectedState.Units.Count; i++)
             {
                 CombatUnit candidate = projectedState.Units[i];
@@ -151,6 +157,12 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         private void RefreshHighlights()
         {
+            CombatUnit selectedUnit = projectedState != null && SelectedUnitId >= 0 ? projectedState.GetUnit(SelectedUnitId) : null;
+            if (selectedUnit != null && selectedUnit.Alive)
+                highlighter.Show(HighlightKind.Selection, new List<Vector2Int> { selectedUnit.Cell });
+            else
+                highlighter.Clear(HighlightKind.Selection);
+
             CombatAbilitySO ability = GetSelectedAbility();
             if (ability == null)
             {
@@ -160,25 +172,61 @@ namespace MoriMonchiSimulator.CombatPrototype
             }
 
             CombatUnit unit = projectedState.GetUnit(SelectedUnitId);
-            List<Vector2Int> templateCells = AbilityTargeting.GetValidTargets(projectedState, unit, ability);
+
+            if (ability.Type == AbilityType.Movement)
+            {
+                highlighter.Clear(HighlightKind.Template);
+
+                List<Vector2Int> movementLanding = new List<Vector2Int>();
+                if (projectedState.IsCellFree(CursorCell))
+                    movementLanding.Add(CursorCell);
+                highlighter.Show(HighlightKind.Landing, movementLanding);
+                return;
+            }
 
             if (ability.Targeting == TargetingMode.DirectionalTemplate)
             {
-                List<Vector2Int> directional = AbilityTargeting.GetAffectedCellsForDirection(projectedState, unit.Cell, ability, CurrentDirection);
-                for (int i = 0; i < directional.Count; i++)
-                    if (!templateCells.Contains(directional[i]))
-                        templateCells.Add(directional[i]);
+                PlannedAction tempAction = new PlannedAction { UnitId = SelectedUnitId, AbilityIndex = SelectedAbilityIndex, TargetCell = CursorCell, Direction = CurrentDirection };
+                List<Vector2Int> templateCells = AbilityTargeting.GetAffectedCells(projectedState, ability, tempAction);
+                highlighter.Show(HighlightKind.Template, templateCells);
+
+                Vector2Int landingCell = AbilityTargeting.GetLandingCell(unit, ability, tempAction);
+                List<Vector2Int> landingCells = new List<Vector2Int>();
+                if (projectedState.Board.InBounds(landingCell))
+                    landingCells.Add(landingCell);
+                highlighter.Show(HighlightKind.Landing, landingCells);
+                return;
             }
 
-            highlighter.Show(HighlightKind.Template, templateCells);
+            if (ability.Targeting == TargetingMode.AirborneEnemy)
+            {
+                if (pendingSlamTarget == null)
+                {
+                    List<Vector2Int> airborneCells = new List<Vector2Int>();
+                    for (int i = 0; i < projectedState.Units.Count; i++)
+                    {
+                        CombatUnit candidate = projectedState.Units[i];
+                        if (candidate.Airborne && candidate.Alive)
+                            airborneCells.Add(candidate.Cell);
+                    }
+                    highlighter.Show(HighlightKind.Template, airborneCells);
+                    highlighter.Clear(HighlightKind.Landing);
+                    return;
+                }
 
-            List<Vector2Int> landingCells = new List<Vector2Int>();
-            if (ability.Type == AbilityType.Movement && templateCells.Contains(CursorCell))
-                landingCells.Add(CursorCell);
-            if (pendingSlamTarget != null)
-                landingCells.AddRange(GetSlamCandidateCells(ability, pendingSlamTarget.Value));
+                List<Vector2Int> slamCells = GetSlamCandidateCells(ability, pendingSlamTarget.Value);
+                highlighter.Show(HighlightKind.Template, slamCells);
 
-            highlighter.Show(HighlightKind.Landing, landingCells);
+                Vector2Int slamLanding = pendingSlamTarget.Value - AbilityTargeting.DominantCardinal(pendingSlamTarget.Value, CursorCell);
+                List<Vector2Int> slamLandingCells = new List<Vector2Int>();
+                if (projectedState.Board.InBounds(slamLanding))
+                    slamLandingCells.Add(slamLanding);
+                highlighter.Show(HighlightKind.Landing, slamLandingCells);
+                return;
+            }
+
+            highlighter.Clear(HighlightKind.Template);
+            highlighter.Clear(HighlightKind.Landing);
         }
 
         private List<Vector2Int> GetSlamCandidateCells(CombatAbilitySO ability, Vector2Int origin)

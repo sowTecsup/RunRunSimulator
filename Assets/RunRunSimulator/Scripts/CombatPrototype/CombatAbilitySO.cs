@@ -6,6 +6,8 @@ namespace MoriMonchiSimulator.CombatPrototype
 
     public enum TargetingMode { FreeCell, StraightLine, DirectionalTemplate, RangeBand, AirborneEnemy }
 
+    public enum LandingKind { Stay, AtAnchor, BehindAnchor }
+
     [CreateAssetMenu(fileName = "CombatAbility", menuName = "MoriMonchi/Combat Prototype/Ability")]
     public class CombatAbilitySO : ScriptableObject
     {
@@ -22,5 +24,6 @@ namespace MoriMonchiSimulator.CombatPrototype
         public int SlamRange;
         public bool IgnoresHeight;
         public bool IgnoresObstacles;
+        public LandingKind Landing;
     }
 }

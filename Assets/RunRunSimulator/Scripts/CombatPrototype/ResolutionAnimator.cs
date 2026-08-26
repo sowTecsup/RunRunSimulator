@@ -9,8 +9,11 @@ namespace MoriMonchiSimulator.CombatPrototype
         private const float MoveDuration = 0.35f;
         private const float PushDuration = 0.25f;
         private const float LandDuration = 0.3f;
+        private const float RotateDuration = 0.2f;
         private const float HitPause = 0.15f;
         private const float WavePause = 0.1f;
+
+        [SerializeField] private BoardImpactFeedback impact;
 
         public IEnumerator Play(List<ResolutionEvent> events, Dictionary<int, CombatUnitView> views, CombatBoard board, CombatSimState state)
         {
@@ -45,6 +48,27 @@ namespace MoriMonchiSimulator.CombatPrototype
         private IEnumerator PlayWave(List<ResolutionEvent> waveEvents, Dictionary<int, CombatUnitView> views, CombatBoard board, CombatSimState state)
         {
             yield return PlayMovementPhase(waveEvents, views, board);
+
+            if (impact != null)
+            {
+                for (int i = 0; i < waveEvents.Count; i++)
+                {
+                    ResolutionEvent evt = waveEvents[i];
+                    if (evt.Type == ResolutionEventType.Land)
+                    {
+                        impact.ShakeAt(evt.To);
+                    }
+                    else if (evt.Type == ResolutionEventType.Impact)
+                    {
+                        for (int c = 0; c < evt.Cells.Count; c++) impact.ShakeAt(evt.Cells[c]);
+                    }
+                    else if (evt.Type == ResolutionEventType.EnemyAttack)
+                    {
+                        for (int c = 0; c < evt.Cells.Count; c++) impact.ShakeAt(evt.Cells[c]);
+                    }
+                }
+            }
+
             yield return PlaySequentialPhase(waveEvents, views, state);
             yield return new WaitForSeconds(WavePause);
         }
@@ -70,7 +94,6 @@ namespace MoriMonchiSimulator.CombatPrototype
             switch (evt.Type)
             {
                 case ResolutionEventType.Move:
-                case ResolutionEventType.Reaction:
                     yield return view.MoveTo(board.CellToWorld(evt.To), true, MoveDuration);
                     break;
                 case ResolutionEventType.Push:
@@ -96,7 +119,6 @@ namespace MoriMonchiSimulator.CombatPrototype
         {
             return type == ResolutionEventType.Move
                 || type == ResolutionEventType.Push
-                || type == ResolutionEventType.Reaction
                 || type == ResolutionEventType.Launch
                 || type == ResolutionEventType.Land;
         }
@@ -109,12 +131,13 @@ namespace MoriMonchiSimulator.CombatPrototype
 
                 if (evt.Type == ResolutionEventType.Hit)
                 {
+                    CombatUnit unit = state.GetUnit(evt.UnitId);
                     if (views.TryGetValue(evt.UnitId, out CombatUnitView view))
                     {
                         view.FlashHit();
-                        CombatUnit unit = state.GetUnit(evt.UnitId);
                         if (unit != null) view.RefreshTicks(unit);
                     }
+                    if (evt.Environmental && impact != null && unit != null) impact.ShakeAt(unit.Cell);
                     yield return new WaitForSeconds(HitPause);
                 }
                 else if (evt.Type == ResolutionEventType.EnemyAttack)
@@ -125,6 +148,13 @@ namespace MoriMonchiSimulator.CombatPrototype
                 else if (evt.Type == ResolutionEventType.Die)
                 {
                     if (views.TryGetValue(evt.UnitId, out CombatUnitView view)) view.ShowDead();
+                }
+                else if (evt.Type == ResolutionEventType.Rotate)
+                {
+                    if (views.TryGetValue(evt.UnitId, out CombatUnitView view)) yield return view.RotateTo(evt.Facing, RotateDuration);
+                }
+                else if (evt.Type == ResolutionEventType.Fizzle)
+                {
                 }
             }
         }

@@ -15,13 +15,15 @@ MonoBehaviour:
   Id: sharp_arc
   DisplayName: Tiro en arco
   Type: 1
-  Targeting: 3
+  Targeting: 2
   Range: 3
   RangeMin: 2
-  TemplateOffsets: []
+  TemplateOffsets:
+  - {x: 0, y: 0}
   PushDistance: 0
   LaunchesAirborne: 0
   SlamTargeted: 0
   SlamRange: 0
   IgnoresHeight: 1
   IgnoresObstacles: 1
+  Landing: 0

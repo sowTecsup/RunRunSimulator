@@ -16,7 +16,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             if (target is EnemyUnit enemy)
             {
-                enemy.WasHitThisBeat = true;
+                enemy.WasHitThisTurn = true;
             }
 
             events.Add(new ResolutionEvent(ResolutionEventType.Hit, target.Id) { SourceId = sourceId, TicksAfter = target.Ticks, Environmental = environmental, Wave = wave });

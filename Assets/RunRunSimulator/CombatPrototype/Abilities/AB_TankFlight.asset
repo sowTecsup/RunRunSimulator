@@ -25,3 +25,4 @@ MonoBehaviour:
   SlamRange: 0
   IgnoresHeight: 1
   IgnoresObstacles: 0
+  Landing: 1

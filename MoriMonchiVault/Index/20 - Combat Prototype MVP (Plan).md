@@ -45,39 +45,47 @@ Validar si **planificación + lectura de intenciones + ejecución simultánea** 
 
 **Siguen abiertas (diseño, NO las decide el prototipo)**: Q4 (qué termina un nivel — el MVP usa "matar todo" como placeholder) · Q6 (mapeo parte→verbo) · PE.1 (presupuesto de contenido) · el corte del determinismo de escenarios (19 Parte 2 #3).
 
+> ⚠️ **Enmiendas S82 (§11)**: la decisión 8 queda revocada en su mitad de acceso (la altura ya no limita al melé), la 9 matizada (techo nuevo: 2 acciones por turno), la 10 matizada (la iniciativa queda, la puntería inteligente se va) y la 11 revocada (ya no hay reacción por beat). Las secciones §3/§4/§5 de abajo ya están enmendadas.
+
 ---
 
-## 3 · Reglas v0 (todo tunable)
+## 3 · Reglas v0 (todo tunable — enmendado S82, ver §11)
 
-- **Tablero**: grilla 8×8, alturas 0–2 (medio cubo por nivel). Las plantillas de vuelo ignoran desnivel según su spec; el melé no alcanza 2+ niveles arriba.
-- **Ticks**: dragones 5 · enemigos 3 (Bomba 2) · todo ataque (propio o enemigo) = 1 tick · entorno: choque contra muro/unidad +1 (a ambos si unidad), caída ≥2 niveles +1.
-- **Coreografía**: fase de planificación → se arma la línea de beats → EXECUTE → corre beat a beat → enemigos vivos ejecutan su intención → nueva planificación. Límite: 1 uso por plantilla por fase.
-- **Resolución del beat (orden fijo, determinista)**: 1) acciones del jugador contra el snapshot del inicio del beat, aplicadas por orden de slot (izq→der) · 2) muertes · 3) aterrizajes de aéreos · 4) reacciones de enemigos golpeados este beat (orden por índice; aéreos no reaccionan) · cierre. Overkill posible (2 golpes al mismo en un beat = plantilla gastada) y la proyección lo muestra.
-- **Reacciones**: reposicionamiento corto propio de cada enemigo, respeta terreno (no entra a ocupadas, no sube 2+); bloqueada por completo → se queda quieto (**arrinconar habilita el cargamontón**). Enemigo que reaccionó al menos una vez → en su turno solo ataca (su movimiento se gastó); nunca tocado → intención completa (mover + atacar).
-- **Contras del jugador a la reactividad**: arrinconar · lanzar al aire (niega la reacción) · ráfaga (3 ticks en un solo beat = muere sin reaccionar).
-- **Juggle**: lanzado → aire durante el beat siguiente → aterriza al final de ese beat 1 celda en la dirección del golpe (celda mostrada). Aterrizaje sobre ocupada: +1 tick a ambos, cae a la libre más cercana en la dirección del lanzamiento. Máx 1 enemigo en el aire por lanzador.
+- **Tablero**: grilla 8×8, alturas 0–2 (medio cubo por nivel). La altura NO limita aterrizajes ni movimientos (decisión 22): cuenta solo para empujes contra desnivel y caídas. Guideline de layout: perímetros irregulares, no lisos (decisión 24 — la rotación al bloqueo los necesita).
+- **Ticks**: dragones 5 · enemigos 3 (Bomba 2) · todo ataque (propio o enemigo) = 1 tick · entorno: choque contra muro/unidad +1 (a ambos si unidad), caída ≥2 niveles +1. El movimiento voluntario (aterrizajes de habilidad propia, movimiento enemigo de fin de turno) nunca daña.
+- **Turno (orden fijo, determinista)**: 1) planificación (máx 2 acciones + 1 uso por plantilla, preview total) → 2) EXECUTE: beats del jugador → 3) ataque enemigo: TODOS los vivos ejecutan su ataque telegrafiado en su apuntado actual, haya o no objetivo (activadores automáticos) → 4) movimiento enemigo: los golpeados este turno (cualquier fuente) ejecutan su patrón de ajedrez; patrón bloqueado → NO se mueve y rota 90° horario su apuntado; estuvo en el aire este turno → no se mueve → 5) nueva planificación (telegraphs re-pintados).
+- **Resolución del beat (orden fijo, determinista)**: 1) acciones del jugador contra el snapshot del inicio del beat, aplicadas por orden de slot (izq→der): el dragón VIAJA a su celda de aterrizaje y la plantilla golpea en el anclaje · 2) muertes · 3) aterrizajes de aéreos · cierre. Ya NO hay reacciones por beat (decisión 18). Overkill posible (2 golpes al mismo en un beat = plantilla gastada) y la proyección lo muestra.
+- **Targeting (decisiones 21-22)**: cursor libre por TODO el tablero; anclaje + rotación definen el área de impacto Y la celda de aterrizaje del dragón (fija por la forma de la plantilla). Validez = celda de aterrizaje libre. Si al ejecutarse el aterrizaje se ocupó → FIZZLE: acción cancelada, plantilla gastada, mostrado en proyección.
+- **Apuntado enemigo**: estado persistente (inicial definido por el layout); solo cambia por rotación al bloqueo. El telegraph relativo (decisión 12) viaja con el enemigo desplazado; se cancela solo si queda imposible.
+- **Juggle**: lanzado → aire durante el beat siguiente → aterriza al final de ese beat 1 celda en la dirección del golpe (celda mostrada). Aterrizaje sobre ocupada: +1 tick a ambos, cae a la libre más cercana en la dirección del lanzamiento. Máx 1 enemigo en el aire por lanzador. Aéreo este turno → sin movimiento de fin de turno.
 - **Fin**: victoria = sin enemigos (placeholder de Q4) · derrota = 3 dragones a 0 · R = restart. Sin permadeath en el MVP. Sin curación (heridas persistentes si se encadenan niveles).
-- **Input** (controles de S77 §4.1.8): F1-F3 dragón · 1-3 plantilla · WASD/mouse apunta al piso · Q/E rota · Enter/click confirma al beat actual · Tab crea beat nuevo · Backspace deshace último slot · clic derecho sobre enemigo = brief · R restart.
+- **Input** (controles de S77 §4.1.8): F1-F3 dragón · 1-3 plantilla · WASD/mouse mueve el cursor de anclaje por el tablero · Q/E rota · Enter/click confirma al beat actual · Tab crea beat nuevo · Backspace deshace último slot · clic derecho sobre enemigo = brief · R restart.
 
-## 4 · Kits (3 plantillas por dragón: 1 vuelo + 2 ataques)
+## 4 · Kits (3 plantillas por dragón: 1 vuelo + 2 ataques — enmendado S82: anclaje + aterrizaje)
 
-| Dragón | Vuelo | Ataques |
+Idioma nuevo (decisión 21): cada habilidad = **forma de plantilla** (área de impacto en el anclaje elegido) + **aterrizaje** (celda del dragón, fija por la forma) + efectos. El anclaje va a cualquier parte del tablero (decisión 22).
+
+| Dragón | Vuelo | Ataques (forma → aterrizaje → efectos) |
 |---|---|---|
-| **Tanque** (5t) | Vuelo corto: celda libre ≤2, ignora desnivel | Empujón (adyacente, 1 tick, empuja 2) · **Agarre aéreo**: solo contra enemigo EN EL AIRE, 1 tick + slam dirigido a ≤2 |
-| **Tirador** (5t) | Planeo: celda libre ≤3 en línea recta | Disparo (línea de 3, 1 tick, empuja 1 alejándose) · Tiro en arco (celda a distancia 2–3, ignora altura y obstáculos, 1 tick, sin empuje) |
-| **Ágil** (5t) | Gran salto: celda libre ≤3, ignora altura | Golpe (adyacente, 1 tick) · **Voltereta**: adyacente, 1 tick + LANZA AL AIRE |
+| **Tanque** (5t) | Vuelo corto: celda libre, solo destino | Empujón: enemigo objetivo + dirección; aterrizás adyacente del lado desde donde empujás; 1 tick, empuja 2 · **Agarre aéreo**: solo contra enemigo EN EL AIRE; aterrizás adyacente al objetivo; 1 tick + slam dirigido a ≤2 |
+| **Tirador** (5t) | Planeo: celda libre, solo destino | Disparo: línea de 3; aterrizás en la BASE de la línea; 1 tick, empuja 1 alejándose · Tiro en arco: celda única; NO te mueve (aterrizaje = quedarse); 1 tick, sin empuje |
+| **Ágil** (5t) | Gran salto: celda libre, solo destino | Golpe: celda única; aterrizás adyacente (lado elegido con la rotación); 1 tick · **Voltereta**: celda única; aterrizás adyacente; 1 tick + LANZA AL AIRE |
 
-**Combo canónico a validar**: beat 1 — Ágil lanza con Voltereta · beat 2 — Tanque agarra en el aire y estrella contra muro = 1+1+1 entorno = 3 ticks. Es el movimiento-firma del prototipo.
+⚠️ Observación S82 (tunable): con el anclaje sin límite los 3 vuelos quedan funcionalmente idénticos (celda libre, solo destino). Se mantienen por su valor de esquive sin gastar ataque; diferenciarlos o recortarlos lo decide el playtest.
 
-## 5 · Enemigos v0
+**Combo canónico a validar**: beat 1 — Ágil lanza con Voltereta · beat 2 — Tanque agarra en el aire y estrella contra muro = 1+1+1 entorno = 3 ticks. Es el movimiento-firma del prototipo, y entra justo en el presupuesto nuevo de 2 acciones por turno.
 
-| Enemigo | Ticks | Intención | Reacción al ser golpeado | Brief (ejemplo) |
+## 5 · Enemigos v0 (enmendado S82: activadores automáticos + movimiento ajedrez)
+
+Modelo S82 (decisiones 17-20): el enemigo NO persigue ni apunta — es un **activador automático** con apuntado persistente (inicial por layout). Ataca SIEMPRE en su turno, haya o no objetivo. Solo se mueve al final del turno SI FUE GOLPEADO, ejecutando su **patrón de ajedrez** (visible en el brief); bloqueado → rota 90° horario.
+
+| Enemigo | Ticks | Ataque (automático, en su apuntado) | Movimiento (si golpeado, fin de turno) | Brief (ejemplo) |
 |---|---|---|---|---|
-| **Goblin** | 3 (2G+1) | Persigue al dragón más cercano, golpe adyacente 1 tick; empate → prefiere la derecha | Se reacomoda 2 casillas alejándose del último atacante | "Se acerca al más cercano · Prefiere la derecha · Al ser golpeado se reacomoda" |
-| **Arquero** | 3 (2G+1) | Mantiene distancia 2–3, dispara en línea de 3, 1 tick | Retrocede 2 manteniendo la línea | "Mantiene distancia · Dispara en línea · Retrocede si lo tocás" |
-| **Bomba** | 2 | No ataca. A 0 ticks DETONA: 1 tick a las 8 celdas + empuje radial 1 (encadena caídas). Con 1 tick restante su intent muestra el área | Sin reacción (estática, EMPUJABLE) | "No se mueve · 2 golpes y detona · Empujala" |
+| **Goblin** | 3 (2G+1) | Golpe a la celda frontal adyacente, 1 tick | **Torre-2**: avanza 2 al frente; bloqueado → rota 90° | "Siempre golpea al frente · Si lo golpeás, avanza 2 · Sin lugar, gira" |
+| **Arquero** | 3 (2G+1) | Proyectil en línea de 3 al frente, 1 tick | **Alfil-2**: 2 en diagonal frontal-derecha; bloqueado → rota 90° | "Siempre dispara en línea · Si lo golpeás, se desliza en diagonal · Sin lugar, gira" |
+| **Bomba** | 2 | No ataca. A 0 ticks DETONA: 1 tick a las 8 celdas + empuje radial 1 (encadena caídas). Con 1 tick restante su intent muestra el área | Estática (sin patrón, EMPUJABLE) | "No se mueve · 2 golpes y detona · Empujala" |
 
-La Bomba es el modelo-contador de S77 traducido al idioma nuevo (ticks = contador) y la pieza de combo estrella.
+La Bomba es el modelo-contador de S77 traducido al idioma nuevo (ticks = contador) y la pieza de combo estrella. Los patrones Torre-2/Alfil-2 son asignación v0 del orquestador — tunables.
 
 ---
 
@@ -136,8 +144,8 @@ Cada fase cierra con `read_console` 0 errores + ejercicio en Play por Unity MCP.
 > Anotaciones de Juan tras jugar el prototipo al cierre de S81. **Esta lista ES la agenda de la próxima sesión**, por encima de la fase 5 genérica. Los puntos 2 y 3 son cambios de mecánica (documentados como decisión de Juan, pendientes de bajar a reglas exactas al abrir S82); el resto es presentación/juice.
 
 1. **Verticalidad Bad North + cámara**: estructuras más verticales; que rotar la isla y observarla sea RECOMPENSADO — no se debe poder leer todo el tablero a simple vista. Probar bloques más altos (subir `LevelHeight` y/o elevaciones más allá de 2). Implica añadir rotación de cámara (orbitar por pasos) y layouts con oclusión deliberada.
-2. **Enemigos SIN movimiento propio**: solo se reposicionan al ser GOLPEADOS (la reacción se mantiene); en su turno solo ejecutan su ataque telegrafiado. Juan: *"los enemigos solo debían moverse si eran golpeados; ahora solo me moví y ellos también se movían"*. Matiza la decisión 10-11 de S80: la INICIATIVA de ataque queda, el movimiento de intención (persecución/reposicionamiento del `EnemyBrain`) se elimina.
-3. **⭐ Plantilla = zona de impacto + desplazamiento del MoriMonchi**: se selecciona la ZONA de impacto en el tablero y el MoriMochi SE MUEVE y ejecuta ahí — no "plantillas que salen del MoriMonchi quieto hacia los extremos". Juan: *"no nos estamos moviendo hacia la posición: estamos ejecutando un ataque de plantilla EN la posición"*. Restaura §4.1.7 de S77 (posición = consecuencia de la plantilla): atacar y moverse vuelven a ser EL MISMO verbo. Cambio grande de targeting + resolver: la acción lleva celda de anclaje del template + celda de aterrizaje del dragón.
+2. **Enemigos SIN movimiento propio** — ✅ **CERRADO S82, reglas exactas en §11**: solo se reposicionan al ser GOLPEADOS (la reacción se mantiene); en su turno solo ejecutan su ataque telegrafiado. Juan: *"los enemigos solo debían moverse si eran golpeados; ahora solo me moví y ellos también se movían"*. Matiza la decisión 10-11 de S80: la INICIATIVA de ataque queda, el movimiento de intención (persecución/reposicionamiento del `EnemyBrain`) se elimina.
+3. **⭐ Plantilla = zona de impacto + desplazamiento del MoriMonchi** — ✅ **CERRADO S82, reglas exactas en §11**: se selecciona la ZONA de impacto en el tablero y el MoriMochi SE MUEVE y ejecuta ahí — no "plantillas que salen del MoriMonchi quieto hacia los extremos". Juan: *"no nos estamos moviendo hacia la posición: estamos ejecutando un ataque de plantilla EN la posición"*. Restaura §4.1.7 de S77 (posición = consecuencia de la plantilla): atacar y moverse vuelven a ser EL MISMO verbo. Cambio grande de targeting + resolver: la acción lleva celda de anclaje del template + celda de aterrizaje del dragón.
 4. **UI de secuencia por beat**: marcar sobre el tablero/HUD cómo se mueve cada uno en cada tick (números de orden de beat sobre las celdas, lectura de la coreografía completa de un vistazo).
 5. **Presupuesto visible**: cada habilidad usada queda bloqueada hasta que los enemigos actúan al final (la lógica ya lo hace — reforzar la lectura en UI).
 6. **Popups de tick de daño** encima de las entidades (DamageNumbersPro, ya en el proyecto).
@@ -145,6 +153,29 @@ Cada fase cierra con `read_console` 0 errores + ejercicio en Play por Unity MCP.
 
 ---
 
+## 11 · Decisiones S82 (reglas exactas de los puntos 2 y 3 del feedback)
+
+> Cerradas con Juan al abrir S82 (2026-08-26). Prevalecen sobre §2 donde contradigan; §3/§4/§5 ya están enmendadas con este contenido. Numeración continúa la tabla de §2.
+
+| # | Decisión | Revoca / matiza |
+|---|----------|-----------------|
+| 17 | **Enemigos = activadores automáticos**: en su turno SIEMPRE ejecutan su ataque telegrafiado en su dirección de apuntado, haya o no objetivo en la plantilla (el Arquero dispara su línea igual). No apuntan a nadie: el apuntado es un ESTADO que el jugador manipula | Matiza la decisión 10 (la iniciativa queda; la puntería inteligente se va) |
+| 18 | **Cero movimiento propio**: el enemigo solo se mueve al FINAL del turno SI FUE GOLPEADO ese turno (cualquier fuente). Se eliminan la persecución/reposicionamiento del `EnemyBrain` Y la reacción por beat | Revoca la decisión 11 y las "reacciones" de §3; los contras (arrinconar/ráfaga) pierden objeto — el limitador nuevo es el presupuesto (dec. 23) |
+| 19 | **Movimiento = patrón estilo ajedrez** propio de cada tipo, visible en el brief/tooltip, determinista, relativo a su apuntado. Patrón bloqueado → NO se mueve y ROTA 90° horario su apuntado (*los muros redirigen enemigos* — de ahí la guideline de perímetros irregulares, dec. 24) | Reemplaza "se aleja 2 del último atacante" |
+| 20 | **Apuntado inicial definido en el layout** (cada spawn trae su facing). El telegraph relativo (decisión 12) sigue: forma+dirección viajan con el enemigo desplazado | — |
+| 21 | **Plantilla = anclaje + aterrizaje**: el jugador elige dónde ejecutar (celda de anclaje + rotación); la FORMA define el área de impacto Y la celda de aterrizaje del dragón. Atacar y moverse son EL MISMO verbo | Restaura §4.1.7 de S77; revoca el targeting "desde el dragón quieto" de las fases 2-3 |
+| 22 | **Transición sin límite**: el anclaje va a cualquier parte del tablero; la altura NO limita el aterrizaje (cuenta solo para empujes y caídas). Validez = celda de aterrizaje libre. Aterrizaje ocupado al ejecutarse → FIZZLE (acción cancelada, plantilla gastada, la proyección lo muestra). El movimiento voluntario nunca daña | Revoca la decisión 8 en su mitad de acceso (arriba deja de ser intocable) |
+| 23 | **Presupuesto: máx 2 acciones por planificación** (además del 1 uso por plantilla de la decisión 9). La presión vuelve por desgaste: los enemigos atacan TODOS los turnos y el jugador solo hace 2 cosas | Matiza la decisión 9 (el techo ya no es 9) |
+| 24 | **Ganchos S82 (NO en v0)**: stun por elementos del mapa (anula el movimiento de fin de turno) · habilidades que alteran el desplazamiento enemigo más allá del empuje · **perímetros irregulares como herramienta de diseño** (los layouts nuevos del punto 1 deben evitar bordes lisos) | — |
+
+**Decisiones v0 del orquestador (tunables, con veto de Juan)**: orden del turno = beats del jugador → ataque enemigo → movimiento de golpeados · "golpeado" cuenta cualquier fuente (fuego amigo enemigo y entorno incluidos) · la rotación al bloqueo REEMPLAZA al movimiento ese turno (no rota y mueve) · rotación siempre horaria · el patrón es todo-o-nada (si no entra completo → rota; genera más rotaciones = más control por geometría) · el movimiento de ajedrez ignora altura y no genera caídas (es voluntario) · enemigo que estuvo en el aire ese turno no ejecuta movimiento (hereda la decisión 13) · los ataques enemigos golpean sus celdas sin importar la altura (coherente con dec. 22) · patrones v0: Goblin Torre-2, Arquero Alfil-2, Bomba estática · el slam del Agarre conserva su ≤2 (es distancia de lanzamiento, no de anclaje).
+
+---
+
 ## Estado
 
-**FASES 1-4 EJECUTADAS Y VERIFICADAS (S81).** Prototipo jugable: escena `CombatPrototype.unity` + 29 scripts en `Scripts/CombatPrototype/` + assets en `CombatPrototype/` (9 habilidades, 3 dragones con prefabs DragonSD, 2 enemigos, 1 layout). Verificación central cumplida: 7 comparaciones proyección-vs-ejecución idénticas (ActionResolver único, §6) incluyendo el combo canónico Voltereta→Agarre→Slam y una partida completa de 4 turnos hasta la victoria. Fase 5 pendiente, subordinada al **feedback S81 (§10)** que es la agenda de S82. El pendiente obligatorio de editor de S75 (assets Horn/Back/Wing/Face/CutieMark + rewiring + limpieza de GameScene) sigue vigente e independiente de este prototipo.
+**FASES 1-4 EJECUTADAS Y VERIFICADAS (S81).** Prototipo jugable: escena `CombatPrototype.unity` + 29 scripts en `Scripts/CombatPrototype/` + assets en `CombatPrototype/` (9 habilidades, 3 dragones con prefabs DragonSD, 2 enemigos, 1 layout). Verificación central cumplida: 7 comparaciones proyección-vs-ejecución idénticas (ActionResolver único, §6) incluyendo el combo canónico Voltereta→Agarre→Slam y una partida completa de 4 turnos hasta la victoria.
+
+**S82 (2026-08-26): puntos 2 y 3 del feedback BAJADOS A REGLAS EXACTAS (§11, decisiones 17-24) E IMPLEMENTADOS Y VERIFICADOS** — enemigos activadores automáticos con movimiento ajedrez + plantilla anclaje/aterrizaje con transición sin límite + presupuesto de 2 acciones por turno. 20 scripts tocados (18 modificados + 2 nuevos: `BoardImpactFeedback`, `CombatCameraController`), 11 assets re-parametrizados, `BoardLayout_Isla` NUEVO (12×12, alturas 0-4, celdas-hueco `.` para perímetro irregular, spawns con facing `>`/`<`/`^`/`v`), `levelHeight` 1.06 (altura real del DragonSD), vibración de bloques con Feel (`MMWiggle` por bloque + hook `MMF_Player`), cámara orbital por pasos de 90° (flechas ←/→). Verificación MCP: consola 0 errores/0 warnings · **proyección==ejecución IDÉNTICAS en 2 rondas jugadas** (ronda de empuje-contra-muro + Torre-2 + Alfil-2, y el combo canónico Voltereta→Agarre→Slam-contra-muro = 3 ticks = muerte, que entra justo en el presupuesto de 2 acciones) · rotación-al-bloqueo y fizzle verificados en frío sobre clones. Falta el playtest de Juan (checklist §8). El resto del §10 (punto 4 UI de secuencia, punto 6 popups DamageNumbersPro) sigue en agenda. El pendiente obligatorio de editor de S75 (assets Horn/Back/Wing/Face/CutieMark + rewiring + limpieza de GameScene) sigue vigente e independiente de este prototipo.
+
+**S83 (2026-08-26): LEGIBILIDAD — feedback del primer playtest de Juan sobre S82, implementado y verificado.** Regla de trabajo nueva de Juan: en presentación nunca cumplir el mínimo — preguntarse siempre si es legible para el usuario. Cambios: (a) vibración de bloques en TODO impacto — evento `Impact` nuevo emitido por `ActionResolver.ResolveAttack` con las celdas de plantilla (sin tocar estado; proyección==ejecución intacta) + shake en ataques enemigos; amplitud/duración de wiggle subidas en escena; (b) selección legible — anillo blanco bajo el dragón seleccionado, línea de estado-guía bajo el banner (qué está seleccionado y qué falta hacer), card con fondo+borde, habilidad seleccionada como pill amarillo y usadas "— usada", clic sobre dragón propio selecciona (estilo ITB); (c) cámara — zoom con rueda (la órbita ←/→ de S82 ya funcionaba; era descubribilidad) + controles visibles en el banner. 8 scripts modificados, 0 nuevos, verificación MCP completa (0 errores, ejercitado en Play). Del §10 quedan: punto 4 (UI de secuencia por beat), punto 6 (popups) y la mitad de layouts del punto 1 (verticalidad/oclusión deliberada).

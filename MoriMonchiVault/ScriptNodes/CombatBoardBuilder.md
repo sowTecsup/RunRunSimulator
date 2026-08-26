@@ -1,13 +1,13 @@
 ---
-tags: [script, combat-prototype, visuals]
+tags: [script, combat-prototype, presentation]
 ---
 
 # CombatBoardBuilder.cs
 
 **Ruta:** `Systems/CombatPrototype/CombatBoardBuilder.cs`
 
-**Responsabilidad:** MonoBehaviour que construye representación 3D del tablero (cubos por celda con elevación variable, colores alternados luz/oscuro).
+**Responsabilidad:** Construye representación 3D del tablero. **Cambios S82:** levelHeight serializado (en lugar de const); diccionario blocks {Vector2Int → Transform}; GetBlock(cell) para acceso. BuildCell usa MMWiggle (Feel) por bloque, salta huecos (InBounds check), tunables de amplitud/frecuencia. Colores alternados light/dark.
 
 **Vinculado a:** [[Index/20 - Combat Prototype MVP (Plan)]]
 
-**Conexiones:** [[CombatBoard]], [[BoardLayoutSO]], [[BoardHighlighter]], [[CombatInputController]]
+**Conexiones:** [[BoardLayoutSO]], [[CombatBoard]], [[BoardImpactFeedback]], [[CombatCameraController]]

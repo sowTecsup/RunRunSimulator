@@ -5,31 +5,38 @@ namespace MoriMonchiSimulator.CombatPrototype
     public class CombatBoard
     {
         public const float CellSize = 1f;
-        public const float LevelHeight = 0.5f;
+        public readonly float LevelHeight;
 
         public int Width { get; }
         public int Depth { get; }
 
         private readonly int[,] _elevations;
+        private readonly bool[,] _holes;
 
-        public CombatBoard(BoardLayoutSO layout)
+        public CombatBoard(BoardLayoutSO layout, float levelHeight)
         {
+            LevelHeight = levelHeight;
             Width = layout.Width;
             Depth = layout.Depth;
             _elevations = new int[Width, Depth];
+            _holes = new bool[Width, Depth];
 
             for (int x = 0; x < Width; x++)
             {
                 for (int z = 0; z < Depth; z++)
                 {
                     _elevations[x, z] = layout.GetElevation(x, z);
+                    _holes[x, z] = layout.IsHole(x, z);
                 }
             }
         }
 
         public bool InBounds(Vector2Int cell)
         {
-            return cell.x >= 0 && cell.x < Width && cell.y >= 0 && cell.y < Depth;
+            if (cell.x < 0 || cell.x >= Width || cell.y < 0 || cell.y >= Depth)
+                return false;
+
+            return !_holes[cell.x, cell.y];
         }
 
         public int GetElevation(Vector2Int cell)

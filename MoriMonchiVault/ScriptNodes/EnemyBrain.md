@@ -6,8 +6,8 @@ tags: [script, combat-prototype, logic]
 
 **Ruta:** `Systems/CombatPrototype/EnemyBrain.cs`
 
-**Responsabilidad:** Lógica pura de IA enemiga. ComputeIntent() selecciona target (cercano) y ejecuta patrón (ChaseMelee: greedy Manhattan → ataque si adyacente; RangedLine: greedy Alignment → ataque lineal si alineado).
+**Responsabilidad:** Computador de intención de ataque. ComputeIntent toma EnemyUnit y retorna EnemyIntent con AttackDirection = enemy.Facing y AttackOffsets basados en Pattern (ChaseMelee → [1,0], RangedLine → línea hasta AttackRange). Lógica pura, sin estado.
 
 **Vinculado a:** [[Index/20 - Combat Prototype MVP (Plan)]]
 
-**Conexiones:** [[EnemyUnit]], [[EnemyIntent]], [[CombatSimState]], [[AbilityTargeting]], [[EnemyDefinitionSO]]
+**Conexiones:** [[EnemyUnit]], [[EnemyIntent]], [[EnemyDefinitionSO]]
