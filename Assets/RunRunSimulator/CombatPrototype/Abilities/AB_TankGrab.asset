@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 336a2b687adc10045a664b7ef7a33f42, type: 3}
+  m_Name: AB_TankGrab
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.CombatAbilitySO
+  Id: tank_grab
+  DisplayName: Agarre aereo
+  Type: 1
+  Targeting: 4
+  Range: 2
+  RangeMin: 0
+  TemplateOffsets: []
+  PushDistance: 0
+  LaunchesAirborne: 0
+  SlamTargeted: 1
+  SlamRange: 2
+  IgnoresHeight: 0
+  IgnoresObstacles: 0

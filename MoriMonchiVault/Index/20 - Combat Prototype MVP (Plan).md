@@ -131,6 +131,20 @@ Cada fase cierra con `read_console` 0 errores + ejercicio en Play por Unity MCP.
 
 ---
 
+## 10 · Feedback S81 (primera jugada de Juan) — HOJA DE RUTA S82
+
+> Anotaciones de Juan tras jugar el prototipo al cierre de S81. **Esta lista ES la agenda de la próxima sesión**, por encima de la fase 5 genérica. Los puntos 2 y 3 son cambios de mecánica (documentados como decisión de Juan, pendientes de bajar a reglas exactas al abrir S82); el resto es presentación/juice.
+
+1. **Verticalidad Bad North + cámara**: estructuras más verticales; que rotar la isla y observarla sea RECOMPENSADO — no se debe poder leer todo el tablero a simple vista. Probar bloques más altos (subir `LevelHeight` y/o elevaciones más allá de 2). Implica añadir rotación de cámara (orbitar por pasos) y layouts con oclusión deliberada.
+2. **Enemigos SIN movimiento propio**: solo se reposicionan al ser GOLPEADOS (la reacción se mantiene); en su turno solo ejecutan su ataque telegrafiado. Juan: *"los enemigos solo debían moverse si eran golpeados; ahora solo me moví y ellos también se movían"*. Matiza la decisión 10-11 de S80: la INICIATIVA de ataque queda, el movimiento de intención (persecución/reposicionamiento del `EnemyBrain`) se elimina.
+3. **⭐ Plantilla = zona de impacto + desplazamiento del MoriMonchi**: se selecciona la ZONA de impacto en el tablero y el MoriMochi SE MUEVE y ejecuta ahí — no "plantillas que salen del MoriMonchi quieto hacia los extremos". Juan: *"no nos estamos moviendo hacia la posición: estamos ejecutando un ataque de plantilla EN la posición"*. Restaura §4.1.7 de S77 (posición = consecuencia de la plantilla): atacar y moverse vuelven a ser EL MISMO verbo. Cambio grande de targeting + resolver: la acción lleva celda de anclaje del template + celda de aterrizaje del dragón.
+4. **UI de secuencia por beat**: marcar sobre el tablero/HUD cómo se mueve cada uno en cada tick (números de orden de beat sobre las celdas, lectura de la coreografía completa de un vistazo).
+5. **Presupuesto visible**: cada habilidad usada queda bloqueada hasta que los enemigos actúan al final (la lógica ya lo hace — reforzar la lectura en UI).
+6. **Popups de tick de daño** encima de las entidades (DamageNumbersPro, ya en el proyecto).
+7. **Juice de impacto**: los bloques del tablero tiemblan/se mueven con el impacto de la plantilla. **TODO el VFX/juice se monta con Feel/MMFeedbacks** (pedido explícito de Juan).
+
+---
+
 ## Estado
 
-**PLAN APROBADO (S80) — listo para fase 1.** Próximo paso: sesión de ejecución de la fase 1 (tablero). El pendiente obligatorio de editor de S75 (assets Horn/Back/Wing/Face/CutieMark + rewiring + limpieza de GameScene) sigue vigente e independiente de este prototipo.
+**FASES 1-4 EJECUTADAS Y VERIFICADAS (S81).** Prototipo jugable: escena `CombatPrototype.unity` + 29 scripts en `Scripts/CombatPrototype/` + assets en `CombatPrototype/` (9 habilidades, 3 dragones con prefabs DragonSD, 2 enemigos, 1 layout). Verificación central cumplida: 7 comparaciones proyección-vs-ejecución idénticas (ActionResolver único, §6) incluyendo el combo canónico Voltereta→Agarre→Slam y una partida completa de 4 turnos hasta la victoria. Fase 5 pendiente, subordinada al **feedback S81 (§10)** que es la agenda de S82. El pendiente obligatorio de editor de S75 (assets Horn/Back/Wing/Face/CutieMark + rewiring + limpieza de GameScene) sigue vigente e independiente de este prototipo.

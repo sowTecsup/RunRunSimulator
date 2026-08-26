@@ -112,8 +112,20 @@ Fuentes: [docs oficiales — Unity CLI reemplaza el MCP in-editor](https://docs.
 
 ---
 
+## ⚠️ Quirks S81 (sesión larga de código + Play desatendido)
+
+1. **El bridge muere tras un domain reload largo y NO se auto-rearma.** Síntoma: `read_console` devuelve `no_unity_session` para siempre; en Editor.log aparece `"Server no longer running; ending orphaned session"` + `"Cannot verify connection: Bridge is not running"`. El server HTTP (127.0.0.1:8080) lo lanza EL PLUGIN del editor y muere con él; el harness de Claude Code es solo cliente HTTP. **Fix probado: reiniciar el editor Unity** (CloseMainWindow → esperar → relanzar `Unity.exe -projectPath`); al arrancar, el plugin relanza el server (~4-7 min tras el arranque del editor) y reconecta solo. Diagnóstico útil: `%LOCALAPPDATA%\UnityMCP\Logs\unity_mcp_server.log` (server) y `%LOCALAPPDATA%\Unity\Editor\Editor.log` (plugin, buscar "MCP-FOR-UNITY").
+2. **`component_properties` del create de `manage_gameobject` falla SILENCIOSO con algunos campos** (pasó con un `[SerializeField]` de SO y con `Camera.orthographic`). Wirear siempre por `execute_code` + `SerializedObject.FindProperty(...).objectReferenceValue` + `ApplyModifiedProperties`, y verificar con una lectura posterior (contar nulls).
+3. **Play desatendido**: activar `Application.runInBackground = true` por código al entrar (si el editor pierde foco, el player loop se pausa y las corrutinas se congelan) y vigilar `EditorApplication.isPaused` (puede quedar activa y congela todo con `deltaTime = 0` sin error alguno).
+4. **Tras compilar, ESPERAR el reload completo antes de Play**: si se entra a Play con la compilación pendiente, Unity aplica el reload DENTRO de Play ("Recompile And Continue Playing") y borra todo el estado runtime no serializado (Awake no re-corre). Patrón: `refresh_unity` → pausa de ~20s → `read_console` limpio → recién entonces `play`. El prototipo de combate tolera esto vía getter lazy de `CombatBoardBuilder.Board` + `RestartEncounter()`.
+5. **UITK: el `rootVisualElement` de un `UIDocument` puede recrearse en editor** y deja huérfano el árbol construido por código (los elementos viejos existen pero sin panel). Guarda estándar: `if (elemento == null || elemento.panel == null) BuildUi();` en cada Refresh/Show (aplicada en `CombatPrototypeHUD` y `EnemyBriefPanel`).
+6. **El screenshot de `manage_camera` por cámara SÍ capturó el overlay UITK** en este proyecto (PanelSettings estándar) — útil para verificar HUD sin foco humano.
+
+---
+
 ## Historial
 
+- **2026-08-25 (S81):** sesión de ejecución del MVP de combate (fases 1-4). Caída y resurrección del bridge (quirk 1), wiring por SerializedObject (quirk 2), Play desatendido (quirks 3-4), UITK huérfano (quirk 5). Ver sección de arriba.
 - **2026-08-24 (S79):** investigado el Unity CLI oficial con modo MCP (y los CLI de CoplayDev e IvanMurzak). Decisión: no migrar; candidato a complemento. Ver sección de arriba.
 - **2026-07-09 (sesión de exploración):** instalado el MCP; validados lectura de escena, escritura a diccionarios Odin (smoke test), reorg de GameScene (27→14 raíces, grupos WORLD/TEMPLATES/POOLS), ProBuilder. GameScene y CombatVisualizerMM son las 2 escenas de proyecto (build 0 y 1), en `Assets/RunRunSimulator/Resources/Scenes/`.
 

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b452bc75359be847a493fd1e4405ed8, type: 3}
+  m_Name: EN_Archer
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.EnemyDefinitionSO
+  Id: archer
+  DisplayName: Arquero
+  GuardTicks: 2
+  FinisherTicks: 1
+  Pattern: 1
+  MoveRange: 2
+  AttackRange: 3
+  PreferredMin: 2
+  PreferredMax: 3
+  ReactionDistance: 2
+  BriefLines:
+  - Mantiene distancia 2-3
+  - Dispara en linea recta de 3
+  - Retrocede si lo tocas
+  VisualPrefab: {fileID: 0}
+  Tint: {r: 0.75, g: 0.3, b: 1, a: 1}
