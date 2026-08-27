@@ -106,6 +106,8 @@ Unity publicó en Unite Seoul (julio 2026) el **Unity CLI** oficial: binario sta
 
 **Dónde SÍ interesa (como complemento — pueden convivir sin conflicto):** builds headless, `unity test` con salida NUnit, CI/CD, gestión de editores/licencias, y sobre todo **`unity eval`** — ejecuta C# en el editor **sin domain reload**; vale probar si esquiva la limitación de C# 6 del quirk #2 (Roslyn roto). **Cuándo reevaluar:** cuando arreglen el bug de Play mode (al momento del análisis prometían fixes semanales).
 
+> **Actualización 2026-08-26 (S84):** el bloqueante #1 **ya tiene fix**. El bug era que el domain reload de Play mode regeneraba el bearer token del server Pipeline y toda llamada posterior devolvía 401; Unity lo arregló a la semana del lanzamiento del beta. Pruebas de comunidad del 13-08-2026 sobre `CLI 1.0.0-beta.4` + `Pipeline 0.5.0-exp.1`. Además apareció `--detach` (devuelve job id; después `unity job status` / `unity job wait`). **La decisión no cambia** (sigue ~16x más lento y sin ProBuilder/ScriptableObjects), pero el interés como COMPLEMENTO sube: `unity eval` corre C# en el editor vivo sin domain reload y `unity test` da NUnit XML — es la red de seguridad natural para el quirk S81 #1 (bridge caído). Sus skills se instalan aparte con `npx skills add Unity-Technologies/skills` (trae `unity-cli`, `unity-package-management` y `new-unity-project`, que NO vienen en el plugin oficial de Claude Code).
+
 **Alternativas también gratis, descartadas por ahora:** CLI cliente del propio CoplayDev (`unity-mcp status/scene/...` — habla con el server que ya tenemos, útil para CI, no reemplaza nada) · IvanMurzak/Unity-MCP (Apache-2.0, 70+ tools, CLI propio, corre también en builds compiladas).
 
 Fuentes: [docs oficiales — Unity CLI reemplaza el MCP in-editor](https://docs.unity.com/en-us/unity-cli/replace-mcp-server-unity-cli) · [Unity Pipeline package](https://docs.unity.com/en-us/unity-production-pipeline/local-tools-cli/unity-pipeline-package) · [análisis Vindler (bugs y benchmarks)](https://vindler.solutions/blog/unity-cli-agent-automation) · [CoplayDev/unity-mcp](https://github.com/CoplayDev/unity-mcp) · [IvanMurzak/Unity-MCP](https://github.com/IvanMurzak/Unity-MCP)
@@ -123,8 +125,94 @@ Fuentes: [docs oficiales — Unity CLI reemplaza el MCP in-editor](https://docs.
 
 ---
 
+## Tools MCP propias del proyecto (S84)
+
+El paquete de CoplayDev descubre por reflexión (`ToolDiscoveryService`: `TypeCache` + barrido de AppDomain) **cualquier clase estática marcada con `[McpForUnityTool]` en una assembly de Editor** — incluida `Assembly-CSharp-Editor`, o sea cualquier carpeta `Editor/` nuestra. `MCPForUnity.Editor.asmdef` tiene `autoReferenced: true`, así que no hace falta asmdef propio ni referencia manual.
+
+**Contrato mínimo:**
+
+```csharp
+[McpForUnityTool("nombre_snake_case", Description = "que hace, para el LLM")]
+public static class LoQueSea
+{
+    public class Parameters
+    {
+        [ToolParameter("descripcion", Required = false, DefaultValue = "false")]
+        public bool flag { get; set; }
+    }
+
+    public static object HandleCommand(JObject @params)
+    {
+        return new SuccessResponse("mensaje", new { data = 1 });
+    }
+}
+```
+
+- La clase anidada `Parameters` es **opcional**: solo alimenta el esquema que ve el agente. La firma real que se invoca es `HandleCommand(JObject)`.
+- El nombre por defecto sale del nombre de clase (PascalCase → snake_case, se le saca el sufijo `Tool`).
+- `AutoRegister = true` (default) las publica como herramientas MCP de primera clase: **aparecen solas tras el reload**, sin reiniciar el server y sin pasar por `execute_custom_tool`. El recurso `mcpforunity://custom-tools` las lista.
+- `Group` default `"core"` → visibles. Los demás grupos arrancan ocultos (ver sección siguiente).
+- Respuestas: `SuccessResponse` / `ErrorResponse` / `PendingResponse` de `MCPForUnity.Editor.Helpers` (serializan `success` + `message` + `data`).
+
+**Las nuestras** viven en `Assets/RunRunSimulator/Scripts/Editor/MCP/` (los scripts del proyecto no tenían ninguna carpeta `Editor/` hasta S84):
+
+| Tool | Para qué |
+|------|----------|
+| `verify_prototype_parity` | Corre el plan por los DOS caminos (`PlanProjection.Project` vs réplica del ejecutor: `ResolveBeat` por beat + `ResolveEnemyTurn`) sobre clones, compara estado y eventos beat por beat, y verifica que el **estado canónico no se filtró** — ojo que `CombatSimState.Clone()` comparte `Board` por referencia, así que si algo lo mutara la proyección se filtraría a la partida. Es la regla innegociable del prototipo convertida en un llamado. |
+| `sim_prototype_turns` | Corre un plan sobre un clon y devuelve los `ResolutionEvent` fase por fase + snapshot de unidades, con `extraEnemyTurns` para observar el desgaste sin jugador. Nunca toca la partida en curso. |
+| `PrototypeSimBridge` | No es tool: el colaborador compartido (parseo del plan JSON, firmas de estado/evento, diffs, describe). |
+
+Ambas piden **Play mode** (necesitan `manager.Canonical`) y aceptan `plan` como JSON — `{"beats":[{"actions":[{"unitId":0,"abilityIndex":0,"targetCell":[3,4],"direction":[1,0],"slamCell":[5,4]}]}]}` — o sin `plan` usan el plan vivo del HUD.
+
+Reemplazan los bloques largos de `execute_code` que arrastran el quirk #2 (cuerpo de método, sin `using`, todo calificado): el ritual de verificación queda en una llamada con salida JSON estable.
+
+---
+
+## Grupos de tools — `manage_tools` (S84)
+
+El server esconde por defecto **todo lo que no es `core`**. Inventario real de este proyecto y estado tras S84:
+
+| Grupo | Tools | Default | S84 |
+|-------|-------|---------|-----|
+| `core` | 25 (escena, script, asset, editor, packages...) | on | on |
+| `docs` | `unity_docs`, `unity_reflect` | off | **activado** |
+| `scripting_ext` | `execute_code`, `manage_scriptable_object` | off | **activado** |
+| `testing` | `run_tests`, `get_test_job` | off | **activado** |
+| `ui` | `manage_ui` | off | **activado** |
+| `probuilder` | `manage_probuilder` | off | **activado** |
+| `profiling` | `manage_profiler` | off | **activado** |
+| `animation` | `manage_animation` | off | off |
+| `asset_gen` | `generate_image`, `generate_model`, `generate_audio`, `import_model*` | off | off (pide API key propia) |
+| `vfx` | `manage_shader`, `manage_texture`, `manage_vfx` | off | off |
+
+⚠️ **La activación es efímera** (`manage_tools activate <grupo>`): vive en el server de Python, así que **se pierde en cada reinicio del server** — verificado en S84, tras el upgrade del paquete los 6 grupos volvieron solos a `off`. Lo persistente son los toggles del panel del editor (`EditorPrefs`); `manage_tools sync` los relee. Lo que esto implicaba: `manage_scriptable_object` (todo el pipeline Odin del quirk #1), `manage_probuilder` y `unity_reflect` estaban **ocultos por default en toda sesión nueva**. Si no se marcan en el panel, hay que reactivarlos a mano cada vez.
+
+---
+
+## Skills de Unity instaladas (S84)
+
+1. **Plugin oficial de Unity para Claude Code** ([claude.com/plugins/unity](https://claude.com/plugins/unity), repo [Unity-Technologies/skills](https://github.com/Unity-Technologies/skills)) — instalado por Juan; se cargan solas al trabajar en un proyecto Unity. Las que pegan en este stack: `unity:ui-uitk` (todos nuestros paneles), `unity:build-live-game` (UGS Auth/Cloud Save/Cloud Code), `unity:optimize-text-mesh-pro`, `unity:validate-urp-render-graph-renderer-feature`. El resto (IAP, LevelPlay, tilemaps, pixel-perfect) no aplica.
+2. **Subconjunto de [nowsprinting/unity-coding-skills](https://github.com/nowsprinting/unity-coding-skills)** (Unlicense) copiado a `~/.claude/skills/`: `edit-scene`, `unity-yaml-editing-guide`, `run-tests`.
+
+⚠️ **Traducción obligatoria de nombres de tools**: esas 3 skills están escritas para el **MCP Server Extension de JetBrains Rider**, no para CoplayDev. Los nombres que citan NO existen acá:
+
+| Dice la skill | Nuestro equivalente |
+|---------------|---------------------|
+| `run_method_in_unity` | `execute_code` (o una tool propia con `[McpForUnityTool]`) |
+| `get_unity_compilation_result` | `read_console` con `types=["error"]` |
+| `unity_play_control` | `manage_editor` (`play` / `pause` / `stop`) |
+| `run_unity_tests` | `run_tests` (grupo `testing`) |
+| `execute_run_configuration` | no aplica |
+
+Lo que SÍ vale tal cual, independiente del server: la regla de **nunca editar a mano `.unity`/`.prefab`** (script de editor + `SaveScene`/`SaveAsPrefabAsset`, borrarlo después) y toda la guía de YAML de assets (allowlist `.asset`/`.mat`, header `%YAML 1.1`, nunca inventar el GUID de `m_Script`, bools como `0`/`1`, `<Prop>k__BackingField`). No hay Rider instalado en la máquina, así que [JetBrains/rider-skills](https://github.com/JetBrains/rider-skills) (el motor de refactor semántico de ReSharper expuesto al agente) queda descartado hasta que eso cambie.
+
+**Descartados a propósito**: los mega-toolkits de comunidad (`everything-claude-unity`, `claude-unity-game-studio` — 40-120 skills + 49 agentes) imponen arquitectura ajena (VContainer + MessagePipe + UniTask) que choca con las 11 reglas de CLAUDE.md. Y [Codeturion/unity-api-mcp](https://github.com/Codeturion/unity-api-mcp) (firmas exactas por versión de Unity) se solapa con `unity_docs` + `unity_reflect`, que además leen los assemblies cargados de verdad (ven Odin, Feel, DamageNumbersPro).
+
+---
+
 ## Historial
 
+- **2026-08-26 (S84):** upgrade del paquete a **v10.1.2** (pinneado por tag, antes `#main`) — arregla el quirk S81 #2 (`component_properties` en el create de `manage_gameobject`), el manejo de domain reload diferido y los 34 tools que pedían aprobación en cada llamada. Creadas las 2 primeras tools propias del proyecto, activados 6 grupos de tools ocultos, skills de Unity documentadas y actualizado el veredicto del Unity CLI. Ver secciones de arriba.
 - **2026-08-25 (S81):** sesión de ejecución del MVP de combate (fases 1-4). Caída y resurrección del bridge (quirk 1), wiring por SerializedObject (quirk 2), Play desatendido (quirks 3-4), UITK huérfano (quirk 5). Ver sección de arriba.
 - **2026-08-24 (S79):** investigado el Unity CLI oficial con modo MCP (y los CLI de CoplayDev e IvanMurzak). Decisión: no migrar; candidato a complemento. Ver sección de arriba.
 - **2026-07-09 (sesión de exploración):** instalado el MCP; validados lectura de escena, escritura a diccionarios Odin (smoke test), reorg de GameScene (27→14 raíces, grupos WORLD/TEMPLATES/POOLS), ProBuilder. GameScene y CombatVisualizerMM son las 2 escenas de proyecto (build 0 y 1), en `Assets/RunRunSimulator/Resources/Scenes/`.
