@@ -85,6 +85,14 @@ namespace MoriMonchiSimulator.CombatPrototype
             RefreshHighlights();
         }
 
+        public void SetDirection(Vector2Int direction)
+        {
+            if (direction != Vector2Int.up && direction != Vector2Int.down && direction != Vector2Int.left && direction != Vector2Int.right) return;
+            if (direction == CurrentDirection) return;
+            CurrentDirection = direction;
+            RefreshHighlights();
+        }
+
         public PlannedAction TryConfirm()
         {
             if (SelectedUnitId < 0 || SelectedAbilityIndex < 0 || projectedState == null)
@@ -98,7 +106,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (ability.SlamTargeted)
                 return TryConfirmSlam(unit, ability);
 
-            PlannedAction action = new PlannedAction { UnitId = unit.Id, AbilityIndex = SelectedAbilityIndex, TargetCell = CursorCell, Direction = CurrentDirection };
+            PlannedAction action = new PlannedAction { UnitId = unit.Id, AbilityIndex = SelectedAbilityIndex, TargetCell = AbilityTargeting.GetAnchorForCursor(ability, CursorCell, CurrentDirection), Direction = CurrentDirection };
             return AbilityTargeting.IsValidTarget(projectedState, unit, ability, action) ? action : null;
         }
 
@@ -186,7 +194,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             if (ability.Targeting == TargetingMode.DirectionalTemplate)
             {
-                PlannedAction tempAction = new PlannedAction { UnitId = SelectedUnitId, AbilityIndex = SelectedAbilityIndex, TargetCell = CursorCell, Direction = CurrentDirection };
+                PlannedAction tempAction = new PlannedAction { UnitId = SelectedUnitId, AbilityIndex = SelectedAbilityIndex, TargetCell = AbilityTargeting.GetAnchorForCursor(ability, CursorCell, CurrentDirection), Direction = CurrentDirection };
                 List<Vector2Int> templateCells = AbilityTargeting.GetAffectedCells(projectedState, ability, tempAction);
                 highlighter.Show(HighlightKind.Template, templateCells);
 

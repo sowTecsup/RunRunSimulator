@@ -17,6 +17,26 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (target is EnemyUnit enemy)
             {
                 enemy.WasHitThisTurn = true;
+
+                if (!environmental && sourceId >= 0 && enemy.Alive)
+                {
+                    CombatUnit attacker = s.GetUnit(sourceId);
+                    if (attacker != null && attacker.Alive && attacker != enemy && attacker.Cell != enemy.Cell)
+                    {
+                        Vector2Int newFacing = AbilityTargeting.DominantCardinal(enemy.Cell, attacker.Cell);
+                        if (newFacing != enemy.Facing)
+                        {
+                            enemy.Facing = newFacing;
+
+                            ResolutionEvent rotateEvent = new ResolutionEvent(ResolutionEventType.Rotate, enemy.Id);
+                            rotateEvent.From = enemy.Cell;
+                            rotateEvent.To = enemy.Cell;
+                            rotateEvent.Facing = enemy.Facing;
+                            rotateEvent.Wave = wave;
+                            events.Add(rotateEvent);
+                        }
+                    }
+                }
             }
 
             events.Add(new ResolutionEvent(ResolutionEventType.Hit, target.Id) { SourceId = sourceId, TicksAfter = target.Ticks, Environmental = environmental, Wave = wave });
@@ -25,6 +45,11 @@ namespace MoriMonchiSimulator.CombatPrototype
         public static void ApplyPush(CombatSimState s, CombatUnit target, Vector2Int direction, int distance, int sourceId, int wave, List<ResolutionEvent> events)
         {
             if (target == null || !target.Alive || target.Airborne || direction == Vector2Int.zero)
+            {
+                return;
+            }
+
+            if (target is SeedUnit)
             {
                 return;
             }
@@ -78,6 +103,11 @@ namespace MoriMonchiSimulator.CombatPrototype
         public static void ApplyLaunch(CombatSimState s, CombatUnit target, Vector2Int direction, int launcherId, int wave, List<ResolutionEvent> events)
         {
             if (target == null || !target.Alive || target.Airborne)
+            {
+                return;
+            }
+
+            if (target is SeedUnit)
             {
                 return;
             }

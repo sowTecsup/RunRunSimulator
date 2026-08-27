@@ -283,6 +283,7 @@ MonoBehaviour:
   pathColor: {r: 1, g: 0.9, b: 0.2, a: 0.45}
   landingColor: {r: 0.3, g: 1, b: 0.35, a: 0.45}
   selectionColor: {r: 1, g: 1, b: 1, a: 0.65}
+  spawnColor: {r: 0.75, g: 0.35, b: 1, a: 0.5}
 --- !u!114 &277935665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -295,7 +296,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a22c8990b012da4084ecc2386bc4723, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.CombatBoardBuilder
-  layout: {fileID: 11400000, guid: cd06eb2e100b1954ab1489ebd7487e7a, type: 2}
+  layout: {fileID: 11400000, guid: 7d7d359f75fc42a499fe31edf2bcd37d, type: 2}
   lightColor: {r: 0.78, g: 0.78, b: 0.72, a: 1}
   darkColor: {r: 0.52, g: 0.55, b: 0.5, a: 1}
   baseThickness: 0.25
@@ -331,7 +332,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.BoardImpactFeedback
   builder: {fileID: 277935665}
   extraFeedback: {fileID: 0}
-  radius: 1
   wiggleDuration: 0.45
 --- !u!1 &1529069611
 GameObject:
@@ -345,6 +345,7 @@ GameObject:
   - component: {fileID: 1529069614}
   - component: {fileID: 1529069613}
   - component: {fileID: 1529069612}
+  - component: {fileID: 1529069616}
   m_Layer: 0
   m_Name: HUD
   m_TagString: Untagged
@@ -417,6 +418,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1529069616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1529069611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cd5e1590886e1b49899e29f38ab7bb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.TurnLogPanel
+  document: {fileID: 1529069614}
+  manager: {fileID: 1753282166}
 --- !u!1 &1696017948
 GameObject:
   m_ObjectHideFlags: 0
@@ -519,6 +534,7 @@ MonoBehaviour:
   minZoom: 0.5
   maxZoom: 1.6
   zoomDuration: 0.25
+  panSpeed: 7
 --- !u!1 &1753282160
 GameObject:
   m_ObjectHideFlags: 0
@@ -534,6 +550,7 @@ GameObject:
   - component: {fileID: 1753282164}
   - component: {fileID: 1753282163}
   - component: {fileID: 1753282162}
+  - component: {fileID: 1753282168}
   m_Layer: 0
   m_Name: Combat
   m_TagString: Untagged
@@ -567,6 +584,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.ResolutionAnimator
   impact: {fileID: 277935667}
+  moveDuration: 0.35
+  pushDuration: 0.25
+  landDuration: 0.3
+  rotateDuration: 0.2
+  hitPause: 0.15
+  wavePause: 0.1
 --- !u!114 &1753282163
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -622,7 +645,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.CombatPrototypeManager
   builder: {fileID: 277935665}
-  boardLayout: {fileID: 11400000, guid: cd06eb2e100b1954ab1489ebd7487e7a, type: 2}
+  boardLayout: {fileID: 11400000, guid: 7d7d359f75fc42a499fe31edf2bcd37d, type: 2}
   highlighter: {fileID: 277935664}
   targeting: {fileID: 1753282161}
   executor: {fileID: 1753282164}
@@ -636,6 +659,14 @@ MonoBehaviour:
   enemyLoadout:
   - {fileID: 11400000, guid: aa5b891e69f3bd445b0cd4d08ba0e86e, type: 2}
   - {fileID: 11400000, guid: ff2b03b37f233014b83c146fe2d99e84, type: 2}
+  animator: {fileID: 1753282162}
+  spawner: {fileID: 1753282168}
+  viewPrefab: {fileID: 7270190612156922356, guid: 7e57ec23988022844a49c8bc8f82d9cd, type: 3}
+  seedTicks: 6
+  germinationTurn: 8
+  impact: {fileID: 277935667}
+  spawnJumpDuration: 0.4
+  spawnJumpFromCells: 1.5
 --- !u!4 &1753282167
 Transform:
   m_ObjectHideFlags: 0
@@ -651,6 +682,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1753282168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1753282160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 178926148b81edd429304d01f08d1043, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.NightSpawner
+  highlighter: {fileID: 277935664}
+  baseWaveSize: 2
+  extraEveryWaves: 3
+  markerColor: {r: 0.78, g: 0.49, b: 1, a: 1}
+  markerText: "\u2620 1"
+  markerFontSize: 4
+  markerHeight: 0.9
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

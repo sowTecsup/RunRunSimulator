@@ -6,14 +6,13 @@ namespace MoriMonchiSimulator.CombatPrototype
 {
     public class ResolutionAnimator : MonoBehaviour
     {
-        private const float MoveDuration = 0.35f;
-        private const float PushDuration = 0.25f;
-        private const float LandDuration = 0.3f;
-        private const float RotateDuration = 0.2f;
-        private const float HitPause = 0.15f;
-        private const float WavePause = 0.1f;
-
         [SerializeField] private BoardImpactFeedback impact;
+        [SerializeField] private float moveDuration = 0.35f;
+        [SerializeField] private float pushDuration = 0.25f;
+        [SerializeField] private float landDuration = 0.3f;
+        [SerializeField] private float rotateDuration = 0.2f;
+        [SerializeField] private float hitPause = 0.15f;
+        [SerializeField] private float wavePause = 0.1f;
 
         public IEnumerator Play(List<ResolutionEvent> events, Dictionary<int, CombatUnitView> views, CombatBoard board, CombatSimState state)
         {
@@ -62,15 +61,11 @@ namespace MoriMonchiSimulator.CombatPrototype
                     {
                         for (int c = 0; c < evt.Cells.Count; c++) impact.ShakeAt(evt.Cells[c]);
                     }
-                    else if (evt.Type == ResolutionEventType.EnemyAttack)
-                    {
-                        for (int c = 0; c < evt.Cells.Count; c++) impact.ShakeAt(evt.Cells[c]);
-                    }
                 }
             }
 
             yield return PlaySequentialPhase(waveEvents, views, state);
-            yield return new WaitForSeconds(WavePause);
+            yield return new WaitForSeconds(wavePause);
         }
 
         private IEnumerator PlayMovementPhase(List<ResolutionEvent> waveEvents, Dictionary<int, CombatUnitView> views, CombatBoard board)
@@ -94,16 +89,16 @@ namespace MoriMonchiSimulator.CombatPrototype
             switch (evt.Type)
             {
                 case ResolutionEventType.Move:
-                    yield return view.MoveTo(board.CellToWorld(evt.To), true, MoveDuration);
+                    yield return view.MoveTo(board.CellToWorld(evt.To), true, moveDuration);
                     break;
                 case ResolutionEventType.Push:
-                    yield return view.MoveTo(board.CellToWorld(evt.To), false, PushDuration);
+                    yield return view.MoveTo(board.CellToWorld(evt.To), false, pushDuration);
                     break;
                 case ResolutionEventType.Launch:
-                    yield return view.LaunchUp(MoveDuration);
+                    yield return view.LaunchUp(moveDuration);
                     break;
                 case ResolutionEventType.Land:
-                    yield return view.LandTo(board.CellToWorld(evt.To), LandDuration);
+                    yield return view.LandTo(board.CellToWorld(evt.To), landDuration);
                     break;
             }
         }
@@ -138,12 +133,12 @@ namespace MoriMonchiSimulator.CombatPrototype
                         if (unit != null) view.RefreshTicks(unit);
                     }
                     if (evt.Environmental && impact != null && unit != null) impact.ShakeAt(unit.Cell);
-                    yield return new WaitForSeconds(HitPause);
+                    yield return new WaitForSeconds(hitPause);
                 }
                 else if (evt.Type == ResolutionEventType.EnemyAttack)
                 {
                     if (views.TryGetValue(evt.SourceId, out CombatUnitView attackerView)) attackerView.FlashHit();
-                    yield return new WaitForSeconds(HitPause);
+                    yield return new WaitForSeconds(hitPause);
                 }
                 else if (evt.Type == ResolutionEventType.Die)
                 {
@@ -151,7 +146,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                 }
                 else if (evt.Type == ResolutionEventType.Rotate)
                 {
-                    if (views.TryGetValue(evt.UnitId, out CombatUnitView view)) yield return view.RotateTo(evt.Facing, RotateDuration);
+                    if (views.TryGetValue(evt.UnitId, out CombatUnitView view)) yield return view.RotateTo(evt.Facing, rotateDuration);
                 }
                 else if (evt.Type == ResolutionEventType.Fizzle)
                 {

@@ -1,9 +1,10 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace MoriMonchiSimulator.CombatPrototype
 {
-    public enum CombatPhase { Planning, Executing, EnemyTurn, Victory, Defeat }
+    public enum CombatPhase { Planning, Executing, EnemyTurn, Victory, Defeat, Setup, Spawning }
 
     public class CombatPrototypeManager : MonoBehaviour
     {
@@ -17,12 +18,35 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private EnemyBriefPanel brief;
         [SerializeField] private PlayerUnitDefinitionSO[] playerLoadout;
         [SerializeField] private EnemyDefinitionSO[] enemyLoadout;
+        [SerializeField] private ResolutionAnimator animator;
+        [SerializeField] private NightSpawner spawner;
+        [SerializeField] private CombatUnitView viewPrefab;
+        [SerializeField] private int seedTicks = 6;
+        [SerializeField] private int germinationTurn = 8;
+        [SerializeField] private BoardImpactFeedback impact;
+        [SerializeField] private float spawnJumpDuration = 0.4f;
+        [SerializeField] private float spawnJumpFromCells = 1.5f;
 
         public CombatPhase Phase { get; private set; }
         public CombatSimState Canonical { get; private set; }
         public Choreography Plan { get; private set; }
         public ProjectionResult Projection { get; private set; }
         public Dictionary<int, CombatUnitView> Views { get; private set; }
+        public List<TurnLogEntry> TurnLog { get; } = new List<TurnLogEntry>();
+        public event System.Action TurnLogChanged;
+
+        public int SeedId { get; private set; } = -1;
+        public int DeployedCount { get; private set; }
+        public bool AwaitingSeed => Phase == CombatPhase.Setup && SeedId < 0;
+        public int GerminationTurn => germinationTurn;
+        public int TurnNumber => turnCounter;
+        public CombatUnit Seed => SeedId >= 0 && Canonical != null ? Canonical.GetUnit(SeedId) : null;
+        public PlayerUnitDefinitionSO NextDeployDefinition => Phase == CombatPhase.Setup && SeedId >= 0 && DeployedCount < playerLoadout.Length ? playerLoadout[DeployedCount] : null;
+        public EnemyDefinitionSO[] EnemyLoadout => enemyLoadout;
+
+        private int turnCounter;
+        private int nextUnitId;
+        private int spawnCounter;
 
         private void Start()
         {
@@ -45,39 +69,88 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             Canonical = new CombatSimState { Board = builder.Board };
             Views = new Dictionary<int, CombatUnitView>();
+            Plan = new Choreography();
+            TurnLog.Clear();
+            turnCounter = 0;
+            TurnLogChanged?.Invoke();
 
-            int nextId = 0;
+            nextUnitId = 0;
+            spawnCounter = 0;
+            SeedId = -1;
+            DeployedCount = 0;
+            if (spawner != null) spawner.ResetForEncounter();
+            Phase = CombatPhase.Setup;
 
-            List<Vector2Int> playerSpawns = boardLayout.GetPlayerSpawns();
-            for (int i = 0; i < playerSpawns.Count; i++)
+            hud.Bind(this);
+            hud.Refresh();
+        }
+
+        public void PlaceAt(Vector2Int cell)
+        {
+            if (Phase != CombatPhase.Setup) return;
+            if (!Canonical.Board.InBounds(cell) || !Canonical.IsCellFree(cell)) return;
+
+            if (SeedId < 0)
             {
-                PlayerUnitDefinitionSO def = playerLoadout[i % playerLoadout.Length];
-                PlayerUnit unit = new PlayerUnit
+                SeedUnit unit = new SeedUnit
                 {
-                    Id = nextId++,
+                    Id = nextUnitId++,
+                    IsPlayer = false,
+                    Cell = cell,
+                    MaxTicks = seedTicks,
+                    Ticks = seedTicks
+                };
+                Canonical.Units.Add(unit);
+
+                SpawnView(unit);
+
+                SeedId = unit.Id;
+                hud.Refresh();
+                return;
+            }
+
+            if (DeployedCount < playerLoadout.Length)
+            {
+                PlayerUnitDefinitionSO def = playerLoadout[DeployedCount];
+                PlayerUnit playerUnit = new PlayerUnit
+                {
+                    Id = nextUnitId++,
                     IsPlayer = true,
-                    Cell = playerSpawns[i],
+                    Cell = cell,
                     MaxTicks = def.MaxTicks,
                     Ticks = def.MaxTicks,
                     Definition = def
                 };
-                Canonical.Units.Add(unit);
+                Canonical.Units.Add(playerUnit);
 
-                GameObject go = new GameObject("Unit_" + unit.Id);
-                CombatUnitView view = go.AddComponent<CombatUnitView>();
-                view.Init(unit, builder.Board);
-                Views[unit.Id] = view;
+                SpawnView(playerUnit);
+
+                DeployedCount++;
+
+                if (DeployedCount == playerLoadout.Length)
+                {
+                    spawner.ResetForEncounter();
+                    spawner.PrepareNextWave(Canonical, Seed.Cell);
+                    StartCoroutine(RunSpawnPhase());
+                }
+                else
+                {
+                    hud.Refresh();
+                }
             }
+        }
 
-            List<EnemySpawn> enemySpawns = boardLayout.GetEnemySpawnsWithFacing();
-            for (int i = 0; i < enemySpawns.Count; i++)
+        private IEnumerator PlaySpawnWave(List<EnemySpawn> spawns)
+        {
+            for (int i = 0; i < spawns.Count; i++)
             {
-                EnemySpawn spawn = enemySpawns[i];
-                EnemyDefinitionSO def = enemyLoadout[i % enemyLoadout.Length];
+                EnemySpawn spawn = spawns[i];
+                EnemyDefinitionSO def = enemyLoadout[spawnCounter % enemyLoadout.Length];
+                spawnCounter++;
                 int maxTicks = def.GuardTicks + def.FinisherTicks;
                 EnemyUnit unit = new EnemyUnit
                 {
-                    Id = nextId++,
+                    Id = nextUnitId++,
                     IsPlayer = false,
                     Cell = spawn.Cell,
                     Facing = spawn.Facing,
@@ -87,17 +160,35 @@ namespace MoriMonchiSimulator.CombatPrototype
                 };
                 Canonical.Units.Add(unit);
 
-                GameObject go = new GameObject("Unit_" + unit.Id);
-                CombatUnitView view = go.AddComponent<CombatUnitView>();
-                view.Init(unit, builder.Board);
-                Views[unit.Id] = view;
+                CombatUnitView view = SpawnView(unit);
+                Vector2Int outward = NightWaves.EdgeOutwardDirection(builder.Board, spawn.Cell);
+                Vector3 target = builder.Board.CellToWorld(spawn.Cell);
+                Vector3 from = target + new Vector3(outward.x, 0f, outward.y) * (CombatBoard.CellSize * spawnJumpFromCells);
+                view.SnapTo(from);
+                yield return view.MoveTo(target, true, spawnJumpDuration);
+                if (impact != null) impact.ShakeAt(spawn.Cell);
             }
+        }
 
+        private IEnumerator RunSpawnPhase()
+        {
+            Phase = CombatPhase.Spawning;
+            hud.Refresh();
+            yield return PlaySpawnWave(spawner.ConsumeWave(Canonical, Seed.Cell));
+            spawner.PrepareNextWave(Canonical, Seed.Cell);
             Plan = new Choreography();
             enemyTurn.CommitIntents(Canonical);
-            if (hud != null) hud.Bind(this);
             Phase = CombatPhase.Planning;
             RefreshProjection();
+        }
+
+        private CombatUnitView SpawnView(CombatUnit unit)
+        {
+            CombatUnitView view = Instantiate(viewPrefab);
+            view.gameObject.name = "Unit_" + unit.Id;
+            view.Init(unit, builder.Board);
+            Views[unit.Id] = view;
+            return view;
         }
 
         public void ConfirmAction()
@@ -134,6 +225,10 @@ namespace MoriMonchiSimulator.CombatPrototype
         {
             if (Phase != CombatPhase.Planning || Plan.TotalActions <= 0) return;
 
+            turnCounter++;
+            TurnLog.Add(BuildTurnLogEntry());
+            TurnLogChanged?.Invoke();
+
             Phase = CombatPhase.Executing;
             targeting.ClearSelection();
             highlighter.Clear(HighlightKind.Template);
@@ -144,11 +239,35 @@ namespace MoriMonchiSimulator.CombatPrototype
             hud.Refresh();
         }
 
+        private TurnLogEntry BuildTurnLogEntry()
+        {
+            TurnLogEntry entry = new TurnLogEntry { Turn = turnCounter };
+            for (int b = 0; b < Plan.Beats.Count; b++)
+            {
+                List<PlannedAction> actions = Plan.Beats[b].Actions;
+                for (int i = 0; i < actions.Count; i++)
+                {
+                    PlannedAction action = actions[i];
+                    string unitName = "?";
+                    string abilityName = "?";
+                    if (Canonical.GetUnit(action.UnitId) is PlayerUnit player && player.Definition != null)
+                    {
+                        unitName = player.Definition.DisplayName;
+                        CombatAbilitySO[] abilities = player.Definition.Abilities;
+                        if (abilities != null && action.AbilityIndex >= 0 && action.AbilityIndex < abilities.Length && abilities[action.AbilityIndex] != null)
+                            abilityName = abilities[action.AbilityIndex].DisplayName;
+                    }
+                    entry.Lines.Add("B" + (b + 1) + " · " + unitName + " → " + abilityName + " (" + action.TargetCell.x + "," + action.TargetCell.y + ")");
+                }
+            }
+            return entry;
+        }
+
         private void OnChoreographyDone()
         {
-            if (Canonical.GetEnemies().Count == 0)
+            if (SeedDead())
             {
-                EndEncounter(true);
+                EndEncounter(false);
                 return;
             }
 
@@ -159,9 +278,9 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         private void OnEnemyTurnDone()
         {
-            if (Canonical.GetEnemies().Count == 0)
+            if (SeedDead())
             {
-                EndEncounter(true);
+                EndEncounter(false);
                 return;
             }
 
@@ -171,10 +290,26 @@ namespace MoriMonchiSimulator.CombatPrototype
                 return;
             }
 
-            Plan = new Choreography();
-            enemyTurn.CommitIntents(Canonical);
-            Phase = CombatPhase.Planning;
-            RefreshProjection();
+            if (turnCounter >= germinationTurn)
+            {
+                StartCoroutine(PlayGermination());
+                return;
+            }
+
+            StartCoroutine(RunSpawnPhase());
+        }
+
+        private bool SeedDead()
+        {
+            CombatUnit seed = Seed;
+            return seed == null || !seed.Alive || seed.Ticks <= 0;
+        }
+
+        private IEnumerator PlayGermination()
+        {
+            List<ResolutionEvent> events = ActionResolver.ResolveGermination(Canonical);
+            yield return animator.Play(events, Views, builder.Board, Canonical);
+            EndEncounter(true);
         }
 
         private void EndEncounter(bool victory)

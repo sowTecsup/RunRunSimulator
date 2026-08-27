@@ -172,6 +172,56 @@ Cada fase cierra con `read_console` 0 errores + ejercicio en Play por Unity MCP.
 
 ---
 
+## 12 · Auditoría QoL S85 — hallazgos y plan de fixes (AGENDA S86)
+
+> S85 (2026-08-27): auditoría de quality-of-life del nivel pedida por Juan, hecha con verificación VISUAL (capturas del Game view en Play: `Assets/Screenshots/qol_planning_seleccion.png`, `qol_post_turno.png`, `qol_camara_rotada.png`). 20 hallazgos, 8 confirmados en captura. Lección de pipeline en memoria persistente del orquestador (`feedback_verificacion_visual_screenshots`): la verificación por estado (fases/eventos/consola) no detecta NADA de esto — capturas obligatorias al cerrar trabajo de presentación.
+
+### Hallazgos
+
+**A. UI que se pisa (confirmados en captura)**
+1. El banner de planificación (2 líneas + la línea SEMILLA agregada en S84) invade el `selectionLabel` (top:56) — texto sobre texto semitransparente.
+2. `beatStrip` (bottom:216) y `actionBudgetLabel` (bottom:246) quedan DETRÁS de las cards, que crecieron con las minigrids S84.
+3. Las cards + EXECUTE tapan el borde inferior del tablero: celdas y enemigos invisibles e inclickeables de facto.
+4. El banner tapa las filas altas de la isla (el Tanque voló a (7,7) y quedó invisible detrás del banner).
+5. Labels `G2·1` y markers de spawn se apilan texto-sobre-texto cuando el telegraph cae junto a enemigos existentes.
+
+**B. Texto de mundo**
+6. Labels de ticks y markers se orientan a cámara SOLO al crearse (`CombatUnitView.Init`, `NightSpawner.PaintTelegraph`) — tras orbitar con ←/→ quedan de canto, ilegibles.
+7. El glifo ☠ del marker no existe en la font TMP → se dibuja tofu "□".
+8. El "1" del marker es fijo — no informa nada.
+
+**C. Encuadre y contraste**
+9. La órbita rota el pivote pero no re-encuadra: a 90° el tablero queda descentrado (dos tercios del frame vacíos) y las unidades cortadas por el banner.
+10. El encuadre base ya deja la fila superior de la isla debajo del banner.
+11. Checkerboard (0.78 vs 0.52) y elevaciones lavados en pantalla — la lectura vertical estilo Bad North sufre (colores ya serializados en `CombatBoardBuilder` + revisar luz).
+
+**D. Feedback de acciones**
+12. El FIZZLE es invisible (`ResolutionAnimator`, rama vacía): la acción se cancela en silencio y la plantilla se gasta sin explicación.
+13. Los highlights viven todos en el mismo plano (y+0.02) con alpha — al solaparse producen colores intermedios sin significado.
+14. Popups de daño (§10.6) y UI de secuencia por beat (§10.4): pendientes YA agendados, no ceguera nueva.
+
+**E. Input y flujo**
+15. El clic atraviesa la UI: `CombatPrototypeHUD.IsPointerOver` es un stub que devuelve false y `CombatInputController` no consulta nada — clic en EXECUTE/cards también actúa sobre el tablero detrás.
+16. No hay tecla de deselección (Esc sin mapear).
+17. Victoria/Derrota sin botón de reinicio (solo el texto "R").
+18. Riesgo no verificado: `EnemyBriefPanel` posiciona con píxeles de pantalla vs panel UITK escalado — posible desfase según resolución.
+19. El texto de victoria dice "materiales obtenidos" — placeholder mentiroso, el sistema no existe.
+20. El label de la semilla es blanco como todos — la unidad a proteger no se distingue tipográficamente.
+
+### Plan de fixes propuesto (orden de dolor)
+
+1. **Clic-a-través**: implementar `IsPointerOver` real (picking del panel UITK) y consultarlo en `CombatInputController` antes de raycastear.
+2. **Re-layout del HUD**: reservar franjas (superior: banner+selección apiladas con layout de flujo, no offsets mágicos; inferior: cards) y re-encuadrar el tablero al área libre entre franjas.
+3. **Billboard por frame** (LateUpdate) para labels de unidades y markers de spawn.
+4. **FIZZLE visible**: feedback Feel en la celda + línea en HUD/log de turnos.
+5. **Marker de spawn**: glifo compatible con la font (o sprite TMP), sin número fijo.
+6. **Órbita que re-encuadra**: pivot al centro real de la isla + framing consistente en los 4 yaws.
+7. **Contraste del tablero**: retune de colores serializados + iluminación.
+8. **Jerarquía de highlights**: offset de altura por tipo o prioridad de color al solaparse.
+9. **Menores**: Esc deselecciona · botón Reiniciar en fin de partida · texto de victoria sin placeholder · label de semilla tintado.
+
+---
+
 ## Estado
 
 **FASES 1-4 EJECUTADAS Y VERIFICADAS (S81).** Prototipo jugable: escena `CombatPrototype.unity` + 29 scripts en `Scripts/CombatPrototype/` + assets en `CombatPrototype/` (9 habilidades, 3 dragones con prefabs DragonSD, 2 enemigos, 1 layout). Verificación central cumplida: 7 comparaciones proyección-vs-ejecución idénticas (ActionResolver único, §6) incluyendo el combo canónico Voltereta→Agarre→Slam y una partida completa de 4 turnos hasta la victoria.

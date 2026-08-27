@@ -10,6 +10,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private CombatBoardBuilder builder;
 
         private Vector2 _lastMousePosition;
+        private Vector2Int? _dragOrigin;
 
         private void Update()
         {
@@ -22,7 +23,12 @@ namespace MoriMonchiSimulator.CombatPrototype
                 manager.RestartEncounter();
             }
 
-            if (manager.Phase != CombatPhase.Planning) return;
+            if (manager.Phase != CombatPhase.Planning)
+            {
+                _dragOrigin = null;
+            }
+
+            if (manager.Phase != CombatPhase.Planning && manager.Phase != CombatPhase.Setup) return;
 
             if (kb.f1Key.wasPressedThisFrame) targeting.SelectUnit(0);
             if (kb.f2Key.wasPressedThisFrame) targeting.SelectUnit(1);
@@ -31,11 +37,6 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (kb.digit1Key.wasPressedThisFrame) targeting.SelectAbility(0);
             if (kb.digit2Key.wasPressedThisFrame) targeting.SelectAbility(1);
             if (kb.digit3Key.wasPressedThisFrame) targeting.SelectAbility(2);
-
-            if (kb.wKey.wasPressedThisFrame) targeting.MoveCursor(new Vector2Int(0, 1));
-            if (kb.sKey.wasPressedThisFrame) targeting.MoveCursor(new Vector2Int(0, -1));
-            if (kb.aKey.wasPressedThisFrame) targeting.MoveCursor(new Vector2Int(-1, 0));
-            if (kb.dKey.wasPressedThisFrame) targeting.MoveCursor(new Vector2Int(1, 0));
 
             if (kb.qKey.wasPressedThisFrame) targeting.Rotate(-1);
             if (kb.eKey.wasPressedThisFrame) targeting.Rotate(1);
@@ -52,7 +53,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             {
                 _lastMousePosition = mousePosition;
 
-                if (TryRaycastCell(mousePosition, out Vector2Int cell) && builder.Board.InBounds(cell))
+                if (_dragOrigin == null && TryRaycastCell(mousePosition, out Vector2Int cell) && builder.Board.InBounds(cell))
                 {
                     targeting.SetCursor(cell);
                 }
@@ -62,14 +63,38 @@ namespace MoriMonchiSimulator.CombatPrototype
             {
                 if (TryRaycastCell(mousePosition, out Vector2Int cell) && builder.Board.InBounds(cell))
                 {
-                    if (!TrySelectPlayerAt(cell))
+                    if (manager.Phase == CombatPhase.Setup)
                     {
+                        manager.PlaceAt(cell);
+                        return;
+                    }
+
+                    if (TrySelectPlayerAt(cell))
+                    {
+                        _dragOrigin = null;
+                    }
+                    else
+                    {
+                        _dragOrigin = cell;
                         targeting.SetCursor(cell);
-                        manager.ConfirmAction();
                     }
                 }
 
                 manager.HideBrief();
+            }
+
+            if (_dragOrigin != null && mouse.leftButton.isPressed)
+            {
+                if (TryRaycastCell(mousePosition, out Vector2Int dragCell) && dragCell != _dragOrigin.Value)
+                {
+                    targeting.SetDirection(AbilityTargeting.DominantCardinal(_dragOrigin.Value, dragCell));
+                }
+            }
+
+            if (mouse.leftButton.wasReleasedThisFrame && _dragOrigin != null)
+            {
+                manager.ConfirmAction();
+                _dragOrigin = null;
             }
 
             if (mouse.rightButton.wasPressedThisFrame)

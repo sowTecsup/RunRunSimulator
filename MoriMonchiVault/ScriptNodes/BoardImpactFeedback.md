@@ -4,9 +4,9 @@ tags: [script, combat-prototype, presentation]
 
 # BoardImpactFeedback.cs
 
-**Ruta:** `Systems/CombatPrototype/BoardImpactFeedback.md`
+**Ruta:** `CombatPrototype/BoardImpactFeedback.cs`
 
-**Responsabilidad:** Proporciona feedback visual/haptic en el tablero ante impactos. ShakeAt(cell) vibra bloques en radio Chebyshev alrededor del impacto vía MMWiggle.WigglePosition(); opcionalmente dispara MMF_Player extra (aural/haptic). Tunables: radius (1 por defecto), wiggleDuration (0.3s). Inyección: CombatBoardBuilder (para acceso a bloques).
+**Responsabilidad:** Proporciona feedback visual/haptic en el tablero ante impactos. `ShakeAt(cell)` vibra la celda específica vía MMWiggle.WigglePosition(); opcionalmente dispara MMF_Player extra (aural/haptic). **S85 cambio:** solo sacude la celda pedida (eliminado el campo radius antiguo que iteraba un radio); ResolutionAnimator itera las celdas de cada evento. Tunables: wiggleDuration (0.3s). Inyección: CombatBoardBuilder (para acceso a bloques por celda).
 
 **Vinculado a:** [[Index/20 - Combat Prototype MVP (Plan)]]
 

@@ -19,11 +19,13 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         private static readonly Dictionary<CombatPhase, (string Text, int Size, Color Bg)> BannerByPhase = new Dictionary<CombatPhase, (string, int, Color)>
         {
-            { CombatPhase.Planning, ("PLANIFICACIÓN — F1-F3 dragón · 1-3 plantilla · Enter confirma · Tab beat · Backspace deshace\n←/→ girar cámara · rueda: zoom · clic derecho sobre enemigo: info", 13, new Color(0f, 0f, 0f, 0.55f)) },
-            { CombatPhase.Executing, ("EJECUTANDO...", 18, new Color(0f, 0f, 0f, 0.55f)) },
-            { CombatPhase.EnemyTurn, ("TURNO ENEMIGO", 18, new Color(0f, 0f, 0f, 0.55f)) },
-            { CombatPhase.Victory, ("VICTORIA — R para reiniciar", 18, new Color(0.1f, 0.35f, 0.12f, 0.85f)) },
-            { CombatPhase.Defeat, ("DERROTA — R para reiniciar", 18, new Color(0.45f, 0.08f, 0.08f, 0.85f)) }
+            { CombatPhase.Planning, ("PLANIFICACIÓN — F1-F3 dragón · 1-3 poder · clic: destino · arrastrá: orientar · soltá: confirmar\nWASD mover cámara · ←/→ girar · rueda zoom · Tab beat · Backspace deshace · clic der: info", 15, new Color(0f, 0f, 0f, 0.55f)) },
+            { CombatPhase.Executing, ("EJECUTANDO...", 20, new Color(0f, 0f, 0f, 0.55f)) },
+            { CombatPhase.EnemyTurn, ("TURNO ENEMIGO", 20, new Color(0f, 0f, 0f, 0.55f)) },
+            { CombatPhase.Victory, ("VICTORIA — ¡LA SEMILLA GERMINÓ! · materiales obtenidos · R para reiniciar", 20, new Color(0.1f, 0.35f, 0.12f, 0.85f)) },
+            { CombatPhase.Defeat, ("DERROTA — R para reiniciar", 20, new Color(0.45f, 0.08f, 0.08f, 0.85f)) },
+            { CombatPhase.Setup, ("DESPLIEGUE NOCTURNO — la semilla solo crece de noche\n←/→ girar cámara · rueda: zoom", 16, new Color(0.10f, 0.07f, 0.22f, 0.8f)) },
+            { CombatPhase.Spawning, ("REFUERZOS NOCTURNOS — llegan saltando desde el borde de la isla", 18, new Color(0.10f, 0.07f, 0.22f, 0.8f)) }
         };
 
         public void Bind(CombatPrototypeManager m)
@@ -82,7 +84,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             SetPadding(bannerLabel, 6, 14);
             SetRadius(bannerLabel, 6);
 
-            selectionLabel = MakeLabel(root, "", 14, Color.white, true);
+            selectionLabel = MakeLabel(root, "", 16, Color.white, true);
             AnchorHorizontal(selectionLabel);
             selectionLabel.style.top = 56;
             selectionLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
@@ -91,7 +93,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             beatStrip = new VisualElement();
             AnchorHorizontal(beatStrip);
-            beatStrip.style.bottom = 152;
+            beatStrip.style.bottom = 216;
             beatStrip.style.flexDirection = FlexDirection.Row;
             beatStrip.style.justifyContent = Justify.Center;
             beatStrip.pickingMode = PickingMode.Ignore;
@@ -99,7 +101,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             actionBudgetLabel = MakeLabel(root, "", 13, Color.white, true);
             AnchorHorizontal(actionBudgetLabel);
-            actionBudgetLabel.style.bottom = 178;
+            actionBudgetLabel.style.bottom = 246;
             actionBudgetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
 
             bottomBar = new VisualElement();
@@ -111,18 +113,18 @@ namespace MoriMonchiSimulator.CombatPrototype
             bottomBar.pickingMode = PickingMode.Ignore;
             root.Add(bottomBar);
 
-            List<PlayerUnit> players = manager != null && manager.Canonical != null ? manager.Canonical.GetPlayers() : new List<PlayerUnit>();
-            for (int i = 0; i < players.Count; i++) bottomBar.Add(BuildPlayerCard(players[i], i));
-
             executeButton = new Button();
             executeButton.text = "EXECUTE";
-            executeButton.style.width = 110;
-            executeButton.style.height = 64;
-            executeButton.style.fontSize = 16;
+            executeButton.style.width = 140;
+            executeButton.style.height = 78;
+            executeButton.style.fontSize = 20;
             executeButton.style.unityFontStyleAndWeight = FontStyle.Bold;
             executeButton.style.color = Color.white;
             executeButton.style.backgroundColor = Hex("#2E7D32");
             executeButton.clicked += () => manager.ExecutePlan();
+
+            List<PlayerUnit> players = manager != null && manager.Canonical != null ? manager.Canonical.GetPlayers() : new List<PlayerUnit>();
+            for (int i = 0; i < players.Count; i++) bottomBar.Add(BuildPlayerCard(players[i], i));
             bottomBar.Add(executeButton);
             Refresh();
         }
@@ -130,20 +132,51 @@ namespace MoriMonchiSimulator.CombatPrototype
         private VisualElement BuildPlayerCard(PlayerUnit player, int slot)
         {
             VisualElement card = new VisualElement();
-            card.style.width = 190;
+            card.style.width = 250;
             card.style.backgroundColor = new Color(0.08f, 0.09f, 0.12f, 0.92f);
             SetBorderWidth(card, 2);
             SetRadius(card, 8);
-            SetPadding(card, 8, 8);
+            SetPadding(card, 10, 10);
             card.style.marginLeft = 6;
             card.style.marginRight = 6;
             card.pickingMode = PickingMode.Ignore;
-            MakeLabel(card, "F" + (slot + 1) + " " + player.Definition.DisplayName, 14, Color.white, true);
-            Label ticks = MakeLabel(card, "", 12, Hex("#DDD"));
+            MakeLabel(card, "F" + (slot + 1) + " " + player.Definition.DisplayName, 18, Color.white, true);
+            Label ticks = MakeLabel(card, "", 15, Hex("#DDD"));
 
+            CombatAbilitySO[] abilities = player.Definition.Abilities;
             List<Label> abilityLabels = new List<Label>();
-            for (int i = 0; i < 3; i++) abilityLabels.Add(MakeLabel(card, "", 12, Color.white));
-            playerCards.Add(new PlayerCardView { UnitId = player.Id, Definition = player.Definition, Card = card, Ticks = ticks, AbilityLabels = abilityLabels });
+            List<VisualElement> abilityRows = new List<VisualElement>();
+            for (int i = 0; i < 3; i++)
+            {
+                CombatAbilitySO ability = abilities != null && i < abilities.Length ? abilities[i] : null;
+
+                VisualElement row = new VisualElement();
+                row.style.flexDirection = FlexDirection.Row;
+                row.style.alignItems = Align.Center;
+                row.style.marginTop = 2;
+                row.style.marginBottom = 2;
+                SetPadding(row, 2, 4);
+                SetRadius(row, 4);
+                row.pickingMode = PickingMode.Ignore;
+
+                Label label = new Label("");
+                label.style.fontSize = 15;
+                label.style.color = Color.white;
+                label.pickingMode = PickingMode.Ignore;
+                row.Add(label);
+
+                if (ability != null)
+                {
+                    row.Add(AbilityCardVisuals.BuildAbilityMiniGrid(ability));
+                    row.Add(AbilityCardVisuals.BuildAbilityTag(ability));
+                }
+
+                card.Add(row);
+                abilityLabels.Add(label);
+                abilityRows.Add(row);
+            }
+
+            playerCards.Add(new PlayerCardView { UnitId = player.Id, Definition = player.Definition, Card = card, Ticks = ticks, AbilityLabels = abilityLabels, AbilityRows = abilityRows });
             return card;
         }
 
@@ -152,6 +185,8 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (bannerLabel == null) return;
             var phaseData = BannerByPhase[manager.Phase];
             bannerLabel.text = phaseData.Text;
+            if (manager.Phase == CombatPhase.Planning && manager.Seed != null)
+                bannerLabel.text = phaseData.Text + "\nSEMILLA: germina en " + Mathf.Max(0, manager.GerminationTurn - manager.TurnNumber) + " turnos · vida " + manager.Seed.Ticks + "/" + manager.Seed.MaxTicks;
             bannerLabel.style.fontSize = phaseData.Size;
             bannerLabel.style.backgroundColor = phaseData.Bg;
         }
@@ -159,6 +194,33 @@ namespace MoriMonchiSimulator.CombatPrototype
         private void UpdateSelectionLabel()
         {
             if (selectionLabel == null) return;
+            if (manager.Phase == CombatPhase.Setup)
+            {
+                if (manager.AwaitingSeed)
+                {
+                    selectionLabel.style.display = DisplayStyle.Flex;
+                    selectionLabel.style.backgroundColor = new Color(0f, 0f, 0f, 0.55f);
+                    selectionLabel.text = "Plantá la SEMILLA NOCTURNA: clic en una celda libre";
+                    selectionLabel.style.color = new Color(0.71f, 0.91f, 0.55f);
+                    return;
+                }
+
+                PlayerUnitDefinitionSO def = manager.NextDeployDefinition;
+                if (def == null)
+                {
+                    selectionLabel.style.display = DisplayStyle.None;
+                    return;
+                }
+
+                selectionLabel.style.display = DisplayStyle.Flex;
+                selectionLabel.style.backgroundColor = new Color(0f, 0f, 0f, 0.55f);
+                selectionLabel.text = "Desplegá a " + def.DisplayName + ": clic en una celda libre";
+                Color setupTint = def.Tint;
+                setupTint.a = 1f;
+                selectionLabel.style.color = setupTint;
+                return;
+            }
+
             if (manager.Phase != CombatPhase.Planning || targeting == null)
             {
                 selectionLabel.style.display = DisplayStyle.None;
@@ -193,13 +255,22 @@ namespace MoriMonchiSimulator.CombatPrototype
             }
 
             CombatAbilitySO[] abilities = player.Definition.Abilities;
-            string abilityName = abilities != null && targeting.SelectedAbilityIndex < abilities.Length && abilities[targeting.SelectedAbilityIndex] != null
-                ? abilities[targeting.SelectedAbilityIndex].DisplayName
-                : "";
+            CombatAbilitySO ability = abilities != null && targeting.SelectedAbilityIndex < abilities.Length ? abilities[targeting.SelectedAbilityIndex] : null;
+            string abilityName = ability != null ? ability.DisplayName : "";
 
-            selectionLabel.text = targeting.AwaitingSlamCell
-                ? player.Definition.DisplayName + " — " + abilityName + ": objetivo fijado — elegí la celda del slam y confirmá"
-                : player.Definition.DisplayName + " — " + abilityName + " · WASD/mouse apunta · Q/E rota · Enter o clic confirma";
+            string guide;
+            if (targeting.AwaitingSlamCell)
+                guide = ": objetivo fijado — elegí la celda del slam y confirmá";
+            else if (ability != null && ability.Type == AbilityType.Movement)
+                guide = " · clic en la celda de destino y soltá";
+            else if (ability != null && ability.Landing == LandingKind.Stay)
+                guide = " · clic en la celda de impacto (no te movés) y soltá";
+            else if (ability != null && ability.Targeting == TargetingMode.AirborneEnemy && !targeting.AwaitingSlamCell)
+                guide = ": solo funciona contra un enemigo EN EL AIRE — lanzalo primero con la Voltereta del Ágil, después clic en el enemigo aéreo";
+            else
+                guide = " · clic en el DESTINO, arrastrá para orientar el golpe, soltá para confirmar";
+
+            selectionLabel.text = player.Definition.DisplayName + " — " + abilityName + guide;
         }
 
         private void UpdateBeatStrip()
@@ -208,16 +279,43 @@ namespace MoriMonchiSimulator.CombatPrototype
             beatStrip.Clear();
             if (manager.Plan == null) return;
 
-            List<Beat> beats = manager.Plan.Beats;
-            for (int i = 0; i < beats.Count; i++)
+            if (manager.Plan.TotalActions == 0)
             {
-                Label chip = MakeLabel(beatStrip, "B" + (i + 1) + ": " + beats[i].Actions.Count, 11, Color.white);
-                chip.style.backgroundColor = Hex("#1B1E27CC");
-                SetBorderWidth(chip, 1);
-                SetBorderColor(chip, i == beats.Count - 1 ? Hex("#FFD34D") : Hex("#555"));
-                SetPadding(chip, 4, 8);
-                chip.style.marginLeft = 3;
-                chip.style.marginRight = 3;
+                MakeLabel(beatStrip, "Elegí hasta " + Choreography.MaxActions + " acciones — clic destino + arrastre", 13, Hex("#AAB"));
+                return;
+            }
+
+            List<Beat> beats = manager.Plan.Beats;
+            Label lastChip = null;
+            for (int b = 0; b < beats.Count; b++)
+            {
+                List<PlannedAction> actions = beats[b].Actions;
+                for (int a = 0; a < actions.Count; a++)
+                {
+                    PlannedAction action = actions[a];
+                    PlayerUnit pl = manager.Canonical != null ? manager.Canonical.GetUnit(action.UnitId) as PlayerUnit : null;
+                    CombatAbilitySO ab = pl != null && pl.Definition.Abilities != null && action.AbilityIndex < pl.Definition.Abilities.Length ? pl.Definition.Abilities[action.AbilityIndex] : null;
+                    string dragon = pl != null ? pl.Definition.DisplayName : "?";
+                    string power = ab != null ? ab.DisplayName : "?";
+
+                    Label chip = MakeLabel(beatStrip, "B" + (b + 1) + " · " + dragon + " → " + power, 14, Color.white, true);
+                    chip.style.backgroundColor = Hex("#1B1E27E6");
+                    SetBorderWidth(chip, 2);
+                    Color tint = pl != null ? pl.Definition.Tint : Color.white;
+                    tint.a = 1f;
+                    SetBorderColor(chip, tint);
+                    SetPadding(chip, 5, 10);
+                    SetRadius(chip, 6);
+                    chip.style.marginLeft = 3;
+                    chip.style.marginRight = 3;
+                    lastChip = chip;
+                }
+            }
+
+            if (lastChip != null)
+            {
+                SetBorderWidth(lastChip, 3);
+                SetBorderColor(lastChip, Hex("#FFD34D"));
             }
         }
 
@@ -231,6 +329,15 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         private void UpdatePlayerCards()
         {
+            List<PlayerUnit> players = manager.Canonical != null ? manager.Canonical.GetPlayers() : new List<PlayerUnit>();
+            if (playerCards.Count != players.Count && bottomBar != null)
+            {
+                bottomBar.Clear();
+                playerCards.Clear();
+                for (int i = 0; i < players.Count; i++) bottomBar.Add(BuildPlayerCard(players[i], i));
+                bottomBar.Add(executeButton);
+            }
+
             CombatSimState canonical = manager.Canonical;
             CombatSimState projected = manager.Projection != null ? manager.Projection.FinalState : null;
             for (int i = 0; i < playerCards.Count; i++)
@@ -255,32 +362,33 @@ namespace MoriMonchiSimulator.CombatPrototype
                 for (int a = 0; a < view.AbilityLabels.Count; a++)
                 {
                     Label label = view.AbilityLabels[a];
+                    VisualElement row = view.AbilityRows[a];
                     if (abilities == null || a >= abilities.Length || abilities[a] == null)
                     {
                         label.text = "";
+                        row.style.backgroundColor = Color.clear;
                         continue;
                     }
 
                     bool used = manager.Plan != null && manager.Plan.IsAbilityUsed(view.UnitId, a);
                     bool isSelected = selected && targeting != null && targeting.SelectedAbilityIndex == a;
-                    SetRadius(label, 4);
                     if (used)
                     {
-                        label.text = "[" + (a + 1) + "] " + abilities[a].DisplayName + " — usada";
-                        label.style.color = Hex("#666");
-                        label.style.backgroundColor = Color.clear;
+                        label.text = "✓ " + abilities[a].DisplayName;
+                        label.style.color = Hex("#9AE6A0");
+                        row.style.backgroundColor = Hex("#1E3320CC");
                     }
                     else if (isSelected)
                     {
                         label.text = "[" + (a + 1) + "] " + abilities[a].DisplayName;
                         label.style.color = Hex("#1B1E27");
-                        label.style.backgroundColor = Hex("#FFD34D");
+                        row.style.backgroundColor = Hex("#FFD34D");
                     }
                     else
                     {
                         label.text = "[" + (a + 1) + "] " + abilities[a].DisplayName;
                         label.style.color = Color.white;
-                        label.style.backgroundColor = Color.clear;
+                        row.style.backgroundColor = Color.clear;
                     }
                 }
             }
@@ -345,6 +453,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             public VisualElement Card;
             public Label Ticks;
             public List<Label> AbilityLabels;
+            public List<VisualElement> AbilityRows;
         }
     }
 }

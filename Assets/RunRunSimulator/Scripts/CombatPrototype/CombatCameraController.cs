@@ -10,6 +10,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private float minZoom = 0.5f;
         [SerializeField] private float maxZoom = 1.6f;
         [SerializeField] private float zoomDuration = 0.25f;
+        [SerializeField] private float panSpeed = 7f;
 
         private Vector3 _pivot;
         private Vector3 _baseOffset;
@@ -42,6 +43,32 @@ namespace MoriMonchiSimulator.CombatPrototype
             {
                 if (kb.leftArrowKey.wasPressedThisFrame) _targetYaw -= 90f;
                 if (kb.rightArrowKey.wasPressedThisFrame) _targetYaw += 90f;
+
+                Vector3 pan = Vector3.zero;
+                if (kb.wKey.isPressed) pan.z += 1f;
+                if (kb.sKey.isPressed) pan.z -= 1f;
+                if (kb.aKey.isPressed) pan.x -= 1f;
+                if (kb.dKey.isPressed) pan.x += 1f;
+                if (pan != Vector3.zero)
+                {
+                    Vector3 forward = transform.forward;
+                    forward.y = 0f;
+                    if (forward.sqrMagnitude < 0.0001f) forward = transform.up;
+                    forward.y = 0f;
+                    forward.Normalize();
+                    Vector3 right = transform.right;
+                    right.y = 0f;
+                    right.Normalize();
+                    Vector3 move = right * pan.x + forward * pan.z;
+                    _pivot += move.normalized * panSpeed * Time.deltaTime;
+                    if (builder != null && builder.Board != null)
+                    {
+                        float maxX = builder.Board.Width * CombatBoard.CellSize;
+                        float maxZ = builder.Board.Depth * CombatBoard.CellSize;
+                        _pivot.x = Mathf.Clamp(_pivot.x, 0f, maxX);
+                        _pivot.z = Mathf.Clamp(_pivot.z, 0f, maxZ);
+                    }
+                }
             }
 
             var mouse = UnityEngine.InputSystem.Mouse.current;

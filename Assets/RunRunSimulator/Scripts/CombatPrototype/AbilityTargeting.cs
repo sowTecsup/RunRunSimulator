@@ -45,6 +45,13 @@ namespace MoriMonchiSimulator.CombatPrototype
             return board.GetElevation(cell) >= board.GetElevation(fromCell) + 2;
         }
 
+        public static Vector2Int GetAnchorForCursor(CombatAbilitySO ability, Vector2Int cursor, Vector2Int direction)
+        {
+            if (ability.Type == AbilityType.Attack && ability.Targeting == TargetingMode.DirectionalTemplate && ability.Landing == LandingKind.BehindAnchor)
+                return cursor + direction;
+            return cursor;
+        }
+
         public static Vector2Int GetLandingCell(CombatUnit unit, CombatAbilitySO ability, PlannedAction action)
         {
             switch (ability.Landing)

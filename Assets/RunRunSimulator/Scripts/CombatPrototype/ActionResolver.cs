@@ -77,6 +77,24 @@ namespace MoriMonchiSimulator.CombatPrototype
             return events;
         }
 
+        public static List<ResolutionEvent> ResolveGermination(CombatSimState state)
+        {
+            List<ResolutionEvent> events = new List<ResolutionEvent>();
+
+            List<EnemyUnit> enemies = state.GetEnemies();
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                EnemyUnit enemy = enemies[i];
+                if (!enemy.Alive) continue;
+
+                enemy.Ticks = 0;
+                enemy.Alive = false;
+                events.Add(new ResolutionEvent(ResolutionEventType.Die, enemy.Id) { From = enemy.Cell, To = enemy.Cell, Wave = 0 });
+            }
+
+            return events;
+        }
+
         private static void ResolvePlayerAction(CombatSimState state, CombatSimState snapshot, PlannedAction action, List<ResolutionEvent> events)
         {
             CombatUnit unit = state.GetUnit(action.UnitId);
