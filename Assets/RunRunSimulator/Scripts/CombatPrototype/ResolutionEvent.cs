@@ -18,6 +18,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         public bool Environmental;
         public int Wave;
         public bool Projectile;
+        public List<Vector2Int> Path;
 
         public ResolutionEvent(ResolutionEventType type, int unitId)
         {

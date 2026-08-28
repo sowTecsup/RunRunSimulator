@@ -15,6 +15,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private float topBandFraction = 0.12f;
         [SerializeField] private float bottomBandFraction = 0.30f;
         [SerializeField] private float pivotHeight = 0f;
+        [SerializeField] private float perspectiveFill = 1.3f;
 
         private Vector3 _pivot;
         private Vector3 _baseOffset;
@@ -90,58 +91,62 @@ namespace MoriMonchiSimulator.CombatPrototype
 
                     float freeFraction = Mathf.Clamp(1f - topBandFraction - bottomBandFraction, 0.2f, 1f);
 
+                    Vector3 frameUp = _baseRotation * Vector3.up;
+                    Vector3 frameRight = _baseRotation * Vector3.right;
+
+                    float hU = 0f;
+                    float hR = 0f;
+                    float half = CombatBoard.CellSize * 0.5f;
+                    for (int x = 0; x < board.Width; x++)
+                    {
+                        for (int z = 0; z < board.Depth; z++)
+                        {
+                            Vector2Int cell = new Vector2Int(x, z);
+                            if (!board.InBounds(cell)) continue;
+
+                            float cellX = x * CombatBoard.CellSize + half;
+                            float cellZ = z * CombatBoard.CellSize + half;
+                            float top = board.GetElevation(cell) * board.LevelHeight;
+                            for (int ix = -1; ix <= 1; ix += 2)
+                            {
+                                for (int iz = -1; iz <= 1; iz += 2)
+                                {
+                                    Vector3 corner = new Vector3(cellX + ix * half, top, cellZ + iz * half);
+                                    Vector3 rel = corner - _pivot;
+                                    float u = Mathf.Abs(Vector3.Dot(rel, frameUp));
+                                    float r = Mathf.Abs(Vector3.Dot(rel, frameRight));
+                                    if (u > hU) hU = u;
+                                    if (r > hR) hR = r;
+                                }
+                            }
+
+                            Vector3 peak = new Vector3(cellX, top + 1.6f, cellZ);
+                            Vector3 basePoint = new Vector3(cellX, -0.3f, cellZ);
+                            float uPeak = Mathf.Abs(Vector3.Dot(peak - _pivot, frameUp));
+                            float uBase = Mathf.Abs(Vector3.Dot(basePoint - _pivot, frameUp));
+                            if (uPeak > hU) hU = uPeak;
+                            if (uBase > hU) hU = uBase;
+                        }
+                    }
+
+                    float aspect = _cam != null ? _cam.aspect : 1.78f;
+
                     if (_cam != null && _cam.orthographic)
                     {
-                        Vector3 baseUp = _baseRotation * Vector3.up;
-                        Vector3 baseRight = _baseRotation * Vector3.right;
-
-                        float hU = 0f;
-                        float hR = 0f;
-                        float half = CombatBoard.CellSize * 0.5f;
-                        for (int x = 0; x < board.Width; x++)
-                        {
-                            for (int z = 0; z < board.Depth; z++)
-                            {
-                                Vector2Int cell = new Vector2Int(x, z);
-                                if (!board.InBounds(cell)) continue;
-
-                                float cellX = x * CombatBoard.CellSize + half;
-                                float cellZ = z * CombatBoard.CellSize + half;
-                                float top = board.GetElevation(cell) * board.LevelHeight;
-                                for (int ix = -1; ix <= 1; ix += 2)
-                                {
-                                    for (int iz = -1; iz <= 1; iz += 2)
-                                    {
-                                        Vector3 corner = new Vector3(cellX + ix * half, top, cellZ + iz * half);
-                                        Vector3 rel = corner - _pivot;
-                                        float u = Mathf.Abs(Vector3.Dot(rel, baseUp));
-                                        float r = Mathf.Abs(Vector3.Dot(rel, baseRight));
-                                        if (u > hU) hU = u;
-                                        if (r > hR) hR = r;
-                                    }
-                                }
-
-                                Vector3 peak = new Vector3(cellX, top + 1.6f, cellZ);
-                                Vector3 basePoint = new Vector3(cellX, -0.3f, cellZ);
-                                float uPeak = Mathf.Abs(Vector3.Dot(peak - _pivot, baseUp));
-                                float uBase = Mathf.Abs(Vector3.Dot(basePoint - _pivot, baseUp));
-                                if (uPeak > hU) hU = uPeak;
-                                if (uBase > hU) hU = uBase;
-                            }
-                        }
-
-                        float aspect = _cam.aspect;
                         _baseOrthoSize = Mathf.Max(hU * framePadding / freeFraction, hR * framePadding / aspect);
 
                         float bandShift = (bottomBandFraction + freeFraction * 0.5f - 0.5f) * 2f * _baseOrthoSize;
-                        _baseOffset = dir * (radius * 2f) - baseUp * bandShift;
+                        _baseOffset = dir * (radius * 2f) - frameUp * bandShift;
                     }
                     else
                     {
                         float fov = _cam != null ? _cam.fieldOfView : 60f;
-                        float effFov = fov * freeFraction;
-                        float distance = (radius * framePadding) / Mathf.Tan(effFov * 0.5f * Mathf.Deg2Rad);
-                        _baseOffset = dir * distance;
+                        float tanV = Mathf.Tan(fov * freeFraction * 0.5f * Mathf.Deg2Rad);
+                        float tanH = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) * aspect;
+                        float distance = Mathf.Max(hU * framePadding / tanV, hR * framePadding / tanH) / Mathf.Max(perspectiveFill, 0.1f);
+                        float visibleHalf = Mathf.Tan(fov * 0.5f * Mathf.Deg2Rad) * distance;
+                        float bandShift = (bottomBandFraction + freeFraction * 0.5f - 0.5f) * 2f * visibleHalf;
+                        _baseOffset = dir * distance - frameUp * bandShift;
                     }
 
                     framed = true;

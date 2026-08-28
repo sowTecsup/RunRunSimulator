@@ -77,6 +77,37 @@ namespace MoriMonchiSimulator.CombatPrototype
             return events;
         }
 
+        public static List<ResolutionEvent> ResolveEnemyReactions(CombatSimState state)
+        {
+            List<ResolutionEvent> events = new List<ResolutionEvent>();
+
+            for (int i = 0; i < state.Units.Count; i++)
+            {
+                CombatUnit unit = state.Units[i];
+                if (unit.Alive && unit.Airborne) CombatEffects.ApplyLanding(state, unit, 0, events);
+            }
+
+            CombatEffects.CollectDeaths(state, 0, events);
+
+            List<EnemyUnit> enemies = state.GetEnemies();
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                EnemyUnit enemy = enemies[i];
+                if (enemy.Alive && enemy.WasHitThisTurn && !enemy.WasAirborneThisPhase)
+                {
+                    TryEndOfTurnMove(state, enemy, 1, events);
+                }
+            }
+
+            for (int i = 0; i < state.Units.Count; i++)
+            {
+                state.Units[i].WasAirborneThisPhase = false;
+                if (state.Units[i] is EnemyUnit resetEnemy) resetEnemy.WasHitThisTurn = false;
+            }
+
+            return events;
+        }
+
         public static List<ResolutionEvent> ResolveGermination(CombatSimState state)
         {
             List<ResolutionEvent> events = new List<ResolutionEvent>();
@@ -200,7 +231,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             impactEvent.Cells = cells;
             impactEvent.To = action.TargetCell;
             impactEvent.Wave = 0;
-            impactEvent.Facing = unit.Cell != origin ? AbilityTargeting.DominantCardinal(origin, unit.Cell) : action.Direction;
+            impactEvent.Facing = ability.IgnoresHeight || unit.Cell == origin ? action.Direction : AbilityTargeting.DominantCardinal(origin, unit.Cell);
             impactEvent.Projectile = ability.IgnoresHeight;
             events.Add(impactEvent);
 
@@ -268,6 +299,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (offsets == null || offsets.Length == 0) return;
 
             Vector2Int destination = enemy.Cell;
+            List<Vector2Int> path = new List<Vector2Int>();
 
             for (int i = 0; i < offsets.Length; i++)
             {
@@ -287,12 +319,14 @@ namespace MoriMonchiSimulator.CombatPrototype
                 }
 
                 destination = cell;
+                path.Add(cell);
             }
 
             ResolutionEvent moveEvent = new ResolutionEvent(ResolutionEventType.Move, enemy.Id);
             moveEvent.From = enemy.Cell;
             moveEvent.To = destination;
             moveEvent.Wave = wave;
+            moveEvent.Path = path;
             events.Add(moveEvent);
             enemy.Cell = destination;
         }

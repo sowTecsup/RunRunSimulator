@@ -40,5 +40,12 @@ namespace MoriMonchiSimulator.CombatPrototype
             yield return animator.Play(events, views, board, canonical);
             if (onComplete != null) onComplete();
         }
+
+        public IEnumerator RunReactions(CombatSimState canonical, Dictionary<int, CombatUnitView> views, CombatBoard board, Action onComplete)
+        {
+            List<ResolutionEvent> events = ActionResolver.ResolveEnemyReactions(canonical);
+            yield return animator.Play(events, views, board, canonical);
+            if (onComplete != null) onComplete();
+        }
     }
 }

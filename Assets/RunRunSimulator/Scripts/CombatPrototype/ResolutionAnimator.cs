@@ -10,6 +10,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private BoardImpactFeedback impact;
         [SerializeField] private MMF_Player fizzleFeedback;
         [SerializeField] private float moveDuration = 0.35f;
+        [SerializeField] private float hopDuration = 0.22f;
         [SerializeField] private float pushDuration = 0.25f;
         [SerializeField] private float landDuration = 0.3f;
         [SerializeField] private float rotateDuration = 0.2f;
@@ -103,7 +104,17 @@ namespace MoriMonchiSimulator.CombatPrototype
             switch (evt.Type)
             {
                 case ResolutionEventType.Move:
-                    yield return view.MoveTo(board.CellToWorld(evt.To), true, moveDuration);
+                    if (evt.Path != null && evt.Path.Count > 0)
+                    {
+                        for (int i = 0; i < evt.Path.Count; i++)
+                        {
+                            yield return view.MoveTo(board.CellToWorld(evt.Path[i]), true, hopDuration);
+                        }
+                    }
+                    else
+                    {
+                        yield return view.MoveTo(board.CellToWorld(evt.To), true, moveDuration);
+                    }
                     break;
                 case ResolutionEventType.Push:
                     yield return view.MoveTo(board.CellToWorld(evt.To), false, pushDuration);

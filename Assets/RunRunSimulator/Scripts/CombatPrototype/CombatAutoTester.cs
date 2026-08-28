@@ -51,43 +51,52 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             int dragonTicksStart = TotalPlayerTicks(state);
             Vector2Int[] dirs = { new Vector2Int(1, 0), new Vector2Int(0, 1), new Vector2Int(-1, 0), new Vector2Int(0, -1) };
+            HashSet<int> spent = new HashSet<int>();
+            int cycleTurn = 0;
 
             for (int turn = 1; turn <= maxTurns; turn++)
             {
                 result.Turns = turn;
-                HashSet<string> used = new HashSet<string>();
+                cycleTurn++;
                 int actions = 0;
                 while (actions < 2)
                 {
-                    PlannedAction action = ChooseAction(state, seedCell, profile, used, rng, dirs);
+                    PlannedAction action = ChooseAction(state, seedCell, profile, spent, rng, dirs);
                     if (action == null) break;
                     Beat beat = new Beat();
                     beat.Actions.Add(action);
                     ActionResolver.ResolveBeat(state, beat);
-                    used.Add(action.UnitId + "_" + action.AbilityIndex);
+                    spent.Add(SpentKey(action.UnitId, action.AbilityIndex));
                     actions++;
                     result.ActionsUsed++;
                 }
 
-                List<ResolutionEvent> events = ActionResolver.ResolveEnemyTurn(state);
-                for (int i = 0; i < events.Count; i++)
-                {
-                    ResolutionEvent evt = events[i];
-                    if (evt.Type == ResolutionEventType.EnemyAttack) result.EnemyAttacks++;
-                    if (evt.Type == ResolutionEventType.Hit)
-                    {
-                        CombatUnit victim = state.GetUnit(evt.UnitId);
-                        if (victim is SeedUnit) result.EnemyHitsOnSeed++;
-                        else if (victim is PlayerUnit) result.EnemyHitsOnDragons++;
-                    }
-                }
-
                 if (!seed.Alive || seed.Ticks <= 0) { result.Outcome = "DERROTA-semilla"; break; }
-                if (state.GetPlayers().Count == 0) { result.Outcome = "DERROTA-dragones"; break; }
+
                 if (turn >= germinationTurn) { ActionResolver.ResolveGermination(state); result.Outcome = "VICTORIA"; break; }
 
-                result.EnemiesSpawned += SpawnPending(state, pending, enemyDefs, ref spawnCounter, ref nextId, seedCell);
-                PrepareWave(state, seedCell, ref waveNumber, baseWaveSize, extraEveryWaves, pending);
+                if (cycleTurn >= 3)
+                {
+                    List<ResolutionEvent> events = ActionResolver.ResolveEnemyTurn(state);
+                    CountEvents(result, events, state);
+
+                    if (!seed.Alive || seed.Ticks <= 0) { result.Outcome = "DERROTA-semilla"; break; }
+                    if (state.GetPlayers().Count == 0) { result.Outcome = "DERROTA-dragones"; break; }
+
+                    spent.Clear();
+                    cycleTurn = 0;
+                    result.EnemiesSpawned += SpawnPending(state, pending, enemyDefs, ref spawnCounter, ref nextId, seedCell);
+                    PrepareWave(state, seedCell, ref waveNumber, baseWaveSize, extraEveryWaves, pending);
+                }
+                else
+                {
+                    List<ResolutionEvent> events = ActionResolver.ResolveEnemyReactions(state);
+                    CountEvents(result, events, state);
+
+                    if (!seed.Alive || seed.Ticks <= 0) { result.Outcome = "DERROTA-semilla"; break; }
+                    if (state.GetPlayers().Count == 0) { result.Outcome = "DERROTA-dragones"; break; }
+                }
+
                 CommitIntents(state);
             }
 
@@ -132,6 +141,21 @@ namespace MoriMonchiSimulator.CombatPrototype
             return spawned;
         }
 
+        private static void CountEvents(MatchResult result, List<ResolutionEvent> events, CombatSimState state)
+        {
+            for (int i = 0; i < events.Count; i++)
+            {
+                ResolutionEvent evt = events[i];
+                if (evt.Type == ResolutionEventType.EnemyAttack) result.EnemyAttacks++;
+                if (evt.Type == ResolutionEventType.Hit)
+                {
+                    CombatUnit victim = state.GetUnit(evt.UnitId);
+                    if (victim is SeedUnit) result.EnemyHitsOnSeed++;
+                    else if (victim is PlayerUnit) result.EnemyHitsOnDragons++;
+                }
+            }
+        }
+
         private static void CommitIntents(CombatSimState state)
         {
             List<EnemyUnit> enemies = state.GetEnemies();
@@ -139,7 +163,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                 enemies[i].Intent = EnemyBrain.ComputeIntent(state, enemies[i]);
         }
 
-        private static PlannedAction ChooseAction(CombatSimState state, Vector2Int seedCell, string profile, HashSet<string> used, System.Random rng, Vector2Int[] dirs)
+        private static PlannedAction ChooseAction(CombatSimState state, Vector2Int seedCell, string profile, HashSet<int> spent, System.Random rng, Vector2Int[] dirs)
         {
             if (profile == "pasivo") return null;
 
@@ -151,7 +175,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                 {
                     PlayerUnit pl = players[rng.Next(players.Count)];
                     int ab = 1 + rng.Next(2);
-                    if (used.Contains(pl.Id + "_" + ab)) continue;
+                    if (spent.Contains(SpentKey(pl.Id, ab))) continue;
                     CombatAbilitySO ability = pl.Definition.Abilities[ab];
                     if (ability == null || ability.Targeting != TargetingMode.DirectionalTemplate) continue;
                     Vector2Int cursor = new Vector2Int(rng.Next(state.Board.Width), rng.Next(state.Board.Depth));
@@ -183,7 +207,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                     PlayerUnit pl = attackers[p];
                     for (int ab = 1; ab <= 2; ab++)
                     {
-                        if (used.Contains(pl.Id + "_" + ab)) continue;
+                        if (spent.Contains(SpentKey(pl.Id, ab))) continue;
                         CombatAbilitySO ability = pl.Definition.Abilities[ab];
                         if (ability == null || ability.Targeting != TargetingMode.DirectionalTemplate) continue;
                         for (int d = 0; d < dirs.Length; d++)
@@ -197,6 +221,11 @@ namespace MoriMonchiSimulator.CombatPrototype
                 }
             }
             return null;
+        }
+
+        private static int SpentKey(int unitId, int abilityIndex)
+        {
+            return unitId * 8 + abilityIndex;
         }
 
         private static bool ThreatensSeed(EnemyUnit enemy, Vector2Int seedCell)

@@ -31,9 +31,9 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             if (manager.Phase != CombatPhase.Planning && manager.Phase != CombatPhase.Setup) return;
 
-            if (kb.f1Key.wasPressedThisFrame) targeting.SelectUnit(0);
-            if (kb.f2Key.wasPressedThisFrame) targeting.SelectUnit(1);
-            if (kb.f3Key.wasPressedThisFrame) targeting.SelectUnit(2);
+            if (kb.f1Key.wasPressedThisFrame) TrySelectSlot(0);
+            if (kb.f2Key.wasPressedThisFrame) TrySelectSlot(1);
+            if (kb.f3Key.wasPressedThisFrame) TrySelectSlot(2);
 
             if (kb.digit1Key.wasPressedThisFrame) targeting.SelectAbility(0);
             if (kb.digit2Key.wasPressedThisFrame) targeting.SelectAbility(1);
@@ -109,6 +109,15 @@ namespace MoriMonchiSimulator.CombatPrototype
             }
         }
 
+        private void TrySelectSlot(int slot)
+        {
+            List<PlayerUnit> players = manager.Canonical.GetPlayers();
+            if (slot < players.Count && manager.HasAvailableAbility(players[slot].Id))
+            {
+                targeting.SelectUnit(slot);
+            }
+        }
+
         private bool TrySelectPlayerAt(Vector2Int cell)
         {
             List<PlayerUnit> players = manager.Canonical.GetPlayers();
@@ -116,6 +125,11 @@ namespace MoriMonchiSimulator.CombatPrototype
             {
                 if (players[i].Alive && players[i].Cell == cell)
                 {
+                    if (!manager.HasAvailableAbility(players[i].Id))
+                    {
+                        return false;
+                    }
+
                     targeting.SelectUnit(i);
                     return true;
                 }

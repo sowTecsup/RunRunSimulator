@@ -22,10 +22,16 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (manager != null) manager.TurnLogChanged -= Rebuild;
         }
 
+        private void Update()
+        {
+            if (document == null || manager == null || document.rootVisualElement == null) return;
+            if (panel == null || panel.panel != document.rootVisualElement.panel) Rebuild();
+        }
+
         private void Rebuild()
         {
             if (document == null || manager == null) return;
-            if (panel == null || panel.panel == null) BuildPanel();
+            if (panel == null || panel.panel == null || (document.rootVisualElement != null && panel.panel != document.rootVisualElement.panel)) BuildPanel();
 
             list.Clear();
 
@@ -43,7 +49,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
                 Label header = new Label("TURNO " + entry.Turn);
                 header.style.unityFontStyleAndWeight = FontStyle.Bold;
-                header.style.fontSize = 12;
+                header.style.fontSize = 15;
                 header.style.color = Hex("#FFD24A");
                 header.style.marginTop = i == manager.TurnLog.Count - 1 ? 0 : 8;
                 list.Add(header);
@@ -51,7 +57,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                 for (int l = 0; l < entry.Lines.Count; l++)
                 {
                     Label line = new Label(entry.Lines[l]);
-                    line.style.fontSize = 11;
+                    line.style.fontSize = 13;
                     line.style.color = Hex("#DDD");
                     line.style.whiteSpace = WhiteSpace.Normal;
                     list.Add(line);
@@ -65,19 +71,19 @@ namespace MoriMonchiSimulator.CombatPrototype
             panel.style.position = Position.Absolute;
             panel.style.left = 10;
             panel.style.top = 120;
-            panel.style.width = 230;
-            panel.style.maxHeight = 380;
+            panel.style.width = 280;
+            panel.style.maxHeight = 560;
             panel.style.backgroundColor = Hex("#0D0F14E0");
             panel.style.borderTopWidth = panel.style.borderBottomWidth = panel.style.borderLeftWidth = panel.style.borderRightWidth = 1;
             panel.style.borderTopColor = panel.style.borderBottomColor = panel.style.borderLeftColor = panel.style.borderRightColor = Hex("#555");
             panel.style.borderTopLeftRadius = panel.style.borderTopRightRadius = panel.style.borderBottomLeftRadius = panel.style.borderBottomRightRadius = 8;
-            panel.style.paddingTop = panel.style.paddingBottom = panel.style.paddingLeft = panel.style.paddingRight = 8;
+            panel.style.paddingTop = panel.style.paddingBottom = panel.style.paddingLeft = panel.style.paddingRight = 10;
             panel.pickingMode = PickingMode.Ignore;
             panel.style.display = DisplayStyle.None;
 
             Label title = new Label("TURNOS EJECUTADOS");
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.fontSize = 11;
+            title.style.fontSize = 13;
             title.style.color = Hex("#AAB6C2");
             title.style.marginBottom = 4;
             panel.Add(title);

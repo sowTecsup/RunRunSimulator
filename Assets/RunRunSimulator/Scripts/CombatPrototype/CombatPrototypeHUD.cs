@@ -27,7 +27,8 @@ namespace MoriMonchiSimulator.CombatPrototype
             { CombatPhase.Victory, ("VICTORIA — ¡LA SEMILLA GERMINÓ!", 20, new Color(0.1f, 0.35f, 0.12f, 0.85f)) },
             { CombatPhase.Defeat, ("DERROTA — la noche devoró la semilla", 20, new Color(0.45f, 0.08f, 0.08f, 0.85f)) },
             { CombatPhase.Setup, ("DESPLIEGUE NOCTURNO — la semilla solo crece de noche\n←/→ girar cámara · rueda: zoom", 16, new Color(0.10f, 0.07f, 0.22f, 0.8f)) },
-            { CombatPhase.Spawning, ("REFUERZOS NOCTURNOS — llegan saltando desde el borde de la isla", 18, new Color(0.10f, 0.07f, 0.22f, 0.8f)) }
+            { CombatPhase.Spawning, ("REFUERZOS NOCTURNOS — llegan saltando desde el borde de la isla", 18, new Color(0.10f, 0.07f, 0.22f, 0.8f)) },
+            { CombatPhase.Reacting, ("LOS GOLPEADOS SE REACOMODAN...", 20, new Color(0f, 0f, 0f, 0.55f)) }
         };
 
         public void Bind(CombatPrototypeManager m)
@@ -59,10 +60,22 @@ namespace MoriMonchiSimulator.CombatPrototype
             return panel.Pick(panelPosition) != null;
         }
 
+        private void Update()
+        {
+            if (manager == null) return;
+            if (IsUiStale()) BuildUi();
+        }
+
+        private bool IsUiStale()
+        {
+            if (document == null || document.rootVisualElement == null) return false;
+            return bannerLabel == null || bannerLabel.panel != document.rootVisualElement.panel;
+        }
+
         public void Refresh()
         {
             if (manager == null) return;
-            if (bannerLabel == null || bannerLabel.panel == null) BuildUi();
+            if (IsUiStale()) BuildUi();
             UpdateBanner();
             UpdateSelectionLabel();
             UpdateBeatStrip();
@@ -171,7 +184,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         private VisualElement BuildPlayerCard(PlayerUnit player, int slot)
         {
             VisualElement card = new VisualElement();
-            card.style.width = 250;
+            card.style.width = 282;
             card.style.backgroundColor = new Color(0.08f, 0.09f, 0.12f, 0.92f);
             SetBorderWidth(card, 2);
             SetRadius(card, 8);
@@ -181,6 +194,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             card.pickingMode = PickingMode.Position;
             MakeLabel(card, "F" + (slot + 1) + " " + player.Definition.DisplayName, 18, Color.white, true);
             Label ticks = MakeLabel(card, "", 15, Hex("#DDD"));
+            ticks.style.whiteSpace = WhiteSpace.Normal;
 
             CombatAbilitySO[] abilities = player.Definition.Abilities;
             List<Label> abilityLabels = new List<Label>();
@@ -228,6 +242,18 @@ namespace MoriMonchiSimulator.CombatPrototype
                 bannerLabel.text = phaseData.Text + "\nSEMILLA: germina en " + Mathf.Max(0, manager.GerminationTurn - manager.TurnNumber) + " turnos · vida " + manager.Seed.Ticks + "/" + manager.Seed.MaxTicks;
             bannerLabel.style.fontSize = phaseData.Size;
             bannerLabel.style.backgroundColor = phaseData.Bg;
+
+            if (manager.Phase == CombatPhase.Planning)
+            {
+                int n = manager.TurnsUntilEnemyAttack;
+                if (n > 1)
+                    bannerLabel.text += "\n⚔ ATAQUE ENEMIGO en " + n + " turnos";
+                else if (n == 1)
+                {
+                    bannerLabel.text += "\n⚠ ÚLTIMO TURNO — ¡los enemigos atacan al terminar!";
+                    bannerLabel.style.backgroundColor = new Color(0.45f, 0.10f, 0.08f, 0.92f);
+                }
+            }
 
             if (restartContainer != null)
                 restartContainer.style.display = manager.Phase == CombatPhase.Victory || manager.Phase == CombatPhase.Defeat ? DisplayStyle.Flex : DisplayStyle.None;
@@ -395,11 +421,22 @@ namespace MoriMonchiSimulator.CombatPrototype
                     int projectedTicks = projectedUnit != null && projectedUnit.Alive ? projectedUnit.Ticks : 0;
                     if (projectedTicks != actualTicks) ticksText += " → " + projectedTicks;
                 }
+                bool noAbilities = !manager.HasAvailableAbility(view.UnitId);
+                if (noAbilities) ticksText += "\nSIN PODERES — vuelven tras el ataque enemigo";
                 view.Ticks.text = ticksText;
+                view.Ticks.style.color = noAbilities ? Hex("#999") : Hex("#DDD");
 
                 bool selected = targeting != null && targeting.SelectedUnitId == view.UnitId;
-                SetBorderColor(view.Card, selected ? Color.white : view.Definition.Tint);
-                view.Card.style.backgroundColor = selected ? new Color(0.16f, 0.19f, 0.28f, 0.95f) : new Color(0.08f, 0.09f, 0.12f, 0.92f);
+                if (noAbilities)
+                {
+                    SetBorderColor(view.Card, Hex("#666"));
+                    view.Card.style.backgroundColor = new Color(0.10f, 0.10f, 0.10f, 0.92f);
+                }
+                else
+                {
+                    SetBorderColor(view.Card, selected ? Color.white : view.Definition.Tint);
+                    view.Card.style.backgroundColor = selected ? new Color(0.16f, 0.19f, 0.28f, 0.95f) : new Color(0.08f, 0.09f, 0.12f, 0.92f);
+                }
 
                 CombatAbilitySO[] abilities = view.Definition.Abilities;
                 for (int a = 0; a < view.AbilityLabels.Count; a++)
@@ -409,6 +446,15 @@ namespace MoriMonchiSimulator.CombatPrototype
                     if (abilities == null || a >= abilities.Length || abilities[a] == null)
                     {
                         label.text = "";
+                        row.style.backgroundColor = Color.clear;
+                        continue;
+                    }
+
+                    bool spent = manager.IsAbilitySpent(view.UnitId, a);
+                    if (spent)
+                    {
+                        label.text = "✗ " + abilities[a].DisplayName;
+                        label.style.color = Hex("#777");
                         row.style.backgroundColor = Color.clear;
                         continue;
                     }
@@ -440,8 +486,10 @@ namespace MoriMonchiSimulator.CombatPrototype
         private void UpdateExecuteButton()
         {
             if (executeButton == null) return;
-            bool enabled = manager.Phase == CombatPhase.Planning && manager.Plan != null && manager.Plan.TotalActions > 0;
+            bool canPass = manager.Phase == CombatPhase.Planning && !manager.AnyUsableAbility();
+            bool enabled = manager.Phase == CombatPhase.Planning && manager.Plan != null && (manager.Plan.TotalActions > 0 || canPass);
             executeButton.SetEnabled(enabled);
+            executeButton.text = canPass && manager.Plan.TotalActions == 0 ? "PASAR" : "EXECUTE";
         }
 
         private static Label MakeLabel(VisualElement parent, string text, int fontSize, Color color, bool bold = false)

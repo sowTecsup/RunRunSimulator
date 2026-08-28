@@ -12,7 +12,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         public void Show(EnemyUnit enemy, Vector2 screenPosition)
         {
             if (document == null || enemy == null || enemy.Definition == null) return;
-            if (panel == null || panel.panel == null) BuildPanel();
+            if (panel == null || panel.panel == null || (document.rootVisualElement != null && panel.panel != document.rootVisualElement.panel)) BuildPanel();
             panel.Clear();
             Populate(enemy.Definition);
 

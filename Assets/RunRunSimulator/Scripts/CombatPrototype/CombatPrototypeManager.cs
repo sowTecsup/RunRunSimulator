@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MoriMonchiSimulator.CombatPrototype
 {
-    public enum CombatPhase { Planning, Executing, EnemyTurn, Victory, Defeat, Setup, Spawning }
+    public enum CombatPhase { Planning, Executing, EnemyTurn, Victory, Defeat, Setup, Spawning, Reacting }
 
     public class CombatPrototypeManager : MonoBehaviour
     {
@@ -26,6 +26,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private BoardImpactFeedback impact;
         [SerializeField] private float spawnJumpDuration = 0.4f;
         [SerializeField] private float spawnJumpFromCells = 1.5f;
+        [SerializeField] private int cycleLength = 3;
 
         public CombatPhase Phase { get; private set; }
         public CombatSimState Canonical { get; private set; }
@@ -44,9 +45,41 @@ namespace MoriMonchiSimulator.CombatPrototype
         public PlayerUnitDefinitionSO NextDeployDefinition => Phase == CombatPhase.Setup && SeedId >= 0 && DeployedCount < playerLoadout.Length ? playerLoadout[DeployedCount] : null;
         public EnemyDefinitionSO[] EnemyLoadout => enemyLoadout;
 
+        public int CycleTurn => cycleTurn;
+        public int TurnsUntilEnemyAttack => Mathf.Max(1, cycleLength - cycleTurn + 1);
+        public bool IsAbilitySpent(int unitId, int abilityIndex) => spentAbilities.Contains(unitId * 8 + abilityIndex);
+        public bool HasAvailableAbility(int unitId)
+        {
+            if (Canonical == null) return false;
+            CombatUnit unit = Canonical.GetUnit(unitId);
+            if (!(unit is PlayerUnit player) || !player.Alive || player.Definition == null) return false;
+
+            CombatAbilitySO[] abilities = player.Definition.Abilities;
+            if (abilities == null) return false;
+
+            for (int i = 0; i < abilities.Length; i++)
+            {
+                if (abilities[i] == null) continue;
+                if (!IsAbilitySpent(unitId, i)) return true;
+            }
+            return false;
+        }
+        public bool AnyUsableAbility()
+        {
+            if (Canonical == null) return false;
+            List<PlayerUnit> players = Canonical.GetPlayers();
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (HasAvailableAbility(players[i].Id)) return true;
+            }
+            return false;
+        }
+
+        private int cycleTurn = 1;
         private int turnCounter;
         private int nextUnitId;
         private int spawnCounter;
+        private readonly HashSet<int> spentAbilities = new HashSet<int>();
 
         private void Start()
         {
@@ -76,6 +109,8 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             nextUnitId = 0;
             spawnCounter = 0;
+            spentAbilities.Clear();
+            cycleTurn = 1;
             SeedId = -1;
             DeployedCount = 0;
             if (spawner != null) spawner.ResetForEncounter();
@@ -176,10 +211,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             hud.Refresh();
             yield return PlaySpawnWave(spawner.ConsumeWave(Canonical, Seed.Cell));
             spawner.PrepareNextWave(Canonical, Seed.Cell);
-            Plan = new Choreography();
-            enemyTurn.CommitIntents(Canonical);
-            Phase = CombatPhase.Planning;
-            RefreshProjection();
+            BeginPlanningTurn();
         }
 
         private CombatUnitView SpawnView(CombatUnit unit)
@@ -200,6 +232,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (action == null) return;
 
             if (Plan.IsAbilityUsed(action.UnitId, action.AbilityIndex)) return;
+            if (IsAbilitySpent(action.UnitId, action.AbilityIndex)) return;
 
             Plan.Add(action);
             RefreshProjection();
@@ -223,7 +256,8 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         public void ExecutePlan()
         {
-            if (Phase != CombatPhase.Planning || Plan.TotalActions <= 0) return;
+            if (Phase != CombatPhase.Planning) return;
+            if (Plan.TotalActions <= 0 && AnyUsableAbility()) return;
 
             turnCounter++;
             TurnLog.Add(BuildTurnLogEntry());
@@ -291,9 +325,74 @@ namespace MoriMonchiSimulator.CombatPrototype
                 return;
             }
 
-            Phase = CombatPhase.EnemyTurn;
-            hud.Refresh();
-            StartCoroutine(enemyTurn.RunTurn(Canonical, Views, builder.Board, OnEnemyTurnDone));
+            foreach (PlannedAction action in Plan.AllActions) spentAbilities.Add(action.UnitId * 8 + action.AbilityIndex);
+
+            if (turnCounter >= germinationTurn)
+            {
+                StartCoroutine(PlayGermination());
+                return;
+            }
+
+            bool cycleEnd = cycleTurn >= cycleLength;
+
+            if (cycleEnd)
+            {
+                if (TurnLog.Count > 0)
+                {
+                    TurnLog[TurnLog.Count - 1].Lines.Add("⚔ ATAQUE ENEMIGO — fin del ciclo");
+                    TurnLogChanged?.Invoke();
+                }
+
+                Phase = CombatPhase.EnemyTurn;
+                hud.Refresh();
+                StartCoroutine(enemyTurn.RunTurn(Canonical, Views, builder.Board, OnEnemyTurnDone));
+            }
+            else
+            {
+                if (HasPendingReactions())
+                {
+                    Phase = CombatPhase.Reacting;
+                    hud.Refresh();
+                }
+                StartCoroutine(enemyTurn.RunReactions(Canonical, Views, builder.Board, OnReactionsDone));
+            }
+        }
+
+        private bool HasPendingReactions()
+        {
+            for (int i = 0; i < Canonical.Units.Count; i++)
+            {
+                CombatUnit unit = Canonical.Units[i];
+                if (unit.Alive && unit.Airborne) return true;
+                if (unit is EnemyUnit enemy && enemy.Alive && enemy.WasHitThisTurn) return true;
+            }
+            return false;
+        }
+
+        private void OnReactionsDone()
+        {
+            if (SeedDead())
+            {
+                EndEncounter(false);
+                return;
+            }
+
+            if (Canonical.GetPlayers().Count == 0)
+            {
+                EndEncounter(false);
+                return;
+            }
+
+            cycleTurn++;
+            BeginPlanningTurn();
+        }
+
+        private void BeginPlanningTurn()
+        {
+            Plan = new Choreography();
+            enemyTurn.CommitIntents(Canonical);
+            Phase = CombatPhase.Planning;
+            RefreshProjection();
         }
 
         private void OnEnemyTurnDone()
@@ -310,12 +409,8 @@ namespace MoriMonchiSimulator.CombatPrototype
                 return;
             }
 
-            if (turnCounter >= germinationTurn)
-            {
-                StartCoroutine(PlayGermination());
-                return;
-            }
-
+            spentAbilities.Clear();
+            cycleTurn = 1;
             StartCoroutine(RunSpawnPhase());
         }
 

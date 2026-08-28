@@ -40,6 +40,14 @@ namespace MoriMonchiSimulator.CombatPrototype
             }
         }
 
+        public bool IsUnitUsed(int unitId)
+        {
+            foreach (Beat beat in Beats)
+                foreach (PlannedAction action in beat.Actions)
+                    if (action.UnitId == unitId) return true;
+            return false;
+        }
+
         public bool IsAbilityUsed(int unitId, int abilityIndex)
         {
             foreach (Beat beat in Beats)

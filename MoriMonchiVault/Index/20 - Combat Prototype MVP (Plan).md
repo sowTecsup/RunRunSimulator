@@ -253,10 +253,47 @@ Cada fase cierra con `read_console` 0 errores + ejercicio en Play por Unity MCP.
 - **Spawn facing**: jugadores se despliegan mirando a cámara (`SetFacingInstant(0,-1)` en `Init`).
 - **Vuelo**: `Anim_Dra_Fly`/`Anim_Dra_Idle` (con guarda `HasState`) alrededor de los lerps de `MoveTo`/`LandTo`/`LaunchUp`.
 
+### Enmienda S88 (Juan, durante el playtest): el disparo también es plantilla
+`AB_UnifiedPierce` ya NO dispara quieto: **el MoriMochi viaja al anclaje y dispara desde ahí** (`Landing` Stay→AtAnchor, `TemplateOffsets` (0,0)-(3,0)→**(1,0)-(4,0)**: la línea de 4 sale hacia adelante desde la celda de aterrizaje). Aplican las reglas de siempre de anclaje/aterrizaje (FIZZLE si se ocupa). En `ActionResolver`, el `Impact.Facing` de una habilidad con `IgnoresHeight` (disparo) es SIEMPRE la dirección del disparo, no la de viaje — el dragón aterriza y gira hacia donde dispara. Los enemigos siguen disparando quietos (activadores, sin cambio).
+
 ### Pendientes menores registrados
-- Minigrid 5×5 recorta el offset (3,0) del perforante.
+- ~~Minigrid recorta la plantilla del perforante~~ → RESUELTO S88: `AbilityCardVisuals` con auto-encuadre (bounds de offsets hasta ±4, celdas de 5px si >6 columnas, aterrizaje verde para `AtAnchor`, `flexShrink 0` — la causa raíz del grid invisible era el colapso flex a 0.67px de ancho) + cards 250→282.
 - Texto guía del HUD para `AirborneEnemy` quedó muerto (sin habilidad de ese tipo en el kit).
 - El hook `Feedbacks/OnFizzle` (MMF_Player) sigue vacío — montar juice cuando entren los popups (§10.6).
+
+---
+
+## 14b · Ciclo v2: gasto por PODER + ciclo fijo de 3 + cámara Bad North (S88 tarde — enmienda al §14 tras el primer playtest de Juan)
+
+Juan jugó el ciclo v1 y corrigió: *"solo se gasta la habilidad, no todo el morimonchi — solo se bloquea el poder"*. Cerrado por AskUser:
+
+1. **Gasto por poder**: usar un poder lo bloquea POR EL CICLO (`spentAbilities`, clave unitId·8+abilityIndex). El dragón sigue disponible con sus otros poderes. Se elimina el agotamiento por dragón del §14.
+2. **Ciclo FIJO de 3 turnos** (`cycleLength` serializado): al cierre del turno 3 del ciclo → ataque enemigo → refuerzos → TODOS los poderes se restauran. Ya no depende de agotarse.
+3. **Combo libre** (revoca "1 acción por dragón" del §14): un dragón puede gastar sus 2 acciones del turno con poderes distintos. Sigue: 2 acciones/turno, un poder no se repite dentro del turno.
+4. **HUD**: banner con countdown "⚔ ATAQUE ENEMIGO en N turnos"; en N=1 "⚠ ÚLTIMO TURNO — ¡atacan al terminar!" con fondo rojo. Poder gastado = "✗ nombre" gris en la card; card entera gris solo si el dragón no tiene NINGÚN poder. Si nadie tiene poderes, el botón EXECUTE pasa a "PASAR" (turno vacío permitido solo en ese caso).
+5. **Cámara Bad North** (elegida por Juan sobre ortho-ITB y órbita libre): Main Camera en perspectiva FOV 30, pitch 38° (antes ortho 50°); el encuadre perspectiva ahora muestrea la silueta real (hU/hR compartido con la rama ortho) + compensa franjas de UI + `perspectiveFill` (1.3, serializado) para llenar pantalla estilo Bad North. Órbita por pasos, zoom (dolly real) y pan intactos.
+6. Verificado en Play: T1 mismo dragón gastó 2 poderes y siguió seleccionable · countdown 3→2→1 con warning · cierre de ciclo con ataque (dragones apilados comieron líneas: t5→t2/t3), refuerzos 2→4 y restauración total · reacciones en turnos 1-2 sin ataque. Consola 0/0.
+7. **Quirk de pipeline (nota 12)**: las capturas de `manage_camera` pueden omitir el overlay UITK según el timing de repaint del Game view — la UI se verifica por estado del panel (`root.childCount`, `panel` del banner), NUNCA solo por captura.
+
+## 14 · Ciclo de turnos por agotamiento (S88 — decisiones de Juan, enmienda la decisión 23 de §11; **SUPERSEDIDO por §14b en lo que contradigan**)
+
+Juan corrigió el modelo de presión: los enemigos NO atacan cada turno. El ritmo que pidió: "turno 1, turno 2, turno 3 recién atacan los enemigos", con descanso de los dragones usados.
+
+### Reglas (cerradas con Juan por AskUser, S88)
+1. **Agotamiento**: cada dragón que actúa queda AGOTADO hasta después del ataque enemigo. Máximo **1 acción por dragón por turno** (el combo del turno = 2 dragones distintos; presupuesto de 2 sigue). Elegido por Juan: "fuera hasta el ataque enemigo" (NO descanso de 1 turno).
+2. **Ataque enemigo por agotamiento**: los enemigos ejecutan TODOS sus ataques cuando TODA la bandada viva está agotada. Con 3 dragones: T1 usás 2 → T2 usás el restante → el cierre del T2 dispara el ataque enemigo (= "turno 3"). Emergente aceptado: con dragones muertos el ciclo se acorta (más presión al perder unidades).
+3. **Telegraph siempre**: en los turnos sin ataque las intenciones siguen visibles (elegido por Juan sobre "ocultos" y "countdown individual").
+4. **Reacciones cada turno**: golpeado → rota hacia el atacante y ejecuta su patrón de movimiento al cierre de ESE turno (fase nueva `Reacting`; `ActionResolver.ResolveEnemyReactions` = aterrizajes + movimientos, sin ataques). El turno enemigo completo (`ResolveEnemyTurn`) queda solo para el cierre de ciclo.
+5. **Refuerzos por ciclo**: las oleadas entran SOLO tras el ataque enemigo (elegido por Juan). El telegraph de la oleada siguiente queda visible durante todo el ciclo.
+6. **Movilidad visible**: el movimiento por patrón se anima saltando de casilla en casilla (evento `Move` con `Path`; un salto con arco por celda, tunable `hopDuration`).
+
+### Decisiones v0 del orquestador (vetables)
+- La germinación se chequea al cierre del turno del jugador, ANTES del ataque enemigo (el countdown "germina en N" cuenta turnos del jugador; si el turno 8 cae a mitad de ciclo, los enemigos no llegan a atacar).
+- La semilla solo recibe daño en el cierre de ciclo → la presión real es la acumulación de enemigos telegrafiando.
+- HUD: línea "BANDADA: frescos N/M" en el banner + aviso rojo "ESTE PLAN AGOTA LA BANDADA" cuando el plan dispara el ataque + cards agotadas en gris con leyenda + línea "⚔ ATAQUE ENEMIGO" en el TurnLog.
+- UI: PanelSettings propio del prototipo (`CombatPrototypePanelSettings.asset`, refRes 1280×720 → todo ×1.5 en 1080p; el juego sigue con `StandartPanelSettings`). Franjas de cámara retuneadas en escena (top 0.19 / bottom 0.44). `minZoom` 0.5→0.25 (pedido de Juan: acercarse más).
+- Fase `Reacting` se salta en silencio si nadie fue golpeado y no hay aéreos (guard `HasPendingReactions` — evita el banner-parpadeo; el reseteo de flags corre igual).
+- **Bug cazado en el playtest S88**: al entrar a Play el panel UITK puede recrearse dejando el árbol del HUD colgado de un panel viejo NO-null → la guarda S81 (`panel == null`) no lo detectaba y Juan entró a Setup SIN UI. Fix: detección de panel *stale* (`elemento.panel != document.rootVisualElement.panel`) con auto-curación por `Update` en `CombatPrototypeHUD` y `TurnLogPanel`, y guarda mejorada en `EnemyBriefPanel`.
 
 ---
 
@@ -267,6 +304,8 @@ Cada fase cierra con `read_console` 0 errores + ejercicio en Play por Unity MCP.
 **S82 (2026-08-26): puntos 2 y 3 del feedback BAJADOS A REGLAS EXACTAS (§11, decisiones 17-24) E IMPLEMENTADOS Y VERIFICADOS** — enemigos activadores automáticos con movimiento ajedrez + plantilla anclaje/aterrizaje con transición sin límite + presupuesto de 2 acciones por turno. 20 scripts tocados (18 modificados + 2 nuevos: `BoardImpactFeedback`, `CombatCameraController`), 11 assets re-parametrizados, `BoardLayout_Isla` NUEVO (12×12, alturas 0-4, celdas-hueco `.` para perímetro irregular, spawns con facing `>`/`<`/`^`/`v`), `levelHeight` 1.06 (altura real del DragonSD), vibración de bloques con Feel (`MMWiggle` por bloque + hook `MMF_Player`), cámara orbital por pasos de 90° (flechas ←/→). Verificación MCP: consola 0 errores/0 warnings · **proyección==ejecución IDÉNTICAS en 2 rondas jugadas** (ronda de empuje-contra-muro + Torre-2 + Alfil-2, y el combo canónico Voltereta→Agarre→Slam-contra-muro = 3 ticks = muerte, que entra justo en el presupuesto de 2 acciones) · rotación-al-bloqueo y fizzle verificados en frío sobre clones. Falta el playtest de Juan (checklist §8). El resto del §10 (punto 4 UI de secuencia, punto 6 popups DamageNumbersPro) sigue en agenda. El pendiente obligatorio de editor de S75 (assets Horn/Back/Wing/Face/CutieMark + rewiring + limpieza de GameScene) sigue vigente e independiente de este prototipo.
 
 **S86 (2026-08-28): QoL §12 COMPLETA.** Los 9 fixes ejecutados y verificados con capturas en los 3 yaws: picking UITK real + gate de input (clic ya no atraviesa la UI) · HUD por franjas de flujo (cero overlaps) · `WorldLabelBillboard` por frame (labels legibles tras orbitar) · FIZZLE visible (shake + línea en TurnLog + hook MMF) · marker "×" sin tofu · encuadre ORTOGRÁFICO real (pivote de bounds de celdas jugables, `orthographicSize` calculado de la silueta por-celda, franjas top/bottom tunables, consistente en 4 yaws; el zoom de rueda ahora escala de verdad) · contraste serializado (light 0.82/0.79/0.70 · dark 0.40/0.46/0.44) · jerarquía de highlights por prioridad (Selection>Spawn>Intent>Landing>Path>Template, solo el mayor visible por celda + `stackStep`) · Esc/botón Reiniciar/textos/label de semilla tintado. Hallazgo 18 descartado (no se reproduce).
+
+**S88 (2026-08-28): CICLO DE TURNOS POR AGOTAMIENTO (§14) IMPLEMENTADO Y VERIFICADO + UI ×1.5.** 10 scripts tocados (8 por morimonchi-coder + 2 micro-ediciones del orquestador), `CombatPrototypePanelSettings.asset` NUEVO, franjas de cámara retuneadas. Verificado jugando un ciclo completo por código: T1 dos acciones → fase `Reacting` (el golpeado giró y ejecutó su patrón, SIN ataque enemigo ni refuerzos) → T2 con el único fresco (aviso rojo en banner) → ataque enemigo (fuego amigo mató a un goblin dañado) → refuerzos por borde → bandada reseteada. Consola 0 errores/0 warnings; capturas miradas (`s88_*` en Screenshots). Pendiente visual menor: salto multi-celda del patrón (Path con 2+ celdas) no se ejercitó a ojo — el goblin de la prueba movió 1 sola celda.
 
 **S87 (2026-08-28): KIT UNIFICADO + REGLAS DE DISPARO (§13) + pulido de giros.** Ver §13 — es la fuente de verdad del idioma vigente: 3 poderes compartidos, disparo ignora altura/atraviesa/proyectil, filtro de altura para el resto, enemigos solo-disparo perforantes, giro en vivo al apuntar, facing por dirección de viaje, `baseYawOffset` corregido, vuelo `Anim_Dra_Fly`. Verificado con capturas en múltiples turnos jugados; consola limpia en todas las tandas.
 

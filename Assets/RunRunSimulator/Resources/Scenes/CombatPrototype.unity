@@ -393,7 +393,7 @@ MonoBehaviour:
   m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
-  m_PanelSettings: {fileID: 11400000, guid: 3c8a8da8175b6d54a907634fef6a08f4, type: 2}
+  m_PanelSettings: {fileID: 11400000, guid: a4dba0c30989ccc4ab4712c92f205f27, type: 2}
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 0}
   m_SortingOrder: 0
@@ -484,8 +484,8 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
-  orthographic: 1
+  field of view: 30
+  orthographic: 0
   orthographic size: 5.2
   m_Depth: 0
   m_CullingMask:
@@ -510,8 +510,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1696017948}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.3904484, y: 0.34682903, z: -0.16172904, w: 0.8373192}
-  m_LocalPosition: {x: -3.27, y: 12.46, z: -3.27}
+  m_LocalRotation: {x: 0.30078575, y: 0.36183435, z: -0.12458955, w: 0.8735453}
+  m_LocalPosition: {x: -3.67, y: 12.1, z: -3.67}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -532,13 +532,13 @@ MonoBehaviour:
   builder: {fileID: 277935665}
   rotateDuration: 0.35
   zoomStep: 0.15
-  minZoom: 0.5
+  minZoom: 0.25
   maxZoom: 1.6
   zoomDuration: 0.25
   panSpeed: 7
   framePadding: 1.05
-  topBandFraction: 0.12
-  bottomBandFraction: 0.3
+  topBandFraction: 0.19
+  bottomBandFraction: 0.44
   pivotHeight: 0
 --- !u!1 &1717185751
 GameObject:
@@ -624,6 +624,7 @@ MonoBehaviour:
   impact: {fileID: 277935667}
   fizzleFeedback: {fileID: 2063768986}
   moveDuration: 0.35
+  hopDuration: 0.22
   pushDuration: 0.25
   landDuration: 0.3
   rotateDuration: 0.2
