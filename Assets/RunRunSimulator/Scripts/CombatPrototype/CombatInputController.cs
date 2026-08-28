@@ -8,6 +8,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private CombatPrototypeManager manager;
         [SerializeField] private TargetingController targeting;
         [SerializeField] private CombatBoardBuilder builder;
+        [SerializeField] private CombatPrototypeHUD hud;
 
         private Vector2 _lastMousePosition;
         private Vector2Int? _dragOrigin;
@@ -44,22 +45,24 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame) manager.ConfirmAction();
             if (kb.tabKey.wasPressedThisFrame) manager.NewBeat();
             if (kb.backspaceKey.wasPressedThisFrame) manager.UndoLast();
+            if (kb.escapeKey.wasPressedThisFrame) targeting.ClearSelection();
 
             if (mouse == null) return;
 
             Vector2 mousePosition = mouse.position.ReadValue();
+            bool overUi = hud != null && hud.IsPointerOver(mousePosition);
 
             if (mousePosition != _lastMousePosition)
             {
                 _lastMousePosition = mousePosition;
 
-                if (_dragOrigin == null && TryRaycastCell(mousePosition, out Vector2Int cell) && builder.Board.InBounds(cell))
+                if (!overUi && _dragOrigin == null && TryRaycastCell(mousePosition, out Vector2Int cell) && builder.Board.InBounds(cell))
                 {
                     targeting.SetCursor(cell);
                 }
             }
 
-            if (mouse.leftButton.wasPressedThisFrame)
+            if (!overUi && mouse.leftButton.wasPressedThisFrame)
             {
                 if (TryRaycastCell(mousePosition, out Vector2Int cell) && builder.Board.InBounds(cell))
                 {
@@ -97,7 +100,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                 _dragOrigin = null;
             }
 
-            if (mouse.rightButton.wasPressedThisFrame)
+            if (!overUi && mouse.rightButton.wasPressedThisFrame)
             {
                 if (TryRaycastCell(mousePosition, out Vector2Int cell))
                 {

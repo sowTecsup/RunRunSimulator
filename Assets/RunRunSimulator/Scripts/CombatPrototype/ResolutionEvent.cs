@@ -17,6 +17,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         public int TicksAfter;
         public bool Environmental;
         public int Wave;
+        public bool Projectile;
 
         public ResolutionEvent(ResolutionEventType type, int unitId)
         {

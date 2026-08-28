@@ -16,8 +16,8 @@ MonoBehaviour:
   DisplayName: Tanque
   MaxTicks: 5
   Abilities:
-  - {fileID: 11400000, guid: f44437e3a19b40b4eb1645b9622f5f66, type: 2}
-  - {fileID: 11400000, guid: 0e0571aacc6c2f04880915baaff46ac9, type: 2}
-  - {fileID: 11400000, guid: d6ca54a20b57de04180df74eba3fc694, type: 2}
+  - {fileID: 11400000, guid: 7f028096c311a444f86c1048a1719fd9, type: 2}
+  - {fileID: 11400000, guid: 6c6088b751d03164eb2b2b4ca4107c17, type: 2}
+  - {fileID: 11400000, guid: 1da4fd7b1960c5343b5dd6bcefa7f968, type: 2}
   VisualPrefab: {fileID: 1034844629304111627, guid: 3140943fe59865544a622c4bb27280b2, type: 3}
   Tint: {r: 0.25, g: 0.55, b: 1, a: 1}

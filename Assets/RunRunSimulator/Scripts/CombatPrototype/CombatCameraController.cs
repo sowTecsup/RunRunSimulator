@@ -11,6 +11,10 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private float maxZoom = 1.6f;
         [SerializeField] private float zoomDuration = 0.25f;
         [SerializeField] private float panSpeed = 7f;
+        [SerializeField] private float framePadding = 1.05f;
+        [SerializeField] private float topBandFraction = 0.12f;
+        [SerializeField] private float bottomBandFraction = 0.30f;
+        [SerializeField] private float pivotHeight = 0f;
 
         private Vector3 _pivot;
         private Vector3 _baseOffset;
@@ -19,16 +23,147 @@ namespace MoriMonchiSimulator.CombatPrototype
         private float _targetYaw;
         private float _zoom;
         private float _targetZoom;
+        private Vector2 _islandMin;
+        private Vector2 _islandMax;
+        private Camera _cam;
+        private float _baseOrthoSize;
 
         private void Start()
         {
-            _pivot = new Vector3(
-                builder.Board.Width * CombatBoard.CellSize * 0.5f,
-                0f,
-                builder.Board.Depth * CombatBoard.CellSize * 0.5f);
+            _cam = GetComponent<Camera>();
+            CombatBoard board = builder != null ? builder.Board : null;
+            bool framed = false;
 
-            _baseOffset = transform.position - _pivot;
-            _baseRotation = transform.rotation;
+            if (board != null)
+            {
+                float minX = float.PositiveInfinity;
+                float maxX = float.NegativeInfinity;
+                float minZ = float.PositiveInfinity;
+                float maxZ = float.NegativeInfinity;
+                float maxElevationHeight = 0f;
+                bool anyCell = false;
+
+                for (int x = 0; x < board.Width; x++)
+                {
+                    for (int z = 0; z < board.Depth; z++)
+                    {
+                        Vector2Int cell = new Vector2Int(x, z);
+                        if (!board.InBounds(cell)) continue;
+
+                        anyCell = true;
+                        float cellX = x * CombatBoard.CellSize + CombatBoard.CellSize * 0.5f;
+                        float cellZ = z * CombatBoard.CellSize + CombatBoard.CellSize * 0.5f;
+                        if (cellX < minX) minX = cellX;
+                        if (cellX > maxX) maxX = cellX;
+                        if (cellZ < minZ) minZ = cellZ;
+                        if (cellZ > maxZ) maxZ = cellZ;
+
+                        float elevationHeight = board.GetElevation(cell) * board.LevelHeight;
+                        if (elevationHeight > maxElevationHeight) maxElevationHeight = elevationHeight;
+                    }
+                }
+
+                if (anyCell)
+                {
+                    minX -= CombatBoard.CellSize * 0.5f;
+                    maxX += CombatBoard.CellSize * 0.5f;
+                    minZ -= CombatBoard.CellSize * 0.5f;
+                    maxZ += CombatBoard.CellSize * 0.5f;
+
+                    _islandMin = new Vector2(minX, minZ);
+                    _islandMax = new Vector2(maxX, maxZ);
+
+                    float centroX = (minX + maxX) * 0.5f;
+                    float centroZ = (minZ + maxZ) * 0.5f;
+                    float centroY = (maxElevationHeight - 0.3f) * 0.5f + pivotHeight;
+                    _pivot = new Vector3(centroX, centroY, centroZ);
+
+                    float halfW = (maxX - minX) * 0.5f;
+                    float halfD = (maxZ - minZ) * 0.5f;
+                    float halfH = maxElevationHeight * 0.5f;
+                    float radius = Mathf.Sqrt(halfW * halfW + halfD * halfD + halfH * halfH);
+
+                    Vector3 dir = transform.position - _pivot;
+                    dir = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector3.back;
+
+                    _baseRotation = Quaternion.LookRotation(-dir);
+
+                    float freeFraction = Mathf.Clamp(1f - topBandFraction - bottomBandFraction, 0.2f, 1f);
+
+                    if (_cam != null && _cam.orthographic)
+                    {
+                        Vector3 baseUp = _baseRotation * Vector3.up;
+                        Vector3 baseRight = _baseRotation * Vector3.right;
+
+                        float hU = 0f;
+                        float hR = 0f;
+                        float half = CombatBoard.CellSize * 0.5f;
+                        for (int x = 0; x < board.Width; x++)
+                        {
+                            for (int z = 0; z < board.Depth; z++)
+                            {
+                                Vector2Int cell = new Vector2Int(x, z);
+                                if (!board.InBounds(cell)) continue;
+
+                                float cellX = x * CombatBoard.CellSize + half;
+                                float cellZ = z * CombatBoard.CellSize + half;
+                                float top = board.GetElevation(cell) * board.LevelHeight;
+                                for (int ix = -1; ix <= 1; ix += 2)
+                                {
+                                    for (int iz = -1; iz <= 1; iz += 2)
+                                    {
+                                        Vector3 corner = new Vector3(cellX + ix * half, top, cellZ + iz * half);
+                                        Vector3 rel = corner - _pivot;
+                                        float u = Mathf.Abs(Vector3.Dot(rel, baseUp));
+                                        float r = Mathf.Abs(Vector3.Dot(rel, baseRight));
+                                        if (u > hU) hU = u;
+                                        if (r > hR) hR = r;
+                                    }
+                                }
+
+                                Vector3 peak = new Vector3(cellX, top + 1.6f, cellZ);
+                                Vector3 basePoint = new Vector3(cellX, -0.3f, cellZ);
+                                float uPeak = Mathf.Abs(Vector3.Dot(peak - _pivot, baseUp));
+                                float uBase = Mathf.Abs(Vector3.Dot(basePoint - _pivot, baseUp));
+                                if (uPeak > hU) hU = uPeak;
+                                if (uBase > hU) hU = uBase;
+                            }
+                        }
+
+                        float aspect = _cam.aspect;
+                        _baseOrthoSize = Mathf.Max(hU * framePadding / freeFraction, hR * framePadding / aspect);
+
+                        float bandShift = (bottomBandFraction + freeFraction * 0.5f - 0.5f) * 2f * _baseOrthoSize;
+                        _baseOffset = dir * (radius * 2f) - baseUp * bandShift;
+                    }
+                    else
+                    {
+                        float fov = _cam != null ? _cam.fieldOfView : 60f;
+                        float effFov = fov * freeFraction;
+                        float distance = (radius * framePadding) / Mathf.Tan(effFov * 0.5f * Mathf.Deg2Rad);
+                        _baseOffset = dir * distance;
+                    }
+
+                    framed = true;
+                }
+            }
+
+            if (!framed)
+            {
+                float width = board != null ? board.Width : 0;
+                float depth = board != null ? board.Depth : 0;
+                _pivot = new Vector3(
+                    width * CombatBoard.CellSize * 0.5f,
+                    0f,
+                    depth * CombatBoard.CellSize * 0.5f);
+
+                _islandMin = new Vector2(0f, 0f);
+                _islandMax = new Vector2(width * CombatBoard.CellSize, depth * CombatBoard.CellSize);
+
+                _baseOffset = transform.position - _pivot;
+                _baseRotation = transform.rotation;
+            }
+
             _yaw = 0f;
             _targetYaw = 0f;
             _zoom = 1f;
@@ -61,13 +196,8 @@ namespace MoriMonchiSimulator.CombatPrototype
                     right.Normalize();
                     Vector3 move = right * pan.x + forward * pan.z;
                     _pivot += move.normalized * panSpeed * Time.deltaTime;
-                    if (builder != null && builder.Board != null)
-                    {
-                        float maxX = builder.Board.Width * CombatBoard.CellSize;
-                        float maxZ = builder.Board.Depth * CombatBoard.CellSize;
-                        _pivot.x = Mathf.Clamp(_pivot.x, 0f, maxX);
-                        _pivot.z = Mathf.Clamp(_pivot.z, 0f, maxZ);
-                    }
+                    _pivot.x = Mathf.Clamp(_pivot.x, _islandMin.x, _islandMax.x);
+                    _pivot.z = Mathf.Clamp(_pivot.z, _islandMin.y, _islandMax.y);
                 }
             }
 
@@ -80,6 +210,8 @@ namespace MoriMonchiSimulator.CombatPrototype
             }
 
             _zoom = Mathf.MoveTowards(_zoom, _targetZoom, ((maxZoom - minZoom) / zoomDuration) * Time.deltaTime);
+
+            if (_cam != null && _cam.orthographic && _baseOrthoSize > 0f) _cam.orthographicSize = _baseOrthoSize * _zoom;
 
             _yaw = Mathf.MoveTowardsAngle(_yaw, _targetYaw, (90f / rotateDuration) * Time.deltaTime);
 

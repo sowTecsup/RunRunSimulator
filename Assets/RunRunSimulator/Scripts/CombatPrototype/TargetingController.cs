@@ -61,10 +61,12 @@ namespace MoriMonchiSimulator.CombatPrototype
 
             CombatAbilitySO ability = GetSelectedAbility();
             CombatUnit unit = ability != null ? projectedState.GetUnit(SelectedUnitId) : null;
+            Vector2Int previousDirection = CurrentDirection;
             if (ability != null && ability.Type == AbilityType.Attack && ability.Targeting == TargetingMode.DirectionalTemplate && unit != null && CursorCell != unit.Cell)
                 CurrentDirection = AbilityTargeting.DominantCardinal(unit.Cell, CursorCell);
 
             RefreshHighlights();
+            if (CurrentDirection != previousDirection) SelectionChanged?.Invoke();
         }
 
         public void MoveCursor(Vector2Int delta)
@@ -83,6 +85,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             int next = ((index + steps) % order.Length + order.Length) % order.Length;
             CurrentDirection = order[next];
             RefreshHighlights();
+            SelectionChanged?.Invoke();
         }
 
         public void SetDirection(Vector2Int direction)
@@ -91,6 +94,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (direction == CurrentDirection) return;
             CurrentDirection = direction;
             RefreshHighlights();
+            SelectionChanged?.Invoke();
         }
 
         public PlannedAction TryConfirm()
@@ -195,7 +199,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (ability.Targeting == TargetingMode.DirectionalTemplate)
             {
                 PlannedAction tempAction = new PlannedAction { UnitId = SelectedUnitId, AbilityIndex = SelectedAbilityIndex, TargetCell = AbilityTargeting.GetAnchorForCursor(ability, CursorCell, CurrentDirection), Direction = CurrentDirection };
-                List<Vector2Int> templateCells = AbilityTargeting.GetAffectedCells(projectedState, ability, tempAction);
+                List<Vector2Int> templateCells = AbilityTargeting.GetAffectedCells(projectedState, unit, ability, tempAction);
                 highlighter.Show(HighlightKind.Template, templateCells);
 
                 Vector2Int landingCell = AbilityTargeting.GetLandingCell(unit, ability, tempAction);

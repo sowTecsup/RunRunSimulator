@@ -16,13 +16,13 @@ MonoBehaviour:
   DisplayName: Goblin
   GuardTicks: 2
   FinisherTicks: 1
-  Pattern: 0
-  AttackRange: 1
+  Pattern: 1
+  AttackRange: 2
   MoveOffsets:
   - {x: 1, y: 0}
   - {x: 2, y: 0}
   BriefLines:
-  - Siempre golpea la casilla de su frente
+  - Siempre dispara 2 al frente - el disparo atraviesa
   - 'Si lo golpeas: avanza 2 al frente (Torre-2)'
   - 'Sin lugar para avanzar: gira 90'
   VisualPrefab: {fileID: 0}

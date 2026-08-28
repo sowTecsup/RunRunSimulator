@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using MoreMountains.Feedbacks;
 using UnityEngine;
 
 namespace MoriMonchiSimulator.CombatPrototype
@@ -7,12 +8,16 @@ namespace MoriMonchiSimulator.CombatPrototype
     public class ResolutionAnimator : MonoBehaviour
     {
         [SerializeField] private BoardImpactFeedback impact;
+        [SerializeField] private MMF_Player fizzleFeedback;
         [SerializeField] private float moveDuration = 0.35f;
         [SerializeField] private float pushDuration = 0.25f;
         [SerializeField] private float landDuration = 0.3f;
         [SerializeField] private float rotateDuration = 0.2f;
         [SerializeField] private float hitPause = 0.15f;
         [SerializeField] private float wavePause = 0.1f;
+        [SerializeField] private GameObject projectilePrefab;
+        [SerializeField] private float projectileSpeed = 12f;
+        [SerializeField] private float projectileHeight = 0.6f;
 
         public IEnumerator Play(List<ResolutionEvent> events, Dictionary<int, CombatUnitView> views, CombatBoard board, CombatSimState state)
         {
@@ -48,6 +53,15 @@ namespace MoriMonchiSimulator.CombatPrototype
         {
             yield return PlayMovementPhase(waveEvents, views, board);
 
+            for (int i = 0; i < waveEvents.Count; i++)
+            {
+                ResolutionEvent evt = waveEvents[i];
+                if (evt.Type == ResolutionEventType.Impact || evt.Type == ResolutionEventType.EnemyAttack)
+                {
+                    yield return PlayAttackPresentation(evt, views, board);
+                }
+            }
+
             if (impact != null)
             {
                 for (int i = 0; i < waveEvents.Count; i++)
@@ -64,7 +78,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                 }
             }
 
-            yield return PlaySequentialPhase(waveEvents, views, state);
+            yield return PlaySequentialPhase(waveEvents, views, state, board);
             yield return new WaitForSeconds(wavePause);
         }
 
@@ -118,7 +132,51 @@ namespace MoriMonchiSimulator.CombatPrototype
                 || type == ResolutionEventType.Land;
         }
 
-        private IEnumerator PlaySequentialPhase(List<ResolutionEvent> waveEvents, Dictionary<int, CombatUnitView> views, CombatSimState state)
+        private IEnumerator PlayAttackPresentation(ResolutionEvent evt, Dictionary<int, CombatUnitView> views, CombatBoard board)
+        {
+            int attackerId = evt.Type == ResolutionEventType.EnemyAttack ? evt.SourceId : evt.UnitId;
+            if (!views.TryGetValue(attackerId, out CombatUnitView view)) yield break;
+
+            if (evt.Type == ResolutionEventType.Impact && evt.Facing != Vector2Int.zero)
+            {
+                yield return view.RotateTo(evt.Facing, rotateDuration);
+            }
+
+            if (evt.Projectile && evt.Cells != null && evt.Cells.Count > 0)
+            {
+                Vector3 origin = view.transform.position + Vector3.up * projectileHeight;
+                Vector3 destination = board.CellToWorld(evt.Cells[evt.Cells.Count - 1]) + Vector3.up * projectileHeight;
+
+                GameObject projectile;
+                if (projectilePrefab != null)
+                {
+                    projectile = Instantiate(projectilePrefab, origin, Quaternion.identity);
+                }
+                else
+                {
+                    projectile = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    projectile.transform.position = origin;
+                    projectile.transform.localScale = Vector3.one * 0.22f;
+                    Destroy(projectile.GetComponent<Collider>());
+                }
+
+                float distance = Vector3.Distance(origin, destination);
+                float duration = Mathf.Max(distance / projectileSpeed, 0.05f);
+                float elapsed = 0f;
+
+                while (elapsed < duration)
+                {
+                    elapsed += Time.deltaTime;
+                    projectile.transform.position = Vector3.Lerp(origin, destination, elapsed / duration);
+                    yield return null;
+                }
+
+                projectile.transform.position = destination;
+                Destroy(projectile);
+            }
+        }
+
+        private IEnumerator PlaySequentialPhase(List<ResolutionEvent> waveEvents, Dictionary<int, CombatUnitView> views, CombatSimState state, CombatBoard board)
         {
             for (int i = 0; i < waveEvents.Count; i++)
             {
@@ -150,6 +208,9 @@ namespace MoriMonchiSimulator.CombatPrototype
                 }
                 else if (evt.Type == ResolutionEventType.Fizzle)
                 {
+                    if (impact != null) impact.ShakeAt(evt.To);
+                    if (fizzleFeedback != null) fizzleFeedback.PlayFeedbacks(board.CellToWorld(evt.To));
+                    yield return new WaitForSeconds(hitPause);
                 }
             }
         }

@@ -10,7 +10,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         [SerializeField] private int baseWaveSize = 2;
         [SerializeField] private int extraEveryWaves = 3;
         [SerializeField] private Color markerColor = new Color(0.78f, 0.49f, 1f);
-        [SerializeField] private string markerText = "☠ 1";
+        [SerializeField] private string markerText = "×";
         [SerializeField] private float markerFontSize = 4f;
         [SerializeField] private float markerHeight = 0.9f;
 
@@ -80,7 +80,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                 GameObject markerObject = new GameObject("SpawnMarker");
                 markerObject.transform.SetParent(transform);
                 markerObject.transform.position = worldPosition;
-                markerObject.transform.rotation = Camera.main.transform.rotation;
+                markerObject.AddComponent<WorldLabelBillboard>();
 
                 TextMeshPro label = markerObject.AddComponent<TextMeshPro>();
                 label.text = markerText;

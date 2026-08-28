@@ -176,6 +176,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         private static void ResolveAttack(CombatSimState state, CombatSimState snapshot, CombatUnit unit, CombatAbilitySO ability, PlannedAction action, List<ResolutionEvent> events)
         {
+            Vector2Int origin = unit.Cell;
             Vector2Int landing = AbilityTargeting.GetLandingCell(unit, ability, action);
             if (!AbilityTargeting.IsLandingFree(state, unit, landing))
             {
@@ -193,12 +194,14 @@ namespace MoriMonchiSimulator.CombatPrototype
                 unit.Cell = landing;
             }
 
-            List<Vector2Int> cells = AbilityTargeting.GetAffectedCells(snapshot, ability, action);
+            List<Vector2Int> cells = AbilityTargeting.GetAffectedCells(snapshot, unit, ability, action);
 
             ResolutionEvent impactEvent = new ResolutionEvent(ResolutionEventType.Impact, unit.Id);
             impactEvent.Cells = cells;
             impactEvent.To = action.TargetCell;
             impactEvent.Wave = 0;
+            impactEvent.Facing = unit.Cell != origin ? AbilityTargeting.DominantCardinal(origin, unit.Cell) : action.Direction;
+            impactEvent.Projectile = ability.IgnoresHeight;
             events.Add(impactEvent);
 
             for (int i = 0; i < cells.Count; i++)
@@ -210,7 +213,8 @@ namespace MoriMonchiSimulator.CombatPrototype
 
                 if (ability.PushDistance > 0)
                 {
-                    CombatEffects.ApplyPush(state, victim, action.Direction, ability.PushDistance, unit.Id, 0, events);
+                    Vector2Int pushDirection = ability.PushFromCenter ? AbilityTargeting.DominantCardinal(unit.Cell, victim.Cell) : action.Direction;
+                    CombatEffects.ApplyPush(state, victim, pushDirection, ability.PushDistance, unit.Id, 0, events);
                 }
 
                 if (ability.LaunchesAirborne && !HasAirborneLaunchedBy(state, unit.Id))
@@ -241,18 +245,19 @@ namespace MoriMonchiSimulator.CombatPrototype
             attackEvent.SourceId = enemy.Id;
             attackEvent.Cells = attackCells;
             attackEvent.Wave = wave;
+            attackEvent.Projectile = true;
+            attackEvent.Facing = enemy.Facing;
             events.Add(attackEvent);
 
             for (int i = 0; i < attackCells.Count; i++)
             {
                 Vector2Int cell = attackCells[i];
-                if (!state.Board.InBounds(cell)) break;
+                if (!state.Board.InBounds(cell)) continue;
 
                 CombatUnit victim = state.GetUnitAt(cell);
                 if (victim != null)
                 {
                     CombatEffects.ApplyHit(state, victim, enemy.Id, false, wave, events);
-                    break;
                 }
             }
         }

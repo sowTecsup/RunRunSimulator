@@ -22,6 +22,7 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         private CombatBoard _board;
         private Transform _visual;
+        private Animator _animator;
 
         public void Init(CombatUnit unit, CombatBoard board)
         {
@@ -44,6 +45,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             else if (unit is SeedUnit)
             {
                 tint = seedTint;
+                label.color = seedTint;
             }
 
             if (prefab != null)
@@ -66,14 +68,19 @@ namespace MoriMonchiSimulator.CombatPrototype
                 _visual = capsule.transform;
             }
 
+            _animator = _visual != null ? _visual.GetComponentInChildren<Animator>(true) : null;
+
             discRenderer.material.color = tint;
-            label.transform.rotation = Camera.main.transform.rotation;
 
             transform.position = board.CellToWorld(unit.Cell);
 
             if (unit is EnemyUnit facingEnemy)
             {
                 SetFacingInstant(facingEnemy.Facing);
+            }
+            else if (unit is PlayerUnit)
+            {
+                SetFacingInstant(new Vector2Int(0, -1));
             }
 
             RefreshTicks(unit);
@@ -134,21 +141,34 @@ namespace MoriMonchiSimulator.CombatPrototype
             transform.position = worldPosition;
         }
 
+        private void SetAnimState(string stateName)
+        {
+            if (_animator == null) return;
+            int hash = Animator.StringToHash(stateName);
+            if (_animator.HasState(0, hash)) _animator.CrossFade(hash, 0.1f);
+        }
+
         public IEnumerator MoveTo(Vector3 worldTarget, bool arc, float duration)
         {
+            SetAnimState("Anim_Dra_Fly");
             yield return LerpPosition(transform.position, worldTarget, duration, arc ? moveArcHeight : 0f);
+            SetAnimState("Anim_Dra_Idle");
         }
 
         public IEnumerator LaunchUp(float duration)
         {
             Vector3 start = transform.position;
             Vector3 target = start + new Vector3(0f, launchHeight, 0f);
+            SetAnimState("Anim_Dra_Fly");
             yield return LerpPosition(start, target, duration, 0f);
+            SetAnimState("Anim_Dra_Idle");
         }
 
         public IEnumerator LandTo(Vector3 worldTarget, float duration)
         {
+            SetAnimState("Anim_Dra_Fly");
             yield return LerpPosition(transform.position, worldTarget, duration, landArcHeight);
+            SetAnimState("Anim_Dra_Idle");
         }
 
         private IEnumerator LerpPosition(Vector3 start, Vector3 target, float duration, float arcHeight)

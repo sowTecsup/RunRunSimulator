@@ -16,8 +16,8 @@ MonoBehaviour:
   DisplayName: Tirador
   MaxTicks: 5
   Abilities:
-  - {fileID: 11400000, guid: 0765e8424ba5b9148bd0d96f40d6593c, type: 2}
-  - {fileID: 11400000, guid: 82ca00a240758eb4a8955f4cd3d6dcc4, type: 2}
-  - {fileID: 11400000, guid: 77305abfa33fce04cb619d4320f591c9, type: 2}
+  - {fileID: 11400000, guid: 7f028096c311a444f86c1048a1719fd9, type: 2}
+  - {fileID: 11400000, guid: 6c6088b751d03164eb2b2b4ca4107c17, type: 2}
+  - {fileID: 11400000, guid: 1da4fd7b1960c5343b5dd6bcefa7f968, type: 2}
   VisualPrefab: {fileID: 7085086980700370061, guid: 122d8eba2b1adca4da2da16f62f0f01d, type: 3}
   Tint: {r: 1, g: 0.75, b: 0.2, a: 1}

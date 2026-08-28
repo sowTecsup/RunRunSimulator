@@ -172,7 +172,9 @@ Cada fase cierra con `read_console` 0 errores + ejercicio en Play por Unity MCP.
 
 ---
 
-## 12 · Auditoría QoL S85 — hallazgos y plan de fixes (AGENDA S86)
+## 12 · Auditoría QoL S85 — hallazgos y plan de fixes (AGENDA S86) — ✅ EJECUTADA COMPLETA EN S86
+
+> S86 (2026-08-28): los 9 fixes del plan ejecutados y verificados con capturas (ver Estado). El hallazgo 18 (desfase del brief) NO se reprodujo a 1920×1080 — sin fix. Bonus S86: el zoom de rueda de S83 era un dolly no-op (la cámara es ORTOGRÁFICA — la distancia no cambia el tamaño); ahora escala `orthographicSize` de verdad.
 
 > S85 (2026-08-27): auditoría de quality-of-life del nivel pedida por Juan, hecha con verificación VISUAL (capturas del Game view en Play: `Assets/Screenshots/qol_planning_seleccion.png`, `qol_post_turno.png`, `qol_camara_rotada.png`). 20 hallazgos, 8 confirmados en captura. Lección de pipeline en memoria persistente del orquestador (`feedback_verificacion_visual_screenshots`): la verificación por estado (fases/eventos/consola) no detecta NADA de esto — capturas obligatorias al cerrar trabajo de presentación.
 
@@ -222,10 +224,50 @@ Cada fase cierra con `read_console` 0 errores + ejercicio en Play por Unity MCP.
 
 ---
 
+## 13 · Kit unificado y reglas de disparo (S87 — feedback de Juan, prevalece sobre kits y reglas anteriores)
+
+> S87 (2026-08-28): Juan pidió que los 3 MoriMonchis compartan los mismos 3 poderes para testear, disparos con reglas propias, proyectiles visibles, giro hacia el ataque y animación de vuelo. Implementado y verificado con capturas en 3+ turnos jugados.
+
+### Kit unificado (assets `AB_Unified*` en `CombatPrototype/Abilities/`; los 9 viejos quedan sin wirear como rollback)
+
+| Poder | Data | Comportamiento |
+|-------|------|----------------|
+| **Salto sismico** (`AB_UnifiedQuake`) | Attack · DirectionalTemplate · anillo 8 vecinos · `Landing=AtAnchor` · `PushDistance=1` · `PushFromCenter=true` · `IgnoresObstacles=true` | Saltás al anclaje; los 8 vecinos reciben 1 tick + empuje RADIAL (dirección por víctima = `DominantCardinal(landing→víctima)`). Es también el único movimiento del kit: **válido aunque la onda no toque a nadie** (excepción de plantilla vacía para `AtAnchor`). Respeta altura. |
+| **Disparo perforante** (`AB_UnifiedPierce`) | Attack · línea (0,0)-(3,0) · `Landing=Stay` · `IgnoresHeight=true` · `IgnoresObstacles=true` | Línea de 4 que golpea a TODAS las unidades de la línea, sigue de largo sobre huecos y **ignora la altura**. No te movés. (La minigrid 5×5 solo muestra 3 de las 4 celdas — límite conocido.) |
+| **Alzavuelo** (`AB_UnifiedLift`) | Attack · (0,0) · `Range=1` · `Landing=Stay` · `LaunchesAirborne=true` | Golpea una celda adyacente (Chebyshev ≤ 1, validación de rango NUEVA) y eleva al aire; el drag orienta hacia dónde se desplaza 1 celda al aterrizar. Respeta altura. El aéreo aterriza solo al cierre del beat siguiente / inicio del turno enemigo (sin Agarre en el kit no hay soft-lock). |
+
+### Reglas nuevas (decisiones v0 del orquestador, vetables)
+
+1. **Disparo ⇔ `IgnoresHeight=true`** (campo que estaba muerto, ahora ES la semántica): ignora altura, proyectil visible, y en el kit siempre va con `IgnoresObstacles` (atraviesa).
+2. **Filtro de altura** para ataques no-disparo: celda excluida de la plantilla si `|elev(celda) − elev(landing del atacante)| ≥ 2`. Vive en `GetAffectedCells` (firma nueva con `unit`) → proyección==ejecución comparten la verdad. Exclusión con `continue` (no corta la plantilla).
+3. **`IgnoresObstacles` también continúa sobre celdas fuera de bounds/huecos** (antes cortaba la plantilla).
+4. **`Range > 0` limita el anclaje** (Chebyshev desde el atacante) en DirectionalTemplate — antes el campo no se validaba.
+5. **Enemigos = SOLO disparos, perforantes** (Goblin pasó a `RangedLine`/2 por data; Arquero ya era línea-3): golpean a todas las unidades de su línea (fuego amigo entre enemigos incluido, estilo ITB), siguen sobre huecos, briefs actualizados.
+
+### Presentación (S87 + pulido)
+
+- **Proyectiles**: prefab `CombatProjectile` + tunables `projectilePrefab`/`projectileSpeed`/`projectileHeight` en `ResolutionAnimator`; vuela del atacante a la última celda de la plantilla, antes de shakes/hits. `ResolutionEvent.Projectile` lo marca (disparos del jugador + todo `EnemyAttack`).
+- **Giro EN VIVO al apuntar**: componente nuevo `SelectionFacingPreview` (en `Combat`) rota el visual del dragón seleccionado hacia `CurrentDirection` durante Planning. Requisito: `SetDirection`/`Rotate`/`SetCursor` (si cambió la dirección) ahora disparan `SelectionChanged` — antes solo refrescaban highlights y el giro nunca se veía (bug reportado por Juan).
+- **Facing post-ataque**: si la unidad viajó, `Impact.Facing` = dirección de viaje (`DominantCardinal(origen→landing)`); si no, la dirección de la acción.
+- **`baseYawOffset` = 0 en el prefab `UnitView`** (era 180 — los DragonSD miran +Z natural; apuntar al este mostraba la cara al oeste; nunca se notó porque los dragones jamás rotaban y los enemigos son cápsulas).
+- **Spawn facing**: jugadores se despliegan mirando a cámara (`SetFacingInstant(0,-1)` en `Init`).
+- **Vuelo**: `Anim_Dra_Fly`/`Anim_Dra_Idle` (con guarda `HasState`) alrededor de los lerps de `MoveTo`/`LandTo`/`LaunchUp`.
+
+### Pendientes menores registrados
+- Minigrid 5×5 recorta el offset (3,0) del perforante.
+- Texto guía del HUD para `AirborneEnemy` quedó muerto (sin habilidad de ese tipo en el kit).
+- El hook `Feedbacks/OnFizzle` (MMF_Player) sigue vacío — montar juice cuando entren los popups (§10.6).
+
+---
+
 ## Estado
 
 **FASES 1-4 EJECUTADAS Y VERIFICADAS (S81).** Prototipo jugable: escena `CombatPrototype.unity` + 29 scripts en `Scripts/CombatPrototype/` + assets en `CombatPrototype/` (9 habilidades, 3 dragones con prefabs DragonSD, 2 enemigos, 1 layout). Verificación central cumplida: 7 comparaciones proyección-vs-ejecución idénticas (ActionResolver único, §6) incluyendo el combo canónico Voltereta→Agarre→Slam y una partida completa de 4 turnos hasta la victoria.
 
 **S82 (2026-08-26): puntos 2 y 3 del feedback BAJADOS A REGLAS EXACTAS (§11, decisiones 17-24) E IMPLEMENTADOS Y VERIFICADOS** — enemigos activadores automáticos con movimiento ajedrez + plantilla anclaje/aterrizaje con transición sin límite + presupuesto de 2 acciones por turno. 20 scripts tocados (18 modificados + 2 nuevos: `BoardImpactFeedback`, `CombatCameraController`), 11 assets re-parametrizados, `BoardLayout_Isla` NUEVO (12×12, alturas 0-4, celdas-hueco `.` para perímetro irregular, spawns con facing `>`/`<`/`^`/`v`), `levelHeight` 1.06 (altura real del DragonSD), vibración de bloques con Feel (`MMWiggle` por bloque + hook `MMF_Player`), cámara orbital por pasos de 90° (flechas ←/→). Verificación MCP: consola 0 errores/0 warnings · **proyección==ejecución IDÉNTICAS en 2 rondas jugadas** (ronda de empuje-contra-muro + Torre-2 + Alfil-2, y el combo canónico Voltereta→Agarre→Slam-contra-muro = 3 ticks = muerte, que entra justo en el presupuesto de 2 acciones) · rotación-al-bloqueo y fizzle verificados en frío sobre clones. Falta el playtest de Juan (checklist §8). El resto del §10 (punto 4 UI de secuencia, punto 6 popups DamageNumbersPro) sigue en agenda. El pendiente obligatorio de editor de S75 (assets Horn/Back/Wing/Face/CutieMark + rewiring + limpieza de GameScene) sigue vigente e independiente de este prototipo.
+
+**S86 (2026-08-28): QoL §12 COMPLETA.** Los 9 fixes ejecutados y verificados con capturas en los 3 yaws: picking UITK real + gate de input (clic ya no atraviesa la UI) · HUD por franjas de flujo (cero overlaps) · `WorldLabelBillboard` por frame (labels legibles tras orbitar) · FIZZLE visible (shake + línea en TurnLog + hook MMF) · marker "×" sin tofu · encuadre ORTOGRÁFICO real (pivote de bounds de celdas jugables, `orthographicSize` calculado de la silueta por-celda, franjas top/bottom tunables, consistente en 4 yaws; el zoom de rueda ahora escala de verdad) · contraste serializado (light 0.82/0.79/0.70 · dark 0.40/0.46/0.44) · jerarquía de highlights por prioridad (Selection>Spawn>Intent>Landing>Path>Template, solo el mayor visible por celda + `stackStep`) · Esc/botón Reiniciar/textos/label de semilla tintado. Hallazgo 18 descartado (no se reproduce).
+
+**S87 (2026-08-28): KIT UNIFICADO + REGLAS DE DISPARO (§13) + pulido de giros.** Ver §13 — es la fuente de verdad del idioma vigente: 3 poderes compartidos, disparo ignora altura/atraviesa/proyectil, filtro de altura para el resto, enemigos solo-disparo perforantes, giro en vivo al apuntar, facing por dirección de viaje, `baseYawOffset` corregido, vuelo `Anim_Dra_Fly`. Verificado con capturas en múltiples turnos jugados; consola limpia en todas las tandas.
 
 **S83 (2026-08-26): LEGIBILIDAD — feedback del primer playtest de Juan sobre S82, implementado y verificado.** Regla de trabajo nueva de Juan: en presentación nunca cumplir el mínimo — preguntarse siempre si es legible para el usuario. Cambios: (a) vibración de bloques en TODO impacto — evento `Impact` nuevo emitido por `ActionResolver.ResolveAttack` con las celdas de plantilla (sin tocar estado; proyección==ejecución intacta) + shake en ataques enemigos; amplitud/duración de wiggle subidas en escena; (b) selección legible — anillo blanco bajo el dragón seleccionado, línea de estado-guía bajo el banner (qué está seleccionado y qué falta hacer), card con fondo+borde, habilidad seleccionada como pill amarillo y usadas "— usada", clic sobre dragón propio selecciona (estilo ITB); (c) cámara — zoom con rueda (la órbita ←/→ de S82 ya funcionaba; era descubribilidad) + controles visibles en el banner. 8 scripts modificados, 0 nuevos, verificación MCP completa (0 errores, ejercitado en Play). Del §10 quedan: punto 4 (UI de secuencia por beat), punto 6 (popups) y la mitad de layouts del punto 1 (verticalidad/oclusión deliberada).

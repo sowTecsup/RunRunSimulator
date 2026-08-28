@@ -190,7 +190,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                         {
                             PlannedAction candidate = new PlannedAction { UnitId = pl.Id, AbilityIndex = ab, TargetCell = enemy.Cell, Direction = dirs[d] };
                             if (!AbilityTargeting.IsValidTarget(state, pl, ability, candidate)) continue;
-                            if (!AbilityTargeting.GetAffectedCells(state, ability, candidate).Contains(enemy.Cell)) continue;
+                            if (!AbilityTargeting.GetAffectedCells(state, pl, ability, candidate).Contains(enemy.Cell)) continue;
                             return candidate;
                         }
                     }

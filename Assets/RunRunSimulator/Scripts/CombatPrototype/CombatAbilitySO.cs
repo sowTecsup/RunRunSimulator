@@ -19,6 +19,7 @@ namespace MoriMonchiSimulator.CombatPrototype
         public int RangeMin;
         public Vector2Int[] TemplateOffsets;
         public int PushDistance;
+        public bool PushFromCenter;
         public bool LaunchesAirborne;
         public bool SlamTargeted;
         public int SlamRange;

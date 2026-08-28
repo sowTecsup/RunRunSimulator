@@ -284,6 +284,7 @@ MonoBehaviour:
   landingColor: {r: 0.3, g: 1, b: 0.35, a: 0.45}
   selectionColor: {r: 1, g: 1, b: 1, a: 0.65}
   spawnColor: {r: 0.75, g: 0.35, b: 1, a: 0.5}
+  stackStep: 0.012
 --- !u!114 &277935665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -297,8 +298,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.CombatBoardBuilder
   layout: {fileID: 11400000, guid: 7d7d359f75fc42a499fe31edf2bcd37d, type: 2}
-  lightColor: {r: 0.78, g: 0.78, b: 0.72, a: 1}
-  darkColor: {r: 0.52, g: 0.55, b: 0.5, a: 1}
+  lightColor: {r: 0.82, g: 0.79, b: 0.7, a: 1}
+  darkColor: {r: 0.4, g: 0.46, b: 0.44, a: 1}
   baseThickness: 0.25
   levelHeight: 1.06
   wiggleAmplitude: {x: 0.07, y: 0.14, z: 0.07}
@@ -535,6 +536,42 @@ MonoBehaviour:
   maxZoom: 1.6
   zoomDuration: 0.25
   panSpeed: 7
+  framePadding: 1.05
+  topBandFraction: 0.12
+  bottomBandFraction: 0.3
+  pivotHeight: 0
+--- !u!1 &1717185751
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1717185752}
+  m_Layer: 0
+  m_Name: Feedbacks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1717185752
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1717185751}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2063768987}
+  m_Father: {fileID: 1753282167}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1753282160
 GameObject:
   m_ObjectHideFlags: 0
@@ -551,6 +588,7 @@ GameObject:
   - component: {fileID: 1753282163}
   - component: {fileID: 1753282162}
   - component: {fileID: 1753282168}
+  - component: {fileID: 1753282169}
   m_Layer: 0
   m_Name: Combat
   m_TagString: Untagged
@@ -584,12 +622,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.ResolutionAnimator
   impact: {fileID: 277935667}
+  fizzleFeedback: {fileID: 2063768986}
   moveDuration: 0.35
   pushDuration: 0.25
   landDuration: 0.3
   rotateDuration: 0.2
   hitPause: 0.15
   wavePause: 0.1
+  projectilePrefab: {fileID: 4531550048421632802, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+  projectileSpeed: 12
+  projectileHeight: 0.6
 --- !u!114 &1753282163
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -632,6 +674,7 @@ MonoBehaviour:
   manager: {fileID: 1753282166}
   targeting: {fileID: 1753282161}
   builder: {fileID: 277935665}
+  hud: {fileID: 1529069613}
 --- !u!114 &1753282166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -679,7 +722,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1717185752}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1753282168
@@ -698,9 +742,226 @@ MonoBehaviour:
   baseWaveSize: 2
   extraEveryWaves: 3
   markerColor: {r: 0.78, g: 0.49, b: 1, a: 1}
-  markerText: "\u2620 1"
+  markerText: "\xD7"
   markerFontSize: 4
   markerHeight: 0.9
+--- !u!114 &1753282169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1753282160}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d5ed1ebd2608c646bd817772d27c9c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPrototype.SelectionFacingPreview
+  targeting: {fileID: 1753282161}
+  manager: {fileID: 1753282166}
+--- !u!1 &2063768985
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2063768987}
+  - component: {fileID: 2063768986}
+  m_Layer: 0
+  m_Name: OnFizzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2063768986
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2063768985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da43522623d4704e979466dc7650b65, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MoreMountains.Tools::MoreMountains.Feedbacks.MMF_Player
+  Feedbacks: []
+  InitializationMode: 2
+  AutoInitialization: 1
+  SafeMode: 3
+  Direction: 0
+  AutoChangeDirectionOnEnd: 0
+  AutoPlayOnStart: 0
+  AutoPlayOnEnable: 0
+  ForceTimescaleMode: 0
+  ForcedTimescaleMode: 1
+  DurationMultiplier: 1
+  TimescaleMultiplier: 1
+  RandomizeDuration: 0
+  RandomDurationMultiplier: {x: 0.5, y: 1.5}
+  DisplayFullDurationDetails: 0
+  PlayerTimescaleMode: 0
+  OnlyPlayIfWithinRange: 0
+  RangeCenter: {fileID: 0}
+  RangeDistance: 5
+  UseRangeFalloff: 0
+  RangeFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  RemapRangeFalloff: {x: 0, y: 1}
+  IgnoreRangeEvents: 0
+  CooldownDuration: 0
+  InitialDelay: 0
+  CanPlay: 1
+  CanPlayWhileAlreadyPlaying: 1
+  ChanceToPlay: 100
+  FeedbacksIntensity: 1
+  Events:
+    TriggerMMFeedbacksEvents: 0
+    TriggerUnityEvents: 1
+    OnPlay:
+      m_PersistentCalls:
+        m_Calls: []
+    OnPause:
+      m_PersistentCalls:
+        m_Calls: []
+    OnStop:
+      m_PersistentCalls:
+        m_Calls: []
+    OnResume:
+      m_PersistentCalls:
+        m_Calls: []
+    OnChangeDirection:
+      m_PersistentCalls:
+        m_Calls: []
+    OnComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    OnRestoreInitialValues:
+      m_PersistentCalls:
+        m_Calls: []
+    OnSkipToTheEnd:
+      m_PersistentCalls:
+        m_Calls: []
+    OnInitializationComplete:
+      m_PersistentCalls:
+        m_Calls: []
+    OnEnable:
+      m_PersistentCalls:
+        m_Calls: []
+    OnDisable:
+      m_PersistentCalls:
+        m_Calls: []
+  DebugActive: 0
+  InScriptDrivenPause: 0
+  FeedbacksList: []
+  KeepPlayModeChanges: 0
+  PerformanceMode: 0
+  RestoreInitialValuesOnDisable: 0
+  StopFeedbacksOnDisable: 0
+  PlayCount: 0
+  MMF_ChannelMode: 0
+  MMF_Channel: 0
+  MMF_ChannelDefinition: {fileID: 0}
+  references:
+    version: 2
+    RefIds: []
+--- !u!4 &2063768987
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2063768985}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1717185752}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1319709305220304431
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1166717085870422365, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4531550048421632802, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
+      propertyPath: m_Name
+      value: CombatProjectile
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3f9599f23256f6448a17635cb7255eec, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -710,3 +971,4 @@ SceneRoots:
   - {fileID: 277935666}
   - {fileID: 1753282167}
   - {fileID: 1529069615}
+  - {fileID: 1319709305220304431}

@@ -263,8 +263,28 @@ namespace MoriMonchiSimulator.CombatPrototype
             return entry;
         }
 
-        private void OnChoreographyDone()
+        private void OnChoreographyDone(List<ResolutionEvent> events)
         {
+            if (TurnLog.Count > 0)
+            {
+                TurnLogEntry lastEntry = TurnLog[TurnLog.Count - 1];
+                bool anyFizzle = false;
+                for (int i = 0; i < events.Count; i++)
+                {
+                    ResolutionEvent evt = events[i];
+                    if (evt.Type != ResolutionEventType.Fizzle) continue;
+
+                    string unitName = "?";
+                    if (Canonical.GetUnit(evt.UnitId) is PlayerUnit player && player.Definition != null)
+                        unitName = player.Definition.DisplayName;
+
+                    lastEntry.Lines.Add("FIZZLE · " + unitName + " — acción cancelada: el aterrizaje se ocupó");
+                    anyFizzle = true;
+                }
+
+                if (anyFizzle) TurnLogChanged?.Invoke();
+            }
+
             if (SeedDead())
             {
                 EndEncounter(false);

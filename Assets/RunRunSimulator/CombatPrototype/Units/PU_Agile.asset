@@ -16,8 +16,8 @@ MonoBehaviour:
   DisplayName: Agil
   MaxTicks: 5
   Abilities:
-  - {fileID: 11400000, guid: 0bba8537aa1687949a6b12c3252c5d41, type: 2}
-  - {fileID: 11400000, guid: 5368297e3d9492e48b136331596881d1, type: 2}
-  - {fileID: 11400000, guid: c64e4b603633dc94ba8bfedd98e6e155, type: 2}
+  - {fileID: 11400000, guid: 7f028096c311a444f86c1048a1719fd9, type: 2}
+  - {fileID: 11400000, guid: 6c6088b751d03164eb2b2b4ca4107c17, type: 2}
+  - {fileID: 11400000, guid: 1da4fd7b1960c5343b5dd6bcefa7f968, type: 2}
   VisualPrefab: {fileID: 3896581187383312171, guid: 452e2cddd97b56840b24d2c2e6b7a75e, type: 3}
   Tint: {r: 0.35, g: 1, b: 0.45, a: 1}

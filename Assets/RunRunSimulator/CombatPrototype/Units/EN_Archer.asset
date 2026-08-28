@@ -22,7 +22,7 @@ MonoBehaviour:
   - {x: 1, y: -1}
   - {x: 2, y: -2}
   BriefLines:
-  - Siempre dispara en linea recta de 3
+  - Siempre dispara en linea de 3 - el disparo atraviesa
   - 'Si lo golpeas: se desliza 2 en diagonal (Alfil-2)'
   - 'Sin lugar para deslizarse: gira 90'
   VisualPrefab: {fileID: 0}

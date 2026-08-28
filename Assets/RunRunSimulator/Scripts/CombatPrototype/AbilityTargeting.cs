@@ -72,7 +72,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             return state.Board.InBounds(landing) && (landing == unit.Cell || state.GetUnitAt(landing) == null);
         }
 
-        public static List<Vector2Int> GetAffectedCells(CombatSimState state, CombatAbilitySO ability, PlannedAction action)
+        public static List<Vector2Int> GetAffectedCells(CombatSimState state, CombatUnit unit, CombatAbilitySO ability, PlannedAction action)
         {
             if (ability.Type != AbilityType.Attack)
                 return new List<Vector2Int>();
@@ -88,12 +88,24 @@ namespace MoriMonchiSimulator.CombatPrototype
                         CombatBoard board = state.Board;
                         Vector2Int anchor = action.TargetCell;
 
+                        Vector2Int reference = GetLandingCell(unit, ability, action);
+                        if (!board.InBounds(reference))
+                            reference = unit.Cell;
+                        int referenceElevation = board.GetElevation(reference);
+
                         for (int i = 0; i < ability.TemplateOffsets.Length; i++)
                         {
                             Vector2Int cell = anchor + RotateOffset(ability.TemplateOffsets[i], action.Direction);
 
                             if (!board.InBounds(cell))
+                            {
+                                if (ability.IgnoresObstacles)
+                                    continue;
                                 break;
+                            }
+
+                            if (!ability.IgnoresHeight && Mathf.Abs(board.GetElevation(cell) - referenceElevation) >= 2)
+                                continue;
 
                             if (state.GetUnitAt(cell) != null)
                             {
@@ -126,7 +138,9 @@ namespace MoriMonchiSimulator.CombatPrototype
                         return false;
                     if (!state.Board.InBounds(action.TargetCell))
                         return false;
-                    if (GetAffectedCells(state, ability, action).Count == 0)
+                    if (ability.Range > 0 && Chebyshev(unit.Cell, action.TargetCell) > ability.Range)
+                        return false;
+                    if (ability.Landing != LandingKind.AtAnchor && GetAffectedCells(state, unit, ability, action).Count == 0)
                         return false;
                     return IsLandingFree(state, unit, GetLandingCell(unit, ability, action));
 

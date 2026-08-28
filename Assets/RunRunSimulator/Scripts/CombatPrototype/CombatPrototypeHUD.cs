@@ -15,6 +15,8 @@ namespace MoriMonchiSimulator.CombatPrototype
         private Label bannerLabel;
         private Label selectionLabel;
         private Button executeButton;
+        private VisualElement restartContainer;
+        private Button restartButton;
         private readonly List<PlayerCardView> playerCards = new List<PlayerCardView>();
 
         private static readonly Dictionary<CombatPhase, (string Text, int Size, Color Bg)> BannerByPhase = new Dictionary<CombatPhase, (string, int, Color)>
@@ -22,8 +24,8 @@ namespace MoriMonchiSimulator.CombatPrototype
             { CombatPhase.Planning, ("PLANIFICACIÓN — F1-F3 dragón · 1-3 poder · clic: destino · arrastrá: orientar · soltá: confirmar\nWASD mover cámara · ←/→ girar · rueda zoom · Tab beat · Backspace deshace · clic der: info", 15, new Color(0f, 0f, 0f, 0.55f)) },
             { CombatPhase.Executing, ("EJECUTANDO...", 20, new Color(0f, 0f, 0f, 0.55f)) },
             { CombatPhase.EnemyTurn, ("TURNO ENEMIGO", 20, new Color(0f, 0f, 0f, 0.55f)) },
-            { CombatPhase.Victory, ("VICTORIA — ¡LA SEMILLA GERMINÓ! · materiales obtenidos · R para reiniciar", 20, new Color(0.1f, 0.35f, 0.12f, 0.85f)) },
-            { CombatPhase.Defeat, ("DERROTA — R para reiniciar", 20, new Color(0.45f, 0.08f, 0.08f, 0.85f)) },
+            { CombatPhase.Victory, ("VICTORIA — ¡LA SEMILLA GERMINÓ!", 20, new Color(0.1f, 0.35f, 0.12f, 0.85f)) },
+            { CombatPhase.Defeat, ("DERROTA — la noche devoró la semilla", 20, new Color(0.45f, 0.08f, 0.08f, 0.85f)) },
             { CombatPhase.Setup, ("DESPLIEGUE NOCTURNO — la semilla solo crece de noche\n←/→ girar cámara · rueda: zoom", 16, new Color(0.10f, 0.07f, 0.22f, 0.8f)) },
             { CombatPhase.Spawning, ("REFUERZOS NOCTURNOS — llegan saltando desde el borde de la isla", 18, new Color(0.10f, 0.07f, 0.22f, 0.8f)) }
         };
@@ -51,7 +53,10 @@ namespace MoriMonchiSimulator.CombatPrototype
 
         public bool IsPointerOver(Vector2 screenPosition)
         {
-            return false;
+            if (document == null || document.rootVisualElement == null || document.rootVisualElement.panel == null) return false;
+            IPanel panel = document.rootVisualElement.panel;
+            Vector2 panelPosition = RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screenPosition.x, Screen.height - screenPosition.y));
+            return panel.Pick(panelPosition) != null;
         }
 
         public void Refresh()
@@ -71,47 +76,81 @@ namespace MoriMonchiSimulator.CombatPrototype
             if (document == null) return;
             VisualElement root = document.rootVisualElement;
             root.Clear();
-            AnchorHorizontal(root);
-            root.style.top = 0;
-            root.style.bottom = 0;
+            root.style.flexDirection = FlexDirection.Column;
+            root.style.justifyContent = Justify.SpaceBetween;
             root.pickingMode = PickingMode.Ignore;
             playerCards.Clear();
 
-            bannerLabel = MakeLabel(root, "", 18, Color.white, true);
-            AnchorHorizontal(bannerLabel);
-            bannerLabel.style.top = 10;
+            VisualElement topBand = new VisualElement();
+            topBand.style.flexDirection = FlexDirection.Column;
+            topBand.style.alignItems = Align.Stretch;
+            topBand.pickingMode = PickingMode.Ignore;
+
+            bannerLabel = MakeLabel(topBand, "", 18, Color.white, true);
             bannerLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             SetPadding(bannerLabel, 6, 14);
             SetRadius(bannerLabel, 6);
+            bannerLabel.pickingMode = PickingMode.Position;
+            bannerLabel.style.marginTop = 8;
+            bannerLabel.style.marginLeft = 8;
+            bannerLabel.style.marginRight = 8;
 
-            selectionLabel = MakeLabel(root, "", 16, Color.white, true);
-            AnchorHorizontal(selectionLabel);
-            selectionLabel.style.top = 56;
+            selectionLabel = MakeLabel(topBand, "", 16, Color.white, true);
             selectionLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             SetPadding(selectionLabel, 4, 12);
             SetRadius(selectionLabel, 6);
+            selectionLabel.pickingMode = PickingMode.Position;
+            selectionLabel.style.marginTop = 4;
+            selectionLabel.style.marginLeft = 120;
+            selectionLabel.style.marginRight = 120;
+
+            restartContainer = new VisualElement();
+            restartContainer.style.flexDirection = FlexDirection.Row;
+            restartContainer.style.justifyContent = Justify.Center;
+            restartContainer.style.marginTop = 8;
+            restartContainer.pickingMode = PickingMode.Ignore;
+            restartContainer.style.display = DisplayStyle.None;
+
+            restartButton = new Button();
+            restartButton.text = "REINICIAR (R)";
+            restartButton.style.fontSize = 18;
+            restartButton.style.unityFontStyleAndWeight = FontStyle.Bold;
+            restartButton.style.color = Color.white;
+            restartButton.style.backgroundColor = Hex("#2E7D32");
+            restartButton.style.width = 200;
+            restartButton.style.height = 44;
+            SetRadius(restartButton, 6);
+            restartButton.clicked += () => manager.RestartEncounter();
+            restartContainer.Add(restartButton);
+            topBand.Add(restartContainer);
+
+            root.Add(topBand);
+
+            VisualElement bottomBand = new VisualElement();
+            bottomBand.style.flexDirection = FlexDirection.Column;
+            bottomBand.style.alignItems = Align.Stretch;
+            bottomBand.pickingMode = PickingMode.Ignore;
+
+            actionBudgetLabel = MakeLabel(bottomBand, "", 13, Color.white, true);
+            actionBudgetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+            actionBudgetLabel.style.marginBottom = 2;
 
             beatStrip = new VisualElement();
-            AnchorHorizontal(beatStrip);
-            beatStrip.style.bottom = 216;
             beatStrip.style.flexDirection = FlexDirection.Row;
             beatStrip.style.justifyContent = Justify.Center;
             beatStrip.pickingMode = PickingMode.Ignore;
-            root.Add(beatStrip);
-
-            actionBudgetLabel = MakeLabel(root, "", 13, Color.white, true);
-            AnchorHorizontal(actionBudgetLabel);
-            actionBudgetLabel.style.bottom = 246;
-            actionBudgetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+            beatStrip.style.marginBottom = 6;
+            bottomBand.Add(beatStrip);
 
             bottomBar = new VisualElement();
-            AnchorHorizontal(bottomBar);
-            bottomBar.style.bottom = 8;
             bottomBar.style.flexDirection = FlexDirection.Row;
             bottomBar.style.justifyContent = Justify.Center;
             bottomBar.style.alignItems = Align.FlexEnd;
             bottomBar.pickingMode = PickingMode.Ignore;
-            root.Add(bottomBar);
+            bottomBar.style.marginBottom = 8;
+            bottomBand.Add(bottomBar);
+
+            root.Add(bottomBand);
 
             executeButton = new Button();
             executeButton.text = "EXECUTE";
@@ -139,7 +178,7 @@ namespace MoriMonchiSimulator.CombatPrototype
             SetPadding(card, 10, 10);
             card.style.marginLeft = 6;
             card.style.marginRight = 6;
-            card.pickingMode = PickingMode.Ignore;
+            card.pickingMode = PickingMode.Position;
             MakeLabel(card, "F" + (slot + 1) + " " + player.Definition.DisplayName, 18, Color.white, true);
             Label ticks = MakeLabel(card, "", 15, Hex("#DDD"));
 
@@ -189,6 +228,9 @@ namespace MoriMonchiSimulator.CombatPrototype
                 bannerLabel.text = phaseData.Text + "\nSEMILLA: germina en " + Mathf.Max(0, manager.GerminationTurn - manager.TurnNumber) + " turnos · vida " + manager.Seed.Ticks + "/" + manager.Seed.MaxTicks;
             bannerLabel.style.fontSize = phaseData.Size;
             bannerLabel.style.backgroundColor = phaseData.Bg;
+
+            if (restartContainer != null)
+                restartContainer.style.display = manager.Phase == CombatPhase.Victory || manager.Phase == CombatPhase.Defeat ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void UpdateSelectionLabel()
@@ -299,6 +341,7 @@ namespace MoriMonchiSimulator.CombatPrototype
                     string power = ab != null ? ab.DisplayName : "?";
 
                     Label chip = MakeLabel(beatStrip, "B" + (b + 1) + " · " + dragon + " → " + power, 14, Color.white, true);
+                    chip.pickingMode = PickingMode.Position;
                     chip.style.backgroundColor = Hex("#1B1E27E6");
                     SetBorderWidth(chip, 2);
                     Color tint = pl != null ? pl.Definition.Tint : Color.white;
@@ -410,13 +453,6 @@ namespace MoriMonchiSimulator.CombatPrototype
             label.pickingMode = PickingMode.Ignore;
             parent.Add(label);
             return label;
-        }
-
-        private static void AnchorHorizontal(VisualElement e)
-        {
-            e.style.position = Position.Absolute;
-            e.style.left = 0;
-            e.style.right = 0;
         }
 
         private static Color Hex(string html)
