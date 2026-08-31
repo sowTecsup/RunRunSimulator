@@ -297,6 +297,30 @@ Juan corrigió el modelo de presión: los enemigos NO atacan cada turno. El ritm
 
 ---
 
+## 15 · Auditoría recuperada (sesión Remote Control post-S84, volcada en S90)
+
+> Origen: sesión "Unity motor technologies research" corrida en otra máquina (~S85, entre las tools propias de S84 y los fixes de S86) y nunca volcada al vault. Recuperada en S90 leyendo claude.ai. Diagnóstico puro con `verify_prototype_parity`, `sim_prototype_turns`, `manage_profiler` y `unity_reflect`. Los hallazgos ya cubiertos por S86 (FIZZLE visible) se omiten; el resto sigue vigente salvo nota.
+
+### Vigente — rendimiento
+1. **118 materiales únicos en el tablero**: `CombatBoardBuilder` usa `.material` (instancia por bloque, `enableInstancing=false`) → **314 draw calls / 0 batching** medidos. Fix de una línea: `sharedMaterial` + `MaterialPropertyBlock` (como YA hace `BoardHighlighter`). No urgente a 12ms de frame, pero la isla va a crecer y el juice viene en camino.
+2. En planificación idle: ~27KB / 521 allocations por frame (parte es overhead de editor; medir en build antes de actuar). Ahora medible por `manage_profiler` (MCP) o `get_performance_stats` (CLI).
+
+### Vigente — legibilidad del targeting
+3. **El combo canónico fizzlea según la dirección, sin aviso**: `BehindAnchor = TargetCell − Direction` puede aterrizar sobre tu PROPIO dragón (el que atacó el beat anterior) → el remate se cancela y el juego no comunica por qué. Verificado por sim: Voltereta (3,5) + Agarre dir (0,-1) = fizzle; misma jugada dir (1,0) = kill de 3 ticks.
+4. **Confirmar un target inválido es silencioso**: `TargetingController` devuelve null sin distinguir "aterrizaje ocupado" / "no hay nadie en el aire" / "slam no cardinal". Candidato natural para la UI de secuencia por beat (§10.4).
+
+### Vigente — data y tests
+5. **`Range`/`RangeMin` son campos muertos** en `CombatAbilitySO`: cero usos en el código (solo se lee `SlamRange`), pero están poblados en los 9 assets viejos → cualquier tuneo es un no-op silencioso. Decidir: borrar o reconectar. *(Nota S90: `IgnoresHeight`, que la auditoría también marcaba muerto, fue reciclado en S87 §13 como semántica de disparo — ese punto quedó desactualizado.)*
+6. **Cero tests en el proyecto** (confirmado de nuevo en S90 vía `unity list_tests`): `ActionResolver`, `AbilityTargeting` y `CombatEffects` son lógica pura estática — caso ideal para un asmdef de EditMode tests que corra por `unity run_tests` sin abrir Play.
+7. Dato de diseño a tener nombrado: con "transición sin límite" (S82), cada ataque es válido en ~110 de 118 celdas → el tablero funciona como superficie de ruteo de daño; la tensión viene del presupuesto de 2 y del entorno. No es bug — es la consecuencia de la decisión, dicha en voz alta.
+
+### Verificado sano (entonces y hoy)
+- Paridad proyección==ejecución: idéntica en planes de 1-2 beats, fizzles, juggle y turnos enemigos encadenados; el estado canónico nunca se filtró.
+- Cero `partial class` en todo el código (el commit `f1129fd` cerró esa deuda; CLAUDE.md corregido en S90).
+- Archivos >400 líneas FUERA del prototipo (regla 3 pendiente, sin urgencia): MoriMochiAgent 705 · MoriMochiSpawner 626 · AgentSocial 560 · AgentBrain 524 · EquipmentBackpackUITK 479 · Enums 462 · BreedingContainer 454 · BuildModeController 421 · StorePanelUITK 409. El prototipo limpio (mayor: CombatPrototypeHUD 350).
+
+---
+
 ## Estado
 
 **FASES 1-4 EJECUTADAS Y VERIFICADAS (S81).** Prototipo jugable: escena `CombatPrototype.unity` + 29 scripts en `Scripts/CombatPrototype/` + assets en `CombatPrototype/` (9 habilidades, 3 dragones con prefabs DragonSD, 2 enemigos, 1 layout). Verificación central cumplida: 7 comparaciones proyección-vs-ejecución idénticas (ActionResolver único, §6) incluyendo el combo canónico Voltereta→Agarre→Slam y una partida completa de 4 turnos hasta la victoria.

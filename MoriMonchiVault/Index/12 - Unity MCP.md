@@ -94,23 +94,66 @@ Puede crear **formas complejas** (no solo primitivas): `create_poly_shape` desde
 
 ---
 
-## Unity CLI oficial (evaluado 2026-08-24 — NO adoptado, candidato a complemento)
+## Unity CLI oficial — ADOPTADO COMO COMPLEMENTO (instalado S89, verificado S90)
 
-Unity publicó en Unite Seoul (julio 2026) el **Unity CLI** oficial: binario standalone **gratis** (sin suscripción Unity AI, sin límite de conexiones) con modo servidor MCP (`unity mcp`), construido sobre el paquete `com.unity.pipeline` (beta, requiere Unity 6.0 LTS+ — el proyecto está en 6000.3.9f1 ✓). Unity deprecó su viejo server MCP in-editor (`com.unity.ai.assistant`); eso **NO afecta** al "MCP for Unity" de CoplayDev que usamos (independiente, MIT, activo — v10.0.0 de junio 2026, sigue gratis).
+Historia corta: evaluado en S79 (veredicto: no migrar — bug de Play mode, ~16x más lento, sin ProBuilder/SOs Odin), el bug crítico se arregló a la semana (S84) y en S89 Juan lo instaló: `winget install Unity.CLI` → `unity` **v1.0.0-beta.6** + paquete **`com.unity.pipeline` 0.5.0-exp.1** en el proyecto (via `unity pipeline install` con el editor abierto). En S90 se ejercitó end-to-end y quedó adoptado como **complemento permanente** del MCP de CoplayDev. El stack del editor ahora es DUAL: los dos servers viven en el mismo editor sin conflicto (verificado S90: CLI por su puerto pipeline, CoplayDev por el suyo en 8080).
 
-**Veredicto S79: seguir con CoplayDev como driver del editor.** Razones:
+### Cómo se usa (sintaxis verificada S90)
 
-1. **Bug crítico reportado**: entrar a Play mode (domain reload) invalida los tokens del Pipeline y **rompe la sesión MCP** hasta reiniciar — le pega exactamente a nuestro loop central de "verificar en Play antes de declarar hecho".
-2. **Catálogo más chico**: sin equivalente de `manage_probuilder` ni `manage_scriptable_object`; gira alrededor de eval + editor/builds/tests. Todo el pipeline Odin validado (quirk #1) depende del server actual.
-3. **Beta con quirks propios**: a veces exige el editor en foreground, diálogos modales bloquean (mitigable con `-automated`), ~16x más lento por llamada en modo MCP (benchmark de comunidad, ~0.8s vs 0.05s), y el agente necesita skills instaladas aparte (`npx skills add Unity-Technologies/skills`) para descubrir capacidades.
+- `unity status` — health-check: puerto, estado, proyecto, versión, PID. **Nuevo primer paso al abrir sesión** (más barato que el ritual de instancias del MCP).
+- `unity list` — catálogo (**143 tools** built-in). Con filtros: `unity command --query <term> --detail full` muestra los **nombres exactos de parámetros**.
+- `unity command <tool> --param value [--json]` — ejecutar. ⚠️ Los parámetros van SIEMPRE como flags `--key value` (NO `key=value`, que se interpreta como valor literal). `--json` da salida estructurada estable; el payload útil viene en `data.<tool>.result`.
+- `unity command <tool> ... --detach` → job id; después `unity job status <id>` / `unity job wait <id>` / `unity job list`.
+- `--timeout <segundos>` por comando (default 30).
 
-**Dónde SÍ interesa (como complemento — pueden convivir sin conflicto):** builds headless, `unity test` con salida NUnit, CI/CD, gestión de editores/licencias, y sobre todo **`unity eval`** — ejecuta C# en el editor **sin domain reload**; vale probar si esquiva la limitación de C# 6 del quirk #2 (Roslyn roto). **Cuándo reevaluar:** cuando arreglen el bug de Play mode (al momento del análisis prometían fixes semanales).
+### Verificado en vivo (S90)
 
-> **Actualización 2026-08-26 (S84):** el bloqueante #1 **ya tiene fix**. El bug era que el domain reload de Play mode regeneraba el bearer token del server Pipeline y toda llamada posterior devolvía 401; Unity lo arregló a la semana del lanzamiento del beta. Pruebas de comunidad del 13-08-2026 sobre `CLI 1.0.0-beta.4` + `Pipeline 0.5.0-exp.1`. Además apareció `--detach` (devuelve job id; después `unity job status` / `unity job wait`). **La decisión no cambia** (sigue ~16x más lento y sin ProBuilder/ScriptableObjects), pero el interés como COMPLEMENTO sube: `unity eval` corre C# en el editor vivo sin domain reload y `unity test` da NUnit XML — es la red de seguridad natural para el quirk S81 #1 (bridge caído). Sus skills se instalan aparte con `npx skills add Unity-Technologies/skills` (trae `unity-cli`, `unity-package-management` y `new-unity-project`, que NO vienen en el plugin oficial de Claude Code).
+| Capacidad | Resultado |
+|-----------|-----------|
+| `editor_status` | estructurado: status/compiling/domainReload/playMode/heartbeat |
+| `eval` / `eval_file --file` | ✅ **C# moderno** (switch expressions, tuples) — **mata el quirk #2 (C# 6) para evaluación de código**. ~2s por llamada. El warning *duplicate assembly Microsoft.CodeAnalysis.CSharp.dll* (S89) NO lo rompió. `eval_file` puede leer archivos de CUALQUIER ruta (no confinado) |
+| `console --tail N` | estructurada (seq/timestamp/level/stackTrace), con follow por cursor |
+| `recompile` / `recompile_status` | funciona con el editor desenfocado (dolor S81); + `set_autotick` para tick en background |
+| `editor_play` / `editor_stop` | ✅ y — LO IMPORTANTE — **el CLI SOBREVIVE al domain reload de Play**: el server pipeline re-spawnea en otro puerto (7800→7801 observado) y el CLI lo re-descubre solo. Donde el bridge CoplayDev muere (quirk S81 #1), el CLI sigue |
+| `capture_game_view --source screen --save_path <ruta>` | ✅ **captura el backbuffer compuesto CON overlay UITK** (solo en Play) — **mata el quirk S88** de capturas sin HUD. ⚠️ `save_path` confinado a la raíz del proyecto (usar `Assets/Screenshots/`). `--source camera` (default) funciona fuera de Play pero pierde overlay |
+| `list_tests` / `run_tests` | ✅ Test Runner real por primera vez. Hoy lista 1 solo test (stub de Addressables): **el proyecto no tiene tests propios** — el asmdef de EditMode tests para la lógica pura del prototipo (ActionResolver/AbilityTargeting/CombatEffects) es la pieza que falta |
+| `--detach` + `unity job status` | ✅ job queued → completed |
 
-**Alternativas también gratis, descartadas por ahora:** CLI cliente del propio CoplayDev (`unity-mcp status/scene/...` — habla con el server que ya tenemos, útil para CI, no reemplaza nada) · IvanMurzak/Unity-MCP (Apache-2.0, 70+ tools, CLI propio, corre también en builds compiladas).
+No probado aún (existe en catálogo): `build`/`build_status` con BuildReport, Project Auditor (`audit`), Unity Search (`search`), `manage`-familia de animation/timeline, bakes (lighting/navmesh/occlusion), `save_prefab_contents` (prefabs aislados nested-safe), hot reload (`reload_file`).
 
-Fuentes: [docs oficiales — Unity CLI reemplaza el MCP in-editor](https://docs.unity.com/en-us/unity-cli/replace-mcp-server-unity-cli) · [Unity Pipeline package](https://docs.unity.com/en-us/unity-production-pipeline/local-tools-cli/unity-pipeline-package) · [análisis Vindler (bugs y benchmarks)](https://vindler.solutions/blog/unity-cli-agent-automation) · [CoplayDev/unity-mcp](https://github.com/CoplayDev/unity-mcp) · [IvanMurzak/Unity-MCP](https://github.com/IvanMurzak/Unity-MCP)
+### Matriz de decisión: qué va por dónde
+
+| Tarea | Herramienta | Por qué |
+|-------|-------------|---------|
+| Health-check al abrir sesión | **CLI** `unity status` | 1 comando, sin fijar instancia |
+| Compilar y verificar consola tras editar | **CLI** `recompile` → `recompile_status` → `console --tail` | funciona desenfocado; salida estructurada; sobrevive reloads |
+| QA visual con HUD | **CLI** `capture_game_view --source screen` en Play | única vía confiable con overlay UITK (regla: capturas MIRADAS) |
+| C# puntual en el editor | **CLI** `eval` / `eval_file` | C# moderno; `execute_code` MCP queda para cuando haga falta `safety_checks: false` |
+| Play mode desatendido | **CLI** `editor_play/stop` + `set_autotick` | resiliencia al domain reload |
+| Tests / builds / CI | **CLI** `run_tests` / `build` | nunca lo tuvo el bridge |
+| Escena, GameObjects, componentes, wiring | **MCP CoplayDev** `manage_*` | catálogo mutador maduro + Undo |
+| ScriptableObjects Odin (quirk #1) | **MCP CoplayDev** (`manage_scriptable_object` + `execute_code`) | pipeline validado; el CLI no lo cubre |
+| ProBuilder / UI Toolkit picking / profiler | **MCP CoplayDev** | sin equivalente CLI |
+| Tools propias del proyecto (`verify_prototype_parity`, `sim_prototype_turns`) | **MCP CoplayDev** | viven en `[McpForUnityTool]` |
+| Si el bridge CoplayDev muere a mitad de sesión | **CLI como red de seguridad** | antes: reiniciar editor; ahora: seguir por CLI y reiniciar cuando convenga |
+
+### Workflow por fase de sesión (v1, a pulir con uso)
+
+1. **Abrir**: `unity status` (ready?) → si se va a mutar escena/SOs, recién ahí fijar instancia MCP.
+2. **Tras cada tanda de código**: `unity command recompile` → poll `recompile_status` → `console --tail 20` con 0 errores. (Reemplaza el patrón "refresh_unity + pausa 20s + read_console".)
+3. **Verificación en Play**: `editor_play` → ejercitar (tools propias MCP para paridad/sims) → `capture_game_view --source screen` y MIRAR las capturas → `editor_stop`.
+4. **Cierre**: cuando exista el asmdef de tests, `run_tests` como gate final.
+
+### Quirks propios del CLI (S89-S90)
+
+1. *Duplicate assembly `Microsoft.CodeAnalysis.CSharp.dll`* al cargar: choque entre `Assets/Plugins/Roslyn` (copia del proyecto) y la del paquete pipeline; Unity resuelve usando la nuestra. `eval` funcionó igual — si algún día falla raro, este es el sospechoso.
+2. El primer `unity pipeline list` post-instalación puede dar "Server Reachable false" durante el refresh de assets (~99s). No es bug.
+3. Rutas de ESCRITURA (`save_path`, `write_text_file`) confinadas a la raíz del proyecto; rutas de LECTURA (`eval_file --file`) no.
+4. El puerto del server cambia tras domain reloads — nunca hardcodearlo; el CLI lo resuelve.
+
+**Alternativas descartadas (S79, sin cambios):** CLI cliente de CoplayDev · IvanMurzak/Unity-MCP.
+
+Fuentes: [docs oficiales — Unity CLI](https://docs.unity.com/en-us/unity-cli/replace-mcp-server-unity-cli) · [Unity Pipeline package](https://docs.unity.com/en-us/unity-production-pipeline/local-tools-cli/unity-pipeline-package) · [análisis Vindler (bugs y benchmarks)](https://vindler.solutions/blog/unity-cli-agent-automation) · [CoplayDev/unity-mcp](https://github.com/CoplayDev/unity-mcp) · [IvanMurzak/Unity-MCP](https://github.com/IvanMurzak/Unity-MCP)
 
 ---
 
@@ -212,6 +255,8 @@ Lo que SÍ vale tal cual, independiente del server: la regla de **nunca editar a
 
 ## Historial
 
+- **2026-08-31 (S90):** Unity CLI **adoptado como complemento** tras ejercitarlo end-to-end: sintaxis `--key value`, eval con C# moderno, captura con overlay UITK (`--source screen`), supervivencia al domain reload de Play (re-spawn de puerto), list_tests/jobs. Matriz de decisión CLI vs MCP + workflow por fases escritos arriba. Convivencia con CoplayDev verificada en el mismo editor.
+- **2026-08-31 (S89):** CLI oficial instalado (`winget install Unity.CLI`, v1.0.0-beta.6) + `com.unity.pipeline` 0.5.0-exp.1 en el proyecto; server verificado con `unity status` y `editor_status`. Quirk nuevo: duplicate assembly Roslyn (ver sección CLI).
 - **2026-08-26 (S84):** upgrade del paquete a **v10.1.2** (pinneado por tag, antes `#main`) — arregla el quirk S81 #2 (`component_properties` en el create de `manage_gameobject`), el manejo de domain reload diferido y los 34 tools que pedían aprobación en cada llamada. Creadas las 2 primeras tools propias del proyecto, activados 6 grupos de tools ocultos, skills de Unity documentadas y actualizado el veredicto del Unity CLI. Ver secciones de arriba.
 - **2026-08-25 (S81):** sesión de ejecución del MVP de combate (fases 1-4). Caída y resurrección del bridge (quirk 1), wiring por SerializedObject (quirk 2), Play desatendido (quirks 3-4), UITK huérfano (quirk 5). Ver sección de arriba.
 - **2026-08-24 (S79):** investigado el Unity CLI oficial con modo MCP (y los CLI de CoplayDev e IvanMurzak). Decisión: no migrar; candidato a complemento. Ver sección de arriba.

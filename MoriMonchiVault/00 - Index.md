@@ -13,8 +13,8 @@ tags: [index, core]
 ```
 MoriMonchiVault/
 ├── 00 - Index.md              ← ESTE ARCHIVO (entry point para IA)
-├── Index/                     ← Notas principales por dominio (01-11)
-└── ScriptNodes/               ← Un nodo por script .cs
+├── Index/                     ← Notas principales por dominio y diseno (01-20 · 09b = digest historico S8-S88)
+└── ScriptNodes/               ← Un nodo por script .cs (~200)
 ```
 
 ---
@@ -25,13 +25,14 @@ MoriMonchiVault/
 |------|-------------------|-----------------------------|
 | **DNA, parts, databases** | [[Index/02 - Genetics & Breeding]] | [[CreatureDNA]], [[BodyPart]], [[PartDatabaseSO]] |
 | **Breeding mechanic** | [[Index/02 - Genetics & Breeding]] | [[BreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[BreedingContainer]] |
-| **Visual assembly (3D)** | [[Index/02 - Genetics & Breeding]] | [[MoriMonchiVisualizer]], [[BodyPartJoint]], [[PartVisualBankSO]] |
-| **Local combat** | [[Index/03 - Combat]] | [[CombatService]], [[CombatRecord]], [[CombatTurn]] |
-| **Async combat (UGS)** | [[Index/03 - Combat]], [[Index/04 - UGS & Cloud]] | [[AsyncCombatService]], [[CloudSyncService]] |
+| **Visual assembly (3D, Suriyun DragonSD)** | [[Index/02 - Genetics & Breeding]] | [[MonchiVisualizer]], [[MonchiVisualBankSO]], [[DragonAnimationDriver]] |
+| **Combate ACTUAL (prototipo MVP S80+)** | [[Index/20 - Combat Prototype MVP (Plan)]] | nodos de `Scripts/CombatPrototype/` (CombatPrototypeManager, ActionResolver, etc.) |
+| **Combate viejo 3v3 (DEMOLIDO S75 — solo historia)** | [[Index/03 - Combat]] (historico), [[Index/09b - Session Digest (S8-S88)]] | — |
+| **Cloud sync (UGS)** | [[Index/04 - UGS & Cloud]] | [[CloudSyncService]], [[CloudAuth]], [[CloudSyncOps]] |
 | **Auth & Cloud Save** | [[Index/04 - UGS & Cloud]], [[Index/07 - Persistence & Identity]] | [[CloudSyncService]], [[SaveSystem]], [[GameManager]] |
 | **UI panels & navigation** | [[Index/05 - UI System]] | [[UIManager]], [[UIInputs]], [[PanelTrigger]] |
 | **Player FP controller** | [[Index/06 - Player & World]] | [[PlayerInputs]], [[PlayerController]] |
-| **Creature AI (NavMesh)** | [[Index/06 - Player & World]] | [[MoriMochiAgent]], [[NeedStationRegistry]], [[PersonalityProfileSO]] |
+| **Creature AI (NavMesh)** | [[Index/06 - Player & World]] | [[MoriMochiAgent]], [[AgentBrain]], [[NeedStationRegistry]] |
 | **Needs system** | [[Index/06 - Player & World]] | [[NeedStation]], [[Feeder]], [[NeedsState]] |
 | **Containers / pens** | [[Index/06 - Player & World]] | [[MoriMochiContainer]], [[StoreContainer]], [[BreedingContainer]] |
 | **Hotbar / world props** | [[Index/06 - Player & World]] | [[HotbarController]], [[WorldPropInstance]], [[ThrowableObject]] |
@@ -58,20 +59,23 @@ MoriMonchiVault/
 
 ```
 Assets/RunRunSimulator/Scripts/
+├── CombatPrototype/ # MVP de combate S80+ (aislado: cero contacto con GameEvents/GameManager)
 ├── Core/          # GameManager, GameEvents, SaveSystem, Enums, Interfaces
-├── Data/          # CreatureDNA, BodyPart, databases, SOs
-│   ├── Databases/ # ArmDatabaseSO, EyeDatabaseSO, etc.
-│   └── Parts/     # ArmPart, EyePart, MouthPart, BodyShapePart
+├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · CutieMarks/ · Equipment/ · Items/ · Social/
 ├── Systems/       # Desacoplados vía GameEvents
 │   ├── Breeding/  # BreedingService, AsyncBreedingService
-│   ├── Combat/    # CombatService, AsyncCombatService
-│   ├── Cloud/     # CloudSyncService, CloudCodeTester
+│   ├── Cloud/     # CloudSyncService (+ CloudAuth/CloudSyncOps)
+│   ├── Customers/ # NPCs compradores (FSM, cola, negociación)
 │   ├── Furniture/ # BuildModeController, FurnitureService, PlacementGrid
+│   ├── Localization/ # Loc, LocEnumMaps
+│   ├── Social/    # SocialGraphService
+│   ├── Stats/     # stats/point-buy
 │   └── Store/     # StoreManager, ShopCatalogSO, DeliveryBox
-├── UI/            # UIManager, UIInputs, 12 panel controllers
+├── Editor/        # MCP/ (tools propias [McpForUnityTool])
+├── UI/            # UIManager, UIInputs, panel controllers UITK
 ├── Player/        # PlayerInputs, PlayerController, BuildingInputs
 ├── Interactables/ # PanelTrigger, ThrowableObject
-└── World/         # MoriMochiAgent, NeedStation, HotbarController, containers
+└── World/         # AI/ (MoriMochiAgent + colaboradores), Creatures/ (MonchiVisualizer, FurRenderer), NeedStation, containers
 ```
 
 ---
@@ -108,8 +112,8 @@ Three mutually exclusive action maps: `Player`, `UI`, `Building`. Only one activ
 |---------|---------|
 | DNA, genetic string, part ID | [[CreatureDNA]], [[PartDatabaseSO]] |
 | Stats (HP/Attack/Speed) | [[CreatureStats]], [[BodyPart]] |
-| Personality, tint | [[PersonalityProfileSO]], [[MoriMochiAgent]] |
-| Combat, fight, battle | [[CombatService]], [[AsyncCombatService]] |
+| Personality (diales Sociability/Boldness), tint | [[MoriMochiAgent]], [[AgentBrain]] |
+| Combat, fight, battle | [[Index/20 - Combat Prototype MVP (Plan)]] (el 3v3 viejo murió en S75) |
 | Breeding, cross, hatch | [[BreedingService]], [[BreedingContainer]] |
 | Affinity, compatibility | [[BreedingAffinityTableSO]] |
 | Inheritance odds | [[InheritanceOddsTableSO]] |
