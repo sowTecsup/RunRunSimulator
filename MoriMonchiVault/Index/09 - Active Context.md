@@ -18,6 +18,8 @@ tags: [index, core]
 > 2. Decisiones v0 del orquestador (vetables, todo en git): borrar los 09b gordos en vez de moverlos fuera del repo · borrar el Fur archive · nombre del digest `09b - Session Digest (S8-S88)` · las correcciones de CLAUDE.md/00-Index sin consulta previa (amparadas en "procede con lo necesario" + son hechos verificados).
 > 3. Quirks CLI nuevos documentados en la 12: params como flags, `save_path` confinado al project root, duplicate assembly Roslyn no rompió `eval`, puerto dinámico.
 > 4. Cero `.cs` tocados → `vault-documenter` NO corre. Notion intacto.
+> 5. **Quirk de infra NUEVO**: `git push` por HTTPS depende del diálogo de Git Credential Manager — en sesión desatendida se cuelga esperándolo (2 timeouts antes de completar al 3er intento, cuando la credencial quedó cacheada). No hay `gh` instalado. Si un push se cuelga: `! git push` desde el prompt y aprobar el diálogo.
+> 6. Post-commit se corrigieron 4 memorias persistentes que contradecían el estado actual (genética aún describía Arm/Eye/Mouth pre-S75, async combat sin marcar como demolido, spider "eliminación pendiente" cuando cayó en S55, refundación congelada en "fase 1") + 5 líneas de MEMORY.md.
 
 **Files Touched S90 (.cs — input ScriptNodes):** ninguno. **No-ScriptNode:** `Index/12` (sección CLI reescrita + Historial S89/S90), `Index/20` (§15 NUEVA — auditoría recuperada), `Index/09b - Session Digest (S8-S88).md` (NUEVO), `CLAUDE.md` (regla 11, eventos, conteos, vault-documenter, tabla de recursos), `00 - Index.md` (ruteo + árbol), este archivo (poda + S90). BORRADOS: `Index/09b - Session Archive.md`, `Index/09b - Active Context Archive.md`, `Archive - Fur Shaders (POC descartado)/` (3 archivos), 64 ScriptNodes huérfanos.
 
