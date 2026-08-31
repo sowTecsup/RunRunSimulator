@@ -4,6 +4,26 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-08-31 (Session 91 — **DECISIÓN MAYOR: REFUNDACIÓN DEL COMBATE v3 — el prototipo táctico NO valida; el combate pasa a ser un EXTRA SENCILLO al servicio del breeding/tienda — ✅ CERRADA: 0 scripts .cs; sin vault-documenter; diseño BLOQUEADO esperando 3 respuestas de Juan**)
+**Focus:** Juan abrió preguntando "¿cómo te quedarías si te dijera que quiero que reformulemos el sistema de combate otra vez?" y cerró la decisión con 3 respuestas: (1) no divierte tanto como pensaba y — lo central — **quita el foco de lo principal: breeding, cuidar y la tienda**; el combate debía ser "un extra sencillo para probar tus criaturas y facilitar el breeding, algo sencillo y divertido que cualquiera puede entender"; (2) reformular prácticamente todo; (3) no funcionó, cambio total. Se fue a mitad de la sesión de diseño ("te paso todo después").
+
+1. **Hallazgo del orquestador (validado contra el vault): el brief nuevo ES el encargo original de S71/S72.** La nota 15 ya decía que el combate debe ser "la respuesta inmediata a una decisión que acabás de tomar" (experimento de 30s, no espectáculo) y la 17 §4 marcaba de Into the Breach "qué NO robar: input por turno". El prototipo S77-S88 derivó exactamente a eso: un táctico de planificación profunda que compite por el foco con el corazón del juego. No falló la ejecución — se desvió del brief.
+2. **Filtros que SOBREVIVEN para el v3** (de las notas 15/17, revalidados hoy): drama en el commit, no en la ejecución · texto plano (toda mecánica en una frase) · números chicos deterministas / vida en hits · **la profundidad vive en la CRIANZA** (genes/diales heredados inclinan el comportamiento — gambit-lite de la 15 §1.6; la decisión se toma criando) · ciclo de 20-40s repetible.
+3. **Punto de partida tentativo para el diseño** (registrado, no decidido): "tablero de adyacencia" de la 17 §6-B (Super Auto Pets / Backpack Battles — el planteamiento que la propia nota marca como "el que mejor exprime la genética") cruzado con el brief de sencillez. Las 2-3 propuestas concretas se diseñan cuando lleguen las respuestas.
+4. **`CombatPrototype/` CONGELADO**: la agenda QA heredada de S88-S90 (4 hallazgos de contraste/zoom/oleadas/cards, quick wins §15, juice OnFizzle, UI por beat) queda **MUERTA** — no invertir ni un minuto más ahí. La demolición se decide recién al cerrar el diseño nuevo (precedente S75: primero el rumbo, después la demolición).
+5. **Memoria persistente `project-refundacion-combate` reescrita** a este estado (+ su línea en MEMORY.md) para que la próxima sesión no re-litigue con "Index/20 manda".
+
+> ### 📌 Notas S91
+> 1. **Las 3 preguntas estructurales quedaron formuladas y SIN responder** — son el input bloqueante de la próxima sesión: **(1) ¿contra quién?** PvE local vs async contra snapshots (recomendación del orquestador: PvE local primero, async como capa futura sobre el mismo resolver) · **(2) ¿permadeath en el combate casual?** (si probar criaturas puede matarlas, nadie prueba; opciones sobre la mesa: exhibición sin muerte / muerte solo en modo serio / heridas curables en la tienda que alimentan el loop de cuidado) · **(3) ¿qué produce el combate para el breeding?** (recompensas, revelar genes/potencial, desbloquear cruzas, atraer clientes).
+> 2. `Index/20` pasará a histórica y el diseño nuevo irá a `Index/21` — **con aprobación de Juan, todavía NO se tocó ninguna nota de diseño** (el diseño no está cerrado).
+> 3. Cero `.cs` tocados → `vault-documenter` NO corre. Notion intacto.
+
+**Files Touched S91 (.cs — input ScriptNodes):** ninguno. **No-ScriptNode:** este archivo · memoria persistente `project_refundacion_combate.md` (reescrita) + línea de `MEMORY.md`.
+
+**Next session (S92):** **Juan trae las 3 respuestas → sesión de diseño del combate v3.** Releer `Index/15` (completa) y `17` §3-7 como base → 2-3 propuestas concretas de mecánica (partida: adyacencia 17 §6-B × sencillez) → Juan elige → cerrar diseño → con su OK bajarlo a `Index/21` y marcar la 20 como histórica → decidir destino de `CombatPrototype/` (¿demolición estilo S75?). Arrastres vivos NO-combate: sesión HUD-a-data/localización · arrastres históricos con detalle en el digest 09b (pendiente editor S75, endpoints Cloud Code, keys huérfanas, reescritura de `Index/02`, borrar registro MCP viejo `unity-mcp`, decidir `Assets/_Recovery`).
+
+---
+
 **Session:** 2026-08-31 (Session 90 — **PIPELINE DUAL CLI+MCP VERIFICADO Y ADOPTADO + LAS 3 SESIONES REMOTAS RECUPERADAS + DEPURACIÓN DEL VAULT (−40%) + COMPRESIÓN DE CONTEXTO — ✅ CERRADA: 0 scripts .cs; commit S89+S90**)
 **Focus:** Juan pidió (1) análisis de CLI y MCP para mejorar el pipeline, (2) depuración del vault ("más que nada las bitácoras") y (3) compresión del contexto para aumentar precisión. Autorizó proceder hasta cumplir el objetivo.
 
