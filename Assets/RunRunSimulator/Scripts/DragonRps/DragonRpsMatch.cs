@@ -41,7 +41,7 @@ namespace MoriMonchiSimulator.DragonRps
 
         public static bool IsOver(DragonRpsSide sideA, DragonRpsSide sideB)
         {
-            return !sideA.CanAct || !sideB.CanAct || sideA.Hits >= DragonRpsRules.HitsToWin || sideB.Hits >= DragonRpsRules.HitsToWin;
+            return sideA.Hits >= DragonRpsRules.HitsToWin || sideB.Hits >= DragonRpsRules.HitsToWin;
         }
 
         public static int Winner(DragonRpsSide sideA, DragonRpsSide sideB)
@@ -60,6 +60,13 @@ namespace MoriMonchiSimulator.DragonRps
 
             sideA.Draw();
             sideB.Draw();
+
+            if (!sideA.CanAct || !sideB.CanAct)
+            {
+                sideA.Reshuffle();
+                sideB.Reshuffle();
+            }
+
             return outcome;
         }
 
@@ -89,9 +96,7 @@ namespace MoriMonchiSimulator.DragonRps
                 return "espejo, se impone B por potencia " + powerB + " a " + powerA;
             }
 
-            sideA.Hits++;
-            sideB.Hits++;
-            return "espejo parejo, se lastiman los dos";
+            return "espejo parejo, nadie cede";
         }
     }
 }

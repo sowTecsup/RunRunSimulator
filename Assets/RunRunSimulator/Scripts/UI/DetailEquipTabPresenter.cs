@@ -56,14 +56,12 @@ public class DetailEquipTabPresenter
         if (item == null) card.AddToClassList("equip-card--empty");
         card.style.borderLeftColor = SlotColor(slot);
 
-        // Diagonal accent (behind content) in the rarity color — added first so the
-        // icon/info draw on top. Empty slots get no accent.
         if (item != null)
         {
             var diag = new VisualElement();
             diag.AddToClassList("equip-card__diag");
             diag.pickingMode = PickingMode.Ignore;
-            var dc = RarityColor(item.Rarity);
+            var dc = CreatureDisplay.RarityColor(item.Rarity, equipmentPalette);
             dc.a = 0.5f;
             diag.generateVisualContent += ctx => PaintDiagonal(ctx, dc);
             card.Add(diag);
@@ -71,10 +69,7 @@ public class DetailEquipTabPresenter
 
         var icon = new VisualElement();
         icon.AddToClassList("equip-card__icon");
-        if (item != null && item.Icon != null)
-            icon.style.backgroundImage = new StyleBackground(Background.FromSprite(item.Icon));
-        else if (item != null)
-            icon.style.backgroundColor = item.IconColor;
+        CreatureDisplay.ApplyIconVisual(icon, item);
         card.Add(icon);
 
         var info = new VisualElement();
@@ -84,7 +79,7 @@ public class DetailEquipTabPresenter
             ? (string.IsNullOrEmpty(item.Name) ? item.ID : item.Name)
             : Loc.Tr("ui.equip.slot_empty", LocEnumMaps.EquipmentSlotName(slot)));
         name.AddToClassList("equip-card__name");
-        if (item != null) name.style.color = RarityColor(item.Rarity);
+        if (item != null) name.style.color = CreatureDisplay.RarityColor(item.Rarity, equipmentPalette);
         info.Add(name);
 
         var meta = new Label(item != null ? Loc.Tr("ui.equip.slot_rarity", LocEnumMaps.EquipmentSlotName(item.Slot), LocEnumMaps.RarityName(item.Rarity)) : Loc.Tr("ui.equip.empty"));
@@ -179,15 +174,12 @@ public class DetailEquipTabPresenter
         return dna.Equipped.TryGetValue(slot, out var id) ? equipmentDatabase.GetByID(id) : null;
     }
 
-    // Draws the right-side diagonal wedge filled with the rarity color. Slants 45°
-    // (bottom reaches further left), leaving the left side for the icon/text.
     private static void PaintDiagonal(MeshGenerationContext ctx, Color color)
     {
         var rect = ctx.visualElement.contentRect;
         float w = rect.width, h = rect.height;
         if (w <= 0f || h <= 0f) return;
 
-        // Diagonal crosses the card's center → splits it into two equal halves.
         float topX = w * 0.5f - h * 0.5f;
         float botX = topX + h;
 
@@ -201,9 +193,6 @@ public class DetailEquipTabPresenter
         p.ClosePath();
         p.Fill();
     }
-
-    private Color RarityColor(Rarity r) =>
-        equipmentPalette != null ? equipmentPalette.RarityColor(r) : BodyPart.RarityColor(r);
 
     private Color SlotColor(EquipmentSlot s) =>
         equipmentPalette != null ? equipmentPalette.SlotColor(s) : new Color(0.35f, 0.35f, 0.43f);

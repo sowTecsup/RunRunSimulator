@@ -6,18 +6,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// Furniture browser shown in build mode: the player opens it (Tab), picks an owned
-// piece, and the build mode starts placing it. It REPLACES the 1-4 hotbar as the way
-// to choose what to build.
-//
-// Deliberately NOT a UIManager panel: routing it through UIManager would raise
-// OnUIFocusChanged, and BuildModeController exits build mode on UI focus. So this is a
-// standalone overlay that toggles its own root display and reads its own navigation
-// (keyboard, console-first D-pad style) directly while open — no cursor needed, which
-// matters because build mode keeps the Cinemachine mouselook active.
-//
-// Lives on an always-active object referencing its UIDocument (same split as the
-// other UITK controllers). Calls BuildModeController.SelectPieceFromBrowser on pick.
 [DisallowMultipleComponent]
 public class BuildBrowserUITK : MonoBehaviour
 {
@@ -46,8 +34,6 @@ public class BuildBrowserUITK : MonoBehaviour
     private int selectedPiece = -1;
     private bool open;
 
-    // ── Lifecycle ─────────────────────────────────────────────────
-
     private void OnEnable()
     {
         BuildingInputs.BrowseToggled           += Toggle;
@@ -64,16 +50,13 @@ public class BuildBrowserUITK : MonoBehaviour
     {
         Resolve();
         BuildTabs();
-        SetOpen(false);   // starts hidden (not a UIManager panel, so it hides itself)
+        SetOpen(false);
     }
 
-    // Leaving build mode closes the browser.
     private void OnBuildModeChanged(bool building)
     {
         if (!building) SetOpen(false);
     }
-
-    // ── Navigation (read directly while open) ─────────────────────
 
     private void Update()
     {
@@ -88,8 +71,6 @@ public class BuildBrowserUITK : MonoBehaviour
         if      (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame) ConfirmSelection();
     }
 
-    // ── Open / close ──────────────────────────────────────────────
-
     private void Toggle() => SetOpen(!open);
 
     private void SetOpen(bool show)
@@ -101,8 +82,6 @@ public class BuildBrowserUITK : MonoBehaviour
         root.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         if (show) RefreshPieces();
     }
-
-    // ── Tabs / pieces ─────────────────────────────────────────────
 
     private void BuildTabs()
     {
@@ -131,14 +110,8 @@ public class BuildBrowserUITK : MonoBehaviour
         RefreshPieces();
     }
 
-    private void HighlightActiveTab()
-    {
-        for (int i = 0; i < tabEls.Count; i++)
-            tabEls[i].EnableInClassList(TabActiveClass, i == activeCategory);
-    }
+    private void HighlightActiveTab() => UiPanels.SetActiveIndex(tabEls, activeCategory, TabActiveClass);
 
-    // Pieces in the active category. For testing this lists the FULL furniture catalog;
-    // once economy/ownership exists it will filter by PlayerInventorySO.furnitureOwned.
     private void RefreshPieces()
     {
         if (piecesContainer == null) return;
@@ -188,13 +161,11 @@ public class BuildBrowserUITK : MonoBehaviour
 
     private void HighlightSelected()
     {
-        for (int i = 0; i < pieceEls.Count; i++)
-            pieceEls[i].EnableInClassList(PieceSelClass, i == selectedPiece);
+        UiPanels.SetActiveIndex(pieceEls, selectedPiece, PieceSelClass);
         if (selectedPiece >= 0 && selectedPiece < pieceEls.Count && piecesContainer != null)
             piecesContainer.ScrollTo(pieceEls[selectedPiece]);
     }
 
-    // Enter / click → hand the piece to build mode and close (back to placing).
     private void ConfirmSelection()
     {
         if (selectedPiece < 0 || selectedPiece >= pieces.Count) return;
@@ -203,11 +174,9 @@ public class BuildBrowserUITK : MonoBehaviour
         SetOpen(false);
     }
 
-    // ── Plumbing ──────────────────────────────────────────────────
-
     private void Resolve()
     {
-        root = document != null ? document.rootVisualElement : null;
+        root = UiPanels.RootOf(document);
         if (root == null) return;
         tabsContainer   = root.Q<VisualElement>("tabs");
         piecesContainer = root.Q<ScrollView>("pieces");
@@ -227,7 +196,6 @@ public class BuildBrowserUITK : MonoBehaviour
         if (emptyLabel != null) emptyLabel.text = Loc.Tr("ui.build.empty");
     }
 
-    // USS child-selector flex-wrap isn't always picked up by the runtime — enforce in code.
     private void SetupPiecesGrid()
     {
         if (piecesContainer == null) return;

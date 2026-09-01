@@ -6,10 +6,6 @@ using UnityEngine.Serialization;
 namespace MoriMonchiSimulator
 {
 
-// Dashboard requirements:
-//   Authentication → enable Anonymous + Unity Player Accounts
-//   Cloud Save     → enable
-// Attach to same GameObject as GameManager. Assign CreatureRegistrySO in Setup.
 public class CloudSyncService : MonoBehaviour
 {
     private CreatureRegistrySO  registry;
@@ -25,8 +21,6 @@ public class CloudSyncService : MonoBehaviour
     [BoxGroup("Account"), LabelText("New Name"), EnableIf("isSignedIn")]
     [FormerlySerializedAs("_newNameInput")]
     [SerializeField] private string newNameInput = "";
-
-    // ── Inspector Displays ────────────────────────────────────────
 
     [ShowInInspector, ReadOnly, BoxGroup("Status"), LabelText("Player ID")]
     private string PlayerIDDisplay => auth?.PlayerID ?? "---";
@@ -54,8 +48,6 @@ public class CloudSyncService : MonoBehaviour
 
     private bool isSignedIn => auth != null && auth.IsSignedIn;
 
-    // ── Public Facade ─────────────────────────────────────────────
-
     public TimeSpan ServerOffset => auth?.ServerOffset ?? TimeSpan.Zero;
 
     public Task InitializeAsync() => auth.InitializeAsync();
@@ -63,8 +55,6 @@ public class CloudSyncService : MonoBehaviour
     public Task PullAsync() => syncOps.PullAsync();
     public Task ResetProgressAsync() => syncOps.ResetProgressAsync();
     public Task UpdatePlayerNameAsync(string newName) => auth.UpdatePlayerNameAsync(newName);
-
-    // ── Lifecycle ─────────────────────────────────────────────────
 
     private async void Start()
     {
@@ -82,18 +72,11 @@ public class CloudSyncService : MonoBehaviour
     {
         syncOps.RefreshSecurityDisplay();
 
-        // Scope local save by player + auto-sync from cloud
         SaveSystem.SetUserScope(auth.PlayerID);
         SaveSystem.LoadInto(registry);
         SaveSystem.LoadSocialGraph(registry);
-        // Reflect local data in the UI immediately: the cloud pull below raises its
-        // own reload only when the cloud actually has data, so a local-only player
-        // (fresh/anon/offline, or after a reset) would otherwise see an empty grid.
         GameEvents.RegistryReloaded(registry);
 
-        // Pre-warm from local cache so the player sees their data instantly before the
-        // cloud pull completes. PullAsync below will override with the authoritative cloud
-        // copy if it exists. Reload (not Changed) → UI rebuilds, no re-save.
         if (furnitureRegistry != null)
         {
             SaveSystem.LoadFurniture(furnitureRegistry);
@@ -108,8 +91,6 @@ public class CloudSyncService : MonoBehaviour
         await auth.FetchServerTimeAsync();
         await syncOps.PullAsync();
     }
-
-    // ── Buttons ───────────────────────────────────────────────────
 
     [Button("Sign In Anonymous (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.6f, 0.6f)]
     [BoxGroup("Cloud Actions"), EnableIf("@!isSignedIn")]

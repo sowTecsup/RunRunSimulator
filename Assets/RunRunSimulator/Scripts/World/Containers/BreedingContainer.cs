@@ -7,11 +7,6 @@ using UnityEngine.Events;
 namespace MoriMonchiSimulator
 {
 
-// A breeding pen. Passively restores its occupants' needs, periodically rolls a dice
-// (affinity × diceChance) to pair an available Male + Female, and on success kicks off
-// SERVER-SIDE async breeding (the egg incubates on the server timer). Tap E on the pen to
-// hatch a ready egg. It owns no breeding services itself — it asks BreedingController.Instance
-// for the affinity table + async breeding, so there's a single source of truth in the scene.
 public class BreedingContainer : MoriMochiContainer, IInteractable
 {
     [BoxGroup("Breeding")]
@@ -27,8 +22,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
     [Tooltip("Needs (health/energy/affect) restored per second to every penned occupant.")]
     [SerializeField, Min(0f)] private float restoreRate = 5f;
 
-    // Fixed breed points: one slot per pair the pen allows. Each slot = two child anchors the pair
-    // stands on, facing each other. Configured in the inspector (drag child empties) — no runtime spacing.
     [System.Serializable]
     private struct BreedingSlot
     {
@@ -47,7 +40,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
     [ShowInInspector, ReadOnly, LabelText("Último Roll")]
     private string lastRollInfo = "---";
 
-    // Live per-occupant eligibility readout — at a glance: why each one can/can't pair right now.
     [BoxGroup("Breeding")]
     [ShowInInspector, ReadOnly, LabelText("Diagnóstico Pareja")]
     private string PairDiagnostics => Application.isPlaying ? BuildDiagnostics() : "(solo en Play)";
@@ -65,11 +57,8 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
 
     private static readonly List<BreedingContainer> all = new List<BreedingContainer>();
 
-    // El corral más reciente lanza a sus crías desde aquí; los recién nacidos vuelan al centro + esta altura.
     public Vector3 LaunchPoint => Center + Vector3.up * launchHeight;
 
-    // Punto de aterrizaje de la cría: una dirección horizontal al azar, JUSTO afuera del corral, para que
-    // salga disparada y caiga en campo abierto (no la re-atrapa el corral, arranca a merodear libre).
     private Vector3 BirthLanding()
     {
         Vector2 dir = UnityEngine.Random.insideUnitCircle;
@@ -79,11 +68,8 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         return new Vector3(c.x + dir.x * dist, c.y, c.z + dir.y * dist);
     }
 
-    // All active pens in the scene — the BreedingController (manager) reads this to know how many
-    // pens exist and which pairs are breeding where, without holding its own references.
     public static IReadOnlyCollection<BreedingContainer> All => all;
 
-    // The active breeding pairs in this pen and the slot each occupies — "qué MM ↔ qué MM, en qué slot".
     public IEnumerable<(string mother, string father, int slot)> ActivePairs()
     {
         for (int i = 0; i < Occupants.Count; i++)
@@ -98,27 +84,24 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
 
     protected override void Start()
     {
-        base.Start();   // deriva anchorKey + registra en AnchorRegistry
+        base.Start();
         all.Add(this);
     }
 
     protected override void OnDestroy()
     {
-        base.OnDestroy();   // AnchorRegistry.Unregister
+        base.OnDestroy();
         all.Remove(this);
     }
 
     private void OnEnable()  => GameEvents.OnBreedingCompleted += OnBreedingCompleted;
     private void OnDisable() => GameEvents.OnBreedingCompleted -= OnBreedingCompleted;
 
-    // Una pareja de ESTE corral acaba de tener cría: pedimos al spawner que la lance desde aquí
-    // (el corral es quien hace la solicitud) y mandamos a ambos padres de vuelta a deambular dentro
-    // del corral (estaban posados en cortejo, pero ya no se están apareando).
     private void OnBreedingCompleted(CreatureDNA mother, CreatureDNA father, CreatureDNA child)
     {
         var motherAgent = FindOccupant(mother);
         var fatherAgent = FindOccupant(father);
-        if (motherAgent == null && fatherAgent == null) return;   // no nació en este corral
+        if (motherAgent == null && fatherAgent == null) return;
 
         if (child != null) MoriMochiSpawner.Instance?.RegisterBirthLaunch(child.UniqueID, LaunchPoint, BirthLanding());
 
@@ -145,7 +128,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         TryRollPair(false, false);
     }
 
-    // Penned MoriMonchis recover passively while the pen "cares for" them — mirrors StoreContainer.
     private void PassiveRestore(float dt)
     {
         if (restoreRate <= 0f) return;
@@ -160,10 +142,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         }
     }
 
-    // Provides the social CONTEXT only: matches each active breeding couple and hands BOTH agents their
-    // partner + the slot anchor (slot midpoint) once. From there each agent owns its own courtship
-    // (female tends near the anchor, male orbits her — see MoriMochiAgent.TickCourting). Exits courtship
-    // for any occupant not currently part of a matched pair.
     private void ManageCourtship()
     {
         var posed = new HashSet<MoriMochiAgent>();
@@ -212,8 +190,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         }
     }
 
-    // The point the pair courts around: the assigned slot's midpoint if it's valid, otherwise the pen
-    // center — so courtship still kicks in after a reload even if LocationSlot didn't survive.
     private Vector3 ResolveCourtAnchor(MoriMochiAgent female)
     {
         int idx = female.DNA.LocationSlot;
@@ -226,7 +202,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         return Center;
     }
 
-    // First breed slot not already claimed by another breeding pair in this pen. -1 if none free.
     private int FindFreeSlot()
     {
         if (breedingSlots == null || breedingSlots.Length == 0) return -1;
@@ -251,10 +226,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         TryRollPair(true, true);
     }
 
-    // One pairing attempt. verbose → always reports the math (affinity × dice, the roll, outcome) to
-    // lastRollInfo + console; the periodic auto-roll stays quiet unless it actually pairs.
-    // ignoreCooldown → ForceRoll bypasses the per-creature throttle so a forced roll is never blocked
-    // solely by cooldown; the auto-roll always respects it.
     private async void TryRollPair(bool verbose, bool ignoreCooldown)
     {
         if (Occupants.Count < 2) { Report(verbose, "Hacen falta al menos 2 MoriMonchis en el corral."); return; }
@@ -292,9 +263,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
 
         await controller.StartBreedingAsync(motherDNA.UniqueID, fatherDNA.UniqueID);
 
-        // StartBreedingAsync only marks the parents Breeding if the SERVER accepted the egg.
-        // If it didn't (the server still holds a prior egg for one of them → already_breeding),
-        // don't lie about it and don't burn a cooldown on a pairing that never happened.
         if (motherDNA.BusyState == BusyReason.Breeding && fatherDNA.BusyState == BusyReason.Breeding)
         {
             int slot = FindFreeSlot();
@@ -305,8 +273,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
             cooldowns[motherDNA.UniqueID] = Time.time + pairCooldown;
             cooldowns[fatherDNA.UniqueID] = Time.time + pairCooldown;
 
-            // StartBreedingAsync persisted BEFORE these were set, so the pen home/slot would be lost on
-            // reload — persist again now that they're stamped (reclaim + courtship depend on them).
             if (GameManager.Instance != null && GameManager.Instance.Registry != null)
                 GameEvents.RegistryChanged(GameManager.Instance.Registry);
 
@@ -330,17 +296,12 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
             && (ignoreCooldown || !cooldowns.ContainsKey(d.UniqueID)))
         .ToList();
 
-    // Only adults (and above) breed — no babies/teens. If the life-stage table isn't assigned we can't
-    // tell the age, so we don't block (degrade gracefully).
     private static bool IsAdult(CreatureDNA d)
     {
         var table = BreedingController.Instance != null ? BreedingController.Instance.LifeStageTable : null;
         return table == null || table.GetStage(d.AgeDays) >= LifeStage.Adult;
     }
 
-    // ── Hatch (IInteractable: tap E on the pen) ───────────────────
-
-    // Tap E while looking at the pen → hatch the egg incubating here once its server timer is up.
     public void Interact()
     {
         var controller = BreedingController.Instance;
@@ -373,10 +334,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         _ = controller.HatchAsync(mother.UniqueID, mother.BreedPartnerID);
     }
 
-    // ── Removal cancels the pairing ───────────────────────────────
-
-    // Taking a creature out of the pen cancels any in-progress pairing (the pen is where breeding
-    // happens): both parents revert to a normal, non-breeding state so their tags drop the heart/timer.
     public override void Release(MoriMochiAgent agent)
     {
         base.Release(agent);
@@ -412,9 +369,6 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         d.LocationSlot   = -1;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────
-
-    // Per-occupant eligibility, for the inspector + the "sin pareja válida" message.
     private string BuildDiagnostics()
     {
         if (Occupants.Count == 0) return "Corral vacío.";

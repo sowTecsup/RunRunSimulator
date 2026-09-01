@@ -4,20 +4,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// A floating world-space label above a MoriMochi, rendered with UI Toolkit (a
-// world-space UIDocument driving NameTagUITK.uxml) instead of TextMeshPro. In the
-// free-roam layout shows the name plus AT MOST one secondary line, picked by
-// priority: pet hint > busy/dead status > "interesting" CreatureIntent (Idle and
-// Wandering are the default and stay silent). Billboards toward the camera and
-// only appears when the player is near, so the world isn't a wall of text. Pure
-// view — it reads live state each frame and never mutates anything.
-//
-// Setup: a CHILD object of the creature prefab (NOT the body root — billboard
-// rotation would spin the mesh) carrying a UIDocument whose Panel Settings is
-// WorldUIPanelSettings (render mode World Space) and whose Source Asset is
-// NameTagUITK.uxml. Position the child a bit above the cube; the tag centers on
-// the panel's pivot. The MoriMochiAgent finds it via GetComponentInChildren and
-// calls Bind() once it knows the DNA.
 [RequireComponent(typeof(UIDocument))]
 public class NameTag : MonoBehaviour
 {
@@ -58,18 +44,13 @@ public class NameTag : MonoBehaviour
     private void Awake()
     {
         document = GetComponent<UIDocument>();
-      //  agent    = GetComponentInParent<MoriMochiAgent>();   // intent source (same World domain → direct ref)
         if (Camera.main != null) cam = Camera.main.transform;
         baseLocalPos   = transform.localPosition;
         baseLocalScale = transform.localScale;
     }
 
-    // Called by the agent right after Initialize(). The document tree is built in the
-    // UIDocument's own OnEnable (during Instantiate, before this runs), so the labels
-    // resolve here.
     public void Bind(CreatureDNA creature, MoriMochiAgent agent)
     {
-
         dna = creature;
         this.agent = agent;
         ResolveElements();
@@ -81,19 +62,15 @@ public class NameTag : MonoBehaviour
         Refresh();
     }
 
-    // Queries the named labels and configures the panel root. Re-resolves whenever the
-    // UIDocument swaps in a NEW tree: when a pooled creature reactivates (SetActive false→
-    // true) the document rebuilds rootVisualElement, orphaning the old Label refs — keeping
-    // them would write the name/status/intent into elements no longer on screen.
     private void ResolveElements()
     {
-        var docRoot = document != null ? document.rootVisualElement : null;
+        var docRoot = UiPanels.RootOf(document);
         if (docRoot == null) return;
-        if (docRoot == root && nameLabel != null) return;   // already wired to the current tree
+        if (docRoot == root && nameLabel != null) return;
 
         root = docRoot;
-        root.style.alignItems     = Align.Center;     // center the tag inside the world-space panel quad…
-        root.style.justifyContent = Justify.Center;   // …so it floats over the pivot, not the panel's corner
+        root.style.alignItems     = Align.Center;
+        root.style.justifyContent = Justify.Center;
         root.pickingMode          = PickingMode.Ignore;
 
         nameLabel        = root.Q<Label>("name-label");
@@ -117,7 +94,6 @@ public class NameTag : MonoBehaviour
             cam = Camera.main.transform;
         }
 
-        // Distance-gated visibility — hide the whole panel when far, and skip the rest.
         float distSqr = (cam.position - transform.position).sqrMagnitude;
         bool  visible = distSqr <= showDistance * showDistance;
         if (visible != shown) SetShown(visible);
@@ -125,9 +101,6 @@ public class NameTag : MonoBehaviour
 
         Refresh();
 
-        // Penned creatures get a raised, compact tag so the breeding layout clears the floor.
-        // Position is driven in WORLD space (parent position + world-up offset) so the tag's
-        // height never orbits with the parent's rotation when the body tumbles/rolls.
         bool penned = agent != null && agent.IsPenned;
         transform.localScale = penned ? baseLocalScale * penScale : baseLocalScale;
 
@@ -141,7 +114,6 @@ public class NameTag : MonoBehaviour
             transform.localPosition = penned ? baseLocalPos + Vector3.up * penRaise : baseLocalPos;
         }
 
-        // Billboard: point the panel's front (+Z, the face UITK draws on) at the camera.
         Vector3 toCam = transform.position - cam.position;
         if (uprightOnly) toCam.y = 0f;
         if (toCam.sqrMagnitude > 0.0001f)
@@ -160,15 +132,11 @@ public class NameTag : MonoBehaviour
         ResolveElements();
         if (dna == null) return;
 
-        // Store creatures show the sale layout (name + price); other penned creatures swap to the
-        // breeding pen layout (gender + name + personality, plus heart/timer while breeding); free
-        // creatures keep the status/intent/pet-hint readout.
         if      (agent != null && agent.IsForSale) RefreshStore();
         else if (agent != null && agent.IsPenned)  RefreshPenned();
         else                                       RefreshDefault();
     }
 
-    // Store layout: name (kept from Bind) + the sale price under it. Every other line hides.
     private void RefreshStore()
     {
         SetDisplay(statusLabel,      false);
@@ -190,8 +158,6 @@ public class NameTag : MonoBehaviour
         }
     }
 
-    // Pen layout: gender glyph + name + personality only. While the creature is breeding, add a
-    // heart and the egg's live countdown. The free-roam lines (status/intent/pet-hint) are hidden.
     private void RefreshPenned()
     {
         SetDisplay(priceLabel,   false);
@@ -227,8 +193,6 @@ public class NameTag : MonoBehaviour
         if (breeding && timerLabel != null) timerLabel.text = CountdownText(dna.BreedReadyAt);
     }
 
-    // Free-roam layout: name (kept from Bind) + at most ONE secondary line, chosen by priority
-    // so the tag stays compact — pet hint beats status beats intent. Stage/age is pen-only.
     private void RefreshDefault()
     {
         SetDisplay(priceLabel,  false);
@@ -239,19 +203,14 @@ public class NameTag : MonoBehaviour
         SetDisplay(timerLabel,  false);
         SetDisplay(stageLabel,  false);
 
-        // Priority 1: pet hint — either the post-pet debug flash or the "[E] Acariciar" prompt
-        // shown only when the player is close enough and facing this creature.
         bool isBeingPetted = agent != null && agent.IsBeingPetted;
         bool showPetHint   = isBeingPetted ||
                               (agent != null && !dna.IsDead &&
                                agent.IsInFriendlyReaction && agent.IsPlayerFacingMe());
 
-        // Priority 2: busy/dead status, when it has something to say.
         var (statusText, statusColor) = StatusOf(dna);
         bool showStatus = !showPetHint && !string.IsNullOrEmpty(statusText);
 
-        // Priority 3: intent, but only the "interesting" ones — Idle/Wandering are the default
-        // state and carry no information, so they stay silent.
         bool intentInteresting = agent != null && !dna.IsDead &&
                                   agent.Intent != CreatureIntent.Idle &&
                                   agent.Intent != CreatureIntent.Wandering;
@@ -278,7 +237,6 @@ public class NameTag : MonoBehaviour
         if (label != null) label.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
-    // (text, color) for the busy/dead status line. Empty text → the line hides.
     private static (string, Color) StatusOf(CreatureDNA dna)
     {
         if (dna.IsDead) return (Loc.Tr("status.dead"), new Color(1f, 0.39f, 0.39f));
@@ -288,8 +246,6 @@ public class NameTag : MonoBehaviour
             _                   => ("", Color.clear),
         };
     }
-
-    // ── Pen layout helpers ────────────────────────────────────────
 
     private static string GenderGlyph(CreatureGender g) => g switch
     {
@@ -313,7 +269,6 @@ public class NameTag : MonoBehaviour
             : $"{ageDays}d";
     }
 
-    // Live mm:ss until the egg can hatch (server epoch ms); ready prompt once due.
     private static string CountdownText(long readyAtMs)
     {
         long left = readyAtMs - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();

@@ -92,7 +92,6 @@ namespace MoriMonchiSimulator
 
             agent.Initialize(archetype, StoreDisplayRegistry.All, register, this);
             active.Add(agent);
-            GameEvents.CustomerSpawned(agent);
             return agent;
         }
 

@@ -3,12 +3,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Base type for a single social reaction rule: given a Percept (something the agent
-// noticed nearby), decide whether it wants to react and how strongly. Odin serializes
-// the polymorphic list natively (same pattern as EquipmentEffectBase), so RoleWorldProfile
-// offers a "+" dropdown to mix Approach/Avoid/PlayChase rules freely per role. Each concrete
-// rule is a closed, parameterized kind — no free-form logic. Consumed by AgentSocial, which
-// scores every matching rule and picks the best one per tick.
 [Serializable]
 public abstract class ReactionRuleBase
 {
@@ -37,7 +31,6 @@ public enum SocialAction
     Fight = 4,
 }
 
-// Se acerca a otro MoriMochi con buena afinidad, siempre que este disponible.
 [Serializable]
 public class ApproachFriendRule : ReactionRuleBase
 {
@@ -59,7 +52,6 @@ public class ApproachFriendRule : ReactionRuleBase
     public override string Summary() => $"Se acerca si afinidad >= {MinAffinity:0.##}";
 }
 
-// Evita a otro MoriMochi con mala afinidad.
 [Serializable]
 public class AvoidDislikedRule : ReactionRuleBase
 {
@@ -80,8 +72,6 @@ public class AvoidDislikedRule : ReactionRuleBase
     public override string Summary() => $"Evita si afinidad <= {MaxAffinity:0.##}";
 }
 
-// Invita a jugar/perseguir a otro MoriMochi con buena afinidad, si ambos tienen
-// energia y salud suficiente para jugar.
 [Serializable]
 public class PlayChaseRule : ReactionRuleBase
 {
@@ -111,7 +101,6 @@ public class PlayChaseRule : ReactionRuleBase
     public override string Summary() => $"Invita a jugar si afinidad >= {MinAffinity:0.##} y ambos tienen energia";
 }
 
-// Duerme junto a otro MoriMochi con buena afinidad, si ambos tienen sueno y no estan enfermos.
 [Serializable]
 public class SleepTogetherRule : ReactionRuleBase
 {
@@ -141,7 +130,6 @@ public class SleepTogetherRule : ReactionRuleBase
     public override string Summary() => $"Duerme junto a otro si afinidad >= {MinAffinity:0.##} y ambos tienen sueno";
 }
 
-// Busca pelea de juego con otro MoriMochi de mala afinidad, si ambos estan sanos y con energia.
 [Serializable]
 public class GremlinFightRule : ReactionRuleBase
 {

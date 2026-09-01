@@ -108,7 +108,6 @@ public class CloudSyncOps
 
         if (cloudMeta != null && localMeta.LocalKnownCloudAt != cloudMeta.CloudPushedAt)
         {
-            // TODO Etapa 2.3: cambiar a return false cuando Cloud Code firme tokens server-side.
             SecurityStatus = "CHEAT ALERT (dev: push allowed)";
             Debug.LogWarning(
                 $"[CloudSync] CHEAT ALERT: local token ({localMeta.LocalKnownCloudAt}) " +
@@ -130,36 +129,34 @@ public class CloudSyncOps
         isPushInProgress = true;
         try
         {
-            setStatus("Validating...");
-            if (!await ValidateBeforePush()) return;
-
-            setStatus("Pushing...");
-            long pushedAt = DateTime.UtcNow.Ticks;
-
-            var payload = new Dictionary<string, object>
+            await CloudEndpoint.Guarded("Push", "Push", async () =>
             {
-                { REGISTRY_KEY, SaveSystem.Serialize(registry.GetAll()) },
-                { META_KEY,     JsonConvert.SerializeObject(new SyncMeta { CloudPushedAt = pushedAt }) },
-            };
-            if (furnitureRegistry != null)
-                payload[FURNITURE_KEY] = SaveSystem.SerializeFurniture(furnitureRegistry);
-            if (inventory != null)
-                payload[INVENTORY_KEY] = SaveSystem.SerializeInventory(inventory);
+                setStatus("Validating...");
+                if (!await ValidateBeforePush()) return;
 
-            await CloudSaveService.Instance.Data.Player.SaveAsync(payload);
+                setStatus("Pushing...");
+                long pushedAt = DateTime.UtcNow.Ticks;
 
-            var localMeta               = ReadLocalMeta();
-            localMeta.LocalKnownCloudAt = pushedAt;
-            WriteLocalMeta(localMeta);
-            RefreshSecurityDisplay();
+                var payload = new Dictionary<string, object>
+                {
+                    { REGISTRY_KEY, SaveSystem.Serialize(registry.GetAll()) },
+                    { META_KEY,     JsonConvert.SerializeObject(new SyncMeta { CloudPushedAt = pushedAt }) },
+                };
+                if (furnitureRegistry != null)
+                    payload[FURNITURE_KEY] = SaveSystem.SerializeFurniture(furnitureRegistry);
+                if (inventory != null)
+                    payload[INVENTORY_KEY] = SaveSystem.SerializeInventory(inventory);
 
-            setStatus($"Pushed {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture");
-            Debug.Log($"[CloudSync] Pushed {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture.");
-        }
-        catch (Exception e)
-        {
-            setStatus($"Push error: {e.Message}");
-            Debug.LogError($"[CloudSync] Push failed: {e}");
+                await CloudSaveService.Instance.Data.Player.SaveAsync(payload);
+
+                var localMeta               = ReadLocalMeta();
+                localMeta.LocalKnownCloudAt = pushedAt;
+                WriteLocalMeta(localMeta);
+                RefreshSecurityDisplay();
+
+                setStatus($"Pushed {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture");
+                Debug.Log($"[CloudSync] Pushed {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture.");
+            }, setStatus);
         }
         finally
         {
@@ -170,7 +167,7 @@ public class CloudSyncOps
     public async Task PullAsync()
     {
         if (!EnsureSignedIn()) return;
-        try
+        await CloudEndpoint.Guarded("Pull", "Pull", async () =>
         {
             setStatus("Pulling...");
             var result = await CloudSaveService.Instance.Data.Player.LoadAsync(
@@ -221,30 +218,24 @@ public class CloudSyncOps
 
             setStatus($"Pulled {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture");
             Debug.Log($"[CloudSync] Pulled {registry.Count} creatures, {furnitureRegistry?.Count ?? 0} furniture.");
-        }
-        catch (Exception e)
-        {
-            setStatus($"Pull error: {e.Message}");
-            Debug.LogError($"[CloudSync] Pull failed: {e}");
-        }
+        }, setStatus);
     }
 
     public async Task ResetProgressAsync()
     {
         if (!EnsureSignedIn()) return;
-        try
+        await CloudEndpoint.Guarded("Reset", "Reset", async () =>
         {
             setStatus("Resetting...");
 
-            try { await CloudEndpoint.CallAsync(CANCEL_ALL_BREEDING, new Dictionary<string, object>()); } catch { }
+            await CloudEndpoint.Guarded("CancelAllBreeding", "CancelAllBreeding",
+                () => CloudEndpoint.CallAsync(CANCEL_ALL_BREEDING, new Dictionary<string, object>()), setStatus);
 
-            // Clear cloud keys (ignore errors if key doesn't exist)
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY,       new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY,           new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY,      new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY,      new PlayerDeleteOptions()); } catch { }
 
-            // Clear local data and JSON — do NOT push back (we just cleared the cloud)
             registry.LoadFrom(new System.Collections.Generic.Dictionary<string, CreatureDNA>());
             SaveSystem.SaveDatabase(registry);
             GameEvents.RegistryReloaded(registry);
@@ -262,18 +253,12 @@ public class CloudSyncOps
                 GameEvents.InventoryReloaded(inventory);
             }
 
-            // Clear local sync meta
             if (File.Exists(MetaPath)) File.Delete(MetaPath);
             RefreshSecurityDisplay();
 
             setStatus("Progress reset — cloud and local data cleared");
             Debug.Log("[CloudSync] All progress reset.");
-        }
-        catch (Exception e)
-        {
-            setStatus($"Reset error: {e.Message}");
-            Debug.LogError($"[CloudSync] Reset failed: {e}");
-        }
+        }, setStatus);
     }
 
 }

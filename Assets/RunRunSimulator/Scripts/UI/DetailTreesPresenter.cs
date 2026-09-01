@@ -33,8 +33,6 @@ public class DetailTreesPresenter
         BuildBreed(dna);
     }
 
-    // ── Lineage tab (ancestor tree: self + parents + grandparents) ──
-
     private void BuildLineage(CreatureDNA dna)
     {
         if (lineageTree == null) return;
@@ -43,12 +41,9 @@ public class DetailTreesPresenter
         bool hasAncestry = !string.IsNullOrEmpty(dna.MotherID) || !string.IsNullOrEmpty(dna.FatherID);
         if (lineageEmpty != null) lineageEmpty.style.display = hasAncestry ? DisplayStyle.None : DisplayStyle.Flex;
 
-        // depth 2 → self (chip) + parents + grandparents.
         lineageTree.Add(BuildBlock(dna, Loc.Tr("ui.detail.tree.self"), depth: 2, isSelf: true));
     }
 
-    // A generation block stacks vertically: [parents row] → [vertical connector] →
-    // [this creature's chip]. Recurses upward until depth runs out or ancestry ends.
     private VisualElement BuildBlock(CreatureDNA dna, string role, int depth, bool isSelf)
     {
         var block = new VisualElement();
@@ -82,8 +77,6 @@ public class DetailTreesPresenter
         return b;
     }
 
-    // Resolves an ancestor by ID. Known (in registry) → full recursion upward.
-    // Unknown (dead/removed) → genetics parsed from the ID, no further ancestry.
     private VisualElement BuildAncestor(string id, string role, int depth)
     {
         if (string.IsNullOrEmpty(id))
@@ -129,19 +122,12 @@ public class DetailTreesPresenter
         return database != null ? dna.GetDisplayName(database) : dna.ToStringID();
     }
 
-    // A UniqueID is "<genetic_string>-<timestamp>"; strip the timestamp and parse
-    // the genetics so a missing ancestor still shows its color and parts.
     private static CreatureDNA ParseGenetics(string uniqueId)
     {
         int li = uniqueId.LastIndexOf('-');
         return CreatureDNA.FromID(li > 0 ? uniqueId.Substring(0, li) : uniqueId);
     }
 
-    // ── Breed tab (descendants: partners + their children) ─────────
-
-    // Children are found by scanning the registry for anyone whose Mother/Father is
-    // this creature (robust whether or not ChildrenIDs is maintained), then grouped
-    // by the OTHER parent (the partner). Tree grows downward: self → partners → kids.
     private void BuildBreed(CreatureDNA dna)
     {
         if (breedTree == null) return;
@@ -150,7 +136,7 @@ public class DetailTreesPresenter
         var registry = getRegistry();
         string selfId = dna.UniqueID;
         var byPartner = new Dictionary<string, List<CreatureDNA>>();
-        var order     = new List<string>();   // preserves discovery order
+        var order     = new List<string>();
 
         if (registry != null && !string.IsNullOrEmpty(selfId))
             foreach (var c in registry.GetAll().Values)

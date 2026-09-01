@@ -3,17 +3,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// EDITOR HELPER — temporary, removable. Drop it on a furniture prefab ROOT, hit the button,
-// and it moves the root's CHILDREN so the root pivot lands at the footprint's horizontal
-// center and on the base (Y) of the mesh — the pivot the runtime expects (FurnitureSpawner
-// and the build ghost place the root at PlacementGrid.FootprintCenter and rotate around it).
-//
-// The offset is baked into the prefab as the children's local positions, so you can DELETE
-// this component afterwards and nothing changes. You keep full control: nudge the children by
-// hand, toggle restOnFloor, or re-run the button. The footprint gizmo lets you eyeball the fit.
-//
-// Requirement: the mesh must live under a CHILD (you can't move the root relative to itself).
-// For a bare primitive (e.g. a Cube), wrap it under an empty root first.
 [DisallowMultipleComponent]
 public class FurniturePivotAligner : MonoBehaviour
 {
@@ -38,9 +27,8 @@ public class FurniturePivotAligner : MonoBehaviour
             return;
         }
 
-        Bounds b = LocalBounds(renderers);   // mesh AABB in this root's local space
+        Bounds b = LocalBounds(renderers);
 
-        // Offset that drops the mesh's horizontal center onto the root origin and its base onto y=0.
         Vector3 offset = new Vector3(-b.center.x, restOnFloor ? -b.min.y : -b.center.y, -b.center.z);
 
         var children = new Transform[transform.childCount];
@@ -52,8 +40,6 @@ public class FurniturePivotAligner : MonoBehaviour
         Debug.Log($"[PivotAligner] Recentered {children.Length} child(ren) by {offset}. Safe to remove this component now.");
     }
 
-    // Combined AABB of the renderers expressed in this transform's LOCAL space (handles a root
-    // placed anywhere in the prefab stage; exact for an unrotated root, conservative otherwise).
     private Bounds LocalBounds(Renderer[] renderers)
     {
         Matrix4x4 toLocal = transform.worldToLocalMatrix;
@@ -75,7 +61,6 @@ public class FurniturePivotAligner : MonoBehaviour
         return result;
     }
 
-    // Footprint rectangle centered on the pivot — once centered, the mesh should fill it.
     private void OnDrawGizmos()
     {
         Gizmos.matrix = transform.localToWorldMatrix;

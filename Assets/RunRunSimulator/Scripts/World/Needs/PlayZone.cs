@@ -1,4 +1,3 @@
-// A toy / pampering zone — raises Affect (anti-stress). Add to a furniture prefab.
 namespace MoriMonchiSimulator
 {
 public sealed class PlayZone : NeedStation

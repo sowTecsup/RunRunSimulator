@@ -187,7 +187,6 @@ namespace MoriMonchiSimulator
                     CurrentOffer = InitialOffer;
                 }
                 HasCounteredOnce = false;
-                GameEvents.CustomerDecided(this, pick);
                 TransitionTo(NpcState.ApproachingRegister);
                 return;
             }
@@ -232,7 +231,6 @@ namespace MoriMonchiSimulator
 
             if (register.IsFrontSlot(this) && dist < arriveDistance)
             {
-                GameEvents.CustomerArrivedAtRegister(this);
                 waitTimer = 0f;
                 TransitionTo(NpcState.WaitingAtRegister);
                 return;
@@ -257,8 +255,6 @@ namespace MoriMonchiSimulator
 
             if (!navAgent.pathPending && navAgent.remainingDistance < arriveDistance)
             {
-                bool wasSold = TargetMM != null && TargetMM.BusyState == BusyReason.Sold;
-                GameEvents.CustomerLeft(this, wasSold);
                 controller.Despawn(this);
             }
         }

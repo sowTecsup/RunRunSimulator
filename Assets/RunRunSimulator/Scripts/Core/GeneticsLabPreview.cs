@@ -6,12 +6,9 @@ namespace MoriMonchiSimulator
 
 public class GeneticsLabPreview : MonoBehaviour
 {
-    // ── Setup ─────────────────────────────────────────────────────
 
     [BoxGroup("Setup"), Required]
     [SerializeField] private GameManager gameManager;
-
-    // ── Current Creature ──────────────────────────────────────────
 
     [BoxGroup("Current Creature")]
     [FormerlySerializedAs("_currentDNA")]
@@ -43,15 +40,11 @@ public class GeneticsLabPreview : MonoBehaviour
     [ShowInInspector, ReadOnly, LabelText("Score"), LabelWidth(80), BoxGroup("Current Creature/Rarity")]
     private string rarityScore = "---";
 
-    // ── Load by ID ────────────────────────────────────────────────
-
     [BoxGroup("Load by ID")]
     [InfoBox("Format: BODYSHAPEID-HORNID-BACKID-WINGID-FACEID-RRGGBB   (e.g.  BS0-H3-K1-W2-F4-FF00AA)")]
     [FormerlySerializedAs("_loadIDInput")]
     [SerializeField, LabelText("DNA String")]
     private string loadIDInput = "";
-
-    // ── Buttons ───────────────────────────────────────────────────
 
     [Button("Generate Random Creature", ButtonSizes.Large), GUIColor(0.4f, 0.85f, 0.4f)]
     [BoxGroup("Current Creature")]
@@ -76,8 +69,6 @@ public class GeneticsLabPreview : MonoBehaviour
         Debug.Log($"[GeneticsLabPreview] Loaded: {currentDNAString}");
         ValidateDNA(currentDNA);
     }
-
-    // ── Private Methods ───────────────────────────────────────────
 
     private void RefreshRarityBreakdown()
     {

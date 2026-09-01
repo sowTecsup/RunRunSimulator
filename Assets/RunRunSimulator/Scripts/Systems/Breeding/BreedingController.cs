@@ -6,16 +6,9 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Domain owner of the breeding services in the scene (dev tooling lives in BreedingDevConsole).
-// Attach to the same GameObject as GameManager. Resolves its assets from
-// GameManager.Instance in Awake — no serialized cross-references needed.
-// Pens (BreedingContainer) don't hold their own AsyncBreedingService / affinity table:
-// they ask BreedingController.Instance for them, so there's a single source of truth.
 public class BreedingController : MonoBehaviour
 {
     public static BreedingController Instance { get; private set; }
-
-    // ── Cached References ─────────────────────────────────────────
 
     private CreatureRegistrySO  registry;
     private CreatureDatabaseSO  database;
@@ -36,8 +29,6 @@ public class BreedingController : MonoBehaviour
 
     public CreatureLifeStageTableSO LifeStageTable => lifeStageTable;
 
-    // ── Lifecycle ─────────────────────────────────────────────────
-
     private void Awake()
     {
         Instance = this;
@@ -52,12 +43,9 @@ public class BreedingController : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
-    // ── Breeding services (requested by pens) ─────────────────────
-
     public float GetAffinity(Role a, Role b) =>
         affinityTable?.GetAffinity(a, b) ?? 0.5f;
 
-    // Async server-side breeding: a pen requests these instead of owning the service.
     public Task StartBreedingAsync(string motherID, string fatherID) =>
         asyncBreedingService != null
             ? asyncBreedingService.StartBreedingAsync(motherID, fatherID)
@@ -83,8 +71,6 @@ public class BreedingController : MonoBehaviour
         Debug.LogError($"[BreedingController] {message}");
         return Task.CompletedTask;
     }
-
-    // ── Public Methods ────────────────────────────────────────────
 
     public string BreedCreatures(string motherID, string fatherID)
     {

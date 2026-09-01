@@ -34,8 +34,6 @@ public class CloudAuth
         this.onSignedInComplete = onSignedInComplete;
     }
 
-    // ── Private Methods ───────────────────────────────────────────
-
     private void SetupAuthEvents()
     {
         AuthenticationService.Instance.SignedIn += () =>
@@ -95,8 +93,6 @@ public class CloudAuth
         catch { return "---"; }
     }
 
-    // Calls the minimal get-server-time Cloud Code function and caches the offset.
-    // Non-critical: if it fails the game falls back to local time gracefully.
     public async Task FetchServerTimeAsync()
     {
         try
@@ -122,11 +118,9 @@ public class CloudAuth
         }
     }
 
-    // ── Public Methods ────────────────────────────────────────────
-
     public async Task InitializeAsync()
     {
-        try
+        await CloudEndpoint.Guarded("Init", "Init", async () =>
         {
             setStatus("Initializing...");
 
@@ -142,7 +136,6 @@ public class CloudAuth
                 return;
             }
 
-            // Resume cached session silently — works for any prior auth method
             if (AuthenticationService.Instance.SessionTokenExists)
             {
                 setStatus("Resuming session...");
@@ -152,42 +145,26 @@ public class CloudAuth
             }
 
             setStatus("Ready — press 'Sign In with Unity Account'");
-        }
-        catch (Exception e)
-        {
-            setStatus($"Init error: {e.Message}");
-            Debug.LogError($"[CloudSync] Init failed: {e}");
-        }
+        }, setStatus);
     }
 
     public async Task SignInAnonymouslyAsync()
     {
-        try
+        await CloudEndpoint.Guarded("Anon sign-in", "SignInAnonymously", async () =>
         {
             setStatus("Signing in anonymously...");
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
             await OnSignedInComplete("Anonymous");
-        }
-        catch (Exception e)
-        {
-            setStatus($"Anon sign-in error: {e.Message}");
-            Debug.LogError($"[CloudSync] SignInAnonymously failed: {e}");
-        }
+        }, setStatus);
     }
 
     public async Task StartUnitySignInAsync()
     {
-        try
+        await CloudEndpoint.Guarded("Sign-in", "StartSignInAsync", async () =>
         {
             setStatus("Opening sign-in...");
             await PlayerAccountService.Instance.StartSignInAsync();
-            // Flow continues in OnPlayerAccountSignedIn (event-driven by the browser callback)
-        }
-        catch (Exception e)
-        {
-            setStatus($"Sign-in error: {e.Message}");
-            Debug.LogError($"[CloudSync] StartSignInAsync failed: {e}");
-        }
+        }, setStatus);
     }
 
     public void SignOut()
@@ -196,23 +173,17 @@ public class CloudAuth
         PlayerAccountService.Instance.SignOut();
         playerID   = "---";
         playerName = "---";
-        // isSignedIn + status updated by the SignedOut event handler above
     }
 
     public async Task UpdatePlayerNameAsync(string newName)
     {
-        try
+        await CloudEndpoint.Guarded("Name update", "UpdatePlayerName", async () =>
         {
             await AuthenticationService.Instance.UpdatePlayerNameAsync(newName);
             playerName = await SafeGetPlayerName();
             setStatus($"Name updated: {playerName}");
             Debug.Log($"[CloudSync] Player name updated → {playerName}");
-        }
-        catch (Exception e)
-        {
-            setStatus($"Name update error: {e.Message}");
-            Debug.LogError($"[CloudSync] UpdatePlayerName failed: {e}");
-        }
+        }, setStatus);
     }
 
     public void Teardown()

@@ -4,14 +4,10 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Stateless service — called by GameManager. All state lives in the passed-in databases.
 public static class BreedingService
 {
     public const int MaxBreedCount = 4;
 
-    // Validates parents, builds a child DNA by inheriting from the genealogical tree,
-    // wires up MotherID / FatherID on the child, and increments BreedCount on both parents.
-    // Returns null if any validation fails.
     public static CreatureDNA Breed(
         string                 motherID,
         string                 fatherID,
@@ -88,8 +84,6 @@ public static class BreedingService
         return child;
     }
 
-    // ── Private helpers ───────────────────────────────────────────
-
     private static string ResolveSlot(
         PartRole               role,
         string                 motherID,
@@ -100,22 +94,17 @@ public static class BreedingService
     {
         var slot = odds.Roll();
 
-        // levels=0 → parents themselves, levels=1 → grandparents, levels=2 → great-grandparents
         string partID = slot switch
         {
             InheritanceOddsTableSO.Slot.Parent           => PickFromLevel(role, 0, motherID, fatherID, registry),
             InheritanceOddsTableSO.Slot.Grandparent      => PickFromLevel(role, 1, motherID, fatherID, registry),
             InheritanceOddsTableSO.Slot.GreatGrandparent => PickFromLevel(role, 2, motherID, fatherID, registry),
-            _                                            => null  // Mutation and Base → random
+            _                                            => null
         };
 
-        // Fallback: any random part from the full pool (covers Mutation, Base, and empty ancestry)
         return partID ?? RandomPartID(role, partDb);
     }
 
-    // Walks the genealogical tree 'levels' generations above [motherID, fatherID],
-    // collects all ancestors at that level, then picks one random part ID from among them.
-    // Returns null if no ancestors exist at that depth (wild-caught lineage).
     private static string PickFromLevel(
         PartRole         role,
         int              levels,
@@ -133,7 +122,6 @@ public static class BreedingService
         return candidates.Count > 0 ? candidates[Random.Range(0, candidates.Count)] : null;
     }
 
-    // Climbs the family tree 'levels' steps from the origin IDs.
     private static List<string> ExpandGenerations(
         IEnumerable<string> origins,
         int                 levels,
@@ -175,8 +163,6 @@ public static class BreedingService
         _             => ""
     };
 
-    // 50/50 inherit from mother or father, then apply a random delta of -1, 0, or +1.
-    // Result is clamped to [StatMin, StatMax] — same ceiling as a minted creature.
     private static float InheritStat(float motherStat, float fatherStat)
     {
         float inherited = Random.value < 0.5f ? motherStat : fatherStat;

@@ -24,8 +24,6 @@ public class CreatureDatabaseSO : SerializedScriptableObject
     [Required, AssetsOnly, BoxGroup("Sub-Databases")]
     public FaceDatabaseSO Faces;
 
-    // ──────────────── Validation ────────────────
-
     [Button("Validate — Check for Duplicate IDs Across All Databases", ButtonSizes.Large)]
     [GUIColor(1f, 0.8f, 0.2f)]
     public void ValidateAllDatabases()
@@ -57,8 +55,6 @@ public class CreatureDatabaseSO : SerializedScriptableObject
             }
         }
     }
-
-    // ──────────────── API ────────────────
 
     public BodyShapePart GetBodyShape(string id) => BodyShapes?.GetPartByID(id);
     public HornPart      GetHorn(string id)       => Horns?.GetPartByID(id);

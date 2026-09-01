@@ -2,8 +2,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Two-word name pool for auto-naming MoriMonchis on Mint and Breed.
-// Names are editable post-assignment via CreatureDNA.CustomName.
 public static class CreatureNameBank
 {
     private static readonly string[] adjectives =

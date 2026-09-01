@@ -11,9 +11,12 @@ namespace MoriMonchiSimulator.DragonRps
         public List<DragonAction> Discard = new List<DragonAction>();
         public int Hits;
 
+        private readonly Random rng;
+
         public DragonRpsSide(DragonRpsDragon dragon, Random rng)
         {
             Dragon = dragon;
+            this.rng = rng;
             Deck = dragon.BuildDeck();
             Shuffle(rng);
             for (int i = 0; i < DragonRpsRules.HandSize; i++)
@@ -25,6 +28,17 @@ namespace MoriMonchiSimulator.DragonRps
         public bool CanAct
         {
             get { return Hand.Count > 0; }
+        }
+
+        public void Reshuffle()
+        {
+            Deck.AddRange(Discard);
+            Discard.Clear();
+            Shuffle(rng);
+            while (Hand.Count < DragonRpsRules.HandSize && Deck.Count > 0)
+            {
+                Draw();
+            }
         }
 
         public void Play(DragonAction action)

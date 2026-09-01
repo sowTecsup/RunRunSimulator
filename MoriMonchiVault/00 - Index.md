@@ -13,7 +13,7 @@ tags: [index, core]
 ```
 MoriMonchiVault/
 ├── 00 - Index.md              ← ESTE ARCHIVO (entry point para IA)
-├── Index/                     ← Notas principales por dominio y diseno (01-20 · 09b = digest historico S8-S88)
+├── Index/                     ← Notas principales por dominio y diseno (01-21 · la 20 se borro con el prototipo en S93 · 09b = digest historico S8-S88)
 └── ScriptNodes/               ← Un nodo por script .cs (~200)
 ```
 
@@ -27,7 +27,7 @@ MoriMonchiVault/
 | **Breeding mechanic** | [[Index/02 - Genetics & Breeding]] | [[BreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[BreedingContainer]] |
 | **Visual assembly (3D, Suriyun DragonSD)** | [[Index/02 - Genetics & Breeding]] | [[MonchiVisualizer]], [[MonchiVisualBankSO]], [[DragonAnimationDriver]] |
 | **Combate ACTUAL (v3 Dragon RPS, S92+)** | [[Index/21 - Combate v3 - Dragon RPS]] | `Scripts/DragonRps/` (DragonRpsRules, DragonRpsMatch, DragonRpsSession, etc.) |
-| **Combate prototipo táctico S77-S88 (NO VALIDÓ — historia)** | [[Index/20 - Combat Prototype MVP (Plan)]] (historica) | nodos de `Scripts/CombatPrototype/` (congelado, pendiente decidir demolición) |
+| **Combate prototipo táctico S77-S88 (NO VALIDÓ — DEMOLIDO S93)** | [[Index/09b - Session Digest (S8-S88)]] (timeline S77-S88); código, escena, assets, nota `Index/20` y ScriptNodes borrados — recuperables en git `3cc5eb5` | — |
 | **Combate viejo 3v3 (DEMOLIDO S75 — solo historia)** | [[Index/03 - Combat]] (historico), [[Index/09b - Session Digest (S8-S88)]] | — |
 | **Cloud sync (UGS)** | [[Index/04 - UGS & Cloud]] | [[CloudSyncService]], [[CloudAuth]], [[CloudSyncOps]] |
 | **Auth & Cloud Save** | [[Index/04 - UGS & Cloud]], [[Index/07 - Persistence & Identity]] | [[CloudSyncService]], [[SaveSystem]], [[GameManager]] |
@@ -52,7 +52,6 @@ MoriMonchiVault/
 | **Refundación del combate: lentes, géneros, formatos** | [[Index/17 - Refundacion del Combate]] | — |
 | **Pilares del rediseño (día/noche · genes · ítem · Cutie Marks)** — Partes 7-8 (tablero) 🪦 descartadas S76 | [[Index/18 - Pilares del Rediseno (Draft)]] | — |
 | **COMBATE NUEVO: Predictive Tactical Extraction (expedición · plantillas · secuencia · extracción)** ⚠️ DRAFT | [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]] | — |
-| **MVP DE COMBATE S80 (beats · ticks · juggle · enemigos reactivos)** 🪦 HISTÓRICA desde S92 — el prototipo no validó; solo el §15 (auditoría) sigue útil | [[Index/20 - Combat Prototype MVP (Plan)]] | — |
 | **COMBATE v3: Dragon RPS (RPS rígido · deck 6 · mano 3 · 3 golpes)** ✅ FUENTE DE VERDAD de la mecánica de combate | [[Index/21 - Combate v3 - Dragon RPS]] | — |
 
 ---
@@ -61,9 +60,8 @@ MoriMonchiVault/
 
 ```
 Assets/RunRunSimulator/Scripts/
-├── CombatPrototype/ # prototipo tactico S80-S88 — CONGELADO desde S91, no validó (pendiente decidir demolición)
 ├── DragonRps/     # combate v3 S92+ (logica pura, cero dependencias de UnityEngine)
-├── Core/          # GameManager, GameEvents, SaveSystem, Enums, Interfaces
+├── Core/          # GameManager, GameEvents (10 eventos), SaveSystem, Interfaces · Enums/ (un archivo por dominio desde S93)
 ├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · CutieMarks/ · Equipment/ · Items/ · Social/
 ├── Systems/       # Desacoplados vía GameEvents
 │   ├── Breeding/  # BreedingService, AsyncBreedingService
@@ -74,8 +72,8 @@ Assets/RunRunSimulator/Scripts/
 │   ├── Social/    # SocialGraphService
 │   ├── Stats/     # stats/point-buy
 │   └── Store/     # StoreManager, ShopCatalogSO, DeliveryBox
-├── Editor/        # MCP/ (tools propias [McpForUnityTool])
-├── UI/            # UIManager, UIInputs, panel controllers UITK
+├── Editor/        # CreatureRegistryDevTools (menu MoriMonchi/Registry, tooling dev fuera del SO de datos, S93)
+├── UI/            # UIManager, UIInputs, panel controllers UITK · CreatureDisplay + UiPanels (helpers compartidos, S93)
 ├── Player/        # PlayerInputs, PlayerController, BuildingInputs
 ├── Interactables/ # PanelTrigger, ThrowableObject
 └── World/         # AI/ (MoriMochiAgent + colaboradores), Creatures/ (MonchiVisualizer, FurRenderer), NeedStation, containers

@@ -5,17 +5,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// A floating world-space pictogram bubble above a MoriMochi, rendered with UI
-// Toolkit as a single Label instead of TextMeshPro. Shares the UIDocument with
-// NameTag (same "WorldUITKInfo" child, NameTagUITK.uxml) instead of owning a
-// separate world-space UIDocument — it inserts its label as a fixed-height slot
-// at the top of "tag-root", above the name, so the tag never re-flows when the
-// emote appears or disappears. NameTag.cs owns the transform (billboard +
-// distance gating); this component never touches it. Purely event-driven — it
-// never polls the agent, it just listens to MoriMochiAgent.OnEmote and pops a
-// single glyph (?, ☺, ♪, !, ♥, Zz…) so the reaction reads without any text,
-// localization-free. Pop in, hold, fade out; a new emote while one is already
-// showing restarts the animation cleanly.
 [RequireComponent(typeof(UIDocument))]
 public class MonchiEmoteBubble : MonoBehaviour
 {
@@ -49,11 +38,6 @@ public class MonchiEmoteBubble : MonoBehaviour
         EnsureLabel();
     }
 
-    // A world-space UIDocument auto-generates a picking BoxCollider on this GameObject (created
-    // lazily after enable, re-created after Destroy). Left alive it joins the creature's compound
-    // collider — aim raycasts and the throw/Knock pipeline start hitting a phantom box floating
-    // over every head. Disabling it sticks (Unity never re-enables it), matching NameTag's
-    // collider-free behavior, so we hunt it each frame until silenced.
     private void TryDisableAutoCollider()
     {
         if (colliderSilenced) return;
@@ -68,10 +52,6 @@ public class MonchiEmoteBubble : MonoBehaviour
         if (agent != null) agent.OnEmote -= Show;
     }
 
-    // Resolves NameTagUITK's "tag-root" and inserts our label as its first child (a fixed-height
-    // slot above the name) so the tag never re-flows when the emote appears or disappears. The
-    // shared UIDocument rebuilds its tree when a pooled creature reactivates, orphaning the old
-    // Label ref, so "exists" isn't enough — it must still be attached to a live panel.
     private void EnsureLabel()
     {
         var tagRoot = document != null ? document.rootVisualElement?.Q<VisualElement>("tag-root") : null;

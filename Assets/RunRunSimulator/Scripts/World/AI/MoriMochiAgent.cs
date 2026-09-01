@@ -6,20 +6,6 @@ using UnityEngine.Events;
 namespace MoriMonchiSimulator
 {
 
-// The runtime "brain" of one MoriMochi cube in the world. Drives a NavMeshAgent
-// through a small behavior state machine biased by the creature's Role
-// (via RoleWorldProfileSO), and hands off cleanly to physics when the player
-// grabs/throws it (IThrowable) — NavMeshAgent ⇄ Rigidbody, the one real technical
-// tension here.
-//
-// Behavior is data-driven: this script never switches on Role directly, it
-// reads the resolved RoleWorldProfile. The cube is spawned and wired by
-// MoriMochiSpawner, which calls Initialize().
-//
-// Components: NavMeshAgent drives movement while the Rigidbody stays kinematic.
-// On grab the agent is disabled and the Rigidbody goes dynamic (gravity/throw);
-// once it settles we sample the nearest NavMesh point, Warp the agent back and
-// resume. RequireComponent guarantees both exist.
 [RequireComponent(typeof(NavMeshAgent))]
 [RequireComponent(typeof(Rigidbody))]
 public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
@@ -31,11 +17,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private AgentSenses      senses;
     private AgentSocial      social;
 
-    // ── Lifecycle ─────────────────────────────────────────────────
-
-    // A furniture rebake snaps every active agent — we react to bracket events so this one
-    // detaches before the bake and re-anchors after. Subscribe/unsubscribe with activation so a
-    // pooled (inactive) instance never reacts (it's off the mesh anyway).
     private void OnEnable()
     {
         GameEvents.OnNavMeshWillRebake += confinement.OnNavMeshWillRebake;
@@ -63,16 +44,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         senses      = new AgentSenses(this, ctx);
         social      = new AgentSocial(this, ctx);
 
-        ctx.Rb.isKinematic = true;          // NavMeshAgent drives until we get thrown
+        ctx.Rb.isKinematic = true;
         ctx.Rb.useGravity  = false;
 
-        // NavMesh-driven by default → the collider is a trigger so the kinematic body
-        // doesn't push/collide while roaming (cheaper, no contact solving). It flips to a
-        // solid collider only while physics owns it (carried/thrown), so bounces register.
         ctx.SetColliderTrigger(true);
     }
 
-    // Wired by the spawner. profileTable + player may be resolved here as a fallback.
     public void Initialize(CreatureDNA creature, RoleWorldProfileSO profileTable, Transform playerTransform)
     {
         ctx.Dna     = creature;
@@ -80,19 +57,14 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
                       ?? RoleWorldProfile.Neutral();
         ctx.Player  = playerTransform;
 
-        RestoreNavMeshControl();   // pooling: an instance reused from the pool keeps last life's state — reset it
+        RestoreNavMeshControl();
 
         if (nameTag != null) nameTag.Bind(creature, this);
 
-       // agent.speed = profile.MoveSpeed;(la velocidad del morimonchi no debe depender de su adn)
-
-        // Penned creatures are gated to the BreedingRoom area; free ones get everything EXCEPT it,
-        // so they route around every pen (cost wouldn't fence — only the mask does). If the Area
-        // isn't set up yet (-1), fall back to AllAreas so behavior degrades gracefully.
         int breeding         = NavMesh.GetAreaFromName(breedingAreaName);
         ctx.ConfinedAreaMask = breeding >= 0 ? 1 << breeding : NavMesh.AllAreas;
         ctx.FreeAreaMask     = breeding >= 0 ? NavMesh.AllAreas & ~(1 << breeding) : NavMesh.AllAreas;
-        ctx.Agent.areaMask   = ctx.FreeAreaMask;     // free movement — personality is a preference, never a fence
+        ctx.Agent.areaMask   = ctx.FreeAreaMask;
 
         brain.EnterRoaming();
         physics.CaptureNavAnchor(transform.position);
@@ -105,20 +77,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         if (nameTag != null) nameTag.Bind(creature, this);
     }
 
-    // ── Pooling (reuse) ───────────────────────────────────────────
-
-    // Reset to a clean NavMesh-driven body. Awake runs once per instance, NOT on pool
-    // reactivation, so a creature reused from the pool would otherwise resume last life's
-    // state (mid-throw velocity, disabled agent, a still-reserved station). Called at the
-    // top of Initialize; idempotent for fresh (non-pooled) instances.
     private void RestoreNavMeshControl()
     {
         brain.ReleaseStation();
-        // lifecycle re-init, not a player exit: drop from the census only — Release here would persist a
-        // phantom anchor and, in a BreedingContainer, cancel the server egg on pool reuse.
         confinement.DetachForReuse();
 
-        if (!ctx.Rb.isKinematic)            // only clear on a dynamic body — setting velocity on a kinematic one warns
+        if (!ctx.Rb.isKinematic)
         {
             ctx.Rb.linearVelocity  = Vector3.zero;
             ctx.Rb.angularVelocity = Vector3.zero;
@@ -145,14 +109,9 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         ctx.State            = AgentState.Idle;
     }
 
-    // Called by the spawner before this instance goes back to the pool (deactivated): free any
-    // held station/pen so it doesn't hog them while inert, and stop steering. Reuse re-inits via
-    // Initialize → RestoreNavMeshControl.
     public void PrepareForPool()
     {
         brain.ReleaseStation();
-        // silent recycle, not a player exit: detach from the census without persisting or cancelling
-        // domain state (egg) — Release belongs to OnGrab, where the player actually lifts the occupant.
         confinement.DetachForReuse();
         social.ResetForReuse();
         if (ctx.Agent.enabled && ctx.Agent.isOnNavMesh) ctx.Agent.ResetPath();
@@ -178,7 +137,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
             case AgentState.Courting:     confinement.TickCourting(); break;
             case AgentState.Socializing:  social.TickSocializing();  break;
             case AgentState.HandFeed:     brain.TickHandFeed();      break;
-            // Carried: nothing to tick — the carry-follow runs in FixedUpdate.
         }
     }
 
@@ -190,92 +148,50 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private void OnCollisionEnter(Collision collision) => physics.HandleCollisionEnter(collision);
     private void OnTriggerEnter(Collider other) => physics.HandleTriggerEnter(other);
 
-    // ── Public facade (Spawner / NameTag / containers / ThrowableObject) ──
-
     public bool IsHeld => ctx.State == AgentState.Carried;
-    // True only while ragdolling after a throw — not while carried, not while NavMesh-driven.
-    // A container admits only creatures for which this is true (thrown in), never walk-ins.
     public bool IsAirborne => ctx.State == AgentState.Thrown;
     public CreatureDNA DNA => ctx.Dna;
 
-    // True while this creature is confined to a pen (breeding/store container). The NameTag
-    // reads it to swap to the pen layout (gender + name + personality, plus heart/timer if breeding).
     public bool IsPenned => ctx.CurrentContainer != null;
 
-    // True while displayed for sale in a StoreContainer. The NameTag reads it to swap to the
-    // store layout (name + price) instead of the breeding pen layout.
     public bool IsForSale => ctx.CurrentContainer is StoreContainer;
     public bool IsCourting => ctx.State == AgentState.Courting;
     public bool IsSocializing => ctx.State == AgentState.Socializing;
     public bool IsRecovering => ctx.State == AgentState.Recovering;
 
-    // True while the creature is actively reacting to the player in a friendly way (not fleeing).
-    // The NameTag polls this to show the pet hint — no dot product here so the hint doesn't flicker.
     public bool IsInFriendlyReaction => brain.IsInFriendlyReaction;
 
-    // True for a brief moment after the player pets this creature — drives the "Petting…" label.
     public bool IsBeingPetted => brain.IsBeingPetted;
 
-    // True when this creature is in a friendly Reacting state and the player is facing it.
     public bool CanBePetted => brain.CanBePetted;
 
-    // What this creature is trying to do RIGHT NOW, for the NameTag. Maps the internal
-    // AgentState (+ active reaction / reserved need) to the player-facing CreatureIntent;
-    // the tag turns it into words.
     public CreatureIntent Intent => ctx.State == AgentState.Socializing ? social.Intent : brain.Intent;
 
-    // Fires when this creature plays an emote (e.g. social interaction beat) — the NameTag/bubble
-    // on the same prefab subscribes to react without this script knowing about presentation.
     public event System.Action<EmoteKind> OnEmote;
     internal void EmitEmote(EmoteKind kind) => OnEmote?.Invoke(kind);
 
-    // True when the player is within petRadius AND their horizontal forward aligns with the
-    // direction from the player to this creature (petLookAngle cone). Uses player.forward
-    // (the body yaw set by Move(), always horizontal) — no camera pitch issues, no creature
-    // forward dependency.
     public bool IsPlayerFacingMe() => brain.IsPlayerFacingMe();
 
-    // IInteractable — tap E while facing a creature in a friendly reaction to pet it.
-    // Gives an Affect boost, starts the cooldown so it won't immediately follow again,
-    // and sends the creature back to its own business.
     public void Interact() => brain.Interact();
     public bool BeginPetting() => brain.BeginPetSession();
     public void EndPetting() => brain.EndPetSession();
 
-    // Knocked by another thrown object (IThrowable contract). If currently NavMesh-
-    // controlled, hand off to physics like a throw; then apply the impulse so it
-    // ragdolls away and can bounce / chain into others.
     public void Knock(Vector3 force) => physics.Knock(force);
 
-    // Cannon spawn: disables the NavMeshAgent BEFORE teleporting to the muzzle so the agent never
-    // fires OnEnable off-mesh (which would error, snap the transform to the floor, and fight
-    // physics). Initialize() must have been called first on a valid NavMesh point — this just
-    // handles the "pop out of the machine" movement. It then arcs as a ragdoll, lands, and gets up
-    // onto the mesh via the normal throw pipeline (TickThrown → BeginGetUp).
     public void Launch(Vector3 launchPos, Vector3 launchVelocity) => physics.Launch(launchPos, launchVelocity);
-
-    // ── IThrowable (physics handoff) ──────────────────────────────
 
     public void OnGrab(Transform anchor) => physics.OnGrab(anchor);
     public void OnRelease() => physics.OnRelease();
     public void OnThrow(Vector3 force) => physics.OnThrow(force);
 
-    // Called by a MoriMochiContainer when a creature lands in a pen with room. Cuts the ragdoll,
-    // snaps onto the breeding-area floor at the pen center, and restricts the areaMask so from now
-    // on it can only walk inside breeding floor (released when the player grabs it). Returns false
-    // (without confining) if the pen floor isn't on the breeding NavMesh — so the pen doesn't
-    // register an occupant it never actually caught, and we never call ResetPath off-mesh.
     public bool EnterConfinement(MoriMochiContainer pen) => confinement.EnterConfinement(pen);
     public void EnterCourtship(MoriMochiAgent partner, Vector3 anchor) => confinement.EnterCourtship(partner, anchor);
     public void ExitCourtship() => confinement.ExitCourtship();
 
-    // Handshake: another agent's AgentSocial asks this one to join its social play.
     internal bool TryJoinSocialPlay(MoriMochiAgent initiator) => social.TryJoinSocialPlay(initiator);
     internal void CompleteSocialPlayFromPartner() => social.CompleteFromPartner();
     internal bool TryJoinSocialSleep(MoriMochiAgent initiator, NeedStation station, Vector3 fallbackSpot) => social.TryJoinSleep(initiator, station, fallbackSpot);
     internal bool TryJoinSocialFight(MoriMochiAgent initiator) => social.TryJoinFight(initiator);
-
-    // ── Switchboard (used by AgentBrain / AgentPhysics / AgentConfinement) ──
 
     internal void RequestRoam() => brain.EnterRoaming();
     internal void RequestReleaseStation() => brain.ReleaseStation();
@@ -286,13 +202,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     internal Vector3 AdjustRoamForAvoidance(Vector3 candidate) => social.AdjustRoamForAvoidance(candidate);
     internal void RequestPlayfulKnock(Vector3 force) => physics.Knock(force, false);
 
-    // ── Tuning (Odin tabs) ────────────────────────────────────────
-    // Grouped to mirror the two concerns this component juggles — the NavMesh "brain"
-    // (Movement) and the physics/throwable layer (Physics) — plus Presentation.
-
     [TabGroup("Tuning", "References"), Title("References")]
     [SerializeField] private NameTag nameTag;
-    // ── Movement (NavMesh brain) ──
     [TabGroup("Tuning", "Movement"), Title("NavMesh sampling")]
     [Tooltip("Max distance to snap a desired point onto the NavMesh.")]
     [SerializeField] internal float sampleRadius = 4f;
@@ -347,9 +258,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [Tooltip("HEMBRA: cada cuánto (s) elige un nuevo punto cerca del slot (más bajo = darts más frecuentes).")]
     [SerializeField, Min(0.05f)] internal float courtTendInterval = 0.5f;
 
-    // ── Needs (decay + thresholds) ──
-    // Live readout of this creature's current needs (the values in dna.Needs, mutated each frame).
-    // Editor-only window into runtime state — drives nothing.
     [TabGroup("Tuning", "Needs"), Title("Live values (play mode)")]
     [ShowInInspector, ProgressBar(0f, 100f, 0.3f, 0.9f, 0.4f)]
     private float Health => ctx?.Dna != null ? ctx.Dna.Needs.Health : 0f;
@@ -360,9 +268,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [ShowInInspector, ProgressBar(-100f, 100f, 1f, 0.5f, 0.7f)]
     private float Affect => ctx?.Dna != null ? ctx.Dna.Needs.Affect : 0f;
 
-    // Overall wellbeing, DERIVED from the needs against the critical thresholds below (never stored —
-    // always in sync). Sick = Health critical (survival emergency); InNeed = Energy/Affect critical;
-    // Healthy = none. Gates whether it can afford to react to the player (see ReactIfPlayerNear).
     [TabGroup("Tuning", "Needs"), ShowInInspector, EnumToggleButtons, ReadOnly]
     public CreatureCondition Condition
     {
@@ -450,7 +355,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [Tooltip("Segundos antes de volver a buscar comida de la mano tras un bocado.")]
     [SerializeField, Min(0f)] internal float feedCooldown = 20f;
 
-    // ── Stats (live readout) ──
     [TabGroup("Tuning", "Stats"), Title("Base (con partes) → Final (con equipo) — play mode")]
     [ShowInInspector, ReadOnly, LabelText("CON")] private string StatCon => StatLine(StatType.Constitution);
     [TabGroup("Tuning", "Stats")]
@@ -502,7 +406,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         _                     => 0f,
     };
 
-    // ── Physics (throwable layer) ──
     [TabGroup("Tuning", "Physics"), Title("Hold feel (while carried)")]
     [Tooltip("How snappily the body chases the hold anchor while carried.")]
     [SerializeField] internal float followSpeed = 15f;
@@ -566,23 +469,18 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [Range(0f, 0.5f)]
     [SerializeField] internal float getUpJitter = 0.15f;
 
-    // ── Presentation (visuals + juice) ──
-    // Juice hook points. They fire UnityEvents now (compiles without Feel installed).
-    // When Feel lands: drop an MMF_Player on the prefab and wire its PlayFeedbacks()
-    // into the matching event in the inspector — zero code coupling. These are the
-    // template every future "has visual juice" script should follow.
     [TabGroup("Tuning", "Presentation"), Title("Feedbacks (Feel-ready — wire MMF_Player.PlayFeedbacks here)")]
-    [SerializeField] internal UnityEvent onGrab;     // player picked it up
+    [SerializeField] internal UnityEvent onGrab;
     [TabGroup("Tuning", "Presentation")]
-    [SerializeField] internal UnityEvent onThrow;    // player threw it
+    [SerializeField] internal UnityEvent onThrow;
     [TabGroup("Tuning", "Presentation")]
-    [SerializeField] internal UnityEvent onBounce;   // each reflection off a surface mid-flight
+    [SerializeField] internal UnityEvent onBounce;
     [TabGroup("Tuning", "Presentation")]
-    [SerializeField] internal UnityEvent onLand;     // settled on the ground (before the get-up beat)
+    [SerializeField] internal UnityEvent onLand;
     [TabGroup("Tuning", "Presentation")]
-    [SerializeField] internal UnityEvent onGetUp;    // finished standing up, resumes roaming
+    [SerializeField] internal UnityEvent onGetUp;
     [TabGroup("Tuning", "Presentation")]
-    [SerializeField] internal UnityEvent onPet;      // player petted it from the front
+    [SerializeField] internal UnityEvent onPet;
 
     [TabGroup("Tuning", "Dev"), Title("Live State (play mode)")]
     [ShowInInspector, ReadOnly, EnumToggleButtons]
@@ -660,8 +558,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         brain.EnterRoaming();
     }
 
-    // Feeds the breedingAreaName dropdown with the project's real NavMesh Area names. Body is
-    // editor-only, but the method itself stays compiled so nameof(...) resolves in builds.
     private static IEnumerable<string> EditorNavMeshAreaNames()
     {
 #if UNITY_EDITOR
@@ -671,34 +567,30 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 #endif
     }
 
-    // ── Gizmos (action ranges) ────────────────────────────────────
-    // Ranges come from the resolved profile, which only exists once Initialize()
-    // runs — so these draw in PLAY mode when the cube is selected, not in edit mode.
-
     private void OnDrawGizmos()
     {
-        if (ctx == null || ctx.Profile == null) return;     // not initialized yet (edit mode / pre-spawn)
+        if (ctx == null || ctx.Profile == null) return;
         Vector3 c = transform.position;
 
-        Gizmos.color = new Color(1f, 0.9f, 0.2f);   // player-detection
+        Gizmos.color = new Color(1f, 0.9f, 0.2f);
         Gizmos.DrawWireSphere(c, ctx.Profile.ProximityRadius);
-        Gizmos.color = new Color(0.3f, 0.8f, 1f);   // roam radius
+        Gizmos.color = new Color(0.3f, 0.8f, 1f);
         Gizmos.DrawWireSphere(c, ctx.Profile.RoamRadius);
-        Gizmos.color = Color.purple;   // pet radius
+        Gizmos.color = Color.purple;
         Gizmos.DrawWireSphere(c, petRadius);
         if (ctx.Profile.Reaction != ProximityReaction.Ignore)
         {
-            Gizmos.color = new Color(0.4f, 1f, 0.5f);   // follow/stop distance
+            Gizmos.color = new Color(0.4f, 1f, 0.5f);
             Gizmos.DrawWireSphere(c, ctx.Profile.FollowDistance);
         }
 
-        Gizmos.color = ctx.Profile.Tint;                // role color tag
+        Gizmos.color = ctx.Profile.Tint;
         Gizmos.DrawSphere(c + Vector3.up * 1.2f, 0.12f);
 
         if (ctx.Agent != null && ctx.Agent.enabled && ctx.Agent.isOnNavMesh && ctx.Agent.hasPath)
         {
             Gizmos.color = new Color(1f, 0.4f, 0.85f);
-            Gizmos.DrawLine(c, ctx.Agent.destination);  // current target
+            Gizmos.DrawLine(c, ctx.Agent.destination);
         }
     }
 }

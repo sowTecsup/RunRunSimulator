@@ -9,16 +9,12 @@ namespace MoriMonchiSimulator
 [CreateAssetMenu(menuName = "RunRunSimulator/Genetics/Creature Registry")]
 public class CreatureRegistrySO : SerializedScriptableObject
 {
-    // ── Private Fields ────────────────────────────────────────────
-
     [InfoBox("Reflejo visual del JSON — no editar manualmente. Usar Sync para recargar desde creature_database.json.", InfoMessageType.Warning)]
     [OdinSerialize]
     [PreviouslySerializedAs("_creatures")]
     [DictionaryDrawerSettings(KeyLabel = "UniqueID", ValueLabel = "DNA",
         DisplayMode = DictionaryDisplayOptions.CollapsedFoldout)]
     private Dictionary<string, CreatureDNA> creatures = new Dictionary<string, CreatureDNA>();
-
-    // ── Private Methods ───────────────────────────────────────────
 
     private void MarkDirty()
     {
@@ -27,33 +23,8 @@ public class CreatureRegistrySO : SerializedScriptableObject
 #endif
     }
 
-#if UNITY_EDITOR
-    [System.Serializable]
-    private class IDEntry
+    public void RerollRolesAndElements()
     {
-        [DisplayAsString, HideLabel, HorizontalGroup]
-        public string id;
-
-        [HorizontalGroup(Width = 55), Button("Copy"), GUIColor(0.6f, 0.9f, 1f)]
-        private void CopyToClipboard() => GUIUtility.systemCopyBuffer = id;
-    }
-
-    [Button("Sync from JSON", ButtonSizes.Large), GUIColor(0.5f, 0.85f, 1f)]
-    private void SyncFromJson() => SaveSystem.LoadInto(this);
-
-    // Reasigna un Role y un Element aleatorios a cada MoriMochi del registro y guarda el
-    // JSON local. NO sube a la nube: dispara RegistryReloaded (UI-only, sin push) para
-    // refrescar la escena, y deja la subida en tus manos → pulsá "Push to Cloud" en CloudSyncService.
-    [Button("Reroll Roles & Elements (current)", ButtonSizes.Large), GUIColor(1f, 0.8f, 0.4f)]
-    [PropertyTooltip("Role y Element aleatorios para cada criatura. Guarda JSON local + refresca escena. Subí con 'Push to Cloud' (CloudSyncService).")]
-    private void RerollRolesAndElements()
-    {
-        if (creatures.Count == 0)
-        {
-            Debug.LogWarning("[CreatureRegistrySO] No hay criaturas para rerollear.");
-            return;
-        }
-
         var roleValues    = (Role[])System.Enum.GetValues(typeof(Role));
         var elementValues = (Element[])System.Enum.GetValues(typeof(Element));
         foreach (var dna in creatures.Values)
@@ -63,34 +34,15 @@ public class CreatureRegistrySO : SerializedScriptableObject
         }
 
         MarkDirty();
-        SaveSystem.SaveDatabase(this);                 // persiste local (scoped al usuario logueado en Play)
-
-        if (Application.isPlaying)
-            GameEvents.RegistryReloaded(this);         // re-spawnea con nuevos colores/rangos, SIN push
-
-        Debug.Log($"[CreatureRegistrySO] {creatures.Count} roles/elementos rerolleados. " +
-                  "Pulsá 'Push to Cloud' en CloudSyncService para subir a Cloud Save.");
     }
 
-    [Button("Wipe Registry (DEV)", ButtonSizes.Large), GUIColor(1f, 0.45f, 0.45f)]
-    [PropertyTooltip("Borra TODAS las criaturas. Guarda JSON local vacío + refresca escena. Subí con 'Push to Cloud' (CloudSyncService) para limpiar también la nube.")]
-    private void WipeRegistry()
+    public int Wipe()
     {
         int had = creatures.Count;
         creatures = new Dictionary<string, CreatureDNA>();
-
         MarkDirty();
-        SaveSystem.SaveDatabase(this);
-
-        if (Application.isPlaying)
-            GameEvents.RegistryReloaded(this);
-
-        Debug.Log($"[CreatureRegistrySO] Registro borrado ({had} criaturas). " +
-                  "Pulsá 'Push to Cloud' en CloudSyncService para limpiar Cloud Save.");
+        return had;
     }
-#endif
-
-    // ── Public Methods ────────────────────────────────────────────
 
     public bool Register(CreatureDNA dna)
     {
@@ -144,11 +96,19 @@ public class CreatureRegistrySO : SerializedScriptableObject
         return ColorUtility.TryParseHtmlString("#" + tokens[tokens.Length - 2], out color);
     }
 
-    // ── Getters ───────────────────────────────────────────────────
-
     public int Count => creatures.Count;
 
 #if UNITY_EDITOR
+    [System.Serializable]
+    private class IDEntry
+    {
+        [DisplayAsString, HideLabel, HorizontalGroup]
+        public string id;
+
+        [HorizontalGroup(Width = 55), Button("Copy"), GUIColor(0.6f, 0.9f, 1f)]
+        private void CopyToClipboard() => GUIUtility.systemCopyBuffer = id;
+    }
+
     [Title("Registered IDs")]
     [ShowInInspector]
     [ListDrawerSettings(HideAddButton = true, HideRemoveButton = true, DraggableItems = false)]

@@ -3,10 +3,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Logical placement grid for furniture. Owns cell↔world conversion, bounds and
-// occupancy — all the placement MATH, isolated from meshes (FurnitureSpawner) and
-// input/flow (FurnitureService). Origin is this transform's position (the grid's
-// min corner); the buildable area spans Dimensions cells of CellSize on the XZ plane.
 public class PlacementGrid : MonoBehaviour
 {
     [SerializeField] private float cellSize = 1f;
@@ -20,29 +16,22 @@ public class PlacementGrid : MonoBehaviour
     [Tooltip("How far above/below the grid plane the vertical floor probe reaches.")]
     [SerializeField] private float floorProbeHeight = 50f;
 
-    // Runtime occupancy (derived from the registry). Cleared on a full reload.
     private readonly HashSet<Vector2Int> occupied = new HashSet<Vector2Int>();
 
     public float CellSize => cellSize;
 
-    // Snaps a world point to the anchor cell that contains it.
     public Vector2Int WorldToCell(Vector3 world)
     {
         Vector3 local = world - transform.position;
         return new Vector2Int(Mathf.FloorToInt(local.x / cellSize), Mathf.FloorToInt(local.z / cellSize));
     }
 
-    // World-space center of a footprint anchored at 'anchor', accounting for rotation.
     public Vector3 FootprintCenter(Vector2Int anchor, Vector2Int footprint, int rotation)
     {
         Vector2Int fp = Rotated(footprint, rotation);
         return transform.position + new Vector3((anchor.x + fp.x * 0.5f) * cellSize, 0f, (anchor.y + fp.y * 0.5f) * cellSize);
     }
 
-    // Vertical probe at the footprint center to read the real floor under a cell. Returns the
-    // ground Y and whether that ground is flat enough to build on (normal within maxSlopeAngle
-    // of up). Shared by the build-mode ghost and the spawner so preview == placed (Option B:
-    // Y is recomputed from the terrain, never stored on the lightweight record).
     public bool TrySampleFloor(Vector2Int anchor, Vector2Int footprint, int rotation, out float y, out bool flat)
     {
         Vector3 c = FootprintCenter(anchor, footprint, rotation);
@@ -80,7 +69,6 @@ public class PlacementGrid : MonoBehaviour
 
     public void Clear() => occupied.Clear();
 
-    // A 90°/270° turn swaps the footprint's X/Y extent.
     private static Vector2Int Rotated(Vector2Int fp, int rotation)
         => (Mathf.Abs(rotation % 180) == 0) ? fp : new Vector2Int(fp.y, fp.x);
 

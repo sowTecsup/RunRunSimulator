@@ -3,20 +3,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// In-game breeding screen (UI Toolkit), modal. This component owns two tabs:
-//   • "Criar"     — pick a Father + Mother, preview both (stats + parts), see the
-//                   estimated time, and start the breed (server-timed).
-//   • "Incubando" — the eggs currently breeding as cards (Mother 💗 Father → time
-//                   left); when an egg's timer hits 0 a Hatch button appears.
-//
-// Lives on the always-active UIManager object (like the grid/detail controllers)
-// and fills its own UIDocument. It's a thin core: navigation and content for each
-// tab are delegated to BreedingBreedTabPresenter / BreedingEggsTabPresenter, both
-// reached via GameManager's registry and AsyncBreedingService.
-//
-// Keyboard/gamepad: implements IUINavigable with a hierarchical focus model
-// (TabBar ⇄ content). ESC steps one level up (OnUICancel consumes it) and only
-// closes the panel when already at the TabBar.
 [DisallowMultipleComponent]
 public class BreedingPanelUITK : MonoBehaviour, IUINavigable
 {
@@ -34,18 +20,14 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
     private enum Region { TabBar, Content }
     private Region region = Region.TabBar;
 
-    // ── UI refs ──
     private TabView tabs;
     private Button closeButton;
 
-    // ── State ──
     private CreatureRegistrySO registry;
     private bool wired;
 
     private BreedingBreedTabPresenter breed;
     private BreedingEggsTabPresenter eggs;
-
-    // ── Lifecycle ─────────────────────────────────────────────────
 
     private void Awake()
     {
@@ -76,7 +58,6 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
         UIManager.RegisterNavigable(panel, this);
     }
 
-    // Tick the egg countdown only while the Incubando tab is visible.
     private void Update()
     {
         if (wired && tabs != null && tabs.selectedTabIndex == 1) eggs.Tick();
@@ -90,12 +71,10 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
         UIManager.UnregisterNavigable(panel);
     }
 
-    // ── Wiring ────────────────────────────────────────────────────
-
     private void Wire()
     {
         if (wired) return;
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root == null) return;
 
         tabs        = root.Q<TabView>("tabs");
@@ -160,18 +139,16 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
 
     private void OnBred()
     {
-        if (tabs != null) tabs.selectedTabIndex = 1;   // jump to Incubando
+        if (tabs != null) tabs.selectedTabIndex = 1;
         region = Region.TabBar;
         ClearAllFocus();
         SetTabBarFocus(true);
     }
 
-    // ── Data / events ─────────────────────────────────────────────
-
     private void OnRegistry(CreatureRegistrySO reg)
     {
         registry = reg;
-        if (!wired) { Wire(); return; }   // Wire() already rebuilds
+        if (!wired) { Wire(); return; }
         RebuildAll();
     }
 
@@ -183,8 +160,6 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
         breed.Rebuild();
         eggs.Rebuild();
     }
-
-    // ── IUINavigable ──────────────────────────────────────────────
 
     private ITabPresenter ActivePresenter()
     {
@@ -202,7 +177,7 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
         if (breed != null && breed.Busy) return;
 
         int h = dir.x >  0.5f ? 1 : dir.x < -0.5f ? -1 : 0;
-        int v = dir.y < -0.5f ? 1 : dir.y >  0.5f ? -1 : 0;   // down = +1
+        int v = dir.y < -0.5f ? 1 : dir.y >  0.5f ? -1 : 0;
         if (h == 0 && v == 0) return;
 
         if (region == Region.TabBar)

@@ -6,22 +6,12 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Read-only grid view of every registered MoriMochi. Driven entirely by events:
-// the registry arrives in the event payload, so this view never reaches into
-// GameManager. Purely a display surface (Etapa 1.2): never mutates the registry.
 public class CreatureGridView : MonoBehaviour
 {
-    // Last registry handed to us by an event — NOT a GameManager lookup. Cached
-    // only so the manual Refresh button has something to rebuild from.
     private CreatureRegistrySO source;
 
-    // Catalog ref (immutable lookup, not the mutable registry) so the grid can
-    // resolve equipped IDs to item names — same pattern as the detail window's
-    // CreatureDatabaseSO ref.
     [BoxGroup("Creature Grid"), AssetsOnly]
     [SerializeField] private EquipmentDatabaseSO equipmentDb;
-
-    // ── Grid ──────────────────────────────────────────────────────
 
     [BoxGroup("Creature Grid")]
     [ShowInInspector, ReadOnly, LabelText("Registered")]
@@ -31,8 +21,6 @@ public class CreatureGridView : MonoBehaviour
     [TableList(IsReadOnly = true, AlwaysExpanded = true, ShowIndexLabels = true)]
     [SerializeField]
     private List<CreatureRow> rows = new List<CreatureRow>();
-
-    // ── Lifecycle ─────────────────────────────────────────────────
 
     private void OnEnable()
     {
@@ -46,9 +34,6 @@ public class CreatureGridView : MonoBehaviour
         GameEvents.OnRegistryReloaded -= RefreshGrid;
     }
 
-    // ── Private Methods ───────────────────────────────────────────
-
-    // Event handler — rebuilds straight from the payload, no lookup.
     private void RefreshGrid(CreatureRegistrySO registry)
     {
         source = registry;
@@ -66,8 +51,6 @@ public class CreatureGridView : MonoBehaviour
                 .Select(d => CreatureRow.From(d, source, equipmentDb))
                 .ToList();
     }
-
-    // ── Row ───────────────────────────────────────────────────────
 
     [Serializable]
     [GUIColor(nameof(RowTint))]
@@ -104,21 +87,17 @@ public class CreatureGridView : MonoBehaviour
             Breeds = d.BreedCount,
             Mother = ParentName(d.MotherID, registry),
             Father = ParentName(d.FatherID, registry),
-            State  = StateOf(d),
+            State  = CreatureDisplay.StateOf(d),
             Born   = d.BirthDate == default
                 ? "—"
                 : d.BirthDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm"),
         };
 
-        // Resolves a parent's display name from its UniqueID. "—" if no parent
-        // (minted, not bred); "???" if the parent is no longer in the registry.
         private static string ParentName(string parentID, CreatureRegistrySO registry) =>
             string.IsNullOrEmpty(parentID)        ? "—"   :
             registry.TryGet(parentID, out var p)  ? p.CustomName :
                                                     "???";
 
-        // Joins the equipped items by slot order, resolving IDs to names against the
-        // catalog. Falls back to raw IDs if no catalog is wired. "—" if nothing equipped.
         private static string EquipSummary(CreatureDNA d, EquipmentDatabaseSO db)
         {
             if (d.Equipped == null || d.Equipped.Count == 0) return "—";
@@ -127,17 +106,10 @@ public class CreatureGridView : MonoBehaviour
                 .Select(kv => db != null ? (db.GetByID(kv.Value)?.Name ?? kv.Value) : kv.Value));
         }
 
-        private static string StateOf(CreatureDNA d) =>
-            d.IsSold                           ? "SOLD"     :
-            d.IsDead                           ? "DEAD"     :
-            d.BusyState == BusyReason.Breeding ? "Breeding" :
-            "Free";
-
-        // Red = dead, amber = busy, green = free. Tints the whole row.
         private Color RowTint =>
-            State == "DEAD" ? new Color(1f, 0.55f, 0.55f) :
-            State == "Free" ? new Color(0.6f, 0.95f, 0.65f) :
-                              new Color(1f, 0.9f, 0.5f);
+            State == Loc.Tr("status.dead") ? new Color(1f, 0.55f, 0.55f) :
+            State == Loc.Tr("status.free") ? new Color(0.6f, 0.95f, 0.65f) :
+                                             new Color(1f, 0.9f, 0.5f);
     }
 }
 }

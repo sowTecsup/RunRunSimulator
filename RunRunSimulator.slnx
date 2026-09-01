@@ -1,6 +1,6 @@
 ﻿<Solution>
-  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="MoreMountains.Tools.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Sirenix.OdinInspector.Modules.UnityLocalization.Editor.csproj" />
   <Project Path="UnityChan.Common.csproj" />
   <Project Path="MoreMountains.Tools.Editor.csproj" />

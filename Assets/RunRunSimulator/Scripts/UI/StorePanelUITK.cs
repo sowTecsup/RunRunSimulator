@@ -6,14 +6,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// Shop screen: the visual face of a StoreManager's ShopCatalogSO. Three tabs split the
-// catalog the way the player thinks about it — Furniture, WorldProps (tools), and
-// Consumables (food + medicine). Each row shows the live price, the remaining stock, and
-// a Buy button. The panel enforces wallet + stock via StoreManager and shows a transient
-// toast ("¡Sin fondos!", "¡Agotado!") on failure.
-//
-// Opened by a world PanelTrigger via UIManager (UIPanelType.Store). Implements
-// IUINavigable: left/right switch tab, up/down pick a row, Submit buys it.
 [DisallowMultipleComponent]
 public class StorePanelUITK : MonoBehaviour, IUINavigable
 {
@@ -37,11 +29,10 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     private const string RowClass         = "store-row";
     private const string RowSelectedClass = "store-row--selected";
 
-    // One displayable catalog entry, flattened so the row builder is type-agnostic.
     private struct Row
     {
         public string          Name;
-        public StoreShopData   Shop;        // class reference — mutations hit the catalog
+        public StoreShopData   Shop;
         public Func<BuyResult> Buy;
     }
 
@@ -61,8 +52,6 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     private Coroutine notifyCoroutine;
 
     private ShopCatalogSO Catalog => store != null ? store.Catalog : null;
-
-    // ── Lifecycle ─────────────────────────────────────────────────
 
     private void OnEnable()
     {
@@ -86,7 +75,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         BuildTabs();
         UIManager.RegisterNavigable(panel, this);
 
-        var inv = GameManager.Instance != null ? GameManager.Instance.Inventory : null;
+        var inv = GameManager.CurrentInventory;
         RefreshBalance(inv);
         Rebuild();
     }
@@ -110,8 +99,6 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         Rebuild();
     }
 
-    // ── IUINavigable ──────────────────────────────────────────────
-
     public void OnUINavigate(Vector2 dir)
     {
         if      (dir.x >  0.5f) StepTab(1);
@@ -124,15 +111,11 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
     public bool OnUICancel() => false;
 
-    // ── Balance ───────────────────────────────────────────────────
-
     private void RefreshBalance(PlayerInventorySO inv)
     {
         if (balanceLabel == null) return;
         balanceLabel.text = inv != null ? Loc.Tr("ui.store.balance", inv.Dabloons) : "";
     }
-
-    // ── Toast notify ──────────────────────────────────────────────
 
     private void ShowNotify(string message)
     {
@@ -149,8 +132,6 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         if (notifyLabel != null) notifyLabel.style.display = DisplayStyle.None;
         notifyCoroutine = null;
     }
-
-    // ── Tabs ──────────────────────────────────────────────────────
 
     private void BuildTabs()
     {
@@ -180,13 +161,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         Rebuild();
     }
 
-    private void HighlightActiveTab()
-    {
-        for (int i = 0; i < tabEls.Count; i++)
-            tabEls[i].EnableInClassList(TabActiveClass, i == activeTab);
-    }
-
-    // ── Build / refresh ───────────────────────────────────────────
+    private void HighlightActiveTab() => UiPanels.SetActiveIndex(tabEls, activeTab, TabActiveClass);
 
     private void Rebuild()
     {
@@ -258,7 +233,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
     private VisualElement BuildRow(Row row)
     {
-        var  serverNow      = GameManager.Instance != null ? GameManager.Instance.ServerNow : DateTime.Now;
+        var  serverNow      = GameManager.Now;
         bool discountActive = Catalog?.IsDiscountActive(serverNow) ?? false;
 
         var el = new VisualElement();
@@ -327,8 +302,6 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         return label;
     }
 
-    // ── Purchase ──────────────────────────────────────────────────
-
     private void Purchase(Row row)
     {
         if (store == null) { Debug.LogWarning("[StorePanelUITK] No StoreManager assigned."); return; }
@@ -337,7 +310,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         switch (result)
         {
             case BuyResult.Success:
-                Rebuild();   // refresh stock counts + button state
+                Rebuild();
                 break;
             case BuyResult.OutOfStock:
                 ShowNotify(Loc.Tr("ui.store.toast.out_of_stock"));
@@ -364,18 +337,15 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
     private void Select(int idx)
     {
-        if (rowEls.Count == 0) { selectedRow = -1; return; }
-        selectedRow = Mathf.Clamp(idx, 0, rowEls.Count - 1);
-        for (int i = 0; i < rowEls.Count; i++)
-            rowEls[i].EnableInClassList(RowSelectedClass, i == selectedRow);
+        selectedRow = UiPanels.ClampSelection(rowEls.Count, idx);
+        if (selectedRow < 0) return;
+        UiPanels.SetActiveIndex(rowEls, selectedRow, RowSelectedClass);
         if (list != null) list.ScrollTo(rowEls[selectedRow]);
     }
 
-    // ── Plumbing ──────────────────────────────────────────────────
-
     private void Resolve()
     {
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root == null) return;
 
         tabsContainer = root.Q<VisualElement>("tabs");
@@ -395,7 +365,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     private ScrollView ResolveList()
     {
         if (list != null && list.panel != null) return list;
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root == null) return null;
         list = root.Q<ScrollView>("list");
         return list;

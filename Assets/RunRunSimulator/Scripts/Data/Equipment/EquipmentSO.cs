@@ -6,10 +6,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// One equippable item. Stat modifiers and (Stage 2) combat procs live together in
-// the polymorphic Effects list. A creature equips it by storing this asset's ID in
-// CreatureDNA.Equipped[Slot] — the ID is the persisted contract (light, cloud-safe),
-// the SO is resolved against EquipmentDatabaseSO.
 [CreateAssetMenu(fileName = "Equipment", menuName = "RunRunSimulator/Equipment/Equipment Item")]
 public class EquipmentSO : SerializedScriptableObject
 {
@@ -48,7 +44,6 @@ public class EquipmentSO : SerializedScriptableObject
         Effects == null || Effects.Count == 0
             ? "—"
             : string.Join("\n", Effects.Where(e => e != null).Select(e => $"• {e.Summary()}"));
-
 
     private Color GetRarityColor() => BodyPart.RarityColor(Rarity);
 }

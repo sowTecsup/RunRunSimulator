@@ -5,12 +5,9 @@ namespace MoriMonchiSimulator
 
 public class DevToolsConsole : MonoBehaviour
 {
-    // ── Setup ─────────────────────────────────────────────────────
 
     [BoxGroup("Setup"), Required]
     [SerializeField] private GameManager gameManager;
-
-    // ── Dev Tools ─────────────────────────────────────────────────
 
     [Title("Dev Tools")]
     [BoxGroup("Dev Tools"), SerializeField, LabelText("Dabloons to add")]
@@ -60,8 +57,6 @@ public class DevToolsConsole : MonoBehaviour
         GameEvents.InventoryChanged(inventory);
         Debug.Log("[DevToolsConsole] World props and hotbar cleared.");
     }
-
-    // ── Equipment (DEV) ──────────────────────────────────────────────
 
     [BoxGroup("Equipment (DEV)"), SerializeField, AssetsOnly, LabelText("Item to add")]
     private EquipmentSO devEquipmentItem;

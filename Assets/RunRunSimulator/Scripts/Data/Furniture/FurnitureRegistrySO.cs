@@ -5,9 +5,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// The placed-furniture instances (mirror of CreatureRegistrySO). Keyed by anchor
-// cell so a cell holds at most one piece. Source of truth for the world — the
-// FurnitureSpawner rebuilds meshes from here, occupancy lives in PlacementGrid.
 [CreateAssetMenu(menuName = "RunRunSimulator/Furniture/Furniture Registry")]
 public class FurnitureRegistrySO : SerializedScriptableObject
 {

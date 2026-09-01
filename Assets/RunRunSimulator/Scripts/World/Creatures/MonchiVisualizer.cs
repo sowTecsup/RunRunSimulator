@@ -107,36 +107,6 @@ public class MonchiVisualizer : MonoBehaviour
             faceRenderer.sharedMaterial = face;
     }
 
-    public void SetGhost(float alpha)
-    {
-        if (bodyInstance == null) return;
-        bool ghost = alpha < 0.999f;
-        foreach (var renderer in bodyInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true))
-        {
-            foreach (var mat in renderer.materials)
-            {
-                if (ghost)
-                {
-                    mat.SetFloat("_TransparentEnabled", 1f);
-                    mat.SetFloat("_ClippingMode", 2f);
-                    mat.DisableKeyword("_IS_CLIPPING_OFF");
-                    mat.EnableKeyword("_IS_CLIPPING_TRANSMODE");
-                    mat.renderQueue = 3000;
-                    mat.SetFloat("_Tweak_transparency", Mathf.Clamp01(alpha) - 1f);
-                }
-                else
-                {
-                    mat.SetFloat("_Tweak_transparency", 0f);
-                    mat.SetFloat("_TransparentEnabled", 0f);
-                    mat.SetFloat("_ClippingMode", 0f);
-                    mat.EnableKeyword("_IS_CLIPPING_OFF");
-                    mat.DisableKeyword("_IS_CLIPPING_TRANSMODE");
-                    mat.renderQueue = -1;
-                }
-            }
-        }
-    }
-
     private void ApplyLook()
     {
         if (currentDna == null || tintRenderers.Count == 0) return;

@@ -6,13 +6,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// Tooltip-style popup: equips items into a MoriMochi's slot from the player's
-// equipment backpack (drag to reorder, click to equip, cell 0 "None" unequips).
-// Reads the slot's free-placement grid via PlayerInventorySO.GetEquipment (nulls =
-// empty cells). Opened on demand by a caller (e.g. CreatureGridUITK) via
-// Open(dna, slot, anchor, registry); builds its own VisualElement into the anchor's
-// panel root and rebuilds it after every mutation. Owns no persistence — mutates
-// inventory/dna and fires GameEvents only.
 [DisallowMultipleComponent]
 public class EquipmentBackpackUITK : MonoBehaviour
 {
@@ -211,8 +204,8 @@ public class EquipmentBackpackUITK : MonoBehaviour
 
             if (item != null)
             {
-                ApplyRarityBorder(cell, item.Rarity);
-                ApplyIconVisual(cell, item);
+                CreatureDisplay.ApplyRarityBorder(cell, CreatureDisplay.RarityColor(item.Rarity, equipmentPalette));
+                CreatureDisplay.ApplyIconVisual(cell, item);
 
                 cell.RegisterCallback<PointerDownEvent>(evt => OnCellPointerDown(evt, storedIndex, item, cell));
                 cell.RegisterCallback<PointerEnterEvent>(_ => ShowName(item));
@@ -393,7 +386,7 @@ public class EquipmentBackpackUITK : MonoBehaviour
         ghost.pickingMode = PickingMode.Ignore;
         if (themeStyleSheet != null) ghost.styleSheets.Add(themeStyleSheet);
         if (styleSheet != null) ghost.styleSheets.Add(styleSheet);
-        ApplyIconVisual(ghost, dragItem);
+        CreatureDisplay.ApplyIconVisual(ghost, dragItem);
         root.Add(ghost);
     }
 
@@ -451,29 +444,7 @@ public class EquipmentBackpackUITK : MonoBehaviour
         }
 
         nameLabel.text = $"{(string.IsNullOrEmpty(item.Name) ? item.ID : item.Name)} · {LocEnumMaps.RarityName(item.Rarity)}";
-        nameLabel.style.color = RarityColor(item.Rarity);
+        nameLabel.style.color = CreatureDisplay.RarityColor(item.Rarity, equipmentPalette);
     }
-
-    private static void ApplyIconVisual(VisualElement el, EquipmentSO item)
-    {
-        if (item == null) return;
-
-        if (item.Icon != null)
-            el.style.backgroundImage = new StyleBackground(Background.FromSprite(item.Icon));
-        else
-            el.style.backgroundColor = item.IconColor;
-    }
-
-    private void ApplyRarityBorder(VisualElement el, Rarity rarity)
-    {
-        var c = RarityColor(rarity);
-        el.style.borderTopColor    = c;
-        el.style.borderBottomColor = c;
-        el.style.borderLeftColor   = c;
-        el.style.borderRightColor  = c;
-    }
-
-    private Color RarityColor(Rarity r) =>
-        equipmentPalette != null ? equipmentPalette.RarityColor(r) : BodyPart.RarityColor(r);
 }
 }

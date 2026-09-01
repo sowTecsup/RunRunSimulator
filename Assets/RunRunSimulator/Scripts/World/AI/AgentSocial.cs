@@ -2,13 +2,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Social decision + pair-play collaborator of the agent composition (mirrors AgentConfinement's
-// courtship). Reads ctx.Percepts (written by AgentSenses) against the role's ReactionRuleBase
-// list to decide whether to approach a liked neighbor or invite one to a mutual chase, then owns
-// the Socializing state end-to-end. The chase handshake is a mirror of EnterCourtship: the
-// initiator asks TryJoinSocialPlay on the target and only proceeds if it accepts. Once both sides
-// are in, there's no further cross-calls — each side detects the other left play passively, by
-// polling partner.IsSocializing every tick, so neither side needs a callback into the other.
 internal class AgentSocial
 {
     private enum SocialMode { None, Approach, Chaser, Runner, Sleeping, Fighting }
@@ -34,8 +27,6 @@ internal class AgentSocial
         this.ctx   = ctx;
     }
 
-    // Called by MoriMochiAgent.Update only when the brain's own tick left the state at
-    // Idle/Roaming this frame — social decisions never preempt a need or a reaction.
     internal bool TryEngage()
     {
         var t = SocialTuningSO.Current;
@@ -80,49 +71,46 @@ internal class AgentSocial
         }
     }
 
-    private bool BeginApproach(in Percept p, SocialTuningSO t)
-    {
-        var target = p.Source != null ? p.Source.Monchi : null;
-        if (target == null) return false;
+    private static MoriMochiAgent TargetOf(in Percept p) => p.Source != null ? p.Source.Monchi : null;
 
-        partner     = target;
-        mode        = SocialMode.Approach;
+    private void Enter(SocialMode newMode, MoriMochiAgent newPartner, float newDuration, EmoteKind emote)
+    {
+        partner     = newPartner;
+        mode        = newMode;
         timer       = 0f;
-        duration    = t.ApproachDuration;
+        duration    = newDuration;
         repathTimer = 0f;
+        swapped     = false;
+        lungeTimer  = 0f;
+        emoteTimer  = 0f;
 
         ctx.State                = AgentState.Socializing;
         ctx.SetStopped(false);
         ctx.Agent.updateRotation = true;
-        owner.EmitEmote(EmoteKind.Curioso);
+        owner.EmitEmote(emote);
+    }
+
+    private bool BeginApproach(in Percept p, SocialTuningSO t)
+    {
+        var target = TargetOf(p);
+        if (target == null) return false;
+
+        Enter(SocialMode.Approach, target, t.ApproachDuration, EmoteKind.Curioso);
         return true;
     }
 
     private bool BeginPlayChase(in Percept p, SocialTuningSO t)
     {
-        var target = p.Source != null ? p.Source.Monchi : null;
+        var target = TargetOf(p);
         if (target == null) return false;
         if (!target.TryJoinSocialPlay(owner)) return false;
 
-        partner     = target;
-        mode        = SocialMode.Chaser;
-        timer       = 0f;
-        swapped     = false;
-        duration    = t.ChaseDuration;
-        repathTimer = 0f;
-
-        ctx.State                = AgentState.Socializing;
-        ctx.SetStopped(false);
-        ctx.Agent.updateRotation = true;
-        owner.EmitEmote(EmoteKind.Jugando);
+        Enter(SocialMode.Chaser, target, t.ChaseDuration, EmoteKind.Jugando);
         return true;
     }
 
-    // The receiving side of the handshake — validated independently, since the initiator can't
-    // see this creature's own needs/state.
-    internal bool TryJoinSocialPlay(MoriMochiAgent initiator)
+    private bool CanPair(SocialTuningSO t, MoriMochiAgent initiator)
     {
-        var t = SocialTuningSO.Current;
         if (t == null) return false;
         if (initiator == null) return false;
         if (Time.time < cooldownUntil) return false;
@@ -130,31 +118,24 @@ internal class AgentSocial
         if (ctx.CurrentContainer != null) return false;
         if (ctx.IsBreeding) return false;
         if (ctx.Dna == null) return false;
+        return true;
+    }
+
+    internal bool TryJoinSocialPlay(MoriMochiAgent initiator)
+    {
+        var t = SocialTuningSO.Current;
+        if (!CanPair(t, initiator)) return false;
         if (ctx.Dna.Needs.Energy < t.MinEnergyToPlay) return false;
         if (owner.Condition != CreatureCondition.Healthy) return false;
 
         owner.RequestReleaseStation();
-
-        partner     = initiator;
-        mode        = SocialMode.Runner;
-        timer       = 0f;
-        swapped     = false;
-        duration    = t.ChaseDuration;
-        repathTimer = 0f;
-
-        ctx.State                = AgentState.Socializing;
-        ctx.SetStopped(false);
-        ctx.Agent.updateRotation = true;
-        owner.EmitEmote(EmoteKind.Jugando);
+        Enter(SocialMode.Runner, initiator, t.ChaseDuration, EmoteKind.Jugando);
         return true;
     }
 
-    // Sims-style shared nap: looks for a free Energy station near itself first (both sides end up
-    // reserving their own slot at the SAME station when one is available); if there's none, they
-    // just lie down at the midpoint between them.
     private bool BeginSleep(in Percept p, SocialTuningSO t)
     {
-        var target = p.Source != null ? p.Source.Monchi : null;
+        var target = TargetOf(p);
         if (target == null) return false;
 
         var station = NeedStationRegistry.GetClosest(ctx.Body.position, NeedType.Energy);
@@ -175,33 +156,14 @@ internal class AgentSocial
             return false;
         }
 
-        partner     = target;
-        mode        = SocialMode.Sleeping;
-        timer       = 0f;
-        duration    = t.SleepDuration;
-        repathTimer = 0f;
-        emoteTimer  = 0f;
-
-        ctx.State                = AgentState.Socializing;
-        ctx.SetStopped(false);
-        ctx.Agent.updateRotation = true;
-        owner.EmitEmote(EmoteKind.Zzz);
+        Enter(SocialMode.Sleeping, target, t.SleepDuration, EmoteKind.Zzz);
         return true;
     }
 
-    // The receiving side of the sleep handshake. Tries its OWN slot at the station the initiator
-    // found (so both end up served by the same furniture piece when possible); falls back to a
-    // spot just off to the side of the initiator's fallback midpoint so they don't overlap.
     internal bool TryJoinSleep(MoriMochiAgent initiator, NeedStation station, Vector3 fallbackSpot)
     {
         var t = SocialTuningSO.Current;
-        if (t == null) return false;
-        if (initiator == null) return false;
-        if (Time.time < cooldownUntil) return false;
-        if (ctx.State != AgentState.Idle && ctx.State != AgentState.Roaming) return false;
-        if (ctx.CurrentContainer != null) return false;
-        if (ctx.IsBreeding) return false;
-        if (ctx.Dna == null) return false;
+        if (!CanPair(t, initiator)) return false;
         if (ctx.Dna.Needs.Energy > t.MaxEnergyToSleep) return false;
         if (owner.Condition == CreatureCondition.Sick) return false;
 
@@ -220,70 +182,29 @@ internal class AgentSocial
             sleepSpot     = fallbackSpot + side * 0.8f;
         }
 
-        partner     = initiator;
-        mode        = SocialMode.Sleeping;
-        timer       = 0f;
-        duration    = t.SleepDuration;
-        repathTimer = 0f;
-        emoteTimer  = 0f;
-
-        ctx.State                = AgentState.Socializing;
-        ctx.SetStopped(false);
-        ctx.Agent.updateRotation = true;
-        owner.EmitEmote(EmoteKind.Zzz);
+        Enter(SocialMode.Sleeping, initiator, t.SleepDuration, EmoteKind.Zzz);
         return true;
     }
 
     private bool BeginFight(in Percept p, SocialTuningSO t)
     {
-        var target = p.Source != null ? p.Source.Monchi : null;
+        var target = TargetOf(p);
         if (target == null) return false;
         if (!target.TryJoinSocialFight(owner)) return false;
 
-        partner     = target;
-        mode        = SocialMode.Fighting;
-        timer       = 0f;
-        duration    = t.FightDuration;
-        repathTimer = 0f;
-        lungeTimer  = 0f;
-        emoteTimer  = 0f;
-
-        ctx.State                = AgentState.Socializing;
-        ctx.SetStopped(false);
-        ctx.Agent.updateRotation = true;
-        owner.EmitEmote(EmoteKind.Molesto);
+        Enter(SocialMode.Fighting, target, t.FightDuration, EmoteKind.Molesto);
         return true;
     }
 
-    // The receiving side of the fight handshake — same fitness gate as a play chase (a gremlin
-    // scuffle is still play, not real combat), just a different mode/duration.
     internal bool TryJoinFight(MoriMochiAgent initiator)
     {
         var t = SocialTuningSO.Current;
-        if (t == null) return false;
-        if (initiator == null) return false;
-        if (Time.time < cooldownUntil) return false;
-        if (ctx.State != AgentState.Idle && ctx.State != AgentState.Roaming) return false;
-        if (ctx.CurrentContainer != null) return false;
-        if (ctx.IsBreeding) return false;
-        if (ctx.Dna == null) return false;
+        if (!CanPair(t, initiator)) return false;
         if (ctx.Dna.Needs.Energy < t.MinEnergyToPlay) return false;
         if (owner.Condition != CreatureCondition.Healthy) return false;
 
         owner.RequestReleaseStation();
-
-        partner     = initiator;
-        mode        = SocialMode.Fighting;
-        timer       = 0f;
-        duration    = t.FightDuration;
-        repathTimer = 0f;
-        lungeTimer  = 0f;
-        emoteTimer  = 0f;
-
-        ctx.State                = AgentState.Socializing;
-        ctx.SetStopped(false);
-        ctx.Agent.updateRotation = true;
-        owner.EmitEmote(EmoteKind.Molesto);
+        Enter(SocialMode.Fighting, initiator, t.FightDuration, EmoteKind.Molesto);
         return true;
     }
 
@@ -315,9 +236,6 @@ internal class AgentSocial
             owner.EmitEmote(EmoteKind.Jugando);
         }
 
-        // Sleeping/Fighting tick every frame — their energy regen / emote cadence / lunge timer
-        // can't wait on the chase repath gate below — so they bypass it entirely and own their
-        // own completion check.
         if (mode == SocialMode.Sleeping) { TickSleeping(t); return; }
         if (mode == SocialMode.Fighting) { TickFighting(t); return; }
 
@@ -405,8 +323,6 @@ internal class AgentSocial
             ctx.SetDestinationSafe(partner.transform.position - dir * t.FightStopDistance);
         }
 
-        // No dedicated counter field for "every 2 lunges" — reuses emoteTimer at twice the lunge
-        // interval, which lands the Molesto beat roughly every other abalanzada.
         emoteTimer -= Time.deltaTime;
         if (emoteTimer <= 0f)
         {
@@ -426,11 +342,6 @@ internal class AgentSocial
             ctx.Body.rotation, Quaternion.LookRotation(dir.normalized, Vector3.up), 10f * Time.deltaTime);
     }
 
-    // notifyPartner: a natural chase completion also completes the partner's side in the same
-    // frame, so both collect the Affect boost — otherwise whoever ticks second sees a vanished
-    // partner and closes through the interruption path, losing the reward to a frame race. The
-    // same race applies to the SocialGraph write, so history is recorded ONLY on the notifying
-    // (primary) side — the partner's own End() runs with notifyPartner=false and skips it.
     private void End(bool completed, bool notifyPartner = true)
     {
         var t            = SocialTuningSO.Current;
@@ -468,8 +379,6 @@ internal class AgentSocial
 
         if (ctx.State == AgentState.Socializing) owner.RequestRoam();
 
-        // Each side lands its own knock on its own End() call, never on the partner — a mutual
-        // scuffle, both back off with a little shove.
         if (completed && endedMode == SocialMode.Fighting && t != null)
         {
             Vector3 dir = endedPartner != null ? ctx.Body.position - endedPartner.transform.position : Vector3.zero;
@@ -510,9 +419,6 @@ internal class AgentSocial
         cooldownUntil = 0f;
     }
 
-    // Cheap repulsion filter for the brain's next roam point — pushes it away from any nearby
-    // Monchi this creature's Avoid rules dislike. A single pass, no recursion: if the nudged
-    // point is still uncomfortably close to something else, the next roam tick nudges again.
     internal Vector3 AdjustRoamForAvoidance(Vector3 candidate)
     {
         var t = SocialTuningSO.Current;

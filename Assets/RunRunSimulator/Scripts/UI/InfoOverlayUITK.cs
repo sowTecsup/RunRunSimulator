@@ -5,13 +5,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// Always-on screen overlay: the current date (top-right) and a small input legend
-// (top-left). Generic chrome, not tied to any system — it just reads the clock and a
-// designer-authored list of control hints.
-//
-// Standalone like HotbarHUDUITK (NOT a UIManager panel): it's never focused, so it
-// stays out of the panel stack and its UIDocument has picking-mode Ignore so it never
-// eats gameplay clicks. Lives on an always-active object referencing its UIDocument.
 [DisallowMultipleComponent]
 public class InfoOverlayUITK : MonoBehaviour
 {
@@ -36,8 +29,6 @@ public class InfoOverlayUITK : MonoBehaviour
         new InputHint { Key = "Tab",   ActionKey = "ui.overlay.hint.catalog" },
     };
 
-    // Refresh the date once a second — it never changes faster, and rebuilding each
-    // frame is wasted work for a label that turns over at midnight.
     private const float DateRefreshInterval = 1f;
 
     private const string DateFormatKey = "ui.overlay.date.format";
@@ -66,7 +57,7 @@ public class InfoOverlayUITK : MonoBehaviour
     {
         Loc.ApplySavedLocale();
 
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root == null) { Debug.LogWarning("[InfoOverlayUITK] No UIDocument / root."); return; }
 
         dateLabel     = root.Q<Label>("date");
@@ -75,8 +66,7 @@ public class InfoOverlayUITK : MonoBehaviour
         BuildHints(root.Q<VisualElement>("hints"));
         RefreshDate(force: true);
 
-        // Initial dabloons read — inventory is already loaded at this point.
-        var inv = GameManager.Instance != null ? GameManager.Instance.Inventory : null;
+        var inv = GameManager.CurrentInventory;
         if (inv != null) RefreshDabloons(inv);
     }
 
@@ -151,11 +141,11 @@ public class InfoOverlayUITK : MonoBehaviour
 
     private void HandleLocaleChanged(UnityEngine.Localization.Locale locale)
     {
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root == null) return;
         BuildHints(root.Q<VisualElement>("hints"));
         RefreshDate(force: true);
-        var inv = GameManager.Instance != null ? GameManager.Instance.Inventory : null;
+        var inv = GameManager.CurrentInventory;
         if (inv != null) RefreshDabloons(inv);
     }
 }

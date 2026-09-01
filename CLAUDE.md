@@ -84,12 +84,11 @@ Cuando una decision NO este cubierta por las 11 reglas de abajo, se aplica esta.
 |--------|---------------|
 | `OnRegistryChanged` | toda mutacion de gameplay |
 | `OnRegistryReloaded` | CloudSyncService tras pull/reset (UI-only, sin push) |
-| `OnCreatureMinted` | GameManager.MintRandomCreature |
 | `OnBreedingCompleted` | breeding local + async |
 | `OnFurnitureChanged` | FurnitureService (toda mutacion) |
 | `OnFurnitureReloaded` | reload furniture (clear+resync, sin push) |
 
-Ademas existen (15 eventos reales en `GameEvents.cs`, detalles en ScriptNodes): `OnNavMeshWillRebake`/`OnNavMeshRebaked`, `OnInventoryChanged`/`OnInventoryReloaded`, `OnCustomerSpawned`/`OnCustomerDecided`/`OnCustomerArrivedAtRegister`/`OnCustomerSold`/`OnCustomerLeft`. Los eventos de combate (`OnCombatCompleted`/`OnCombatLogged`) murieron con la demolicion S75.
+Ademas existen (10 eventos reales en `GameEvents.cs` desde la poda S93, detalles en ScriptNodes): `OnNavMeshWillRebake`/`OnNavMeshRebaked`, `OnInventoryChanged`/`OnInventoryReloaded`, `OnCustomerSold`. En S93 se borraron los 5 que nadie escuchaba (`OnCreatureMinted`, `OnCustomerSpawned`/`Decided`/`ArrivedAtRegister`/`Left`); los de combate (`OnCombatCompleted`/`OnCombatLogged`) murieron con la demolicion S75. Un evento que nadie suscribe no se agrega "por si acaso".
 
 Eventos UI viven en `UIManager` como `static event Action`. Detalle en [[MoriMonchiVault/Index/05 - UI System]] y [[MoriMonchiVault/Index/07 - Persistence & Identity]].
 

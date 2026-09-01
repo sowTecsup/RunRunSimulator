@@ -7,8 +7,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Requires: com.unity.nuget.newtonsoft-json in Package Manager.
-// Saves/loads the full CreatureRegistrySO (including genealogy tree) to Application.persistentDataPath.
 public static class SaveSystem
 {
     private const string DB_FILENAME        = "creature_database.json";
@@ -18,13 +16,10 @@ public static class SaveSystem
 
     private static string _userScope = "";
 
-    // Namespaces the local save file by player ID so multiple Unity instances
-    // (e.g. Multiplayer Play Mode clones) don't overwrite each other's data.
     public static void SetUserScope(string playerId) => _userScope = playerId ?? "";
 
     private static string DbPath => ScopedPath(DB_FILENAME);
 
-    // "name.json" → "name_{scope}.json" when a player scope is set (else unscoped).
     private static string ScopedPath(string filename)
     {
         if (string.IsNullOrEmpty(_userScope))
@@ -46,7 +41,6 @@ public static class SaveSystem
     {
         string json = JsonConvert.SerializeObject(registry.GetAll(), Settings);
         File.WriteAllText(DbPath, json);
-     //   Debug.Log($"[SaveSystem] Saved {registry.Count} creatures → {DbPath}");
     }
 
     public static string Serialize(Dictionary<string, CreatureDNA> data) =>
@@ -54,9 +48,6 @@ public static class SaveSystem
 
     public static string Serialize(CreatureDNA dna) =>
         JsonConvert.SerializeObject(dna, Settings);
-
-    public static CreatureDNA DeserializeCreature(string json) =>
-        string.IsNullOrEmpty(json) ? null : JsonConvert.DeserializeObject<CreatureDNA>(json, Settings);
 
     public static Dictionary<string, CreatureDNA> Deserialize(string json) =>
         JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(json, Settings);
@@ -78,8 +69,6 @@ public static class SaveSystem
         string path        = DbPath;
         string defaultPath = Path.Combine(Application.persistentDataPath, DB_FILENAME);
 
-        // One-time migration: when first signing in with a scope, inherit any
-        // pre-existing unscoped save so the user doesn't see their data "disappear".
         if (!File.Exists(path) && !string.IsNullOrEmpty(_userScope) && File.Exists(defaultPath))
         {
             File.Copy(defaultPath, path);
@@ -97,13 +86,7 @@ public static class SaveSystem
             File.ReadAllText(path), Settings);
 
         registry.LoadFrom(data);
-      //  Debug.Log($"[SaveSystem] Loaded {registry.Count} creatures from {path}");
     }
-
-    // ── Furniture registry ────────────────────────────────────────
-    // Placed furniture persists alongside ownership: without this the shop reloads
-    // empty even though the player "owns" the pieces (incoherent). Same scoped-file
-    // pattern as the creature DB. Cloud sync layered on later.
 
     public static void SaveFurniture(FurnitureRegistrySO registry)
     {
@@ -125,10 +108,7 @@ public static class SaveSystem
         var data = JsonConvert.DeserializeObject<Dictionary<string, PlacedFurniture>>(
             File.ReadAllText(path), Settings);
         registry.LoadFrom(data);
-      //  Debug.Log($"[SaveSystem] Loaded {registry.Count} placed furniture from {path}");
     }
-
-    // ── Player inventory ──────────────────────────────────────────
 
     public static void SaveInventory(PlayerInventorySO inventory)
     {
@@ -150,10 +130,7 @@ public static class SaveSystem
         var data = JsonConvert.DeserializeObject<PlayerInventorySO.InventoryData>(
             File.ReadAllText(path), Settings);
         inventory.LoadFrom(data);
-       // Debug.Log($"[SaveSystem] Loaded inventory from {path}");
     }
-
-    // ── Social graph ───────────────────────────────────────────────
 
     public static void SaveSocialGraph()
     {
@@ -175,7 +152,6 @@ public static class SaveSystem
         SocialGraphService.ImportData(data, id => registry != null && registry.TryGet(id, out _));
     }
 
-    // Serializes UnityEngine.Color as a 6-character hex string (e.g. "FF00AA").
     private class UnityColorConverter : JsonConverter<Color>
     {
         public override void WriteJson(JsonWriter writer, Color value, JsonSerializer serializer)

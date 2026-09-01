@@ -4,17 +4,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// Detailed MoriMochi summary window (UI Toolkit), FireRed-summary inspired.
-// Lives on the always-active UIManager object and fills its own UIDocument
-// (kept active, hidden via display). Opened when a grid card is clicked.
-//
-// Modal: its full-screen backdrop sits above the grid (higher sortingOrder) and
-// captures clicks, so the panel behind can't be touched until the X closes it.
-//
-// Event-driven: it never references the grid. It listens to UIManager's static
-// OnCreatureSelected — the event carries the creature AND the registry (for
-// parent names). This is a thin core: each tab's content is built by its own
-// presenter (Info/Linaje+Descendencia/Equipo), all sharing the same root.
 [DisallowMultipleComponent]
 public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 {
@@ -38,28 +27,20 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     [Tooltip("Draw order; higher keeps this modal above the grid panel.")]
     [SerializeField] private int sortingOrder = 100;
 
-    // Queried once the document tree is built.
     private Label titleLabel;
     private VisualElement portrait;
     private TabView tabs;
     private Button closeButton;
     private bool wired;
 
-    // One presenter per tab (Linaje + Descendencia share DetailTreesPresenter).
     private DetailInfoTabPresenter info;
     private DetailTreesPresenter trees;
     private DetailEquipTabPresenter equip;
     private DetailRelationsPresenter relations;
 
-    // Kept from the latest Show() so the tab presenters can resolve opponents
-    // and ancestors by ID (the event carries it — the panel never touches the grid).
     private CreatureRegistrySO registry;
 
-    // The creature currently on display, so a registry change (e.g. equipping
-    // from the mochila) can re-run Populate and refresh the Equipo tab in place.
     private CreatureDNA current;
-
-    // ── Lifecycle ─────────────────────────────────────────────────
 
     private void Awake()
     {
@@ -78,8 +59,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         GameEvents.OnRegistryChanged -= OnRegistryChanged;
     }
 
-    // Register as the focused-input handler in Start: UIManager subscribes to the
-    // registration events in OnEnable, which always runs before any Start.
     private void Start()
     {
         Wire();
@@ -92,9 +71,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         UIManager.UnregisterNavigable(panel);
     }
 
-    // ── IUINavigable (routed only while this panel is the focused top) ──
-
-    // A/D (or stick/dpad) steps through the tabs.
     public void OnUINavigate(Vector2 dir)
     {
         if (tabs == null) return;
@@ -105,18 +81,14 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         else if (dir.x < -0.5f) tabs.selectedTabIndex = Mathf.Max(tabs.selectedTabIndex - 1, 0);
     }
 
-    // Nothing to confirm on the summary page yet.
     public void OnUISubmit() { }
 
-    // No internal back state — let the UIManager close the panel on ESC.
     public bool OnUICancel() => false;
-
-    // ── Private Methods ───────────────────────────────────────────
 
     private void Wire()
     {
         if (wired) return;
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root == null) return;
 
         titleLabel = root.Q<Label>("title");
@@ -175,16 +147,13 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         if (label != null) label.text = Loc.Tr(key);
     }
 
-    // Populate then show. Repopulates if already open (clicking another card).
-    // The registry rides along in the event so the Linaje tab can resolve ancestors
-    // by ID (kept in a field for the tab presenters above).
     private void Show(CreatureDNA dna, CreatureRegistrySO registry)
     {
         this.registry = registry;
         current = dna;
         Wire();
         Populate(dna);
-        if (tabs != null) tabs.selectedTabIndex = 0; // always open on the Info tab
+        if (tabs != null) tabs.selectedTabIndex = 0;
         UIManager.RequestPanelSet(panel, true);
     }
 
@@ -194,16 +163,10 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         backpack?.Close();
     }
 
-    // Re-populates in place after any registry mutation (e.g. equipping an item
-    // from the mochila), so the Equipo tab's cards and Base→Final stats stay
-    // current. Populate never touches the selected tab, so the user stays put.
-    // Only repopulates while the panel is visible: Show() always calls Populate
-    // on open, so skipping mutations while hidden loses no freshness and avoids
-    // waking a hidden panel's live camera on every background registry change.
     private void OnRegistryChanged(CreatureRegistrySO _)
     {
         if (current == null || !wired) return;
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root == null || root.resolvedStyle.display == DisplayStyle.None) return;
         Populate(current);
     }

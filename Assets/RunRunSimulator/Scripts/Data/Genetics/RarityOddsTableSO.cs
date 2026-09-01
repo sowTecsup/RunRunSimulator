@@ -10,7 +10,6 @@ namespace MoriMonchiSimulator
 [CreateAssetMenu(fileName = "RarityOddsTable", menuName = "RunRunSimulator/Genetics/Rarity Odds Table")]
 public class RarityOddsTableSO : SerializedScriptableObject
 {
-    // ── Private Fields ────────────────────────────────────────────
 
     [InfoBox("Weights are relative — they are normalized internally. " +
              "A weight of 0 means that rarity never appears.")]
@@ -26,9 +25,6 @@ public class RarityOddsTableSO : SerializedScriptableObject
         { Rarity.Legendary,  1f },
     };
 
-    // ── Public Methods ────────────────────────────────────────────
-
-    // Returns a Rarity sampled from the weighted distribution.
     public Rarity Roll()
     {
         float total = weights.Values.Sum(w => Mathf.Max(0f, w));
@@ -45,8 +41,6 @@ public class RarityOddsTableSO : SerializedScriptableObject
 
         return Rarity.Common;
     }
-
-    // ── Getters ───────────────────────────────────────────────────
 
     [ShowInInspector, ReadOnly, MultiLineProperty(4)]
     [LabelText("Effective %")]

@@ -4,16 +4,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// The COMMERCIAL data of one shop listing: price, per-item discount percentage, stock
-// counts and tags. Kept apart from the item/furniture definition so the same def can
-// appear in multiple catalogs at different prices.
-//
-// WHEN a discount applies (which days / which months) is catalog-wide and lives on
-// ShopCatalogSO — not here. A listing only carries HOW MUCH off (DiscountBase).
-// The caller passes the catalog's `discountActive` flag when computing the final price.
-//
-// Class (not struct) so TryConsume() / Restock() mutate the actual instance in the
-// catalog listing rather than a value copy.
 [Serializable]
 public class StoreShopData
 {
@@ -37,23 +27,16 @@ public class StoreShopData
     [Tooltip("Free-form labels for the UI (\"nuevo\", \"oferta\", \"limitado\"…).")]
     public string[] Tags;
 
-    // ── Price ─────────────────────────────────────────────────────
-
-    // The price the player pays. Pass the catalog's IsDiscountActive result as the flag.
     public int FinalPrice(bool discountActive) =>
         discountActive && DiscountBase > 0f
             ? Mathf.RoundToInt(BasePrice * (1f - DiscountBase))
             : BasePrice;
 
-    // ── Stock helpers ─────────────────────────────────────────────
-
     public bool IsUnlimited => MaxStock < 0;
     public bool InStock     => IsUnlimited || CurrentStock > 0;
 
-    // Replenishes stock to MaxStock. Called by ShopCatalogSO.RestockAll().
     public void Restock() { if (!IsUnlimited) CurrentStock = MaxStock; }
 
-    // Decrements stock by one. Returns false if out of stock.
     public bool TryConsume()
     {
         if (IsUnlimited)      return true;

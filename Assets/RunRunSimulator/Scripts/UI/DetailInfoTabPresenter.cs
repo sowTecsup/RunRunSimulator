@@ -28,13 +28,10 @@ public class DetailInfoTabPresenter
         progressionLabel = root.Q<Label>("progression");
     }
 
-    // ── Rebuild ──────────────────────────────────────────────────
-
     public void Rebuild(CreatureDNA dna)
     {
         if (dna == null) return;
 
-        // Final stat with its (base + bonus-from-parts/tier/equipment) breakdown.
         var baseEff = database != null
             ? CreatureStats.GetEffectiveStats(dna, database)
             : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
@@ -48,7 +45,7 @@ public class DetailInfoTabPresenter
         SetStat(statEva, "EVA", eff.Evasion,      dna.BaseEvasion);
 
         if (identityLabel != null)
-            identityLabel.text = Loc.Tr("ui.detail.identity", LocEnumMaps.GenderName(dna.Gender), StateOf(dna), Born(dna));
+            identityLabel.text = Loc.Tr("ui.detail.identity", LocEnumMaps.GenderName(dna.Gender), CreatureDisplay.StateOf(dna), Born(dna));
 
         if (roleElementLabel != null)
             roleElementLabel.text = Loc.Tr("ui.detail.roleline", LocEnumMaps.RoleName(dna.Role), LocEnumMaps.ElementName(dna.Element), RoleDesc(dna.Role));
@@ -58,8 +55,6 @@ public class DetailInfoTabPresenter
         if (progressionLabel != null)
             progressionLabel.text = Loc.Tr("ui.detail.progression", dna.BreedCount);
     }
-
-    // ── Parts ────────────────────────────────────────────────────
 
     private static void SetStat(Label label, string name, float final, float baseVal)
     {
@@ -101,8 +96,6 @@ public class DetailInfoTabPresenter
         partsContainer.Add(row);
     }
 
-    // ── Role / Element ───────────────────────────────────────────
-
     private static string SlotName(PartRole r) => r switch
     {
         PartRole.Body => Loc.Tr("ui.detail.slot.body"),
@@ -120,12 +113,6 @@ public class DetailInfoTabPresenter
         Role.Empatico  => Loc.Tr("ui.detail.roledesc.empatico"),
         _              => "",
     };
-
-    private static string StateOf(CreatureDNA d) =>
-        d.IsSold                           ? Loc.Tr("status.sold")     :
-        d.IsDead                           ? Loc.Tr("status.dead")     :
-        d.BusyState == BusyReason.Breeding ? Loc.Tr("status.breeding") :
-        Loc.Tr("status.free");
 
     private static string Born(CreatureDNA d) =>
         d.BirthDate == default ? "—" : d.BirthDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");

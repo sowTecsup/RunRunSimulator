@@ -28,27 +28,6 @@ namespace MoriMonchiSimulator
             }
         }
 
-        public static void ApplyHeadshot(VisualElement element, CreatureDNA dna)
-        {
-            if (element == null) return;
-
-            var tex = MonchiPortraitService.Instance != null && dna != null
-                ? MonchiPortraitService.Instance.GetHeadshot(dna)
-                : null;
-
-            if (tex != null)
-            {
-                element.style.backgroundImage = new StyleBackground(tex);
-                element.style.backgroundColor = Color.clear;
-                element.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Cover);
-            }
-            else
-            {
-                element.style.backgroundImage = StyleKeyword.Null;
-                element.style.backgroundColor = dna != null ? dna.BaseColor : FallbackEmpty;
-            }
-        }
-
         public static void ApplyLive(VisualElement element, CreatureDNA dna)
         {
             if (element == null) return;

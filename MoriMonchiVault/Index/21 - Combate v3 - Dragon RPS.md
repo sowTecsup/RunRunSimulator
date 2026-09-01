@@ -4,13 +4,15 @@ tags: [index, design, combate, v3]
 
 # 21 - Combate v3 — Dragon RPS (S92)
 
-> **Sesión 92 (2026-09-01).** Juan entregó el mini-draft **DRAGON RPS V1 FINAL** y con él se cierra la refundación abierta en S91. Este documento reemplaza a [[Index/20 - Combat Prototype MVP (Plan)]], que pasa a **histórica**.
+> **Sesión 92 (2026-09-01).** Juan entregó el mini-draft **DRAGON RPS V1 FINAL** y con él se cierra la refundación abierta en S91. Este documento reemplaza al prototipo táctico S77-S88 (`Index/20`), **demolido por completo en S93** — código, escena, assets, tools MCP, ScriptNodes y nota borrados (git `3cc5eb5` los conserva); lo que se aprendió vive en la memoria persistente del orquestador y en el timeline de [[Index/09b - Session Digest (S8-S88)]].
 >
 > **ESTADO: núcleo CERRADO Y VERIFICADO POR SIMULACIÓN.** Los perks son **exploración, no decididos**.
 >
+> **S93 (2026-09-01):** Juan cerró las decisiones abiertas de S92 — ver **Parte 8**. Cambios que prevalecen sobre lo de abajo donde contradigan: **el espejo parejo NO lastima a los dos (nadie golpea) y sin cartas se rebaraja el descarte** (Partes 1 y 3 ya corregidas); **PvP asíncrono primero + cooldown al perder + modo historia PvE** (Parte 7 reescrita); **breeding = looks + perks** como concepto clave; 3/3/3 descartado; la potencia por tipo crea un RPS de linajes.
+>
 > **Convención:** ⭐ = idea de Juan (fuente de verdad, no interpretar). El resto es lectura del orquestador. Los números vienen del simulador construido en esta sesión, no de opinión.
 
-Relacionado: [[Index/17 - Refundacion del Combate]] · [[Index/15 - Theorycrafting S71 - Autobattler y Marketing]] · [[Index/18 - Pilares del Rediseno (Draft)]] · [[Index/20 - Combat Prototype MVP (Plan)]]
+Relacionado: [[Index/17 - Refundacion del Combate]] · [[Index/15 - Theorycrafting S71 - Autobattler y Marketing]] · [[Index/18 - Pilares del Rediseno (Draft)]]
 
 ---
 
@@ -22,7 +24,7 @@ Relacionado: [[Index/17 - Refundacion del Combate]] · [[Index/15 - Theorycrafti
 
 **Deck de 6:** x2 de cada parte (2 Cuernos, 2 Alas, 2 Espalda). **Mano de 3 robada al azar** — no controlás lo que te toca. Cada ronda jugás 1 carta de tu mano, se gasta, va al descarte y robás otra. Si gastaste tus 2 Cuernos, no podés usar Cuernos nunca más en ese combate: **hay que contar**.
 
-**Espejo (mismo tipo):** gana el de más Potencia. **Si las potencias están parejas, se lastiman los dos.**
+**Espejo (mismo tipo):** gana el de más Potencia. **Si las potencias están parejas, nadie golpea** (las dos cartas igual se gastan). **Si los dos se quedan sin cartas, se rebaraja el descarte y se sigue** con los golpes acumulados — no existe el empate. *(S93 ⭐: "en ningún caso se lastiman los dos"; el golpe mutuo de S92 fue un parche del orquestador y quedó revertido.)*
 
 **El combate dura 3-5 rondas.**
 
@@ -35,7 +37,7 @@ Pasa los cinco filtros que sobrevivieron a S91 (ver [[Index/09 - Active Context]
 | Texto plano ([[Index/17 - Refundacion del Combate]] criterio 2) | *"Cuernos vencen Alas, Alas vencen Espalda, Espalda vence Cuernos. Si son iguales, gana el más fuerte; si están parejos, se lastiman los dos."* |
 | Vida en hits (17 §5, Palanca 1) | 3 golpes, literal |
 | Drama en el commit | elección simultánea en secreto, el choque es la verificación |
-| Ciclo 20-40s | **3,47 rondas** de media medidas |
+| Ciclo 20-40s | 3,47 rondas con el golpe mutuo de S92; con la regla S93 (nadie golpea + rebaraje) **6-7 rondas entre potencias iguales, 4,7 con perfiles distintos** — ver Parte 8 |
 | La profundidad vive en la crianza | Potencia y perks heredados |
 
 **Además cierra una pregunta abierta desde S73:** [[Index/18 - Pilares del Rediseno (Draft)]] §1.4 dejó marcado *"❓ABIERTO — qué hacen exactamente cuerno / espalda / alas en gameplay"*. Acá los tres genes de gameplay **son los tres ataques**. No afectan al combate: son el combate.
@@ -71,6 +73,8 @@ Medido con dos dragones parejos: **34% de rondas nulas** y **44,4% de los combat
 
 Los empates caen a la quinta parte, las rondas muertas desaparecen, la pelea se acorta al rango objetivo **y la habilidad sube**.
 
+> ⚠️ **Revertido en S93.** Juan no acepta que los dos se lastimen a la vez ("si ambos sacamos tijera gana la de más potencia; si empatamos en potencia, recién ahí es empate"). La regla vigente es la original + rebaraje del descarte cuando se acaban las cartas. Sus números están en la Parte 8; esta sección queda como registro de por qué el orquestador había propuesto el golpe mutuo.
+
 ### 2.4 · La Potencia es la fuente principal de habilidad, y es BINARIA
 
 - Dragones parejos: el que cuenta el descarte gana **63,1%** de las partidas decididas.
@@ -86,11 +90,12 @@ O sea: **criar se siente**. Pero `potencia 2 vs 1` y `potencia 3 vs 1` dan resul
 
 1. Deck **2/2/2 fijo** para todo dragón. Mano de 3, robada al azar; jugás 1 y robás 1.
 2. **Cuernos > Alas > Espalda > Cuernos**, sin excepciones.
-3. Espejo → gana más Potencia → si están parejos, **golpe mutuo**.
-4. **3 golpes gana.** Si se agotan las cartas, gana quien tenga más golpes.
-5. Potencia: entero chico (1-3), por tipo, visible.
-6. **Sin permadeath** ⭐ (decisión S92).
-7. Sin perks en v1 — ver Parte 5.
+3. Espejo → gana más Potencia → si están parejos, **nadie golpea** (ronda nula; las cartas se gastan) ⭐ S93.
+4. **3 golpes gana.** Si los dos se quedan sin cartas, **se rebaraja el descarte al deck y se sigue** con los golpes acumulados ⭐ S93. No existe el empate.
+5. Potencia: entero chico (1-3), por tipo, visible. Es **binaria por tipo**: solo importa quién tiene más en ese tipo (Parte 8).
+6. **Sin permadeath** ⭐ (decisión S92). Al perder, la criatura entra en **cooldown** ⭐ S93.
+7. Sin perks en v1 ⭐ S93 ("probemos primero sin perks y después iteremos") — ver Parte 5.
+8. IA rival = **la contadora, sin carácter** ⭐ S93.
 
 **Invariante que NO se puede violar nunca:** el descarte de ambos lados es **público y visible**. Contar lo que le queda al rival es el único motor de habilidad del sistema. RPS puro no tiene decisiones correctas (el óptimo matemático es tirar al azar); lo que convierte esto en un juego con habilidad es el **agotamiento con descarte público**. Cualquier regla, perk o presentación que esconda esa información destruye el juego.
 
@@ -186,22 +191,79 @@ Verificado con `execute_code` **dentro del editor**, no solo standalone.
 
 ---
 
-## PARTE 7 — El marco (decisiones S92 ⭐)
+## PARTE 7 — El marco (decisiones S92 ⭐, reescrito en S93 ⭐)
 
-- **Contra quién:** PvE local, **aventura con rival sorpresa**. No sabés quién te toca; si ganás, ganás material. Competencia indirecta (leaderboard), sin matchmaking ni servidor. Coherente con la decisión de S76 de matar el PvP por snapshot.
-- **Permadeath:** **quitada por ahora.**
-- **Qué produce:** **material** (18 §1.3), con doble salida — vender en la tienda o fabricar consumibles y Cutie Marks.
+- **Contra quién (S93):** **PvP asíncrono primero** — tu dragón contra el **snapshot** del dragón de otro jugador, pilotado por la IA contadora; el síncrono se explora después. *"Algo sencillo."* Revierte la decisión S76 de matar el PvP por snapshot; el patrón async viejo (matchmaker + seed + buzón en Cloud Save, demolido en S75) vuelve a ser la referencia de infraestructura. Además, un **modo historia con algunos combates PvE**. *(S92 decía "PvE local, aventura con rival sorpresa" — superado.)*
+- **Al perder (S93):** la criatura **pasa un tiempo en cooldown**. Reemplaza al permadeath y a la "herida persistente" que S92 dejó abierta.
+- **Permadeath:** **quitada** (S92).
+- **Breeding — concepto clave (S93 ⭐):** *"la idea del breeding sería para los looks y conseguir perks interesantes; después iteramos en más ideas que deriven de esto, pero esto es el key concept."* La potencia por tipo existe y pesa (Parte 8), pero el gancho de criar son la apariencia y los perks.
+- **Qué produce:** **material** (18 §1.3, S92) — vender en la tienda o fabricar consumibles. *(Las Cutie Marks como salida quedan en suspenso: su código muerto se borró en la limpieza S93; si vuelven, se rediseñan.)*
 - Vive en el bloque nocturno **23:00-6:00** del ciclo día/noche (18 §1.2).
 
-**Requisito de información:** no sabés quién te toca *antes* de la pelea, pero **cuando aparece lo ves entero antes de elegir tu primera carta**. Si no, la ronda 1 es adivinanza pura y el criterio de la hipótesis (17 criterio 1) no se cumple.
+**Requisito de información:** cuando aparece el rival **lo ves entero antes de elegir tu primera carta** (potencia por tipo y partes intactas). Si no, la ronda 1 es adivinanza pura y el criterio de la hipótesis (17 criterio 1) no se cumple.
 
 ---
 
-## Decisiones abiertas
+## PARTE 8 — Decisiones y mediciones S93 (2026-09-01)
 
-- [ ] **¿Qué brecha de potencia puede haber entre dos dragones?** (82,5% de winrate con solo +1 — ver §2.4)
-- [ ] **¿Qué pasa con el 9,7% de empates** en la aventura? (¿se repite, cuenta como derrota, da medio material?)
-- [ ] **¿Cuántas peleas tiene una noche**, y **¿el cuerpo roto se arrastra entre peleas?** (la "herida persistente" de la 17 §7.16 es el reemplazo natural del riesgo que se fue con el permadeath, y haría que el cuidado pague — el agujero que la 15 marcó y sigue abierto)
-- [ ] **¿Qué perks entran en v1?** (Parte 5 — simular antes de fijar)
-- [ ] **¿Destino de `CombatPrototype/`?** (¿demolición estilo S75?)
-- [ ] **¿Cómo elige la IA?** Recomendación: **una IA que cuenta** (ya implementada), sesgada por carácter. Un script memorizable ("el Terco abre con cuernos") se descifra una vez y muere a la partida 30.
+Juan respondió las 6 preguntas abiertas de S92. Lo medido salió del simulador scratch (`%TEMP%\DragonRpsSim`, fuera del repo; replica exacto los números de S92 antes de variar nada), 40.000 combates por celda.
+
+### 8.1 · Deck 2/2/2 vs 3/3/3 — el 2/2/2 gana ⭐ (Juan pidió probar 3/3/3)
+
+| Deck | El que cuenta gana (vs azar) | Empates (regla S92) | Rondas |
+|---|---|---|---|
+| **2/2/2, a 3 golpes** | **63,1%** | 9,7% | 3,47 |
+| 3/3/3, a 3 | 58,3% | 13,2% | 3,51 |
+| 3/3/3, a 4 | 60,6% | 11,0% | 4,84 |
+| 3/3/3, a 5 | 62,2% | 7,9% | 6,14 |
+| 4/4/4, a 3 | 55,5% | 13,3% | 3,51 |
+
+Cuanto más grande el deck, menos vale contar (el descarte dice menos sobre lo que queda). El 3/3/3 necesita ir a 5 golpes para recuperar la habilidad del 2/2/2, al doble de duración. Se mantiene el 2/2/2 de Juan.
+
+### 8.2 · Empates: de dónde salían y la regla vigente ⭐
+
+Con el golpe mutuo de S92, el único empate posible era el **3-3 simultáneo** (2-2 + espejo parejo): 9,7% contra azar, **18,6% humano que cuenta el 70% contra la IA, 23% entre dos que cuentan**. "Gana la carta con más poder" ya era la regla; los empates que quedaban eran potencias iguales.
+
+Juan revirtió el golpe mutuo. **Regla vigente: espejo parejo = nadie golpea (las cartas se gastan); si los dos se quedan sin cartas, se rebaraja el descarte y se sigue con los golpes acumulados.** Medida:
+
+| Regla | El que cuenta (vs azar) | Rondas nulas | Rondas de media | Combates > 8 rondas |
+|---|---|---|---|---|
+| Golpe mutuo (S92, revertida) | 63,1% | 32,5% | 3,47 | 0% |
+| **Nadie golpea + rebaraje (S93)** | 56,1% | 34,2% | 6,23 (humano vs IA: 6,69) | 15-21% |
+| Nadie golpea + el combate vuelve a 0-0 | 55,3% | 33,9% | 9,34 | 44% |
+| S93 con potencias distintas (2/1/1 vs 1/2/1) | 56,6% | 9,8% | 4,73 | 0% |
+
+Lectura honesta: cero empates y regla legible, a cambio de que entre dragones de **igual** potencia 1 de cada 3 choques sea nulo, la pelea dure el doble y el conteo valga menos (el rebaraje lo borra). Con perfiles de potencia distintos (lo normal si el breeding reparte potencia) los nulos caen al 10% y la pelea a ~4,7 rondas. Variantes medidas y descartadas: "gana la parte más entera" en el espejo (48% de empates), "gana la más gastada" (16,7%), muerte súbita (0% empates, +0,6 rondas — Juan no la eligió).
+
+### 8.3 · La potencia por tipo crea un RPS de linajes
+
+Como la potencia es binaria por tipo (Parte 2.4), lo que importa es **en cuántos tipos sos más fuerte**:
+
+| Potencias (A vs B, ambos cuentan) | A gana |
+|---|---|
+| 2/2/2 vs 1/1/1 (+1 en los tres) | **85,4%** — y un jugador ciego con +1 global le gana **71%** a uno que cuenta |
+| 2/2/1 vs 1/1/1 (+1 en dos) | 74,7% |
+| 2/1/1 vs 1/1/1 (+1 en uno) | 60,2% (3/1/1 da exactamente lo mismo) |
+| 2/1/1 vs 1/2/1 (igual presupuesto) | **63,9%** — fuerte en Cuernos > fuerte en Alas |
+| 2/1/1 vs 1/1/2 (igual presupuesto) | 35,8% — fuerte en Espalda > fuerte en Cuernos |
+
+**Emergente:** con igual presupuesto, el fuerte en Cuernos le gana 64/36 al fuerte en Alas, que le gana al fuerte en Espalda, que le gana al fuerte en Cuernos — tu tipo fuerte anula el del rival al que vencés. No hay build dominante; criar decide dónde sos fuerte. Riesgo: la brecha **global** pasa por encima de la habilidad. Sugerencia para el asíncrono: emparejar por presupuesto total de potencia (suma) con tolerancia ±1.
+
+### 8.4 · Código
+
+`DragonRpsSide.Reshuffle()` + `DragonRpsMatch` (espejo parejo sin golpes; rebaraje cuando ambos se quedan sin cartas; `IsOver` solo por golpes). Sigue sin `UnityEngine`. `CombatPrototype/` fue **demolido** en esta sesión (código, escena, assets, tools MCP, ScriptNodes y `Index/20`).
+
+---
+
+## Decisiones abiertas (post-S93)
+
+- [x] ~~Empates~~ → regla S93 (8.2). Queda por ver en playtest si las rondas nulas entre iguales molestan.
+- [x] ~~Perks v1~~ → sin perks en v1; iterar después (deben aportar diversión y alargar la vida del juego vía breeding).
+- [x] ~~Destino de `CombatPrototype/`~~ → demolido S93.
+- [x] ~~Carácter de la IA~~ → contadora sin carácter.
+- [x] ~~Herida persistente / peleas por noche~~ → cooldown al perder.
+- [ ] **Cooldown:** ¿cuánto dura, se acorta con cuidado (el agujero "que el cuidado pague" de la 15/16), y qué pasa con el snapshot del defensor cuando lo derrotan?
+- [ ] **Matchmaking asíncrono:** ¿por presupuesto total de potencia ±1 (8.3)? ¿qué se guarda en el snapshot (potencias + perks + look)?
+- [ ] **Modo historia:** alcance de los "algunos combates PvE".
+- [ ] **Infra async:** reusar el patrón S-antiguo (matchmaker + seed + buzón) — los endpoints de Cloud Code viejos siguen por despublicar.
+- [ ] Presentación (Parte 4): sin golpe mutuo ya no hay "los dos caen"; la ronda nula es un choque donde nadie cede.

@@ -9,15 +9,12 @@ namespace MoriMonchiSimulator
 
 public class BreedingDevConsole : MonoBehaviour
 {
-    // ── Setup ─────────────────────────────────────────────────────
 
     [BoxGroup("Setup"), Required]
     [SerializeField] private GameManager gameManager;
 
     [BoxGroup("Setup"), Required]
     [SerializeField] private BreedingController breedingController;
-
-    // ── Corrales ──────────────────────────────────────────────────
 
     [ShowInInspector, ReadOnly, LabelText("Corrales activos"), BoxGroup("Corrales")]
     private int ActivePenCount => Application.isPlaying ? BreedingContainer.All.Count : 0;
@@ -35,8 +32,6 @@ public class BreedingDevConsole : MonoBehaviour
             return lines.Count == 0 ? "Sin parejas activas." : string.Join("  |  ", lines);
         }
     }
-
-    // ── Breed ─────────────────────────────────────────────────────
 
     [BoxGroup("Breed")]
     [SerializeField, LabelText("Mother ID")]
@@ -104,8 +99,6 @@ public class BreedingDevConsole : MonoBehaviour
     }
 
     private static string Clip(string id) => id.Length > 14 ? id[..14] + "…" : id;
-
-    // ── Breed Timer ───────────────────────────────────────────────
 
     [BoxGroup("Breed Timer")]
     [InfoBox("Varias parejas pueden incubar en paralelo (una pareja = un huevo). El timer es server-side (30 min) y los huevos incuban aunque cierres el juego. 'Show Eggs' lista los huevos con índice; pon el índice en 'Hatch Index' y presiona 'Hatch Egg'.")]
@@ -188,8 +181,6 @@ public class BreedingDevConsole : MonoBehaviour
         Debug.Log($"[BreedingDevConsole] {eggs.Count} egg(s) incubating:\n  " + string.Join("\n  ", lines));
     }
 
-    // An egg = a Breeding female + her BreedPartnerID. Enumerating females gives
-    // one entry per egg (mothers are always Female). Stable order via UniqueID.
     private List<CreatureDNA> GetEggs()
     {
         if (gameManager == null) return new List<CreatureDNA>();

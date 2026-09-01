@@ -5,13 +5,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Data-driven tuning for each Role. The MoriMochiAgent reads its profile
-// here instead of hardcoding behavior per archetype — this SO is the single place
-// to balance how every role moves and reacts in the world, and the reserved "endpoint"
-// for making roles matter to other systems later (combat, breeding).
-//
-// Singleton (Current) set in OnEnable, same pattern as
-// InheritanceOddsTableSO. Press "Populate Defaults" once to fill all three.
 [CreateAssetMenu(fileName = "RoleWorldProfileTable", menuName = "RunRunSimulator/Genetics/Role World Profile Table")]
 public class RoleWorldProfileSO : SerializedScriptableObject
 {
@@ -21,7 +14,6 @@ public class RoleWorldProfileSO : SerializedScriptableObject
     [DictionaryDrawerSettings(KeyLabel = "Role", ValueLabel = "Profile")]
     private Dictionary<Role, RoleWorldProfile> profiles = new Dictionary<Role, RoleWorldProfile>();
 
-    // Returns the tuning for a role, or a neutral fallback if unconfigured.
     public RoleWorldProfile GetProfile(Role r) =>
         profiles != null && profiles.TryGetValue(r, out var prof) && prof != null
             ? prof : RoleWorldProfile.Neutral();
@@ -77,24 +69,22 @@ public class RoleWorldProfileSO : SerializedScriptableObject
     };
 }
 
-// Plain serializable tuning block — one per role. Kept as fields (not
-// properties) so Unity/Odin serializes it inline in the dictionary.
 [System.Serializable]
 public class RoleWorldProfile
 {
-    [LabelWidth(150)] public float             MoveSpeed       = 2.5f;   // NavMeshAgent.speed
-    [LabelWidth(150)] public float             IdleChance      = 0.3f;   // chance to pause when a waypoint is reached
-    [LabelWidth(150)] public float             IdleMin         = 0.5f;   // idle seconds (min)
-    [LabelWidth(150)] public float             IdleMax         = 1.5f;   // idle seconds (max)
-    [LabelWidth(150)] public float             RoamRadius      = 4f;     // how far the next roam point is sampled
-    [LabelWidth(150)] public float             ProximityRadius = 6f;     // player-detection radius
+    [LabelWidth(150)] public float             MoveSpeed       = 2.5f;
+    [LabelWidth(150)] public float             IdleChance      = 0.3f;
+    [LabelWidth(150)] public float             IdleMin         = 0.5f;
+    [LabelWidth(150)] public float             IdleMax         = 1.5f;
+    [LabelWidth(150)] public float             RoamRadius      = 4f;
+    [LabelWidth(150)] public float             ProximityRadius = 6f;
     [LabelWidth(150)] public ProximityReaction Reaction        = ProximityReaction.Ignore;
-    [LabelWidth(150)] public float             FollowDistance  = 2f;     // stop distance for Approach/Follow
+    [LabelWidth(150)] public float             FollowDistance  = 2f;
     [LabelWidth(150)] public WorldArea         PreferredArea   = WorldArea.ShopBackroom;
     [LabelWidth(150)] [Range(0f, 1f)]
-    public float                               AreaPreference  = 0.5f;   // odds a roam point heads to PreferredArea (0 = ignores it, fully free; 1 = always homes)
-    [LabelWidth(150)] public float             RecoverySpeed   = 1f;     // get-up pace after a throw (>1 faster, <1 groggier)
-    [LabelWidth(150)] public Color             Tint            = Color.white;  // debug/visible body color per role
+    public float                               AreaPreference  = 0.5f;
+    [LabelWidth(150)] public float             RecoverySpeed   = 1f;
+    [LabelWidth(150)] public Color             Tint            = Color.white;
     [LabelWidth(150)] public List<ReactionRuleBase> Reactions   = new List<ReactionRuleBase>();
 
     public static RoleWorldProfile Neutral() => new RoleWorldProfile();

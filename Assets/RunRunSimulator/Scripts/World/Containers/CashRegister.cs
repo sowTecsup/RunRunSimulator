@@ -54,8 +54,6 @@ public class CashRegister : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
-    // ── Public API ────────────────────────────────────────────────
-
     public Vector3? TryReserveSlot(NpcAgent agent)
     {
         if (agent == null || queueRoot == null) return null;
@@ -89,8 +87,6 @@ public class CashRegister : MonoBehaviour
         int idx = IndexOf(agent);
         return idx >= 0 ? chain[idx].Pos : (Vector3?)null;
     }
-
-    // ── Chain placement ───────────────────────────────────────────
 
     private void Recompute()
     {

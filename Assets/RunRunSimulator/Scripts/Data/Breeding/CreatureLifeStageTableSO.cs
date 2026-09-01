@@ -5,10 +5,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Maps a creature's age (in whole days) to a visible LifeStage. Each entry is the age at which
-// the creature ENTERS that stage; GetStage returns the highest stage whose threshold is reached.
-// Display-only (drives the NameTag) — never part of the genetic string. Referenced by
-// BreedingController (no singleton), the NameTag reads it from BreedingController.Instance.
 [CreateAssetMenu(fileName = "CreatureLifeStageTable", menuName = "RunRunSimulator/Breeding/Life Stage Table")]
 public class CreatureLifeStageTableSO : SerializedScriptableObject
 {

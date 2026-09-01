@@ -46,7 +46,7 @@ public class TransactionPanelUITK : MonoBehaviour
 
     private bool IsShown()
     {
-        var r = document != null ? document.rootVisualElement : null;
+        var r = UiPanels.RootOf(document);
         return r != null && r.resolvedStyle.display != DisplayStyle.None;
     }
 
@@ -67,7 +67,7 @@ public class TransactionPanelUITK : MonoBehaviour
     {
         if (bound) return;
         if (document == null) { Debug.LogWarning("[TransactionPanelUITK] No UIDocument."); return; }
-        root = document.rootVisualElement;
+        root = UiPanels.RootOf(document);
         if (root == null) return;
 
         customerNameLbl = root.Q<Label>("customer-name");

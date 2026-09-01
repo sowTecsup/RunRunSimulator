@@ -8,8 +8,6 @@ namespace MoriMonchiSimulator
 
         public static string EquipmentSlotName(EquipmentSlot slot) => Loc.Tr("equipslot." + KeyOf(slot));
 
-        public static string PartRoleName(PartRole part) => Loc.Tr("part." + KeyOf(part));
-
         public static string LifeStageName(LifeStage stage) => Loc.Tr("stage." + KeyOf(stage));
 
         public static string IntentName(CreatureIntent intent) => Loc.Tr("intent." + KeyOf(intent));

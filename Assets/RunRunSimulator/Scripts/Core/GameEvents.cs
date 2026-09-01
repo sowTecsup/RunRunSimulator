@@ -2,46 +2,17 @@ using System;
 namespace MoriMonchiSimulator
 {
 
-// Central event bus. Publishers and subscribers depend only on this class,
-// never on each other — that decoupling is the whole point: gameplay logic
-// announces what happened and never reaches into persistence, cloud sync or UI.
-//
-// Events carry their data. A subscriber receives the registry in the payload and
-// works on it directly — it must NOT reach back into GameManager.Instance.Registry.
-// That's what makes the bus clean: the data moves with the event, no extra lookups.
-//
-// IMPORTANT: every MonoBehaviour that subscribes MUST unsubscribe in OnDisable
-// (or OnDestroy). A static event holds the handler — and the object behind it —
-// alive forever, so a destroyed listener both leaks and throws on the next fire.
 public static class GameEvents
 {
-    // The registry was mutated by gameplay → persist (save + cloud push) and
-    // refresh any UI. Carries the registry so subscribers don't look it up.
     public static event Action<CreatureRegistrySO> OnRegistryChanged;
     public static void RegistryChanged(CreatureRegistrySO registry) => OnRegistryChanged?.Invoke(registry);
 
-    // The registry was replaced wholesale from an authoritative external source
-    // (cloud pull / reset). UI should refresh, but persistence must NOT run again
-    // — the data already came from (or was cleared on) the cloud. UI-only.
     public static event Action<CreatureRegistrySO> OnRegistryReloaded;
     public static void RegistryReloaded(CreatureRegistrySO registry) => OnRegistryReloaded?.Invoke(registry);
 
-    // ── Domain notifications ──────────────────────────────────────
-    // For consumers that need "what happened", not just "something changed".
-    // These do NOT persist — fire RegistryChanged() alongside them.
-
-    public static event Action<CreatureDNA> OnCreatureMinted;
-    public static void CreatureMinted(CreatureDNA creature) => OnCreatureMinted?.Invoke(creature);
-
-    // mother, father, child
     public static event Action<CreatureDNA, CreatureDNA, CreatureDNA> OnBreedingCompleted;
     public static void BreedingCompleted(CreatureDNA mother, CreatureDNA father, CreatureDNA child) =>
         OnBreedingCompleted?.Invoke(mother, father, child);
-
-    // ── Furniture ─────────────────────────────────────────────────
-    // Same contract as the creature registry: Changed = gameplay mutation (persist +
-    // UI + world), Reloaded = wholesale replace from an external source (UI/world only,
-    // no persist). The spawner rebuilds meshes from these.
 
     public static event Action<FurnitureRegistrySO> OnFurnitureChanged;
     public static void FurnitureChanged(FurnitureRegistrySO registry) => OnFurnitureChanged?.Invoke(registry);
@@ -49,22 +20,11 @@ public static class GameEvents
     public static event Action<FurnitureRegistrySO> OnFurnitureReloaded;
     public static void FurnitureReloaded(FurnitureRegistrySO registry) => OnFurnitureReloaded?.Invoke(registry);
 
-    // ── NavMesh rebake ────────────────────────────────────────────
-    // A furniture-driven rebake snaps every ACTIVE NavMeshAgent to the nearest point on the
-    // new mesh (visible teleport). These bracket the bake so live agents can detach + freeze
-    // in place before it (WillRebake) and re-anchor to the fresh mesh after it (Rebaked),
-    // turning the snap into a no-op. No payload — the listener acts on its own transform.
-
     public static event Action OnNavMeshWillRebake;
     public static void NavMeshWillRebake() => OnNavMeshWillRebake?.Invoke();
 
     public static event Action OnNavMeshRebaked;
     public static void NavMeshRebaked() => OnNavMeshRebaked?.Invoke();
-
-    // ── Inventory ─────────────────────────────────────────────────
-    // Same contract as the registries: Changed = gameplay mutation (buy / pickup /
-    // store / eject / hotbar edit) → persist + UI; Reloaded = wholesale replace from
-    // an external source (load / reset) → UI only, no persist.
 
     public static event Action<PlayerInventorySO> OnInventoryChanged;
     public static void InventoryChanged(PlayerInventorySO inventory) => OnInventoryChanged?.Invoke(inventory);
@@ -72,19 +32,7 @@ public static class GameEvents
     public static event Action<PlayerInventorySO> OnInventoryReloaded;
     public static void InventoryReloaded(PlayerInventorySO inventory) => OnInventoryReloaded?.Invoke(inventory);
 
-    public static event Action<NpcAgent> OnCustomerSpawned;
-    public static void CustomerSpawned(NpcAgent agent) => OnCustomerSpawned?.Invoke(agent);
-
-    public static event Action<NpcAgent, CreatureDNA> OnCustomerDecided;
-    public static void CustomerDecided(NpcAgent agent, CreatureDNA target) => OnCustomerDecided?.Invoke(agent, target);
-
-    public static event Action<NpcAgent> OnCustomerArrivedAtRegister;
-    public static void CustomerArrivedAtRegister(NpcAgent agent) => OnCustomerArrivedAtRegister?.Invoke(agent);
-
     public static event Action<NpcAgent, CreatureDNA, int> OnCustomerSold;
     public static void CustomerSold(NpcAgent agent, CreatureDNA mm, int finalPrice) => OnCustomerSold?.Invoke(agent, mm, finalPrice);
-
-    public static event Action<NpcAgent, bool> OnCustomerLeft;
-    public static void CustomerLeft(NpcAgent agent, bool sold) => OnCustomerLeft?.Invoke(agent, sold);
 }
 }

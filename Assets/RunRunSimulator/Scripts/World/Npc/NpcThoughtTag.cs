@@ -63,7 +63,7 @@ public class NpcThoughtTag : MonoBehaviour
 
     private void ResolveElements()
     {
-        var docRoot = document != null ? document.rootVisualElement : null;
+        var docRoot = UiPanels.RootOf(document);
         if (docRoot == null) return;
         if (docRoot == root && thoughtLabel != null) return;
 

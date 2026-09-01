@@ -3,8 +3,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Word pools keyed by (PartSet, PartRole). Used by BodyPart.RollName() and PartDatabaseSO.RollAllNames().
-// Creature display name = Body + Horn + Back + Wing + Face words in that order.
 public static class PartNameBank
 {
     private static readonly Dictionary<PartSet, Dictionary<PartRole, string[]>> bank =

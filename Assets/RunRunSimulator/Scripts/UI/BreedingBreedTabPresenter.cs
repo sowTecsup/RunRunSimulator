@@ -27,7 +27,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
     private readonly List<VisualElement> motherCards = new List<VisualElement>();
     private int criarIndex, fatherIndex, motherIndex;
     private SubFocus focus = SubFocus.Slots;
-    private bool breedBusy;   // a StartBreedingAsync is in flight → inputs frozen
+    private bool breedBusy;
 
     public bool Busy => breedBusy;
 
@@ -55,8 +55,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
         fatherSlot?.RegisterCallback<ClickEvent>(_ => OpenList(SubFocus.FatherList));
         motherSlot?.RegisterCallback<ClickEvent>(_ => OpenList(SubFocus.MotherList));
     }
-
-    // ── ITabPresenter ────────────────────────────────────────────
 
     public void Enter()
     {
@@ -110,7 +108,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
 
     public bool Cancel()
     {
-        if (breedBusy) return true;   // consume ESC (don't close) while breeding
+        if (breedBusy) return true;
         if (focus == SubFocus.FatherList || focus == SubFocus.MotherList)
         {
             ClearListFocus();
@@ -139,9 +137,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
         if (breedButton != null) breedButton.clicked -= TryBreed;
     }
 
-    // ── Data ─────────────────────────────────────────────────────
-
-    // Populate the two side lists from the registry (kept fresh even while hidden).
     private void RebuildCandidates()
     {
         if (fatherList == null || motherList == null) return;
@@ -181,8 +176,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
         return row;
     }
 
-    // ── Slots / preview ───────────────────────────────────────────
-
     private void RefreshSlots()
     {
         SetSlot(fatherSlotName, fatherSlotImg, selectedFatherId);
@@ -190,7 +183,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
         BuildPreview();
     }
 
-    // Empty placeholder (gray) until a parent is chosen, then name + BaseColor tint.
     private void SetSlot(Label nameLabel, VisualElement img, string id)
     {
         var registry = getRegistry();
@@ -207,8 +199,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
         preview.Clear();
 
         var registry = getRegistry();
-        // TryGet must sit in the early-return condition (not a separate bool) so the
-        // compiler tracks father/mother as definitely assigned in the fall-through.
         if (registry == null
             || !registry.TryGet(selectedFatherId, out var father)
             || !registry.TryGet(selectedMotherId, out var mother))
@@ -268,8 +258,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
         parent.Add(row);
     }
 
-    // ── Selection ─────────────────────────────────────────────────
-
     private void SelectFather(string id) { if (breedBusy) return; selectedFatherId = id; AfterSelect(0); }
     private void SelectMother(string id) { if (breedBusy) return; selectedMotherId = id; AfterSelect(1); }
 
@@ -298,12 +286,10 @@ public class BreedingBreedTabPresenter : ITabPresenter
 
         string motherId = selectedMotherId, fatherId = selectedFatherId;
 
-        // Freeze inputs + gray the button until the async update lands.
         SetBreedBusy(true);
         await asyncBreedingService.StartBreedingAsync(motherId, fatherId);
         SetBreedBusy(false);
 
-        // Only clear + notify if it actually started (parent now Breeding).
         var registry = getRegistry();
         if (registry != null && registry.TryGet(motherId, out var mother) && mother.BusyState == BusyReason.Breeding)
         {
@@ -322,17 +308,14 @@ public class BreedingBreedTabPresenter : ITabPresenter
         breedButton.EnableInClassList("breed-action--busy", busy);
     }
 
-    // ── Navigation helpers ────────────────────────────────────────
-
     private void MoveList(List<VisualElement> cards, ref int idx, int delta, ScrollView scroll)
     {
         if (cards.Count == 0) return;
         idx = Mathf.Clamp(idx + delta, 0, cards.Count - 1);
-        for (int i = 0; i < cards.Count; i++) cards[i].EnableInClassList(Focus, i == idx);
+        UiPanels.SetActiveIndex(cards, idx, Focus);
         scroll?.ScrollTo(cards[idx]);
     }
 
-    // Lists are always visible; "opening" one just moves the focus into it.
     private void OpenList(SubFocus which)
     {
         if (breedBusy) return;
@@ -342,18 +325,16 @@ public class BreedingBreedTabPresenter : ITabPresenter
         if (which == SubFocus.FatherList)
         {
             fatherIndex = 0;
-            for (int i = 0; i < fatherCards.Count; i++) fatherCards[i].EnableInClassList(Focus, i == 0);
+            UiPanels.SetActiveIndex(fatherCards, 0, Focus);
             if (fatherCards.Count > 0) fatherList?.ScrollTo(fatherCards[0]);
         }
         else
         {
             motherIndex = 0;
-            for (int i = 0; i < motherCards.Count; i++) motherCards[i].EnableInClassList(Focus, i == 0);
+            UiPanels.SetActiveIndex(motherCards, 0, Focus);
             if (motherCards.Count > 0) motherList?.ScrollTo(motherCards[0]);
         }
     }
-
-    // ── Focus visuals ─────────────────────────────────────────────
 
     private void ApplyCriarFocus()
     {
@@ -369,7 +350,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
         breedButton?.RemoveFromClassList(Focus);
     }
 
-    // Lists stay visible — this only drops the focus ring from the candidates.
     private void ClearListFocus()
     {
         foreach (var c in fatherCards) c.RemoveFromClassList(Focus);

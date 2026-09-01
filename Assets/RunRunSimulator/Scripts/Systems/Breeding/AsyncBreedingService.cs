@@ -7,23 +7,12 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Orchestrates timed (async) breeding. The start timestamp and the hatch check
-// are server-authoritative (Cloud Code + Custom Data) — the client cannot forge
-// the timer. The cría itself is still minted locally and pushed (design checkpoint:
-// move generation server-side in a later stage).
-// Cloud Code scripts:
-//   - "start-breeding" → stamps server time, marks the egg in Game Data
-//   - "hatch-breeding" → server clock check; authorizes the hatch when ready
-// Attach to the same GameObject as GameManager. Resolves its assets via
-// GameManager.Instance in Awake — no serialized cross-references needed.
 public class AsyncBreedingService : MonoBehaviour
 {
     private const string CLOUD_CODE_START      = "start-breeding";
     private const string CLOUD_CODE_HATCH      = "hatch-breeding";
     private const string CLOUD_CODE_CANCEL     = "cancel-breeding";
     private const string CLOUD_CODE_CANCEL_ALL = "cancel-all-breeding";
-
-    // ── Cached References ─────────────────────────────────────────
 
     private CreatureRegistrySO  registry;
     private CreatureDatabaseSO  database;
@@ -34,8 +23,6 @@ public class AsyncBreedingService : MonoBehaviour
     [ShowInInspector, ReadOnly, BoxGroup("Status")]
     private string status = "Idle";
 
-    // ── Lifecycle ─────────────────────────────────────────────────
-
     private void Awake()
     {
         var gm   = GameManager.Instance;
@@ -43,9 +30,6 @@ public class AsyncBreedingService : MonoBehaviour
         database = gm.Database;
     }
 
-    // ── Public Methods ────────────────────────────────────────────
-
-    // Validates locally, stamps the timer server-side, marks both parents Breeding.
     public async Task StartBreedingAsync(string motherID, string fatherID)
     {
         if (!AuthenticationService.Instance.IsSignedIn)
@@ -74,10 +58,9 @@ public class AsyncBreedingService : MonoBehaviour
                 return;
             }
 
-            // Mark both parents busy + cache readyAt locally for display.
             mother.BusyState    = BusyReason.Breeding;
             father.BusyState    = BusyReason.Breeding;
-            mother.Needs.SpendEnergy(energyCostPerParent);   // breeding tires both parents
+            mother.Needs.SpendEnergy(energyCostPerParent);
             father.Needs.SpendEnergy(energyCostPerParent);
             mother.BreedReadyAt = response.ReadyAt;
             father.BreedReadyAt = response.ReadyAt;
@@ -134,9 +117,6 @@ public class AsyncBreedingService : MonoBehaviour
         }
     }
 
-    // Wipes the ENTIRE server breeding queue, then clears every locally-Breeding parent.
-    // Recovery tool: the only way to drop eggs the client no longer tracks (orphans left
-    // by a failed cancel). Always reconciles local state, even if the call throws.
     public async Task CancelAllBreedingAsync()
     {
         if (!AuthenticationService.Instance.IsSignedIn)
@@ -163,8 +143,6 @@ public class AsyncBreedingService : MonoBehaviour
         }
     }
 
-    // Server clock check for a specific egg (the mother+father pair).
-    // On "ready", mints the cría locally and pushes.
     public async Task HatchAsync(string motherID, string fatherID)
     {
         if (!AuthenticationService.Instance.IsSignedIn)
@@ -188,7 +166,7 @@ public class AsyncBreedingService : MonoBehaviour
                 case "no_egg":
                     status = "That egg is no longer on the server.";
                     Debug.LogWarning($"[AsyncBreeding] {status}");
-                    ClearLocalEggState(motherID, fatherID);   // local cache out of sync — clean up just this pair
+                    ClearLocalEggState(motherID, fatherID);
                     break;
 
                 case "not_ready":
@@ -215,8 +193,6 @@ public class AsyncBreedingService : MonoBehaviour
         }
     }
 
-    // ── Private Methods ───────────────────────────────────────────
-
     private bool ValidateParents(string motherID, string fatherID, out CreatureDNA mother, out CreatureDNA father)
     {
         mother = father = null;
@@ -237,11 +213,8 @@ public class AsyncBreedingService : MonoBehaviour
         return true;
     }
 
-    // Server authorized the hatch — clear busy on both parents, then mint the cría
-    // locally (BreedingService re-validates + increments BreedCount) and push.
     private void HatchLocally(string motherID, string fatherID)
     {
-        // Clear busy BEFORE Breed() — its own validation rejects busy parents.
         if (registry.TryGet(motherID, out var mother)) ClearBreedState(mother);
         if (registry.TryGet(fatherID, out var father)) ClearBreedState(father);
 
@@ -252,7 +225,7 @@ public class AsyncBreedingService : MonoBehaviour
         if (child == null)
         {
             status = "Hatch failed during local mint — see errors.";
-            GameEvents.RegistryChanged(registry);   // busy state was already cleared above — persist it
+            GameEvents.RegistryChanged(registry);
             return;
         }
 
@@ -277,7 +250,6 @@ public class AsyncBreedingService : MonoBehaviour
         dna.BreedPartnerID = "";
     }
 
-    // Clears the local egg cache for a specific pair when the server says no_egg.
     private void ClearLocalEggState(string motherID, string fatherID)
     {
         if (registry.TryGet(motherID, out var mother)) ClearBreedState(mother);
@@ -285,8 +257,6 @@ public class AsyncBreedingService : MonoBehaviour
         GameEvents.RegistryChanged(registry);
     }
 
-    // Drops the Breeding state off every creature in the registry — mirrors a server-side
-    // wipe of the egg queue (CancelAllBreedingAsync).
     private void ClearAllLocalBreeding()
     {
         foreach (var dna in registry.GetAll().Values)
@@ -294,12 +264,10 @@ public class AsyncBreedingService : MonoBehaviour
         GameEvents.RegistryChanged(registry);
     }
 
-    // ── Cloud Code response contracts ─────────────────────────────
-
     [Serializable]
     private class StartResponse
     {
-        public string Status;     // "breeding" | "already_breeding"
+        public string Status;
         public long   StartedAt;
         public long   ReadyAt;
     }
@@ -307,7 +275,7 @@ public class AsyncBreedingService : MonoBehaviour
     [Serializable]
     private class HatchResponse
     {
-        public string Status;       // "ready" | "not_ready" | "no_egg"
+        public string Status;
         public long   ReadyAt;
         public long   RemainingMs;
         public string MotherId;

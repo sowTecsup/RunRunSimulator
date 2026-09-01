@@ -3,8 +3,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Generic reuse pool for MoriMonchiController instances. Owns its own queue — the spawner asks it
-// for controllers and returns them, so pooling is an independent unit, not part of the spawner's state.
 public class ControllerPool
 {
     private readonly Queue<MoriMonchiController> pool = new Queue<MoriMonchiController>();
@@ -14,7 +12,6 @@ public class ControllerPool
 
     public int Count => pool.Count;
 
-    // Reuses a pooled controller at 'pos', or instantiates a fresh one. Null only if no prefab.
     public MoriMonchiController Get(Vector3 pos)
     {
         MoriMonchiController controller = null;

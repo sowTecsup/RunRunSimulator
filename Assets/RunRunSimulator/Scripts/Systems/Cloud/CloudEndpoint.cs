@@ -1,12 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Unity.Services.CloudCode;
+using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Single entry point for Cloud Code module calls: call + JSON deserialize. The endpoint→reconciliation
-// flow stays per-service (each reconciles its own registry differently); only the call+parse is shared.
 public static class CloudEndpoint
 {
     public static Task<string> CallAsync(string endpoint, Dictionary<string, object> payload) =>
@@ -14,5 +14,20 @@ public static class CloudEndpoint
 
     public static async Task<T> CallAsync<T>(string endpoint, Dictionary<string, object> payload) =>
         JsonConvert.DeserializeObject<T>(await CloudCodeService.Instance.CallEndpointAsync<string>(endpoint, payload));
+
+    public static async Task<bool> Guarded(string statusOp, string logOp, Func<Task> op, Action<string> setStatus)
+    {
+        try
+        {
+            await op();
+            return true;
+        }
+        catch (Exception e)
+        {
+            setStatus($"{statusOp} error: {e.Message}");
+            Debug.LogError($"[CloudSync] {logOp} failed: {e}");
+            return false;
+        }
+    }
 }
 }

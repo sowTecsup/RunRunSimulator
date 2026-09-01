@@ -9,7 +9,9 @@ namespace MoriMonchiSimulator
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
-    // ── Private Fields ────────────────────────────────────────────
+
+    public static PlayerInventorySO CurrentInventory => Instance != null ? Instance.Inventory : null;
+    public static DateTime Now => Instance != null ? Instance.ServerNow : DateTime.Now;
 
     [Required, AssetsOnly]
     [Title("RunRunSimulator — Genetics Lab", "Assign all assets below to begin.", TitleAlignments.Centered)]
@@ -43,9 +45,6 @@ public class GameManager : MonoBehaviour
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private EquipmentDatabaseSO equipmentDatabase;
 
-    [AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private CutieMarkDatabaseSO cutieMarkDatabase;
-
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
 
@@ -53,9 +52,12 @@ public class GameManager : MonoBehaviour
     [BoxGroup("Mint")]
     private string lastMintedID = "---";
 
-    // ── Lifecycle ─────────────────────────────────────────────────
-
     private void Awake() => Instance = this;
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     private void OnEnable()
     {
@@ -77,21 +79,15 @@ public class GameManager : MonoBehaviour
         PushToCloud();
     }
 
-    // Furniture + inventory persist LOCALLY only for now (cloud sync layered on
-    // later, same pattern as CloudSyncService). The event carries the asset.
     private void PersistFurniture(FurnitureRegistrySO registry) => SaveSystem.SaveFurniture(registry);
     private void PersistInventory(PlayerInventorySO inv)        => SaveSystem.SaveInventory(inv);
 
-    // Load is triggered by CloudSyncService.OnSignedInComplete (scoped per-player)
     private void OnApplicationQuit()
     {
         CollectLooseWorldProps();
         FlushToCloud();
     }
 
-    // Minimize / send-to-background — the reliable "I'm leaving" signal on mobile. We flush here
-    // (and on quit/logout/explicit save) instead of on every stat change, so runtime needs don't
-    // saturate Cloud Save with per-frame micro-updates.
     private void OnApplicationPause(bool paused)
     {
         if (!paused) return;
@@ -99,19 +95,12 @@ public class GameManager : MonoBehaviour
         FlushToCloud();
     }
 
-    // Persistence-simplification rule (decided with the user): any world prop loose
-    // in the scene at shutdown is swept back into the inventory, so on reload we only
-    // ever rebuild from inventory data — no per-object transforms to persist. The
-    // active hotbar item is the single documented exception (re-spawned on load).
-    // Implemented in the WorldProp gameplay batch — see WorldPropInstance.
     private void CollectLooseWorldProps()
     {
         if (inventory == null) return;
         bool changed = false;
         foreach (var prop in FindObjectsByType<WorldPropInstance>(FindObjectsSortMode.None))
         {
-            // Skip the active hotbar item: its id already persists in the hotbar slot,
-            // so sweeping it too would double-count it on reload.
             if (prop == null || prop.IsHeld || string.IsNullOrEmpty(prop.ItemId)) continue;
             inventory.AddWorldProp(prop.ItemId);
             changed = true;
@@ -119,28 +108,16 @@ public class GameManager : MonoBehaviour
         if (changed) SaveSystem.SaveInventory(inventory);
     }
 
-    // ── Public Methods ────────────────────────────────────────────
-
-    // Fire-and-forget cloud push. PushAsync internally checks isSignedIn,
-    // so it's safe to call even before the user has signed in.
     public void PushToCloud()
     {
         if (cloudSync != null) _ = cloudSync.PushAsync();
     }
 
-    // Local save + best-effort cloud push. The single place to call on quit / pause / logout / an
-    // explicit "save game". Runtime needs ride this flush rather than firing RegistryChanged per tick.
     public void FlushToCloud()
     {
         SaveSystem.SaveDatabase(creatureRegistry);
         SaveSystem.SaveSocialGraph();
         PushToCloud();
-    }
-
-    public void FlushForSceneChange()
-    {
-        CollectLooseWorldProps();
-        FlushToCloud();
     }
 
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
@@ -158,16 +135,11 @@ public class GameManager : MonoBehaviour
 
         if (!creatureRegistry.Register(dna)) return;
 
-        GameEvents.CreatureMinted(dna);
         GameEvents.RegistryChanged(creatureRegistry);
         lastMintedID = dna.UniqueID;
         Debug.Log($"[GameManager] Minted: \"{dna.CustomName}\"  {dna.UniqueID}  ({dna.Gender})");
     }
 
-    // ── Public Getters ────────────────────────────────────────────
-
-    // Server time in local timezone, offset-corrected at login. Falls back to
-    // DateTime.Now when offline or before the first fetch completes.
     public DateTime ServerNow =>
         cloudSync != null
             ? (DateTime.UtcNow + cloudSync.ServerOffset).ToLocalTime()
@@ -182,7 +154,6 @@ public class GameManager : MonoBehaviour
     public MonchiVisualBankSO     MonchiVisualBank     => monchiVisualBank;
     public FurTypeDatabaseSO      FurTypeDatabase      => furTypeDatabase;
     public EquipmentDatabaseSO    EquipmentDatabase    => equipmentDatabase;
-    public CutieMarkDatabaseSO    CutieMarkDatabase    => cutieMarkDatabase;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures"), BoxGroup("Registry")]
     public int RegistryCount => creatureRegistry?.Count ?? 0;

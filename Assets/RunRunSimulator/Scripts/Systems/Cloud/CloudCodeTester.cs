@@ -8,8 +8,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Diagnostic tool for Cloud Code endpoints. Attach to any GameObject; the
-// component reuses whatever Unity Services session CloudSyncService established.
 public class CloudCodeTester : MonoBehaviour
 {
     [ShowInInspector, ReadOnly, BoxGroup("Last Response"), TextArea(5, 20)]

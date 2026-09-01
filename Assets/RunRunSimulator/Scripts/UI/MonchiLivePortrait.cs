@@ -26,12 +26,7 @@ public class MonchiLivePortrait : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
         rt = new RenderTexture(textureSize, textureSize, 16, RenderTextureFormat.ARGB32);

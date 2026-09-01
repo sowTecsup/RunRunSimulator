@@ -22,17 +22,10 @@ internal class AgentConfinement
         this.ctx   = ctx;
     }
 
-    // Called by a MoriMochiContainer when a creature lands in a pen with room. Cuts the ragdoll,
-    // snaps onto the breeding-area floor at the pen center, and restricts the areaMask so from now
-    // on it can only walk inside breeding floor (released when the player grabs it). Returns false
-    // (without confining) if the pen floor isn't on the breeding NavMesh — so the pen doesn't
-    // register an occupant it never actually caught, and we never call ResetPath off-mesh.
     internal bool EnterConfinement(MoriMochiContainer pen)
     {
         ctx.Agent.areaMask = ctx.ConfinedAreaMask;
 
-        // Warp/ResetPath throw on an agent not placed on a NavMesh — bail (back to physics) if the
-        // pen floor isn't painted+baked as the breeding area, or the area name doesn't match.
         if (!owner.RequestRejoinNavMesh(pen.Center, ctx.ConfinedAreaMask))
         {
             Debug.LogWarning($"[MoriMochiAgent] '{ctx.Owner.name}' couldn't enter the pen — is its floor painted '{owner.breedingAreaName}' and baked?");
@@ -125,10 +118,6 @@ internal class AgentConfinement
             ctx.Body.rotation, Quaternion.LookRotation(dir.normalized, Vector3.up), 10f * Time.deltaTime);
     }
 
-    // A furniture-driven rebake is imminent. If we're walking the mesh, drop any reservation and
-    // hand the body to PHYSICS (ragdoll). A dynamic Rigidbody isn't a NavMeshAgent, so the bake
-    // can't teleport it across the room; it just rests where it stood. Physics-driven states
-    // (carried / thrown / recovering) own their own re-entry — leave them.
     internal void OnNavMeshWillRebake()
     {
         if (ctx.RebakeInProgress || !ctx.IsNavMeshControlled()) return;
@@ -137,18 +126,12 @@ internal class AgentConfinement
         owner.RequestEnterRagdoll();
     }
 
-    // The fresh mesh is live. Release the ragdoll: TickThrown now settles it and BeginGetUp
-    // re-anchors onto the new mesh — staggered per-personality, so the whole crowd doesn't snap
-    // upright in the same frame (the old "tilting" pop). Off-mesh creatures just keep ragdolling
-    // until they settle somewhere valid.
     internal void OnNavMeshRebaked()
     {
         if (!ctx.RebakeInProgress) return;
         ctx.RebakeInProgress = false;
     }
 
-    // Lifting a penned creature is the only way out: drop it from the pen's census and hand
-    // its areaMask back to free, so wherever it's next thrown it roams normally again.
     internal void ReleaseFromPen()
     {
         if (ctx.CurrentContainer == null) return;
@@ -157,8 +140,6 @@ internal class AgentConfinement
         ctx.Agent.areaMask   = ctx.FreeAreaMask;
     }
 
-    // lifecycle re-init, not a player exit: drop from the census only — Release here would persist a
-    // phantom anchor and, in a BreedingContainer, cancel the server egg on pool reuse.
     internal void DetachForReuse()
     {
         if (ctx.CurrentContainer == null) return;

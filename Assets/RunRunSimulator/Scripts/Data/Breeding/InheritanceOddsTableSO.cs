@@ -8,7 +8,6 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
 {
     public enum Slot { Parent, Grandparent, GreatGrandparent, Mutation, Base }
 
-    // ── Weights ───────────────────────────────────────────────────
     [InfoBox("Relative weights — normalized internally.")]
     [LabelWidth(190)] public float ParentWeight           = 40f;
     [LabelWidth(190)] public float GrandparentWeight      = 20f;
@@ -20,17 +19,11 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
     private float TotalWeight =>
         ParentWeight + GrandparentWeight + GreatGrandparentWeight + MutationWeight + BaseWeight;
 
-    // ── Breeding timer ────────────────────────────────────────────
-    // Display/reference only. The authoritative duration is hardcoded server-side
-    // in start-breeding.js (BREED_DURATION_MS). Changing this does NOT change the
-    // real timer.
     [InfoBox("Solo display/referencia. La duración real está hardcoded en start-breeding.js (server-side).")]
     [LabelWidth(190)] public int BreedDurationMinutes = 30;
 
-    // ── Element inheritance ──────────────────────────────────────
     [LabelWidth(190), Range(0f, 1f)] public float ElementMutationChance = 0.10f;
 
-    // ── Dial inheritance (Sociability / Boldness) ──────────────────
     public enum DialSlot { Average, Copy, Mutation }
 
     [LabelWidth(190)] public float DialAverageWeight  = 50f;
@@ -48,7 +41,6 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
         return DialSlot.Mutation;
     }
 
-    // ── Roll ──────────────────────────────────────────────────────
     public Slot Roll()
     {
         float total = TotalWeight;

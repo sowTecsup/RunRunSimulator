@@ -4,14 +4,6 @@ using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
 
-// Always-on play-mode hotbar HUD: 6 slots at the bottom, the active one highlighted.
-// Pure display — it owns no state, it reads the inventory's hotbarSlots and the
-// HotbarController's active index and re-renders on HotbarController.OnHotbarChanged
-// (and the inventory reload). Items show their DisplayName (resolved via the item DB)
-// until real icons exist.
-//
-// Lives on an always-active object referencing its UIDocument (same split as
-// CreatureGridUITK) so it keeps refreshing even if toggled hidden.
 [DisallowMultipleComponent]
 public class HotbarHUDUITK : MonoBehaviour
 {
@@ -23,14 +15,11 @@ public class HotbarHUDUITK : MonoBehaviour
 
     private readonly List<Label> slotNames = new List<Label>();
     private bool built;
-
-    private PlayerInventorySO Inventory =>
-        GameManager.Instance != null ? GameManager.Instance.Inventory : null;
-
-    // ── Lifecycle ─────────────────────────────────────────────────
+    private PlayerInventorySO inventory;
 
     private void OnEnable()
     {
+        inventory = GameManager.CurrentInventory;
         HotbarController.OnHotbarChanged       += Refresh;
         GameEvents.OnInventoryReloaded         += OnInventoryReloaded;
         BuildModeController.OnBuildModeChanged += OnBuildModeChanged;
@@ -49,22 +38,17 @@ public class HotbarHUDUITK : MonoBehaviour
         Refresh();
     }
 
-    private void OnInventoryReloaded(PlayerInventorySO inv) => Refresh();
+    private void OnInventoryReloaded(PlayerInventorySO inv) { inventory = inv; Refresh(); }
 
-    // The hotbar only has meaning in play (carry/use props). Build mode uses the
-    // furniture browser instead, so hide the bar while building.
     private void OnBuildModeChanged(bool building)
     {
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root != null) root.style.display = building ? DisplayStyle.None : DisplayStyle.Flex;
     }
 
-    // ── Build / refresh ───────────────────────────────────────────
-
-    // Builds the 6 slot boxes once. Each slot carries an index label and a name label.
     private void BuildSlots()
     {
-        var root = document != null ? document.rootVisualElement : null;
+        var root = UiPanels.RootOf(document);
         if (root == null) return;
         var container = root.Q<VisualElement>("slots");
         if (container == null) return;
@@ -99,7 +83,7 @@ public class HotbarHUDUITK : MonoBehaviour
         if (!built) BuildSlots();
         if (!built) return;
 
-        var inv = Inventory;
+        var inv = inventory;
         int active = HotbarController.Instance != null ? HotbarController.Instance.ActiveSlot : -1;
 
         for (int i = 0; i < slotNames.Count; i++)
@@ -107,7 +91,6 @@ public class HotbarHUDUITK : MonoBehaviour
             string id   = inv != null ? inv.GetHotbarSlot(i) : null;
             slotNames[i].text = DisplayNameOf(id);
 
-            // The slot box is the label's parent.
             var slot = slotNames[i].parent;
             slot?.EnableInClassList(SlotActiveClass, i == active);
         }
@@ -116,7 +99,7 @@ public class HotbarHUDUITK : MonoBehaviour
     private string DisplayNameOf(string id)
     {
         if (string.IsNullOrEmpty(id)) return "";
-        var def = database != null ? database.GetById(id) : null;
+        var def = database != null ? database.GetByID(id) : null;
         return def != null && !string.IsNullOrEmpty(def.DisplayName) ? def.DisplayName : id;
     }
 }

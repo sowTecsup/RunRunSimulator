@@ -7,21 +7,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// The player's single inventory, split into the two id namespaces (one SO, two
-// categories — see ItemType). Source of truth for "what the player owns"; mutate
-// only through here and fire GameEvents.InventoryChanged so GameManager persists.
-//
-//  furnitureOwned   — "F#" ids (FurnitureDefinitionSO). The build browser filters
-//                     the furniture DB against this list. A piece you own can be
-//                     placed any number of times, so ownership is a SET (no dupes).
-//  worldPropsStored — "I#" ids (ItemDefinitionSO) of props sitting in the storage
-//                     box. World props are UNIQUE instances, so this is a LIST:
-//                     two brooms = the id "I3" appears twice.
-//  equipmentGrids   — "EQ#" ids (EquipmentSO), one free-placement grid per
-//                     EquipmentSlot. A null/empty entry is an empty cell; the list
-//                     index IS the cell index (no compaction on remove).
-//  hotbarSlots      — "I#" ids the player put on the play-mode hotbar; persists so
-//                     the bar survives a reload. null = empty slot.
 [CreateAssetMenu(fileName = "PlayerInventory", menuName = "RunRunSimulator/Player/Player Inventory")]
 public class PlayerInventorySO : SerializedScriptableObject
 {
@@ -56,9 +41,6 @@ public class PlayerInventorySO : SerializedScriptableObject
     [OdinSerialize, ReadOnly]
     private int evolutionEssence;
 
-    // ── Furniture ─────────────────────────────────────────────────
-
-    // Ownership is a set — owning a piece lets you place it any number of times.
     public bool AddFurniture(string id)
     {
         if (string.IsNullOrEmpty(id) || furnitureOwned.Contains(id)) return false;
@@ -67,20 +49,10 @@ public class PlayerInventorySO : SerializedScriptableObject
         return true;
     }
 
-    public bool RemoveFurniture(string id)
-    {
-        if (!furnitureOwned.Remove(id)) return false;
-        MarkDirty();
-        return true;
-    }
-
     public bool HasFurniture(string id) => furnitureOwned.Contains(id);
 
     public IReadOnlyList<string> FurnitureOwned => furnitureOwned;
 
-    // ── World props ───────────────────────────────────────────────
-
-    // A list (not a set): each call adds one more physical instance.
     public void AddWorldProp(string id)
     {
         if (string.IsNullOrEmpty(id)) return;
@@ -88,7 +60,6 @@ public class PlayerInventorySO : SerializedScriptableObject
         MarkDirty();
     }
 
-    // Removes ONE instance of the id (one physical object leaves the box).
     public bool RemoveWorldProp(string id)
     {
         if (!worldPropsStored.Remove(id)) return false;
@@ -97,8 +68,6 @@ public class PlayerInventorySO : SerializedScriptableObject
     }
 
     public IReadOnlyList<string> WorldPropsStored => worldPropsStored;
-
-    // ── Equipment ─────────────────────────────────────────────────
 
     private List<string> GridFor(EquipmentSlot slot)
     {
@@ -110,7 +79,6 @@ public class PlayerInventorySO : SerializedScriptableObject
         return list;
     }
 
-    // Free placement: drops into the first empty cell, or appends a new one.
     public void AddEquipment(EquipmentSlot slot, string id)
     {
         if (string.IsNullOrEmpty(id)) return;
@@ -128,7 +96,6 @@ public class PlayerInventorySO : SerializedScriptableObject
         MarkDirty();
     }
 
-    // Clears the cell — leaves a hole, does NOT shift the rest of the grid.
     public bool RemoveEquipmentAt(EquipmentSlot slot, int index)
     {
         var grid = GridFor(slot);
@@ -139,7 +106,6 @@ public class PlayerInventorySO : SerializedScriptableObject
         return true;
     }
 
-    // Free placement drag-drop: moves into an empty cell, swaps if the target is occupied.
     public void MoveEquipment(EquipmentSlot slot, int from, int to)
     {
         var grid = GridFor(slot);
@@ -170,8 +136,6 @@ public class PlayerInventorySO : SerializedScriptableObject
             list.RemoveAt(list.Count - 1);
     }
 
-    // ── Dabloons ──────────────────────────────────────────────────
-
     public int Dabloons => dabloons;
 
     public void AddDabloons(int amount)
@@ -195,64 +159,11 @@ public class PlayerInventorySO : SerializedScriptableObject
         MarkDirty();
     }
 
-    // ── Adventure Material ───────────────────────────────────────────
-
     public int AdventureMaterial => adventureMaterial;
-
-    public void AddAdventureMaterial(int amount)
-    {
-        if (amount <= 0) return;
-        adventureMaterial += amount;
-        MarkDirty();
-    }
-
-    public bool SpendAdventureMaterial(int amount)
-    {
-        if (amount <= 0 || adventureMaterial < amount) return false;
-        adventureMaterial -= amount;
-        MarkDirty();
-        return true;
-    }
-
-    // ── Passive Material ──────────────────────────────────────────────
 
     public int PassiveMaterial => passiveMaterial;
 
-    public void AddPassiveMaterial(int amount)
-    {
-        if (amount <= 0) return;
-        passiveMaterial += amount;
-        MarkDirty();
-    }
-
-    public bool SpendPassiveMaterial(int amount)
-    {
-        if (amount <= 0 || passiveMaterial < amount) return false;
-        passiveMaterial -= amount;
-        MarkDirty();
-        return true;
-    }
-
-    // ── Evolution Essence ─────────────────────────────────────────────
-
     public int EvolutionEssence => evolutionEssence;
-
-    public void AddEvolutionEssence(int amount)
-    {
-        if (amount <= 0) return;
-        evolutionEssence += amount;
-        MarkDirty();
-    }
-
-    public bool SpendEvolutionEssence(int amount)
-    {
-        if (amount <= 0 || evolutionEssence < amount) return false;
-        evolutionEssence -= amount;
-        MarkDirty();
-        return true;
-    }
-
-    // ── Clear helpers (DEV / reset flows) ────────────────────────
 
     public void ClearFurnitureOwned()
     {
@@ -278,8 +189,6 @@ public class PlayerInventorySO : SerializedScriptableObject
         MarkDirty();
     }
 
-    // ── Hotbar ────────────────────────────────────────────────────
-
     public string GetHotbarSlot(int index) =>
         (index >= 0 && index < hotbarSlots.Length) ? hotbarSlots[index] : null;
 
@@ -294,10 +203,6 @@ public class PlayerInventorySO : SerializedScriptableObject
 
     public string[] HotbarSlots => hotbarSlots;
 
-    // ── Persistence (mirror of CreatureRegistrySO.GetAll / LoadFrom) ──
-
-    // Flat DTO the SaveSystem (de)serializes to JSON. The SO is the runtime truth;
-    // this is the on-disk shape.
     [Serializable]
     public class InventoryData
     {
@@ -338,7 +243,6 @@ public class PlayerInventorySO : SerializedScriptableObject
         MarkDirty();
     }
 
-    // Guards against a save written when HotbarSize differed (length mismatch).
     private static string[] NormalizeHotbar(string[] saved)
     {
         var slots = new string[HotbarSize];

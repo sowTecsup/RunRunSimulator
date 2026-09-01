@@ -28,7 +28,6 @@ public abstract class BodyPart : SerializedScriptableObject
     [GUIColor(nameof(GetSetColor))]
     public PartSet Set;
 
-    // ── Stat contributions ────────────────────────────────────────
     [BoxGroup("Stats"), LabelWidth(80), Range(0, 10)]
     public float HP     = 0f;
     [BoxGroup("Stats"), LabelWidth(80), Range(0, 10)]
@@ -45,11 +44,8 @@ public abstract class BodyPart : SerializedScriptableObject
 #endif
     }
 
-    // Each subclass declares which anatomical slot it occupies.
     public abstract PartRole GetPartRole();
 
-    // Instance wrappers for the Odin [GUIColor] attributes; the actual mapping is
-    // static so UI (e.g. the detail window's part swatches) shares one source of truth.
     private Color GetRarityColor() => RarityColor(Rarity);
     private Color GetSetColor()    => SetColor(Set);
 

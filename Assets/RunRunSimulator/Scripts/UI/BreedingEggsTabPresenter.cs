@@ -38,8 +38,6 @@ public class BreedingEggsTabPresenter : ITabPresenter
         eggListView = root.Q<ScrollView>("egg-list");
     }
 
-    // ── ITabPresenter ────────────────────────────────────────────
-
     public void Enter()
     {
         eggIndex = 0;
@@ -84,9 +82,6 @@ public class BreedingEggsTabPresenter : ITabPresenter
         RefreshEggTimers();
     }
 
-    // ── Tab 1: eggs ───────────────────────────────────────────────
-
-    // Build the "Incubando" cards: one per breeding female + her partner.
     private void RebuildEggs()
     {
         if (eggListView == null) return;
@@ -148,9 +143,6 @@ public class BreedingEggsTabPresenter : ITabPresenter
         }
     }
 
-    // Gray the button to "Hatching..." while the server is consulted. On success
-    // RebuildEggs replaces the row (the button is orphaned → we skip restoring it);
-    // on not_ready the row stays, so we restore the button for a retry.
     private async void DoHatch(string motherId, Button btn)
     {
         if (asyncBreedingService == null) { Debug.LogError("[BreedingPanel] AsyncBreedingService not assigned."); return; }
@@ -166,7 +158,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
 
         await asyncBreedingService.HatchAsync(motherId, mother.BreedPartnerID);
 
-        if (btn != null && btn.panel != null)   // still attached → the egg didn't hatch (not_ready)
+        if (btn != null && btn.panel != null)
         {
             btn.SetEnabled(true);
             btn.text = Loc.Tr("ui.breeding.hatch.action");

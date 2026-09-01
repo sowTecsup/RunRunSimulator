@@ -6,11 +6,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Orchestrates furniture placement: validates against the grid, mutates the registry,
-// and announces changes via GameEvents (the spawner reacts, persistence later). It owns
-// the placement API the Building mode drives — TryPlace / TryLift / TryRemove — plus the
-// hotbar of placeable pieces (activePieces, picked with 1-4 in build mode). The Odin TEST
-// buttons place the currently selected hotbar piece without entering build mode.
 public class FurnitureService : MonoBehaviour
 {
     [Required, SerializeField] private PlacementGrid grid;
@@ -32,11 +27,8 @@ public class FurnitureService : MonoBehaviour
     [PropertyRange(0, 270), LabelText("Rotation (90° steps)")]
     [SerializeField] private int rotation;
 
-    // Which hotbar entry is selected (set by SelectPiece in build mode; test buttons use it too).
     private int selectedIndex;
 
-    // Set by the build browser (SetActivePiece): overrides the indexed hotbar slot so the
-    // browser can drive placement directly without mutating the serialized activePieces list.
     private FurnitureDefinitionSO runtimeActivePiece;
 
     private const float RebakeDebounce = 0.4f;
@@ -73,11 +65,6 @@ public class FurnitureService : MonoBehaviour
         RebakeNavMesh();
     }
 
-    // ── NavMesh rebake ────────────────────────────────────────────
-
-    // Rebuilds the scene NavMesh from current geometry — call after placing/loading a breeding
-    // room so its painted floor area gets baked in. Occasional by design (placement is a
-    // decorate-time action), so the rebake cost is acceptable.
     [Button("Rebake NavMesh", ButtonSizes.Large), GUIColor(0.6f, 0.8f, 1f)]
     public void RebakeNavMesh()
     {
@@ -89,7 +76,6 @@ public class FurnitureService : MonoBehaviour
         }
         else
         {
-            // First-ever bake (no data yet) is synchronous — bracket it so agents re-anchor.
             GameEvents.NavMeshWillRebake();
             navSurface.BuildNavMesh();
             GameEvents.NavMeshRebaked();
@@ -97,22 +83,16 @@ public class FurnitureService : MonoBehaviour
     }
     private System.Collections.IEnumerator UpdateNavMeshAsyncRoutine()
     {
-        // Let live agents detach + freeze so the bake doesn't snap them across the room.
         GameEvents.NavMeshWillRebake();
 
-        // UpdateNavMesh calcula solo las áreas que cambiaron usando los datos existentes
         AsyncOperation op = navSurface.UpdateNavMesh(navSurface.navMeshData);
 
-        // Esperamos a que termine en segundo plano
         yield return op;
 
-        // Fresh mesh is live — agents re-anchor to the nearest point under them.
         GameEvents.NavMeshRebaked();
 
         Debug.Log("¡NavMesh actualizado con éxito (Asíncrono)!");
     }
-
-    // ── Odin test buttons ─────────────────────────────────────────
 
     [Button("Place at Cell", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f)]
     private void PlaceTest()
@@ -137,19 +117,12 @@ public class FurnitureService : MonoBehaviour
         GameEvents.FurnitureReloaded(registry);
     }
 
-    // ── Hotbar selection ──────────────────────────────────────────
-
-    // The piece currently selected for placement — BuildModeController reads it for both
-    // the ghost mesh and TryPlace's def. Single source of "what am I placing". The browser's
-    // runtime pick wins; otherwise fall back to the serialized hotbar slot (1-4 test path).
     public FurnitureDefinitionSO ActivePiece =>
         runtimeActivePiece != null
             ? runtimeActivePiece
             : (activePieces != null && selectedIndex >= 0 && selectedIndex < activePieces.Count)
                 ? activePieces[selectedIndex] : null;
 
-    // Selects hotbar slot 'index' (0-based). Returns false if empty / out of range.
-    // Clears any browser override so the indexed slot takes effect.
     public bool SelectPiece(int index)
     {
         if (activePieces == null || index < 0 || index >= activePieces.Count || activePieces[index] == null)
@@ -159,17 +132,12 @@ public class FurnitureService : MonoBehaviour
         return true;
     }
 
-    // The build browser's pick: drive placement with an arbitrary owned piece without
-    // touching the serialized activePieces list (mutating a serialized List at runtime
-    // is fragile). Returns false for a null def.
     public bool SetActivePiece(FurnitureDefinitionSO def)
     {
         if (def == null) return false;
         runtimeActivePiece = def;
         return true;
     }
-
-    // ── Placement API (Building mode + test buttons) ──────────────
 
     public bool TryPlace(Vector2Int cell, int rot) => TryPlace(ActivePiece, cell, rot);
 
@@ -200,7 +168,7 @@ public class FurnitureService : MonoBehaviour
             return false;
         }
 
-        var def = database.GetById(piece.DefId);
+        var def = database.GetByID(piece.DefId);
         Vector2Int footprint = def != null ? def.Footprint : Vector2Int.one;
 
         grid.Free(cell, footprint, piece.Rotation);
@@ -210,16 +178,13 @@ public class FurnitureService : MonoBehaviour
         return true;
     }
 
-    // Lifts the piece anchored at 'cell' (removes it from registry + grid) and returns its
-    // definition + rotation, so build mode can re-place it after editing or drop it on
-    // delete. Symmetric with TryPlace — fires FurnitureChanged, so the mesh despawns now.
     public bool TryLift(Vector2Int cell, out FurnitureDefinitionSO def, out int rot)
     {
         def = null; rot = 0;
         string key = PlacedFurniture.Key(cell.x, cell.y);
         if (!registry.TryGet(key, out var piece)) return false;
 
-        def = database.GetById(piece.DefId);
+        def = database.GetByID(piece.DefId);
         rot = piece.Rotation;
         Vector2Int footprint = def != null ? def.Footprint : Vector2Int.one;
 
@@ -229,7 +194,6 @@ public class FurnitureService : MonoBehaviour
         return true;
     }
 
-    // Rounds an arbitrary angle to the nearest 90° step in [0, 270].
     private static int Snap90(int deg) => ((Mathf.RoundToInt(deg / 90f) * 90) % 360 + 360) % 360;
 }
 }

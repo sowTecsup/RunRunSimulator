@@ -4,10 +4,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Perception collaborator of the agent composition (mirrors AgentBrain). Runs a staggered,
-// throttled scan of nearby Perceivables and writes the result to the shared blackboard
-// (ctx.Percepts) as a sorted, capped list. Never decides anything and never changes state —
-// AgentBrain (or a future social brain) reads ctx.Percepts and acts on them.
 internal class AgentSenses
 {
     private readonly MoriMochiAgent owner;

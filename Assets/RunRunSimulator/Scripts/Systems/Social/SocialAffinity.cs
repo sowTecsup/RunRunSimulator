@@ -2,10 +2,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Static affinity seed between two MoriMonchis: same Element, kinship and per-Role
-// social bias, plus a deterministic "pair chemistry" hash so any two given creatures
-// always like/dislike each other by the same fixed amount. This is the seed the future
-// SocialGraph (V2, with interaction history) will start from and then adjust over time.
 public static class SocialAffinity
 {
     public static float Compute(CreatureDNA a, CreatureDNA b, SocialTuningSO t)

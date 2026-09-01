@@ -134,7 +134,7 @@ No probado aún (existe en catálogo): `build`/`build_status` con BuildReport, P
 | Escena, GameObjects, componentes, wiring | **MCP CoplayDev** `manage_*` | catálogo mutador maduro + Undo |
 | ScriptableObjects Odin (quirk #1) | **MCP CoplayDev** (`manage_scriptable_object` + `execute_code`) | pipeline validado; el CLI no lo cubre |
 | ProBuilder / UI Toolkit picking / profiler | **MCP CoplayDev** | sin equivalente CLI |
-| Tools propias del proyecto (`verify_prototype_parity`, `sim_prototype_turns`) | **MCP CoplayDev** | viven en `[McpForUnityTool]` |
+| Tools propias del proyecto (hoy ninguna — las del prototipo se borraron en S93) | **MCP CoplayDev** | se declaran con `[McpForUnityTool]` en una carpeta `Editor/` (ver sección abajo) |
 | Si el bridge CoplayDev muere a mitad de sesión | **CLI como red de seguridad** | antes: reiniciar editor; ahora: seguir por CLI y reiniciar cuando convenga |
 
 ### Workflow por fase de sesión (v1, a pulir con uso)
@@ -150,6 +150,10 @@ No probado aún (existe en catálogo): `build`/`build_status` con BuildReport, P
 2. El primer `unity pipeline list` post-instalación puede dar "Server Reachable false" durante el refresh de assets (~99s). No es bug.
 3. Rutas de ESCRITURA (`save_path`, `write_text_file`) confinadas a la raíz del proyecto; rutas de LECTURA (`eval_file --file`) no.
 4. El puerto del server cambia tras domain reloads — nunca hardcodearlo; el CLI lo resuelve.
+5. **(S93)** `unity status` con la tabla VACÍA = no hay ningún editor corriendo (no es un fallo del CLI). El editor se cerró a mitad de la sesión sin crash; relanzarlo con `Start-Process "C:\Program Files\Unity\Hub\Editor\6000.3.9f1\Editor\Unity.exe" -ArgumentList '-projectPath','"<ruta>"'` deja el pipeline `ready` en ~40 s. Antes de borrar una escena, comprobar cuál está abierta (`Library/LastSceneManagerSetup.txt` o MCP `execute_code` + `SceneManager.GetActiveScene()`), y cambiarla con `EditorSceneManager.OpenScene`.
+6. **(S93)** `eval`/`eval_file` por CLI pueden fallar con *"Main thread operation timed out after 5000ms"* si el editor está desenfocado y no tickea; en la misma situación MCP `execute_code` respondió. Alternativas: `set_autotick`, o enfocar el editor. `AssetDatabase.Refresh()` vía `eval_file` sí funcionó tras el relanzamiento.
+7. **(S93)** Con muchos agentes guardando archivos en paralelo (13 coders), Unity encadena domain reloads y puede loguear *"An infinite import loop has been detected"* sin listar assets: transitorio, desaparece con un refresh final. Compilar recién cuando todos terminaron.
+8. **(S93)** El sandbox de PowerShell del harness bloquea comandos que contengan `Remove-Item` con expresiones raras (`-replace '\\','/'`) — para `git rm` masivo usar la herramienta Bash.
 
 **Alternativas descartadas (S79, sin cambios):** CLI cliente de CoplayDev · IvanMurzak/Unity-MCP.
 
@@ -197,17 +201,9 @@ public static class LoQueSea
 - `Group` default `"core"` → visibles. Los demás grupos arrancan ocultos (ver sección siguiente).
 - Respuestas: `SuccessResponse` / `ErrorResponse` / `PendingResponse` de `MCPForUnity.Editor.Helpers` (serializan `success` + `message` + `data`).
 
-**Las nuestras** viven en `Assets/RunRunSimulator/Scripts/Editor/MCP/` (los scripts del proyecto no tenían ninguna carpeta `Editor/` hasta S84):
+**Estado S93: el proyecto NO tiene tools propias.** Las dos que existieron (`verify_prototype_parity` y `sim_prototype_turns`, con su colaborador `PrototypeSimBridge`, S84) vivían en `Assets/RunRunSimulator/Scripts/Editor/MCP/` y servían solo al prototipo táctico; se borraron con él en S93 (recuperables en git `3cc5eb5`). La carpeta `Scripts/Editor/` desapareció con ellas. El contrato de arriba sigue siendo la receta si el combate v3 necesita una tool propia (candidata natural: correr `DragonRpsHarness` dentro del editor con salida JSON — aunque hoy alcanza con `dotnet` fuera del editor).
 
-| Tool | Para qué |
-|------|----------|
-| `verify_prototype_parity` | Corre el plan por los DOS caminos (`PlanProjection.Project` vs réplica del ejecutor: `ResolveBeat` por beat + `ResolveEnemyTurn`) sobre clones, compara estado y eventos beat por beat, y verifica que el **estado canónico no se filtró** — ojo que `CombatSimState.Clone()` comparte `Board` por referencia, así que si algo lo mutara la proyección se filtraría a la partida. Es la regla innegociable del prototipo convertida en un llamado. |
-| `sim_prototype_turns` | Corre un plan sobre un clon y devuelve los `ResolutionEvent` fase por fase + snapshot de unidades, con `extraEnemyTurns` para observar el desgaste sin jugador. Nunca toca la partida en curso. |
-| `PrototypeSimBridge` | No es tool: el colaborador compartido (parseo del plan JSON, firmas de estado/evento, diffs, describe). |
-
-Ambas piden **Play mode** (necesitan `manager.Canonical`) y aceptan `plan` como JSON — `{"beats":[{"actions":[{"unitId":0,"abilityIndex":0,"targetCell":[3,4],"direction":[1,0],"slamCell":[5,4]}]}]}` — o sin `plan` usan el plan vivo del HUD.
-
-Reemplazan los bloques largos de `execute_code` que arrastran el quirk #2 (cuerpo de método, sin `using`, todo calificado): el ritual de verificación queda en una llamada con salida JSON estable.
+La lección que dejaron: reemplazan los bloques largos de `execute_code` que arrastran el quirk #2 (cuerpo de método, sin `using`, todo calificado) — un ritual de verificación repetido merece una tool con salida JSON estable.
 
 ---
 

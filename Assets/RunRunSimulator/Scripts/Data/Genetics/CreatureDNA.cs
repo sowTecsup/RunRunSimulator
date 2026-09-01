@@ -4,13 +4,9 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Genetic string format: "BODYSHAPE-HORN-BACK-WING-FACE-RRGGBB"  (e.g. "BS0-H2-BK1-W0-FC3-FF00AA")
-// Registry key (UniqueID): "<genetic_string>-<timestamp_ticks>"
-// Part IDs must not contain '-'.
 [Serializable]
 public class CreatureDNA
 {
-    // ── Genetics ──────────────────────────────────────────────────
     public string BodyShapeID = "";
     public string HornID      = "";
     public string BackID      = "";
@@ -26,78 +22,56 @@ public class CreatureDNA
     public FurType FurType = FurType.Pattern00;
     public bool IsShiny = false;
 
-    // ── Identity ──────────────────────────────────────────────────
-    public string   CustomName = "";     // editable display name — auto-assigned on Mint/Breed
-    public long     Timestamp = 0;       // UTC ticks set on Stamp(); 0 = not yet registered
-    public DateTime BirthDate;           // human-readable creation time
+    public string   CustomName = "";
+    public long     Timestamp = 0;
+    public DateTime BirthDate;
 
-    // ── Lineage ───────────────────────────────────────────────────
     public string       MotherID    = "";
     public string       FatherID    = "";
     public List<string> ChildrenIDs = new List<string>();
 
-    // ── Social ────────────────────────────────────────────────────
     public CreatureGender Gender = CreatureGender.Unknown;
 
     public Role Role = Role.Protector;
 
-    // Innate elemental affinity — heredado 50/50 con chance de mutación,
-    // metadata fuera del genetic string (igual que Role).
     public Element Element = Element.Agua;
 
     public float Sociability = 0.5f;
     public float Boldness    = 0.5f;
 
-    // ── Progression ───────────────────────────────────────────────
     public int BreedCount = 0;
 
-    // ── Tier per slot ─────────────────────────────────────────────
     public Tier BodyTier = Tier.Tier1;
     public Tier HornTier = Tier.Tier1;
     public Tier BackTier = Tier.Tier1;
     public Tier WingTier = Tier.Tier1;
 
-    // ── Base Stats (point-buy en Mint, heredados en Breed) ─
     public float BaseConstitution = 0f;
     public float BaseAttack       = 0f;
     public float BaseSpeed        = 0f;
 
-    // ── Gear-derived Stats (start at 0, filled by future equipment) ─
     public float BaseDefense  = 0f;
     public float BaseLuck     = 0f;
     public float BaseEvasion  = 0f;
 
-    // ── Mortality ─────────────────────────────────────────────────
     public bool IsDead = false;
 
-    // ── Runtime needs (World) ─────────────────────────────────────
-    // Mutable wellbeing (health/energy/affect) the MoriMochiAgent ticks while spawned. Lives here
-    // because CreatureDNA is already the persisted save record (like BusyState) — so
-    // it rides the local + Cloud Save with zero extra plumbing. NOT part of the genetic string.
     public NeedsState Needs = new NeedsState();
 
-    // ── Busy state ────────────────────────────────────────────────
     public BusyReason BusyState = BusyReason.None;
     public bool IsBusy => BusyState != BusyReason.None;
     public bool IsSold => BusyState == BusyReason.Sold;
 
     public DateTime SaleDate;
 
-    // ── Breeding timer (local cache for display; server is authoritative) ─
-    public long   BreedReadyAt   = 0;    // server epoch ms when the egg can hatch; 0 = not breeding
-    public string BreedPartnerID = "";   // the other parent — lets the client rebuild the pair locally
-    public string LocationKey  = "";   // furniture cell key ("x_y") of the place this creature is anchored to (pen / shelf / corral); "" = free roamer (cannon)
-    public int    LocationSlot = -1;   // fixed slot index inside that place; -1 = unassigned
+    public long   BreedReadyAt   = 0;
+    public string BreedPartnerID = "";
+    public string LocationKey  = "";
+    public int    LocationSlot = -1;
 
-    // ── Equipment (typed slots; stores EquipmentSO IDs, resolved vs EquipmentDatabaseSO) ─
-    // Metadata like Gender/Role — NOT part of the genetic string. Persists with
-    // the DNA (local + cloud) as light IDs. Edited via the typed slot fields below
-    // (hidden raw so the drag-drop slots are the single edit surface).
     [HideInInspector]
     public Dictionary<EquipmentSlot, string> Equipped = new Dictionary<EquipmentSlot, string>();
 
-    public const int MaxCutieMarks = 2;
-    [HideInInspector] public List<string> CutieMarks = new List<string>();
     [HideInInspector] public string HeldItemId = "";
 
 #if UNITY_EDITOR
@@ -124,13 +98,10 @@ public class CreatureDNA
     }
 #endif
 
-    // Whole days lived since BirthDate (UTC). Drives the NameTag life stage; 0 until stamped.
     public int AgeDays => BirthDate == default ? 0 : Mathf.Max(0, (int)(DateTime.UtcNow - BirthDate).TotalDays);
 
-    // Unique registry key: two creatures with identical genes are still different entries.
     public string UniqueID => Timestamp > 0 ? $"{ToStringID()}-{Timestamp}" : "";
 
-    // Call once before registering. Sets Timestamp and BirthDate atomically.
     public void Stamp()
     {
         var now   = DateTime.UtcNow;
@@ -141,7 +112,6 @@ public class CreatureDNA
     public string ToStringID() =>
         $"{BodyShapeID}-{HornID}-{BackID}-{WingID}-{FaceID}-{ColorUtility.ToHtmlStringRGB(BaseColor)}";
 
-    // Returns "{body} {horn} {back} {wing}" using part Name fields; falls back to part IDs.
     public string GetDisplayName(CreatureDatabaseSO db)
     {
         string body = db?.GetBodyShape(BodyShapeID)?.Name ?? BodyShapeID;
@@ -151,8 +121,6 @@ public class CreatureDNA
         return $"{body} {horn} {back} {wing}";
     }
 
-    // Parses only the genetic string (BODYSHAPE-HORN-BACK-WING-FACE-RRGGBB).
-    // Does not parse Timestamp or lineage — use JSON deserialization for full state.
     public static CreatureDNA FromID(string id)
     {
         if (string.IsNullOrEmpty(id))

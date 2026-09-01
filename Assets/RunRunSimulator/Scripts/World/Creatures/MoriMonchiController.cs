@@ -3,11 +3,6 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-// Facade that wires MoriMochiAgent (behavior brain) and MonchiVisualizer (3D assembly)
-// without either knowing about the other. MoriMochiSpawner talks only to this component.
-//
-// All three components live on the same root GameObject; the serialized refs are set once
-// in the prefab and never searched at runtime (no GetComponentInChildren).
 [RequireComponent(typeof(MoriMochiAgent))]
 [RequireComponent(typeof(MonchiVisualizer))]
 public class MoriMonchiController : MonoBehaviour
@@ -49,8 +44,6 @@ public class MoriMonchiController : MonoBehaviour
 
         visualizer.RefreshLook(dna);
     }
-
-    // ── Spawner passthrough ───────────────────────────────────────
 
     public void Launch(Vector3 launchPos, Vector3 launchVelocity) => agent.Launch(launchPos, launchVelocity);
 
