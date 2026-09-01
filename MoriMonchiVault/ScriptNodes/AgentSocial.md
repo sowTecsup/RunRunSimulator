@@ -20,13 +20,18 @@ tags: [script, world, agent, internal, social]
 - `lungeTimer` — temporizador de la próxima abalanzada en modo Fighting
 - `emoteTimer` — temporizador de emotes periódicos (Zzz cada 3s / Molesto en pelea)
 
-**Métodos:**
+**Métodos privados clave (S93):**
+- `CanPair(SocialTuningSO t, MoriMochiAgent initiator) → bool` — validación compartida por todos los handshakes (cooldown, estado libre, sin container, sin breeding, DNA válido)
+- `Enter(SocialMode newMode, MoriMochiAgent newPartner, float newDuration, EmoteKind emote)` — setup de transición: limpia timers, entra Socializing, emite emote
+- `TargetOf(in Percept p) → MoriMochiAgent` — extrae agente del percept (helper estático)
+
+**Métodos públicos:**
 - `TryEngage() → bool` — intenta iniciar interacción social: busca en Percepts la mejor regla coincidente, elige Approach/PlayChase/SleepTogether/Fight. Llamado por MoriMochiAgent.Update solo si el estado del cerebro quedó en Idle/Roaming este frame (las necesidades y reacciones nunca se interrumpen)
 - `TryJoinSocialPlay(MoriMochiAgent initiator) → bool` — lado receptor del handshake de PlayChase: valida disponibilidad y energía independientemente. Ambos lados usan energía durante persecución, se intercambian roles a mitad de duración
 - `TryJoinSleep(MoriMochiAgent initiator, NeedStation station, Vector3 fallbackSpot) → bool` — **S65 NUEVO** lado receptor de invitación de siesta: valida energía ≤ MaxEnergyToSleep y no-Sick; intenta reservar su propio slot en la MISMA estación del iniciador, si no puede duerme junto al fallbackSpot.
 - `TryJoinFight(MoriMochiAgent initiator) → bool` — **S65 NUEVO** lado receptor de invitación de pelea: mismas validaciones que TryJoinSocialPlay (Healthy + Energy ≥ MinEnergyToPlay). Ambos se abalanzan mutuamente durante FightDuration.
 - `TickSocializing() → void` — tick cuando el estado es Socializing: mueve hacia compañero (Approach), lo persigue (Chaser), huye (Runner), duerme juntos (Sleeping), se abalanza (Fighting). Termina por timeout o si el compañero se fue. Genera emoción EmitEmote y bonus de Affect al completar. Registra interacción en SocialGraphService.
-- `End() → void` — **S69** Completa la interacción: registra delta de afinidad en SocialGraphService, asigna cooldown vía `t.ScaledSocialCooldown(ctx.Dna.Sociability)` (Sociable → cooldown corto, Tímido → cooldown largo).
+- `End(bool completed, bool notifyPartner = true) → void` — **S69** Completa la interacción: registra delta de afinidad en SocialGraphService, asigna cooldown vía `t.ScaledSocialCooldown(ctx.Dna.Sociability)` (Sociable → cooldown corto, Tímido → cooldown largo).
 - `CompleteFromPartner() → void` — **S65 ACTUALIZADO** notificación one-way: el compañero terminó el juego, sincroniza ambos lados para cobrar el reward juntos. SOLO el lado que notifica registra en SocialGraphService (evita doble delta).
 - `AdjustRoamForAvoidance(Vector3) → Vector3` — filtro repulsivo barato: empuja un punto de roam alejado de Perceivables que coinciden reglas Avoid. Usado por AgentBrain.NextRoamDestination
 - `ResetForReuse() → void` — pooling: restaura estado inicial
@@ -40,6 +45,11 @@ tags: [script, world, agent, internal, social]
 - `Runner` — siendo perseguido, consume energía
 - `Sleeping` — **S65 NUEVO** durmiendo juntos en RestZone, regenera energía
 - `Fighting` — **S65 NUEVO** peleando, consume energía como el chase, abalanzadas cada FightLungeInterval; −FightAffectLoss y knock final sin estrés al terminar
+
+**Invariantes S93 (rescatados de comentarios):**
+- El handshake de chase/sleep/fight es simétrico al cortejo: el iniciador pide `TryJoin*` al target y solo procede si acepta; después no hay más llamadas cruzadas — cada lado detecta que el otro se fue por `partner.IsSocializing` cada tick.
+- `End(completed, notifyPartner)`: el cierre natural completa también el lado del partner en el mismo frame (los dos cobran el Affect); la historia en `SocialGraphService` se registra SOLO en el lado que notifica (primario) para evitar el doble registro por carrera de frames. El knock del final de una pelea lo aplica cada lado sobre sí mismo.
+- `BeginSleep`: reserva la estación ANTES del handshake y la libera si el partner rechaza.
 
 **Cambios S69:**
 

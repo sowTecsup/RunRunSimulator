@@ -6,16 +6,8 @@ tags: [script, ui, presenter]
 
 **Ruta:** `UI/DetailInfoTabPresenter.cs`
 
-**Responsabilidad:** Presenter UITK para tab Info (5 filas de partes genéticas, stats via `CreatureStats`, progresión BreedCount).
+**Responsabilidad:** Presenter UITK para tab Info (5 filas de partes genéticas, stats via `CreatureStats`, progresión BreedCount). **S93:** Usa `CreatureDisplay.StateOf()`.
 
-## Cambios en S75
+**Vinculado a:** [[Index/05 - UI System]]
 
-- **5 filas de partes:** Body/Horn/Back/Wing/Face (reemplazó Body/Arm/Eye/Mouth)
-- **Stats:** Via `CreatureStats.GetEffectiveStats()`
-- **Progresión:** Solo BreedCount (sin FightCount/WinCount)
-
-## Vinculado a
-
-- [[Index/05 - UI System]]
-
-**Conexiones:** [[CreatureStats]], [[CreatureDNA]]
+**Conexiones:** [[CreatureStats]], [[CreatureDNA]], [[CreatureDisplay]]

@@ -6,7 +6,7 @@ tags: [script, ui, world-ui]
 
 **Ruta:** `World/Creatures/NameTag.cs`
 
-**Responsabilidad:** Placa flotante sobre MoriMochi. Muestra: nombre, gender, role, life stage, intent (verbo presente). **S75:** Sin chip "En cola" (demolición).
+**Responsabilidad:** Placa flotante sobre MoriMochi. Muestra: nombre, gender, role, life stage, intent (verbo presente). **S75:** Sin chip "En cola" (demolición). **S93:** Usa `UiPanels.RootOf()` para resolver root del UIDocument.
 
 ## Chips mostrados
 
@@ -24,4 +24,4 @@ tags: [script, ui, world-ui]
 
 - [[Index/05 - UI System]]
 
-**Conexiones:** [[MoriMochiAgent]], [[CreatureDNA]], [[LocEnumMaps]]
+**Conexiones:** [[MoriMochiAgent]], [[CreatureDNA]], [[LocEnumMaps]], [[UiPanels]]

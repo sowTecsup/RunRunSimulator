@@ -10,4 +10,4 @@ tags: [script, visual, ui]
 
 **Vinculado a:** [[Index/10 - Visualization]]
 
-**Conexiones:** [[MonchiVisualBankSO]], [[MonchiVisualizer]], [[Enums]] (MonchiMood)
+**Conexiones:** [[MonchiVisualBankSO]], [[MonchiVisualizer]], Enums (`Core/Enums/`, S93) (MonchiMood)

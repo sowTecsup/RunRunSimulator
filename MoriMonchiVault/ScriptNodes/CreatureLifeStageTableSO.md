@@ -28,4 +28,4 @@ public string Label(LifeStage stage) => LocEnumMaps.LifeStageName(stage);
 
 **Vinculado a:** [[Index/02 - Genetics & Breeding]], [[Index/14 - Localization]]
 
-**Conexiones:** [[BreedingController]], [[NameTag]], [[LocEnumMaps]], [[Loc]], [[Enums]] (LifeStage)
+**Conexiones:** [[BreedingController]], [[NameTag]], [[LocEnumMaps]], [[Loc]], Enums (`Core/Enums/`, S93) (LifeStage)

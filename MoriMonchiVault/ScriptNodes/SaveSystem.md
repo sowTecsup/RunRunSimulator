@@ -17,7 +17,6 @@ tags: [persistence, io, serialization]
 | `LoadInto(CreatureRegistrySO registry)` | void | Deserializa JSON → `registry.LoadFrom(data)`. Hereda save viejo si es primer login con scope |
 | `Serialize(Dictionary<string, CreatureDNA> data)` | `string` | JSON string de diccionario |
 | `Serialize(CreatureDNA dna)` | `string` | JSON string de una criatura |
-| `DeserializeCreature(string json)` | `CreatureDNA` | JSON string → `CreatureDNA` instance. Inverso de `Serialize(CreatureDNA)` |
 | `Deserialize(string json)` | `Dictionary<string, CreatureDNA>` | JSON string → diccionario |
 | `SerializeFurniture(FurnitureRegistrySO registry)` | `string` | JSON de furniture registry |
 | `DeserializeFurniture(string json)` | `Dictionary<string, PlacedFurniture>` | JSON → furniture dict |
@@ -59,41 +58,7 @@ private static readonly JsonSerializerSettings Settings = new JsonSerializerSett
 
 **SaveSocialGraph():** Llama `SocialGraphService.ExportData()`, serializa el diccionario `Dictionary<string, float>` (PairKey → delta) a JSON en ruta scoped.
 
-```csharp
-public static void SaveSocialGraph()
-{
-    string path = ScopedPath(SOCIAL_FILENAME);
-    File.WriteAllText(path, JsonConvert.SerializeObject(SocialGraphService.ExportData(), Settings));
-}
-```
-
 **LoadSocialGraph(CreatureRegistrySO registry):** Lee social_graph_<playerId>.json, deserializa a diccionario, luego llama `SocialGraphService.ImportData(data, id => registry.TryGet(id, out _))` para poda de huérfanos. Si no existe archivo, llama `SocialGraphService.Clear()`.
-
-```csharp
-public static void LoadSocialGraph(CreatureRegistrySO registry)
-{
-    string path = ScopedPath(SOCIAL_FILENAME);
-    if (!File.Exists(path))
-    {
-        SocialGraphService.Clear();
-        return;
-    }
-    var data = JsonConvert.DeserializeObject<Dictionary<string, float>>(
-        File.ReadAllText(path), Settings);
-    SocialGraphService.ImportData(data, id => registry != null && registry.TryGet(id, out _));
-}
-```
-
-## Novo en S32: DeserializeCreature
-
-Inverso de `Serialize(CreatureDNA)`. Utilizado por:
-- `CombatDevConsole.VerifyDeterminismButton()` — clona criaturas para verificar determinismo
-- `AsyncCombatService.ApplyResult()` — deserializa snapshots del `CloudMatchBlob`
-
-```csharp
-public static CreatureDNA DeserializeCreature(string json) =>
-    string.IsNullOrEmpty(json) ? null : JsonConvert.DeserializeObject<CreatureDNA>(json, Settings);
-```
 
 ## Vinculado a
 
@@ -101,24 +66,6 @@ public static CreatureDNA DeserializeCreature(string json) =>
 - [[GameManager]] — orquesta persistencia vía eventos
 - [[CloudSyncService]] — sincroniza local ↔ cloud
 - [[SocialGraphService]] — guarda/carga history de interacciones
-- [[CombatDevConsole]] — deserializa para clonación de tests
-- [[AsyncCombatService]] — deserializa snapshots de cloud
 
-## Conexiones
+**Conexiones:** [[GameManager]], [[CloudSyncService]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[SocialGraphService]]
 
-**Entrada:**
-- `GameManager.Persist()` — trigger de `SaveDatabase()` vía `GameEvents.OnRegistryChanged`
-- `GameManager.FlushToCloud()` — llama `SaveSocialGraph()`
-- `CloudSyncService.HandleSignedInAsync()` — llama `LoadSocialGraph()`
-- `CombatDevConsole` — deserializa para verificación
-
-**Salida:**
-- `Application.persistentDataPath/*.json` — almacenamiento local
-- Registries y ServiceGraphService mutados via `*LoadFrom/ImportData(data)`
-
-## Notas
-
-- Sin manejo de excepción explícito en métodos; propagadas al caller.
-- `NullValueHandling.Ignore` significa que campos null no se escriben; si faltan en JSON durante deseri, se defaultean a null o 0.
-- Conversores custom solo para `Color` y `enum`; tipos complejos (ej. `Dictionary`) deserializan nativamente.
-- S65: SocialGraph persiste SOLO local; sync a cloud es futuro.

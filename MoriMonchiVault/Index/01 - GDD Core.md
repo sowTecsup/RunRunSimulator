@@ -11,5 +11,5 @@ tags: [index, core]
 **Scripts:**
 | Script | Ruta | Rol |
 |--------|------|-----|
-| [[Enums]] | `Core/Enums.cs` | Todos los enumeradores globales |
+| Enums (`Core/Enums/`, S93) | `Core/Enums.cs` | Todos los enumeradores globales |
 | [[Interfaces]] | `Core/Interfaces.cs` | IInteractable, IUINavigable, IThrowable |

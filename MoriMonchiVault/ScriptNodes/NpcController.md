@@ -21,6 +21,9 @@ tags: [script, world, npc]
 - Ya NO tiene `displays` (List<StoreContainer>) serializada — pasa `StoreDisplayRegistry.All` a `Initialize()`.
 - `ForceSpawn()` es público (era privado `TrySpawnOne()`).
 
+**Cambios S93:**
+- Ya NO dispara evento `OnCustomerSpawned` (fue removido con limpieza de eventos de cliente).
+
 **Vinculado a:** [[Index/04 - Customer System]]
 
 **Conexiones:** [[NpcAgent]], [[StoreContainer]], [[StoreDisplayRegistry]], [[CashRegister]], [[CustomerService]], [[GameEvents]]

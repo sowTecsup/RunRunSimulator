@@ -1,30 +1,52 @@
 ---
-tags: [script, database, asset]
+tags: [scriptable-object, database, equipment]
 ---
 
 # EquipmentDatabaseSO.cs
 
 **Ruta:** `Data/Databases/EquipmentDatabaseSO.cs`
 
-**Responsabilidad:** Base de datos única: espejo de `PartDatabaseSO` para equipo. Indexa cada `EquipmentSO` por ID (`"EQ0"`, `"EQ1"`…). Resolver el equipo acoplado a un `CreatureDNA` (drag-drop en editor y en las grillas) siempre va aquí. Ofrece `PopulateFromBuffer` (drag-drop múltiples SOs → `SyncAllIDs` asigna IDs secuenciales) y getter estático `Editor` para que el editor de DNA pueda resolver IDs sin un `GameManager` vivo (ej: editando el asset del registro). En runtime, `GameManager` mantiene la instancia viva.
+**Responsabilidad:** Base de datos única de equipo. Hereda de [[KeyedDatabaseSO]]. Indexa cada `EquipmentSO` por ID (prefijo "EQ" → "EQ0", "EQ1", ...). Resolver equipo acoplado a un `CreatureDNA` siempre va aquí (drag-drop editor, grillas). Ofrece búsqueda por ID, acceso al diccionario, botones editor (PopulateFromBuffer, SyncAllIDs). Propiedad estática `Editor` (solo en editor) permite resolver IDs sin GameManager vivo (ej: editor de DNA).
 
-## Métodos públicos
+**S93:** Hereda protocolo de [[KeyedDatabaseSO]]; `IDPrefix = "EQ"`.
 
-| Método | Retorna | Propósito |
-|--------|---------|----------|
-| `GetByID(string id)` | `EquipmentSO` | Resuelve un item por ID ("EQ0"…); null si no existe. |
-| `GetBySlot(EquipmentSlot slot)` | `List<EquipmentSO>` | Todos los items para un slot (Weapon/Armor/Amulet). |
-| `GetAllIDs()` | `List<string>` | Lista de todos los IDs. |
-| `Equipment` | `Dictionary<...>` | Acceso directo al dict (read-only). |
+## Campos Públicos
 
-## Editor-only
+| Campo | Tipo | Acceso | Descripción |
+|-------|------|--------|-------------|
+| `equipment` | `Dictionary<string, EquipmentSO>` | [OdinSerialize] private | Equipo indexado por ID |
 
-| Método | Propósito |
-|--------|----------|
-| `PopulateFromBuffer()` | Arrastra varios `EquipmentSO` a `dropBuffer` → añade sin duplicados + llama `SyncAllIDs`. |
-| `SyncAllIDs()` | Reordena dict, asigna IDs secuenciales "EQ0"/"EQ1"/…, marca SOs como dirty. |
-| `Editor` (static property) | Busca la instancia en AssetDatabase; permite resolver IDs en editor sin `GameManager`. |
+## Métodos Públicos
 
-**Vinculado a:** [[Index/04 - Combat]] (sistema de modificadores)
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `GetByID(id)` [inherited] | `EquipmentSO` | Busca por ID ("EQ0"…); null si no existe |
+| `GetAllIDs()` [inherited] | `List<string>` | Lista de todos los IDs |
 
-**Conexiones:** [[EquipmentSO]], [[CreatureDNA]], [[GameManager]], [[CreatureGridView]]
+## Propiedades
+
+| Propiedad | Tipo | Descripción |
+|-----------|------|-------------|
+| `Equipment` | `Dictionary<string, EquipmentSO>` | Diccionario completo |
+| `EquipmentCount` | `int` | Total de items |
+| `Count` [inherited] | `int` | De KeyedDatabaseSO |
+| `Editor` [static] | `EquipmentDatabaseSO` | Busca instancia en AssetDatabase (solo editor) |
+
+## Métodos Editor (Odin)
+
+| Método | Descripción |
+|--------|-------------|
+| `PopulateFromBuffer()` [inherited] | Botón: arrastra assets, auto-asigna IDs |
+| `SyncAllIDs()` [inherited] | Botón: renumera con prefijo "EQ" |
+
+## CreateAssetMenu
+
+**Menu path:** `RunRunSimulator/Databases/Equipment Database`
+
+## Vinculado a
+
+- [[Index/02 - Content & Databases]]
+- [[KeyedDatabaseSO]] — protocolo base
+
+**Conexiones:** [[KeyedDatabaseSO]], [[EquipmentSO]], [[CreatureDNA]], [[GameManager]]
+

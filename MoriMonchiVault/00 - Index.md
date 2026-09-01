@@ -52,7 +52,8 @@ MoriMonchiVault/
 | **Refundación del combate: lentes, géneros, formatos** | [[Index/17 - Refundacion del Combate]] | — |
 | **Pilares del rediseño (día/noche · genes · ítem · Cutie Marks)** — Partes 7-8 (tablero) 🪦 descartadas S76 | [[Index/18 - Pilares del Rediseno (Draft)]] | — |
 | **COMBATE NUEVO: Predictive Tactical Extraction (expedición · plantillas · secuencia · extracción)** ⚠️ DRAFT | [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]] | — |
-| **COMBATE v3: Dragon RPS (RPS rígido · deck 6 · mano 3 · 3 golpes)** ✅ FUENTE DE VERDAD de la mecánica de combate | [[Index/21 - Combate v3 - Dragon RPS]] | — |
+| **COMBATE v3: Dragon RPS (RPS rígido · deck 6 · mano 3 · 3 golpes)** ✅ FUENTE DE VERDAD de la mecánica de combate · **Parte 9 = plan de la DEMO JUGABLE E1-E5 (paleta + auditoría por etapa), S94 arranca en E1** | [[Index/21 - Combate v3 - Dragon RPS]] | — |
+| **Invariantes rescatados de comentarios (S93)** — nota TEMPORAL hasta que los ScriptNodes los absorban | [[Index/09c - Invariantes rescatados de comentarios (S93)]] | — |
 
 ---
 
@@ -61,8 +62,8 @@ MoriMonchiVault/
 ```
 Assets/RunRunSimulator/Scripts/
 ├── DragonRps/     # combate v3 S92+ (logica pura, cero dependencias de UnityEngine)
-├── Core/          # GameManager, GameEvents (10 eventos), SaveSystem, Interfaces · Enums/ (un archivo por dominio desde S93)
-├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · CutieMarks/ · Equipment/ · Items/ · Social/
+├── Core/          # GameManager, GameEvents (10 eventos), SaveSystem, Interfaces · Enums/ (6 archivos desde S93)
+├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · Equipment/ · Items/ · Social/
 ├── Systems/       # Desacoplados vía GameEvents
 │   ├── Breeding/  # BreedingService, AsyncBreedingService
 │   ├── Cloud/     # CloudSyncService (+ CloudAuth/CloudSyncOps)
@@ -76,7 +77,7 @@ Assets/RunRunSimulator/Scripts/
 ├── UI/            # UIManager, UIInputs, panel controllers UITK · CreatureDisplay + UiPanels (helpers compartidos, S93)
 ├── Player/        # PlayerInputs, PlayerController, BuildingInputs
 ├── Interactables/ # PanelTrigger, ThrowableObject
-└── World/         # AI/ (MoriMochiAgent + colaboradores), Creatures/ (MonchiVisualizer, FurRenderer), NeedStation, containers
+└── World/         # AI/ (MoriMochiAgent + colaboradores), Creatures/ (MonchiVisualizer), NeedStation, containers
 ```
 
 ---

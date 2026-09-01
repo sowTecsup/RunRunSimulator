@@ -6,7 +6,7 @@ tags: [script, ui, uitk]
 
 **Ruta:** `UI/TransactionPanelUITK.cs`
 
-**Responsabilidad:** Panel UITK (3 columnas) para negociar venta de MoriMochi con cliente. Muestra: cliente (nombre del archetype) | retrato fotomatón + nombre MM + género/edad | oferta en Dablones. Botones: Cancelar / Aceptar / Pedir más. Detecta abrir/cerrar por el estado real de `display` (Update poll de `IsShown()`) → emite `EnterNegotiating`/`ExitNegotiating` en NpcAgent. **S57b:** Swatch del MoriMochi ahora es retrato fotomatón vía [[MonchiPortraitUI]].Apply().
+**Responsabilidad:** Panel UITK (3 columnas) para negociar venta de MoriMochi con cliente. Muestra: cliente (nombre del archetype) | retrato fotomatón + nombre MM + género/edad | oferta en Dablones. Botones: Cancelar / Aceptar / Pedir más. Detecta abrir/cerrar por el estado real de `display` (Update poll de `IsShown()`) → emite `EnterNegotiating`/`ExitNegotiating` en NpcAgent. **S57b:** Swatch del MoriMochi ahora es retrato fotomatón vía [[MonchiPortraitUI]].Apply(). **S93:** Usa `UiPanels.RootOf()`.
 
 **Propiedades y métodos:**
 - `UIDocument document` → source asset con tree UITK.
@@ -21,4 +21,4 @@ tags: [script, ui, uitk]
 
 **Vinculado a:** [[Index/08 - UI System]]
 
-**Conexiones:** [[CashRegister]], [[NpcAgent]], [[UIManager]], [[CreatureDNA]], [[CustomerArchetypeSO]], [[MonchiPortraitUI]]
+**Conexiones:** [[CashRegister]], [[NpcAgent]], [[UIManager]], [[CreatureDNA]], [[CustomerArchetypeSO]], [[MonchiPortraitUI]], [[UiPanels]]

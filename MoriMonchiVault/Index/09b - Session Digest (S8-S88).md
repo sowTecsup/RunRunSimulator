@@ -9,7 +9,7 @@ tags: [index, core, archive]
 
 ## Timeline S8-S45 (2026-06-13 → 2026-07-14)
 
-Epoca: tienda/NPCs/breeding + combate autobattler con elementos (ese combate fue REFUNDADO en S80 y su codigo DEMOLIDO en S75; [[20 - Combat Prototype MVP (Plan)]] es la fuente de verdad actual).
+Epoca: tienda/NPCs/breeding + combate autobattler con elementos (ese combate fue REFUNDADO en S80 y su codigo DEMOLIDO en S75; ~~20 - Combat Prototype MVP (Plan)~~ (borrada S93) es la fuente de verdad actual).
 
 - **S8 (06-13)** — Breeding async server-side: cancel-breeding/cancel-all-breeding en Cloud Code; fix desync "already_breeding"; cortejo v1.
 - **S9 (06-18)** — LifeStage + edad; HomePenKey/Slot (corral de origen); slots fijos de cria; recien nacido lanzado desde el corral.
@@ -51,7 +51,7 @@ Epoca: tienda/NPCs/breeding + combate autobattler con elementos (ese combate fue
 
 ## Timeline S80-S88 (2026-08-25/28) — era del prototipo (entradas completas en git `8ac520d`)
 
-- **S80 (08-25)** — Plan del MVP aprobado: [[20 - Combat Prototype MVP (Plan)]] creada (beats, ticks, juggle, enemigos reactivos); gate de codigo levantado SOLO para el prototipo.
+- **S80 (08-25)** — Plan del MVP aprobado: ~~20 - Combat Prototype MVP (Plan)~~ (borrada S93) creada (beats, ticks, juggle, enemigos reactivos); gate de codigo levantado SOLO para el prototipo.
 - **S81 (08-25)** — Fases 1-4 ejecutadas: prototipo jugable (29 scripts, `CombatPrototype.unity`), paridad proyeccion==ejecucion verificada 7 veces; feedback de Juan → §10 de la 20.
 - **S82 (08-26)** — El idioma nuevo: plantilla = anclaje + aterrizaje, enemigos activadores automaticos, movimiento ajedrez de golpeados, presupuesto 2 acciones, celdas-hueco, isla 12x12, orbita de camara.
 - **S83 (08-26)** — Legibilidad post-playtest: vibracion en TODO impacto (evento Impact), seleccion con anillo + guia por estado, zoom de rueda, clic selecciona dragon propio.

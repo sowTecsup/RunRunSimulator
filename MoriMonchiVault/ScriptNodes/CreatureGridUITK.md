@@ -6,14 +6,8 @@ tags: [script, ui, uitk]
 
 **Ruta:** `UI/CreatureGridUITK.cs`
 
-**Responsabilidad:** Grilla UITK de criaturas. Display lista de MoriMonchis del registry. **S75:** Sin estado QueuedForCombat (demolición).
+**Responsabilidad:** Grilla UITK de criaturas. Display lista de MoriMonchis del registry ordenada por BirthDate descendente. Bindea nombre, state, portrait, equip. **S75:** Sin estado QueuedForCombat (demolición). **S93:** Usa helpers `CreatureDisplay` y `UiPanels`.
 
-## Cambios en S75
+**Vinculado a:** [[Index/05 - UI System]]
 
-- **ELIMINADO:** Indicador QueuedForCombat
-
-## Vinculado a
-
-- [[Index/05 - UI System]]
-
-**Conexiones:** [[CreatureRegistrySO]]
+**Conexiones:** [[CreatureRegistrySO]], [[CreatureDisplay]], [[UiPanels]], [[MonchiPortraitUI]]

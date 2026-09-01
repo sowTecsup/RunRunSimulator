@@ -6,7 +6,7 @@ tags: [script, ui, presenter]
 
 **Ruta:** `UI/DetailEquipTabPresenter.cs`
 
-**Responsabilidad (S54):** Presenter colaborador de MorimonchiDetailInfoUITK — tab "Equipo" (3 slots: Arma/Armadura/Amuleto, mostrar items equipados + stats bonificados, abrir mochila al clickear). Implementa ro `Rebuild(dna)` — no navegación.
+**Responsabilidad (S54):** Presenter colaborador de MorimonchiDetailInfoUITK — tab "Equipo" (3 slots: Arma/Armadura/Amuleto, mostrar items equipados + stats bonificados, abrir mochila al clickear). Implementa ro `Rebuild(dna)` — no navegación. **S93:** Usa helpers `CreatureDisplay.RarityColor()` y `CreatureDisplay.ApplyIconVisual()`.
 
 **Datos UI:**
 - `teamPortrait` (VisualElement retrato fotomatón vía [[MonchiPortraitUI]].Apply())
@@ -36,4 +36,4 @@ tags: [script, ui, presenter]
 **Callbacks:**
 - Card click → abre backpack (sin teardown de presenters, card solo callback)
 
-**Conexiones:** [[MorimonchiDetailInfoUITK]], [[EquipmentBackpackUITK]], [[EquipmentStats]], [[CreatureDatabaseSO]], [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]], [[MonchiPortraitUI]], [[CreatureStats]]
+**Conexiones:** [[MorimonchiDetailInfoUITK]], [[EquipmentBackpackUITK]], [[EquipmentStats]], [[CreatureDatabaseSO]], [[EquipmentDatabaseSO]], [[EquipmentPaletteSO]], [[MonchiPortraitUI]], [[CreatureStats]], [[CreatureDisplay]]

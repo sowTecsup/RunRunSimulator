@@ -42,4 +42,4 @@ tags: [script, world, ui, presentation]
 
 **Vinculado a:** [[Index/06 - Player & World]]
 
-**Conexiones:** [[MoriMochiAgent]], [[NameTag]], [[EmoteKind]]
+**Conexiones:** [[MoriMochiAgent]], [[NameTag]], [[CreatureEnums]]

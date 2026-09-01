@@ -10,7 +10,7 @@ tags: [index, design, draft, rediseno, combate]
 >
 > **ESTADO: DRAFT — rumbo elegido, mecánica sin cerrar.** Sigue vigente que **nada baja a código** hasta el documento de mecánica en limpio.
 >
-> ⚠️ **Actualización S80 (2026-08-25)**: Juan levantó el gate para un **prototipo aislado** y cerró la mayor parte de la ronda 4 en sesión. Las decisiones de mecánica del MVP viven en [[Index/20 - Combat Prototype MVP (Plan)]] y **prevalecen sobre §4.1 y §4.4 donde contradigan** (mover vuelve como plantilla de vuelo · enemigos con iniciativa + intención telegrafiada relativa · reactividad en movimiento · vida en ticks con guardia/gracia · juggle aéreo · la bomba sobrevive como enemigo). No re-litigar acá lo que la 20 ya decide.
+> ⚠️ **Actualización S80 (2026-08-25)**: Juan levantó el gate para un **prototipo aislado** y cerró la mayor parte de la ronda 4 en sesión. Las decisiones de mecánica del MVP viven en ~~Index/20 - Combat Prototype MVP (Plan)~~ (borrada S93) y **prevalecen sobre §4.1 y §4.4 donde contradigan** (mover vuelve como plantilla de vuelo · enemigos con iniciativa + intención telegrafiada relativa · reactividad en movimiento · vida en ticks con guardia/gracia · juggle aéreo · la bomba sobrevive como enemigo). No re-litigar acá lo que la 20 ya decide.
 >
 > **Convención (igual que la nota 18):** Parte 1 = el handoff de Juan, verbatim (fuente de verdad, no interpretar). Parte 2 = lo que Juan cerró en la sesión de evaluación. Parte 3 = lectura del orquestador. **Parte 4 (S77) = la visualización concreta de Juan del flujo completo** — cierra la pregunta madre de la ronda 3 y deja la ronda 4 lista.
 
@@ -231,7 +231,7 @@ Respuestas a la ronda de preguntas de la sesión de evaluación:
 
 ## 3.2 · Estado del código respecto a este rumbo (post-S75)
 
-- **La demolición de S75 sigue 100% válida**: las bases (HornPart/BackPart/WingPart/FacePart + DatabaseSO, CutieMarkSO, `HeldItemId`, monedas en PlayerInventorySO) son genéricas y sirven tal cual. Nada de lo creado estaba atado al tablero de desvíos.
+- **La demolición de S75 sigue 100% válida**: las bases (HornPart/BackPart/WingPart/FacePart + DatabaseSO, `HeldItemId`, monedas en PlayerInventorySO) son genéricas y sirven tal cual. **S94:** CutieMarkSO eliminado. Nada de lo creado estaba atado al tablero de desvíos.
 - La decisión "genes = catálogo de habilidades" implica que las partes mecánicas terminarán **referenciando habilidades** (forma exacta sin diseñar — no adelantar).
 - ⚠️ Los triggers del ítem (`ItemTriggerKind { None, LowHealth, Collision, Collected }`) se definieron pensando en el tablero. Probablemente sirvan (extracción recolecta, hay colisiones/desplazamientos), pero **revisar cuando el combate tenga forma**.
 - El pendiente obligatorio de editor de S75 (assets nuevos + rewiring + limpieza de escena) **no cambia** con este rumbo.
@@ -298,7 +298,7 @@ Ordenados por cuánto bloquean el documento de mecánica:
 
 ## 4.4 · RONDA 4 — las preguntas guardadas (abrir la próxima sesión por acá)
 
-> ⚠️ **Actualización S80**: la ronda 4 quedó mayormente CERRADA por el draft MVP de Juan + decisiones en sesión — ver [[Index/20 - Combat Prototype MVP (Plan)]] §2. **Cerradas**: Q1 (lote), Q2 (preview total), Q3 (enemigos con iniciativa, atacan al fin de la coreografía, reactivos en movimiento), Q5 (1 uso por plantilla), C4 (vida en ticks). **Siguen abiertas**: Q4 (fin de nivel — el MVP usa "matar todo" como placeholder), Q6 (mapeo parte→verbo — los kits del MVP son proto-genes sin partes), PE.1 (presupuesto de contenido).
+> ⚠️ **Actualización S80**: la ronda 4 quedó mayormente CERRADA por el draft MVP de Juan + decisiones en sesión — ver ~~Index/20 - Combat Prototype MVP (Plan)~~ (borrada S93) §2. **Cerradas**: Q1 (lote), Q2 (preview total), Q3 (enemigos con iniciativa, atacan al fin de la coreografía, reactivos en movimiento), Q5 (1 uso por plantilla), C4 (vida en ticks). **Siguen abiertas**: Q4 (fin de nivel — el MVP usa "matar todo" como placeholder), Q6 (mapeo parte→verbo — los kits del MVP son proto-genes sin partes), PE.1 (presupuesto de contenido).
 
 Juan pidió explícitamente guardarlas para contestarlas en detalle al retomar. Por orden de bloqueo:
 
@@ -317,4 +317,4 @@ Los números finos (grilla, N de contadores, daño) vienen después de estas och
 
 ## Estado
 
-**DRAFT como visión macro · mecánica del encuentro DECIDIDA en S80.** Este documento reemplaza a las Partes 7–8 de la nota 18 como dirección del combate y sigue siendo la fuente de la visión macro (expedición, extracción, roster, breeding↔combate, preview de mapa). La ronda 4 (§4.4) quedó mayormente cerrada en S80; **el "documento de mecánica en limpio" fue reemplazado por el plan del prototipo: [[Index/20 - Combat Prototype MVP (Plan)]]**, que prevalece donde contradiga. El gate "nada baja a código" se levantó SOLO para el prototipo aislado; la integración con el juego sigue congelada hasta que el MVP valide. Abiertas para diseño: Q4, Q6, PE.1 y el corte del determinismo de escenarios (Parte 2 #3).
+**DRAFT como visión macro · mecánica del encuentro DECIDIDA en S80.** Este documento reemplaza a las Partes 7–8 de la nota 18 como dirección del combate y sigue siendo la fuente de la visión macro (expedición, extracción, roster, breeding↔combate, preview de mapa). La ronda 4 (§4.4) quedó mayormente cerrada en S80; **el "documento de mecánica en limpio" fue reemplazado por el plan del prototipo: ~~Index/20 - Combat Prototype MVP (Plan)~~ (borrada S93)**, que prevalece donde contradiga. El gate "nada baja a código" se levantó SOLO para el prototipo aislado; la integración con el juego sigue congelada hasta que el MVP valide. Abiertas para diseño: Q4, Q6, PE.1 y el corte del determinismo de escenarios (Parte 2 #3).

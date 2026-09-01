@@ -8,7 +8,11 @@ tags: [script, world]
 
 ## Responsabilidad
 
-Vitrina de tienda que exhibe MoriMonchis para venta. Hereda `MoriMochiContainer`, por lo que implementa `IAnchorPlace` automáticamente: MoriMonchis colocados en estantes persisten `LocationKey` y se recolocan directo en carga. Restaura las 3 necesidades a `restoreRate/s`. Gestiona puntos de uso (use points) para NPCs clientes (patrón idéntico a `NeedStation`): navegación sin solapamiento, snappeo a NavMesh, reserva/libera slots.
+Vitrina de tienda que exhibe MoriMonchis para venta. Hereda `MoriMochiContainer`, por lo que expone métodos públicos `AnchorKey`, `AnchorPosition()`, `TryReclaim()` para duck-typing con `AnchorRegistry` (sin interfaz formal tras S93): MoriMonchis colocados en estantes persisten `LocationKey` y se recolocan directo en carga. Restaura las 3 necesidades a `restoreRate/s`. Gestiona puntos de uso (use points) para NPCs clientes (patrón idéntico a `NeedStation`): navegación sin solapamiento, snappeo a NavMesh, reserva/libera slots.
+
+## Cambios S93
+
+- Removida referencia a interfaz `IAnchorPlace`. La clase sigue heredando métodos de `MoriMochiContainer` (duck-typing).
 
 ## Cambios en S21
 

@@ -6,17 +6,16 @@ tags: [script, core]
 
 **Ruta:** `Core/GameEvents.cs`
 
-**Responsabilidad:** Bus de eventos cross-system estático. Eventos registry/breeding/furniture/inventory: `OnRegistryChanged`, `OnRegistryReloaded`, `OnCreatureMinted`, `OnBreedingCompleted`, `OnFurnitureChanged`, `OnFurnitureReloaded`, `OnInventoryChanged`, `OnInventoryReloaded`, `OnNavMeshWillRebake`, `OnNavMeshRebaked`. Eventos cliente/NPC: `OnCustomerSpawned(NpcAgent)`, `OnCustomerDecided(NpcAgent, CreatureDNA)`, `OnCustomerArrivedAtRegister(NpcAgent)`, `OnCustomerSold(NpcAgent, CreatureDNA, int)`, `OnCustomerLeft(NpcAgent, bool)`.
+**Responsabilidad:** Bus de eventos cross-system estático. 10 eventos: registry/breeding/furniture/inventory/navmesh/customer. Llama y evento son pares (ej. `OnRegistryChanged` + método `RegistryChanged()`). Patrón: gameplay dispara evento → GameManager persiste + UI refresca.
 
-**S75 CAMBIOS:** Eliminados `OnCombatCompleted` y `OnCombatLogged` (demolición del combate). Agregados `OnInventoryChanged` e `OnInventoryReloaded` (sistema de inventario de recursos).
+**S93:** Eliminados `OnCreatureMinted`, `OnCustomerSpawned`, `OnCustomerDecided`, `OnCustomerArrivedAtRegister`, `OnCustomerLeft`. Reducido de 15 a 10 eventos.
 
-## Eventos principales
+## Eventos (10 totales)
 
 | Evento | Parámetros | Descripción |
 |--------|-----------|-------------|
 | `OnRegistryChanged` | `CreatureRegistrySO registry` | Mutación gameplay de creatures → persist + UI |
 | `OnRegistryReloaded` | `CreatureRegistrySO registry` | Reemplazo wholesale (cloud pull) → UI only |
-| `OnCreatureMinted` | `CreatureDNA creature` | Criatura nueva creada |
 | `OnBreedingCompleted` | `(mother, father, child)` | Breeding finalizado |
 | `OnFurnitureChanged` | `FurnitureRegistrySO registry` | Mutación de muebles → persist + UI |
 | `OnFurnitureReloaded` | `FurnitureRegistrySO registry` | Reemplazo wholesale → UI only |
@@ -24,11 +23,7 @@ tags: [script, core]
 | `OnNavMeshRebaked` | `()` | Bracket post-rebake (agentes se re-anclan) |
 | `OnInventoryChanged` | `PlayerInventorySO inventory` | Mutación inventario → persist + UI |
 | `OnInventoryReloaded` | `PlayerInventorySO inventory` | Reemplazo wholesale → UI only |
-| `OnCustomerSpawned` | `NpcAgent agent` | NPC entra a tienda |
-| `OnCustomerDecided` | `(NpcAgent, CreatureDNA target)` | NPC eligió criatura |
-| `OnCustomerArrivedAtRegister` | `NpcAgent agent` | NPC llegó a caja |
 | `OnCustomerSold` | `(NpcAgent, CreatureDNA, int price)` | Venta completada |
-| `OnCustomerLeft` | `(NpcAgent, bool sold)` | NPC se va (compró o no) |
 
 ## Contrato de eventos
 
@@ -46,3 +41,4 @@ tags: [script, core]
 - [[Index/07 - Persistence & Identity]]
 
 **Conexiones:** [[GameManager]], [[CloudSyncService]], [[BreedingService]], [[FurnitureService]], [[CreatureRegistrySO]], [[PlayerInventorySO]]
+

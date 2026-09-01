@@ -6,7 +6,7 @@ tags: [script, ui, presenter]
 
 **Ruta:** `UI/BreedingBreedTabPresenter.cs`
 
-**Responsabilidad (S54):** Presenter de Tab 0 "Criar" (seleccionar padre + madre, preview ambos, ver duración, iniciar breed async). Implementa `ITabPresenter`. Almacena estado UI-only: foco interno entre 3 SubFocus (Slots, FatherList, MotherList), índices de selección + IDs padre/madre guardados. 
+**Responsabilidad (S54):** Presenter de Tab 0 "Criar" (seleccionar padre + madre, preview ambos, ver duración, iniciar breed async). Implementa `ITabPresenter`. Almacena estado UI-only: foco interno entre 3 SubFocus (Slots, FatherList, MotherList), índices de selección + IDs padre/madre guardados. **S93:** Usa `UiPanels.SetActiveIndex()`.
 
 **Navegación (jerarquía de foco):**
 - **SubFocus.Slots** (3 slots: padre, madre, botón Breed) — h/v se mueven entre slots, v-down entra a lista correspondiente
@@ -40,4 +40,4 @@ tags: [script, ui, presenter]
 - `AddPartRow()` — fila visual de parte: swatch (color Set) + nombre parte y Set
 - `TryBreed()` — await `asyncBreedingService.StartBreedingAsync()`, clearear slots, invocar `onBred()` callback si éxito (madre en estado Breeding)
 
-**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CreatureStats]], [[CreatureDatabaseSO]], [[MonchiPortraitUI]], [[BodyPart]]
+**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CreatureStats]], [[CreatureDatabaseSO]], [[MonchiPortraitUI]], [[BodyPart]], [[UiPanels]]

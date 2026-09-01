@@ -32,7 +32,13 @@ tags: [script, world, spawner]
 | `anchoredQueue` | LocationKey != "" | TryPlaceAtAnchor() (via AnchorRegistry) o cannon fallback |
 | `spawnQueue` | LocationKey == "" | Cannon (RandomLandingPoint) |
 
-## Métodos Públicos
+## Propiedades públicas (Readonly, internal accessores)
+
+**Spawn state:**
+- `Registry → CreatureRegistrySO` — fuente de datos (null si GameManager no inicializado)
+- `Table → RoleWorldProfileSO` — perfiles comportamiento por Role (S39)
+- `Bank → MonchiVisualBankSO` — banco visual Suriyun (S57)
+- `FurDb → FurTypeDatabaseSO` — database de pelajes
 
 **Sincronización:**
 - `Sync(CreatureRegistrySO registry)` — reconcilia spawned vs registry, enqueues deltas
@@ -88,7 +94,7 @@ tags: [script, world, spawner]
 
 **OnDrawGizmosSelected (cuando seleccionado):**
 - 8 arcos simulados (naranja = max elevation, cyan = min elevation)
-- Muestra trayectorias reales que el cañón produce
+- Muestra trayectorias reales que el cañón produce (S93: usa SpawnBallistics.DrawSimulatedArc/DrawRing)
 
 ## State internals
 
@@ -109,6 +115,13 @@ tags: [script, world, spawner]
 | `worldReady` | bool | gate: furniture + NavMesh |
 | `dataReady` | bool | gate: primera carga autoritativa |
 | `player` | Transform | ref al jugador (resuelto en Start) |
+
+## Invariantes S93 (rescatados de comentarios)
+
+- **Startup:** prewarm de 1 criatura por frame mientras corre `startDelay`, luego espera `WorldReady` (primer `OnNavMeshRebaked` tras cargar muebles, con debounce) y `DataReady` (reload autoritativo o `dataReadyTimeout`); el cañón no dispara antes.
+- **Free spawn:** Toda criatura libre sale como RAGDOLL (velocidad balística resuelta para caer dentro de `spawnRadius`); el agente solo toma control al asentarse. Las ancladas (`LocationKey`) se colocan DIRECTO en su lugar; si el lugar no está registrado se difieren hasta `anchorPlaceTimeout` y recién ahí van por cañón limpiando el anchor huérfano (con `RegistryChanged`).
+- **Birth spawn:** Recién nacidos: `RegisterBirthLaunch` (lo llama el corral) fija muzzle y aterrizaje para que la cría salga del corral.
+- **Activación:** Activar siempre sobre un punto de NavMesh válido (`ResolveActivationPoint`) antes de `Launch`, nunca al revés (`NavMeshAgent.OnEnable` fuera de malla da error).
 
 ## Cambios principales (S57)
 

@@ -109,6 +109,18 @@ public void SetState(PlayerState newState)
 3. Petting (press/release E): sesión interactiva
 4. Movimiento/cámara: siempre activo
 
+## Invariantes S93 (rescatados de comentarios)
+
+- Nunca referencia `PlayerInputs` directamente: solo se suscribe a sus eventos static (mismo patrón que `GameEvents`). Look/aim lo posee Cinemachine; el controller solo lee su forward. Grab/throw pasa por `IThrowable`, así el controller nunca conoce el tipo concreto sujetado.
+- `SetState`: Exploring y Building corren en primera persona (cursor lock + cámara viva); solo Menu libera el cursor y congela la cámara. Abrir un menú o entrar a build mode a mitad de un petting termina la sesión de petting (safety net).
+- `OnBuildModeChanged`: build mode es el tercer estado del player — movimiento y cámara siguen vivos (se apunta el ghost mirando), grab/throw/jump quedan suspendidos; `BuildModeController` es dueño del ghost y el placement.
+- `Move`: el player camina en Exploring y Building; suspendido en Menu.
+- **Contrato de la tecla E:** libre + PRESS sobre criatura petteable → petting mientras se mantiene E · libre + TAP → interact (`IInteractable`) · libre + HOLD ≥ `grabHoldDuration` → grab (`IThrowable`) · cargando + PRESS → drop en el lugar · cargando + Click (Attack) → throw. Los agentes MoriMonchi mantienen el grab físico; para todo lo demás, mantener E lanza el ítem activo del hotbar (los props viven en el hotbar, no en un grab físico).
+- En un menú el action map Player está deshabilitado (`PlayerInputs` lo gatea por UI focus): ningún grab/interact llega; los paneles se cierran con ESC (`UIInputs` → `UIManager` pop del stack), no con E.
+- `ComputeThrowImpulse`: el objeto flota en el hold anchor descentrado; tirar por `camera.forward` desde ahí vuela paralelo y nunca llega al punto apuntado — se apunta desde el anchor HACIA donde mira la cámara para converger en el centro de pantalla.
+- `TryBeginPetting`: usa `OverlapSphere` (no raycast) para que los paneles world-space de `NameTag` no bloqueen la detección.
+- `TryFindInView<T>`: `QueryTriggerInteraction.Collide` porque los MoriMonchis llevan collider TRIGGER mientras están NavMesh-driven (se vuelven sólidos en vuelo tras el handoff a throwable); recorre los hits por distancia — el primero que resuelve a T gana, un collider SÓLIDO que no es T bloquea (no se agarra a través de paredes), un trigger que no es T se ve a través (paneles, zonas de estación).
+
 ## Tap-interact (raycast)
 
 Raycast desde cámara; si hit IInteractable, llama Interact() (caso especial: excluye MoriMochiAgent para evitar petting accidental). En S69, tap-interact y grab son independent; release-LMB no cancela petting.

@@ -89,6 +89,12 @@ internal void Knock(Vector3 force, bool stress)
 - `AgentPhysics.HandleCollisionEnter()` — llama `Knock(impulse)` en cadena (stress=true, comportamiento original)
 - `MoriMonchiController.Throw()` — llama `Knock()` (stress=true, comportamiento original)
 
+## Invariantes S93 (rescatados de comentarios)
+
+- `Knock`: un knock en pleno vuelo NO resetea el timeout de seguridad (`thrownTimer`); un cluster de criaturas golpeándose lo resetearía indefinidamente y quedarían colgadas en el aire.
+- `RecoverIfStuckOffMesh`: red de seguridad de cold-start — un handoff fallido (primera carga antes de bakear, pull tardío, rebake) puede dejar una criatura kinematic FUERA de la malla; un criador encerrado se re-ancla sin tocar el censo del corral ni cancelar su huevo (`Release` cancelaría la cría); uno libre cae a física.
+- `TickThrown`: el settle solo cuenta si está lento Y apoyado en el piso — velocidad baja en medio de un rebote o cayendo de un borde no cuenta.
+
 ## State internals
 
 - `thrownTimer, settleTimer, bounceCount` — timing y contadores de ragdoll

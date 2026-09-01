@@ -8,7 +8,11 @@ tags: [script, genetics, breeding]
 
 ## Responsabilidad
 
-Corral de cría extendido de `MoriMochiContainer`. Hereda ancla vía `IAnchorPlace` (sin su propia clave estática). Implementa `IInteractable` (tap E para eclosionar). Auto-pair timer con dice roll (`affinity × diceChance`), restaura pasivamente necesidades de ocupantes. Gestiona courtship visual (posa pareja ante frente en puntos fijos `breedingSlots`). Al retirar un Morimonchi cancela emparejamiento + huevo en servidor. En `Start()`/`OnDestroy()` llama `base.Start()/base.OnDestroy()` para auto-registro en `AnchorRegistry`. Estático `All` mantiene lista de todos los pens activos. **S39 cambio:** Afinidad ahora usa `dna.Role` en lugar de `dna.Personality` (deprecated).
+Corral de cría extendido de `MoriMochiContainer`. Hereda anclaje vía métodos públicos `AnchorKey`, `AnchorPosition()`, `TryReclaim()` (duck typing, sin interfaz tras S93). Implementa `IInteractable` (tap E para eclosionar). Auto-pair timer con dice roll (`affinity × diceChance`), restaura pasivamente necesidades de ocupantes. Gestiona courtship visual (posa pareja ante frente en puntos fijos `breedingSlots`). Al retirar un Morimonchi cancela emparejamiento + huevo en servidor. En `Start()`/`OnDestroy()` llama `base.Start()/base.OnDestroy()` para auto-registro en `AnchorRegistry`. Estático `All` mantiene lista de todos los pens activos. **S39 cambio:** Afinidad ahora usa `dna.Role` en lugar de `dna.Personality` (deprecated).
+
+## Cambios S93
+
+- Removida referencia a interfaz `IAnchorPlace` (fue reemplazada por duck typing). La clase sigue heredando métodos de `MoriMochiContainer`.
 
 ## Cambios S39
 
@@ -38,6 +42,11 @@ private bool TryRollPair(bool ...)
 **Logs y diagnósticos actualizados:**
 - Diagnostico de pareja (BuildDiagnostics) ahora muestra `dna.Role` en lugar de `dna.Personality`
 - LastRollInfo log muestra afinidad resuelta vía Role
+
+## Invariantes S93 (rescatados de comentarios)
+
+- `TryRollPair`: `StartBreedingAsync` solo marca a los padres como `Breeding` si el SERVIDOR aceptó el huevo; si devolvió `already_breeding`, no se miente en el reporte ni se quema cooldown. `StartBreedingAsync` persiste ANTES de que se seteen `LocationKey`/`LocationSlot`: hay que volver a persistir (`GameEvents.RegistryChanged`) después, o se pierden al recargar (reclaim y cortejo dependen de ellos).
+- `Release`/`CancelBreeding`: sacar una criatura del corral cancela el emparejamiento en curso; ambos padres vuelven a no-breeding para que sus tags pierdan corazón/timer.
 
 ## Campos Principales
 

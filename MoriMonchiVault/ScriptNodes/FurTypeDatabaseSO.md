@@ -10,4 +10,4 @@ tags: [script, core]
 
 **Vinculado a:** [[Index/02 - Genetics & Breeding]], [[Index/10 - Visualization]]
 
-**Conexiones:** [[GameManager]], [[MoriMonchiController]], [[MonchiVisualizer]], [[FurType]], [[CreatureDNA]], [[CreatureGenerator]]
+**Conexiones:** [[GameManager]], [[MoriMonchiController]], [[MonchiVisualizer]], [[GeneticsEnums]], [[CreatureDNA]], [[CreatureGenerator]]

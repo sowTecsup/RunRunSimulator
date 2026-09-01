@@ -37,4 +37,4 @@ tags: [script, inventory, world-props]
 
 - [[Index/06 - Player & World]]
 
-**Conexiones:** [[ItemDatabaseSO]], [[WorldPropInstance]], [[PlayerInventorySO]], [[ItemTriggerKind]]
+**Conexiones:** [[ItemDatabaseSO]], [[WorldPropInstance]], [[PlayerInventorySO]], [[StoreEnums]]

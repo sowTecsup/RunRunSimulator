@@ -78,7 +78,7 @@ public float GetAffinity(Role a, Role b) =>
 - [[BreedingService]] — usa afinidad en `Breed()`
 - [[BreedingContainer]] — llama `GetAffinity()` en dice roll
 - [[CreatureDNA]] — campo `.Role` (source de verdad)
-- [[Role]] — enum Protector/Agresivo/Empático (S37)
+- [[GeneticsEnums]] — enum Protector/Agresivo/Empático (S37)
 
 ## Conexiones
 

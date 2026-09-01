@@ -199,6 +199,13 @@ Dibuja en Play mode (cuando initialized):
 **State enum ampliado:**
 - Ahora incluye `HandFeed` (manejado por AgentBrain)
 
+## Invariantes S93 (rescatados de comentarios)
+
+- `RestoreNavMeshControl`: un agente reusado del pool conserva el estado de su vida anterior si no se resetea; es el reset idempotente llamado al inicio de `Initialize`.
+- `PrepareForPool` / `AgentConfinement.DetachForReuse`: detach de reciclaje silencioso, NO es una salida del jugador — no persiste ni cancela estado de dominio (el huevo). `Release` es exclusivo de `OnGrab`.
+- `Initialize` (`breedingAreaName`/`areaMask`): los agentes libres EXCLUYEN el área de cría (rodean los corrales); un agente encerrado está RESTRINGIDO a ella; sin área configurada (-1) cae a `AllAreas`.
+- El estado `Carried` no tiene tick propio: el seguimiento de carga corre en `FixedUpdate`.
+
 ## Impacto Diales Genéticos (S69)
 
 Los knobs petting/handFeed NO son afectados directamente por Sociability/Boldness. Sin embargo:

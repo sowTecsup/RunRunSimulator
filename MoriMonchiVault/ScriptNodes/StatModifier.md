@@ -18,4 +18,4 @@ tags: [script, equipment]
 
 **Vinculado a:** [[Index/04 - Combat]] (sistema de modificadores)
 
-**Conexiones:** [[EquipmentEffectBase]], [[StatModifierEffect]], [[CombatService]], [[Enums]]
+**Conexiones:** [[EquipmentEffectBase]], [[StatModifierEffect]], [[CombatService]], Enums (`Core/Enums/`, S93)

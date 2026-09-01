@@ -17,7 +17,7 @@ tags: [script, world, props]
 
 **Singleton:**
 - `HotbarController.Instance` — acceso global
-- Espera a que `GameManager.Inventory` (PlayerInventorySO) cargue, luego `EquipActive()` re-spawnea el visual
+- Espera a que `GameManager.CurrentInventory` (PlayerInventorySO) cargue, luego `EquipActive()` re-spawnea el visual
 
 ## Propiedades Públicas
 
@@ -39,7 +39,7 @@ tags: [script, world, props]
 - `UseActive()` — emite `OnItemUsed` con id del slot activo. El efecto específico (comer, sanar, etc.) es wired por listeners (AgentBrain, etc.), **no aquí**.
 - `TryConsumeActiveFood() → bool` — **S69, core food handFeed (verificado E2E en S70)**:
   1. Si `!IsOfferingFood`, retorna false
-  2. Limpia slot activo en inventario
+  2. Limpia slot activo en inventario (`GameManager.CurrentInventory.hotbarSlots[ActiveSlot] = null`)
   3. Destruye `heldVisual`
   4. Emite `InventoryChanged` + `OnHotbarChanged`
   5. Retorna true
@@ -70,7 +70,7 @@ tags: [script, world, props]
 
 ## Persistencia
 
-- Slots: `PlayerInventorySO.hotbarSlots` (string[6]) — persisten entre sesiones
+- Slots: `GameManager.CurrentInventory.hotbarSlots` (string[6]) — persisten entre sesiones
 - Visual: re-spawneado en Awake via `OnInventoryReloaded`
 
 ## Notas de Implementación
@@ -81,6 +81,11 @@ tags: [script, world, props]
 - `HoldInHand()` / `ReleaseHeld()` son helpers para flip rigidbody + colliders
 - `IsOfferingFood` es check barato (lookup id → def → Category == Food)
 - `TryConsumeActiveFood()` es idempotent: sin comida activa = false sin efectos
+
+## Cambios S93
+
+- Referencia actualizada: `CurrentInventory` ahora accedida via `GameManager.CurrentInventory` (en lugar de otra variable local/serializada).
+- Método `GetByID()` para acceder a definiciones de ítems por ID.
 
 ## Vinculado a
 

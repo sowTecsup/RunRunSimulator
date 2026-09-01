@@ -6,7 +6,7 @@ tags: [script, ui]
 
 **Ruta:** `UI/CreatureGridView.cs`
 
-**Responsabilidad:** Herramienta dev de inspector (Odin TableList), NO el grid de cartas del jugador que es [[CreatureGridUITK]]. Grid read-only de todas las criaturas registradas. Impulsado por eventos `GameEvents.OnRegistryChanged/OnRegistryReloaded`. Reconstruye cada cambio. Muestra tabla de rows con: nombre, color swatch, género, 6 stats base (CON/ATK/SPD/DEF/LCK/EVA), columna Equip (items equipados resueltos desde EquipmentDatabaseSO), crianzas, padres, estado, fecha de nacimiento. **S75:** Removidas columnas `Fights` e "In Queue" state (demolición del combate).
+**Responsabilidad:** Herramienta dev de inspector (Odin TableList), NO el grid de cartas del jugador que es [[CreatureGridUITK]]. Grid read-only de todas las criaturas registradas. Impulsado por eventos `GameEvents.OnRegistryChanged/OnRegistryReloaded`. Reconstruye cada cambio. Muestra tabla de rows con: nombre, color swatch, género, 6 stats base (CON/ATK/SPD/DEF/LCK/EVA), columna Equip (items equipados resueltos desde EquipmentDatabaseSO), crianzas, padres, estado, fecha de nacimiento. **S75:** Removidas columnas `Fights` e "In Queue" state (demolición del combate). **S93:** `State` usa `CreatureDisplay.StateOf()` localizado; `RowTint` compara contra `Loc.Tr()`.
 
 **Campos principales**
 
@@ -18,7 +18,7 @@ tags: [script, ui]
 
 **Vinculado a:** [[Index/05 - UI System]]
 
-**Conexiones:** [[CreatureRegistrySO]], [[GameEvents]], [[CreatureDNA]], [[CreatureGridUITK]], [[EquipmentDatabaseSO]], [[EquipmentSO]]
+**Conexiones:** [[CreatureRegistrySO]], [[GameEvents]], [[CreatureDNA]], [[CreatureGridUITK]], [[EquipmentDatabaseSO]], [[EquipmentSO]], [[CreatureDisplay]]
 
 **CreatureRow struct (inner class):**
 
@@ -37,7 +37,7 @@ tags: [script, ui]
 | `Breeds` | int | BreedCount. |
 | `Mother` | string | CustomName del MotherID o "—" / "???". |
 | `Father` | string | CustomName del FatherID o "—" / "???". |
-| `State` | string | "SOLD" / "DEAD" / "Breeding" / "Free". |
+| `State` | string | Localizado: "SOLD" / "DEAD" / "Breeding" / "Free" (via `CreatureDisplay.StateOf()`). |
 | `Born` | string | "dd/MM/yyyy HH:mm" o "—". |
 
 **Métodos principales**

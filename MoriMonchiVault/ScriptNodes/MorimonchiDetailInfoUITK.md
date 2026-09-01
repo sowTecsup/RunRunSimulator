@@ -6,7 +6,7 @@ tags: [script, ui, uitk]
 
 **Ruta:** `UI/MorimonchiDetailInfoUITK.cs`
 
-**Responsabilidad:** Panel de detalles UITK de MoriMochi. Tabs: Info (partes genéticas 5 slots, progresión), Equipo (grilla de equipo por slot). **S75:** Sin tab Combate (demolición).
+**Responsabilidad:** Panel de detalles UITK de MoriMochi. Tabs: Info (partes genéticas 5 slots, progresión), Equipo (grilla de equipo por slot). **S75:** Sin tab Combate (demolición). **S93:** Usa `UiPanels.RootOf()`.
 
 ## Tabs
 
@@ -21,4 +21,4 @@ tags: [script, ui, uitk]
 
 - [[Index/05 - UI System]]
 
-**Conexiones:** [[DetailInfoTabPresenter]], [[DetailEquipTabPresenter]], [[CreatureStats]]
+**Conexiones:** [[DetailInfoTabPresenter]], [[DetailEquipTabPresenter]], [[CreatureStats]], [[UiPanels]]

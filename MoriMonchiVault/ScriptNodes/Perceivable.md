@@ -14,7 +14,6 @@ tags: [script, world, perception, registry]
 - `Monchi` — referencia al MoriMochiAgent propietario (null si es jugador/cliente/prop)
 
 **Métodos:**
-- `HasTag(string) → bool` — consulta de etiqueta case-sensitive
 - `Position → Vector3` — posición en tiempo real
 
 **Struct Percept:**
@@ -22,6 +21,9 @@ tags: [script, world, perception, registry]
 - `Kind` — tipo clasificado
 - `SqrDistance` — distancia cuadrada al observador
 - `Affinity` — afinidad social (solo para Monchi-a-Monchi, 0 para otros)
+
+**Cambios S93:**
+- Removido: método `HasTag()` (no se usa desde S93)
 
 **Vinculado a:** [[Index/06 - Player & World]], [[MoriMonchiVault/Index/14 - Social V1 (Perceivable, AgentSenses, AgentSocial)]]
 

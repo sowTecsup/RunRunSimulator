@@ -36,4 +36,4 @@ Precarga los tres roles con perfiles iniciales S64:
 
 **Vinculado a:** [[Index/02 - Genetics & Breeding]], [[MoriMonchiVault/Index/14 - Social V1]]
 
-**Conexiones:** [[MoriMochiAgent]], [[AgentSocial]], [[Role]], [[ReactionRuleBase]], [[SocialTuningSO]]
+**Conexiones:** [[MoriMochiAgent]], [[AgentSocial]], [[GeneticsEnums]], [[ReactionRuleBase]], [[SocialTuningSO]]

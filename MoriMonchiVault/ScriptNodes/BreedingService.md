@@ -90,4 +90,4 @@ private static string RandomPartID(PartRole role, CreatureDatabaseSO partDb) => 
 
 - [[Index/02 - Genetics & Breeding]]
 
-**Conexiones:** [[CreatureDNA]], [[InheritanceOddsTableSO]], [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[ColorGenetics]], [[CreatureGenerator]], [[PartRole]]
+**Conexiones:** [[CreatureDNA]], [[InheritanceOddsTableSO]], [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[ColorGenetics]], [[CreatureGenerator]], [[GeneticsEnums]]

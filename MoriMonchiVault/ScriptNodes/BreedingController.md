@@ -81,7 +81,7 @@ public float GetAffinity(Role a, Role b) =>
 - [[CreatureDatabaseSO]] — resolución de partes
 - [[GameManager]] — proporciona registry/database
 - [[GameEvents]] — dispara eventos
-- [[Role]] — enum Protector/Agresivo/Empático
+- [[GeneticsEnums]] — enum Protector/Agresivo/Empático
 
 ## Conexiones
 

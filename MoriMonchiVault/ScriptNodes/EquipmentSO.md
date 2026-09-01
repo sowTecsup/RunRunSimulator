@@ -30,4 +30,4 @@ tags: [script, equipment, asset]
 
 **Vinculado a:** [[Index/04 - Combat]] (sistema de modificadores)
 
-**Conexiones:** [[EquipmentDatabaseSO]], [[CreatureDNA]], [[EquipmentEffectBase]], [[StatModifierEffect]], [[CombatProcEffect]], [[Enums]], [[BodyPart]]
+**Conexiones:** [[EquipmentDatabaseSO]], [[CreatureDNA]], [[EquipmentEffectBase]], [[StatModifierEffect]], [[CombatProcEffect]], Enums (`Core/Enums/`, S93), [[BodyPart]]

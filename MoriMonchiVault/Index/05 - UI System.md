@@ -18,7 +18,7 @@ tags: [index, ui]
 |--------|------|-----|
 | [[BreedingPanelUITK]] | `UI/BreedingPanelUITK.cs` | Panel breeding |
 | [[BuildBrowserUITK]] | `UI/BuildBrowserUITK.cs` | Build browser muebles |
-| [[CombatPanelUITK]] | `UI/CombatPanelUITK.cs` | Panel combate |
+| *(CombatPanelUITK)* | — | 🪦 el del 3v3 murió en S75/S93; el slot `UIPanelType = 4` y el GameObject `UIManager/CombatPanelUITK` (con `UIDocument`) siguen en `GameScene` para el panel del Dragon RPS — plan en [[Index/21 - Combate v3 - Dragon RPS]] Parte 9 (E2) |
 | [[CreatureGridUI]] | `UI/CreatureGridUI.cs` | Grid criaturas uGUI |
 | [[CreatureGridUITK]] | `UI/CreatureGridUITK.cs` | Grid criaturas UITK |
 | [[CreatureGridView]] | `UI/CreatureGridView.cs` | Vista grid base |
@@ -26,8 +26,6 @@ tags: [index, ui]
 | [[HotbarHUDUITK]] | `UI/HotbarHUDUITK.cs` | HUD hotbar (overlay) |
 | [[InfoOverlayUITK]] | `UI/InfoOverlayUITK.cs` | Overlay contextual |
 | [[MorimonchiDetailInfoUITK]] | `UI/MorimonchiDetailInfoUITK.cs` | Detalle criatura |
-| [[CombatLineupUITK]] | `UI/CombatLineupUITK.cs` | Tab Equipo 3v3: pool + grillas 2-3-2 + drag&drop + combate local (S38) |
-| [[CombatLineupBoard]] | `UI/CombatLineupBoard.cs` | Widget grilla 2-3-2 (clase plana, estado+render, instanciada x2) |
 | [[StoragePanelUITK]] | `UI/StoragePanelUITK.cs` | Panel almacenamiento |
 | [[StorePanelUITK]] | `UI/StorePanelUITK.cs` | Panel tienda |
 
@@ -68,3 +66,13 @@ Patron completo en [[CombatLineupUITK]]: `PointerDownEvent` (guardar candidato +
 - Tab nueva agregada AL FINAL del TabView queda fuera de la navegacion por teclado (el clamp de `CombatPanelUITK.Navigation` es 0..3) — patron util para tabs WIP mouse-only sin tocar la navegacion.
 - Iterar diseno con Unity MCP: abrir el panel por codigo (`UIManager.RequestPanelSet` via reflection en `execute_code`) + `manage_camera screenshot` del Game view = ver el layout real antes de entregar. Los numeros "se ve bien" del USS mienten; el screenshot no.
 - Componente de UI nuevo = MonoBehaviour hermano con su ref `UIDocument` serializada (patron F3/DevConsoles) — no engordar el partial del panel.
+
+---
+
+## Paleta y helpers compartidos (S93)
+
+- **La paleta canonica ES `UI Toolkit/Theme.uss`**: 17 tokens `--mm-*` bajo `.mm-theme` (papel/tinta/coral/teal/gold/plum + good/warn/crit + scrim) que coinciden exacto con los 5 colores del kit "Diario del Pet Shop" de [[Index/14 - Art Prompts]]. Variante **`.mm-theme--night`** completa y sin usar hasta el panel de combate (Index/21 Parte 9). Inventario detallado de tokens, formas (3px `--mm-frame`, radios 8/10/16/22, `letter-spacing 4px`) y clases reutilizables por familia (`.panel*`, `.action*`, `.mm-swatch`, `.card*`, tabs pill, `.stat--*`, `.part-row`, `.combat-card*` huerfano del 3v3) en [[Index/21 - Combate v3 - Dragon RPS]] §9.0. Ningun color nuevo fuera del tema; rareza por `BodyPart.RarityColor`.
+- **Arbol por codigo** (`EquipmentBackpackUITK`) exige `AddToClassList("mm-theme")` + `styleSheets.Add(themeStyleSheet)` o las `var(--mm-*)` no resuelven.
+- **Helpers** (S93): `UI/UiPanels` (`RootOf(document)`, `SetActiveIndex(items, index, clase)`, `ClampSelection(count, index)` — usarlos en vez de repetir el idioma) · `UI/CreatureDisplay` (`StateOf(dna)` localizada UNICA, `RarityColor(r, palette)`, `ApplyIconVisual`, `ApplyRarityBorder`) · `UI/MonchiPortraitUI.Apply(elemento, dna)` para retratos (sin spawnear; `ApplyLive` solo con la criatura en el mundo).
+- Show/hide de paneles: `UIManager.SetPanelShown` es el dueno; los paneles solo togglean sub-vistas propias (etiquetas de vacio, toasts). `BuildBrowserUITK` y `HotbarHUDUITK` no son paneles de `UIManager` a proposito.
+- `PanelSettings`: `StandartPanelSettings.asset` (Scale With Screen Size, 1920x1080, match alto) para los 10 documentos de pantalla; `WorldUIPanelSettings.asset` solo para world-space (nametag, globo NPC).

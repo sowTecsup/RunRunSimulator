@@ -63,11 +63,11 @@ tags: [script, world, npc, core]
 - Se suscribe a `GameEvents.OnCustomerSold` en `OnEnable()` / desuscribe en `OnDisable()` (handler `OnSomeoneSold`).
 - **Cerco de áreas caminables:** campo `walkableAreaNames` + `ApplyWalkableAreas()` construyen `navAgent.areaMask` desde nombres de Navigation. Nuevo `AreaMask` público lo expone para que [[CashRegister]] muestree la cola en las mismas áreas (single source of truth). El NPC nunca rutea por el breeding room.
 
-**Eventos:**
-- `GameEvents.CustomerDecided(this, pick)` — tras decidir MM.
-- `GameEvents.CustomerArrivedAtRegister(this)` — llega a frente de fila.
-- `GameEvents.CustomerSold(this, mm, offer)` — aceptó compra.
-- `GameEvents.CustomerLeft(this, wasSold)` — salió de escena.
+**Cambios S93:**
+- Ya NO dispara eventos `OnCustomerSpawned`, `OnCustomerDecided`, `OnCustomerArrivedAtRegister`, `OnCustomerLeft` a nivel de `GameEvents` (fueron removidos). Los únicos eventos son `OnCustomerSold`.
+
+**Eventos (solo OnCustomerSold):**
+- `GameEvents.OnCustomerSold(this, mm, offer)` — aceptó compra.
 - `GameEvents.OnCustomerSold` — escucha (suscrito en OnEnable): otro cliente compró su objetivo.
 
 **Vinculado a:** [[Index/04 - Customer System]]

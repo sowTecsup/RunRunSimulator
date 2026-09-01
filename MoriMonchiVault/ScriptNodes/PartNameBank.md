@@ -27,4 +27,4 @@ Mapeo temático bidireccional:
 
 - [[Index/02 - Genetics & Breeding]]
 
-**Conexiones:** [[CreatureDNA]], [[PartRole]], [[PartSet]]
+**Conexiones:** [[CreatureDNA]], [[GeneticsEnums]], [[GeneticsEnums]]
