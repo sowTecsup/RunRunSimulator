@@ -26,7 +26,8 @@ MoriMonchiVault/
 | **DNA, parts, databases** | [[Index/02 - Genetics & Breeding]] | [[CreatureDNA]], [[BodyPart]], [[PartDatabaseSO]] |
 | **Breeding mechanic** | [[Index/02 - Genetics & Breeding]] | [[BreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[BreedingContainer]] |
 | **Visual assembly (3D, Suriyun DragonSD)** | [[Index/02 - Genetics & Breeding]] | [[MonchiVisualizer]], [[MonchiVisualBankSO]], [[DragonAnimationDriver]] |
-| **Combate ACTUAL (prototipo MVP S80+)** | [[Index/20 - Combat Prototype MVP (Plan)]] | nodos de `Scripts/CombatPrototype/` (CombatPrototypeManager, ActionResolver, etc.) |
+| **Combate ACTUAL (v3 Dragon RPS, S92+)** | [[Index/21 - Combate v3 - Dragon RPS]] | `Scripts/DragonRps/` (DragonRpsRules, DragonRpsMatch, DragonRpsSession, etc.) |
+| **Combate prototipo táctico S77-S88 (NO VALIDÓ — historia)** | [[Index/20 - Combat Prototype MVP (Plan)]] (historica) | nodos de `Scripts/CombatPrototype/` (congelado, pendiente decidir demolición) |
 | **Combate viejo 3v3 (DEMOLIDO S75 — solo historia)** | [[Index/03 - Combat]] (historico), [[Index/09b - Session Digest (S8-S88)]] | — |
 | **Cloud sync (UGS)** | [[Index/04 - UGS & Cloud]] | [[CloudSyncService]], [[CloudAuth]], [[CloudSyncOps]] |
 | **Auth & Cloud Save** | [[Index/04 - UGS & Cloud]], [[Index/07 - Persistence & Identity]] | [[CloudSyncService]], [[SaveSystem]], [[GameManager]] |
@@ -51,7 +52,8 @@ MoriMonchiVault/
 | **Refundación del combate: lentes, géneros, formatos** | [[Index/17 - Refundacion del Combate]] | — |
 | **Pilares del rediseño (día/noche · genes · ítem · Cutie Marks)** — Partes 7-8 (tablero) 🪦 descartadas S76 | [[Index/18 - Pilares del Rediseno (Draft)]] | — |
 | **COMBATE NUEVO: Predictive Tactical Extraction (expedición · plantillas · secuencia · extracción)** ⚠️ DRAFT | [[Index/19 - Combate Nuevo - Predictive Tactical Extraction]] | — |
-| **MVP DE COMBATE: plan aprobado S80 (beats · ticks · juggle · enemigos reactivos)** ✅ FUENTE DE VERDAD de la mecánica del prototipo | [[Index/20 - Combat Prototype MVP (Plan)]] | — |
+| **MVP DE COMBATE S80 (beats · ticks · juggle · enemigos reactivos)** 🪦 HISTÓRICA desde S92 — el prototipo no validó; solo el §15 (auditoría) sigue útil | [[Index/20 - Combat Prototype MVP (Plan)]] | — |
+| **COMBATE v3: Dragon RPS (RPS rígido · deck 6 · mano 3 · 3 golpes)** ✅ FUENTE DE VERDAD de la mecánica de combate | [[Index/21 - Combate v3 - Dragon RPS]] | — |
 
 ---
 
@@ -59,7 +61,8 @@ MoriMonchiVault/
 
 ```
 Assets/RunRunSimulator/Scripts/
-├── CombatPrototype/ # MVP de combate S80+ (aislado: cero contacto con GameEvents/GameManager)
+├── CombatPrototype/ # prototipo tactico S80-S88 — CONGELADO desde S91, no validó (pendiente decidir demolición)
+├── DragonRps/     # combate v3 S92+ (logica pura, cero dependencias de UnityEngine)
 ├── Core/          # GameManager, GameEvents, SaveSystem, Enums, Interfaces
 ├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · CutieMarks/ · Equipment/ · Items/ · Social/
 ├── Systems/       # Desacoplados vía GameEvents
@@ -113,7 +116,7 @@ Three mutually exclusive action maps: `Player`, `UI`, `Building`. Only one activ
 | DNA, genetic string, part ID | [[CreatureDNA]], [[PartDatabaseSO]] |
 | Stats (HP/Attack/Speed) | [[CreatureStats]], [[BodyPart]] |
 | Personality (diales Sociability/Boldness), tint | [[MoriMochiAgent]], [[AgentBrain]] |
-| Combat, fight, battle | [[Index/20 - Combat Prototype MVP (Plan)]] (el 3v3 viejo murió en S75) |
+| Combat, fight, battle, RPS, dragon duel | [[Index/21 - Combate v3 - Dragon RPS]] (el prototipo táctico quedó histórico en S92; el 3v3 viejo murió en S75) |
 | Breeding, cross, hatch | [[BreedingService]], [[BreedingContainer]] |
 | Affinity, compatibility | [[BreedingAffinityTableSO]] |
 | Inheritance odds | [[InheritanceOddsTableSO]] |

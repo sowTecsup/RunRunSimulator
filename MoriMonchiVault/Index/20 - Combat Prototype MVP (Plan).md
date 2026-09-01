@@ -2,7 +2,12 @@
 tags: [index, design, combate, mvp, plan]
 ---
 
-# 20 - Combat Prototype MVP (Plan aprobado S80)
+# 20 - Combat Prototype MVP (Plan aprobado S80) 🪦 HISTÓRICA
+
+> 🪦 **NOTA HISTÓRICA DESDE S92 (2026-09-01). NO IMPLEMENTAR NADA DE ACÁ.**
+> El prototipo táctico S77-S88 **no validó**: Juan lo descartó en S91 porque no divertía lo suficiente y — lo central — **le quitaba el foco a lo principal (breeding, cuidado, tienda)**. El combate pasó a ser un extra sencillo al servicio del breeding.
+> **La mecánica vigente vive en [[Index/21 - Combate v3 - Dragon RPS]].** Toda la agenda QA heredada de S88-S90 (contraste de dragones, TurnLogPanel vs zoom, presión de oleadas, alturas de cards, juice OnFizzle, UI por beat, quick wins §15) está **MUERTA**.
+> Esta nota se conserva por dos motivos: el **§15 (auditoría recuperada)** tiene hallazgos técnicos reutilizables, y `CombatPrototype/` sigue en disco hasta que se decida su demolición.
 
 > **Sesión 80 (2026-08-25).** Juan entregó un draft de MVP del combate y lo cerró en sesión con 3 rondas de decisiones. **ESTADO: PLAN APROBADO — listo para ejecución.** Este documento ES la fuente de verdad de la mecánica del prototipo: reemplaza al "documento de mecánica en limpio" que pedían las notas 17/19 (el prototipo es el instrumento de validación).
 >
