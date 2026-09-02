@@ -9,6 +9,7 @@
         <ui:VisualElement name="top-right" class="overlay-top-right" picking-mode="Ignore">
             <ui:Label name="date" text="" class="overlay-date" picking-mode="Ignore" />
             <ui:Label name="dabloons" text="" class="overlay-dabloons" picking-mode="Ignore" />
+            <ui:Label name="material" text="" class="overlay-dabloons" picking-mode="Ignore" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

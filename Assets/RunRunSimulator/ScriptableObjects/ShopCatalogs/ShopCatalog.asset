@@ -34,6 +34,14 @@ MonoBehaviour:
       MaxStock: 10
       TypeFilter: 1
       Tags: []
+  - Furniture: {fileID: 11400000, guid: e67791997f2dae04e9a7ce8aad8d9d4f, type: 2}
+    Shop:
+      BasePrice: 100
+      DiscountBase: 0
+      CurrentStock: 1
+      MaxStock: 1
+      TypeFilter: 1
+      Tags: []
   itemListings:
   - Item: {fileID: 11400000, guid: c32c36a4dafd59047a5a0c7191796964, type: 2}
     Shop:

@@ -571,7 +571,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282634
-    m_Localized: "{0}: {1}  \xB7  {2} \xB7 {3} \xB7 Tier{4}"
+    m_Localized: "{0}: {1}  \xB7  {2} \xB7 {3}"
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282635
@@ -1596,6 +1596,22 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 13877808320512014
     m_Localized: '{0} descansa hasta las {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13881322518118400
+    m_Localized: 'Material: {0:N0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13881322526507008
+    m_Localized: Descansa hasta las {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13881322526507009
+    m_Localized: "{0}: {1}  \xB7  {2} \xB7 {3} \xB7 Potencial {4}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13882952630173696
+    m_Localized: "{0}: \u2014 \xB7 Potencial {1}"
     m_Metadata:
       m_Items: []
   references:

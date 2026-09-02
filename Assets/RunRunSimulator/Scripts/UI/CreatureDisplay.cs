@@ -9,6 +9,7 @@ public static class CreatureDisplay
         d.IsSold                           ? Loc.Tr("status.sold")     :
         d.IsDead                           ? Loc.Tr("status.dead")     :
         d.BusyState == BusyReason.Breeding ? Loc.Tr("status.breeding") :
+        d.CombatCooldownUntil > GameManager.Now.Ticks ? Loc.Tr("status.cooldown", new System.DateTime(d.CombatCooldownUntil).ToString("HH:mm")) :
         Loc.Tr("status.free");
 
     public static Color RarityColor(Rarity r, EquipmentPaletteSO palette) =>

@@ -69,14 +69,14 @@ public class DetailInfoTabPresenter
         partsContainer.Clear();
         if (database == null) return;
 
-        AddPartRow(PartRole.Body, database.GetBodyShape(dna.BodyShapeID), dna.BodyTier);
-        AddPartRow(PartRole.Horn, database.GetHorn(dna.HornID),           dna.HornTier);
-        AddPartRow(PartRole.Back, database.GetBack(dna.BackID),           dna.BackTier);
-        AddPartRow(PartRole.Wing, database.GetWing(dna.WingID),           dna.WingTier);
-        AddPartRow(PartRole.Face, database.GetFace(dna.FaceID),           Tier.Tier1);
+        AddPartRow(PartRole.Body, database.GetBodyShape(dna.BodyShapeID), 0);
+        AddPartRow(PartRole.Horn, database.GetHorn(dna.HornID),           dna.HornPotential);
+        AddPartRow(PartRole.Back, database.GetBack(dna.BackID),           dna.BackPotential);
+        AddPartRow(PartRole.Wing, database.GetWing(dna.WingID),           dna.WingPotential);
+        AddPartRow(PartRole.Face, database.GetFace(dna.FaceID),           0);
     }
 
-    private void AddPartRow(PartRole slot, BodyPart part, Tier tier)
+    private void AddPartRow(PartRole slot, BodyPart part, int potential)
     {
         var row = new VisualElement();
         row.AddToClassList("part-row");
@@ -89,8 +89,10 @@ public class DetailInfoTabPresenter
         var text = new Label();
         text.AddToClassList("part-text");
         text.text = part != null
-            ? Loc.Tr("ui.detail.partrow", SlotName(slot), part.Name, part.Set, LocEnumMaps.RarityName(part.Rarity), (int)tier)
-            : Loc.Tr("ui.detail.partrow.empty", SlotName(slot));
+            ? (potential > 0
+                ? Loc.Tr("ui.detail.partrow.potential", SlotName(slot), part.Name, part.Set, LocEnumMaps.RarityName(part.Rarity), potential)
+                : Loc.Tr("ui.detail.partrow", SlotName(slot), part.Name, part.Set, LocEnumMaps.RarityName(part.Rarity)))
+            : potential > 0 ? Loc.Tr("ui.detail.partrow.potential.empty", SlotName(slot), potential) : Loc.Tr("ui.detail.partrow.empty", SlotName(slot));
         row.Add(text);
 
         partsContainer.Add(row);

@@ -1587,6 +1587,22 @@ MonoBehaviour:
     m_Key: ui.rps.result.cooldown
     m_Metadata:
       m_Items: []
+  - m_Id: 13881322518118400
+    m_Key: ui.overlay.material
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13881322526507008
+    m_Key: status.cooldown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13881322526507009
+    m_Key: ui.detail.partrow.potential
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13882952630173696
+    m_Key: ui.detail.partrow.potential.empty
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

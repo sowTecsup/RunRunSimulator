@@ -33,9 +33,11 @@ public class InfoOverlayUITK : MonoBehaviour
 
     private const string DateFormatKey = "ui.overlay.date.format";
     private const string DabloonsKey   = "ui.overlay.dabloons";
+    private const string MaterialKey   = "ui.overlay.material";
 
     private Label dateLabel;
     private Label dabloonsLabel;
+    private Label materialLabel;
     private float refreshTimer;
     private string lastDateText;
 
@@ -62,6 +64,7 @@ public class InfoOverlayUITK : MonoBehaviour
 
         dateLabel     = root.Q<Label>("date");
         dabloonsLabel = root.Q<Label>("dabloons");
+        materialLabel = root.Q<Label>("material");
 
         BuildHints(root.Q<VisualElement>("hints"));
         RefreshDate(force: true);
@@ -101,6 +104,7 @@ public class InfoOverlayUITK : MonoBehaviour
     {
         if (dabloonsLabel == null || inv == null) return;
         dabloonsLabel.text = Loc.Tr(DabloonsKey, inv.Dabloons);
+        if (materialLabel != null) materialLabel.text = Loc.Tr(MaterialKey, inv.AdventureMaterial);
     }
 
     private void BuildHints(VisualElement container)
