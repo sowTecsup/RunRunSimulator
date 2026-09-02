@@ -18,7 +18,6 @@ tags: [index, ui]
 |--------|------|-----|
 | [[BreedingPanelUITK]] | `UI/BreedingPanelUITK.cs` | Panel breeding |
 | [[BuildBrowserUITK]] | `UI/BuildBrowserUITK.cs` | Build browser muebles |
-| *(CombatPanelUITK)* | — | 🪦 el del 3v3 murió en S75/S93; el slot `UIPanelType = 4` y el GameObject `UIManager/CombatPanelUITK` (con `UIDocument`) siguen en `GameScene` para el panel del Dragon RPS — plan en [[Index/21 - Combate v3 - Dragon RPS]] Parte 9 (E2) |
 | [[CreatureGridUI]] | `UI/CreatureGridUI.cs` | Grid criaturas uGUI |
 | [[CreatureGridUITK]] | `UI/CreatureGridUITK.cs` | Grid criaturas UITK |
 | [[CreatureGridView]] | `UI/CreatureGridView.cs` | Vista grid base |
@@ -27,6 +26,7 @@ tags: [index, ui]
 | [[InfoOverlayUITK]] | `UI/InfoOverlayUITK.cs` | Overlay contextual |
 | [[MorimonchiDetailInfoUITK]] | `UI/MorimonchiDetailInfoUITK.cs` | Detalle criatura |
 | [[StoragePanelUITK]] | `UI/StoragePanelUITK.cs` | Panel almacenamiento |
+| [[CombatPanelUITK]] | `UI/CombatPanelUITK.cs` | Panel del duelo Dragon RPS (S95, `UIPanelType.Combat = 4`, tema `mm-theme--night`); estados Pick → Duel → Result con [[CombatPickPresenter]] / [[CombatDuelPresenter]] / [[CombatResultPresenter]]; abre por botón dev hasta E3 |
 | [[StorePanelUITK]] | `UI/StorePanelUITK.cs` | Panel tienda |
 
 **Reglas de Oro:**

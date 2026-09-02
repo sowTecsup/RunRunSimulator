@@ -547,7 +547,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282629
-    m_Localized: 'Crías: {0}'
+    m_Localized: "Cr\xEDas: {0}"
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282630
@@ -1488,6 +1488,114 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172488671286
     m_Localized: "\u25C0 Volver"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808261791744
+    m_Localized: PELEA NOCTURNA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317696
+    m_Localized: "ELEG\xCD A TU LUCHADOR"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317697
+    m_Localized: Pelear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317698
+    m_Localized: Cerrar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317699
+    m_Localized: Otra pelea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317700
+    m_Localized: Descansa hasta las {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317701
+    m_Localized: Ocupado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317702
+    m_Localized: "Sin energ\xEDa"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317703
+    m_Localized: Cuernos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317704
+    m_Localized: Alas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317705
+    m_Localized: Espalda
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317706
+    m_Localized: POTENCIA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512000
+    m_Localized: INTACTAS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512001
+    m_Localized: GOLPES
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512002
+    m_Localized: "Eleg\xED con qu\xE9 parte golpear"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512003
+    m_Localized: 'Vos: {0} rompe {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512004
+    m_Localized: 'Rival: {0} rompe {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512005
+    m_Localized: 'Espejo de {0}: potencia {1} contra {2}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512006
+    m_Localized: Nadie cede
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512007
+    m_Localized: Golpe tuyo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512008
+    m_Localized: Golpe del rival
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512009
+    m_Localized: Se rearman
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512010
+    m_Localized: VICTORIA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512011
+    m_Localized: DERROTA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512012
+    m_Localized: '{0} - {1} en {2} rondas'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512013
+    m_Localized: +{0} material de aventura
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512014
+    m_Localized: '{0} descansa hasta las {1}'
     m_Metadata:
       m_Items: []
   references:

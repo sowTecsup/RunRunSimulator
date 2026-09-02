@@ -10,6 +10,7 @@ namespace MoriMonchiSimulator.DragonRps
         public DragonRpsSide Player;
         public DragonRpsSide Foe;
         public int Round;
+        public DragonRpsRoundInfo LastRound;
 
         public DragonRpsSession(DragonRpsDragon player, DragonRpsDragon foe, int seed)
         {
@@ -44,7 +45,20 @@ namespace MoriMonchiSimulator.DragonRps
 
             DragonAction playerAction = Player.Hand[handIndex];
             DragonAction foeAction = DragonRpsBrain.Choose(DragonRpsPolicy.Counting, Foe, Player, rng);
+            int hitsBefore = Player.Hits;
+            int foeHitsBefore = Foe.Hits;
             string outcome = DragonRpsMatch.ResolveRound(Player, Foe, playerAction, foeAction);
+
+            LastRound = new DragonRpsRoundInfo
+            {
+                Player = playerAction,
+                Foe = foeAction,
+                PlayerPower = Player.Dragon.Power[(int)playerAction],
+                FoePower = Foe.Dragon.Power[(int)foeAction],
+                Scorer = Player.Hits > hitsBefore ? 1 : (Foe.Hits > foeHitsBefore ? 2 : 0),
+                Mirror = playerAction == foeAction,
+                Reshuffled = Player.Discard.Count == 0
+            };
             Round++;
 
             StringBuilder text = new StringBuilder();

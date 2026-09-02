@@ -1479,6 +1479,114 @@ MonoBehaviour:
     m_Key: ui.visualizer.topbar.back
     m_Metadata:
       m_Items: []
+  - m_Id: 13877808261791744
+    m_Key: ui.rps.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317696
+    m_Key: ui.rps.pick.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317697
+    m_Key: ui.rps.pick.fight
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317698
+    m_Key: ui.rps.close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317699
+    m_Key: ui.rps.again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317700
+    m_Key: ui.rps.pick.cooldown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317701
+    m_Key: ui.rps.pick.busy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317702
+    m_Key: ui.rps.pick.tired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317703
+    m_Key: ui.rps.action.horns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317704
+    m_Key: ui.rps.action.wings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317705
+    m_Key: ui.rps.action.back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317706
+    m_Key: ui.rps.power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512000
+    m_Key: ui.rps.intact
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512001
+    m_Key: ui.rps.hits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512002
+    m_Key: ui.rps.duel.start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512003
+    m_Key: ui.rps.round.you
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512004
+    m_Key: ui.rps.round.foe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512005
+    m_Key: ui.rps.round.mirror
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512006
+    m_Key: ui.rps.round.null
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512007
+    m_Key: ui.rps.round.youhit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512008
+    m_Key: ui.rps.round.foehit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512009
+    m_Key: ui.rps.reshuffle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512010
+    m_Key: ui.rps.result.win
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512011
+    m_Key: ui.rps.result.lose
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512012
+    m_Key: ui.rps.result.score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512013
+    m_Key: ui.rps.result.material
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512014
+    m_Key: ui.rps.result.cooldown
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

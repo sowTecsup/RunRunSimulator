@@ -6,6 +6,7 @@ public enum UIPanelType
     CreatureGrid     = 1,
     MorimonchiDetail = 2,
     Breeding         = 3,
+    Combat           = 4,
     Storage          = 5,
     Store            = 6,
     Transaction      = 7,

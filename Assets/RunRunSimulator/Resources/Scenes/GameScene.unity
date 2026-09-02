@@ -23383,6 +23383,7 @@ MonoBehaviour:
   devDabloonsAmount: 500
   devEquipmentItem: {fileID: 0}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
+  combatTuning: {fileID: 11400000, guid: 53e26437de6935e47ac19e83d72d4c12, type: 2}
 --- !u!1 &1047145380
 GameObject:
   m_ObjectHideFlags: 0
@@ -23424,6 +23425,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1051803675}
   - component: {fileID: 1051803674}
+  - component: {fileID: 1051803676}
   m_Layer: 5
   m_Name: CombatPanelUITK
   m_TagString: Untagged
@@ -23445,7 +23447,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
   m_PanelSettings: {fileID: 11400000, guid: 3c8a8da8175b6d54a907634fef6a08f4, type: 2}
   m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: 6cdc177fbc58e9a4ca573f802dc2369e, type: 3}
+  sourceAsset: {fileID: 9197481963319205126, guid: 174fd77deb44ef74bae02155ff014a31, type: 3}
   m_SortingOrder: 0
   m_Position: 0
   m_WorldSpaceSizeMode: 1
@@ -23469,6 +23471,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1218711423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1051803676
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051803673}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e62a84b4f8935814aa5819a5f20931bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPanelUITK
+  document: {fileID: 1051803674}
+  tuning: {fileID: 11400000, guid: 53e26437de6935e47ac19e83d72d4c12, type: 2}
+  panel: 4
 --- !u!1 &1067912611
 GameObject:
   m_ObjectHideFlags: 0
@@ -24482,14 +24499,6 @@ MonoBehaviour:
   cameraPitch: 10
   cameraYaw: 155
   portraitMood: 0
-  headshotWidth: 512
-  headshotHeight: 192
-  headshotPadding: 1.25
-  headshotTopFraction: 0.35
-  headshotCenterHeight: 0.58
-  headshotPitch: 2
-  headshotYaw: 115
-  headshotRoll: 0
 --- !u!4 &1102137020
 Transform:
   m_ObjectHideFlags: 0
@@ -26403,6 +26412,7 @@ MonoBehaviour:
   devDabloonsAmount: 500
   devEquipmentItem: {fileID: 0}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
+  combatTuning: {fileID: 11400000, guid: 53e26437de6935e47ac19e83d72d4c12, type: 2}
 --- !u!1 &1218711422
 GameObject:
   m_ObjectHideFlags: 0
@@ -26675,11 +26685,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2684cfe098ee0d94e85469717eaa72c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatPanelUITK
-  document: {fileID: 1051803674}
-  panel: 4
-  sortingOrder: 100
-  database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
-  asyncCombatService: {fileID: 1813964817}
 --- !u!114 &1218711430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26792,8 +26797,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5262e2e00167114dbff39816f3efa86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatLineupUITK
-  document: {fileID: 1051803674}
-  database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
 --- !u!1 &1224935784
 GameObject:
   m_ObjectHideFlags: 0
@@ -32486,8 +32489,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd186e1431f391c499353f16887657d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatController
-  config: {fileID: 11400000, guid: 77a53faa48928f14aa0c83ecd78f774e, type: 2}
-  asyncCombatService: {fileID: 1813964817}
 --- !u!4 &1813964819
 Transform:
   m_ObjectHideFlags: 0
@@ -32515,18 +32516,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d627f1a95b00b674ba006f36187a6e04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatDevConsole
-  gameManager: {fileID: 1046970362}
-  combatController: {fileID: 1813964818}
-  teamAIds:
-  - BS1-A0-E0-M0-D10E65-639184748194578503
-  - BS1-A1-E2-M0-445AC4-639184748191594602
-  - BS0-A1-E0-M0-C07536-639184748200975572
-  teamBIds:
-  - BS1-A1-E0-M0-1E86AC-639184748205689652
-  - BS4-A1-E1-M0-46C98B-639184748196125070
-  - BS0-A0-E0-M1-50E3E4-639184748202493848
-  asyncCreatureID: 
-  dequeueIndex: 0
 --- !u!1 &1816910918
 GameObject:
   m_ObjectHideFlags: 0
@@ -35482,9 +35471,10 @@ MonoBehaviour:
   gameManager: {fileID: 1046970362}
   currentDNA:
     BodyShapeID: 
-    ArmID: 
-    EyeID: 
-    MouthID: 
+    HornID: 
+    BackID: 
+    WingID: 
+    FaceID: 
     BaseColor: {r: 1, g: 1, b: 1, a: 1}
     SecondaryColor: {r: 1, g: 1, b: 1, a: 1}
     FurType: 0
@@ -35499,20 +35489,20 @@ MonoBehaviour:
     Element: 0
     Sociability: 0.5
     Boldness: 0.5
-    FightCount: 0
-    WinCount: 0
     BreedCount: 0
     BodyTier: 1
-    ArmTier: 1
-    EyeTier: 1
-    MouthTier: 1
+    HornTier: 1
+    BackTier: 1
+    WingTier: 1
+    HornPotential: 1
+    BackPotential: 1
+    WingPotential: 1
     BaseConstitution: 0
     BaseAttack: 0
     BaseSpeed: 0
     BaseDefense: 0
     BaseLuck: 0
     BaseEvasion: 0
-    CombatHistory: []
     IsDead: 0
     Needs:
       Health: 100
@@ -35520,9 +35510,11 @@ MonoBehaviour:
       Affect: 0
     BusyState: 0
     BreedReadyAt: 0
+    CombatCooldownUntil: 0
     BreedPartnerID: 
     LocationKey: 
     LocationSlot: -1
+    HeldItemId: 
   currentDNAString: ---
   loadIDInput: 
 --- !u!1 &2067556434

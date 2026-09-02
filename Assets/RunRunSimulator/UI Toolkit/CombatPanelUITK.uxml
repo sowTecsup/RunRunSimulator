@@ -1,0 +1,46 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
+    <Style src="TransactionPanel.uss" />
+    <Style src="CombatPanelUITKStyle.uss" />
+    <ui:VisualElement name="rps-root" class="mm-theme mm-theme--night rps">
+        <ui:VisualElement name="rps-backdrop" class="tx-backdrop">
+            <ui:VisualElement name="rps-panel" class="panel rps-panel">
+                <ui:VisualElement class="panel__header">
+                    <ui:Label name="rps-title" text="PELEA NOCTURNA" class="panel__title" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="view-pick" class="rps-view rps-view--active">
+                    <ui:Label name="pick-title" text="" class="rps-subtitle" />
+                    <ui:ScrollView name="pick-list" class="rps-pick-list" mode="Horizontal" />
+                    <ui:VisualElement class="actions rps-actions">
+                        <ui:Button name="pick-close" text="" class="action action--cancel" />
+                        <ui:Button name="pick-fight" text="" class="action action--accept" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="view-duel" class="rps-view">
+                    <ui:VisualElement class="rps-duel">
+                        <ui:VisualElement name="side-player" class="rps-side" />
+                        <ui:VisualElement name="clash" class="rps-clash">
+                            <ui:Label name="clash-log" text="" class="rps-log" />
+                            <ui:VisualElement name="hand" class="rps-hand" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="side-rival" class="rps-side rps-side--rival" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="view-result" class="rps-view">
+                    <ui:VisualElement name="result-card" class="rps-result">
+                        <ui:Label name="result-title" text="" class="rps-result-title" />
+                        <ui:Label name="result-score" text="" class="rps-result-score" />
+                        <ui:Label name="result-line" text="" class="rps-result-line" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="actions rps-actions">
+                        <ui:Button name="result-close" text="" class="action action--cancel" />
+                        <ui:Button name="result-again" text="" class="action action--more" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

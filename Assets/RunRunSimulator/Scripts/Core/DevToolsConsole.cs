@@ -117,6 +117,13 @@ public class DevToolsConsole : MonoBehaviour
         return combatTuning != null ? combatTuning : ScriptableObject.CreateInstance<CombatTuningSO>();
     }
 
+    [Button("Open Combat Panel (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.9f, 1f), BoxGroup("Combat (DEV)")]
+    private void DevOpenCombatPanel()
+    {
+        UIManager.RequestPanelSet(UIPanelType.Combat, true);
+        Debug.Log("[DevToolsConsole] Combat panel requested.");
+    }
+
     [Button("Reroll Potentials (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]
     private void DevRerollPotentials()
     {

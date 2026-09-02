@@ -1493,6 +1493,114 @@ MonoBehaviour:
     m_Localized: "\u25C0 Back"
     m_Metadata:
       m_Items: []
+  - m_Id: 13877808261791744
+    m_Localized: NIGHT FIGHT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317696
+    m_Localized: CHOOSE YOUR FIGHTER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317697
+    m_Localized: Fight
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317698
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317699
+    m_Localized: Fight again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317700
+    m_Localized: Resting until {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317701
+    m_Localized: Busy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317702
+    m_Localized: Too tired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317703
+    m_Localized: Horns
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317704
+    m_Localized: Wings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317705
+    m_Localized: Back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808316317706
+    m_Localized: POWER
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512000
+    m_Localized: INTACT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512001
+    m_Localized: HITS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512002
+    m_Localized: Pick a part to strike with
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512003
+    m_Localized: 'You: {0} breaks {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512004
+    m_Localized: 'Rival: {0} breaks {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512005
+    m_Localized: 'Mirror of {0}: power {1} vs {2}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512006
+    m_Localized: Nobody yields
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512007
+    m_Localized: Your hit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512008
+    m_Localized: Rival hits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512009
+    m_Localized: Both regroup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512010
+    m_Localized: VICTORY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512011
+    m_Localized: DEFEAT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512012
+    m_Localized: '{0} - {1} in {2} rounds'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512013
+    m_Localized: +{0} adventure material
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13877808320512014
+    m_Localized: '{0} rests until {1}'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
