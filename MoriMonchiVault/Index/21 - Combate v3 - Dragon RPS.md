@@ -4,6 +4,9 @@ tags: [index, design, combate, v3]
 
 # 21 - Combate v3 — Dragon RPS (S92)
 
+> 🪦 **VEREDICTO S96 (2026-09-02): EXPERIMENTO FALLIDO.** Juan jugó el prototipo E1-E3 en la PC del trabajo: *"demuestra lo que queríamos lograr"*, pero hay **caminos sin salida** (sabés que perdés porque no te quedan cartas y la última no sirve), **contar cartas es fácil y decide el final** (casi siempre 2-2), el feel no se pudo mover y la animación del triángulo distraía. *"No siento que sea la actividad que necesitamos para que los jugadores puedan probar el breeding."* Pidió ideas nuevas **sin iterar sobre esto**. La dirección que reemplaza a esta nota está en [[Index/22 - Bajada Nocturna y Linaje (Draft)]]. El código (`Scripts/DragonRps/`, `Systems/Combat/`, `UI/Combat*`, Ring) sigue en el proyecto con destino abierto (Index/22 Parte 7); el plan E4-E5 de la Parte 9 queda **cancelado**.
+>
+
 > **Sesión 92 (2026-09-01).** Juan entregó el mini-draft **DRAGON RPS V1 FINAL** y con él se cierra la refundación abierta en S91. Este documento reemplaza al prototipo táctico S77-S88 (`Index/20`), **demolido por completo en S93** — código, escena, assets, tools MCP, ScriptNodes y nota borrados (git `3cc5eb5` los conserva); lo que se aprendió vive en la memoria persistente del orquestador y en el timeline de [[Index/09b - Session Digest (S8-S88)]].
 >
 > **ESTADO: núcleo CERRADO Y VERIFICADO POR SIMULACIÓN.** Los perks son **exploración, no decididos**.

@@ -26,7 +26,8 @@ MoriMonchiVault/
 | **DNA, parts, databases** | [[Index/02 - Genetics & Breeding]] | [[CreatureDNA]], [[BodyPart]], [[PartDatabaseSO]] |
 | **Breeding mechanic** | [[Index/02 - Genetics & Breeding]] | [[BreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[BreedingContainer]] |
 | **Visual assembly (3D, Suriyun DragonSD)** | [[Index/02 - Genetics & Breeding]] | [[MonchiVisualizer]], [[MonchiVisualBankSO]], [[DragonAnimationDriver]] |
-| **Combate ACTUAL (v3 Dragon RPS, S92+)** | [[Index/21 - Combate v3 - Dragon RPS]] | `Scripts/DragonRps/` (DragonRpsRules, DragonRpsMatch, DragonRpsSession, etc.) |
+| **DISEÑO VIGENTE: Linaje + Bajada Nocturna (S96, DRAFT)** ⭐ | [[Index/22 - Bajada Nocturna y Linaje (Draft)]] | — (nada en código todavía; el porqué de criar, el centro de adopción, la bajada por salas con ferales de otros jugadores, catálogo de pruebas con referencias) |
+| **Combate v3 Dragon RPS (S92-S95 — 🪦 FALLIDO S96, código en pie)** | [[Index/21 - Combate v3 - Dragon RPS]] | `Scripts/DragonRps/` (DragonRpsRules, DragonRpsMatch, DragonRpsSession, etc.) |
 | **Combate prototipo táctico S77-S88 (NO VALIDÓ — DEMOLIDO S93)** | [[Index/09b - Session Digest (S8-S88)]] (timeline S77-S88); código, escena, assets, nota `Index/20` y ScriptNodes borrados — recuperables en git `3cc5eb5` | — |
 | **Combate viejo 3v3 (DEMOLIDO S75 — solo historia)** | [[Index/03 - Combat]] (historico), [[Index/09b - Session Digest (S8-S88)]] | — |
 | **Cloud sync (UGS)** | [[Index/04 - UGS & Cloud]] | [[CloudSyncService]], [[CloudAuth]], [[CloudSyncOps]] |
@@ -115,7 +116,8 @@ Three mutually exclusive action maps: `Player`, `UI`, `Building`. Only one activ
 | DNA, genetic string, part ID | [[CreatureDNA]], [[PartDatabaseSO]] |
 | Stats (HP/Attack/Speed) | [[CreatureStats]], [[BodyPart]] |
 | Personality (diales Sociability/Boldness), tint | [[MoriMochiAgent]], [[AgentBrain]] |
-| Combat, fight, battle, RPS, dragon duel | [[Index/21 - Combate v3 - Dragon RPS]] (el prototipo táctico quedó histórico en S92; el 3v3 viejo murió en S75) |
+| Por qué criar, linaje, adopción, bajada nocturna, salas, ferales, nervio | [[Index/22 - Bajada Nocturna y Linaje (Draft)]] (dirección vigente desde S96, draft) |
+| Combat, fight, battle, RPS, dragon duel | [[Index/21 - Combate v3 - Dragon RPS]] (🪦 fallido S96, ver Index/22; el prototipo táctico quedó histórico en S92; el 3v3 viejo murió en S75) |
 | Breeding, cross, hatch | [[BreedingService]], [[BreedingContainer]] |
 | Affinity, compatibility | [[BreedingAffinityTableSO]] |
 | Inheritance odds | [[InheritanceOddsTableSO]] |
