@@ -65,6 +65,7 @@ public class CreatureDNA
     public DateTime SaleDate;
 
     public long   BreedReadyAt   = 0;
+    public long   CombatCooldownUntil = 0;
     public string BreedPartnerID = "";
     public string LocationKey  = "";
     public int    LocationSlot = -1;

@@ -400,4 +400,12 @@ Feel según la regla de la casa: en `Ring.prefab` un hijo `Feedbacks/` con un Ga
 4. Compilar → auditoría E1 completa (9.2) → registrar estado aquí.
 5. Si sobra tiempo: E2 código (enum + `CombatPanelUITK` + presenters + UXML/USS + Loc keys) y pedir el OK de las dos asignaciones en escena.
 
-**Estado**: E1 ⏳ · E2 ⏳ · E3 ⏳ · E4 ⏳ · E5 ⏳
+### 9.9 · Registro E1 — hecho en S95 (2026-09-01, rama `s95-pc2`)
+
+**Construido tal cual 9.2**, con D1-D11 vigentes (Juan dio el OK global "continuar todo donde se quedó"): `Systems/Combat/DragonRpsGenes` (31 líneas) · `DragonRpsRival` (51) · `DragonRpsService` (50) · `CombatOutcome` (13) · `CombatTuningSO` (13) · `CreatureDNA.CombatCooldownUntil` · `PlayerInventorySO.AddAdventureMaterial` · `ColorGenetics.RandomBase(System.Random)` (overload determinista para el rival, mismos rangos que el original) · `DevToolsConsole`: `BoxGroup("Combat (DEV)")` con `combatTuning` (si está vacío usa `CreateInstance` con defaults, así no hace falta cablear la escena) + botones **Simulate Combat (DEV)** y **Reroll Tiers (DEV)**. Asset `ScriptableObjects/Combat/CombatTuning.asset` creado por `eval_file` (20 / 3 / 1 / 0).
+
+**Hallazgo ⭐ — tiers en 0**: las 18 criaturas del registro tienen `HornTier/WingTier/BackTier = 0`, fuera del enum (`Tier1 = 1`). `DragonRpsGenes.PowerOf` clampa a 1-3 (0 → 1), así que hoy todo dragón propio es 1/1/1 (presupuesto 3) y el rival sale 3-4. El botón **Reroll Tiers (DEV)** tira 1-3 por parte y persiste por `RegistryChanged`; **no se apretó** (los tiers también mueven precio y stats de esas 18 — decisión de Juan).
+
+**Auditoría 9.7 ✅**: compila 0/0 (`recompile_status` completed, `errors: []`) · Play limpio (0 errores, 0 warnings salvo el aviso "not in automated mode" del pipeline) · reglas de la casa (grep: sin `Find*`, sin comentarios, sin suscripciones nuevas, todo < 170 líneas) · **funcional en Play** (`e1_audit.cs`, 5 duelos por código con `Play(0)`): 2 victorias → material 0 → 6, 3 derrotas → `CombatCooldownUntil` = ahora + 20 min, el elegible rota solo (Yucky Creep → Gloomy Sprout → Frosty Squish); `registry.Count` 19 → 19 (rival nunca registrado, `UniqueID` vacío); **persistido**: `creature_database_<uid>.json` reescrito con 19 campos `CombatCooldownUntil` (3 ≠ 0) y `player_inventory_<uid>.json` con `AdventureMaterial: 6` · harness: 55,9% / 82,3% / 0% empates sobre 20k (ruido de muestreo vs 56,1 / 82,5). Sin captura visual: E1 no tiene UI.
+
+**Estado**: E1 ✅ (S95) · E2 ⏳ · E3 ⏳ · E4 ⏳ · E5 ⏳

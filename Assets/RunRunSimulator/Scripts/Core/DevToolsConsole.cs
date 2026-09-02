@@ -1,3 +1,4 @@
+using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 namespace MoriMonchiSimulator
@@ -106,6 +107,57 @@ public class DevToolsConsole : MonoBehaviour
         inventory.ClearEquipmentOwned();
         GameEvents.InventoryChanged(inventory);
         Debug.Log("[DevToolsConsole] Equipment owned list cleared.");
+    }
+
+    [BoxGroup("Combat (DEV)"), SerializeField, AssetsOnly]
+    private CombatTuningSO combatTuning;
+
+    private CombatTuningSO ResolveTuning()
+    {
+        return combatTuning != null ? combatTuning : ScriptableObject.CreateInstance<CombatTuningSO>();
+    }
+
+    [Button("Reroll Tiers (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]
+    private void DevRerollTiers()
+    {
+        if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
+        var registry = gameManager.Registry;
+        if (registry == null) { Debug.LogWarning("[DevToolsConsole] No registry assigned."); return; }
+        int touched = 0;
+        foreach (var dna in registry.GetAll().Values)
+        {
+            if (dna.IsDead || dna.IsSold) continue;
+            dna.HornTier = (Tier)Random.Range(1, 4);
+            dna.WingTier = (Tier)Random.Range(1, 4);
+            dna.BackTier = (Tier)Random.Range(1, 4);
+            touched++;
+        }
+        GameEvents.RegistryChanged(registry);
+        Debug.Log($"[DevToolsConsole] Rerolled tiers on {touched} creatures.");
+    }
+
+    [Button("Simulate Combat (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]
+    private void DevSimulateCombat()
+    {
+        if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
+        var registry = gameManager.Registry;
+        if (registry == null) { Debug.LogWarning("[DevToolsConsole] No registry assigned."); return; }
+        var inventory = gameManager.Inventory;
+        if (inventory == null) { Debug.LogWarning("[DevToolsConsole] No inventory assigned."); return; }
+        var tuning = ResolveTuning();
+        var now = GameManager.Now;
+        for (int i = 0; i < 5; i++)
+        {
+            var player = registry.GetAll().Values.FirstOrDefault(dna => DragonRpsGenes.CanFight(dna, tuning, now));
+            if (player == null) { Debug.LogWarning("[DevToolsConsole] No eligible creature to fight."); return; }
+            int seed = DragonRpsService.Seed(player, now) + i;
+            var rival = DragonRpsRival.Generate(registry, player, tuning, new System.Random(seed));
+            if (rival == null) { Debug.LogWarning("[DevToolsConsole] No eligible rival to fight."); return; }
+            var session = DragonRpsService.Start(player, rival, seed);
+            while (!session.Finished) session.Play(0);
+            var outcome = DragonRpsService.Resolve(session, player, registry, inventory, tuning, now);
+            Debug.Log($"[DevToolsConsole] Combat {i + 1}: {player.CustomName} (budget {DragonRpsGenes.Budget(player)}) vs {rival.CustomName} (budget {DragonRpsGenes.Budget(rival)}) → {(outcome.Won ? "WIN" : "LOSE")} {outcome.HitsPlayer}-{outcome.HitsRival} in {outcome.Rounds} rounds | material={inventory.AdventureMaterial} cooldownUntil={outcome.CooldownUntilTicks}");
+        }
     }
 }
 }

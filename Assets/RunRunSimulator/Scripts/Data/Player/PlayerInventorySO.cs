@@ -161,6 +161,13 @@ public class PlayerInventorySO : SerializedScriptableObject
 
     public int AdventureMaterial => adventureMaterial;
 
+    public void AddAdventureMaterial(int amount)
+    {
+        if (amount <= 0) return;
+        adventureMaterial += amount;
+        MarkDirty();
+    }
+
     public int PassiveMaterial => passiveMaterial;
 
     public int EvolutionEssence => evolutionEssence;

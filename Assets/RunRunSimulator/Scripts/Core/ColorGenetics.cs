@@ -6,6 +6,14 @@ public static class ColorGenetics
 {
     public static Color RandomBase() => Random.ColorHSV(0f, 1f, 0.35f, 0.6f, 0.8f, 1f);
 
+    public static Color RandomBase(System.Random rng)
+    {
+        float h = (float)rng.NextDouble();
+        float s = Mathf.Lerp(0.35f, 0.6f, (float)rng.NextDouble());
+        float v = Mathf.Lerp(0.8f, 1f, (float)rng.NextDouble());
+        return Color.HSVToRGB(h, s, v);
+    }
+
     public static Color DeriveSecondary(Color baseColor)
     {
         Color.RGBToHSV(baseColor, out float h, out float s, out float v);

@@ -4,6 +4,25 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-01 (Session 95 — **E1 DE LA DEMO JUGABLE ✅ (puente datos → combate, `Systems/Combat/`) — EN CURSO, en rama `s95-pc2`; 9 scripts tocados (5 nuevos) + 1 asset; vault-documenter pendiente de `/cerrar-sesion`**)
+
+**Focus:** Juan abrió desde su segunda PC: la sesión de la tarde en la otra máquina quedó sin cerrar ni pushear (según él solo leía contexto, no creó nada). Diagnóstico: repo local = origin/main (fbab4c0), nada de la tarde en el remoto; los transcripts de Claude Code viven en cada disco (no hay copia en la nube legible); la sesión Remote Control de la otra PC ("Push cambios pendientes") está offline → le quedó **encolado un mensaje** para que, al conectarse, commitee en rama `s95-otra-pc` y pushee sin tocar main. Se trabaja en la rama **`s95-pc2`**. Después: Unity CLI instalado también en esta PC (`winget install Unity.CLI`) y E1 completa según [[Index/21 - Combate v3 - Dragon RPS]] §9.2 con su registro en §9.9.
+
+1. **E1 ✅**: 4 `morimonchi-coder` en paralelo (Genes+Tuning+Outcome+campo DNA · Rival+ColorGenetics · Service+inventario · botones dev) → compila 0/0 → `CombatTuning.asset` por `eval_file` → auditoría 9.7 en Play: 5 duelos, material 0→6, 3 cooldowns persistidos en `creature_database_<uid>.json`, registro sin cambios, harness 55,9/82,3/0.
+2. **Hallazgo ⭐**: las 18 criaturas tienen tiers en **0** (fuera del enum). Clamp 0→1 en `DragonRpsGenes.PowerOf` + botón **Reroll Tiers (DEV)** (no apretado: mueve precio y stats).
+3. **Esta PC**: el editor abre el proyecto por la junction `C:\Users\USUARIO\Documents\GitHub\RunRunSimulator` → `E:\GitHub\RunRunSimulator` (mismo repo; `unity status` reporta la ruta C:). Quirks nuevos del `eval_file` en `Index/12` (sin `using`, sin backslashes en strings).
+
+> ### 📌 Notas S95
+> 1. Pendiente de Juan: apretar o no **Reroll Tiers (DEV)** antes de E2 (con todos en 1/1/1 el 34% de rondas entre iguales son nulas).
+> 2. Al volver a la otra PC: si la sesión encolada no corrió, `claude --resume` allá + commit en rama + push; después mergear `s95-pc2` (conflicto seguro en este archivo).
+> 3. `combatTuning` de `DevToolsConsole` NO está asignado en escena (usa defaults por `CreateInstance`); asignarlo cuando se cablee `CombatPanelUITK` en E2 (mutación, OK de Juan).
+
+**Files Touched S95 (.cs — input ScriptNodes):** NUEVOS `Systems/Combat/DragonRpsGenes.cs`, `Systems/Combat/DragonRpsRival.cs`, `Systems/Combat/DragonRpsService.cs`, `Systems/Combat/CombatOutcome.cs`, `Systems/Combat/CombatTuningSO.cs` · MODIFICADOS `Data/Genetics/CreatureDNA.cs` (+`CombatCooldownUntil`), `Data/Player/PlayerInventorySO.cs` (+`AddAdventureMaterial`), `Core/ColorGenetics.cs` (+`RandomBase(System.Random)`), `Core/DevToolsConsole.cs` (+2 botones, +`combatTuning`). **No-ScriptNode:** `ScriptableObjects/Combat/CombatTuning.asset` (NUEVO), `Index/21` (§9.9 + Estado), `Index/12` (quirks 9-10), este archivo.
+
+**Next session (S96):** **E2 — panel con la paleta nocturna** ([[Index/21 - Combate v3 - Dragon RPS]] §9.3): `UIPanelType.Combat = 4`, `UI/CombatPanelUITK.cs` + 3 presenters, `CombatPanelUITK.uxml` + `CombatPanelUITKStyle.uss` (solo tokens `--mm-*`, raíz `mm-theme mm-theme--night rps`), claves `ui.rps.*` en/es, y pedir OK para las 2 asignaciones en escena (`sourceAsset` del `UIDocument` de `UIManager/CombatPanelUITK` + componente con `tuning`/`document`). Antes: decidir Reroll Tiers. Arrastres: los de S94/S95 (B, C, D) siguen.
+
+---
+
 **Session:** 2026-09-01 (Session 94 — **SINCRONIZACION VAULT-CODE VERIFICADA: 173 scripts .cs vs 173 ScriptNodes; 0 orfanos en vault; 0 errores de compilación; 0 warnings — ✅ ANALIZADO: 10 scripts faltantes en vault (6 enums + 4 helpers); vault-documenter NO corre (sin scripts modificados esta sesión)**)
 
 **Focus:** Análisis completo del estado del vault y sincronización con el código. Verificado: Unity CLI (recompile_status=completed, 0 errors), vault-list vs scripts-list comparison, referencia cruzada de scripts mencionados en vault vs existencia en disco.
