@@ -8,6 +8,10 @@ public static class CreatureGenerator
     public const int StatMin    = 1;
     public const int StatMax    = 10;
 
+    public const int PotentialMin     = 1;
+    public const int PotentialMax     = 10;
+    public const int MintPotentialMax = 3;
+
     public static CreatureDNA GenerateRandom(CreatureDatabaseSO database, FurTypeDatabaseSO furDb = null)
     {
         if (database == null)
@@ -39,6 +43,9 @@ public static class CreatureGenerator
             SecondaryColor = ColorGenetics.DeriveSecondary(baseColor),
             FurType        = furDb != null ? furDb.RollMintFurType() : (FurType)furValues.GetValue(Random.Range(0, furValues.Length)),
             IsShiny        = ColorGenetics.RollShiny(),
+            HornPotential  = RandomMintPotential(),
+            BackPotential  = RandomMintPotential(),
+            WingPotential  = RandomMintPotential(),
         };
     }
 
@@ -55,6 +62,8 @@ public static class CreatureGenerator
     }
 
     public static float RandomDial() => Random.Range(0.15f, 0.85f);
+
+    public static int RandomMintPotential() => Random.Range(PotentialMin, MintPotentialMax + 1);
 
     public static (float hp, float atk, float spd) RandomBaseStats()
     {

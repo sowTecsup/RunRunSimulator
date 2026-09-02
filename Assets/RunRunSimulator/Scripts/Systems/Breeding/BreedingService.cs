@@ -74,6 +74,9 @@ public static class BreedingService
             BaseConstitution = InheritStat(mother.BaseConstitution, father.BaseConstitution),
             BaseAttack       = InheritStat(mother.BaseAttack,       father.BaseAttack),
             BaseSpeed        = InheritStat(mother.BaseSpeed,        father.BaseSpeed),
+            HornPotential    = InheritPotential(mother.HornPotential, father.HornPotential),
+            BackPotential    = InheritPotential(mother.BackPotential, father.BackPotential),
+            WingPotential    = InheritPotential(mother.WingPotential, father.WingPotential),
             Sociability = InheritDial(mother.Sociability, father.Sociability, odds),
             Boldness    = InheritDial(mother.Boldness,    father.Boldness,    odds),
         };
@@ -168,6 +171,12 @@ public static class BreedingService
         float inherited = Random.value < 0.5f ? motherStat : fatherStat;
         int   delta     = Random.Range(-1, 2);
         return Mathf.Clamp(inherited + delta, CreatureGenerator.StatMin, CreatureGenerator.StatMax);
+    }
+
+    private static int InheritPotential(int motherPotential, int fatherPotential)
+    {
+        int average = (motherPotential + fatherPotential + Random.Range(0, 2)) / 2;
+        return Mathf.Clamp(average + Random.Range(-1, 2), CreatureGenerator.PotentialMin, CreatureGenerator.PotentialMax);
     }
 
     private static float InheritDial(float motherDial, float fatherDial, InheritanceOddsTableSO odds)

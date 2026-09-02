@@ -57,3 +57,4 @@ tags: [index, genetics]
 - IDs de partes sin guion medio (-)
 - Gender y Personality NO forman parte del genetic string
 - NeedsState NO dispara RegistryChanged (solo flush en quit/pause)
+- **Potencial por parte (decisión de Juan, S95):** cuerno, espalda y ala tienen un potencial entero **1-10** (`CreatureDNA.HornPotential/BackPotential/WingPotential`). Ninguna parte es intrínsecamente mejor que otra (lo que varía son los quirks); `Tier`/`Rarity` de `BodyPart` quedan fuera del combate y son deuda de diseño ([[Index/11 - Technical Debt]]). Al nacer por compra sale **1-3** (`CreatureGenerator.RandomMintPotential`); por cría es **promedio de los padres ±1** (`BreedingService.InheritPotential`, desempate aleatorio del .5, clamp 1-10). Es la potencia del combate v3 ([[Index/21 - Combate v3 - Dragon RPS]] §9.10). No forma parte del genetic string.

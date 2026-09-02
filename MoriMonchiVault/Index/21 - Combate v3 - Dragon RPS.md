@@ -304,7 +304,7 @@ Coinciden exacto con los 5 colores del kit "Diario del Pet Shop" de [[Index/14 -
 
 | # | Decisión | Default | Por qué |
 |---|---|---|---|
-| D1 | **Potencia por tipo** | `Power[Horns] = (int)dna.HornTier`, `Power[Wings] = (int)dna.WingTier`, `Power[Back] = (int)dna.BackTier` (1-3). Presupuesto = suma (3-9). | Único dial genético por parte que ya existe, se hereda y es entero 1-3 (Parte 2.4). |
+| D1 | **Potencia por tipo** | ~~`Power = (int)dna.HornTier/WingTier/BackTier` (1-3)~~ **Reemplazada en S95 por el Potencial (§9.10):** `Power[Horns] = dna.HornPotential`, `Power[Wings] = dna.WingPotential`, `Power[Back] = dna.BackPotential` (1-10). Presupuesto = suma (3-30). | Juan corrigió el supuesto: ninguna parte es intrínsecamente mejor (`Tier` era un campo muerto: nadie lo asignaba ni lo heredaba). Lo que se hereda es el potencial de cada parte. |
 | D2 | **Rival de la demo** | Clon de una criatura viva del registro distinta de la elegida: `CreatureDNA.FromID(src.ToStringID())` (partes + color), `CustomName` generado ("Salvaje" + nombre), `BaseColor` nueva por `ColorGenetics`, tiers re-tirados hasta que `Budget(rival)` esté en `Budget(jugador) ± BudgetTolerance`; **sin `Stamp()` ni `Register`** (no entra al registro; el retrato cachea por `ToStringID()`). Seed determinista `unchecked((int)(player.Timestamp ^ GameManager.Now.Ticks))`. | Las databases de partes están vacías; el clon da retrato y look reales. Determinista = replay/async después. |
 | D3 | **Cooldown al perder** | `CreatureDNA.CombatCooldownUntil` (long ticks UTC, mismo patrón que `BreedReadyAt`); `CombatTuningSO.CooldownMinutes = 20` (tiempo real, `GameManager.Now`). Se persiste por `GameEvents.RegistryChanged`. | Decisión S93 de Juan; "¿el cuidado lo acorta?" queda para después. |
 | D4 | **Premio** | Victoria → `inventory.AddAdventureMaterial(t.MaterialPerWin = 3)` + `InventoryChanged`. Derrota → cooldown. Sin permadeath, sin tocar `Needs`. | Parte 7 "qué produce: material". |
@@ -408,4 +408,21 @@ Feel según la regla de la casa: en `Ring.prefab` un hijo `Feedbacks/` con un Ga
 
 **Auditoría 9.7 ✅**: compila 0/0 (`recompile_status` completed, `errors: []`) · Play limpio (0 errores, 0 warnings salvo el aviso "not in automated mode" del pipeline) · reglas de la casa (grep: sin `Find*`, sin comentarios, sin suscripciones nuevas, todo < 170 líneas) · **funcional en Play** (`e1_audit.cs`, 5 duelos por código con `Play(0)`): 2 victorias → material 0 → 6, 3 derrotas → `CombatCooldownUntil` = ahora + 20 min, el elegible rota solo (Yucky Creep → Gloomy Sprout → Frosty Squish); `registry.Count` 19 → 19 (rival nunca registrado, `UniqueID` vacío); **persistido**: `creature_database_<uid>.json` reescrito con 19 campos `CombatCooldownUntil` (3 ≠ 0) y `player_inventory_<uid>.json` con `AdventureMaterial: 6` · harness: 55,9% / 82,3% / 0% empates sobre 20k (ruido de muestreo vs 56,1 / 82,5). Sin captura visual: E1 no tiene UI.
 
-**Estado**: E1 ✅ (S95) · E2 ⏳ · E3 ⏳ · E4 ⏳ · E5 ⏳
+### 9.10 · Potencial por parte — decisión de diseño de Juan (S95, 2026-09-01) ⭐
+
+> Textual: *"todas las criaturas pueden tener cualquier tipo de parte, ninguna es intrínsecamente mejor que otra, varían los quirks de cada una; cada parte tiene potencial, un valor que se hereda de los padres"* → *"promedio de los padres ±1, los valores del potencial del 1 al 10, entre 1 y 3 cuando los obtienes por compra"*.
+
+| Regla | Implementación |
+|---|---|
+| Cada parte (cuerno, espalda, ala) tiene un **potencial entero 1-10** | `CreatureDNA.HornPotential / BackPotential / WingPotential` (default 1; las criaturas viejas del JSON nacen con 1 al deserializar) |
+| **Al nacer por compra/generación: 1-3** | `CreatureGenerator.RandomMintPotential()` (`PotentialMin = 1`, `MintPotentialMax = 3`, `PotentialMax = 10`) en `GenerateRandom` — único camino de mint (`GameManager` y `GeneticsLabPreview` pasan por ahí) |
+| **Herencia = promedio de los padres ±1** | `BreedingService.InheritPotential`: `(m + f + azar{0,1}) / 2` (desempate aleatorio del .5) `+ azar{-1,0,1}`, clamp 1-10. Mismo patrón que `InheritStat` |
+| **La potencia del combate ES el potencial** | `DragonRpsGenes.PowerOf(int)` lee los 3 potenciales; `Budget` = suma (3-30). El rival (`DragonRpsRival`) re-tira potenciales en `[min(jugador)-1, max(jugador)+1]` hasta caer en presupuesto ±1 |
+| Ninguna parte es mejor que otra: lo que varía son los **quirks** | = Parte 5 (identidad por gen, perks). v1 sin perks; sin código |
+| `Tier` / `Rarity` / HP-Attack-Speed de `BodyPart` y `*Tier` del DNA | **Contradicen esta decisión.** Fuera del combate desde S95; siguen vivos en valuación (`ValuationHandler`) y stats (`CreatureStats`) y en la ficha. Registrado como deuda de diseño en [[Index/11 - Technical Debt]] |
+
+Botón dev: **Reroll Potentials (DEV)** en `DevToolsConsole` (tira 1-3 por parte y persiste por `RegistryChanged`) para dar variedad a las 19 criaturas de la demo.
+
+**Auditoría del potencial (S95, Play en `GameScene`, `pot_audit_diag.cs`) ✅**: compila 0/0 · `InheritPotential` por reflexión ×2000: (2,5) → 2..5 media 3,48 · (1,1) → 1..2 · (10,10) → 9..10 · (3,4) → 2..5 (promedio ±1 con clamp 1-10, confirmado) · reroll aplicado UNA vez a las 17 vivas (1/2/3 = 18/15/18, 0 fuera de rango) y persistido: `creature_database_<uid>.json` con 19 `HornPotential` (13 > 1) · 5 duelos: rivales siempre a ±1 de presupuesto y con perfil distinto (2/3/1 vs 2/1/2, 1/3/1 vs 3/1/2…), 2 victorias, material 6 → 12, registro 19 → 19, rival sin `Stamp`. Quirk: al entrar en Play la escena activa era `SampleScene` (el editor la restauró tras el recompile) → el `GameManager` de esa escena no tiene inventario y la auditoría dio NRE; reabrir `GameScene` por `eval` antes de cada Play.
+
+**Estado**: E1 ✅ (S95, potencial integrado) · E2 ⏳ · E3 ⏳ · E4 ⏳ · E5 ⏳

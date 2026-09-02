@@ -46,6 +46,10 @@ public class CreatureDNA
     public Tier BackTier = Tier.Tier1;
     public Tier WingTier = Tier.Tier1;
 
+    public int HornPotential = 1;
+    public int BackPotential = 1;
+    public int WingPotential = 1;
+
     public float BaseConstitution = 0f;
     public float BaseAttack       = 0f;
     public float BaseSpeed        = 0f;

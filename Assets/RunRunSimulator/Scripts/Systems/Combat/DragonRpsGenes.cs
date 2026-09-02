@@ -6,22 +6,22 @@ namespace MoriMonchiSimulator
 
 public static class DragonRpsGenes
 {
-    public static int PowerOf(Tier tier) => Mathf.Clamp((int)tier, 1, 3);
+    public static int PowerOf(int potential) => Mathf.Clamp(potential, CreatureGenerator.PotentialMin, CreatureGenerator.PotentialMax);
 
     public static DragonRpsDragon ToDragon(CreatureDNA dna)
     {
         string name = !string.IsNullOrEmpty(dna.CustomName) ? dna.CustomName : dna.ToStringID();
 
         DragonRpsDragon dragon = DragonRpsDragon.Standard(name, 1);
-        dragon.Power[(int)DragonAction.Horns] = PowerOf(dna.HornTier);
-        dragon.Power[(int)DragonAction.Wings] = PowerOf(dna.WingTier);
-        dragon.Power[(int)DragonAction.Back]  = PowerOf(dna.BackTier);
+        dragon.Power[(int)DragonAction.Horns] = PowerOf(dna.HornPotential);
+        dragon.Power[(int)DragonAction.Wings] = PowerOf(dna.WingPotential);
+        dragon.Power[(int)DragonAction.Back]  = PowerOf(dna.BackPotential);
 
         return dragon;
     }
 
     public static int Budget(CreatureDNA dna) =>
-        PowerOf(dna.HornTier) + PowerOf(dna.WingTier) + PowerOf(dna.BackTier);
+        PowerOf(dna.HornPotential) + PowerOf(dna.WingPotential) + PowerOf(dna.BackPotential);
 
     public static bool CanFight(CreatureDNA dna, CombatTuningSO tuning, DateTime now) =>
         !dna.IsDead && !dna.IsSold && !dna.IsBusy

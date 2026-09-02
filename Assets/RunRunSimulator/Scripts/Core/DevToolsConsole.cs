@@ -117,8 +117,8 @@ public class DevToolsConsole : MonoBehaviour
         return combatTuning != null ? combatTuning : ScriptableObject.CreateInstance<CombatTuningSO>();
     }
 
-    [Button("Reroll Tiers (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]
-    private void DevRerollTiers()
+    [Button("Reroll Potentials (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]
+    private void DevRerollPotentials()
     {
         if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
         var registry = gameManager.Registry;
@@ -127,13 +127,13 @@ public class DevToolsConsole : MonoBehaviour
         foreach (var dna in registry.GetAll().Values)
         {
             if (dna.IsDead || dna.IsSold) continue;
-            dna.HornTier = (Tier)Random.Range(1, 4);
-            dna.WingTier = (Tier)Random.Range(1, 4);
-            dna.BackTier = (Tier)Random.Range(1, 4);
+            dna.HornPotential = CreatureGenerator.RandomMintPotential();
+            dna.BackPotential = CreatureGenerator.RandomMintPotential();
+            dna.WingPotential = CreatureGenerator.RandomMintPotential();
             touched++;
         }
         GameEvents.RegistryChanged(registry);
-        Debug.Log($"[DevToolsConsole] Rerolled tiers on {touched} creatures.");
+        Debug.Log($"[DevToolsConsole] Rerolled potentials on {touched} creatures.");
     }
 
     [Button("Simulate Combat (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]
