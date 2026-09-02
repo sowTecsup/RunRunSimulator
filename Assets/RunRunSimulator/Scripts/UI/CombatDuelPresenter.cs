@@ -20,6 +20,8 @@ public class CombatDuelPresenter
     private VisualElement[] rivalPips;
 
     private readonly List<VisualElement> handButtons = new List<VisualElement>();
+    private readonly List<DragonAction> handActions = new List<DragonAction>();
+    private readonly RpsTriangleElement triangle;
     private int selected = -1;
 
     public CombatDuelPresenter(VisualElement view)
@@ -28,6 +30,11 @@ public class CombatDuelPresenter
         sideRival = view.Q("side-rival");
         log = view.Q<Label>("clash-log");
         hand = view.Q("hand");
+
+        triangle = new RpsTriangleElement();
+        var clash = view.Q("clash");
+        clash?.Insert(0, triangle);
+        triangle.SetLabels(ActionName(DragonAction.Horns), ActionName(DragonAction.Wings), ActionName(DragonAction.Back));
     }
 
     public void Begin(DragonRpsSession session, CreatureDNA player, CreatureDNA rival)
@@ -119,6 +126,7 @@ public class CombatDuelPresenter
 
         hand?.Clear();
         handButtons.Clear();
+        handActions.Clear();
 
         for (int i = 0; i < session.Player.Hand.Count; i++)
         {
@@ -130,13 +138,28 @@ public class CombatDuelPresenter
             b.SetEnabled(!session.Finished);
 
             handButtons.Add(b);
+            handActions.Add(action);
             hand?.Add(b);
         }
 
         selected = UiPanels.ClampSelection(handButtons.Count, selected);
         UiPanels.SetActiveIndex(handButtons, selected, "rps-action--selected");
+        SyncTriangle();
 
-        if (log != null) log.text = logLine ?? Loc.Tr("ui.rps.duel.start");
+        if (log != null)
+        {
+            log.text = logLine ?? Loc.Tr("ui.rps.duel.start");
+            if (logLine != null)
+            {
+                log.AddToClassList("rps-log--flash");
+                log.schedule.Execute(() => log.RemoveFromClassList("rps-log--flash")).ExecuteLater(450);
+            }
+        }
+    }
+
+    private void SyncTriangle()
+    {
+        triangle.Highlight = selected >= 0 && selected < handActions.Count ? (int)handActions[selected] : -1;
     }
 
     private void RebuildSide(DragonRpsSide state, Label[] intact, VisualElement[] pips)
@@ -161,6 +184,7 @@ public class CombatDuelPresenter
     {
         selected = UiPanels.ClampSelection(handButtons.Count, idx);
         UiPanels.SetActiveIndex(handButtons, selected, "rps-action--selected");
+        SyncTriangle();
     }
 
     public void Move(float dx)

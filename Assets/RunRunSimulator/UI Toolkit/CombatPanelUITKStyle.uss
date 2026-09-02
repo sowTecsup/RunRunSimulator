@@ -317,3 +317,73 @@
     border-width: 3px;
     border-color: var(--mm-ink);
 }
+
+.rps-triangle {
+    width: 210px;
+    height: 176px;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+    --tri-horns: var(--mm-teal);
+    --tri-wings: var(--mm-plum);
+    --tri-back: var(--mm-gold);
+    --tri-ink: var(--mm-ink-soft);
+    --tri-hi: var(--mm-coral);
+    --tri-fill: var(--mm-surface-2);
+}
+
+.rps-triangle__label {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: var(--mm-ink);
+    -unity-text-align: middle-center;
+}
+
+.rps-action {
+    transition-property: scale, background-color;
+    transition-duration: 120ms, 120ms;
+    transition-timing-function: ease-out, ease-out;
+}
+
+.rps-action--selected {
+    scale: 1.06 1.06;
+}
+
+.rps-card {
+    transition-property: scale, border-color, background-color;
+    transition-duration: 140ms, 140ms, 140ms;
+    transition-timing-function: ease-out, ease-out, ease-out;
+}
+
+.rps-card--selected {
+    scale: 1.04 1.04;
+}
+
+.rps-pip {
+    transition-property: scale, background-color, border-color;
+    transition-duration: 240ms, 240ms, 240ms;
+    transition-timing-function: ease-out-back, ease-out, ease-out;
+}
+
+.rps-pip--hit {
+    scale: 1.18 1.18;
+}
+
+.rps-log {
+    transition-property: color;
+    transition-duration: 350ms;
+}
+
+.rps-log--flash {
+    color: var(--mm-coral);
+}
+
+.rps-result {
+    transition-property: scale, opacity;
+    transition-duration: 280ms, 280ms;
+    transition-timing-function: ease-out-back, ease-out;
+}
+
+.rps-result--enter {
+    scale: 0.88 0.88;
+    opacity: 0;
+}

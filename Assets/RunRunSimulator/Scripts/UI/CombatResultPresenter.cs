@@ -58,6 +58,9 @@ public class CombatResultPresenter
         }
 
         Select(0);
+
+        card?.AddToClassList("rps-result--enter");
+        card?.schedule.Execute(() => card.RemoveFromClassList("rps-result--enter")).ExecuteLater(40);
     }
 
     private void Select(int idx)
