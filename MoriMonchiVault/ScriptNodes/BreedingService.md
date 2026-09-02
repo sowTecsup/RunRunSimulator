@@ -6,9 +6,11 @@ tags: [script, genetics]
 
 **Ruta:** `Systems/Breeding/BreedingService.cs`
 
-**Responsabilidad:** Lógica local de cruce. Hereda 5 partes genéticas (BodyShape/Horn/Back/Wing/Face) desde árbol genealógico, colores, FurType, stats base, género, rol, elemento, IsShiny, diales (Sociability/Boldness). Valida género, muerte, busy state, `MaxBreedCount = 4`. Retorna hijo `CreatureDNA` o null si falla validación.
+**Responsabilidad:** Lógica local de cruce. Hereda 5 partes genéticas (BodyShape/Horn/Back/Wing/Face) desde árbol genealógico, colores, FurType, stats base, género, rol, elemento, IsShiny, diales (Sociability/Boldness), y **S95** potenciales de combate. Valida género, muerte, busy state, `MaxBreedCount = 4`. Retorna hijo `CreatureDNA` o null si falla validación.
 
 **S75 CAMBIOS:** Reemplazó 4 partes (Body/Arm/Eye/Mouth) con 5 partes (Body/Horn/Back/Wing/Face). ResolveSlot y switches correspondientes actualizados. Métodos `SlotPartID()` y `RandomPartID()` usan switch con 5 casos PartRole.
+
+**S95 CAMBIOS:** Agregado InheritPotential para los 3 tipos (Cuernos/Alas/Espalda). Herencia: promedio de padres con desempate aleatorio ±1, clamp 1-10.
 
 ## Método principal
 
@@ -83,11 +85,26 @@ private static string RandomPartID(PartRole role, CreatureDatabaseSO partDb) => 
 - **Element:** 50/50 de padres + mutación (ElementMutationChance)
 - **IsShiny:** Roll nuevo 0.5%
 - **FurType:** 50/50 de padres
-- **Stats base:** Promedio ± jitter
+- **Stats base:** Promedio ± jitter (InheritStat)
+- **Potenciales:** Promedio ± 1, clamp 1-10 (InheritPotential) **S95**
 - **Diales:** Sociability/Boldness con 3 modos (Average/Copy/Mutation)
+
+## InheritPotential (S95)
+
+```csharp
+private static int InheritPotential(int motherPotential, int fatherPotential)
+{
+    int average = (motherPotential + fatherPotential + Random.Range(0, 2)) / 2;
+    return Mathf.Clamp(average + Random.Range(-1, 2), CreatureGenerator.PotentialMin, CreatureGenerator.PotentialMax);
+}
+```
+
+Promedio con desempate aleatorio 50/50 (±0.5), luego ±1, clamp a [1, 10].
 
 ## Vinculado a
 
 - [[Index/02 - Genetics & Breeding]]
+- [[Index/21 - Combate v3 - Dragon RPS]]
 
-**Conexiones:** [[CreatureDNA]], [[InheritanceOddsTableSO]], [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[ColorGenetics]], [[CreatureGenerator]], [[GeneticsEnums]]
+**Conexiones:** [[CreatureDNA]], [[InheritanceOddsTableSO]], [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[ColorGenetics]], [[CreatureGenerator]], [[GeneticsEnums]], [[DragonRpsGenes]]
+

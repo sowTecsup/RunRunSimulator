@@ -6,13 +6,14 @@ tags: [script, genetics, color]
 
 **Ruta:** `Core/ColorGenetics.cs`
 
-**Responsabilidad:** Lógica de color y determinismo visual. `RandomBase()` genera color base aleatorio (pastel S58). `DeriveSecondary()` desatura/clarifica desde base. `BuildFurPalette()` arma 4-tupla para Toon shader (Base, Shade1, Shade2, Rim). `Inherit()` mezcla dos padres con jitter. `RollShiny()` 0.5% por ShinyChance. `BuildHarmony()` determinista por hash RGB (4 esquemas: 40/30/20/10).
+**Responsabilidad:** Lógica de color y determinismo visual. `RandomBase()` genera color base aleatorio pastel (S58). `RandomBase(System.Random rng)` **S95** sobrecarga determinista usando RNG explícito (para rival de combate). `DeriveSecondary()` desatura/clarifica desde base. `BuildFurPalette()` arma 4-tupla para Toon shader (Base, Shade1, Shade2, Rim). `Inherit()` mezcla dos padres con jitter. `RollShiny()` 0.5% por ShinyChance. `BuildHarmony()` determinista por hash RGB (4 esquemas: 40/30/20/10).
 
 ## Métodos Públicos
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
 | `RandomBase()` | `Color` | **S58:** Pastel HSV (H 0-1, S 0.35-0.6, V 0.8-1) |
+| `RandomBase(System.Random rng)` | `Color` | **S95** Pastel HSV determinista con RNG explícito; mismos rangos que RandomBase() |
 | `DeriveSecondary(baseColor)` | `Color` | Hue+8%, sat*85%, value+15% |
 | `BuildFurPalette(baseColor, secondary)` | `FurPalette` | Base, Shade1, Shade2, Rim |
 | `Inherit(a, b)` | `Color` | Lerp 50% + jitter ±4°H ±5%S/V |
@@ -33,6 +34,12 @@ tags: [script, genetics, color]
 - Colores existentes NO afectados (DNA inmutable)
 - Solo afecta GenerateRandom()
 
+## Cambios S95
+
+**RandomBase(System.Random rng) sobrecarga determinista:**
+- Permite re-colorizar rivales con RNG explícito (seeded desde Timestamp ⊕ now)
+- Rangos idénticos a RandomBase()
+
 ## Struct FurPalette
 
 ```csharp
@@ -51,3 +58,4 @@ public struct FurPalette
 - Harmony determinista (mismo hash → mismos colores alas)
 - ShinyChance 0.5% (1 en 200)
 - BuildHarmony: 4 esquemas de armonía por rango hash
+

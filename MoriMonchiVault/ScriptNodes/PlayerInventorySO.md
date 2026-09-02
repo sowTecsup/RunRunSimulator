@@ -10,6 +10,8 @@ tags: [scriptable-object, inventory, persistence]
 
 **S93:** Materiales tienen solo getters (read-only); lógica de gasto/suma vive en GameManager o sistemas de gameplay especializados.
 
+**S95:** Agregado método `AddAdventureMaterial(int amount)` para suma de material de aventura (patrón idéntico a AddDabloons).
+
 ## Estructura de Datos (InventoryData)
 
 | Categoría | Tipo | Descripción |
@@ -28,6 +30,7 @@ tags: [scriptable-object, inventory, persistence]
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
 | `AdventureMaterial` | `int` | Getter (readonly) |
+| `AddAdventureMaterial(int amount)` | `void` | **S95** Suma material de aventura (patrón AddDabloons) |
 | `PassiveMaterial` | `int` | Getter (readonly) |
 | `EvolutionEssence` | `int` | Getter (readonly) |
 | `GetData()` | `InventoryData` | Retorna snapshot serializable |
@@ -59,6 +62,7 @@ Campos internos solo lectura desde afuera:
 ## Vinculado a
 
 - [[Index/07 - Persistence & Identity]]
+- [[Index/21 - Combate v3 - Dragon RPS]]
 
-**Conexiones:** [[GameManager]], [[SaveSystem]], [[CloudSyncService]], [[GameEvents]], [[CashRegister]]
+**Conexiones:** [[GameManager]], [[SaveSystem]], [[CloudSyncService]], [[GameEvents]], [[CashRegister]], [[DragonRpsService]]
 

@@ -6,9 +6,11 @@ tags: [data, genetics, serializable]
 
 **Ruta:** `Data/Genetics/CreatureDNA.cs`
 
-**Responsabilidad:** Dato serializable [Serializable] que representa la genética y estado completo de un MoriMochi. Contiene: partes genéticas (BodyShapeID/HornID/BackID/WingID/FaceID con tiers), colores (BaseColor/SecondaryColor), pelaje (FurType 33 patrones, IsShiny), identidad (CustomName, Timestamp, BirthDate, UniqueID), parentesco (MotherID/FatherID/ChildrenIDs), demografía (Gender), rol/elemento (Role, Element), personalidad (Sociability, Boldness), stats base (Constitution/Attack/Speed/Defense/Luck/Evasion), necesidades (Needs), estado (BusyReason, IsDead, BreedCount, SaleDate), reproducción (BreedReadyAt, BreedPartnerID), ubicación (LocationKey, LocationSlot), equipamiento (Equipped, HeldItemId).
+**Responsabilidad:** Dato serializable [Serializable] que representa la genética y estado completo de un MoriMochi. Contiene: partes genéticas (BodyShapeID/HornID/BackID/WingID/FaceID con tiers), colores (BaseColor/SecondaryColor), pelaje (FurType 33 patrones, IsShiny), identidad (CustomName, Timestamp, BirthDate, UniqueID), parentesco (MotherID/FatherID/ChildrenIDs), demografía (Gender), rol/elemento (Role, Element), personalidad (Sociability, Boldness), stats base (Constitution/Attack/Speed/Defense/Luck/Evasion), potenciales de combate (HornPotential/BackPotential/WingPotential 1-10), necesidades (Needs), estado (BusyReason, IsDead, BreedCount, SaleDate), reproducción (BreedReadyAt, BreedPartnerID), cooldown combate (CombatCooldownUntil), ubicación (LocationKey, LocationSlot), equipamiento (Equipped, HeldItemId).
 
 **S93:** Enums refactorizados a archivos dedicados. Eliminados CutieMarks (S93). Método estático `FromID()` parsea genetic string; JSON deserialización maneja estado completo.
+
+**S95:** Agregados potenciales de combate (HornPotential/BackPotential/WingPotential) para Dragon RPS. CombatCooldownUntil ya existía pero ahora es usado activamente por combate.
 
 ## Cambios en S75 (Demolición combate + migración genética)
 
@@ -23,6 +25,11 @@ tags: [data, genetics, serializable]
 
 - CutieMarks eliminado (ya no en CreatureDNA)
 - Enums emigran a archivos dedicados: [[CreatureEnums]], [[GeneticsEnums]], [[ItemEnums]]
+
+## Cambios en S95 (Dragon RPS)
+
+- **Potenciales agregados:** HornPotential, BackPotential, WingPotential (int, rango 1-10, default 1)
+- **CombatCooldownUntil:** Activado para cooldown post-derrota en combate
 
 ## Campos Principales
 
@@ -43,11 +50,13 @@ tags: [data, genetics, serializable]
 | `BreedCount` | int | Cantidad reproducida |
 | `{Body/Horn/Back/Wing}Tier` | Tier | Rareza (Tier1/2/3) |
 | `Base{Constitution/Attack/Speed/Defense/Luck/Evasion}` | float | Stats |
+| `HornPotential` / `BackPotential` / `WingPotential` | int | Potencial combate (1-10, usado en Dragon RPS) |
 | `IsDead` | bool | Muerte permanente |
 | `Needs` | NeedsState | Health/Energy/Affect |
 | `BusyState` | BusyReason | None/Breeding/Sold |
 | `SaleDate` | DateTime | Cuándo vendida |
 | `BreedReadyAt` / `BreedPartnerID` | long / string | Reproducción |
+| `CombatCooldownUntil` | long | Cooldown post-combate (ticks) |
 | `LocationKey` / `LocationSlot` | string / int | Ubicación en mundo |
 | `Equipped` | Dict<EquipmentSlot, string> | Equipo (slot → ID) |
 | `HeldItemId` | string | Item sostenido |
@@ -74,9 +83,10 @@ tags: [data, genetics, serializable]
 ## Vinculado a
 
 - [[Index/01 - Creature Genetics & System]]
+- [[Index/21 - Combate v3 - Dragon RPS]]
 - [[CreatureEnums]], [[GeneticsEnums]], [[ItemEnums]] — enums refactorizados
 - [[NeedsState]] — wellbeing runtime
 - [[ColorGenetics]] — derivación de colores
 
-**Conexiones:** [[CreatureRegistrySO]], [[CreatureGenerator]], [[NeedsState]], [[ColorGenetics]], [[MonchiVisualizer]], [[BreedingService]], [[PartDatabaseSO]], [[EquipmentDatabaseSO]]
+**Conexiones:** [[CreatureRegistrySO]], [[CreatureGenerator]], [[NeedsState]], [[ColorGenetics]], [[MonchiVisualizer]], [[BreedingService]], [[PartDatabaseSO]], [[EquipmentDatabaseSO]], [[DragonRpsGenes]]
 
