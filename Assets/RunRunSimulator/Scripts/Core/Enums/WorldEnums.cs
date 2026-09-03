@@ -13,5 +13,6 @@ public enum PerceivableKind
     Monchi   = 1,
     Customer = 2,
     Prop     = 3,
+    Material = 4,
 }
 }

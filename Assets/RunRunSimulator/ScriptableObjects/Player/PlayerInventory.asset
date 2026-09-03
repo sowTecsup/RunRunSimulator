@@ -26,10 +26,7 @@ MonoBehaviour:
       Data: 0|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 1
-      Data: F9
+      Data: 0
     - Name: 
       Entry: 13
       Data: 
@@ -41,10 +38,7 @@ MonoBehaviour:
       Data: 1|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 13
-    - Name: 
-      Entry: 1
-      Data: I1
+      Data: 12
     - Name: 
       Entry: 1
       Data: I1
@@ -107,7 +101,28 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
       Data: 0
+    - Name: $v
+      Entry: 7
+      Data: 4|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
     - Name: 
       Entry: 13
       Data: 
@@ -116,7 +131,7 @@ MonoBehaviour:
       Data: 
     - Name: hotbarSlots
       Entry: 7
-      Data: 4|System.String[], mscorlib
+      Data: 5|System.String[], mscorlib
     - Name: 
       Entry: 12
       Data: 6
@@ -146,10 +161,10 @@ MonoBehaviour:
       Data: 
     - Name: dabloons
       Entry: 3
-      Data: 50
+      Data: 84
     - Name: adventureMaterial
       Entry: 3
-      Data: 27
+      Data: 3
     - Name: passiveMaterial
       Entry: 3
       Data: 0

@@ -1617,6 +1617,10 @@ MonoBehaviour:
     m_Localized: "{0}: \u2014 \xB7 Potential {1}"
     m_Metadata:
       m_Items: []
+  - m_Id: 14520629940772864
+    m_Localized: Collecting
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

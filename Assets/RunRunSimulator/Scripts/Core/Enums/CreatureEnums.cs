@@ -80,6 +80,7 @@ public enum CreatureIntent
     Chasing     = 15,
     SleepingTogether = 16,
     Fighting    = 17,
+    Collecting  = 18,
 }
 
 public enum ProximityReaction

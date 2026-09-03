@@ -459,6 +459,8 @@ internal class AgentSocial
         _                   => CreatureIntent.Wandering,
     };
 
+    internal MoriMochiAgent Partner => partner;
+
     internal string Describe() =>
         mode == SocialMode.None ? "—"
         : $"{mode} ↔ {partner?.DNA?.CustomName ?? "?"} ({timer:0.0}/{duration:0.0}s)";

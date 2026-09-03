@@ -16,6 +16,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private AgentConfinement confinement;
     private AgentSenses      senses;
     private AgentSocial      social;
+    private AgentExpedition  expedition;
 
     private void OnEnable()
     {
@@ -43,6 +44,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         confinement = new AgentConfinement(this, ctx);
         senses      = new AgentSenses(this, ctx);
         social      = new AgentSocial(this, ctx);
+        expedition  = new AgentExpedition(this, ctx);
 
         ctx.Rb.isKinematic = true;
         ctx.Rb.useGravity  = false;
@@ -105,6 +107,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         physics.ResetForReuse();
         social.ResetForReuse();
         senses.ResetForReuse();
+        expedition.ResetForReuse();
         ctx.RebakeInProgress = false;
         ctx.State            = AgentState.Idle;
     }
@@ -127,8 +130,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         senses.Tick();
         switch (ctx.State)
         {
-            case AgentState.Idle:         brain.TickIdle();    if (ctx.State == AgentState.Idle)    social.TryEngage(); break;
-            case AgentState.Roaming:      brain.TickRoaming(); if (ctx.State == AgentState.Roaming) social.TryEngage(); break;
+            case AgentState.Idle:         brain.TickIdle();    if (ctx.State == AgentState.Idle    && !expedition.TryEngage()) social.TryEngage(); break;
+            case AgentState.Roaming:      brain.TickRoaming(); if (ctx.State == AgentState.Roaming && !expedition.TryEngage()) social.TryEngage(); break;
             case AgentState.Reacting:     brain.TickReacting();      break;
             case AgentState.Thrown:       physics.TickThrown();      break;
             case AgentState.Recovering:   physics.TickRecovering();  break;
@@ -137,6 +140,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
             case AgentState.Courting:     confinement.TickCourting(); break;
             case AgentState.Socializing:  social.TickSocializing();  break;
             case AgentState.HandFeed:     brain.TickHandFeed();      break;
+            case AgentState.Expedition:   expedition.TickExpedition(); break;
         }
     }
 
@@ -165,7 +169,16 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     public bool CanBePetted => brain.CanBePetted;
 
-    public CreatureIntent Intent => ctx.State == AgentState.Socializing ? social.Intent : brain.Intent;
+    public CreatureIntent Intent =>
+        ctx.State == AgentState.Socializing ? social.Intent :
+        ctx.State == AgentState.Expedition  ? expedition.Intent :
+        brain.Intent;
+
+    public IReadOnlyList<Percept> Percepts => ctx.Percepts;
+
+    public int CollectedMaterial => expedition.Collected;
+    public Transform ExpeditionTarget => expedition.Target != null ? expedition.Target.transform : null;
+    public MoriMochiAgent SocialPartner => ctx.State == AgentState.Socializing ? social.Partner : null;
 
     public event System.Action<EmoteKind> OnEmote;
     internal void EmitEmote(EmoteKind kind) => OnEmote?.Invoke(kind);

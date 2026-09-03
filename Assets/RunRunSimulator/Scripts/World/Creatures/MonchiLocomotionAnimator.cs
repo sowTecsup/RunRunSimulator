@@ -1,6 +1,7 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 
 namespace MoriMonchiSimulator
 {
@@ -16,6 +17,8 @@ namespace MoriMonchiSimulator
         [Range(0f, 1f)] [SerializeField] private float flyChance = 0.25f;
         [Tooltip("Crossfade del aterrizaje (FlyDown) al terminar un tramo volando.")]
         [SerializeField] private float flyLandCrossFade = 0.25f;
+        [SerializeField] private UnityEvent onTakeOff;
+        [SerializeField] private UnityEvent onFlyLand;
 
         private string currentState = "";
         private bool flying;
@@ -55,12 +58,14 @@ namespace MoriMonchiSimulator
             if (isMoving && wasIdle)
             {
                 flying = Random.value < flyChance;
+                if (flying) onTakeOff?.Invoke();
             }
 
             if (!isMoving && flying)
             {
                 flying = false;
                 anim.CrossFadeInFixedTime("FlyDown", flyLandCrossFade);
+                onFlyLand?.Invoke();
                 currentState = "Idle";
                 return;
             }

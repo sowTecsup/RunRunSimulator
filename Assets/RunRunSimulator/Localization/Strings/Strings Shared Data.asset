@@ -1603,6 +1603,10 @@ MonoBehaviour:
     m_Key: ui.detail.partrow.potential.empty
     m_Metadata:
       m_Items: []
+  - m_Id: 14520629940772864
+    m_Key: intent.collecting
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

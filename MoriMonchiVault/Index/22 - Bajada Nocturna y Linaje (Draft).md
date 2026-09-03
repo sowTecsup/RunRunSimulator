@@ -286,6 +286,113 @@ Más el harness del linaje (3.4): 10 generaciones sin óptimo estable.
 
 ---
 
+## PARTE 8 — S97: la mecánica de Juan, el plan por etapas y el plan de realismo
+
+> **Sesión 97 (2026-09-03).** Continuación del theorycrafting. Misma convención: ⭐ = Juan (fuente de verdad, no interpretar); el resto es propuesta del orquestador, **no decidida**. La implementación de lo construido en S97 vive en [[Index/23 - Arena Sandbox y Expedicion]].
+
+### 8.1 · Lo que Juan fijó ⭐
+
+- **Another Door es la espina**: superar una prueba paga; en cada puerta, cobrar o seguir. Las pruebas deben **involucrar las semillas de otros jugadores**. *"No estoy en contra del combate, pero sí de cómo se presenta"*: si hay enfrentamiento, tiene que tener **algo verdaderamente diferenciador**; nada Pokémon.
+- **La mecánica "esquina a esquina"**: el nivel se genera con una semilla y todos juegan la misma; dos equipos entran por **esquinas opuestas**; **no controlás** a las criaturas, les das instrucciones básicas según lo que ves del mapa y el objetivo de la sección; tienen **comportamientos base** y las **Cutie Marks modifican comportamientos**, combinadas con instrucciones; lo divertido es **ver cómo reaccionan al entorno y al acercarse al enemigo**; varios objetivos por el mapa y **uno principal al medio**; el objetivo es **recolectar material**; la habilidad es **leer al equipo rival por sus tipos de partes** (ofensivas / balanceadas / recolectoras) y adivinar qué preferirá: asegurar una zona, pelear, defender primero; stages con niveles y **vista previa aproximada**: solo de recolección, de enfrentamiento, de curación.
+- **Partes**: **todos tienen las 3 partes; lo que cambia es el tipo** (hoy 4 cuernos = los 4 prefabs de Suriyun; alas y espalda un solo modelo; meta: **Mega Tiny Dragon Pack** de SURIYUN, muchos tipos de formas simples, y podemos generar más). Cada tipo **se especializa en algo necesario**; las partes **no son mejores ni peores** (alas rápidas pero frágiles, que no ayudan a recolectar). Qué hace cada una se piensa después; lo importante es entender su **propósito junto con la personalidad** y que sea **escalable por ScriptableObjects** para múltiples comportamientos.
+- **Lo más importante**: la infraestructura para **soltar 3 criaturas y ver qué comportamientos emergentes surgen**: libres en el escenario, cómo afrontan, cómo reaccionan cuando un enemigo se acerca, cómo reaccionan a lo que hacen los otros y entre sí. Reutilizar el SO de caras por reacción y el motor de criaturas. Debe **sentirse como ver de verdad 3 dragones explorar y pelear**, integrado con las animaciones del pack y los FX de Hovl enlazados con Feedbacks. **No preocuparse tanto por el escenario.**
+- **Etapas**: Fase 1 = conexión, reutilización y preparación. Fase 2 = el agente inteligente que sabe moverse y desplazarse. *"Lo que ratifica el éxito de este prototipo es qué tan realista podemos hacer los agentes con sus animaciones y efectos."* Autónomos por el momento, pero **preparar el gancho para las intenciones futuras configuradas por ScriptableObjects**; **respetar la arquitectura**; **sin lógica ni complejidad innecesaria**.
+- **Guías visuales**: ver **rango de visión** e **intención de movimiento**, estilo asset Shapes pero **hecho por nosotros**, limpio. Después: anillo de visión **punteado con puntas redondas y girando**, ruta **curva según el camino**, **transiciones suaves** al cambiar las flechas, **un mineral al medio y algunos chicos en las esquinas** para ver cómo reaccionan entre sí y yendo por los minerales. Del clip de Fase 1: *"me parece bien una etapa inicial"*.
+
+### 8.2 · Lluvia de pruebas contra otros jugadores (orquestador, registrada)
+
+Taxonomía de presencia del rival, de más barata a más cara: **fantasma** (grabación con la misma semilla) · **snapshot pilotado** · **huella** (lo que dejó en la sala) · **elección secreta diferida** (Another Door / Split or Steal por correo) · **síncrono en vivo** (Relay y Lobby). Regla transversal propuesta, **botín genético**: *"Superar al linaje de otro jugador te deja un huevo suyo"* (la caverna como única puerta por la que entran genes ajenos).
+
+Doce pruebas, una línea cada una: **El Careo** (rugir / aguantar / irse; la cara como tell; si los dos rugen, chocan y decide el cuerpo; síncrono barato porque viaja una elección por compás) · **La Tinta Seca** (Turf War asíncrono sobre la tinta seca de otro) · **La Puerta Compartida** (cobrar / seguir / cerrar contra una partida grabada) · **Doble o Nada contra el Fantasma** (apostar a superar su marca por sala) · **El Duelo de Silbatos** (síncrono: solo silbás, ellos obedecen según sociabilidad) · **El Corral Ajeno** (Meet Your Maker: tu corral es la sala que otros prueban) · **La Caverna Única** (r/place: la tinta queda hasta que otro la tape) · **La Huella** (Death Stranding: charcos y huecos ajenos) · **El Cortejo Disputado** (un feral elige linaje por color, patrón y marcas) · **La Búsqueda del Perdido** (tres noches para que sangre o amigos rescaten) · **La Manada Robada** ⚠️ (sin nervio, se va con la otra manada) · **El Testigo** (relevo cooperativo por profundidad). Recomendación del orquestador antes de la mecánica de Juan: Careo + Tinta Seca + Puerta Compartida. La mecánica de 8.1 los reemplaza como núcleo; El Careo sobrevive como candidato para el **choque** entre criaturas.
+
+### 8.3 · Tipos de parte: cada uno da algo y paga algo (orquestador, no decidido)
+
+Regla en una frase: *"Todos tienen cuerno, espalda y alas; el tipo de cada una dice qué hace bien y qué hace mal; ninguno es mejor."* Leer al rival es leer sus tres tipos.
+
+| Slot | Tipo | Da | Cuesta |
+|---|---|---|---|
+| Cuerno | Ariete | Rompe tabiques, empuja fuerte | Camina lento |
+| Cuerno | Pala | Desentierra material escondido | No empuja |
+| Cuerno | Antena | Siente material y ferales de lejos | Pierde nervio antes al chocar |
+| Cuerno | Bocina | Su rugido baja el nervio ajeno a distancia | Delata: atrae ferales |
+| Espalda | Alforja | Carga el doble | Lenta cuando va cargada |
+| Espalda | Coraza | No suelta lo que lleva al chocar | Carga poco |
+| Espalda | Cresta | Ilumina la sala oscura a los que la siguen | Se ve de lejos |
+| Espalda | Concha | Al asustarse se encierra en vez de perderse | No recolecta mientras |
+| Alas | Vela | Cruza huecos y agua | Suelta lo que lleva al aterrizar |
+| Alas | Colibrí | La más rápida | No carga nada |
+| Alas | Murciélago | No pierde nervio en la oscuridad | Lenta con luz |
+| Alas | Élitro | No pierde nervio al chocar | No cruza huecos |
+
+Los cuatro cuernos actuales pueden ser los primeros cuatro con nombre. Juan: los tipos se piensan después; primero el propósito y la infraestructura.
+
+### 8.4 · Modelo de utilidad (orquestador, no decidido)
+
+Referentes: The Sims, RimWorld, Dwarf Fortress, Creatures. Regla: *"Cada criatura mira lo que tiene cerca, le pone un valor según sus genes y va a lo que más vale."* Lo que tiene cerca lo entrega la percepción que ya existe (material, rival, peligro, compañeros, la bandera). Los pesos son los genes: **atrevimiento** pesa peligro y rival; **sociabilidad** pesa compañeros y obediencia; **tipos de parte** suman o restan a cada valor; **marcas** son un peso fijo en una frase; **la orden** del jugador es un percepto temporal con peso alto; **el nervio** baja con oscuridad, derrumbes, rugidos y choques perdidos y en cero solo vale huir. Tres capas de ScriptableObjects: efectos (`TraitEffectBase` → `PartTraitSO` / `CutieMarkSO`) · metas (`ExpeditionRuleBase` → `ExpeditionRulesSO`, **construida en S97 con la primera regla**) · ejecución (colaborador `AgentExpedition`, **construido en S97 en su versión mínima**). Choque propuesto: *"Pelear es hacer que el otro suelte el material"*: un solo empujón resuelto por el cuerpo; perder = soltar lo que llevás y perder nervio; nervio en cero = perderse. Sin barra de vida.
+
+Riesgos registrados: reincidir en el prototipo táctico S77-S88 (evitable solo con órdenes pocas y toscas, máximo cuatro y contadas) y el aburrimiento de mirar un autobattler (salas cortas, la orden como intervención en vivo, apuesta Another Door encima, caracteres visibles a simple vista).
+
+### 8.5 · Estado de la construcción al cierre de S97
+
+- **Fase 1 ✅**: escena `ArenaSandbox` con semilla, Hovl convertido a URP, Feel enchufado al prefab (5 momentos), `ArenaSandbox.cs`, 3 dragones vagando, volando y peleando entre árboles y rocas. Clip enviado.
+- **Fase 2 iniciada**: guías visuales propias (anillo punteado girando al radio real de percepción, ruta curva con fundido coloreada por intención, líneas de percepción por afinidad, discos bajo minerales) con `CueStyleSO` como gancho de datos; `ExpeditionRulesSO` + `SeekMaterialRule` + `AgentExpedition`; minerales en el mapa (1 central de valor 5, 4 de esquina). Verificado: el más osado tomó el central a los 17 s; los de esquina quedan fuera del radio de 6 m hasta que alguien pase cerca.
+- Detalle de archivos, contratos, assets y auditoría en [[Index/23 - Arena Sandbox y Expedicion]].
+
+### 8.6 · Plan de realismo (orquestador, S97; Juan pidió documentarlo antes de continuar)
+
+Qué separa hoy a las criaturas de "sentirse reales", en orden de impacto por esfuerzo:
+
+1. **Que el quieto esté vivo**: fidgets con Eat, Rest, Yes, No, Roar y Sick, frecuencia por carácter, y sobre todo **mirar**: girar el cuerpo hacia lo que perciben antes de decidir. Componente de presentación que lee intención y percepciones, como el driver de caras.
+2. **Caminar como quien tiene un motivo**: correr solo por intención (persiguiendo, huyendo, yendo por material), caminar al vagar; velocidad por diales; aceleración y giro más suaves; giros en el lugar con los clips laterales importados y sin usar (`Walk_L/R`, `Run_L/R`, `Fly_L/R`). Hoy el rol Empático siempre corre por el umbral de velocidad.
+3. **Beats de anticipación y consecuencia**: notar (pausa, emote, giro), tomar (Eat sobre el cristal, chispas, el cristal se encoge, Yes), perder un choque (Damage, Asustado, retroceso breve). Cada beat = un `MMF_Player` más y una llamada al driver de animación.
+4. **Sonido**: no hay ninguno. Pasos, chirridos por emote, rugido, tintineo al tomar material; todo por Feel. Falta elegir un pack de sonidos de criatura.
+5. **Compañía visible**: regla "acompañar a un amigo un rato" para que los sociables formen pares y los solitarios se aparten.
+6. **Cámara de documental**: órbita lenta o seguimiento suave al que hace algo interesante, con Cinemachine.
+7. **Detalles**: squash en aterrizajes por Feel, cristal central con brillo pulsante de Hovl, timers de cara y fidget desincronizados.
+
+**Primer lote propuesto**: puntos 1, 2 y 3 (una sesión, sin tocar la tienda: componentes de presentación y `MMF_Player` nuevos). Lo que NO: más partículas, movimiento aleatorio por decorar, nada que no se explique en una frase con causa visible.
+
+### 8.8 · Indicaciones: tres como máximo ⭐ (Juan, S97) y su mapeo (orquestador, no decidido)
+
+**Juan ⭐:** *"Me gustaría mantenerlo simple: como 3 indicaciones como máximo de un pool de acciones decididas por su personalidad, y de acuerdo a eso empieza. Pueden haber elementos emergentes que los distraigan de cierta manera: algunos prefieren ir pegados a otro, otros más solos. Lo interesante es cómo estas directrices generales se combinan para plantear estrategias respecto a situaciones. Por ejemplo en Hades' Star, cuando explorás una estrella roja podés simplemente explorar e irte sin pelear, aunque podés elegir pelearte con el otro usuario; ese tipo de cosas puede ser muy interesante."*
+
+**Regla en una frase (orquestador):** *"Le das hasta tres indicaciones de un pool que su carácter le permite; las sigue en ese orden, pero lo que encuentra y su carácter pueden distraerlo."* Consecuencia clave: **el pool es el fenotipo del carácter**: lo que podés ordenarle depende de lo que criaste. La profundidad vive en la cría, no en el input (nota 15 / S91).
+
+**Mapeo a lo construido (propuesta):**
+- Cada indicación = un asset `ExpeditionDirectiveSO` con la regla adentro (`ExpeditionRuleBase`, la misma base que ya corre para buscar material), nombre, icono y **requisito de carácter** (rangos de osadía y sociabilidad; más adelante tipos de parte y marcas).
+- Cada criatura lleva un **set ordenado de hasta tres**; el orden da el peso: 1,0 · 0,7 · 0,4.
+- **Innatas** (nadie las elige, pesan por dial): curiosidad por lo nuevo, compañía (sociable), apartarse (solitario), rugir (osado), huir cuando cae el nervio. Compiten con las indicaciones en cada evaluación; ganan cuando el estímulo está cerca. Así aparece la distracción y el "ir pegado a otro".
+- **Situación por sala**: la sala decide qué percepciones existen; el mismo set se comporta distinto en recolección que en enfrentamiento. Hades' Star: `Explorar · Recolectar · Evitar rivales` sale sin pelear; `Confrontar · Custodiar el centro · Recolectar` va a buscar al otro usuario.
+- Compromiso de unos segundos por decisión (el `GiveUpSeconds` actual) para que no cambie de idea cada frame.
+
+**Pool inicial propuesto (8):** Explorar (todos) · Recolectar (todos) · Asegurar lo que carga en la salida (todos) · Evitar rivales (tímidos y balanceados) · Confrontar (osados) · Custodiar el centro (osados) · Pegarse a un compañero (sociables) · Ir solo (solitarios). Cada una explicable en una frase; el catálogo crece por assets, sin código.
+
+**Cambios en el plan de Fase 2:** el asset global `ExpeditionRules` pasa a ser catálogo de indicaciones + bloque de innatas con pesos por dial; `AgentExpedition` evalúa set + innatas en lugar de una lista global; en el sandbox, mientras siguen autónomos, el set de cada criatura se asigna desde la semilla filtrado por su carácter para ver las combinaciones.
+
+**La arquitectura del plan del jugador ⭐ (Juan, S97):** *"primero es selección de objetivo general, después qué rol quieres hacer, después las 3 direcciones iniciales; por el momento esa sería la arquitectura."*
+
+**Mapeo (orquestador, no decidido):**
+1. **Objetivo general** (por sala o por bajada, a nivel equipo): qué venís a hacer, al estilo Hades' Star: *Recolectar y salir · Explorar · Enfrentar · Asegurar el centro*. Fija qué cuenta como éxito y sesga las innatas (con "Recolectar y salir", evitar rivales pesa más para todos). Asset `ExpeditionObjectiveSO`.
+2. **Rol** (por criatura): de los roles que **esa criatura puede jugar** según sus tipos de parte y su carácter (8.1: ofensiva / balanceada / recolectora, y de ahí *Recolector · Explorador · Guardián · Acompañante · Rompedor*). El rol **filtra el pool** de indicaciones y propone un set por defecto. Asset `ExpeditionRoleSO` (requisitos + indicaciones permitidas + set sugerido).
+3. **Tres indicaciones iniciales** (por criatura, del pool del rol, en orden de prioridad). Asset `ExpeditionDirectiveSO` (8.8 arriba).
+
+Es un embudo que va de lo estratégico a lo concreto y en cada paso lo que se ofrece depende de lo que se crió. La pantalla de plan (tres pasos antes de PLAY, UI Toolkit con la paleta `--mm-*`) es la primera UI de la expedición; hasta entonces el sandbox asigna objetivo, rol y set desde la semilla.
+
+### 8.7 · Preguntas abiertas nuevas (S97)
+
+- [ ] ⭐ ¿Las tres indicaciones son **por criatura o por equipo**?
+- [ ] ⭐ ¿Se eligen **solo antes de empezar**, o también se puede cambiar una en vivo?
+
+- [ ] ⭐ ¿Las criaturas **conocen los objetivos del mapa** desde el inicio (como la vista previa del jugador) o solo van a lo que ven? Cambia el ritmo de la sala (hoy: solo lo que ven, radio 6 m).
+- [ ] ¿Cuántas criaturas bajan y cuánto dura una sala? (supuestos actuales: 3 y 60 s)
+- [ ] ¿Las órdenes se dan antes de PLAY, en vivo, o ambas?
+- [ ] ¿Perder un choque puede costar la criatura o solo el material?
+- [ ] Pack de sonidos de criatura a elegir.
+- [ ] Shapes (Freya Holmér, 100 USD): hoy no hace falta; se compra si aparecen polilíneas 3D o texto vectorial.
+- [ ] ¿El paquete `com.unity.recorder` se queda?
+
+---
+
 ## Referencias citadas en la sesión
 
 Another Door (2026, multijugador por turnos semi-cooperativo: elección secreta simultánea, traición, "cobrar o abrir otra puerta") · Darkest Dungeon (estrés, antorcha, campamento, permadeath) · Deep Sea Adventure e Incan Gold (push-your-luck compartido) · Slay the Spire (mapa con vista previa, eventos, descanso) · Splatoon (Turf War, Splat Zones, Tower Control, Clam Blitz, Salmon Run) · de Blob · Pikmin 1/2 (carga, puentes, cuevas, perdidos) · Rain World · Into the Breach · Lemmings · Spelunky · Frogger / Crossy Road · Bomberman · Zelda · Pac-Man · Alien Isolation · Untitled Goose Game · Mark of the Ninja · Ooblets · Rock of Ages · Tricky Towers · Dig Dug / SteamWorld Dig · Snipperclips · Patapon · Don't Starve / Frostpunk · Donkey Kong · Stardew Valley · Kirby / Kirby Canvas Curse / Kirby's Dream Course · Yoshi's Island / Yoshi Touch & Go · Sonic · Windjammers / Lethal League · Snake / Pikuniku · Golf Story · Peggle · Angry Birds · Lightbot / RoboRally / Opus Magnum · Hitman · Buscaminas / Hexcells · Pokémon Snap / Bugsnax · Split or Steal · Modern Art / For Sale · Overcooked · Tamagotchi · Heave Ho / Chained Together · WarioWare / Mario Party · Mewgenics / Wobbledogs (sorpresa legible al criar) · Chao Garden / Umamusume / Nintendogs (mencionados en la lluvia inicial; carreras descartadas por Juan).
@@ -296,4 +403,6 @@ Fuentes sobre Another Door consultadas en sesión: página de Steam (app 2786760
 
 ## Estado
 
-**DRAFT S96 (2026-09-02).** Dragon RPS ✅ jugado → 🪦 fallido (Parte 1). Marco de Juan registrado (Parte 2). Linaje (Parte 3) y bajada (Parte 4-6): **propuestas del orquestador, no decididas**. Siguiente paso: Juan responde las dos primeras preguntas de la Parte 7; si van, se escribe la página de reglas en texto plano y el harness de 10 generaciones + bajadas simuladas **antes** de tocar Unity.
+**DRAFT S96 (2026-09-02).** Dragon RPS ✅ jugado → 🪦 fallido (Parte 1). Marco de Juan registrado (Parte 2). Linaje (Parte 3) y bajada (Parte 4-6): **propuestas del orquestador, no decididas**.
+
+**S97 (2026-09-03).** Juan trajo su mecánica ⭐ (Parte 8.1) y fijó etapas; se construyó la Fase 1 y arrancó la Fase 2 en Unity (Parte 8.5, implementación en [[Index/23 - Arena Sandbox y Expedicion]]). El plan de realismo (8.6) quedó documentado a pedido de Juan antes de continuar. Preguntas abiertas en 8.7; las de la Parte 7 sobre linaje siguen sin responder.

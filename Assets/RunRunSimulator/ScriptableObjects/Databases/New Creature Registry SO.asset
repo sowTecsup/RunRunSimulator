@@ -34,7 +34,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 19
+      Data: 18
     - Name: 
       Entry: 7
       Data: 
@@ -166,13 +166,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BackPotential
       Entry: 3
       Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 5
@@ -199,13 +199,13 @@ MonoBehaviour:
       Data: 4|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 13.4238958
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 63.5062141
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: -98.8878555
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -226,7 +226,7 @@ MonoBehaviour:
       Data: 0
     - Name: CombatCooldownUntil
       Entry: 3
-      Data: 639239020749466898
+      Data: 639238804717039626
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -408,7 +408,7 @@ MonoBehaviour:
       Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 8
@@ -435,25 +435,25 @@ MonoBehaviour:
       Data: 9|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 44.51397
+      Data: 100
     - Name: Energy
       Entry: 4
-      Data: 67.98607
+      Data: 100
     - Name: Affect
       Entry: 4
-      Data: 34.1287155
+      Data: 100
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: SaleDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 0
+      Data: 5250903342162945742
     - Name: 
       Entry: 8
       Data: 
@@ -462,13 +462,13 @@ MonoBehaviour:
       Data: 0
     - Name: CombatCooldownUntil
       Entry: 3
-      Data: 639238984394887891
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
     - Name: LocationKey
       Entry: 1
-      Data: 
+      Data: 10_3
     - Name: LocationSlot
       Entry: 3
       Data: -1
@@ -661,13 +661,13 @@ MonoBehaviour:
       Data: 13|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 49.4388046
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 80.02066
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: -47.91351
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -688,7 +688,7 @@ MonoBehaviour:
       Data: 0
     - Name: CombatCooldownUntil
       Entry: 3
-      Data: 639238984563652280
+      Data: 639239359570311306
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -854,13 +854,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BackPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 3
@@ -887,13 +887,13 @@ MonoBehaviour:
       Data: 17|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 44.72281
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 82.25889
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: -43.5139542
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -914,7 +914,7 @@ MonoBehaviour:
       Data: 0
     - Name: CombatCooldownUntil
       Entry: 3
-      Data: 639238985891630611
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -1080,7 +1080,7 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BackPotential
       Entry: 3
       Data: 1
@@ -1113,13 +1113,13 @@ MonoBehaviour:
       Data: 21|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 34.37918
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 89.2090149
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: -81.67897
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -1140,7 +1140,7 @@ MonoBehaviour:
       Data: 0
     - Name: CombatCooldownUntil
       Entry: 3
-      Data: 639238986019787355
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -1306,13 +1306,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BackPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 8
@@ -1339,13 +1339,13 @@ MonoBehaviour:
       Data: 25|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 45.7848778
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 35.43025
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 28.1299839
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -1366,7 +1366,7 @@ MonoBehaviour:
       Data: 0
     - Name: CombatCooldownUntil
       Entry: 3
-      Data: 639238991257726082
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -1532,13 +1532,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BackPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 5
@@ -1565,13 +1565,13 @@ MonoBehaviour:
       Data: 29|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 60.28682
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 28.6256981
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 65.30469
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -1592,7 +1592,7 @@ MonoBehaviour:
       Data: 0
     - Name: CombatCooldownUntil
       Entry: 3
-      Data: 639238991348232167
+      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -1758,13 +1758,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BackPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 6
@@ -1791,13 +1791,13 @@ MonoBehaviour:
       Data: 33|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 68.57463
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 84.16797
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: -32.95446
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -1990,7 +1990,7 @@ MonoBehaviour:
       Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 5
@@ -2017,25 +2017,25 @@ MonoBehaviour:
       Data: 37|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 89.75805
+      Data: 100
     - Name: Energy
       Entry: 4
-      Data: 32.7924042
+      Data: 100
     - Name: Affect
       Entry: 4
-      Data: 76.05869
+      Data: 100
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 0
+      Data: 3
     - Name: SaleDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 0
+      Data: 5250903342081306087
     - Name: 
       Entry: 8
       Data: 
@@ -2050,7 +2050,7 @@ MonoBehaviour:
       Data: 
     - Name: LocationKey
       Entry: 1
-      Data: 
+      Data: 10_3
     - Name: LocationSlot
       Entry: 3
       Data: -1
@@ -2210,13 +2210,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BackPotential
       Entry: 3
       Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 6
@@ -2243,13 +2243,13 @@ MonoBehaviour:
       Data: 41|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 84.88421
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 85.60087
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 73.04002
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -2436,13 +2436,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BackPotential
       Entry: 3
       Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 7
@@ -2469,13 +2469,13 @@ MonoBehaviour:
       Data: 45|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 23.282486
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 66.32585
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 63.22988
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -2662,13 +2662,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BackPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 8
@@ -2695,13 +2695,13 @@ MonoBehaviour:
       Data: 49|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 99.96522
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 100
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 99.96522
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -2728,7 +2728,7 @@ MonoBehaviour:
       Data: 
     - Name: LocationKey
       Entry: 1
-      Data: 8_25
+      Data: 
     - Name: LocationSlot
       Entry: 3
       Data: -1
@@ -2888,13 +2888,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BackPotential
       Entry: 3
       Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 8
@@ -2921,13 +2921,13 @@ MonoBehaviour:
       Data: 53|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 99.96522
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 99.93043
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 99.96522
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -2954,7 +2954,7 @@ MonoBehaviour:
       Data: 
     - Name: LocationKey
       Entry: 1
-      Data: 10_3
+      Data: 
     - Name: LocationSlot
       Entry: 3
       Data: -1
@@ -3117,7 +3117,7 @@ MonoBehaviour:
       Data: 1
     - Name: BackPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: WingPotential
       Entry: 3
       Data: 1
@@ -3147,13 +3147,13 @@ MonoBehaviour:
       Data: 57|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 87.58562
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 97.45954
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 89.1184845
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -3373,25 +3373,25 @@ MonoBehaviour:
       Data: 61|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 93.38943
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 97.1154251
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 52.3895149
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 3
+      Data: 0
     - Name: SaleDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250891536874893545
+      Data: 0
     - Name: 
       Entry: 8
       Data: 
@@ -3599,25 +3599,25 @@ MonoBehaviour:
       Data: 65|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 100
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 100
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 100
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
     - Name: BusyState
       Entry: 3
-      Data: 3
+      Data: 0
     - Name: SaleDate
       Entry: 7
       Data: System.DateTime, mscorlib
     - Name: 
       Entry: 3
-      Data: 5250891534746515628
+      Data: 0
     - Name: 
       Entry: 8
       Data: 
@@ -3632,7 +3632,7 @@ MonoBehaviour:
       Data: 
     - Name: LocationKey
       Entry: 1
-      Data: 10_3
+      Data: 
     - Name: LocationSlot
       Entry: 3
       Data: -1
@@ -3792,13 +3792,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BackPotential
       Entry: 3
       Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 6
@@ -3825,13 +3825,13 @@ MonoBehaviour:
       Data: 69|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 59.78158
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 92.28304
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 63.1500969
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -4018,13 +4018,13 @@ MonoBehaviour:
       Data: 1
     - Name: HornPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: BackPotential
       Entry: 3
-      Data: 3
+      Data: 1
     - Name: WingPotential
       Entry: 3
-      Data: 2
+      Data: 1
     - Name: BaseConstitution
       Entry: 4
       Data: 5
@@ -4051,13 +4051,13 @@ MonoBehaviour:
       Data: 73|MoriMonchiSimulator.NeedsState, Assembly-CSharp
     - Name: Health
       Entry: 4
-      Data: 99.96522
+      Data: 0
     - Name: Energy
       Entry: 4
-      Data: 100
+      Data: 0
     - Name: Affect
       Entry: 4
-      Data: 99.96522
+      Data: -100
     - Name: 
       Entry: 8
       Data: 
@@ -4084,239 +4084,13 @@ MonoBehaviour:
       Data: 
     - Name: LocationKey
       Entry: 1
-      Data: 8_25
+      Data: 
     - Name: LocationSlot
       Entry: 3
       Data: -1
     - Name: Equipped
       Entry: 7
       Data: 74|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
-        Assembly-CSharp],[System.String, mscorlib]], mscorlib
-    - Name: comparer
-      Entry: 9
-      Data: 6
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: BS2-A0-E1-M2-F664AD-639206376012597463
-    - Name: $v
-      Entry: 7
-      Data: 75|MoriMonchiSimulator.CreatureDNA, Assembly-CSharp
-    - Name: BodyShapeID
-      Entry: 1
-      Data: BS2
-    - Name: HornID
-      Entry: 1
-      Data: 
-    - Name: BackID
-      Entry: 1
-      Data: 
-    - Name: WingID
-      Entry: 1
-      Data: 
-    - Name: FaceID
-      Entry: 1
-      Data: 
-    - Name: BaseColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 0.9647059
-    - Name: 
-      Entry: 4
-      Data: 0.392156869
-    - Name: 
-      Entry: 4
-      Data: 0.6784314
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: SecondaryColor
-      Entry: 7
-      Data: UnityEngine.Color, UnityEngine.CoreModule
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 4
-      Data: 0.49552846
-    - Name: 
-      Entry: 4
-      Data: 0.5056181
-    - Name: 
-      Entry: 4
-      Data: 1
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: FurType
-      Entry: 3
-      Data: 4
-    - Name: IsShiny
-      Entry: 5
-      Data: false
-    - Name: CustomName
-      Entry: 1
-      Data: Pudgy Tater
-    - Name: Timestamp
-      Entry: 3
-      Data: 639206376012597463
-    - Name: BirthDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 5250892394439985367
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: MotherID
-      Entry: 1
-      Data: 
-    - Name: FatherID
-      Entry: 1
-      Data: 
-    - Name: ChildrenIDs
-      Entry: 7
-      Data: 76|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: Gender
-      Entry: 3
-      Data: 2
-    - Name: Role
-      Entry: 3
-      Data: 1
-    - Name: Element
-      Entry: 3
-      Data: 2
-    - Name: Sociability
-      Entry: 4
-      Data: 0.6349972
-    - Name: Boldness
-      Entry: 4
-      Data: 0.30839324
-    - Name: BreedCount
-      Entry: 3
-      Data: 0
-    - Name: BodyTier
-      Entry: 3
-      Data: 1
-    - Name: HornTier
-      Entry: 3
-      Data: 1
-    - Name: BackTier
-      Entry: 3
-      Data: 1
-    - Name: WingTier
-      Entry: 3
-      Data: 1
-    - Name: HornPotential
-      Entry: 3
-      Data: 3
-    - Name: BackPotential
-      Entry: 3
-      Data: 1
-    - Name: WingPotential
-      Entry: 3
-      Data: 1
-    - Name: BaseConstitution
-      Entry: 4
-      Data: 5
-    - Name: BaseAttack
-      Entry: 4
-      Data: 10
-    - Name: BaseSpeed
-      Entry: 4
-      Data: 3
-    - Name: BaseDefense
-      Entry: 4
-      Data: 0
-    - Name: BaseLuck
-      Entry: 4
-      Data: 0
-    - Name: BaseEvasion
-      Entry: 4
-      Data: 0
-    - Name: IsDead
-      Entry: 5
-      Data: false
-    - Name: Needs
-      Entry: 7
-      Data: 77|MoriMonchiSimulator.NeedsState, Assembly-CSharp
-    - Name: Health
-      Entry: 4
-      Data: 89.722
-    - Name: Energy
-      Entry: 4
-      Data: 21.9540634
-    - Name: Affect
-      Entry: 4
-      Data: -13.2967453
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BusyState
-      Entry: 3
-      Data: 0
-    - Name: SaleDate
-      Entry: 7
-      Data: System.DateTime, mscorlib
-    - Name: 
-      Entry: 3
-      Data: 0
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: BreedReadyAt
-      Entry: 3
-      Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
-    - Name: BreedPartnerID
-      Entry: 1
-      Data: 
-    - Name: LocationKey
-      Entry: 1
-      Data: 
-    - Name: LocationSlot
-      Entry: 3
-      Data: -1
-    - Name: Equipped
-      Entry: 7
-      Data: 78|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
         Assembly-CSharp],[System.String, mscorlib]], mscorlib
     - Name: comparer
       Entry: 9

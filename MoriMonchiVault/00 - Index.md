@@ -26,7 +26,8 @@ MoriMonchiVault/
 | **DNA, parts, databases** | [[Index/02 - Genetics & Breeding]] | [[CreatureDNA]], [[BodyPart]], [[PartDatabaseSO]] |
 | **Breeding mechanic** | [[Index/02 - Genetics & Breeding]] | [[BreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[BreedingContainer]] |
 | **Visual assembly (3D, Suriyun DragonSD)** | [[Index/02 - Genetics & Breeding]] | [[MonchiVisualizer]], [[MonchiVisualBankSO]], [[DragonAnimationDriver]] |
-| **DISEÑO VIGENTE: Linaje + Bajada Nocturna (S96, DRAFT)** ⭐ | [[Index/22 - Bajada Nocturna y Linaje (Draft)]] | — (nada en código todavía; el porqué de criar, el centro de adopción, la bajada por salas con ferales de otros jugadores, catálogo de pruebas con referencias) |
+| **DISEÑO VIGENTE: Linaje + Bajada Nocturna + mecánica "esquina a esquina" de Juan (S96-S97, DRAFT)** ⭐ | [[Index/22 - Bajada Nocturna y Linaje (Draft)]] (Parte 8 = S97: mecánica de Juan, tipos de parte, modelo de utilidad, etapas, plan de realismo) | — (diseño; la implementación está en la fila siguiente) |
+| **Arena sandbox · expedición · guías visuales (S97, Fase 1 ✅ · Fase 2 iniciada)** | [[Index/23 - Arena Sandbox y Expedicion]] | [[ArenaSandbox]], [[AgentExpedition]], [[ExpeditionRulesSO]], [[ExpeditionRuleBase]], [[ArenaCueOverlay]], [[CueDrawer]], [[CueStyleSO]], [[MaterialPickup]] |
 | **Combate v3 Dragon RPS (S92-S95 — 🪦 FALLIDO S96, código en pie)** | [[Index/21 - Combate v3 - Dragon RPS]] | `Scripts/DragonRps/` (DragonRpsRules, DragonRpsMatch, DragonRpsSession, etc.) |
 | **Combate prototipo táctico S77-S88 (NO VALIDÓ — DEMOLIDO S93)** | [[Index/09b - Session Digest (S8-S88)]] (timeline S77-S88); código, escena, assets, nota `Index/20` y ScriptNodes borrados — recuperables en git `3cc5eb5` | — |
 | **Combate viejo 3v3 (DEMOLIDO S75 — solo historia)** | [[Index/03 - Combat]] (historico), [[Index/09b - Session Digest (S8-S88)]] | — |
@@ -64,7 +65,7 @@ MoriMonchiVault/
 Assets/RunRunSimulator/Scripts/
 ├── DragonRps/     # combate v3 S92+ (logica pura, cero dependencias de UnityEngine)
 ├── Core/          # GameManager, GameEvents (10 eventos), SaveSystem, Interfaces · Enums/ (6 archivos desde S93)
-├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · Equipment/ · Items/ · Social/
+├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · Equipment/ · Items/ · Social/ · Expedition/ (CueStyleSO, ExpeditionRuleBase, ExpeditionRulesSO — S97)
 ├── Systems/       # Desacoplados vía GameEvents
 │   ├── Breeding/  # BreedingService, AsyncBreedingService
 │   ├── Cloud/     # CloudSyncService (+ CloudAuth/CloudSyncOps)
@@ -78,7 +79,8 @@ Assets/RunRunSimulator/Scripts/
 ├── UI/            # UIManager, UIInputs, panel controllers UITK · CreatureDisplay + UiPanels (helpers compartidos, S93)
 ├── Player/        # PlayerInputs, PlayerController, BuildingInputs
 ├── Interactables/ # PanelTrigger, ThrowableObject
-└── World/         # AI/ (MoriMochiAgent + colaboradores), Creatures/ (MonchiVisualizer), NeedStation, containers
+├── Shaders/       # MonchiCue.shader (guías vectoriales SDF, S97) · UIRingOverlay.shader
+└── World/         # AI/ (MoriMochiAgent + colaboradores, AgentExpedition S97), Creatures/ (MonchiVisualizer), NeedStation, containers · Expedition/ (ArenaSandbox, ArenaCueOverlay, CueDrawer, MaterialPickup — S97)
 ```
 
 ---
@@ -116,7 +118,8 @@ Three mutually exclusive action maps: `Player`, `UI`, `Building`. Only one activ
 | DNA, genetic string, part ID | [[CreatureDNA]], [[PartDatabaseSO]] |
 | Stats (HP/Attack/Speed) | [[CreatureStats]], [[BodyPart]] |
 | Personality (diales Sociability/Boldness), tint | [[MoriMochiAgent]], [[AgentBrain]] |
-| Por qué criar, linaje, adopción, bajada nocturna, salas, ferales, nervio | [[Index/22 - Bajada Nocturna y Linaje (Draft)]] (dirección vigente desde S96, draft) |
+| Por qué criar, linaje, adopción, bajada nocturna, salas, ferales, nervio, esquina a esquina, tipos de parte, modelo de utilidad | [[Index/22 - Bajada Nocturna y Linaje (Draft)]] (dirección vigente desde S96, draft; Parte 8 = S97) |
+| Arena, sandbox, expedición, minerales, reglas de expedición, guías visuales, cues, anillo de percepción, ruta curva | [[Index/23 - Arena Sandbox y Expedicion]], [[AgentExpedition]], [[ArenaCueOverlay]] |
 | Combat, fight, battle, RPS, dragon duel | [[Index/21 - Combate v3 - Dragon RPS]] (🪦 fallido S96, ver Index/22; el prototipo táctico quedó histórico en S92; el 3v3 viejo murió en S75) |
 | Breeding, cross, hatch | [[BreedingService]], [[BreedingContainer]] |
 | Affinity, compatibility | [[BreedingAffinityTableSO]] |
