@@ -17,6 +17,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private AgentSenses      senses;
     private AgentSocial      social;
     private AgentExpedition  expedition;
+    private Perceivable perceivable;
 
     private void OnEnable()
     {
@@ -45,6 +46,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         senses      = new AgentSenses(this, ctx);
         social      = new AgentSocial(this, ctx);
         expedition  = new AgentExpedition(this, ctx);
+        perceivable = GetComponent<Perceivable>();
 
         ctx.Rb.isKinematic = true;
         ctx.Rb.useGravity  = false;
@@ -128,6 +130,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
         brain.TickAlways(Time.deltaTime);
         senses.Tick();
+        ctx.ApplyGaitSpeed();
         switch (ctx.State)
         {
             case AgentState.Idle:         brain.TickIdle();    if (ctx.State == AgentState.Idle    && !expedition.TryEngage()) social.TryEngage(); break;
@@ -175,6 +178,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         brain.Intent;
 
     public IReadOnlyList<Percept> Percepts => ctx.Percepts;
+    public ExpeditionTeam Team => perceivable != null ? perceivable.Team : ExpeditionTeam.None;
 
     public int CollectedMaterial => expedition.Collected;
     public Transform ExpeditionTarget => expedition.Target != null ? expedition.Target.transform : null;
@@ -494,6 +498,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [SerializeField] internal UnityEvent onGetUp;
     [TabGroup("Tuning", "Presentation")]
     [SerializeField] internal UnityEvent onPet;
+    [TabGroup("Tuning", "Presentation")]
+    [SerializeField] internal UnityEvent onPickup;
 
     [TabGroup("Tuning", "Dev"), Title("Live State (play mode)")]
     [ShowInInspector, ReadOnly, EnumToggleButtons]

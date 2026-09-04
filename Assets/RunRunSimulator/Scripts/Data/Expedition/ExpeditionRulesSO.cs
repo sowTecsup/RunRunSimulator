@@ -26,6 +26,12 @@ public class ExpeditionRulesSO : SerializedScriptableObject
     [Min(0.1f)] public float ArriveDistance = 0.9f;
     [Min(0.05f)] public float RepathInterval = 0.5f;
     [Min(1f)] public float GiveUpSeconds = 12f;
+    [Min(0f)] public float ApproachMargin = 0.15f;
+
+    [Title("Beats")]
+    [Min(0f)] public float NoticeSeconds = 0.5f;
+    [Min(0f)] public float TakeSeconds = 1.2f;
+    [Min(0f)] public float LoseSeconds = 1f;
 
     [Button] public void PopulateDefaults()
     {

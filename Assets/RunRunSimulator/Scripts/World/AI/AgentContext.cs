@@ -53,6 +53,16 @@ internal class AgentContext
         if (Agent.enabled && Agent.isOnNavMesh) Agent.isStopped = stopped;
     }
 
+    internal void ApplyGaitSpeed()
+    {
+        if (Agent == null) return;
+        if (State == AgentState.Courting) return;
+
+        float factor = State == AgentState.Roaming && Profile != null ? Profile.RoamSpeedFactor : 1f;
+        float target = BaseSpeed * factor;
+        if (!Mathf.Approximately(Agent.speed, target)) Agent.speed = target;
+    }
+
     internal void SetColliderTrigger(bool isTrigger)
     {
         if (Col != null) Col.isTrigger = isTrigger;

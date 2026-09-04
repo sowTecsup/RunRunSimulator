@@ -21,6 +21,9 @@
 .tag__name {
     font-size: 18px;
     -unity-font-style: bold;
+    -unity-text-outline-width: 1.5px;
+    -unity-text-outline-color: rgba(40, 25, 15, 0.9);
+    text-shadow: 2px 2px 0 rgba(40, 25, 15, 0.9);
     color: var(--mm-ink);
     -unity-text-align: middle-center;
     white-space: nowrap;

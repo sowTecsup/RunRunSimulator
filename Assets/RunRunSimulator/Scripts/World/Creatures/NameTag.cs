@@ -18,6 +18,11 @@ public class NameTag : MonoBehaviour
     [SerializeField] private float penRaise = 0.6f;
     [Tooltip("Uniform scale applied while penned, to make the breeding tag more compact.")]
     [SerializeField] private float penScale = 0.8f;
+    [SerializeField, Min(0f)] private float screenSizeReferenceDistance = 0f;
+    [SerializeField] private Color allyNameColor = new Color(0.76f, 1f, 0.6f);
+    [SerializeField] private Color rivalNameColor = new Color(0.96f, 0.6f, 0.6f);
+    public float ShowDistance { get => showDistance; set => showDistance = value; }
+    public float ScreenSizeReferenceDistance { get => screenSizeReferenceDistance; set => screenSizeReferenceDistance = value; }
 
     private UIDocument    document;
     private VisualElement root;
@@ -57,7 +62,7 @@ public class NameTag : MonoBehaviour
         if (nameLabel != null)
         {
             nameLabel.text = creature?.CustomName ?? "";
-            if (creature != null) nameLabel.style.color = GenderColor(creature.Gender);
+            if (creature != null) nameLabel.style.color = NameColor(creature);
         }
         Refresh();
     }
@@ -103,6 +108,7 @@ public class NameTag : MonoBehaviour
 
         bool penned = agent != null && agent.IsPenned;
         transform.localScale = penned ? baseLocalScale * penScale : baseLocalScale;
+        if (screenSizeReferenceDistance > 0f) transform.localScale *= Mathf.Max(1f, Mathf.Sqrt(distSqr) / screenSizeReferenceDistance);
 
         if (transform.parent != null)
         {
@@ -195,6 +201,12 @@ public class NameTag : MonoBehaviour
 
     private void RefreshDefault()
     {
+        if (nameLabel != null)
+        {
+            string name = dna.CustomName ?? "";
+            if (nameLabel.text != name) nameLabel.text = name;
+            nameLabel.style.color = NameColor(dna);
+        }
         SetDisplay(priceLabel,  false);
         SetDisplay(genderLabel, false);
         SetDisplay(roleLabel,   false);
@@ -253,6 +265,13 @@ public class NameTag : MonoBehaviour
         CreatureGender.Female => "♀",
         _                     => "?",
     };
+
+    private Color NameColor(CreatureDNA creature)
+    {
+        if (agent != null && agent.Team == ExpeditionTeam.Player) return allyNameColor;
+        if (agent != null && agent.Team == ExpeditionTeam.Rival) return rivalNameColor;
+        return GenderColor(creature.Gender);
+    }
 
     private static Color GenderColor(CreatureGender g) => g switch
     {

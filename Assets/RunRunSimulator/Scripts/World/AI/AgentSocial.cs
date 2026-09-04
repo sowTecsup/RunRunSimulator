@@ -46,6 +46,7 @@ internal class AgentSocial
         for (int i = 0; i < ctx.Percepts.Count; i++)
         {
             var p = ctx.Percepts[i];
+            if (ExpeditionTeams.AreRivals(owner.Team, p.Team)) continue;
             for (int j = 0; j < rules.Count; j++)
             {
                 var rule = rules[j];
@@ -113,6 +114,7 @@ internal class AgentSocial
     {
         if (t == null) return false;
         if (initiator == null) return false;
+        if (ExpeditionTeams.AreRivals(owner.Team, initiator.Team)) return false;
         if (Time.time < cooldownUntil) return false;
         if (ctx.State != AgentState.Idle && ctx.State != AgentState.Roaming) return false;
         if (ctx.CurrentContainer != null) return false;

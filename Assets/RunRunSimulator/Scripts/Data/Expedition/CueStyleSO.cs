@@ -109,6 +109,8 @@ public class CueStyleSO : SerializedScriptableObject
         AddIfMissing(CreatureIntent.Held, Color.white);
         AddIfMissing(CreatureIntent.Tumbling, Color.white);
         AddIfMissing(CreatureIntent.Collecting, Color.cyan);
+        AddIfMissing(CreatureIntent.Taking, new Color(0.4f, 1f, 0.9f));
+        AddIfMissing(CreatureIntent.Losing, new Color(0.6f, 0.62f, 0.72f));
 
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);

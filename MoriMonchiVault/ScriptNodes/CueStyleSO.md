@@ -11,7 +11,7 @@ tags: [script, data, scriptableobject, expedition]
 ## Campos Públicos
 
 **Diccionario (Odin):**
-- `intentColors` (Dict<CreatureIntent, Color>) — mapping intención → color de ruta/anillo. Poblada por `PopulateDefaults()`.
+- `intentColors` (Dict<CreatureIntent, Color>) — mapping intención → color de ruta/anillo. Poblada por `PopulateDefaults()`. **S98-S99:** incluye `Taking` y `Losing`.
 
 **Colores:**
 - `DefaultIntentColor` (Color) — fallback si una intención no está en el diccionario (default gris 0.6/0.6/0.6).
@@ -86,23 +86,42 @@ tags: [script, data, scriptableobject, expedition]
 ## Métodos Públicos
 
 - `ColorFor(CreatureIntent intent) → Color` — getter: busca en dict, fallback a `DefaultIntentColor`.
-- `PopulateDefaults()` — botón Odin: precarga diccionario con 18 intenciones (Idle, Wandering, Following, etc.) + sus colores por defecto; marca dirty.
+- `PopulateDefaults()` — botón Odin: precarga diccionario con 20 intenciones (Idle, Wandering, Following, ..., **Taking, Losing S98-S99**) + sus colores por defecto; marca dirty.
 
-## Invariantes S97
+## PopulateDefaults() — Colores S98
+
+| CreatureIntent | Color (RGB) | Significado |
+|---|---|---|
+| Idle/Wandering | (0.75, 0.75, 0.75) | Neutral gris |
+| Following/Approaching | (0.3, 0.85, 0.3) | Verde amistoso |
+| Fleeing/Retreating | (0.9, 0.2, 0.2) | Rojo miedo |
+| Chasing | (1, 0.55, 0.1) | Naranja persecución |
+| SeekingFood/Eating | (0.95, 0.85, 0.15) | Amarillo hambre |
+| SeekingRest/Resting/SleepingTogether | (0.25, 0.5, 0.95) | Azul descanso |
+| SeekingPlay/Playing/Socializing | (0.95, 0.5, 0.8) | Rosa social |
+| Fighting | (0.55, 0.05, 0.05) | Rojo oscuro pelea |
+| Held/Tumbling | (1, 1, 1) | Blanco especial |
+| Collecting | (0, 1, 1) | Cyan recolección |
+| **Taking** | (0.4, 1, 0.9) | **Cyan claro — beat de consumo S98** |
+| **Losing** | (0.6, 0.62, 0.72) | **Gris azulado — beat rival toma S99** |
+
+## Invariantes S98
 
 - **Diccionario Odin:** `[OdinSerialize]` + `[DictionaryDrawerSettings]` permite serializar diccionarios no-serializable en Unity.
 - **Cero lógica:** solo almacenamiento. Toda evaluación geométrica, animación y renderizado vive en `ArenaCueOverlay` y `CueDrawer`.
 - **Fallback seguro:** `ColorFor()` nunca falla; retorna default si intención no existe.
 - **Asset único:** típicamente un solo asset `CueStyle.asset` por proyecto; `ArenaCueOverlay` lo referencia directamente.
 - **Edición viva:** cambiar parámetros en Inspector durante Play mode afecta inmediatamente el render de guías (útil para tuning).
+- **S98-S99:** nuevos intents `Taking` y `Losing` se añaden automáticamente a `PopulateDefaults()` con colores distinctivos (cyan claro y gris azulado).
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]], [[Index/05 - UI System]] (visualización)
+[[Index/23 - Arena Sandbox y Expedicion]]
 
 ## Conexiones
 
 - [[ArenaCueOverlay]] (lector de todos los parámetros)
 - [[CueDrawer]] (usuario final de espesores, radios, etc.)
-- [[CreatureIntent]] (keys del diccionario)
+- [[CreatureIntent]] (keys del diccionario, **S98-S99:** incluye Taking/Losing)
 - [[MoriMonchiAgent]] (agente cuyo intent se busca en colorMap)
+- **S98:** [[ExpeditionRulesSO]] (beat timers que disparan transiciones de intent)

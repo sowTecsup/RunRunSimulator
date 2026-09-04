@@ -6,88 +6,116 @@ tags: [script, world, agent, internal]
 
 **Ruta:** `World/AI/AgentContext.cs`
 
-**Responsabilidad:** Contenedor de estado puro para un MoriMochiAgent (datos compartidos entre colaboradores sin duplicación). Almacena referencias a componentes (NavMeshAgent, Rigidbody, Collider, Transform), datos de DNA/perfil, estado de juego (ubicación actual, velocidad base), máscaras NavMesh (libre vs confinado), banderas de operación (rebake en curso), y NUEVO en S64: lista de percepciones sociales (Percepts) escrita por AgentSenses y leída por AgentSocial. Expone helpers para consultas de seguridad: `IsNavMeshControlled()` (estado controlado por NavMesh), `IsBreeding`, `IsMoving`, `PlanarDistanceToPlayer()`, y operaciones del agente: `SetStopped()`, `SetDestinationSafe()` (con muestreo de NavMesh), `SetColliderTrigger()`. **S97:** AgentState enum ampliado con `Expedition`; incluido en `IsNavMeshControlled()`. No tiene lógica de estado.
+**Responsabilidad:** Contenedor de estado puro para un MoriMochiAgent (datos compartidos entre colaboradores sin duplicación). Almacena referencias a componentes (NavMeshAgent, Rigidbody, Collider, Transform), datos de DNA/perfil, estado de juego (ubicación actual, velocidad base), máscaras NavMesh (libre vs confinado), banderas de operación (rebake en curso), y lista de percepciones sociales (Percepts) escrita por AgentSenses y leída por AgentSocial, AgentExpedition. Expone helpers para consultas de seguridad: `IsNavMeshControlled()`, `IsBreeding`, `IsMoving`, `PlanarDistanceToPlayer()`; operaciones del agente: `SetStopped()`, `SetDestinationSafe()` (con muestreo de NavMesh), `SetColliderTrigger()`; **S98 NUEVO:** `BaseSpeed` y `ApplyGaitSpeed()` = único dueño de `NavMeshAgent.speed`. **S97:** AgentState enum con `Expedition`. No tiene lógica de estado.
 
 ## Enum AgentState
 
 ```csharp
-public enum AgentState { 
-    Idle,         // esperando
-    Roaming,      // navegando
-    Reacting,     // reaccionando al jugador
-    Carried,      // en mano del jugador
-    Thrown,       // en vuelo (ragdoll)
-    Recovering,   // recuperándose post-vuelo
-    SeekingNeed,  // navegando a estación
-    UsingStation, // usando estación
-    Courting,     // cortejando
-    Socializing,  // interacción social (S65)
-    HandFeed,     // comiendo de la mano (S69)
-    Expedition    // persiguiendo objetivo recolectable (S97 NUEVO)
+internal enum AgentState { 
+    Idle,           // esperando
+    Roaming,        // navegando libremente
+    Reacting,       // reaccionando al jugador
+    Carried,        // en mano del jugador
+    Thrown,         // en vuelo (ragdoll)
+    Recovering,     // recuperándose post-vuelo
+    SeekingNeed,    // navegando a estación
+    UsingStation,   // usando estación
+    Courting,       // cortejando
+    Socializing,    // interacción social (S65)
+    HandFeed,       // comiendo de la mano (S69)
+    Expedition      // persiguiendo objetivo recolectable (S97 NUEVO)
 }
 ```
 
-**Cambios S97:**
-- **NUEVO:** `Expedition` — agente está persiguiendo material recolectable; manejado por AgentExpedition.TickExpedition(). Incluido en `IsNavMeshControlled()`.
+## Campos Internos
 
-## Campos internos
+- `Owner` (MoriMochiAgent) — agente propietario
+- `Body, Agent, Rb, Col` (Transform, NavMeshAgent, Rigidbody, Collider) — componentes del GO
+- **S98 NUEVO:**
+  - `BaseSpeed` (float) — velocidad base del NavMeshAgent (cacheada en inicio, modificable). Única fuente de verdad; todas las variaciones de velocidad pasan por `ApplyGaitSpeed()`.
+- `State` (AgentState) — estado actual; puede ser Expedition (S97)
+- `Dna, Profile` (CreatureDNA, RoleWorldProfile) — datos genéticos y perfil de rol; Profile.RoamSpeedFactor usado por S98
+- `Player, HoldAnchor` (Transform) — transforms de referencias externas
+- `CurrentContainer` (MoriMochiContainer) — el corral/contenedor que lo confina (null si libre)
+- `FreeAreaMask, ConfinedAreaMask` (int) — máscaras NavMesh por área
+- `RebakeInProgress` (bool) — bandera de rebake en curso
+- `Percepts` (List<Percept>) — S64 lista ordenada por distancia, capped a MaxPercepts. Escrita por AgentSenses, leída por AgentSocial, AgentExpedition, S98 posible uso futuro
 
-- `Owner` (MoriMochiAgent)
-- `Body, Agent, Rb, Col` — componentes del GO
-- `BaseSpeed` — velocidad cached del NavMeshAgent
-- `State` — estado actual (AgentState enum, S97: puede ser Expedition)
-- `Dna, Profile` — datos genéticos y perfil de rol
-- `Player, HoldAnchor` — transforms de referencias externas
-- `CurrentContainer` — el corral/contenedor que lo confina (null si libre)
-- `FreeAreaMask, ConfinedAreaMask` — máscaras NavMesh por área
-- `RebakeInProgress` — bandera de rebake en curso
-- `Percepts` — **S64 NUEVO** `List<Percept>` ordenada por distancia, capped a MaxPercepts. Escrita por AgentSenses.Tick(), leída por AgentSocial y **S97:** AgentExpedition
+## Métodos Públicos
 
-## Métodos
-
-- `IsNavMeshControlled() → bool` — verdadero si el estado NO es Carried/Thrown/Recovering. **S97:** ahora incluye Expedition (línea 43).
+- `IsNavMeshControlled() → bool` — verdadero si el estado NO es Carried/Thrown/Recovering. **S97:** ahora incluye Expedition.
 - `IsBreeding → bool` — verdadero si DNA.BusyState == Breeding
-- `IsMoving → bool` — verdadero si el agente está en movimiento físico
-- `SetStopped(bool)` — pausa/reanuda el agente
-- `SetColliderTrigger(bool)` — toggle entre trigger (roaming) y solid (física)
-- `SetDestinationSafe(Vector3)` — muestrea punto en NavMesh antes de asignar destino
-- `PlanarDistanceToPlayer() → float` — distancia horizontal al jugador (ignorando Y)
-- `RandomPointInBounds(Bounds) → static Vector3` — punto aleatorio dentro de límites (Y fijo)
+- `IsMoving → bool` — verdadero si agente está en movimiento físico (enabled, on mesh, not stopped, velocity > 0.01)
+- `SetStopped(bool stopped)` — pausa/reanuda el NavMeshAgent
+- `SetColliderTrigger(bool isTrigger)` — toggle entre trigger (roaming) y solid (física)
+- `SetDestinationSafe(Vector3 desired)` — muestrea punto en NavMesh antes de asignar destino; fallback seguro si no sampleable
+- `PlanarDistanceToPlayer() → float` — distancia horizontal al jugador (ignorando Y); MaxValue si sin Player ref
+- `RandomPointInBounds(Bounds b) → static Vector3` — punto aleatorio dentro de límites (Y fijo)
+
+## Métodos S98 NUEVOS
+
+- **`ApplyGaitSpeed()`** — **S98 NUEVO.** Único dueño de `NavMeshAgent.speed`. Lógica:
+  - Si Agent == null, retorna temprano
+  - Si State == Courting, retorna sin tocar (courting pace se maneja aparte)
+  - Sino: calcula `factor = (State == Roaming && Profile != null) ? Profile.RoamSpeedFactor : 1f`
+  - Asigna `Agent.speed = BaseSpeed × factor` (solo si cambió, evita dirty)
+  - Llamado cada frame por `MoriMochiAgent.Update()` para mantener speed sincronizada con estado y profile
 
 ## Notas sobre Percepts
 
 - Poblada por AgentSenses.Tick() cada ScanInterval (2–4s throttled)
 - Ordenada por sqrDistance (más cerca primero)
 - Capeada a SocialTuningSO.MaxPercepts (default 8)
-- Incluye Player, Monchi (con afinidad), Customer, Prop, **S97:** Material
+- Incluye Player, Monchi (con afinidad), Customer, Prop, Material (S97)
 - Nunca null: limpiada si el agente no está en control NavMesh
-- Pizarrón compartido con AgentSocial y **S97:** AgentExpedition para decisiones sin re-consulta
+- Pizarrón compartido con colaboradores (AgentSocial, AgentExpedition) para decisiones sin re-consulta
+
+## Cambios S98
+
+**BaseSpeed centralizado:**
+- Campo `BaseSpeed` (línea 17) almacena la velocidad base
+- Único dueño de `NavMeshAgent.speed` vía `ApplyGaitSpeed()`
+- Roaming → base × `Profile.RoamSpeedFactor` (más lento para explorar)
+- Courting → sin cambio (mantiene su propia lógica)
+- Estados restantes → base sin factor (velocidad normal)
+- Llamada cada frame desde `MoriMochiAgent.Update()` (línea 56-64)
+
+**Cambio de responsabilidad:**
+- **ANTES S98:** `AgentBrain.EnterRoaming()` seteaba `Agent.speed` directamente
+- **DESDE S98:** `AgentBrain.EnterRoaming()` ya NO toca `Agent.speed`; la velocidad la aplica `AgentContext.ApplyGaitSpeed()` cada frame
 
 ## Cambios S97
 
 **Enum AgentState ampliado:**
-- `+Expedition` state (línea 7)
+- `+Expedition` state — agente persiguiendo material recolectable
 
 **IsNavMeshControlled() actualizado:**
-- Línea 43: `State == AgentState.Expedition` agregado a la condición OR
 - Ahora devuelve true para Idle, Roaming, Reacting, SeekingNeed, UsingStation, Courting, Socializing, **Expedition**
 
-**Uso por AgentExpedition:**
-- `TryEngage()` asigna `ctx.State = AgentState.Expedition`
-- `TickExpedition()` consulta `ctx.Percepts`, usa `SetDestinationSafe()` para navegar
-- `Abort()` llama `owner.RequestRoam()` → vuelve a Roaming
+## Invariantes S98 + S97
 
-## Invariantes S93 + S97
-
+- **Único dueño de NavMeshAgent.speed:** `ApplyGaitSpeed()` es la única vía para cambiar speed (centraliza lógica, evita conflictos).
 - **Pizarrón compartido:** Percepts evita que cada colaborador re-consulte PerceivableRegistry; ahorro de iteraciones.
-- **AgentState enum centralizado:** todas las máquinas de estado del agente usan este enum; fácil agregar estados nuevos (solo enum + case en Update).
-- **IsNavMeshControlled determinista:** agrupa estados lógicos "en control del NavMesh" vs "en física pura". S97 agrega Expedition al grupo NavMesh porque usa SetDestination.
+- **AgentState enum centralizado:** todas las máquinas de estado del agente usan este enum; fácil agregar estados nuevos.
+- **IsNavMeshControlled determinista:** agrupa estados lógicos "en control del NavMesh" vs "en física pura". S97 agrega Expedition (usa SetDestination).
 - **SetDestinationSafe idempotent:** si la posición no es sampleable, no asigna (safe fallback vs crash).
+- **Courting carve-out:** Courting no cambia speed porque sigue su propia lógica de cortejo (no es Roaming).
 
 ## Vinculado a
 
-[[Index/06 - Player & World]], [[Index/02 - Genetics & Breeding]], [[Index/23 - Arena Sandbox y Expedicion]] (S97)
+- [[Index/06 - Player & World]]
+- [[Index/02 - Genetics & Breeding]]
+- [[Index/23 - Arena Sandbox y Expedicion]] (S97, S98: velocidades en arena)
 
 ## Conexiones
 
-[[MoriMochiAgent]], [[AgentBrain]], [[AgentPhysics]], [[AgentConfinement]], [[AgentSenses]], [[AgentSocial]], **S97:** [[AgentExpedition]], [[RoleWorldProfileSO]], [[HotbarController]], **S97:** [[ExpeditionRulesSO]]
+- [[MoriMochiAgent]] — propietario, llama `ApplyGaitSpeed()` en Update (S98)
+- [[AgentBrain]] — S98: YA NO toca speed (delegó a ApplyGaitSpeed)
+- [[AgentPhysics]]
+- [[AgentConfinement]]
+- [[AgentSenses]] — escribe Percepts
+- [[AgentSocial]] — lee Percepts
+- [[AgentExpedition]] — S97 lee Percepts, usa SetDestinationSafe
+- [[RoleWorldProfileSO]] — Profile.RoamSpeedFactor leído por ApplyGaitSpeed (S98)
+- [[HotbarController]]
+- [[ExpeditionRulesSO]] — S97

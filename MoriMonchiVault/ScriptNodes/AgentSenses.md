@@ -6,7 +6,7 @@ tags: [script, world, agent, internal, perception]
 
 **Ruta:** `World/AI/AgentSenses.cs`
 
-**Responsabilidad:** Colaborador interno de percepción de la composición del agente (espejo de AgentBrain). Ejecuta un escaneo estrangulado/escalonado de Perceivables cercanas y escribe el resultado en el pizarrón compartido (ctx.Percepts) como lista ordenada y acotada. Nunca decide nada ni muta estado — AgentBrain o un future social brain lee ctx.Percepts y actúa. **S65:** Ahora calcula afinidad social dinámica vía `SocialGraphService.EffectiveAffinity()` que combina seed (SocialAffinity.Compute) + delta (historial de SocialGraph), reemplazando el cálculo estático de S64. Tickeado por MoriMochiAgent.Update.
+**Responsabilidad:** Colaborador interno de percepción de la composición del agente (espejo de AgentBrain). Ejecuta un escaneo estrangulado/escalonado de Perceivables cercanas y escribe el resultado en el pizarrón compartido (ctx.Percepts) como lista ordenada y acotada. Nunca decide nada ni muta estado — AgentBrain o un future social brain lee ctx.Percepts y actúa. **S65:** Ahora calcula afinidad social dinámica vía `SocialGraphService.EffectiveAffinity()` que combina seed (SocialAffinity.Compute) + delta (historial de SocialGraph), reemplazando el cálculo estático de S64. **S99:** Popula campo `Team` en Percept desde `Perceivable.Team`. Tickeado por MoriMochiAgent.Update.
 
 ## Campos internos
 
@@ -18,52 +18,58 @@ tags: [script, world, agent, internal, perception]
 
 ## Métodos
 
-- `Tick() → void` — escaneo throttled: consulta PerceivableRegistry.QueryInRadius en el radio, computa afinidad **S65 NUEVA** con SocialGraphService.EffectiveAffinity() para Monchis, ordena por distancia, capea a MaxPercepts. Limpia ctx.Percepts si el agente no está NavMesh-controlado o sin DNA.
+- `Tick() → void` — escaneo throttled: consulta PerceivableRegistry.QueryInRadius en el radio, computa afinidad **S65 NUEVA** con SocialGraphService.EffectiveAffinity() para Monchis, **S99:** copia Team desde Perceivable.Team a Percept, ordena por distancia, capea a MaxPercepts. Limpia ctx.Percepts si el agente no está NavMesh-controlado o sin DNA.
 - `ResetForReuse() → void` — pooling: restaura estado inicial
 
-## Flujo de Perception (Tick)
-
-1. **Throttling:** Si `Time.time < nextScanAt`, retorna sin escanear (ahorra perf)
-2. **Primer tick:** Si no primed, setea nextScanAt a random delay y retorna (stagger)
-3. **Validación:** Si no NavMeshControlled o DNA null, limpia Percepts y retorna
-4. **Query:** `PerceivableRegistry.QueryInRadius()` obtiene todos los Perceivables en PerceptionRadius
-5. **Afinidad:** **S65 NUEVO** Para cada Percept de tipo Monchi, calcula `SocialGraphService.EffectiveAffinity(ctx.Dna, other.Dna, tuning)` que suma seed + delta de historia
-6. **Llenar contexto:** Construye Percept con Kind, SqrDistance, Affinity
-7. **Ordenar:** Sort por SqrDistance (cercano primero)
-8. **Capeo:** Si Count > MaxPercepts, RemoveRange (preserva los más cercanos)
-
-## Cambio S65: Afinidad Dinámica
-
-**S64 (pre-S65):** Afinidad = `SocialAffinity.Compute(a, b, tuning)` — seed estática basada en Element, Kinship, Chemistry, RoleBias.
-
-**S65:** Afinidad = `SocialGraphService.EffectiveAffinity(a, b, tuning)` que:
-- Llama `SocialAffinity.Compute()` para seed
-- Suma delta acumulado del SocialGraph si existe par en diccionario
-- Clampea a [−1, 1]
+## Flujo de Perception (Tick) S99
 
 ```csharp
-float affinity = SocialGraphService.EffectiveAffinity(ctx.Dna, p.Monchi.DNA, t);
+1. **Throttling:** Si Time.time < nextScanAt, retorna sin escanear (ahorra perf)
+2. **Primer tick:** Si no primed, setea nextScanAt a random delay y retorna (stagger)
+3. **Validación:** Si no NavMeshControlled o DNA null, limpia Percepts y retorna
+4. **Query:** PerceivableRegistry.QueryInRadius() obtiene todos los Perceivables en PerceptionRadius
+5. **Para cada Perceivable:**
+   - Auto-exclusión: si es el propietario mismo, skip
+   - Afinidad: Si Kind=Monchi, calcula SocialGraphService.EffectiveAffinity(ctx.Dna, other.Dna, tuning)
+     Sino (Player/Customer/Prop/Material), affinity = 0
+   - **Team S99:** Copia p.Team a Percept.Team (propagado desde Perceivable)
+   - Crear Percept con Source, Kind, SqrDistance, Affinity, **Team**
+   - Agregar a ctx.Percepts
+6. **Ordenar:** Sort(ctx.Percepts) por SqrDistance ascendiente (más cercano primero)
+7. **Capeo:** Si Count > t.MaxPercepts, truncar (mantener los más cercanos)
 ```
 
-**Impacto:** Historias de abalanzadas (+0.06), siestas (+0.08), peleas (−0.1) ahora modifican dinámicamente la afinidad percibida cada tick. Inversión anterior en PlayChase/SleepTogether/Fight paga dividendos en Score de las reglas de reacción.
+## Struct Percept poblado (S99)
+
+```csharp
+new Percept
+{
+    Source      = p,                                      // Perceivable del objeto
+    Kind        = p.Kind,                                  // PerceivableKind
+    SqrDistance = (p.Position - ctx.Body.position).sqrMagnitude,
+    Affinity    = (Monchi) ? SocialGraphService.EffectiveAffinity(...) : 0f,
+    Team        = p.Team,  // S99 NUEVO: ExpeditionTeam (None/Player/Rival)
+}
+```
+
+## Invariantes S99
+
+- **Team propagación:** cada Perceivable tiene un Team; AgentSenses lo copia al Percept. Usado en `AgentExpedition.ApproachPoint()` para evitar competencia directa con rivales.
+- **No cachear:** Percepts se recalculan en cada scan (no reutilizar entre frames); es un snapshot.
+- **Throttling estocástico:** evita que todos los agentes scaneen al mismo tiempo; `ScanIntervalMin/Max` de `SocialTuningSO`.
+- **Afinidad dinámica S65:** cada scan recalcula afinidad desde el grafo social vigente, no cachea.
+- **Ordena por distancia:** siempre, para que las decisiones de comportamiento tengan preferencia al más cercano.
 
 ## Vinculado a
 
-- [[Index/06 - Player & World]]
-- [[MoriMonchiVault/Index/14 - Social V2]]
+[[Index/23 - Arena Sandbox y Expedicion]]
 
 ## Conexiones
 
-**Entrada:**
-- `SocialTuningSO.Current` — para ScanIntervalMin/Max, PerceptionRadius, MaxPercepts
-- `ctx.Dna` — DNA del agente (self)
-- `PerceivableRegistry` — registry global de entidades perceptibles
-
-**Salida:**
-- `ctx.Percepts` — lista de Percept poblada/ordenada
-- `SocialGraphService` — consulta (no mutador) via EffectiveAffinity
-- `AgentSocial.TryEngage()` — lee ctx.Percepts para puntuar reglas
-
-**Consumido por:**
-- `AgentSocial.TryEngage()` — itera Percepts, puntúa reglas, elige mejor
-- `AgentBrain.Tick()` — puede leer Percepts si futura lógica lo necesita
+- [[MoriMochiAgent]] (owner, tickeado por Update)
+- [[AgentContext]] (escribe en `ctx.Percepts`)
+- [[PerceivableRegistry]] (QueryInRadius: obtiene perceivables cercanas)
+- [[Perceivable]] (lee Kind, Team **S99**)
+- [[SocialGraphService]] (calcula afinidad dinámica **S65**)
+- [[SocialTuningSO]] (PerceptionRadius, ScanInterval, MaxPercepts)
+- [[AgentBrain]], [[AgentSocial]], [[AgentExpedition]] (lectores de ctx.Percepts)

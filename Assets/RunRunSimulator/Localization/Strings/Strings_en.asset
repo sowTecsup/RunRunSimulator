@@ -1621,6 +1621,14 @@ MonoBehaviour:
     m_Localized: Collecting
     m_Metadata:
       m_Items: []
+  - m_Id: 14761666143641600
+    m_Localized: Taking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14774912791666688
+    m_Localized: Missed it
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

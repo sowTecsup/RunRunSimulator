@@ -69,6 +69,7 @@ internal class AgentSenses
                 Kind        = p.Kind,
                 SqrDistance = (p.Position - ctx.Body.position).sqrMagnitude,
                 Affinity    = affinity,
+                Team        = p.Team,
             });
         }
 

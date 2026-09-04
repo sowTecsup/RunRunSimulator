@@ -28,6 +28,10 @@ public class RoleWorldProfileSO : SerializedScriptableObject
             { Role.Empatico,  Make(2.8f, 0.25f, 0.7f, 5f, 9f, ProximityReaction.Follow,   2.2f, WorldArea.ShopFrontDesk, 0.50f, 1.3f, new Color(1.00f, 0.50f, 0.85f)) },
         };
 
+        profiles[Role.Protector].RoamSpeedFactor = 0.35f;
+        profiles[Role.Agresivo].RoamSpeedFactor  = 0.35f;
+        profiles[Role.Empatico].RoamSpeedFactor  = 0.35f;
+
         profiles[Role.Protector].Reactions = new List<ReactionRuleBase>
         {
             new ApproachFriendRule { MinAffinity = 0.3f },
@@ -73,6 +77,8 @@ public class RoleWorldProfileSO : SerializedScriptableObject
 public class RoleWorldProfile
 {
     [LabelWidth(150)] public float             MoveSpeed       = 2.5f;
+    [LabelWidth(150)] [Range(0.2f, 1f)]
+    public float                               RoamSpeedFactor = 1f;
     [LabelWidth(150)] public float             IdleChance      = 0.3f;
     [LabelWidth(150)] public float             IdleMin         = 0.5f;
     [LabelWidth(150)] public float             IdleMax         = 1.5f;

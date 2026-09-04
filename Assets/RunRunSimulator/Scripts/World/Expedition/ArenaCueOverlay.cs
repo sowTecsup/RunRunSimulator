@@ -275,8 +275,10 @@ public class ArenaCueOverlay : MonoBehaviour
         {
             if (p.Kind != PerceivableKind.Monchi || p.Source == null) continue;
 
-            float t = (p.Affinity + 1f) * 0.5f;
-            Color color = Color.Lerp(style.FoeColor, style.FriendColor, t);
+            var mine = controller.Agent.Team;
+            Color color = ExpeditionTeams.AreRivals(mine, p.Team) ? style.FoeColor
+                        : ExpeditionTeams.AreAllies(mine, p.Team) ? style.FriendColor
+                        : Color.Lerp(style.FoeColor, style.FriendColor, (p.Affinity + 1f) * 0.5f);
 
             float distance = Mathf.Sqrt(p.SqrDistance);
             float falloff = perceptionRadius > 0f ? Mathf.Clamp01(distance / perceptionRadius) : 1f;

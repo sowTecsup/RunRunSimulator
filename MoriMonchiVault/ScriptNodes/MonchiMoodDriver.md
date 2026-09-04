@@ -6,17 +6,9 @@ tags: [script, animation, behavior, mood]
 
 **Ruta:** `World/Creatures/MonchiMoodDriver.cs`
 
-**Responsabilidad:** Driver de emociones por estado interno del agente. Tick desincronizado cada 2.5-5s (per-creature stagger para evitar sincronización visual). Lee Condition (Sick → Enfermo, InNeed → Triste) e Intent (Resting → Dormido, Eating → Feliz, Playing → Emocionado, Held/Fleeing → Asustado, Tumbling → Mareado, S64: Socializing/Chasing → Feliz/Emocionado, **S65:** SleepingTogether → Dormido, Fighting → Enojado, **S97:** Collecting → Emocionado) del MoriMochiAgent, default mezcla 35% Feliz / 65% Neutral. No interfiere si DragonAnimationDriver.IsBusy (durante combate). Llama visualizer.SetMood() para cambiar la cara. Genera variedad visual orgánica sin afectar gameplay.
+**Responsabilidad:** Driver de emociones por estado interno del agente. Tick desincronizado cada 2.5-5s (per-creature stagger para evitar sincronización visual). Lee Condition (Sick → Enfermo, InNeed → Triste) e Intent (Resting → Dormido, Eating → Feliz, Playing → Emocionado, Held/Fleeing → Asustado, Tumbling → Mareado, S64: Socializing/Chasing → Feliz/Emocionado, S65: SleepingTogether → Dormido/Fighting → Enojado, S97: Collecting → Emocionado, **S98-S99:** Taking → Feliz/Losing → Triste) del MoriMochiAgent, default mezcla 35% Feliz / 65% Neutral. No interfiere si DragonAnimationDriver.IsBusy (durante combate). Llama visualizer.SetMood() para cambiar la cara. Genera variedad visual orgánica sin afectar gameplay.
 
-## Campos
-
-- `agent` (MoriMochiAgent, required) — para consultar Condition e Intent
-- `visualizer` (MonchiVisualizer, required) — para SetMood
-- `combatDriver` (DragonAnimationDriver, optional) — si busy → no tick
-- `tickSeconds` (float range, default 2.5–5s) — rango de tiempo entre ticks
-- `nextTick` (float) — próximo tiempo de tick (desincronizado en OnEnable)
-
-## Mapeo de Mood (ResolveMood)
+## Mapeo de Mood (ResolveMood) S98
 
 ```csharp
 Condition (prioridad alta):
@@ -31,14 +23,27 @@ Intent (prioridad media):
   Tumbling → Mareado
   Fleeing → Asustado
   Chasing → Emocionado
-  Socializing → Feliz        (S64 NUEVO)
-  SleepingTogether → Dormido (S65 NUEVO)
-  Fighting → Enojado         (S65 NUEVO)
-  Collecting → Emocionado    (S97 NUEVO)
+  Socializing → Feliz           (S64)
+  SleepingTogether → Dormido    (S65)
+  Fighting → Enojado            (S65)
+  Collecting → Emocionado       (S97)
+  Taking → Feliz                (S98 NUEVO) — criatura está recolectando mineral
+  Losing → Triste               (S99 NUEVO) — rival acaba de tomar mineral
 
 Default (Idle, Wandering, etc.):
   35% Feliz, 65% Neutral
 ```
+
+## Cambios S98
+
+**Nuevos casos en ResolveMood:**
+- `CreatureIntent.Taking` → `MonchiMood.Feliz` — criatura muestra alegría al agarrar/consumir mineral (celebración de éxito)
+- `CreatureIntent.Losing` → `MonchiMood.Triste` — criatura muestra decepción al perder mineral a rival (beat de reacción)
+
+**Notas:**
+- Taking y Losing son intents discretos derivados de las 4 fases de AgentExpedition (S98-S99): Noticing → Moving → **Taking** → Losing
+- Taking es breve (~1.2s), muestra éxito; Losing es un beat reactivo (~1s) que acompaña la deslusión
+- Combinados con MonchiGestureDriver, ofrecen retroalimentación visual completa del beat de recolección
 
 ## Cambios S65
 
@@ -58,33 +63,44 @@ Default (Idle, Wandering, etc.):
 **Notas:**
 - Collecting es nuevo estado de AgentExpedition (S97), activo cuando persigue material recolectable
 - Emocionado es mood compartido con Playing (S64) y Chasing (S64), creando cohesión visual en actividades "emocionantes"
-- No interfiere con combate; si combatDriver.IsBusy, se mantiene autoridad de DragonAnimationDriver
 
 ## Métodos Públicos
 
 - `Update()` — tick principal: consulta tiempo desincronizado, si es hora resuelve mood y aplica
-- `ResolveMood(CreatureCondition condition, CreatureIntent intent) → MonchiMood` — mapeo puro (static-equivalent) que devuelve mood según entrada
+- `ResolveMood() → MonchiMood` — mapeo puro que devuelve mood según Condition + Intent actuales
 
-## Invariantes S97
+## Campos
 
-- **Lógica sin estado:** ResolveMood es función pura de (condition, intent) → mood; cambios de S97 son solo extensión del mapping.
+- `agent` (MoriMochiAgent, required) — para consultar Condition e Intent
+- `visualizer` (MonchiVisualizer, required) — para SetMood
+- `combatDriver` (DragonAnimationDriver, optional) — si busy → no tick
+- `tickSeconds` (Vector2, default 2.5–5s) — rango de tiempo entre ticks
+- `nextTick` (float) — próximo tiempo de tick (desincronizado en OnEnable)
+
+## Invariantes S98
+
+- **Lógica sin estado:** ResolveMood es función pura de (condition, intent) → mood; cambios de S98 son solo extensión del mapping.
 - **Prioridad Condition > Intent:** Sick/InNeed siempre ganan; dentro de Intent, orden de evaluación es top-to-bottom.
 - **Default aleatorio:** si no hay match (intent desconocido), mezcla 35% Feliz / 65% Neutral usando Random.value; evita puro Neutral monótono.
+- **Beat timing:** Taking/Losing duran solo ~1-1.2s cada uno; al volver a Collecting o Wandering, mood cambia; no persiste tristeza artificial.
 
 ## Vinculado a
 
-- [[Index/06 - Player & World]]
-- [[Index/10 - Visualization]]
-- [[Index/23 - Arena Sandbox y Expedicion]] (S97: Collecting mood)
-- [[MoriMonchiVault/Index/14 - Social V2]] (S65 nuevos intents)
+[[Index/23 - Arena Sandbox y Expedicion]]
 
 ## Conexiones
 
 **Entrada:**
-- `MoriMochiAgent.Intent` — verbo actual (fuente de verdad). **S97:** incluye `Collecting`
+- `MoriMochiAgent.Intent` — verbo actual (fuente de verdad). **S98-S99:** incluye Taking, Losing
 - `MoriMochiAgent.Condition` — bienestar derivado (Healthy/InNeed/Sick)
 - `DragonAnimationDriver.IsBusy` — flag: en combate ahora
 - `MonchiVisualizer` — target del mood
 
 **Salida:**
 - `MonchiVisualizer.SetMood()` — aplica face material según mood
+
+**S98 Integration:**
+- [[AgentExpedition]] (popula Taking/Losing intents)
+- [[ExpeditionRulesSO]] (beat timers que disparan transiciones)
+- [[MonchiGestureDriver]] (sincronizado en paralelo con Taking/Losing)
+- [[ArenaCueOverlay]] (colorea rutas según intent incluyendo Taking/Losing)

@@ -46,6 +46,10 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
-  ArriveDistance: 0.9
+  ArriveDistance: 0.4
   RepathInterval: 0.5
   GiveUpSeconds: 12
+  ApproachMargin: 0.15
+  NoticeSeconds: 0.5
+  TakeSeconds: 1.2
+  LoseSeconds: 1.1

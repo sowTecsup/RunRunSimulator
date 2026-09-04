@@ -77,3 +77,7 @@ crashlytics-build.properties
 # Local secrets (API keys) — NUNCA commitear
 Tools/gemini.key
 Tools/*.key
+
+# Synty POLYGON packs (236 MB, se importan del Asset Store en cada PC)
+/Assets/Synty/
+/Assets/Synty.meta

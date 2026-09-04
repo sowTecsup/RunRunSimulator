@@ -54,6 +54,9 @@ MonoBehaviour:
     - Name: MoveSpeed
       Entry: 4
       Data: 1.8
+    - Name: RoamSpeedFactor
+      Entry: 4
+      Data: 0.35
     - Name: IdleChance
       Entry: 4
       Data: 0.55
@@ -172,6 +175,9 @@ MonoBehaviour:
     - Name: MoveSpeed
       Entry: 4
       Data: 2.6
+    - Name: RoamSpeedFactor
+      Entry: 4
+      Data: 0.35
     - Name: IdleChance
       Entry: 4
       Data: 0.25
@@ -308,6 +314,9 @@ MonoBehaviour:
     - Name: MoveSpeed
       Entry: 4
       Data: 2.8
+    - Name: RoamSpeedFactor
+      Entry: 4
+      Data: 0.35
     - Name: IdleChance
       Entry: 4
       Data: 0.25

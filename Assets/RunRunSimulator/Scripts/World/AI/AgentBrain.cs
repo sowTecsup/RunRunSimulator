@@ -353,7 +353,6 @@ internal class AgentBrain
     internal void EnterRoaming()
     {
         ReleaseStation();
-        ctx.Agent.speed = ctx.BaseSpeed;
         ctx.State = AgentState.Roaming;
         ctx.Agent.updateRotation = true;
         ctx.SetStopped(false);
