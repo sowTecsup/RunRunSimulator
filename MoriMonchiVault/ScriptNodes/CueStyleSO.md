@@ -6,12 +6,12 @@ tags: [script, data, scriptableobject, expedition]
 
 **Ruta:** `Data/Expedition/CueStyleSO.cs`
 
-**Responsabilidad:** **Gancho de datos:** contiene todos los knobs de presentación de guías visuales: diccionario Odin `CreatureIntent → Color` para colorear rutas y anillos, y 50+ parámetros de geometría, animación y velocidad (espesores, radios, tiempos, velocidades de spin). **Cero lógica**; solo lectura desde `ArenaCueOverlay`. Heredero de `SerializedScriptableObject` para poder serializar dicts. Botón `PopulateDefaults()` para precargar colores y valores razonables. Uso: `CueStyleSO.style` (asset referenciado en `ArenaCueOverlay`).
+**Responsabilidad:** **Gancho de datos:** contiene todos los knobs de presentación de guías visuales: diccionario Odin `CreatureIntent → Color` para colorear rutas y anillos, y 50+ parámetros de geometría, animación y velocidad (espesores, radios, tiempos, velocidades de spin). **Cero lógica**; solo lectura desde `ArenaCueOverlay`. Heredero de `SerializedScriptableObject` para poder serializar dicts. Botón `PopulateDefaults()` para precargar colores y valores razonables. Uso: `CueStyleSO.style` (asset referenciado en `ArenaCueOverlay`). **S100:** Agregados intents `Clashing` (naranja) y `Dazed` (violeta).
 
 ## Campos Públicos
 
 **Diccionario (Odin):**
-- `intentColors` (Dict<CreatureIntent, Color>) — mapping intención → color de ruta/anillo. Poblada por `PopulateDefaults()`. **S98-S99:** incluye `Taking` y `Losing`.
+- `intentColors` (Dict<CreatureIntent, Color>) — mapping intención → color de ruta/anillo. Poblada por `PopulateDefaults()`. **S100:** incluye `Clashing` y `Dazed`.
 
 **Colores:**
 - `DefaultIntentColor` (Color) — fallback si una intención no está en el diccionario (default gris 0.6/0.6/0.6).
@@ -86,9 +86,9 @@ tags: [script, data, scriptableobject, expedition]
 ## Métodos Públicos
 
 - `ColorFor(CreatureIntent intent) → Color` — getter: busca en dict, fallback a `DefaultIntentColor`.
-- `PopulateDefaults()` — botón Odin: precarga diccionario con 20 intenciones (Idle, Wandering, Following, ..., **Taking, Losing S98-S99**) + sus colores por defecto; marca dirty.
+- `PopulateDefaults()` — botón Odin: precarga diccionario con 22 intenciones (Idle, Wandering, Following, ..., **Taking, Losing, Clashing, Dazed S100**) + sus colores por defecto; marca dirty.
 
-## PopulateDefaults() — Colores S98
+## PopulateDefaults() — Colores S100
 
 | CreatureIntent | Color (RGB) | Significado |
 |---|---|---|
@@ -102,26 +102,47 @@ tags: [script, data, scriptableobject, expedition]
 | Fighting | (0.55, 0.05, 0.05) | Rojo oscuro pelea |
 | Held/Tumbling | (1, 1, 1) | Blanco especial |
 | Collecting | (0, 1, 1) | Cyan recolección |
-| **Taking** | (0.4, 1, 0.9) | **Cyan claro — beat de consumo S98** |
-| **Losing** | (0.6, 0.62, 0.72) | **Gris azulado — beat rival toma S99** |
+| Taking | (0.4, 1, 0.9) | Cyan claro — beat de consumo (S98) |
+| Losing | (0.6, 0.62, 0.72) | Gris azulado — beat rival toma (S99) |
+| **Clashing** | **(1, 0.45, 0.15)** | **Naranja combate — estado de lucha (S100)** |
+| **Dazed** | **(0.75, 0.6, 0.95)** | **Violeta aturdimiento — post-golpe (S100)** |
 
-## Invariantes S98
+## Cambios S100: Combate Físico
+
+**Líneas 114-115 en PopulateDefaults():**
+```csharp
+AddIfMissing(CreatureIntent.Clashing, new Color(1f, 0.45f, 0.15f));      // naranja
+AddIfMissing(CreatureIntent.Dazed, new Color(0.75f, 0.6f, 0.95f));       // violeta
+```
+
+**Razón:**
+- `Clashing` usa naranja (combate activo, similar a Chasing). Permite distinguir visualmente combate vs. persecución.
+- `Dazed` usa violeta (aturdimiento post-golpe, onírico). Refuerza estado "fuera de control" visualmente.
+
+**Consumo:**
+- [[ArenaCueOverlay.DrawClash()]] — dibuja flecha roja pulsante del atacante al objetivo
+- [[ArenaCueOverlay.DrawPath()]] — ruta al destino coloreada por ColorFor(intent), incluyendo Clashing/Dazed
+- [[MonchiMoodDriver]] — mapea intent a mood; Clashing/Dazed disparan cambios emocionales
+
+## Invariantes S100 + S98
 
 - **Diccionario Odin:** `[OdinSerialize]` + `[DictionaryDrawerSettings]` permite serializar diccionarios no-serializable en Unity.
 - **Cero lógica:** solo almacenamiento. Toda evaluación geométrica, animación y renderizado vive en `ArenaCueOverlay` y `CueDrawer`.
 - **Fallback seguro:** `ColorFor()` nunca falla; retorna default si intención no existe.
 - **Asset único:** típicamente un solo asset `CueStyle.asset` por proyecto; `ArenaCueOverlay` lo referencia directamente.
 - **Edición viva:** cambiar parámetros en Inspector durante Play mode afecta inmediatamente el render de guías (útil para tuning).
-- **S98-S99:** nuevos intents `Taking` y `Losing` se añaden automáticamente a `PopulateDefaults()` con colores distinctivos (cyan claro y gris azulado).
+- **S100:** nuevos intents `Clashing` y `Dazed` se añaden automáticamente a `PopulateDefaults()` con colores distintivos (naranja y violeta).
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+- [[Index/23 - Arena Sandbox y Expedicion]]
 
 ## Conexiones
 
 - [[ArenaCueOverlay]] (lector de todos los parámetros)
 - [[CueDrawer]] (usuario final de espesores, radios, etc.)
-- [[CreatureIntent]] (keys del diccionario, **S98-S99:** incluye Taking/Losing)
-- [[MoriMonchiAgent]] (agente cuyo intent se busca en colorMap)
-- **S98:** [[ExpeditionRulesSO]] (beat timers que disparan transiciones de intent)
+- [[CreatureIntent]] (keys del diccionario, **S100:** incluye Clashing/Dazed)
+- [[MoriMonchiAgent]] (agente cuyo intent se busca en colorMap, **S100:** incluye Clashing/Dazed)
+- [[ExpeditionRulesSO]] (beat timers que disparan transiciones de intent)
+- **S100:** [[AgentClash]] (genera Clashing/Dazed intents)
+- **S100:** [[MonchiMoodDriver]] (mapea colores/intents a moods)

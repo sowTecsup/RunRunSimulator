@@ -58,9 +58,13 @@ internal class AgentPhysics
         var other = collision.collider.GetComponentInParent<IThrowable>();
         if (other != null && !ReferenceEquals(other, ctx.Owner) && !ctx.IsBreeding)
         {
-            Vector3 push = collision.transform.position - ctx.Body.position; push.y = 0f;
-            push = (push.normalized + Vector3.up * owner.knockUpBias).normalized;
-            other.Knock(push * impact * owner.knockTransfer);
+            var otherAgent = collision.collider.GetComponentInParent<MoriMochiAgent>();
+            if (otherAgent == null || (!ExpeditionTeams.AreAllies(owner.Team, otherAgent.Team) && !owner.IgnoresChainKnock(otherAgent)))
+            {
+                Vector3 push = collision.transform.position - ctx.Body.position; push.y = 0f;
+                push = (push.normalized + Vector3.up * owner.knockUpBias).normalized;
+                other.Knock(push * impact * owner.knockTransfer);
+            }
         }
 
         if (bounceCount < owner.maxBounces)
@@ -86,10 +90,14 @@ internal class AgentPhysics
         var hit = other.GetComponentInParent<IThrowable>();
         if (hit == null || ReferenceEquals(hit, ctx.Owner) || ctx.IsBreeding) return;
 
-        Vector3 push = other.transform.position - ctx.Body.position; push.y = 0f;
-        if (push.sqrMagnitude < 0.001f) push = ctx.Body.forward;
-        push = (push.normalized + Vector3.up * owner.knockUpBias).normalized;
-        hit.Knock(push * impact * owner.knockTransfer);
+        var hitAgent = other.GetComponentInParent<MoriMochiAgent>();
+        if (hitAgent == null || (!ExpeditionTeams.AreAllies(owner.Team, hitAgent.Team) && !owner.IgnoresChainKnock(hitAgent)))
+        {
+            Vector3 push = other.transform.position - ctx.Body.position; push.y = 0f;
+            if (push.sqrMagnitude < 0.001f) push = ctx.Body.forward;
+            push = (push.normalized + Vector3.up * owner.knockUpBias).normalized;
+            hit.Knock(push * impact * owner.knockTransfer);
+        }
 
         if (impact >= owner.hardImpactThreshold) ctx.Dna?.Needs.AddAffect(-owner.affectOnHardCollision);
     }
@@ -104,6 +112,7 @@ internal class AgentPhysics
         bool  wasAirborne = ctx.State == AgentState.Thrown;
         float keepThrown  = thrownTimer;
 
+        owner.NotifyKnocked();
         owner.RequestReleaseStation();
         EnterRagdoll();
         if (wasAirborne) thrownTimer = keepThrown;
@@ -179,7 +188,7 @@ internal class AgentPhysics
             ctx.Agent.Warp(getUpToPos);
             ctx.Agent.ResetPath();
             owner.onGetUp?.Invoke();
-            owner.RequestRoam();
+            owner.NotifyRecovered();
         }
     }
 

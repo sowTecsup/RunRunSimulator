@@ -1629,6 +1629,14 @@ MonoBehaviour:
     m_Localized: Missed it
     m_Metadata:
       m_Items: []
+  - m_Id: 14845183867281408
+    m_Localized: Charging
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14845183946973184
+    m_Localized: Dazed
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

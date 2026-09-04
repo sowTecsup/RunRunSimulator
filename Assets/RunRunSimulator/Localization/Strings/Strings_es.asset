@@ -1626,6 +1626,14 @@ MonoBehaviour:
     m_Localized: Se le fue
     m_Metadata:
       m_Items: []
+  - m_Id: 14845183867281408
+    m_Localized: Embiste
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14845183946973184
+    m_Localized: Mareado
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

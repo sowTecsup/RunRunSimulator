@@ -13,6 +13,7 @@ namespace MoriMonchiSimulator
         private CreatureIntent lastIntent;
         private string currentHold = "";
         private string pendingEnter = "";
+        private string lastClashGesture = "";
         private float nextFidget;
 
         private void OnEnable()
@@ -20,6 +21,7 @@ namespace MoriMonchiSimulator
             nextFidget = Time.time + Random.Range(0f, set.FidgetInterval.x);
             lastIntent = agent.Intent;
             currentHold = "";
+            lastClashGesture = "";
         }
 
         private void Update()
@@ -40,6 +42,14 @@ namespace MoriMonchiSimulator
                 pendingEnter = set.TryEnterGesture(intent, out var enterState) ? enterState : "";
                 lastIntent = intent;
             }
+
+            string clashGesture = agent.ClashGesture ?? "";
+            if (clashGesture != lastClashGesture)
+            {
+                lastClashGesture = clashGesture;
+                if (clashGesture != "") pendingEnter = clashGesture;
+            }
+
             if (pendingEnter != "" && locomotion.PlayGesture(pendingEnter))
                 pendingEnter = "";
 

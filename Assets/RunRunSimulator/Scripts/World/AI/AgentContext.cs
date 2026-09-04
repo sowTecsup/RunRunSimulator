@@ -4,7 +4,7 @@ using UnityEngine.AI;
 namespace MoriMonchiSimulator
 {
 
-internal enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting, Socializing, HandFeed, Expedition }
+internal enum AgentState { Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting, Socializing, HandFeed, Expedition, Clashing }
 
 internal class AgentContext
 {
@@ -40,7 +40,7 @@ internal class AgentContext
     internal bool IsNavMeshControlled() =>
         State == AgentState.Idle        || State == AgentState.Roaming      || State == AgentState.Reacting ||
         State == AgentState.SeekingNeed || State == AgentState.UsingStation || State == AgentState.Courting ||
-        State == AgentState.Socializing || State == AgentState.Expedition;
+        State == AgentState.Socializing || State == AgentState.Expedition  || State == AgentState.Clashing;
 
     internal bool IsBreeding => Dna != null && Dna.BusyState == BusyReason.Breeding;
 
@@ -56,7 +56,7 @@ internal class AgentContext
     internal void ApplyGaitSpeed()
     {
         if (Agent == null) return;
-        if (State == AgentState.Courting) return;
+        if (State == AgentState.Courting || State == AgentState.Clashing) return;
 
         float factor = State == AgentState.Roaming && Profile != null ? Profile.RoamSpeedFactor : 1f;
         float target = BaseSpeed * factor;

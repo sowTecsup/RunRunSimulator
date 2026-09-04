@@ -83,6 +83,8 @@ public enum CreatureIntent
     Collecting  = 18,
     Taking      = 19,
     Losing      = 20,
+    Clashing    = 21,
+    Dazed       = 22,
 }
 
 public enum ProximityReaction

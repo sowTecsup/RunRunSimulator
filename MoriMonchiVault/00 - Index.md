@@ -27,7 +27,7 @@ MoriMonchiVault/
 | **Breeding mechanic** | [[Index/02 - Genetics & Breeding]] | [[BreedingService]], [[BreedingAffinityTableSO]], [[InheritanceOddsTableSO]], [[BreedingContainer]] |
 | **Visual assembly (3D, Suriyun DragonSD) · animación viva (S98: gestos, fidgets, mirar, giros)** | [[Index/02 - Genetics & Breeding]], [[Index/23 - Arena Sandbox y Expedicion]] | [[MonchiVisualizer]], [[MonchiVisualBankSO]], [[DragonAnimationDriver]], [[MonchiLocomotionAnimator]], [[MonchiGestureDriver]], [[MonchiGestureSetSO]], [[MonchiGazeDriver]], [[MonchiMoodDriver]] |
 | **DISEÑO VIGENTE: Linaje + Bajada Nocturna + mecánica "esquina a esquina" de Juan (S96-S97, DRAFT)** ⭐ | [[Index/22 - Bajada Nocturna y Linaje (Draft)]] (Parte 8 = S97: mecánica de Juan, tipos de parte, modelo de utilidad, etapas, plan de realismo) | — (diseño; la implementación está en la fila siguiente) |
-| **Arena sandbox · expedición · guías visuales · elenco y equipos (S97-S99, Fase 1 ✅ · Fase 2 en curso · Etapa 3 paso 1 ✅)** | [[Index/23 - Arena Sandbox y Expedicion]], [[Index/22 - Bajada Nocturna y Linaje (Draft)]] (8.6-8.9) | [[ArenaSandbox]], [[ArenaRosterSO]], [[AgentExpedition]], [[ExpeditionRulesSO]], [[ExpeditionRuleBase]], [[ArenaCueOverlay]], [[CueDrawer]], [[CueStyleSO]], [[MaterialPickup]], [[Perceivable]] (equipos), [[NameTag]] (colores por equipo) |
+| **Arena sandbox · expedición · guías visuales · elenco y equipos · choque físico v1 (S97-S100, Fase 1 ✅ · Fase 2 en curso · Etapa 3 pasos 1 y 3 ✅)** | [[Index/23 - Arena Sandbox y Expedicion]], [[Index/22 - Bajada Nocturna y Linaje (Draft)]] (8.6-8.9) | [[ArenaSandbox]], [[ArenaRosterSO]], [[AgentExpedition]], [[ExpeditionRulesSO]], [[ExpeditionRuleBase]], [[ArenaCueOverlay]], [[CueDrawer]], [[CueStyleSO]], [[MaterialPickup]], [[Perceivable]] (equipos), [[NameTag]] (colores por equipo), **S100:** [[AgentClash]], [[ClashMoveSO]], [[ClashTuningSO]], [[ArenaClashDev]] (botones), [[ArenaCameraDirector]] (cámara que se acerca al choque) |
 | **Combate v3 Dragon RPS (S92-S95 — 🪦 FALLIDO S96, código en pie)** | [[Index/21 - Combate v3 - Dragon RPS]] | `Scripts/DragonRps/` (DragonRpsRules, DragonRpsMatch, DragonRpsSession, etc.) |
 | **Combate prototipo táctico S77-S88 (NO VALIDÓ — DEMOLIDO S93)** | [[Index/09b - Session Digest (S8-S88)]] (timeline S77-S88); código, escena, assets, nota `Index/20` y ScriptNodes borrados — recuperables en git `3cc5eb5` | — |
 | **Combate viejo 3v3 (DEMOLIDO S75 — solo historia)** | [[Index/03 - Combat]] (historico), [[Index/09b - Session Digest (S8-S88)]] | — |
@@ -65,7 +65,7 @@ MoriMonchiVault/
 Assets/RunRunSimulator/Scripts/
 ├── DragonRps/     # combate v3 S92+ (logica pura, cero dependencias de UnityEngine)
 ├── Core/          # GameManager, GameEvents (10 eventos), SaveSystem, Interfaces · Enums/ (6 archivos desde S93)
-├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · Equipment/ · Items/ · Social/ · Expedition/ (CueStyleSO, ExpeditionRuleBase, ExpeditionRulesSO — S97)
+├── Data/          # Genetics/ (CreatureDNA, registry) · Parts/ (Horn/Back/Wing/Face/BodyShape) · Databases/ · Equipment/ · Items/ · Social/ · Expedition/ (CueStyleSO, ExpeditionRuleBase, ExpeditionRulesSO — S97 · ArenaRosterSO S99 · ClashMoveSO, ClashTuningSO S100)
 ├── Systems/       # Desacoplados vía GameEvents
 │   ├── Breeding/  # BreedingService, AsyncBreedingService
 │   ├── Cloud/     # CloudSyncService (+ CloudAuth/CloudSyncOps)
@@ -80,7 +80,7 @@ Assets/RunRunSimulator/Scripts/
 ├── Player/        # PlayerInputs, PlayerController, BuildingInputs
 ├── Interactables/ # PanelTrigger, ThrowableObject
 ├── Shaders/       # MonchiCue.shader (guías vectoriales SDF, S97) · UIRingOverlay.shader
-└── World/         # AI/ (MoriMochiAgent + colaboradores, AgentExpedition S97, equipos en Perceivable S99), Creatures/ (MonchiVisualizer, MonchiGestureDriver/MonchiGazeDriver S98), NeedStation, containers · Expedition/ (ArenaSandbox + ArenaRosterSO, ArenaCueOverlay, CueDrawer, MaterialPickup — S97)
+└── World/         # AI/ (MoriMochiAgent + colaboradores, AgentExpedition S97, equipos en Perceivable S99, AgentClash S100), Creatures/ (MonchiVisualizer, MonchiGestureDriver/MonchiGazeDriver S98), NeedStation, containers · Expedition/ (ArenaSandbox, ArenaCueOverlay, CueDrawer, MaterialPickup — S97 · ArenaClashDev, ArenaCameraDirector — S100)
 ```
 
 ---
@@ -119,7 +119,7 @@ Three mutually exclusive action maps: `Player`, `UI`, `Building`. Only one activ
 | Stats (HP/Attack/Speed) | [[CreatureStats]], [[BodyPart]] |
 | Personality (diales Sociability/Boldness), tint | [[MoriMochiAgent]], [[AgentBrain]] |
 | Por qué criar, linaje, adopción, bajada nocturna, salas, ferales, nervio, esquina a esquina, tipos de parte, modelo de utilidad | [[Index/22 - Bajada Nocturna y Linaje (Draft)]] (dirección vigente desde S96, draft; Parte 8 = S97) |
-| Arena, sandbox, expedición, minerales, reglas de expedición, guías visuales, cues, anillo de percepción, ruta curva | [[Index/23 - Arena Sandbox y Expedicion]], [[AgentExpedition]], [[ArenaCueOverlay]] |
+| Arena, sandbox, expedición, minerales, reglas de expedición, guías visuales, cues, anillo de percepción, ruta curva, choque, embestida, picada, coletazo, mareado | [[Index/23 - Arena Sandbox y Expedicion]], [[AgentExpedition]], [[ArenaCueOverlay]], [[AgentClash]] (S100) |
 | Combat, fight, battle, RPS, dragon duel | [[Index/21 - Combate v3 - Dragon RPS]] (🪦 fallido S96, ver Index/22; el prototipo táctico quedó histórico en S92; el 3v3 viejo murió en S75) |
 | Breeding, cross, hatch | [[BreedingService]], [[BreedingContainer]] |
 | Affinity, compatibility | [[BreedingAffinityTableSO]] |

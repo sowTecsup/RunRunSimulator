@@ -1615,6 +1615,14 @@ MonoBehaviour:
     m_Key: intent.losing
     m_Metadata:
       m_Items: []
+  - m_Id: 14845183867281408
+    m_Key: intent.clashing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14845183946973184
+    m_Key: intent.dazed
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

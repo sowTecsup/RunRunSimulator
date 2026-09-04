@@ -6,7 +6,7 @@ tags: [script, world, agent, internal]
 
 **Ruta:** `World/AI/AgentContext.cs`
 
-**Responsabilidad:** Contenedor de estado puro para un MoriMochiAgent (datos compartidos entre colaboradores sin duplicación). Almacena referencias a componentes (NavMeshAgent, Rigidbody, Collider, Transform), datos de DNA/perfil, estado de juego (ubicación actual, velocidad base), máscaras NavMesh (libre vs confinado), banderas de operación (rebake en curso), y lista de percepciones sociales (Percepts) escrita por AgentSenses y leída por AgentSocial, AgentExpedition. Expone helpers para consultas de seguridad: `IsNavMeshControlled()`, `IsBreeding`, `IsMoving`, `PlanarDistanceToPlayer()`; operaciones del agente: `SetStopped()`, `SetDestinationSafe()` (con muestreo de NavMesh), `SetColliderTrigger()`; **S98 NUEVO:** `BaseSpeed` y `ApplyGaitSpeed()` = único dueño de `NavMeshAgent.speed`. **S97:** AgentState enum con `Expedition`. No tiene lógica de estado.
+**Responsabilidad:** Contenedor de estado puro para un MoriMochiAgent (datos compartidos entre colaboradores sin duplicación). Almacena referencias a componentes (NavMeshAgent, Rigidbody, Collider, Transform), datos de DNA/perfil, estado de juego (ubicación actual, velocidad base), máscaras NavMesh (libre vs confinado), banderas de operación (rebake en curso), y lista de percepciones sociales (Percepts) escrita por AgentSenses y leída por AgentSocial, AgentExpedition. Expone helpers para consultas de seguridad: `IsNavMeshControlled()`, `IsBreeding`, `IsMoving`, `PlanarDistanceToPlayer()`; operaciones del agente: `SetStopped()`, `SetDestinationSafe()` (con muestreo de NavMesh), `SetColliderTrigger()`; **S98 NUEVO:** `BaseSpeed` y `ApplyGaitSpeed()` = único dueño de `NavMeshAgent.speed`. **S97:** AgentState enum con `Expedition`. **S100 NUEVO:** AgentState con `Clashing`. No tiene lógica de estado.
 
 ## Enum AgentState
 
@@ -23,7 +23,8 @@ internal enum AgentState {
     Courting,       // cortejando
     Socializing,    // interacción social (S65)
     HandFeed,       // comiendo de la mano (S69)
-    Expedition      // persiguiendo objetivo recolectable (S97 NUEVO)
+    Expedition,     // persiguiendo objetivo recolectable (S97 NUEVO)
+    Clashing        // combatiendo físico (S100 NUEVO)
 }
 ```
 
@@ -33,7 +34,7 @@ internal enum AgentState {
 - `Body, Agent, Rb, Col` (Transform, NavMeshAgent, Rigidbody, Collider) — componentes del GO
 - **S98 NUEVO:**
   - `BaseSpeed` (float) — velocidad base del NavMeshAgent (cacheada en inicio, modificable). Única fuente de verdad; todas las variaciones de velocidad pasan por `ApplyGaitSpeed()`.
-- `State` (AgentState) — estado actual; puede ser Expedition (S97)
+- `State` (AgentState) — estado actual; puede ser Expedition (S97) o Clashing (S100)
 - `Dna, Profile` (CreatureDNA, RoleWorldProfile) — datos genéticos y perfil de rol; Profile.RoamSpeedFactor usado por S98
 - `Player, HoldAnchor` (Transform) — transforms de referencias externas
 - `CurrentContainer` (MoriMochiContainer) — el corral/contenedor que lo confina (null si libre)
@@ -43,7 +44,7 @@ internal enum AgentState {
 
 ## Métodos Públicos
 
-- `IsNavMeshControlled() → bool` — verdadero si el estado NO es Carried/Thrown/Recovering. **S97:** ahora incluye Expedition.
+- `IsNavMeshControlled() → bool` — verdadero si el estado NO es Carried/Thrown/Recovering. **S97:** ahora incluye Expedition. **S100:** ahora incluye Clashing.
 - `IsBreeding → bool` — verdadero si DNA.BusyState == Breeding
 - `IsMoving → bool` — verdadero si agente está en movimiento físico (enabled, on mesh, not stopped, velocity > 0.01)
 - `SetStopped(bool stopped)` — pausa/reanuda el NavMeshAgent
@@ -54,9 +55,10 @@ internal enum AgentState {
 
 ## Métodos S98 NUEVOS
 
-- **`ApplyGaitSpeed()`** — **S98 NUEVO.** Único dueño de `NavMeshAgent.speed`. Lógica:
+- **`ApplyGaitSpeed()`** — **S98 NUEVO, S100 ACTUALIZADO.** Único dueño de `NavMeshAgent.speed`. Lógica:
   - Si Agent == null, retorna temprano
   - Si State == Courting, retorna sin tocar (courting pace se maneja aparte)
+  - **S100:** Si State == Clashing, retorna sin tocar (clash mantiene su propia lógica de NavMeshAgent override)
   - Sino: calcula `factor = (State == Roaming && Profile != null) ? Profile.RoamSpeedFactor : 1f`
   - Asigna `Agent.speed = BaseSpeed × factor` (solo si cambió, evita dirty)
   - Llamado cada frame por `MoriMochiAgent.Update()` para mantener speed sincronizada con estado y profile
@@ -70,6 +72,31 @@ internal enum AgentState {
 - Nunca null: limpiada si el agente no está en control NavMesh
 - Pizarrón compartido con colaboradores (AgentSocial, AgentExpedition) para decisiones sin re-consulta
 
+## Cambios S100: Clashing
+
+**Línea 7:** AgentState enum actualizado:
+```csharp
+internal enum AgentState { ..., Clashing }  // valor 13
+```
+
+**Línea 43:** IsNavMeshControlled() ahora incluye Clashing:
+```csharp
+internal bool IsNavMeshControlled() =>
+    State == AgentState.Idle        || State == AgentState.Roaming      || State == AgentState.Reacting ||
+    State == AgentState.SeekingNeed || State == AgentState.UsingStation || State == AgentState.Courting ||
+    State == AgentState.Socializing || State == AgentState.Expedition  || State == AgentState.Clashing;
+```
+
+**Línea 59:** ApplyGaitSpeed() ahora excluye Clashing junto con Courting:
+```csharp
+internal void ApplyGaitSpeed()
+{
+    if (Agent == null) return;
+    if (State == AgentState.Courting || State == AgentState.Clashing) return;  // S100: Clashing maneja su propia velocidad
+    // ... resto de lógica
+}
+```
+
 ## Cambios S98
 
 **BaseSpeed centralizado:**
@@ -77,6 +104,7 @@ internal enum AgentState {
 - Único dueño de `NavMeshAgent.speed` vía `ApplyGaitSpeed()`
 - Roaming → base × `Profile.RoamSpeedFactor` (más lento para explorar)
 - Courting → sin cambio (mantiene su propia lógica)
+- Clashing → sin cambio (mantiene su propia lógica de override)
 - Estados restantes → base sin factor (velocidad normal)
 - Llamada cada frame desde `MoriMochiAgent.Update()` (línea 56-64)
 
@@ -92,20 +120,20 @@ internal enum AgentState {
 **IsNavMeshControlled() actualizado:**
 - Ahora devuelve true para Idle, Roaming, Reacting, SeekingNeed, UsingStation, Courting, Socializing, **Expedition**
 
-## Invariantes S98 + S97
+## Invariantes S100 + S98 + S97
 
-- **Único dueño de NavMeshAgent.speed:** `ApplyGaitSpeed()` es la única vía para cambiar speed (centraliza lógica, evita conflictos).
+- **Único dueño de NavMeshAgent.speed:** `ApplyGaitSpeed()` es la única vía para cambiar speed (centraliza lógica, evita conflictos). **S100:** Clashing maneja override interno (no interfiere con ApplyGaitSpeed).
 - **Pizarrón compartido:** Percepts evita que cada colaborador re-consulte PerceivableRegistry; ahorro de iteraciones.
 - **AgentState enum centralizado:** todas las máquinas de estado del agente usan este enum; fácil agregar estados nuevos.
-- **IsNavMeshControlled determinista:** agrupa estados lógicos "en control del NavMesh" vs "en física pura". S97 agrega Expedition (usa SetDestination).
+- **IsNavMeshControlled determinista:** agrupa estados lógicos "en control del NavMesh" vs "en física pura". **S100:** Clashing es NavMesh-controlled (agente aún tiene NavMeshAgent enabled, aunque con override de velocidad/aceleración).
 - **SetDestinationSafe idempotent:** si la posición no es sampleable, no asigna (safe fallback vs crash).
-- **Courting carve-out:** Courting no cambia speed porque sigue su propia lógica de cortejo (no es Roaming).
+- **Courting/Clashing carve-out:** ambos no cambian speed porque siguen su propia lógica (cortejo y combate respectivamente).
 
 ## Vinculado a
 
 - [[Index/06 - Player & World]]
 - [[Index/02 - Genetics & Breeding]]
-- [[Index/23 - Arena Sandbox y Expedicion]] (S97, S98: velocidades en arena)
+- [[Index/23 - Arena Sandbox y Expedicion]] (S97, S98, S100: velocidades y clash en arena)
 
 ## Conexiones
 
@@ -116,6 +144,8 @@ internal enum AgentState {
 - [[AgentSenses]] — escribe Percepts
 - [[AgentSocial]] — lee Percepts
 - [[AgentExpedition]] — S97 lee Percepts, usa SetDestinationSafe
+- **S100:** [[AgentClash]] — maneja override de velocidad internamente durante Clashing
 - [[RoleWorldProfileSO]] — Profile.RoamSpeedFactor leído por ApplyGaitSpeed (S98)
 - [[HotbarController]]
 - [[ExpeditionRulesSO]] — S97
+- **S100:** [[ClashTuningSO]] — consultado por AgentClash

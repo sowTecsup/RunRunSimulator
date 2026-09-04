@@ -18,6 +18,7 @@ public class ArenaCueOverlay : MonoBehaviour
     [SerializeField] private bool showMinerals = true;
     [SerializeField] private bool showReticle = true;
     [SerializeField] private bool showSocial = true;
+    [SerializeField] private bool showClash = true;
 
     private class CueAnim
     {
@@ -77,6 +78,8 @@ public class ArenaCueOverlay : MonoBehaviour
             if (showReticle) DrawReticle(controller, state);
 
             if (showSocial) DrawSocial(controller);
+
+            if (showClash) DrawClash(controller);
         }
 
         if (showMinerals) DrawMinerals();
@@ -357,6 +360,22 @@ public class ArenaCueOverlay : MonoBehaviour
         if (fighting) color.a = 0.5f + 0.5f * Mathf.Sin(Time.time * style.FightPulseSpeed);
 
         CueDrawer.DashedSegment(a, b, style.SocialLinkThickness, style.PerceptDashLength, style.PerceptDashGap, Time.time * style.PerceptFlowSpeed, color, color, fighting);
+    }
+
+    private void DrawClash(MoriMonchiController controller)
+    {
+        var target = controller.Agent.ClashTarget;
+        if (target == null) return;
+
+        Vector3 a = controller.transform.position + Vector3.up * style.HeightOffset;
+        Vector3 b = target.transform.position + Vector3.up * style.HeightOffset;
+
+        Color head = style.FightColor;
+        head.a = 0.55f + 0.45f * Mathf.Sin(Time.time * style.FightPulseSpeed);
+        Color tail = head;
+        tail.a *= style.PathTailAlpha;
+
+        CueDrawer.Arrow(a, b, style.PathThickness * 1.5f, style.HeadLength, style.HeadWidth, tail, head, true);
     }
 
     private CueState GetCueState(MoriMonchiController controller)

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9af436927584c8348aab88128e690aad, type: 3}
+  m_Name: ClashMove_Embestida
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ClashMoveSO
+  Slot: 0
+  AnticipationSeconds: 0.3
+  StrikeSeconds: 1.2
+  Range: 5
+  HitRadius: 1.1
+  Impulse: 27
+  UpBias: 0.3
+  DashSpeed: 14
+  DashAcceleration: 60
+  SelfRecoil: 0
+  LaunchAngle: 45
+  SweepRadius: 0
+  TellGesture: Roar
+  StrikeGesture: 

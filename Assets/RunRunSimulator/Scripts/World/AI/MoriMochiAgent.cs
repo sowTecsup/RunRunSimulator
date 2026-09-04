@@ -17,6 +17,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private AgentSenses      senses;
     private AgentSocial      social;
     private AgentExpedition  expedition;
+    private AgentClash       clash;
     private Perceivable perceivable;
 
     private void OnEnable()
@@ -46,6 +47,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         senses      = new AgentSenses(this, ctx);
         social      = new AgentSocial(this, ctx);
         expedition  = new AgentExpedition(this, ctx);
+        clash       = new AgentClash(this, ctx);
         perceivable = GetComponent<Perceivable>();
 
         ctx.Rb.isKinematic = true;
@@ -110,6 +112,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         social.ResetForReuse();
         senses.ResetForReuse();
         expedition.ResetForReuse();
+        clash.ResetForReuse();
         ctx.RebakeInProgress = false;
         ctx.State            = AgentState.Idle;
     }
@@ -133,17 +136,18 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         ctx.ApplyGaitSpeed();
         switch (ctx.State)
         {
-            case AgentState.Idle:         brain.TickIdle();    if (ctx.State == AgentState.Idle    && !expedition.TryEngage()) social.TryEngage(); break;
-            case AgentState.Roaming:      brain.TickRoaming(); if (ctx.State == AgentState.Roaming && !expedition.TryEngage()) social.TryEngage(); break;
+            case AgentState.Idle:         brain.TickIdle();    if (ctx.State == AgentState.Idle    && !clash.TryEngage() && !expedition.TryEngage()) social.TryEngage(); break;
+            case AgentState.Roaming:      brain.TickRoaming(); if (ctx.State == AgentState.Roaming && !clash.TryEngage() && !expedition.TryEngage()) social.TryEngage(); break;
             case AgentState.Reacting:     brain.TickReacting();      break;
-            case AgentState.Thrown:       physics.TickThrown();      break;
+            case AgentState.Thrown:       clash.TickAirborne(); physics.TickThrown(); break;
             case AgentState.Recovering:   physics.TickRecovering();  break;
             case AgentState.SeekingNeed:  brain.TickSeekingNeed();   break;
             case AgentState.UsingStation: brain.TickUsingStation();  break;
             case AgentState.Courting:     confinement.TickCourting(); break;
             case AgentState.Socializing:  social.TickSocializing();  break;
             case AgentState.HandFeed:     brain.TickHandFeed();      break;
-            case AgentState.Expedition:   expedition.TickExpedition(); break;
+            case AgentState.Expedition:   if (clash.TryEngage()) expedition.ResetForReuse(); else expedition.TickExpedition(); break;
+            case AgentState.Clashing:     clash.TickClashing();      break;
         }
     }
 
@@ -173,6 +177,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public bool CanBePetted => brain.CanBePetted;
 
     public CreatureIntent Intent =>
+        ctx.State == AgentState.Clashing    ? clash.Intent :
         ctx.State == AgentState.Socializing ? social.Intent :
         ctx.State == AgentState.Expedition  ? expedition.Intent :
         brain.Intent;
@@ -183,6 +188,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public int CollectedMaterial => expedition.Collected;
     public Transform ExpeditionTarget => expedition.Target != null ? expedition.Target.transform : null;
     public MoriMochiAgent SocialPartner => ctx.State == AgentState.Socializing ? social.Partner : null;
+    public MoriMochiAgent ClashTarget => clash.Target;
+    public string ClashGesture => clash.Gesture;
+    public bool IsClashTargetable => clash.IsTargetable;
+    public bool ForceClash(ClashMoveSO move, MoriMochiAgent rival) => clash.ForceMove(move, rival);
 
     public event System.Action<EmoteKind> OnEmote;
     internal void EmitEmote(EmoteKind kind) => OnEmote?.Invoke(kind);
@@ -218,6 +227,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     internal void RequestReleaseFromPen() => confinement.ReleaseFromPen();
     internal Vector3 AdjustRoamForAvoidance(Vector3 candidate) => social.AdjustRoamForAvoidance(candidate);
     internal void RequestPlayfulKnock(Vector3 force) => physics.Knock(force, false);
+    internal void ReceiveClashHit(MoriMochiAgent attacker, Vector3 force) { clash.ReceiveHit(attacker); physics.Knock(force, false); }
+    internal void NotifyKnocked() => clash.Cancel();
+    internal void NotifyRecovered() => clash.OnRecovered();
+    internal bool IgnoresChainKnock(MoriMochiAgent other) => clash.IgnoresChainKnock(other);
 
     [TabGroup("Tuning", "References"), Title("References")]
     [SerializeField] private NameTag nameTag;
@@ -500,6 +513,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [SerializeField] internal UnityEvent onPet;
     [TabGroup("Tuning", "Presentation")]
     [SerializeField] internal UnityEvent onPickup;
+    [TabGroup("Tuning", "Presentation")]
+    [SerializeField] internal UnityEvent onClashTell;
+    [TabGroup("Tuning", "Presentation")]
+    [SerializeField] internal UnityEvent onClashHit;
+    [TabGroup("Tuning", "Presentation")]
+    [SerializeField] internal UnityEvent onKnocked;
 
     [TabGroup("Tuning", "Dev"), Title("Live State (play mode)")]
     [ShowInInspector, ReadOnly, EnumToggleButtons]

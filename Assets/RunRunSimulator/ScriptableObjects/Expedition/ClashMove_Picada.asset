@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9af436927584c8348aab88128e690aad, type: 3}
+  m_Name: ClashMove_Picada
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ClashMoveSO
+  Slot: 1
+  AnticipationSeconds: 0.35
+  StrikeSeconds: 1.5
+  Range: 8
+  HitRadius: 2
+  Impulse: 33
+  UpBias: 0.45
+  DashSpeed: 0
+  DashAcceleration: 60
+  SelfRecoil: 0
+  LaunchAngle: 40
+  SweepRadius: 0
+  TellGesture: FlyUp
+  StrikeGesture: 

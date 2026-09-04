@@ -11,6 +11,7 @@ public class ArenaSandbox : MonoBehaviour
     [Required, SerializeField] private RoleWorldProfileSO profileTable;
     [Required, SerializeField] private SocialTuningSO socialTuning;
     [Required, SerializeField] private ExpeditionRulesSO expeditionRules;
+    [Required, SerializeField] private ClashTuningSO clashTuning;
     [Required, SerializeField] private MonchiVisualBankSO visualBank;
     [Required, SerializeField] private FurTypeDatabaseSO furDatabase;
     [Required, SerializeField] private CreatureDatabaseSO creatureDatabase;

@@ -6,7 +6,7 @@ tags: [script, world, expedition, sandbox]
 
 **Ruta:** `World/Expedition/ArenaSandbox.cs`
 
-**Responsabilidad:** Escena de pruebas `ArenaSandbox.unity` para observar comportamientos emergentes de criaturas en entorno controlado. **S99 NUEVO:** Genera criaturas desde `ArenaRosterSO` (si `useRoster == true`), spawnea por equipos (Player en esquina inferior-izquierda, Rival en esquina superior-derecha), y asigna Team via `Perceivable.SetTeam()`. Fallback: genera N criaturas al azar con semilla determinista. Mantiene necesidades llenas, siembra minerales recolectables (1 central de alto valor + 4 de esquinas). Expone listas públicas de criaturas spawneadas y minerales para que `ArenaCueOverlay` las dibuje. Nota: la escena no está en Build Settings; es solo para desarrollo/debugging.
+**Responsabilidad:** Escena de pruebas `ArenaSandbox.unity` para observar comportamientos emergentes de criaturas en entorno controlado. **S99 NUEVO:** Genera criaturas desde `ArenaRosterSO` (si `useRoster == true`), spawnea por equipos (Player en esquina inferior-izquierda, Rival en esquina superior-derecha), y asigna Team via `Perceivable.SetTeam()`. Fallback: genera N criaturas al azar con semilla determinista. Mantiene necesidades llenas, siembra minerales recolectables (1 central de alto valor + 4 de esquinas). Expone listas públicas de criaturas spawneadas y minerales para que `ArenaCueOverlay` las dibuje. **S100 NUEVO:** Referencia a `ClashTuningSO` para que `ClashTuningSO.Current` exista en la arena. Nota: la escena no está en Build Settings; es solo para desarrollo/debugging.
 
 ## Métodos Públicos
 
@@ -30,6 +30,7 @@ tags: [script, world, expedition, sandbox]
 - `profileTable` (RoleWorldProfileSO) — tabla de perfiles de rol.
 - `socialTuning` (SocialTuningSO) — tuning social global.
 - `expeditionRules` (ExpeditionRulesSO) — reglas de expedición (se ve si `Current != null`).
+- **S100 NUEVO:** `clashTuning` (ClashTuningSO) — tuning de choque (se ve si `Current != null` durante play).
 - `visualBank` (MonchiVisualBankSO) — banco de visuales.
 - `furDatabase` (FurTypeDatabaseSO) — database de tipos de pelaje.
 - `creatureDatabase` (CreatureDatabaseSO) — database de partes genéticas.
@@ -61,9 +62,12 @@ tags: [script, world, expedition, sandbox]
 - `centerMineralValue` (int, min 1, default 5) — valor de material del central (vs 1 para esquinas).
 - `arenaHalfSize` (float, min 0, default 20) — semi-ancho de la arena cuadrada (para cálculos de esquina).
 
-## Flujo S99
+## Flujo S100 + S99
 
 ```
+Awake():
+  (el clashTuning se setea en el inspector y OnEnable automático asigna ClashTuningSO.Current)
+
 Spawn():
   if (useRoster && roster != null && roster.Entries.Count > 0):
     foreach entry in roster.Entries:
@@ -102,23 +106,38 @@ private Vector3 TeamCorner(ExpeditionTeam team, Vector3 center)
 }
 ```
 
-## Invariantes S99
+## Cambios S100: Clash Tuning
+
+**Línea 14:** Nuevo campo serializado:
+```csharp
+[Required, SerializeField] private ClashTuningSO clashTuning;
+```
+
+**Razón:** `ClashTuningSO` es un singleton que se auto-asigna vía `OnEnable()`. Referenciarlo en `ArenaSandbox` garantiza que el asset se carga y `ClashTuningSO.Current` está disponible para [[AgentClash.TryEngage()]] y otros llamadores durante play.
+
+**Consumo:**
+- `ClashTuningSO.Current` consultado por [[AgentClash]] durante comportamiento autónomo
+- `ArenaClashDev` (dev tools) también lo usa para acceder a movimientos
+
+## Invariantes S100 + S99
 
 - **Roster-driven:** si `roster` existe y `useRoster=true`, spawnea exactamente tantos agentes como entradas en roster (no aleatorio, ni "count").
 - **Team asignación:** `perceivable.SetTeam(team)` es el punto de mutación; sin esto, los agentes quedan en `ExpeditionTeam.None` (neutrales).
-- **Separación física:** Player y Rival spawnean en esquinas opuestas (`TeamCorner`), facilitando conflictos de expedición y socialización rechazada.
+- **Separación física:** Player y Rival spawnean en esquinas opuestas (`TeamCorner`), facilitando conflictos de expedición y combate.
+- **Clash tuning cargado:** `clashTuning` referenciado en inspector → `OnEnable()` automático asigna `ClashTuningSO.Current` → `AgentClash.TryEngage()` siempre encuentra tuning válido.
 - **Necesidades plenas:** `keepNeedsFull=true` en Inspector mantiene Health/Energy/Affect a 100 para enfoque en comportamiento autónomo (sin supervivencia).
 - **Determinismo:** seed fijo (o `System.Environment.TickCount` si randomizeEachPlay) permite reproducibilidad.
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+- [[Index/23 - Arena Sandbox y Expedicion]]
 
 ## Conexiones
 
 **Referencias de entrada:**
 - **S99:** [[ArenaRosterSO]] (tabla de criaturas predefinidas)
 - [[ExpeditionRulesSO]] (reglas de expedición, timings de beats)
+- **S100:** [[ClashTuningSO]] (tuning de choque)
 - [[RoleWorldProfileSO]], [[MonchiVisualBankSO]], [[FurTypeDatabaseSO]], [[CreatureDatabaseSO]]
 - [[SocialTuningSO]] (tuning social global)
 
@@ -132,3 +151,5 @@ private Vector3 TeamCorner(ExpeditionTeam team, Vector3 center)
 - [[ArenaCueOverlay]] (itera Spawned y Minerals para dibujar guías)
 - [[NameTag]] (accede a tagShowDistance/tagReferenceDistance)
 - [[Unity.Cinemachine.CinemachineTargetGroup]] (agrupa cámaras)
+- **S100:** [[ArenaClashDev]] (accede a Spawned para testing manual)
+- **S100:** [[ArenaCameraDirector]] (accede a Spawned, filtra por Clashing/Dazed intent)
