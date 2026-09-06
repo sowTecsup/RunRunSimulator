@@ -687,7 +687,7 @@ MonoBehaviour:
   m_LayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_UseGeometry: 0
+  m_UseGeometry: 1
   m_DefaultArea: 0
   m_GenerateLinks: 0
   m_IgnoreNavMeshAgent: 1
@@ -868,10 +868,11 @@ MonoBehaviour:
   visualBank: {fileID: 11400000, guid: bde04aae719e5854687df754fb9d2b93, type: 2}
   furDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
   creatureDatabase: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
-  observer: {fileID: 168510264}
+  observer: {fileID: 0}
   targetGroup: {fileID: 252766642}
   spawnCenter: {fileID: 1739139467}
   seed: 4242
+  castSeed: 1
   randomizeEachPlay: 0
   count: 3
   spawnRadius: 4
@@ -880,14 +881,18 @@ MonoBehaviour:
   tagReferenceDistance: 9
   roster: {fileID: 11400000, guid: 8215d2355610a22418704851c28c16ab, type: 2}
   useRoster: 1
-  teamSpawnInset: 9
+  teamSpawnInset: 14
   teamSpawnRadius: 2.5
+  exitPrefab: {fileID: 7100000000000004, guid: d1b4f6a8c5e27b3f1d9a4c6e8f0b2d54, type: 3}
+  exitInset: 4
   mineralPrefab: {fileID: 7002426196397243834, guid: 6996548edce035844935640d9d46a089, type: 3}
+  layout: {fileID: 1885508452}
   cornerMinerals: 4
   cornerInset: 6
   cornerJitter: 2
   centerMineralScale: 2.5
-  centerMineralValue: 5
+  centerMineralValue: 40
+  cornerMineralValue: 8
   arenaHalfSize: 20
 --- !u!1001 &47364713
 PrefabInstance:
@@ -2732,6 +2737,8 @@ MonoBehaviour:
   showReticle: 1
   showSocial: 1
   showClash: 1
+  showExits: 1
+  showMining: 1
 --- !u!4 &117751132
 Transform:
   m_ObjectHideFlags: 0
@@ -3965,7 +3972,7 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 5000
-  field of view: 30
+  field of view: 32
   orthographic: 0
   orthographic size: 10
   m_Depth: 0
@@ -3992,7 +3999,7 @@ Transform:
   m_GameObject: {fileID: 168510260}
   serializedVersion: 2
   m_LocalRotation: {x: 0.4694716, y: 0, z: 0, w: 0.8829476}
-  m_LocalPosition: {x: 0, y: 4.974222, z: -3.355155}
+  m_LocalPosition: {x: 0, y: 24.871128, z: -16.775785}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21489,6 +21496,125 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!1 &900000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900000002}
+  - component: {fileID: 900000003}
+  m_Layer: 0
+  m_Name: ArenaRound
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &900000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &900000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8f2d4e6a3c05f1d9b7e2a4c6d8f0b32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaRound
+  sandbox: {fileID: 46679317}
+  roundSeconds: 90
+  autoStart: 1
+--- !u!1 &900000011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 900000012}
+  - component: {fileID: 900000013}
+  - component: {fileID: 900000014}
+  m_Layer: 5
+  m_Name: ArenaRoundHud
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &900000012
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000011}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &900000013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: 3c8a8da8175b6d54a907634fef6a08f4, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 0}
+  m_SortingOrder: 10
+  m_Position: 0
+  m_WorldSpaceSizeMode: 0
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
+--- !u!114 &900000014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900000011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9a3e5f7b4d16a2e0c8f3b5d7e9a1c43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaRoundHud
+  round: {fileID: 900000003}
+  playerColor: {r: 0.76, g: 1, b: 0.6, a: 1}
+  rivalColor: {r: 0.96, g: 0.6, b: 0.6, a: 1}
+  timeColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1001 &900237313
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24581,6 +24707,7 @@ Transform:
   - {fileID: 1637597079}
   - {fileID: 1932472584}
   - {fileID: 953727851}
+  - {fileID: 1885508453}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1028210533
@@ -27372,10 +27499,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaCameraDirector
   sandbox: {fileID: 46679317}
   targetGroup: {fileID: 252766642}
-  idleWeight: 0.15
+  idleWeight: 0.35
   focusWeight: 1
-  focusHoldSeconds: 2.5
-  blendSpeed: 2
+  focusHoldSeconds: 4
+  blendSpeed: 0.7
+  minSwitchSeconds: 3
 --- !u!4 &1185079734
 Transform:
   m_ObjectHideFlags: 0
@@ -28857,8 +28985,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1252751281}
   - component: {fileID: 1252751280}
-  - component: {fileID: 1252751283}
   - component: {fileID: 1252751282}
+  - component: {fileID: 1252751285}
+  - component: {fileID: 1252751284}
+  - component: {fileID: 1252751283}
   m_Layer: 0
   m_Name: ObserverCamera
   m_TagString: Untagged
@@ -28888,7 +29018,7 @@ MonoBehaviour:
   Target:
     TrackingTarget: {fileID: 252766643}
     LookAtTarget: {fileID: 252766643}
-    CustomLookAtTarget: 0
+    CustomLookAtTarget: 1
   Lens:
     FieldOfView: 42
     OrthographicSize: 10
@@ -28918,7 +29048,7 @@ Transform:
   m_GameObject: {fileID: 1252751279}
   serializedVersion: 2
   m_LocalRotation: {x: 0.4694716, y: 0, z: 0, w: 0.8829476}
-  m_LocalPosition: {x: 0, y: 25.51509, z: -15.821071}
+  m_LocalPosition: {x: 0, y: 24.871126, z: -16.775787}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -28937,12 +29067,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineGroupFraming
   FramingMode: 2
-  FramingSize: 0.85
+  FramingSize: 0.75
   CenterOffset: {x: 0, y: 0}
-  Damping: 0
-  SizeAdjustment: 2
+  Damping: 2
+  SizeAdjustment: 0
   LateralAdjustment: 0
-  FovRange: {x: 30, y: 55}
+  FovRange: {x: 32, y: 58}
   DollyRange: {x: -10, y: 24}
   OrthoSizeRange: {x: 1, y: 1000}
 --- !u!114 &1252751283
@@ -28954,13 +29084,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 1252751279}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 886251e9a18ece04ea8e61686c173e1b, type: 3}
+  m_Script: {fileID: 11500000, guid: e4d7f9a1b3c56e8f0a2d4c6b8e0f2a76, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachinePositionComposer
-  CameraDistance: 30
-  DeadZoneDepth: 0
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaCameraControl
+  orbital: {fileID: 1252751285}
+  director: {fileID: 1185079733}
+  zoomStep: 0.08
+  orbitDegreesPerPixel: 0.25
+  pitchDegreesPerPixel: 0.15
+  suspendSeconds: 3
+--- !u!114 &1252751284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252751279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f38bda98361e1de48a4ca2bd86ea3c17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineRotationComposer
   Composition:
-    ScreenPosition: {x: 0, y: 0.05}
+    ScreenPosition: {x: 0, y: 0}
     DeadZone:
       Enabled: 0
       Size: {x: 0.2, y: 0.2}
@@ -28970,12 +29116,75 @@ MonoBehaviour:
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
   TargetOffset: {x: 0, y: 0, z: 0}
-  Damping: {x: 0.8, y: 0.8, z: 0.8}
+  Damping: {x: 0.6, y: 0.6}
   Lookahead:
     Enabled: 0
     Time: 0
     Smoothing: 0
     IgnoreY: 0
+--- !u!114 &1252751285
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252751279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b5d7c088409d9a40b7b09aa707777f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineOrbitalFollow
+  TargetOffset: {x: 0, y: 0, z: 0}
+  TrackerSettings:
+    BindingMode: 4
+    PositionDamping: {x: 1.2, y: 1.2, z: 1.2}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  OrbitStyle: 0
+  Radius: 30
+  Orbits:
+    Top:
+      Radius: 2
+      Height: 5
+    Center:
+      Radius: 4
+      Height: 2.25
+    Bottom:
+      Radius: 2.5
+      Height: 0.1
+    SplineCurvature: 0.5
+  RecenteringTarget: 2
+  HorizontalAxis:
+    Value: 0
+    Center: 0
+    Range: {x: -180, y: 180}
+    Wrap: 1
+    Recentering:
+      Enabled: 0
+      Wait: 1
+      Time: 2
+    Restrictions: 0
+  VerticalAxis:
+    Value: 56
+    Center: 56
+    Range: {x: 25, y: 80}
+    Wrap: 0
+    Recentering:
+      Enabled: 0
+      Wait: 1
+      Time: 2
+    Restrictions: 0
+  RadialAxis:
+    Value: 1
+    Center: 1
+    Range: {x: 0.55, y: 1.7}
+    Wrap: 0
+    Recentering:
+      Enabled: 0
+      Wait: 1
+      Time: 2
+    Restrictions: 0
 --- !u!1001 &1259246070
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41752,6 +41961,81 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!1 &1885508451
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1885508453}
+  - component: {fileID: 1885508452}
+  m_Layer: 0
+  m_Name: ArenaLayout
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1885508452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1885508451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86fa7e8be0520c44eae5321d71c672db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaLayoutBuilder
+  surface: {fileID: 30606221}
+  staticObstacles: {fileID: 1637597078}
+  treePrefabs:
+  - {fileID: 1182756067964316, guid: fc9f550802bde56499ac8b64cac565f0, type: 3}
+  - {fileID: 1247767785291130, guid: 0734397d1a4fd924f98424ecb4ca43b9, type: 3}
+  - {fileID: 1130392368877672, guid: 1ea71f643417d124d91e53eae7c666a6, type: 3}
+  - {fileID: 1325612589990884, guid: e377b882a13405d4b9d5c3e8e747595e, type: 3}
+  - {fileID: 1500899924992442, guid: a19f2e49529f1ef4d903f3b663ce7893, type: 3}
+  - {fileID: 1467454332595294, guid: fe8147825b813cf46b4ef685a3ea56a8, type: 3}
+  rockPrefabs:
+  - {fileID: 1732272334065596, guid: cdcb19fde9e8cba40b7bff849baf2c1b, type: 3}
+  - {fileID: 1677856023650210, guid: 0d6c136baa84fec40bbcbb09a069feda, type: 3}
+  - {fileID: 1279149807870478, guid: 51917b8e41ef6a1469249c9dfee70390, type: 3}
+  - {fileID: 1588324658806122, guid: 9d05e0cabe0f8c641b0a87ecc3a9017e, type: 3}
+  - {fileID: 1616784548102220, guid: 9d911d3db44ad56488c3c28cb9e9e5ab, type: 3}
+  - {fileID: 1205270495780786, guid: bfe46d6e2f03af346a70ed16cbda3eee, type: 3}
+  trees: 6
+  rocks: 4
+  veins: 4
+  mirror: 1
+  arenaHalfSize: 20
+  edgeMargin: 2.5
+  clearCenterRadius: 6
+  clearCornerRadius: 6
+  obstacleSpacing: 3.5
+  treeScale: {x: 0.8, y: 1.3}
+  rockScale: {x: 0.6, y: 1.2}
+  veinMinFromCenter: 7
+  veinSpacing: 8
+  veinFromObstacle: 2.5
+  veinCapacity: {x: 4, y: 8}
+--- !u!4 &1885508453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1885508451}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1024882418}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1888061929
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -48594,3 +48878,5 @@ SceneRoots:
   - {fileID: 643252656}
   - {fileID: 1965486716}
   - {fileID: 1185079734}
+  - {fileID: 900000002}
+  - {fileID: 900000012}

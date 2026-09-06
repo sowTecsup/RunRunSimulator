@@ -14,6 +14,7 @@ public enum PerceivableKind
     Customer = 2,
     Prop     = 3,
     Material = 4,
+    Exit     = 5,
 }
 
 public enum ExpeditionTeam
@@ -21,6 +22,16 @@ public enum ExpeditionTeam
     None   = 0,
     Player = 1,
     Rival  = 2,
+}
+
+public enum Occupation
+{
+    None    = 0,
+    Gather  = 1,
+    Guard   = 2,
+    Break   = 3,
+    Decoy   = 4,
+    Explore = 5,
 }
 
 public static class ExpeditionTeams

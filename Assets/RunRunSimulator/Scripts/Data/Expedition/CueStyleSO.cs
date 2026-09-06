@@ -66,6 +66,13 @@ public class CueStyleSO : SerializedScriptableObject
     [Range(0f, 1f)] public float PathTailAlpha = 0.15f;
     public float DestMarkerRadius = 0.35f;
     public float DestPulseSpeed = 2.5f;
+
+    [Title("Salidas y minado")]
+    [Range(0f, 1f)] public float ExitAlpha = 0.22f;
+    public float ExitRingThickness = 0.08f;
+    public float MiningArcRadius = 1.1f;
+    public float MiningArcThickness = 0.1f;
+    [Range(0f, 1f)] public float MiningArcAlpha = 0.9f;
     [Range(0f, 1f)] public float DestPulseAmount = 0.15f;
 
     [Title("Minerales")]
@@ -113,6 +120,11 @@ public class CueStyleSO : SerializedScriptableObject
         AddIfMissing(CreatureIntent.Losing, new Color(0.6f, 0.62f, 0.72f));
         AddIfMissing(CreatureIntent.Clashing, new Color(1f, 0.45f, 0.15f));
         AddIfMissing(CreatureIntent.Dazed, new Color(0.75f, 0.6f, 0.95f));
+        AddIfMissing(CreatureIntent.Carrying, new Color(1f, 0.8f, 0.25f));
+        AddIfMissing(CreatureIntent.Securing, new Color(1f, 0.92f, 0.45f));
+        AddIfMissing(CreatureIntent.Guarding, new Color(0.45f, 0.65f, 0.95f));
+        AddIfMissing(CreatureIntent.Hunting, new Color(0.9f, 0.3f, 0.1f));
+        AddIfMissing(CreatureIntent.Taunting, new Color(0.95f, 0.3f, 0.75f));
 
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);

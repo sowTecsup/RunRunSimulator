@@ -6,9 +6,7 @@ tags: [enum, creature, core]
 
 **Ruta:** `Core/Enums/CreatureEnums.cs`
 
-**Responsabilidad:** Enumeraciones para el ciclo de vida y estados de una criatura. Contiene: `CreatureGender` (Unknown/Male/Female), `LifeStage` (Newborn/Child/Teen/Adult/Elder), `MonchiMood` (12 estados: Neutral/Feliz/Triste/Dolor/Enojado/Dormido/Enfermo/Mareado/Asustado/Amoroso/Emocionado/KO), `Tier` (1/2/3 para rareza de partes), `BusyReason` (None/Breeding/Sold), `NeedType` (Health/Energy/Affect), `CreatureCondition` (Healthy/InNeed/Sick), `CreatureIntent` (**S100 ACTUALIZADO:** 23 acciones: Idle/Wandering/Following/Approaching/Fleeing/Retreating/SeekingFood/SeekingRest/SeekingPlay/Eating/Resting/Playing/Held/Tumbling/Socializing/Chasing/SleepingTogether/Fighting/Collecting/**Taking**/**Losing**/**Clashing**/**Dazed**), `ProximityReaction` (Ignore/Flee/Approach/Follow/Retreat), `EmoteKind` (Curioso/Feliz/Jugando/Molesto/Corazon/Zzz), `SocialInteractionKind` (PlayChase/SleepTogether/GremlinFight).
-
-**S93:** Consolidación de enums en archivo dedicado. **S97:** Agregado `CreatureIntent.Collecting = 18`. **S98-S99:** Agregados `Taking = 19` (beat de recolección: criatura toma mineral) y `Losing = 20` (beat de recolección: rival toma mineral). **S100 NUEVO:** Agregados `Clashing = 21` (combate físico, estados Anticipating/Striking/Resolving internos) y `Dazed = 22` (estado post-golpe con solo giro en lugar).
+**Responsabilidad:** Enumeraciones para el ciclo de vida y estados de una criatura. Contiene: `CreatureGender`, `LifeStage`, `MonchiMood` (12 estados), `Tier`, `BusyReason`, `NeedType`, `CreatureCondition`, `CreatureIntent` (27 valores incluyendo S98-S101 nuevos), `ProximityReaction`, `EmoteKind`, `SocialInteractionKind`. **S101 NUEVO:** CreatureIntent suma cinco nuevos valores (Carrying, Securing, Guarding, Hunting, Taunting) derivados de ocupaciones de expedición. **Nota:** `Occupation` enum está en [[WorldEnums]], no aquí.
 
 ## Enumeraciones
 
@@ -21,12 +19,12 @@ tags: [enum, creature, core]
 | `BusyReason` | None (0), Breeding (2), Sold (3) |
 | `NeedType` | Health (0), Energy (1), Affect (2) |
 | `CreatureCondition` | Healthy (0), InNeed (1), Sick (2) |
-| `CreatureIntent` | **S100:** 23 valores: Idle (0) - Fighting (17), Collecting (18), **Taking (19)**, **Losing (20)**, **Clashing (21)**, **Dazed (22)** |
+| `CreatureIntent` | **S101:** 27 valores: Idle (0) - Taunting (27) |
 | `ProximityReaction` | Ignore, Flee, Approach, Follow, Retreat |
 | `EmoteKind` | Curioso, Feliz, Jugando, Molesto, Corazon, Zzz |
 | `SocialInteractionKind` | PlayChase, SleepTogether, GremlinFight |
 
-## CreatureIntent (lista completa S100)
+## CreatureIntent S101 (27 valores)
 
 ```csharp
 public enum CreatureIntent
@@ -49,64 +47,113 @@ public enum CreatureIntent
     Chasing            = 15,
     SleepingTogether   = 16,
     Fighting           = 17,
-    Collecting         = 18,  // S97: criatura busca mineral
-    Taking             = 19,  // S98: criatura está tomando/comiendo mineral (beat discreto)
-    Losing             = 20,  // S99: rival acaba de tomar mineral (criatura pierde)
-    Clashing           = 21,  // S100 NUEVO: combate físico (estados Anticipating/Striking/Resolving)
-    Dazed              = 22,  // S100 NUEVO: post-golpe, mareado, solo gira en lugar
+    Collecting         = 18,  // S97: busca material
+    Taking             = 19,  // S98: tomando mineral
+    Losing             = 20,  // S99: rival toma su mineral
+    Clashing           = 21,  // S100: combate físico
+    Dazed              = 22,  // S100: post-golpe
+    Carrying           = 23,  // S101: cargando material (Gather fase Returning)
+    Securing           = 24,  // S101: depositando material (Gather fase Securing)
+    Guarding           = 25,  // S101: vigilando (Guard ocupación)
+    Hunting            = 26,  // S101: persiguiendo rival (Break ocupación)
+    Taunting           = 27,  // S101: provocando rival (Decoy ocupación)
 }
 ```
 
-## Cambios S100: Combate Físico
+## Cambios S101: Intents de Ocupación
 
-**Dos nuevos valores en CreatureIntent:**
-- `Clashing = 21` — estado de combate físico activo. Devuelto por `AgentClash.Intent` cuando en fases Anticipating o Striking. Mapea a mood Enojado y cue naranja. Se dibuja flecha roja pulsante en ArenaCueOverlay. No interfiere con Expedition/Social; tiene prioridad en TryEngage.
-- `Dazed = 22` — estado post-golpe, mareado. Devuelto por `AgentClash.Intent` cuando en fase Dazed (durando tuning.DazedSeconds). Criatura solo gira hacia atacante pero no se mueve. Mapea a mood Mareado y cue violeta. Gesto "No". Transiciona a counter-attack (Clashing) o retrete+roaming según boldness y distancia al atacante.
+**Nuevos CreatureIntent (líneas 88-92):**
 
-**Mapeos en sistemas visuales:**
-- [[MonchiMoodDriver]] (líneas 51-52): `Clashing → MonchiMood.Enojado`, `Dazed → MonchiMood.Mareado`
-- [[CueStyleSO]] (líneas 114-115): `Clashing → naranja (1, 0.45, 0.15)`, `Dazed → violeta (0.75, 0.6, 0.95)`
-- [[MonchiGestureSetSO]] (línea 84): `Dazed → "No"` (gesto de no entendimiento)
-- [[ArenaCueOverlay]] (líneas 365-379): Dibuja `DrawClash()` si `agent.ClashTarget != null` (flecha roja pulsante aditiva)
-- [[ArenaCameraDirector]] (línea 29): Enfoca si `Intent == Clashing || Intent == Dazed`
+- `Carrying = 23` — cargando material después de minería, regresando a salida
+  - Generado por: `AgentExpedition` cuando Gather en fase Returning
+  - Gesto: "Walk" o idle (sin gesto especial, locomotion normal)
+  - Color Cue: mismo que Taking (amarillo)
+  - Duración: variable según distancia a salida
 
-**Uso en AgentClash:**
-- `clash.Intent` devuelve `Clashing` si en Anticipating/Striking, `Dazed` si en Dazed, else None
-- `MoriMochiAgent.Intent` delega a `clash.Intent` cuando en estado Clashing
-- Permite que drivers visuales reaccionen al combate sin tocar AgentClash internamente
+- `Securing = 24` — depositando material en salida (celebración corta)
+  - Generado por: `AgentExpedition` cuando Gather en fase Securing (llegó a salida)
+  - Gesto: "Yes" (celebración, S101 PopulateDefaults)
+  - Color Cue: amarillo (Taking color)
+  - Duración: breve (1-2 segundos)
 
-## Cambios S98
+- `Guarding = 25` — vigilando puesto de material
+  - Generado por: `AgentExpedition` cuando Guard ocupación activa
+  - Gesto: ninguno mapeado (locomotion normal con pausa en puesto)
+  - Color Cue: púrpura o teal (guardia)
+  - Duración: hasta que rival llegue o sesión termine
 
-**Dos nuevos valores en CreatureIntent:**
-- `Taking = 19` — beat discreto: la criatura está en el acto de agarrar/consumir un mineral (animación Take de ~1.2s). Manejado por `AgentExpedition.TickExpedition()` y `ArenaCueOverlay`.
-- `Losing = 20` — beat discreto: rival acaba de tomar un mineral que el agente buscaba. Disparado por `AgentExpedition` cuando otro agente consume su target. Se mapea a `MonchiMood.Asustado` o `Enojado` en `MonchiMoodDriver`.
+- `Hunting = 26` — persiguiendo rival que recolecta
+  - Generado por: `AgentExpedition` cuando Break ocupación activa, rival en rango
+  - Gesto: ninguno mapeado (locomotion de persecución)
+  - Color Cue: rojo (conflicto)
+  - Duración: hasta alcanzar o perder rival (puede transicionar a Clashing)
 
-**Uso:**
-- `MoriMochiAgent.Intent` devuelve `Taking` durante la fase de consumición (beat `TakeSeconds` de `ExpeditionRulesSO`).
-- `MoriMochiAgent.Intent` devuelve `Losing` cuando rival consume el target.
-- `ArenaCueOverlay` y `CueStyleSO` mapean estos intents a colores de ruta/HUD.
-- `MonchiGestureDriver` se sincroniza: `Taking` → gesto "Taking" (si existe en SO), `Losing` → gesto "Losing" (si existe).
-- `MonchiMoodDriver` mapea: `Taking` → según contexto (Emocionado), `Losing` → Asustado/Enojado.
+- `Taunting = 27` — provocando rival (Decoy ocupación)
+  - Generado por: `AgentExpedition` cuando Decoy ocupación, fase Approach/Taunt
+  - Gesto: "Roar" (desafío, S101 PopulateDefaults)
+  - Emote: Molesto (rival molesto)
+  - Color Cue: naranja (provocación)
+  - Duración: breve (2-3 segundos), luego Fleeing
 
-## Uso
+## Mapeo Ocupación → Fases → Intent
 
-- `CreatureGender`, `LifeStage` — metadatos de criatura
-- `MonchiMood` — animación y retroalimentación visual en MoriMonchiMoodDriver
-- `Tier` — rareza de partes en CreatureDNA
-- `BusyReason` — estado temporal (criatura no disponible: breeding o ya vendida)
-- `NeedType`, `CreatureCondition` — sistema de necesidades
-- `CreatureIntent` — intención locomotora del agente. **S97:** incluye `Collecting` (búsqueda). **S98-S99:** incluye `Taking` (acción discreto) y `Losing` (reacción). **S100:** incluye `Clashing` (combate) y `Dazed` (post-golpe).
-- `ProximityReaction` — reacción instintiva al jugador/NPCs
-- `EmoteKind` — emotes visuales (pequeños iconos)
-- `SocialInteractionKind` — interacción social entre criaturas
+**Gather:**
+- Noticing → Collecting
+- Moving → Collecting
+- Taking (minería) → Taking
+- Carrying (regresando) → **Carrying**
+- Securing (deposita) → **Securing**
+
+**Guard:**
+- Guarding (vigilancia) → **Guarding**
+
+**Break:**
+- Hunting (persigue rival) → **Hunting**
+- (Transiciona a Clashing si entra en combate)
+
+**Decoy:**
+- Approaching → Approaching
+- Taunt → **Taunting** + emota Molesto
+- Fleeing → Fleeing
+
+## Uso en Drivers Visuales S101
+
+**MonchiGestureDriver:**
+- intent = Carrying → TryEnterGesture(Carrying) → unmapped, sigue locomotion
+- intent = Securing → TryEnterGesture(Securing) → "Yes" (celebración)
+- intent = Taunting → TryEnterGesture(Taunting) → "Roar" (desafío)
+- intent = Guarding → TryEnterGesture(Guarding) → unmapped, sigue locomotion
+- intent = Hunting → TryEnterGesture(Hunting) → unmapped, sigue locomotion (o Clashing si entra combate)
+
+**MonchiMoodDriver:**
+- Carrying → neutral/feliz (cargando bien)
+- Securing → feliz (celebración exitosa)
+- Taunting → molesto (provocador)
+- Guarding → neutral/concentrado (vigilante)
+- Hunting → enojado (perseguidor agresivo)
+
+**ArenaCueOverlay (ColorFor):**
+- Carrying → ColorFor(Taking) = amarillo
+- Securing → ColorFor(Taking) = amarillo
+- Taunting → ColorFor(Taking) = amarillo
+- Guarding → custom (guardia color, si existe en CueStyleSO)
+- Hunting → FightColor o custom (rojo agresivo)
+
+## Invariantes S101 + S100 + S98
+
+- **Ocupación ≠ Intent:** Ocupación es estrategia a largo plazo (no cambia durante sesión, asignada al spawn); Intent es acción actual y cambia cada frame/segundo.
+- **Ocupación None → Gather:** fallback seguro; agentes sin ocupación asignada usan recolección.
+- **Explore es placeholder:** puede usarse para debug o futuro; actualmente traduce a Gather.
+- **S101:** Cinco nuevos CreatureIntent (23-27) derivados de ocupaciones (Carry, Guard, Break, Decoy)
+- **S101:** Los cinco nuevos **NO** están mapeados a Hold gestures por defecto (transitorios), solo dos tienen Enter gestures (Securing → "Yes", Taunting → "Roar")
 
 ## Vinculado a
 
-- [[Index/01 - Creature Genetics & System]]
-- [[Index/23 - Arena Sandbox y Expedicion]] (S97-S98-S100)
+- [[Index/23 - Arena Sandbox y Expedicion]] (sección 8: Ocupaciones con tiempo)
 - [[CreatureDNA]] — contiene LifeStage, CreatureGender, BusyReason
-- [[MonchiMoodDriver]] — consume MonchiMood, mapea CreatureIntent
-- [[NeedsState]] — consume NeedType, CreatureCondition
-- **S100:** [[AgentClash]] — genera Clashing/Dazed intents
+- [[MonchiMoodDriver]] — consume Intent
+- [[MoriMochiAgent]], [[AgentExpedition]], [[AgentContext]]
 
-**Conexiones:** [[CreatureDNA]], [[MonchiMoodDriver]], [[NeedsState]], [[MoriMochiAgent]], [[AgentExpedition]], [[CueStyleSO]], [[ArenaCueOverlay]], [[MonchiGestureDriver]], **S100:** [[AgentClash]], [[ArenaCameraDirector]]
+## Conexiones
+
+[[AgentExpedition]], [[ArenaRosterSO]], [[CueStyleSO]], [[ArenaCueOverlay]], [[MonchiGestureDriver]], [[MonchiMoodDriver]], [[ArenaCameraDirector]], [[WorldEnums]] (Occupation enum)

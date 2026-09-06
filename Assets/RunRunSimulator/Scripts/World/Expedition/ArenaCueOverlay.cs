@@ -19,6 +19,8 @@ public class ArenaCueOverlay : MonoBehaviour
     [SerializeField] private bool showReticle = true;
     [SerializeField] private bool showSocial = true;
     [SerializeField] private bool showClash = true;
+    [SerializeField] private bool showExits = true;
+    [SerializeField] private bool showMining = true;
 
     private class CueAnim
     {
@@ -49,6 +51,8 @@ public class ArenaCueOverlay : MonoBehaviour
     private readonly Dictionary<MoriMonchiController, CueState> cueCache = new();
     private readonly Dictionary<MaterialPickup, CueAnim> mineralAnims = new();
     private readonly List<Vector3> cornersBuffer = new();
+    private readonly List<Perceivable> mineralQueryBuffer = new();
+    private readonly Dictionary<Perceivable, MaterialPickup> mineralLookup = new();
 
     private void OnEnable()
     {
@@ -80,9 +84,13 @@ public class ArenaCueOverlay : MonoBehaviour
             if (showSocial) DrawSocial(controller);
 
             if (showClash) DrawClash(controller);
+
+            if (showMining) DrawMining(controller, origin);
         }
 
         if (showMinerals) DrawMinerals();
+
+        if (showExits) DrawExits();
     }
 
     private static float Step(CueAnim anim, bool visible, float seconds, float dt)
@@ -322,10 +330,13 @@ public class ArenaCueOverlay : MonoBehaviour
 
     private void DrawMinerals()
     {
-        if (sandbox.Minerals == null) return;
+        PerceivableRegistry.QueryInRadius(sandbox.transform.position, 200f, null, mineralQueryBuffer);
 
-        foreach (var m in sandbox.Minerals)
+        foreach (var p in mineralQueryBuffer)
         {
+            if (p == null || p.Kind != PerceivableKind.Material) continue;
+
+            var m = GetMineralPickup(p);
             if (m == null) continue;
 
             var anim = GetMineralAnim(m);
@@ -333,7 +344,8 @@ public class ArenaCueOverlay : MonoBehaviour
             if (alpha <= 0.01f) continue;
 
             Vector3 center = m.transform.position + Vector3.up * style.HeightOffset;
-            float radius = style.MineralDiscRadius * (m.Value > 1 ? 1.6f : 1f);
+            float radiusScale = m.Value > 0 ? (float)m.Remaining / m.Value : 1f;
+            float radius = style.MineralDiscRadius * (m.Value > 1 ? 1.6f : 1f) * Mathf.Lerp(0.5f, 1f, radiusScale);
 
             CueDrawer.Disc(center, radius, style.MineralColor, style.MineralInnerAlpha * alpha, style.MineralOuterAlpha * alpha);
 
@@ -344,6 +356,48 @@ public class ArenaCueOverlay : MonoBehaviour
             if (m.Value > 1)
                 CueDrawer.DashedRing(center, radius, style.MineralRingThickness, style.RingDashCount, style.RingDashRatio, Time.time * -style.RingSpinSpeed, ringColor);
         }
+    }
+
+    private void DrawExits()
+    {
+        if (sandbox.Exits == null) return;
+
+        foreach (var exit in sandbox.Exits)
+        {
+            if (exit == null) continue;
+
+            Vector3 center = exit.transform.position + Vector3.up * style.HeightOffset;
+            Color color = exit.Team == ExpeditionTeam.Player ? style.FriendColor : style.FoeColor;
+
+            CueDrawer.Disc(center, exit.Radius, color, style.ExitAlpha, 0f);
+
+            Color ringColor = color;
+            ringColor.a = style.ExitAlpha * 2f;
+            CueDrawer.Ring(center, exit.Radius, style.ExitRingThickness, ringColor);
+
+            Color dashColor = color;
+            dashColor.a = style.ExitAlpha;
+            CueDrawer.DashedRing(center, exit.Radius, style.ExitRingThickness, style.RingDashCount, style.RingDashRatio, Time.time * style.RingSpinSpeed * 0.5f, dashColor);
+        }
+    }
+
+    private void DrawMining(MoriMonchiController controller, Vector3 origin)
+    {
+        if (controller.Agent.Intent != CreatureIntent.Taking) return;
+
+        float progress = controller.Agent.MiningProgress;
+        if (progress <= 0f) return;
+
+        Color trackColor = style.ColorFor(CreatureIntent.Taking);
+        trackColor.a = 0.15f;
+        CueDrawer.Ring(origin, style.MiningArcRadius, style.MiningArcThickness, trackColor);
+
+        Color arcColor = style.ColorFor(CreatureIntent.Taking);
+        arcColor.a = style.MiningArcAlpha;
+
+        float startAngle = Mathf.PI * 0.5f;
+        float sweep = progress * Mathf.PI * 2f;
+        CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, startAngle, sweep, arcColor, arcColor, true);
     }
 
     private void DrawSocial(MoriMonchiController controller)
@@ -392,6 +446,14 @@ public class ArenaCueOverlay : MonoBehaviour
         anim = new CueAnim();
         mineralAnims[mineral] = anim;
         return anim;
+    }
+
+    private MaterialPickup GetMineralPickup(Perceivable p)
+    {
+        if (mineralLookup.TryGetValue(p, out var pickup)) return pickup;
+        pickup = p.GetComponent<MaterialPickup>();
+        mineralLookup[p] = pickup;
+        return pickup;
     }
 }
 }

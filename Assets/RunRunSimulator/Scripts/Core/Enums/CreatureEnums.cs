@@ -85,6 +85,11 @@ public enum CreatureIntent
     Losing      = 20,
     Clashing    = 21,
     Dazed       = 22,
+    Carrying    = 23,
+    Securing    = 24,
+    Guarding    = 25,
+    Hunting     = 26,
+    Taunting    = 27,
 }
 
 public enum ProximityReaction

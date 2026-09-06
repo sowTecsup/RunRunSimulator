@@ -17,6 +17,7 @@ public class ArenaRosterSO : SerializedScriptableObject
         [Range(0f, 1f)] public float Boldness = 0.5f;
         public string BodyShapeID = "";
         public Color BaseColor = new Color(0f, 0f, 0f, 0f);
+        public Occupation Occupation = Occupation.Gather;
     }
 
     [ListDrawerSettings(ShowFoldout = false, DefaultExpandedState = true)]
@@ -29,12 +30,12 @@ public class ArenaRosterSO : SerializedScriptableObject
 
         if (Entries.Count == 0)
         {
-            Entries.Add(new Entry { Name = "Osado", Team = ExpeditionTeam.Player, Sociability = 0.25f, Boldness = 0.9f });
-            Entries.Add(new Entry { Name = "Tímida", Team = ExpeditionTeam.Player, Sociability = 0.85f, Boldness = 0.15f });
-            Entries.Add(new Entry { Name = "Equilibrado", Team = ExpeditionTeam.Player, Sociability = 0.5f, Boldness = 0.5f });
-            Entries.Add(new Entry { Name = "Fiero", Team = ExpeditionTeam.Rival, Sociability = 0.25f, Boldness = 0.9f });
-            Entries.Add(new Entry { Name = "Cauta", Team = ExpeditionTeam.Rival, Sociability = 0.85f, Boldness = 0.15f });
-            Entries.Add(new Entry { Name = "Templado", Team = ExpeditionTeam.Rival, Sociability = 0.5f, Boldness = 0.5f });
+            Entries.Add(new Entry { Name = "Osado", Team = ExpeditionTeam.Player, Sociability = 0.25f, Boldness = 0.9f, Occupation = Occupation.Guard });
+            Entries.Add(new Entry { Name = "Tímida", Team = ExpeditionTeam.Player, Sociability = 0.85f, Boldness = 0.15f, Occupation = Occupation.Gather });
+            Entries.Add(new Entry { Name = "Equilibrado", Team = ExpeditionTeam.Player, Sociability = 0.5f, Boldness = 0.5f, Occupation = Occupation.Gather });
+            Entries.Add(new Entry { Name = "Fiero", Team = ExpeditionTeam.Rival, Sociability = 0.25f, Boldness = 0.9f, Occupation = Occupation.Break });
+            Entries.Add(new Entry { Name = "Cauta", Team = ExpeditionTeam.Rival, Sociability = 0.85f, Boldness = 0.15f, Occupation = Occupation.Gather });
+            Entries.Add(new Entry { Name = "Templado", Team = ExpeditionTeam.Rival, Sociability = 0.5f, Boldness = 0.5f, Occupation = Occupation.Gather });
         }
 
 #if UNITY_EDITOR

@@ -42,8 +42,14 @@ internal class AgentClash
         if (Time.time < cooldownUntil) return false;
         if (ctx.Dna.Boldness < t.MinBoldness) return false;
 
-        MoriMochiAgent rival    = null;
-        float          bestDist = float.MaxValue;
+        var occ = ctx.Occupation;
+        if (occ == Occupation.None) occ = Occupation.Gather;
+        if (occ == Occupation.Gather || occ == Occupation.Decoy) return false;
+
+        MoriMochiAgent preferred     = null;
+        float          preferredDist = float.MaxValue;
+        MoriMochiAgent fallback      = null;
+        float          fallbackDist  = float.MaxValue;
 
         for (int i = 0; i < ctx.Percepts.Count; i++)
         {
@@ -57,12 +63,29 @@ internal class AgentClash
 
             float dist = PlanarDistance(other);
             if (dist > t.EngageRange) continue;
-            if (dist < bestDist) { bestDist = dist; rival = other; }
+
+            if (dist < fallbackDist) { fallbackDist = dist; fallback = other; }
+
+            if (occ == Occupation.Break)
+            {
+                var intent = other.Intent;
+                bool isThief = intent == CreatureIntent.Taking || intent == CreatureIntent.Carrying ||
+                               intent == CreatureIntent.Securing || intent == CreatureIntent.Collecting;
+                if (isThief && dist < preferredDist) { preferredDist = dist; preferred = other; }
+            }
+            else if (other.Intent == CreatureIntent.Taunting && dist < preferredDist)
+            {
+                preferredDist = dist;
+                preferred     = other;
+            }
         }
+
+        MoriMochiAgent rival    = preferred != null ? preferred : fallback;
+        float          bestDist = preferred != null ? preferredDist : fallbackDist;
 
         if (rival == null) return false;
 
-        var chosen = ChooseMove(t, rival, bestDist);
+        var chosen = ChooseMove(t, rival, bestDist, occ);
         if (chosen == null) return false;
 
         Begin(t, chosen, rival);
@@ -230,8 +253,15 @@ internal class AgentClash
         phase == Phase.Striking     ? (move != null ? move.StrikeGesture : "") :
         "";
 
-    private ClashMoveSO ChooseMove(ClashTuningSO t, MoriMochiAgent rival, float dist)
+    private ClashMoveSO ChooseMove(ClashTuningSO t, MoriMochiAgent rival, float dist, Occupation occ)
     {
+        if (occ == Occupation.Break)
+        {
+            if (t.Wings != null && dist >= t.DiveMinDistance && dist <= t.Wings.Range) return t.Wings;
+            if (t.Horn != null && dist <= t.Horn.Range) return t.Horn;
+            return null;
+        }
+
         if (t.Back != null && dist <= t.Back.Range && CountRivalsWithin(t.SweepRange) >= t.SweepMinRivals) return t.Back;
         if (t.Wings != null && dist >= t.DiveMinDistance && dist <= t.Wings.Range) return t.Wings;
         if (t.Horn != null && dist <= t.Horn.Range) return t.Horn;

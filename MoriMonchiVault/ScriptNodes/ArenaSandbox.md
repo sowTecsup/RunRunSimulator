@@ -6,127 +6,98 @@ tags: [script, world, expedition, sandbox]
 
 **Ruta:** `World/Expedition/ArenaSandbox.cs`
 
-**Responsabilidad:** Escena de pruebas `ArenaSandbox.unity` para observar comportamientos emergentes de criaturas en entorno controlado. **S99 NUEVO:** Genera criaturas desde `ArenaRosterSO` (si `useRoster == true`), spawnea por equipos (Player en esquina inferior-izquierda, Rival en esquina superior-derecha), y asigna Team via `Perceivable.SetTeam()`. Fallback: genera N criaturas al azar con semilla determinista. Mantiene necesidades llenas, siembra minerales recolectables (1 central de alto valor + 4 de esquinas). Expone listas públicas de criaturas spawneadas y minerales para que `ArenaCueOverlay` las dibuje. **S100 NUEVO:** Referencia a `ClashTuningSO` para que `ClashTuningSO.Current` exista en la arena. Nota: la escena no está en Build Settings; es solo para desarrollo/debugging.
+**Responsabilidad:** Escena de pruebas `ArenaSandbox.unity` para observar comportamientos emergentes. **S101 NUEVO:** Genera criaturas desde `ArenaRosterSO` (si `useRoster == true`) con ocupaciones (Gather/Guard/Break/Decoy), spawnea por equipos, asigna Team, Occupation, y HomeExit. Fallback: genera N criaturas al azar. Mantiene necesidades llenas, siembra minerales recolectables, spawnea ExitZones por equipo (salida donde depositar). Crea `ArenaLayoutBuilder` para generar obstáculos y vetas por semilla. **S100:** Referencia a `ClashTuningSO` para que choque funcione.
 
 ## Métodos Públicos
 
 **Configuración:**
-- `Spawn()` — generador principal llamado en Start(). **S99:** si `useRoster && roster != null`, spawnea entrada por entrada con Team y parámetros de ArenaRosterSO (Sociability, Boldness, Name, BodyShapeID, Color). Fallback: genera N criaturas aleatorias. Setea Teams vía `perceivable.SetTeam(team)` línea 147. Siembra minerales.
-- `SpawnCreature(CreatureDNA, Vector3 around, float radius, System.Random, NavMeshQueryFilter, ExpeditionTeam team)` — **S99 NUEVO param:** `team`. Instancia controller, busca Perceivable, **llama `perceivable.SetTeam(team)`**, inicializa agente.
-
-**Interfaz:**
-- `Respawn()` — **Botón Odin**: destruye todas las criaturas y minerales, luego llama a `Spawn()`.
+- `Spawn()` — generador principal llamado en Start(). **S101:** si `useRoster && roster != null`, spawnea entrada por entrada con Team, Occupation y parámetros. Setea Teams y Occupations vía perceivable y agent. Spawnea ExitZones por equipo. Siembra minerales con ArenaLayoutBuilder.
+- `SpawnExits(NavMeshQueryFilter, Vector3 center)` — **S101 NUEVO:** instancia ExitZone prefab para cada equipo en esquinas (teamSpawnInset desde centro).
+- `Respawn()` — **Botón Odin**: destruye y re-spawnea.
 - `Reseed()` — **Botón Odin**: genera seed nuevo y respawnea.
 
 **Propiedades (read-only):**
-- `Spawned → IReadOnlyList<MoriMonchiController>` — criaturas activas generadas.
-- `Minerals → IReadOnlyList<MaterialPickup>` — minerales sembrados (central + esquinas).
+- `Spawned → IReadOnlyList<MoriMonchiController>` — criaturas activas.
+- `Minerals → IReadOnlyList<MaterialPickup>` — minerales sembrados.
+- `Exits → IReadOnlyList<ExitZone>` — salidas por equipo. **S101 NUEVO**
+- `ExitFor(ExpeditionTeam team) → ExitZone` — getter de salida por equipo. **S101 NUEVO**
 - `ActiveSeed → int` — seed usado esta ejecución.
 
 ## Campos Configurables (Inspector)
 
 **Referencias requeridas:**
-- `creaturePrefab` (MoriMonchiController) — prefab a clonar para cada criatura.
-- `profileTable` (RoleWorldProfileSO) — tabla de perfiles de rol.
-- `socialTuning` (SocialTuningSO) — tuning social global.
-- `expeditionRules` (ExpeditionRulesSO) — reglas de expedición (se ve si `Current != null`).
-- **S100 NUEVO:** `clashTuning` (ClashTuningSO) — tuning de choque (se ve si `Current != null` durante play).
-- `visualBank` (MonchiVisualBankSO) — banco de visuales.
-- `furDatabase` (FurTypeDatabaseSO) — database de tipos de pelaje.
-- `creatureDatabase` (CreatureDatabaseSO) — database de partes genéticas.
-- `mineralPrefab` (MaterialPickup) — prefab de cristal recolectable.
+- `creaturePrefab` (MoriMonchiController)
+- `profileTable` (RoleWorldProfileSO)
+- `socialTuning` (SocialTuningSO)
+- `expeditionRules` (ExpeditionRulesSO)
+- `clashTuning` (ClashTuningSO) — **S100**
+- `visualBank` (MonchiVisualBankSO)
+- `furDatabase` (FurTypeDatabaseSO)
+- `creatureDatabase` (CreatureDatabaseSO)
+- `mineralPrefab` (MaterialPickup)
+- **S101 NUEVO:** `exitPrefab` (ExitZone) — para spawnear salidas
 
-**Configuración de spawn (S97-S99):**
-- `observer` (Transform) — cámara o punto de observación para pasar a `Initialize()`.
-- `spawnCenter` (Transform) — centro del círculo de spawn (por defecto: transform del ArenaSandbox).
-- `seed` (int, default 4242) — semilla base (si randomizeEachPlay = false).
-- `randomizeEachPlay` (bool, default false) — si true, usa `System.Environment.TickCount`.
-- `count` (int, min 1, default 3) — cantidad de criaturas (fallback si NO useRoster).
-- `spawnRadius` (float, min 1, default 4) — radio máximo del círculo de spawn (fallback).
-- `keepNeedsFull` (bool, default true) — si true, rellena Health/Energy/Affect a 100 cada frame.
-- `tagShowDistance` (float) — distancia máxima para mostrar NameTag.
-- `tagReferenceDistance` (float) — distancia de referencia para escala de NameTag.
+**Configuración de Elenco (S101 NUEVO):**
+- `roster` (ArenaRosterSO) — tabla con Occupation por Entry
+- `useRoster` (bool, default true)
+- `teamSpawnInset` (float, default 9) — distancia de esquina
+- `teamSpawnRadius` (float, default 2.5) — radio de spawn
+- `exitInset` (float, default 4) — distancia de ExitZone desde esquina. **S101 NUEVO**
 
-**Configuración de Elenco (S99 NUEVO):**
-- `roster` (ArenaRosterSO) — tabla de criaturas predefinidas con nombre, equipo, Sociability, Boldness, apariencia.
-- `useRoster` (bool, default true) — si true, spawnea desde `roster.Entries`; si false, genera aleatorios.
-- `teamSpawnInset` (float, min 0, default 9) — distancia desde el borde de la arena hacia adentro (para esquinas Player/Rival).
-- `teamSpawnRadius` (float, min 0.5, default 2.5) — radio de spawn alrededor de la esquina del equipo.
+**Configuración de minerales:**
+- `mineralPrefab` (MaterialPickup)
+- `layout` (ArenaLayoutBuilder) — **S101 NUEVO:** generador de vetas por semilla
+- `cornerMinerals` (int, default 4)
+- `centerMineralScale` (float, default 2.5)
+- `centerMineralValue` (int, default 5)
+- `cornerMineralValue` (int, default 1)
 
-**Configuración de minerales (S97):**
-- `mineralPrefab` (MaterialPickup) — cristal recolectable.
-- `cornerMinerals` (int, min 0, default 4) — cantidad de minerales de esquina.
-- `cornerInset` (float, min 0, default 6) — distancia desde el borde de la arena hacia adentro.
-- `cornerJitter` (float, min 0, default 2) — variación aleatoria de posición de esquina.
-- `centerMineralScale` (float, min 1, default 2.5) — escala del cristal central.
-- `centerMineralValue` (int, min 1, default 5) — valor de material del central (vs 1 para esquinas).
-- `arenaHalfSize` (float, min 0, default 20) — semi-ancho de la arena cuadrada (para cálculos de esquina).
-
-## Flujo S100 + S99
+## Flujo S101 + S100
 
 ```
-Awake():
-  (el clashTuning se setea en el inspector y OnEnable automático asigna ClashTuningSO.Current)
-
 Spawn():
-  if (useRoster && roster != null && roster.Entries.Count > 0):
+  if (useRoster && roster.Entries.Count > 0):
+    SpawnExits(filter, center)  // S101 NUEVO: crea ExitZone por Player/Rival
+    if (layout != null) layout.Build(activeSeed, filter)  // S101: genera obstáculos y vetas
+    
     foreach entry in roster.Entries:
       dna = MintRandom()
-      copiar entry.Sociability → dna.Sociability
-      copiar entry.Boldness → dna.Boldness
-      copiar entry.Name → dna.CustomName (si no vacío)
-      copiar entry.BodyShapeID → dna.BodyShapeID (si no vacío)
-      copiar entry.BaseColor → dna.BaseColor (si alpha > 0)
+      dna.Sociability = entry.Sociability
+      dna.Boldness = entry.Boldness
+      (copiar Name, BodyShapeID, BaseColor)
       dna.Stamp()
       
-      cornerPos = TeamCorner(entry.Team, center)  // S99 NUEVO: esquina por equipo
-      SpawnCreature(dna, cornerPos, teamSpawnRadius, rng, filter, entry.Team)
-  else:
-    for i = 0 to count:
-      dna = MintRandom()
-      SpawnCreature(dna, center, spawnRadius, rng, filter, ExpeditionTeam.None)
-  
-  SpawnMinerals(rng, filter, center)
+      cornerPos = TeamCorner(entry.Team, center)
+      SpawnCreature(dna, cornerPos, teamSpawnRadius, rng, filter, 
+                    entry.Team, entry.Occupation,  // S101 NUEVO: Occupation
+                    ExitFor(entry.Team))  // S101 NUEVO: HomeExit
 ```
 
-## TeamCorner (S99 NUEVO)
+## SpawnCreature (S101 ACTUALIZADO)
 
 ```csharp
-private Vector3 TeamCorner(ExpeditionTeam team, Vector3 center)
+private void SpawnCreature(CreatureDNA dna, Vector3 around, float radius,
+                          System.Random rng, NavMeshQueryFilter filter,
+                          ExpeditionTeam team, Occupation occupation,  // S101 NUEVOS
+                          ExitZone homeExit)  // S101 NUEVO
 {
-    switch (team)
-    {
-        case ExpeditionTeam.Player:
-            return center + new Vector3(-1f, 0f, -1f) * (arenaHalfSize - teamSpawnInset);  // esquina inferior-izquierda
-        case ExpeditionTeam.Rival:
-            return center + new Vector3(1f, 0f, 1f) * (arenaHalfSize - teamSpawnInset);    // esquina superior-derecha
-        default:
-            return center;  // neutral: centro
-    }
+  // ... instancia controller, busca Perceivable
+  perceivable.SetTeam(team);  // S99
+  agent.Team = team;  // S99
+  agent.Occupation = occupation;  // S101 NUEVO
+  agent.HomeExit = homeExit;  // S101 NUEVO
+  agent.Initialize(dna, profileTable, observer);
 }
 ```
 
-## Cambios S100: Clash Tuning
+## Invariantes S101 + S100 + S99
 
-**Línea 14:** Nuevo campo serializado:
-```csharp
-[Required, SerializeField] private ClashTuningSO clashTuning;
-```
-
-**Razón:** `ClashTuningSO` es un singleton que se auto-asigna vía `OnEnable()`. Referenciarlo en `ArenaSandbox` garantiza que el asset se carga y `ClashTuningSO.Current` está disponible para [[AgentClash.TryEngage()]] y otros llamadores durante play.
-
-**Consumo:**
-- `ClashTuningSO.Current` consultado por [[AgentClash]] durante comportamiento autónomo
-- `ArenaClashDev` (dev tools) también lo usa para acceder a movimientos
-
-## Invariantes S100 + S99
-
-- **Roster-driven:** si `roster` existe y `useRoster=true`, spawnea exactamente tantos agentes como entradas en roster (no aleatorio, ni "count").
-- **Team asignación:** `perceivable.SetTeam(team)` es el punto de mutación; sin esto, los agentes quedan en `ExpeditionTeam.None` (neutrales).
-- **Separación física:** Player y Rival spawnean en esquinas opuestas (`TeamCorner`), facilitando conflictos de expedición y combate.
-- **Clash tuning cargado:** `clashTuning` referenciado en inspector → `OnEnable()` automático asigna `ClashTuningSO.Current` → `AgentClash.TryEngage()` siempre encuentra tuning válido.
-- **Necesidades plenas:** `keepNeedsFull=true` en Inspector mantiene Health/Energy/Affect a 100 para enfoque en comportamiento autónomo (sin supervivencia).
-- **Determinismo:** seed fijo (o `System.Environment.TickCount` si randomizeEachPlay) permite reproducibilidad.
+- **Ocupación por roster:** cada Entry en ArenaRosterSO define Occupation (Gather, Guard, Break, Decoy). Agentes spawneados heredan esa ocupación.
+- **Team asignación:** Player vs Rival en esquinas opuestas, con ExitZones separadas.
+- **HomeExit:** cada agente sabe su salida (`agent.HomeExit`); usado por AgentExpedition para Returning/Securing.
+- **Layout builder:** genera obstáculos y vetas por semilla; NavMesh rehorneado; vetas cacheadas en Veins (para dibujo y gameplay).
+- **Clash tuning cargado:** ClashTuningSO.Current disponible para AgentClash durante play.
+- **Necesidades plenas:** keepNeedsFull=true mantiene Health/Energy/Affect a 100 para enfoque en comportamiento autónomo.
 
 ## Vinculado a
 
@@ -135,21 +106,16 @@ private Vector3 TeamCorner(ExpeditionTeam team, Vector3 center)
 ## Conexiones
 
 **Referencias de entrada:**
-- **S99:** [[ArenaRosterSO]] (tabla de criaturas predefinidas)
-- [[ExpeditionRulesSO]] (reglas de expedición, timings de beats)
-- **S100:** [[ClashTuningSO]] (tuning de choque)
-- [[RoleWorldProfileSO]], [[MonchiVisualBankSO]], [[FurTypeDatabaseSO]], [[CreatureDatabaseSO]]
-- [[SocialTuningSO]] (tuning social global)
+- [[ArenaRosterSO]] (tabla de criaturas con Occupation)
+- [[Occupation]] (Gather, Guard, Break, Decoy, Explore)
+- [[ExitZone]] (salida donde depositar material)
+- [[ExpeditionRulesSO]], [[ClashTuningSO]], [[RoleWorldProfileSO]], [[MonchiVisualBankSO]], [[FurTypeDatabaseSO]], [[CreatureDatabaseSO]], [[SocialTuningSO]]
 
 **Generación:**
-- [[MoriMonchiController]] (prefab spawneado)
-- [[CreatureGenerator]] (genera DNA aleatorio)
-- **S99:** [[Perceivable]], [[ExpeditionTeam]] (setea team)
-- [[NavMeshAgent]], [[NavMesh]] (muestreo de posiciones)
+- [[MoriMonchiController]], [[CreatureGenerator]], [[Perceivable]], [[ExpeditionTeam]], [[ArenaLayoutBuilder]]
 
 **Referencias de lectura (UI/Debugging):**
-- [[ArenaCueOverlay]] (itera Spawned y Minerals para dibujar guías)
-- [[NameTag]] (accede a tagShowDistance/tagReferenceDistance)
-- [[Unity.Cinemachine.CinemachineTargetGroup]] (agrupa cámaras)
-- **S100:** [[ArenaClashDev]] (accede a Spawned para testing manual)
-- **S100:** [[ArenaCameraDirector]] (accede a Spawned, filtra por Clashing/Dazed intent)
+- [[ArenaCueOverlay]] (itera Spawned y Minerals)
+- [[ArenaRound]] (accede a Exits y Spawned)
+- [[ArenaCameraDirector]] (accede a Spawned)
+- **S101:** [[ArenaRoundHud]] (itera Spawned para mostrar Occupation en roster)

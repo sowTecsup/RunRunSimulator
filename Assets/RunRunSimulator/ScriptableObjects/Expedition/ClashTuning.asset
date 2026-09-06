@@ -15,7 +15,7 @@ MonoBehaviour:
   Horn: {fileID: 11400000, guid: ce19f593a3ac2634fbf8b269ff1b5a3a, type: 2}
   Wings: {fileID: 11400000, guid: b079f5e332aff7547a68156e004bff1e, type: 2}
   Back: {fileID: 11400000, guid: 04fa758ad4aaaf342a2750f4a29fbd2c, type: 2}
-  EngageRange: 5
+  EngageRange: 6
   MinBoldness: 0.45
   Cooldown: 10
   DiveMinDistance: 4

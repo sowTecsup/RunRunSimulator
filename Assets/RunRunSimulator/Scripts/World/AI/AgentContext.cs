@@ -22,6 +22,9 @@ internal class AgentContext
     internal Transform          Player;
     internal Transform          HoldAnchor;
     internal MoriMochiContainer CurrentContainer;
+    internal Occupation Occupation = Occupation.Gather;
+    internal ExitZone   HomeExit;
+    internal Transform   GuardPost;
     internal int  FreeAreaMask;
     internal int  ConfinedAreaMask;
     internal bool RebakeInProgress;

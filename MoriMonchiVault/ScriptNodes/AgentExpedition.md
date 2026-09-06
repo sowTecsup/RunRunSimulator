@@ -1,94 +1,124 @@
 ---
-tags: [script, world, ai, agent, internal]
+tags: [script, world, ai, agent, internal, expedition]
 ---
 
 # AgentExpedition.cs
 
 **Ruta:** `World/AI/AgentExpedition.cs`
 
-**Responsabilidad:** Colaborador interno de `MoriMochiAgent` que orquesta "percibo material → lo notice → navego → lo tomo → reacciono". Evaluador de reglas: `TryEngage()` puntúa cada percepto contra cada regla en `ExpeditionRulesSO.Current.Rules` y elige el mejor (máximo score); al enganchar entra en estado `Expedition`. Máquina de estados con 4 fases (Noticing → Moving → Taking → Losing). Sin interfaz pública salvo la fachada de propiedades (`Collected`, `Target`, `Intent`). En la tienda `ExpeditionRulesSO.Current == null` → TryEngage devuelve false → cero impacto.
+**Responsabilidad:** Colaborador interno de `MoriMochiAgent` que orquesta ocupaciones de tiempo en arena: `Gather` (percibo material → lo notice → navego → lo tomo → reacciono), `Guard` (me planto en un puesto de material y lo vigilo), `Break` (acecharé y golpearé a rival que recolecta/carga), `Decoy` (provoco al rival y huyo). Evaluador de reglas: `TryEngage()` puntúa cada percepto contra cada regla en `ExpeditionRulesSO.Current.Rules` y elige el mejor (máximo score); al enganchar entra en estado `Expedition`. Máquina de estados con fases (Noticing → Moving → Mining → Losing para Gather; Guarding para Guard; Hunting para Break; Decoying para Decoy). Sin interfaz pública salvo la fachada de propiedades (`Collected`, `Target`, `Intent`, `Carried`, `MiningProgress`, `TargetTransform`). En la tienda `ExpeditionRulesSO.Current == null` → TryEngage devuelve false → cero impacto.
 
 ## Métodos Internos
 
-- `TryEngage() → bool` — **entry point** (llamado desde `MoriMochiAgent.Update` en Idle/Roaming, antes que social). Revisa si hay `ExpeditionRulesSO.Current` y reglas activas; itera todos los percepto × reglas, acumula scores; elige el mejor. Si hay ganador y su `Percept.Source` contiene `MaterialPickup` no tomado, entra en `AgentState.Expedition`, **entra fase Noticing**, emite emote `Curioso`, y devuelve true.
-- `TickExpedition()` — **tick de estado** (llamado desde `MoriMochiAgent.Update` caso `Expedition`). Orquesta las 4 fases: Noticing → Moving → Taking → Losing. Chequea si target aún es válido; si no, EnterLosing. Si tiempo > `GiveUpSeconds`, abandona. Avanza fases según `phaseTimer` y logística.
+- `TryEngage() → bool` — **entry point** (llamado desde `MoriMochiAgent.Update` en Idle/Roaming, antes que social). Revisa si hay `ExpeditionRulesSO.Current`. Según Occupation (traducido a Gather si None/Explore): llama TryGatherEngage, TryGuardEngage, TryBreakEngage o TryDecoyEngage. Si hay matching, entra en `AgentState.Expedition` con fase inicial, emite emote, devuelve true.
+
+**Sub-métodos por ocupación (S101 NUEVO):**
+- `TryGatherEngage()` — itera percepto × reglas, elige mejor score. Entra Noticing → Moving → Mining → Returning → Securing.
+- `TryGuardEngage()` — busca `GuardPost` inyectado o el MaterialPickup con más valor. Entra Guarding (estático, vigila).
+- `TryBreakEngage()` — busca MoriMochiAgent rival que recolecte/carga. Si lo encuentra, entra Hunting y persigue. Fallback: acecha MaterialPickup con más valor y espera rival.
+- `TryDecoyEngage()` — busca MoriMochiAgent rival guardián o rompedor, con cooldown de último decoy. Entra Decoying (Approach → Taunt → Flee).
+
+- `TickExpedition()` — **tick de estado** (llamado desde `MoriMochiAgent.Update` caso `Expedition`). Orquesta máquina por fase. Chequea si target válido; si no, EnterLosing/Abort. Si tiempo > `GiveUpSeconds`, abandona. Avanza fases según timers y logística.
 - `ResetForReuse()` — **pooling**: limpia target, timers, fase; llamado en `Initialize` y `RestoreNavMeshControl` para reciclaje.
 
 ## Propiedades Públicas (fachada)
 
 - `Collected → int` — contador acumulativo de material tomado (sesión local).
 - `Target → MaterialPickup` — el recolectable actual siendo perseguido (null si idle).
-- `Intent → CreatureIntent` — devuelve según fase: `Taking` en fase Taking, `Losing` en fase Losing, `Collecting` en resto.
+- `Carried → int` — material actual en mano (0-CarryCapacity).
+- `MiningProgress → float` — 0-1 progreso del beat de minería.
+- `TargetTransform → Transform` — transform del objetivo (material o exit) o null.
+- `Intent → CreatureIntent` — devuelve según fase.
 
-## Campos Internos
+## Fases S101 + S98
 
-- `owner` (MoriMochiAgent) — el agente propietario.
-- `ctx` (AgentContext) — contexto compartido (estado, percepciones, NavMesh).
-- `target` (MaterialPickup) — objetivo actual.
-- `phase` (Phase enum: Noticing/Moving/Taking/Losing) — **S98-S99 NUEVO** fase actual.
-- `phaseTimer` — cuenta regresiva dentro de fase (sincronizado con beat timings).
-- `repathTimer` — throttle de repath (se decrementa cada frame).
-- `elapsed` — tiempo transcurrido en la expedición (para give-up).
-- `collected` — acumulador de material (int).
-- `blockedTimer` — detector de bloqueo en Moving (si velocity < 0.05 m/s durante ~0.6s, se considera "llegado").
-- `lostPoint` — posición recordada en el beat Losing (para giro post-pérdida).
+**Gather (Ocupación.Gather, default):**
+- Noticing → Moving → Mining → Returning → Securing
+- Cuando Mining completa: `carried++`, si llegas a capacidad o mineral agotado, comienza Returning hacia HomeExit
+- Securing: entra en la salida y deposita material
 
-## Máquina de Estados S98 (4 fases)
+**Guard (Ocupación.Guard):**
+- Guarding: se planta cerca del MaterialPickup de Guardia (GuardPost inyectado o descubierto)
+- Rota para vigilar minerales cercanos o rivales
+
+**Break (Ocupación.Break):**
+- Hunting: si ve rival recolectando/cargando, lo persigue y golpea (si está en rango, agresión física)
+- Fallback: si no hay rival, se planta en MaterialPickup de Guardia y espera
+
+**Decoy (Ocupación.Decoy):**
+- Decoying: Approach → Taunt → Flee
+- Approach: navega hacia rival guardián/rompedor
+- Taunt: se detiene, emota Molesto, hace "ruido" (emote)
+- Flee: corre lejos del rival, hacia HomeExit si existe
+- Cooldown: no puede Decoy cada 4s (DecoyCooldown)
+
+## Campos Internos (Ejemplos clave)
+
+- `owner` (MoriMochiAgent) — agente propietario.
+- `ctx` (AgentContext) — contexto compartido.
+- `target` (MaterialPickup) — objetivo recolectable.
+- `carried` (int) — material en mano (≤ CarryCapacity).
+- `phase` (Phase enum) — Noticing/Moving/Mining/Losing/Returning/Securing/Guarding/Hunting/Decoying.
+- `phaseTimer` — cuenta regresiva dentro de fase.
+- `exit` (ExitZone) — salida donde depositar (HomeExit).
+- `prey` (MoriMochiAgent) — rival siendo perseguido (Break/Decoy).
+- `decoyStep` (DecoyStep enum: Approach/Taunt/Flee) — sub-fase de Decoying.
+- `decoyCooldownUntil` (float) — Time.time del próximo decoy permitido.
+
+## Máquina de Estados Detallada
 
 ```
-TryEngage() → entra Expedition, fase = Noticing, phaseTimer = ExpeditionRulesSO.NoticeSeconds
+[Gather]
+TryGatherEngage() → Noticing, phaseTimer=NoticeSeconds
+Noticing → Moving (repath hacia MaterialPickup)
+Moving → Mining (al llegar, phaseTimer=MiningSecondsPerUnit)
+Mining → `carried++` cada phaseTimer vencido
+       si carried >= CarryCapacity o material.Taken → BeginReturn(exit)
+       sino → siguiente Mining cycle
+Returning → navega a HomeExit, repath cada RepathInterval
+          si Contains(exit) → Securing
+Securing → rota hacia exit, phaseTimer=DepositSeconds
+         → exit.Deposit(carried), carried=0, Abort()
 
-[Noticing] (criatura ve mineral, se frena, emote Curioso)
-  - SetStopped(true): paraliza NavMesh
-  - phaseTimer decrece
-  - Si phaseTimer <= 0 o NoticeSeconds <= 0:
-    → Fase Moving
-    → SetStopped(false): reactiva NavMesh
-    → SetDestination(ApproachPoint): navega acercándose
+[Guard]
+TryGuardEngage() → Guarding, target=GuardPost/MaterialPickup
+Guarding → si target.Taken → Abort()
+         → si rival acerca → rota hacia rival más cercano o target
+         → mantener distancia GuardRadius
 
-[Moving] (navega hacia mineral, evitando otros agentes)
-  - Repath cada RepathInterval segundos
-  - ApproachPoint: calcula punto de acercamiento tangencial (desplazamiento angular 2π)
-    → Itera todos los percepts Monchi que compitan por el mismo target
-    → Desplaza el punto de acercamiento para evitar solapamiento
-  - Chequea 2 condiciones de "llegada":
-    1. delta.magnitude <= ArriveDistance: distancia planar al punto de acercamiento
-    2. blockedTimer: si velocity < 0.05 m/s por >0.6s (detector de bloqueo/estancamiento)
-  - Si llegada:
-    → Fase Taking
-    → SetStopped(true)
-    → phaseTimer = ExpeditionRulesSO.TakeSeconds
+[Break]
+TryBreakEngage() → Hunting (si hay rival) o Hunting con target=MaterialPickup (si no)
+Hunting → si prey != null → persigue a prey
+        → si prey en rango de choque → AgentClash.TryEngage() (automático, no muta aquí)
+        → si prey desaparece → Abort() o switch a MaterialPickup fallback
 
-[Taking] (criatura agarrando/consumiendo mineral)
-  - SetStopped(true): paraliza NavMesh
-  - Rota body hacia target: Slerp(rotation, LookRotation(to_target), 10*dt)
-  - phaseTimer decrece
-  - Si phaseTimer <= 0 o TakeSeconds <= 0:
-    → TryTake(): llama target.TryTake(out value)
-    → Si éxito:
-      ✓ collected += value
-      ✓ EmitEmote(Feliz)
-      ✓ owner.onPickup?.Invoke()
-      ✓ Abort() → roaming
-    → Si fallo (rival lo tomó):
-      ✗ EnterLosing()
+[Decoy]
+TryDecoyEngage() → Decoying, decoyStep=Approach, phaseTimer=0
+  DecoyStep.Approach → navega hacia rival, huntTimer=HuntRepathInterval
+                    → si en rango DecoyRange → decoyStep=Taunt, phaseTimer=TauntSeconds
+                    → si elapsed > GiveUpSeconds → EndDecoy (cooldown)
+  DecoyStep.Taunt → rota hacia rival, emota Molesto
+                 → phaseTimer decrece
+                 → si phaseTimer <= 0 → decoyStep=Flee, phaseTimer=DecoyFleeSeconds
+                                      → calcula dirección away from rival (hacia HomeExit si existe)
+  DecoyStep.Flee → navega lejos, phaseTimer decrece
+                → si phaseTimer <= 0 → EndDecoy (suma cooldown, Abort())
+```
 
-[Losing] (reacción a perder el mineral a un rival)
-  - SetStopped(true)
-  - Rota body hacia lostPoint (posición del mineral)
-  - EmitEmote(Molesto)
-  - phaseTimer = ExpeditionRulesSO.LoseSeconds (default 1s)
-  - phaseTimer decrece
-  - Si phaseTimer <= 0 o LoseSeconds <= 0:
-    → Abort() → roaming
+## Ocupación Mapping (S101 NUEVO)
 
-Timeout global:
-  - Si elapsed > ExpeditionRulesSO.GiveUpSeconds (default 12s):
-    → Abort() → roaming (sin alcanzar tomar)
+```csharp
+// En TryEngage():
+var occ = ctx.Occupation;
+if (occ == Occupation.None || occ == Occupation.Explore) occ = Occupation.Gather;
 
-Target validation:
-  - Si en cualquier fase: target == null || target.Taken || !gameObject.active:
-    → EnterLosing() inmediatamente
+switch (occ)
+{
+    case Occupation.Guard:  return TryGuardEngage(rules);
+    case Occupation.Break:  return TryBreakEngage(rules);
+    case Occupation.Decoy:  return TryDecoyEngage(rules);
+    default:                return TryGatherEngage(rules);
+}
 ```
 
 ## Ciclo de Operación
@@ -96,60 +126,54 @@ Target validation:
 ```
 Idle/Roaming (en MoriMochiAgent.Update):
   if (! expedition.TryEngage()) social.TryEngage()
-    → Si no hay reglas (tienda) o no matching, devuelve false; social toma.
-    → Si hay matching, entra Expedition, emote Curioso.
+    → Si hay ocupación y matching, entra Expedition
+    → Si sin ocupación en tienda, devuelve false
 
 Expedition (en MoriMochiAgent.Update):
   expedition.TickExpedition()
-    → Orbesta máquina de 4 fases
-    → Emote Feliz al tomar, Molesto si pierde
+    → Orbesta máquina de fases según ocupación
     → Vuelve a Roaming en Abort()
 ```
 
-## Evaluación de Reglas (TryEngage)
+## Evaluación de Reglas (TryGatherEngage)
 
-Itera `ctx.Percepts` (poblada por `AgentSenses.Tick()`, throttled cada ~2-4s) vs `ExpeditionRulesSO.Current.Rules` (lista polimórfica). Cada regla implementa `Matches(Percept, self, rules, out score)`:
-- Si no match (ej: `Kind != Material`), devuelve false.
-- Si match, calcula score y devuelve true.
+Itera `ctx.Percepts` (poblada por `AgentSenses`) vs `ExpeditionRulesSO.Current.Rules` (lista polimórfica). Cada regla implementa `Matches(Percept, self, rules, out score)`. Ganador = máximo score.
 
-Ganador = máximo score. Si hay empate, se elige el primero encontrado (orden de iteración).
+## Invariantes S101 + S98 + S99
 
-**Ejemplo:** `SeekMaterialRule` chequea `p.Kind == Material`, no null, activo; score = `1/(1+dist) * (1 + boldnessBias*(boldness-0.5)*2)` (distancia inversa modulada por osadía).
-
-## Invariantes S98
-
-- **4 fases discretas:** Noticing (beat visual), Moving (navegación), Taking (beat consumo), Losing (beat reacción). Cada una con su lógica y duración (timings en ExpeditionRulesSO).
-- **Intents por fase:** `Taking` e `Losing` son intents nuevos que permiten sincronización con gestos/emotes/HUD.
-- **ApproachPoint desplazamiento:** evita apiñamiento cuando múltiples agentes van por el mismo mineral (angular separation).
-- **Percepts read-only:** lista poblada por `AgentSenses`, solo lectura de `AgentExpedition` y `AgentSocial`.
-- **TryEngage antes de social:** prioridad de intenciones en Idle/Roaming: Expedición > Social > default roaming brain.
-- **Target validation:** si target es tomado por rival (u otro evento), entra Losing inmediatamente.
-- **No persist:** `collected` es sesión local del agente; al poolear se resetea. Persistencia de stats es responsabilidad de `CreatureDNA` y `GameManager`.
-- **Timeout give-up:** evita stalling si el recolectable se vuelve inaccesible; `GiveUpSeconds` default 12 s.
-- **Escena tienda:** `ExpeditionRulesSO.Current` es null → TryEngage always false → expedición nunca activa, social en control.
+- **Ocupaciones discretas:** Gather/Guard/Break/Decoy definen estrategias sin solapamiento (TryEngage elige una según Occupation actual).
+- **Gather es default:** si Occupation.None o Occupation.Explore → traducir a Gather.
+- **Guard es estático:** se planta en MaterialPickup, vigila sin interactuar (permite que rivales lleguen pero alertar al equipo).
+- **Break es agresivo:** busca y golpea rivales que recolectan, o acecha esperando.
+- **Decoy es táctica:** provoca rivales guardián/rompedor para distraerlos, luego huye. Cooldown evita spam.
+- **Carried vs Secured:** `carried` es local a agente (en mano), `exit.Secured` es acumulador de equipo (depositado).
+- **Percepts read-only:** solo lectura de `AgentSenses`, sin mutación.
+- **No persist:** `collected` es sesión local; al poolear se resetea.
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+[[Index/23 - Arena Sandbox y Expedicion]] (sección 8.10: Ocupaciones)
 
 ## Conexiones
 
 **Componentes:**
-- [[MoriMochiAgent]] (owner, lector de Intent, fachada pública, EmitEmote, RequestRoam)
-- [[AgentContext]] (contexto de estado, Percepts, SetDestinationSafe, SetStopped)
+- [[MoriMochiAgent]] (owner, Intent, Occupation, EmitEmote, RequestRoam)
+- [[AgentContext]] (contexto, Percepts, SetDestinationSafe, SetStopped, Occupation, HomeExit, GuardPost)
 
 **Datos y servicios:**
-- [[ExpeditionRulesSO]] (Current singleton, reglas polimórficas, **beat timings S98-S99**: NoticeSeconds, TakeSeconds, LoseSeconds, navegación)
-- [[ExpeditionRuleBase]] / [[SeekMaterialRule]] (evaluadores de score)
-- [[MaterialPickup]] (target, TryTake)
+- [[ExpeditionRulesSO]] (Current, Rules, timings: NoticeSeconds, MiningSecondsPerUnit, DepositSeconds, etc.)
+- [[Occupation]] (Gather, Guard, Break, Decoy, Explore)
+- [[MaterialPickup]] (target, Taken, TryMineUnit)
+- [[ExitZone]] (exit, Deposit, Secured)
+- [[MoriMochiAgent]] (prey para Break/Decoy, Intent de rival)
 
-**Percepciones:**
-- [[Perceivable]] (cada percepto tiene `.Source` que puede contener MaterialPickup)
-- [[PerceivableKind.Material]] (filtro en reglas)
+**Visuals (S101-S99):**
+- [[CreatureIntent]] (Collecting, Taking, Losing, Guarding, Hunting, Taunting, Fleeing)
+- [[MonchiGestureDriver]] (sincroniza con intent)
+- [[MonchiMoodDriver]] (reacciona a intent)
+- [[ArenaCueOverlay]] (dibuja rutas coloreadas por intent, retícula de objetivo)
+- [[ArenaCameraDirector]] (enfoca en conflictos)
 
-**Comportamiento:**
-- [[AgentBrain]] (RequestRoam en abort, coordina states)
-- **S98-S99:** [[CreatureIntent]] (Taking, Losing)
-- **S98:** [[MonchiGestureDriver]] (sincroniza gestos con intent)
-- **S98-S99:** [[MonchiMoodDriver]] (reacciona a intent Taking/Losing)
-- **S98:** [[ArenaCueOverlay]] (dibuja rutas de expedición coloreadas por intent)
+**Combate (S101-S100 integración):**
+- [[AgentClash]] (si Break y rival en rango, TryEngage() es automático desde MoriMochiAgent)
+- [[ClashTuningSO]] (tuning de combate)

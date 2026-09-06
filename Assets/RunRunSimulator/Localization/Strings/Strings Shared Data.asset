@@ -1623,6 +1623,26 @@ MonoBehaviour:
     m_Key: intent.dazed
     m_Metadata:
       m_Items: []
+  - m_Id: 14900000000000101
+    m_Key: intent.carrying
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000102
+    m_Key: intent.securing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000103
+    m_Key: intent.guarding
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000104
+    m_Key: intent.hunting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000105
+    m_Key: intent.taunting
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

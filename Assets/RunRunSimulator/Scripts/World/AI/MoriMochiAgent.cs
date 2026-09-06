@@ -184,9 +184,15 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     public IReadOnlyList<Percept> Percepts => ctx.Percepts;
     public ExpeditionTeam Team => perceivable != null ? perceivable.Team : ExpeditionTeam.None;
+    public Occupation Occupation => ctx.Occupation;
+    public int Carried => expedition.Carried;
+    public float MiningProgress => expedition.MiningProgress;
+    public void SetOccupation(Occupation occupation) => ctx.Occupation = occupation == Occupation.None ? Occupation.Gather : occupation;
+    public void SetHomeExit(ExitZone exit) => ctx.HomeExit = exit;
+    public void SetGuardPost(Transform post) => ctx.GuardPost = post;
 
     public int CollectedMaterial => expedition.Collected;
-    public Transform ExpeditionTarget => expedition.Target != null ? expedition.Target.transform : null;
+    public Transform ExpeditionTarget => expedition.TargetTransform;
     public MoriMochiAgent SocialPartner => ctx.State == AgentState.Socializing ? social.Partner : null;
     public MoriMochiAgent ClashTarget => clash.Target;
     public string ClashGesture => clash.Gesture;
@@ -228,7 +234,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     internal Vector3 AdjustRoamForAvoidance(Vector3 candidate) => social.AdjustRoamForAvoidance(candidate);
     internal void RequestPlayfulKnock(Vector3 force) => physics.Knock(force, false);
     internal void ReceiveClashHit(MoriMochiAgent attacker, Vector3 force) { clash.ReceiveHit(attacker); physics.Knock(force, false); }
-    internal void NotifyKnocked() => clash.Cancel();
+    internal void NotifyKnocked() { clash.Cancel(); expedition.OnKnocked(); }
     internal void NotifyRecovered() => clash.OnRecovered();
     internal bool IgnoresChainKnock(MoriMochiAgent other) => clash.IgnoresChainKnock(other);
 

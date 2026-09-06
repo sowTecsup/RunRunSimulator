@@ -16,13 +16,13 @@ MonoBehaviour:
   AnticipationSeconds: 0.35
   StrikeSeconds: 1.5
   Range: 8
-  HitRadius: 2
+  HitRadius: 2.5
   Impulse: 33
   UpBias: 0.45
   DashSpeed: 0
   DashAcceleration: 60
   SelfRecoil: 0
-  LaunchAngle: 40
+  LaunchAngle: 32
   SweepRadius: 0
   TellGesture: FlyUp
   StrikeGesture: 

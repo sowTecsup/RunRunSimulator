@@ -15,7 +15,8 @@ public class MaterialPickup : MonoBehaviour
     private float cachedRadius = -1f;
 
     public int Value => value;
-    public bool Taken { get; private set; }
+    public int Remaining { get; private set; }
+    public bool Taken => Remaining <= 0;
 
     public float Radius
     {
@@ -27,7 +28,16 @@ public class MaterialPickup : MonoBehaviour
         }
     }
 
-    internal void SetValue(int newValue) => value = Mathf.Max(1, newValue);
+    private void Awake()
+    {
+        Remaining = value;
+    }
+
+    internal void SetValue(int newValue)
+    {
+        value = Mathf.Max(1, newValue);
+        Remaining = value;
+    }
 
     private float ComputeRadius()
     {
@@ -52,14 +62,16 @@ public class MaterialPickup : MonoBehaviour
         return center + dir * (Radius + margin);
     }
 
-    public bool TryTake(out int taken)
+    public bool TryMineUnit()
     {
-        if (Taken) { taken = 0; return false; }
-        Taken = true;
-        taken = value;
-        onTaken?.Invoke();
-        if (disableDelay <= 0f) gameObject.SetActive(false);
-        else StartCoroutine(DisableAfter(disableDelay));
+        if (Remaining <= 0) return false;
+        Remaining--;
+        if (Remaining <= 0)
+        {
+            onTaken?.Invoke();
+            if (disableDelay <= 0f) gameObject.SetActive(false);
+            else StartCoroutine(DisableAfter(disableDelay));
+        }
         return true;
     }
 

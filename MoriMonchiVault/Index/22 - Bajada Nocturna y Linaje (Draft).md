@@ -403,6 +403,43 @@ Es un embudo que va de lo estratégico a lo concreto y en cada paso lo que se of
 
 **Orden acordado:** (1) elenco básico y equipos (placas, guías, sin social entre rivales) → (2) UI de decisión de acciones → (3) movimientos por slot y choque físico v1 (el botón de desarrollo puede adelantarse si Juan quiere verlos antes) → (4) nervio y memoria corta → (5) utilidad con curvas y catálogo → (6) cono de visión, oído y pizarrón de equipo. Cada paso cierra con el loop de QA de S99 (sondeo + capturas miradas).
 
+### 8.10 · Arquetipos de decisión sobre el mapa: ocupaciones que consumen tiempo (S101 · Juan ⭐ + propuesta del orquestador, no decidida)
+
+**Juan ⭐ (S101, tras ver el afinado del choque):** *"La idea es poder tener decisiones emergentes que justifiquen plantear nuevas estrategias, que no sea simplemente 'voy rápido, peleo y recolecto'. La idea es que no puedas hacer todas: que recolectar haga que estés un tiempo recolectando el material antes de volver, que uno vigile, que otro distraiga; ese tipo de cosas me gustaría explorar. La idea es pensar arquetipos en cuanto a las decisiones que puedas tomar sobre el mapa."*
+
+**Lo que dijo la arena en S101 (evidencia, `Index/23` 5e):** con un atractor (el cristal central) los equipos se cruzan y chocan a los 10 s; sin atractor se dispersan y no vuelven a cruzarse en 150 s. Hoy el juego de la sala es "el que llega toma el cristal en 1,2 s y se acabó": no hay tiempo comprometido, así que no hay nada que vigilar ni de qué distraer.
+
+**Regla en una frase (orquestador):** *"Toda decisión sobre el mapa es una ocupación que consume tiempo en un lugar; nadie puede estar en dos lugares, y lo que uno hace deja un hueco que otro puede aprovechar."*
+
+**Las cuatro palancas de la decisión del jugador** (antes de PLAY; una vez en vivo si 8.7 lo permite):
+1. **Dónde** — el sitio: centro rico y disputado, esquinas pobres y seguras, la salida.
+2. **Cuánto** — cuánto tiempo comprometer ahí: recolectar todo o parcial e irse (el push-your-luck de Another Door dentro de la sala).
+3. **Quién hace qué** — reparto de ocupaciones según carácter y partes: el osado vigila, el tímido recolecta lejos, el sociable acompaña.
+4. **Cuándo volver** — asegurar lo que se lleva: solo cuenta lo que llega a la salida.
+
+**Ocupaciones = arquetipos de decisión**, cada una explicable en una frase, con lo que da y el hueco que deja:
+
+| Ocupación | Qué hace en el mapa | Da | Cuesta / hueco que deja | Con lo que ya existe |
+|---|---|---|---|---|
+| **Recolectar** | se queda en el cristal "minando" T segundos; el material entra de a una unidad | material | quieto y expuesto; si lo tumban pierde lo minado y el cristal queda a medias | fase `Taking` de `AgentExpedition` (`TakeSeconds`) → canal con progreso; `MaterialPickup` con capacidad |
+| **Vigilar / Custodiar** | se planta junto a un sitio o a un compañero y embiste a todo rival que entre a su radio | protege al recolector | no recolecta; si lo distraen, deja el hueco | `AgentClash.TryEngage` con radio propio + destino fijo |
+| **Distraer / Señuelo** | se acerca a rivales, ruge (tell) y huye hacia el lado contrario; los osados lo persiguen | saca al vigía de su puesto | riesgo de que lo alcancen (nervio) | `Chasing` social existente + emote + huida |
+| **Romper** | va derecho al recolector rival (picada) para cortarle el minado | anula la recolección ajena | queda mareado lejos de su equipo | picada existente + interrupción del canal |
+| **Explorar** | recorre sitios lejanos y "avisa" (pizarrón de equipo) | el equipo sabe dónde hay material | tiempo sin recolectar | `Roaming` con destinos por sitio + pizarrón (punto 6 de 8.9) |
+| **Llevar / Escoltar** | vuelve a la salida con lo cargado; el escolta va pegado | asegura material | lento, deja el cristal | "asegurar lo que carga" + "pegarse a un compañero" (8.8) |
+
+**El piedra-papel-tijera estratégico que emerge sin diseñarlo a mano:** Romper vence a Recolectar sin vigía · Vigilar vence a Romper · Distraer vence a Vigilar · Recolectar vence a Distraer (lo ignora y sigue minando mientras el señuelo pierde tiempo). El tiempo lo cierra: si cada ocupación dura 15-20 s en una sala de 60-90 s, nadie hace más de tres o cuatro cosas → **la combinación de las tres criaturas es la estrategia**, y leer los tipos de parte del rival (8.1) es adivinar su combinación.
+
+**Estrategias legibles con tres criaturas:** "Osado vigila el centro, Equilibrado recolecta, Tímida explora las esquinas" (recolección segura) · "Osado y Equilibrado distraen por los dos lados, Tímida recolecta el centro" (engaño) · "Osado rompe al recolector rival, los otros dos recolectan las esquinas" (negación). Cada una se lee en pantalla por las guías: anillo de minado que se llena, arco de vigilancia, `!` del señuelo y flechas de los que lo persiguen (regla transversal de 8.9: toda decisión con causa visible).
+
+**Qué cambia en lo construido (mapeo por datos, sin lógica nueva salvo el evaluador):** el catálogo de 8.8 (`ExpeditionDirectiveSO`) pasa a ser catálogo de **ocupaciones** con `Duration`, `Site` (centro / esquina / salida / compañero) e `InterruptOn` (tumbado, rival a X m, tiempo); `AgentExpedition` suma fases `Mining` (canal con progreso, `MiningSecondsPerUnit`), `Guarding`, `Decoying`, `Carrying`; `MaterialPickup` gana `Capacity` y entrega de a unidades; la sala gana una **salida** (`PerceivableKind.Exit`) y cristales con capacidad; el sandbox asigna ocupaciones por carácter desde la semilla mientras siguen autónomos. La UI de tres pasos (8.8) pasa a elegir ocupación + sitio por criatura.
+
+**Cómo saber si funciona (sondeo por sala):** material asegurado por equipo, interrupciones de minado, persecuciones del señuelo, tiempo hasta el primer choque; el RPS estratégico vale si cada combinación tiene una contra medible en la arena.
+
+**Orden propuesto:** (1) Recolectar con tiempo + capacidad de cristal + salida (convierte la sala en algo que se puede perder) → (2) Vigilar y Romper (reusan el choque) → (3) Distraer (lo más nuevo) → (4) Explorar + pizarrón → (5) UI. Reemplaza al punto 2 de 8.9 tal como estaba: la UI viene después de tener ocupaciones que valga la pena elegir.
+
+**Preguntas nuevas para Juan:** ¿cuánto dura una ocupación y una sala? ¿el material minado a medias se pierde o queda en el suelo como pickup? ¿el señuelo huye por nervio o por tiempo fijo? ¿se puede cambiar una ocupación en vivo (8.7)?
+
 ### 8.7 · Preguntas abiertas nuevas (S97)
 
 - [ ] ⭐ ¿Las tres indicaciones son **por criatura o por equipo**?
@@ -433,3 +470,5 @@ Fuentes sobre Another Door consultadas en sesión: página de Steam (app 2786760
 **S97 (2026-09-03).** Juan trajo su mecánica ⭐ (Parte 8.1) y fijó etapas; se construyó la Fase 1 y arrancó la Fase 2 en Unity (Parte 8.5, implementación en [[Index/23 - Arena Sandbox y Expedicion]]). El plan de realismo (8.6) quedó documentado a pedido de Juan antes de continuar. Preguntas abiertas en 8.7; las de la Parte 7 sobre linaje siguen sin responder.
 
 **S99 (2026-09-04).** Pulido de la arena verificado en loop de QA (ver [[Index/23 - Arena Sandbox y Expedicion]]). Juan pidió planear la Etapa 3: equipos con placas verde/rojo pastel, choque físico estilo Gang Beasts y filtro de su lluvia de IA → **Parte 8.9 acordada**: cuerpo único (ragdoll articulado como v2 opcional), sin fuego amigo, perder no cuesta mientras se prueba, tres movimientos por slot, elenco básico de tres arquetipos por equipo, y después del elenco la UI de decisión de acciones (8.8). Las dos preguntas ⭐ de 8.7 siguen abiertas; la UI obliga a responderlas.
+
+**S101 (2026-09-05).** Choque v1 afinado por datos y verificado (ver [[Index/23 - Arena Sandbox y Expedicion]] 5e). Juan ⭐ pidió explorar **decisiones emergentes que justifiquen estrategias** ("que no puedas hacer todas": recolectar toma tiempo, uno vigila, otro distrae) y **arquetipos de decisión sobre el mapa** → **Parte 8.10** (ocupaciones con tiempo, RPS estratégico emergente, orden propuesto). Juan ⭐ respondió *"de acuerdo, ejecútate en /loop hasta que tengas gameplay"* → **construido en la misma sesión** (pasos 1-3 de 8.10: minado con canal, salida y ronda; Vigilar y Romper; Distraer) y medido con siete rondas: el vigía niega el centro (12-9 contra tres recolectores), el rompedor solo empata (10-10), el señuelo anula al vigía (6-12 → 12-12 cuando el vigía prioriza al que lo provoca). Implementación y matriz en [[Index/23 - Arena Sandbox y Expedicion]] 5f. Supuestos tomados sin respuesta de Juan: ocupación fija antes de PLAY (por roster), sala de 90 s, minado 3 s por unidad con carga de 3, lo minado cae al suelo al ser tumbado (nadie lo pierde del todo), el señuelo huye por tiempo fijo (5 s) y no por nervio. Quedan para el jugador: Explorar, Llevar/Escoltar, la UI de tres pasos y las preguntas de 8.7.

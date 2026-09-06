@@ -22,11 +22,15 @@ private enum Phase { None, Anticipating, Striking, Resolving, Dazed }
 
 ## Métodos públicos (llamados desde MoriMochiAgent)
 
-- `TryEngage() → bool` — intenta iniciar choque automático contra rival válido si:
+- `TryEngage() → bool` — **S101:** intenta iniciar choque automático contra rival válido si:
   - Cooldown vencido (Time.time >= cooldownUntil)
+  - **S101 NUEVO:** Gating por `ctx.Occupation`: rechaza Gather y Decoy (no inician choques)
   - Boldness >= tuning.MinBoldness
   - Rival dentro de EngageRange, no sostenido/volando/recuperándose, targetable
-  - Elige movimiento según distancia/rivales: Back > Wings > Horn
+  - **S101 NUEVO:** Elige rival según ocupación:
+    - `Break`: prefiere rivales con Intent `Taking/Carrying/Securing/Collecting` (los ladrones), fallback a más cercano
+    - Otros: prefiere rival con Intent `Taunting` (señuelos provocan), fallback a más cercano
+  - Elige movimiento según distancia/rivales: **S101:** nunca Back (evita barrida), prefiere Wings o Horn
 - `ForceMove(ClashMoveSO move, MoriMochiAgent rival) → bool` — fuerza un movimiento específico (dev tools, no validación de cooldown)
 - `TickClashing()` — cada frame en estado Clashing, avanza fase:
   - **Anticipating:** gira hacia rival, cuenta down. Si timer <= 0, StartStrike.
@@ -71,6 +75,9 @@ private enum Phase { None, Anticipating, Striking, Resolving, Dazed }
 - `Decide()` — post-Dazed, decide si contra-atacar:
   - Si lastAttacker está cerca, no sostenido/volando, Boldness >= ReengageBoldness, llama Begin contra-ataque
   - Sino, retrocede RetreatDistance
+- `ChooseMove(t, rival, dist, occ) → ClashMoveSO` — **S101 NUEVO:** elige movimiento según ocupación:
+  - `Break`: prefiere Wings (dive) si distancia >= DiveMinDistance, fallback Horn, nunca Back
+  - Otros: Back si muchos rivales en SweepRange, Wings si dist >= DiveMinDistance, Horn como último recurso
 
 ## Fachada pública (propiedades)
 
@@ -89,36 +96,74 @@ private enum Phase { None, Anticipating, Striking, Resolving, Dazed }
 - `chainImmuneUntil` — Time.time del fin de inmunidad al dominó
 - `navOverridden, savedSpeed/Acceleration/Avoidance` — para restaurar NavMeshAgent
 
-## Conexiones
+## S101: Cambios detallados
 
-**Entrada:**
-- **Creado por:** [[MoriMochiAgent.Awake()]] (línea 50)
-- **TryEngage llamado por:** [[MoriMochiAgent.Update()]] en estados Idle/Roaming antes de social (línea 139-140)
-- **TickClashing llamado por:** [[MoriMochiAgent.Update()]] en estado Clashing (línea 150)
-- **TickAirborne llamado por:** [[MoriMochiAgent.Update()]] en estado Thrown (línea 142)
-- **ReceiveHit llamado por:** [[MoriMochiAgent.ReceiveClashHit()]] (línea 230)
-- **OnRecovered llamado por:** [[AgentPhysics.TickRecovering()]] (línea 191)
+**Línea 45-47: Gating por Occupation en TryEngage()**
 
-**Salida:**
-- **ctx.State = Clashing** — durante combate y Dazed
-- **owner.onClashTell** — al comenzar, para sincronía de gestos
-- **owner.onClashHit** — al impactar, para VFX
-- **owner.onKnocked** — al recibir golpe
-- **victim.ReceiveClashHit()** — propaga golpe
-- **owner.EmitEmote(Molesto)** — emote al comenzar combate
-- **owner.RequestRoam()** — al finalizar combate normal
-- **rival.ForceClash(move, target)** — para dev console ArenaClashDev
+```csharp
+var occ = ctx.Occupation;
+if (occ == Occupation.None) occ = Occupation.Gather;
+if (occ == Occupation.Gather || occ == Occupation.Decoy) return false;
+```
 
-## Invariantes S100
+- Gather y Decoy nunca inician choques automáticos (solo pueden ser atacados)
+- Break, Guard, Explore (→Gather) sí pueden intentar choque
+
+**Línea 69-80: Selección de rival por Occupation**
+
+```csharp
+if (occ == Occupation.Break)
+{
+    var intent = other.Intent;
+    bool isThief = intent == CreatureIntent.Taking || intent == CreatureIntent.Carrying ||
+                   intent == CreatureIntent.Securing || intent == CreatureIntent.Collecting;
+    if (isThief && dist < preferredDist) { preferredDist = dist; preferred = other; }
+}
+else if (other.Intent == CreatureIntent.Taunting && dist < preferredDist)
+{
+    preferredDist = dist;
+    preferred     = other;
+}
+```
+
+- Break: busca ladrones (Taking/Carrying/Securing/Collecting)
+- Otros (Guard, Explore): buscan rivales Taunting (señuelos)
+- Fallback: rival más cercano
+
+**Línea 256-269: ChooseMove elige Wings o Horn (nunca Back)**
+
+```csharp
+private ClashMoveSO ChooseMove(ClashTuningSO t, MoriMochiAgent rival, float dist, Occupation occ)
+{
+    if (occ == Occupation.Break)
+    {
+        if (t.Wings != null && dist >= t.DiveMinDistance && dist <= t.Wings.Range) return t.Wings;
+        if (t.Horn != null && dist <= t.Horn.Range) return t.Horn;
+        return null;
+    }
+
+    if (t.Back != null && dist <= t.Back.Range && CountRivalsWithin(t.SweepRange) >= t.SweepMinRivals) return t.Back;
+    if (t.Wings != null && dist >= t.DiveMinDistance && dist <= t.Wings.Range) return t.Wings;
+    if (t.Horn != null && dist <= t.Horn.Range) return t.Horn;
+    return null;
+}
+```
+
+- Break: Wings (dive) > Horn; nunca Back (para aislar víctima)
+- Otros: Back (barrida si grupo), Wings (dive), Horn (melee)
+
+## Invariantes S101 + S100
 
 - Un choque solo puede iniciarse desde Idle/Roaming (TryEngage lo valida implícitamente al consultar Percepts)
 - Chain immunity previene dominós infinitos: si A golpea a B y B se va al aire, B no golpea a A de nuevo durante 0.8s
+- **S101:** Gather/Decoy nunca inician choques (gating defensivo); solo Break/Guard pueden atacar
 - Counter-attack solo es posible si Boldness >= ReengageBoldness y el atacante sigue en rango — evita persecución indefinida
 - La transición Dazed → Decide solo ocurre si knockedByClash=true; de lo contrario Finish inmediato
+- **S101:** Rivales Taunting son cebo para el grupo; Break busca ladrones específicamente
 
 ## Vinculado a
 
-- [[Index/23 - Arena Sandbox y Expedicion]]
+- [[Index/23 - Arena Sandbox y Expedicion]] (sección 5f: Gating y selección por Occupation)
 - [[MoriMochiAgent]]
 - [[AgentContext]]
 - [[AgentPhysics]]

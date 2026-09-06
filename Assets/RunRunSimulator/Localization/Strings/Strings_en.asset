@@ -1637,6 +1637,26 @@ MonoBehaviour:
     m_Localized: Dazed
     m_Metadata:
       m_Items: []
+  - m_Id: 14900000000000101
+    m_Localized: Carrying
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000102
+    m_Localized: Securing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000103
+    m_Localized: Guarding
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000104
+    m_Localized: Hunting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000105
+    m_Localized: Taunting
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -1634,6 +1634,26 @@ MonoBehaviour:
     m_Localized: Mareado
     m_Metadata:
       m_Items: []
+  - m_Id: 14900000000000101
+    m_Localized: Lleva
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000102
+    m_Localized: Asegura
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000103
+    m_Localized: Vigila
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000104
+    m_Localized: Acecha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000105
+    m_Localized: Provoca
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -6,7 +6,7 @@ tags: [script, world, agent, internal]
 
 **Ruta:** `World/AI/AgentContext.cs`
 
-**Responsabilidad:** Contenedor de estado puro para un MoriMochiAgent (datos compartidos entre colaboradores sin duplicación). Almacena referencias a componentes (NavMeshAgent, Rigidbody, Collider, Transform), datos de DNA/perfil, estado de juego (ubicación actual, velocidad base), máscaras NavMesh (libre vs confinado), banderas de operación (rebake en curso), y lista de percepciones sociales (Percepts) escrita por AgentSenses y leída por AgentSocial, AgentExpedition. Expone helpers para consultas de seguridad: `IsNavMeshControlled()`, `IsBreeding`, `IsMoving`, `PlanarDistanceToPlayer()`; operaciones del agente: `SetStopped()`, `SetDestinationSafe()` (con muestreo de NavMesh), `SetColliderTrigger()`; **S98 NUEVO:** `BaseSpeed` y `ApplyGaitSpeed()` = único dueño de `NavMeshAgent.speed`. **S97:** AgentState enum con `Expedition`. **S100 NUEVO:** AgentState con `Clashing`. No tiene lógica de estado.
+**Responsabilidad:** Contenedor de estado puro para un MoriMochiAgent (datos compartidos entre colaboradores sin duplicación). Almacena referencias a componentes (NavMeshAgent, Rigidbody, Collider, Transform), datos de DNA/perfil, estado de juego (ubicación actual, velocidad base), máscaras NavMesh (libre vs confinado), banderas de operación (rebake en curso), y lista de percepciones sociales (Percepts) escrita por AgentSenses y leída por AgentSocial, AgentExpedition. Expone helpers para consultas de seguridad: `IsNavMeshControlled()`, `IsBreeding`, `IsMoving`, `PlanarDistanceToPlayer()`; operaciones del agente: `SetStopped()`, `SetDestinationSafe()` (con muestreo de NavMesh), `SetColliderTrigger()`; **S98 NUEVO:** `BaseSpeed` y `ApplyGaitSpeed()` = único dueño de `NavMeshAgent.speed`. **S97:** AgentState enum con `Expedition`. **S100 NUEVO:** AgentState con `Clashing`. **S101 NUEVO:** campos Occupation, HomeExit, GuardPost para ocupaciones de expedición. No tiene lógica de estado.
 
 ## Enum AgentState
 
@@ -38,6 +38,10 @@ internal enum AgentState {
 - `Dna, Profile` (CreatureDNA, RoleWorldProfile) — datos genéticos y perfil de rol; Profile.RoamSpeedFactor usado por S98
 - `Player, HoldAnchor` (Transform) — transforms de referencias externas
 - `CurrentContainer` (MoriMochiContainer) — el corral/contenedor que lo confina (null si libre)
+- **S101 NUEVO:**
+  - `Occupation` (Occupation, default Gather) — estrategia de expedición asignada por ArenaSandbox (Break/Guard/Gather/Decoy/Explore)
+  - `HomeExit` (ExitZone) — salida de base a la que retorna tras recolección (inyectado por ArenaSandbox)
+  - `GuardPost` (Transform) — puesto de vigilancia si es Guard (inyectado por ArenaSandbox)
 - `FreeAreaMask, ConfinedAreaMask` (int) — máscaras NavMesh por área
 - `RebakeInProgress` (bool) — bandera de rebake en curso
 - `Percepts` (List<Percept>) — S64 lista ordenada por distancia, capped a MaxPercepts. Escrita por AgentSenses, leída por AgentSocial, AgentExpedition, S98 posible uso futuro
@@ -71,6 +75,30 @@ internal enum AgentState {
 - Incluye Player, Monchi (con afinidad), Customer, Prop, Material (S97)
 - Nunca null: limpiada si el agente no está en control NavMesh
 - Pizarrón compartido con colaboradores (AgentSocial, AgentExpedition) para decisiones sin re-consulta
+
+## Cambios S101: Ocupaciones
+
+**Línea 25-27: Campos nuevos**
+
+```csharp
+internal Occupation Occupation = Occupation.Gather;
+internal ExitZone HomeExit;
+internal Transform GuardPost;
+```
+
+- `Occupation` — estrategia de expedición (None/Gather/Guard/Break/Decoy/Explore); inyectado por ArenaSandbox desde ArenaRosterSO
+- `HomeExit` — salida de base (si Gather o Guard, retorna acá); inyectado por ArenaSandbox.SpawnCreature()
+- `GuardPost` — puesto de vigilancia (si Guard, se planta acá); inyectado por ArenaSandbox.SpawnCreature()
+
+**Cómo se inyectan:**
+```csharp
+// En ArenaSandbox.SpawnCreature()
+var entry = roster.Entries[i];
+controller.Agent.SetOccupation(entry.Occupation);
+controller.Agent.SetHomeExit(exit);
+if (entry.Occupation == Occupation.Guard)
+    controller.Agent.SetGuardPost(guardPos);
+```
 
 ## Cambios S100: Clashing
 
@@ -120,7 +148,7 @@ internal void ApplyGaitSpeed()
 **IsNavMeshControlled() actualizado:**
 - Ahora devuelve true para Idle, Roaming, Reacting, SeekingNeed, UsingStation, Courting, Socializing, **Expedition**
 
-## Invariantes S100 + S98 + S97
+## Invariantes S101 + S100 + S98 + S97
 
 - **Único dueño de NavMeshAgent.speed:** `ApplyGaitSpeed()` es la única vía para cambiar speed (centraliza lógica, evita conflictos). **S100:** Clashing maneja override interno (no interfiere con ApplyGaitSpeed).
 - **Pizarrón compartido:** Percepts evita que cada colaborador re-consulte PerceivableRegistry; ahorro de iteraciones.
@@ -128,12 +156,13 @@ internal void ApplyGaitSpeed()
 - **IsNavMeshControlled determinista:** agrupa estados lógicos "en control del NavMesh" vs "en física pura". **S100:** Clashing es NavMesh-controlled (agente aún tiene NavMeshAgent enabled, aunque con override de velocidad/aceleración).
 - **SetDestinationSafe idempotent:** si la posición no es sampleable, no asigna (safe fallback vs crash).
 - **Courting/Clashing carve-out:** ambos no cambian speed porque siguen su propia lógica (cortejo y combate respectivamente).
+- **S101:** Occupation inmutable durante sesión (asignado una vez al spawn, no cambia); HomeExit/GuardPost dinámicos (pueden ser nulos si ocupación no lo requiere)
 
 ## Vinculado a
 
 - [[Index/06 - Player & World]]
 - [[Index/02 - Genetics & Breeding]]
-- [[Index/23 - Arena Sandbox y Expedicion]] (S97, S98, S100: velocidades y clash en arena)
+- [[Index/23 - Arena Sandbox y Expedicion]] (S97, S98, S100, S101: velocidades, clash y ocupaciones en arena)
 
 ## Conexiones
 
@@ -143,9 +172,11 @@ internal void ApplyGaitSpeed()
 - [[AgentConfinement]]
 - [[AgentSenses]] — escribe Percepts
 - [[AgentSocial]] — lee Percepts
-- [[AgentExpedition]] — S97 lee Percepts, usa SetDestinationSafe
+- [[AgentExpedition]] — S97 lee Percepts, usa SetDestinationSafe; **S101:** lee Occupation, HomeExit, GuardPost
 - **S100:** [[AgentClash]] — maneja override de velocidad internamente durante Clashing
 - [[RoleWorldProfileSO]] — Profile.RoamSpeedFactor leído por ApplyGaitSpeed (S98)
 - [[HotbarController]]
 - [[ExpeditionRulesSO]] — S97
 - **S100:** [[ClashTuningSO]] — consultado por AgentClash
+- **S101:** [[ArenaSandbox]] — inyecta Occupation, HomeExit, GuardPost vía SetOccupation/SetHomeExit/SetGuardPost
+- **S101:** [[Occupation]] enum
