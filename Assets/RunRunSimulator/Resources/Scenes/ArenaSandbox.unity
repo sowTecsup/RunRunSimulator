@@ -892,12 +892,8 @@ MonoBehaviour:
   layout: {fileID: 1885508452}
   palette: {fileID: 1441476681}
   paletteIndex: -1
-  cornerMinerals: 4
-  cornerInset: 6
-  cornerJitter: 2
   centerMineralScale: 2.5
   centerMineralValue: 40
-  cornerMineralValue: 8
   arenaHalfSize: 20
 --- !u!1001 &47364713
 PrefabInstance:
@@ -14460,6 +14456,8 @@ GameObject:
   - component: {fileID: 581801045}
   - component: {fileID: 581801044}
   - component: {fileID: 581801043}
+  - component: {fileID: 581801047}
+  - component: {fileID: 581801046}
   m_Layer: 0
   m_Name: ArenaPlanPanel
   m_TagString: Untagged
@@ -14481,6 +14479,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaPlanPanel
   sandbox: {fileID: 46679317}
   round: {fileID: 900000003}
+  picker: {fileID: 581801047}
+  resultPanel: {fileID: 581801046}
   resultHoldSeconds: 4
 --- !u!114 &581801044
 MonoBehaviour:
@@ -14520,6 +14520,32 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &581801046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 581801042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe41c317fcd21834fbd4d61c16253af4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaResultPanel
+--- !u!114 &581801047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 581801042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f096b9b86e8aa52489a77b10c073b767, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaCastPicker
+  sandbox: {fileID: 46679317}
+  maxPick: 3
 --- !u!1001 &582567952
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21683,7 +21709,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
   m_PanelSettings: {fileID: 11400000, guid: 3c8a8da8175b6d54a907634fef6a08f4, type: 2}
   m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: b851c339e1009f347bcb28d41397d753, type: 3}
   m_SortingOrder: 10
   m_Position: 0
   m_WorldSpaceSizeMode: 0
@@ -21705,9 +21731,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaRoundHud
   round: {fileID: 900000003}
-  playerColor: {r: 0.76, g: 1, b: 0.6, a: 1}
-  rivalColor: {r: 0.96, g: 0.6, b: 0.6, a: 1}
-  timeColor: {r: 1, g: 1, b: 1, a: 1}
+  warnSeconds: 15
 --- !u!1001 &900237313
 PrefabInstance:
   m_ObjectHideFlags: 0

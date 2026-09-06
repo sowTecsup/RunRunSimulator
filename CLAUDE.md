@@ -23,7 +23,7 @@
 6. **Solo entonces leer `.cs`**: ya sabes que hace cada script y como se conecta. Confirmar que el plan encaja.
 7. **Generar sub-agentes Sonnet**: delegar tareas concretas al sub-agente registrado `morimonchi-coder` (Agent tool, `subagent_type: morimonchi-coder`, uno por archivo o responsabilidad). Las reglas de codigo y la regla de oro tecnica ya viven en su system prompt — pasarle solo el plan, la ruta del archivo, y la responsabilidad puntual. Fallback si la sesion no la registro todavia (recien creada/editada): `subagent_type: general-purpose` + pegar el contenido de `.claude/agents/morimonchi-coder.md` despues del frontmatter.
 8. **Verificar en el editor (Unity MCP)**: tras compilar, confirmar con `read_console` (0 errores) y, cuando aplique, ejercitar en Play mode antes de declarar hecho. NO dejar "pendiente de tu lado" lo que el MCP puede verificar. Reglas y quirks en [[MoriMonchiVault/Index/12 - Unity MCP]]. Mutar escena/prefabs/assets requiere OK de Juan.
-9. **Cerrar sesion**: actualizar `09 - Active Context.md` con lo tocado y siguiente paso.
+9. **Cerrar sesion**: actualizar `09 - Active Context.md` con lo tocado y siguiente paso. Desde S103 el cierre incluye commit + push (paso 5 de `/cerrar-sesion`).
 10. **Disparar agente de vault** *(SOLO cuando Juan corre `/cerrar-sesion` — nunca por iniciativa propia; feedback registrado que revoca la ejecucion automatica)*: invocar el sub-agente registrado `vault-documenter` (Agent tool, `subagent_type: vault-documenter`) para actualizar ScriptNodes. Ver seccion **Agente de Vault**.
 11. **Cada mensaje** empieza con "Juan:" seguido del contenido
 

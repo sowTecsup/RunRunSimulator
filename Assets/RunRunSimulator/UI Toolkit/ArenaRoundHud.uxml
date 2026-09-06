@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
+    <Style src="ArenaRoundHudStyle.uss" />
+    <ui:VisualElement name="hud-root" class="mm-theme mm-theme--night hud hud--idle" picking-mode="Ignore">
+        <ui:Label name="hud-seed" text="" class="hud-seed" picking-mode="Ignore" />
+        <ui:VisualElement name="hud-board" class="hud-board" picking-mode="Ignore">
+            <ui:VisualElement class="hud-board__row" picking-mode="Ignore">
+                <ui:Label name="hud-player-score" text="0" class="hud-score hud-score--player" picking-mode="Ignore" />
+                <ui:Label name="hud-time" text="01:30" class="hud-time" picking-mode="Ignore" />
+                <ui:Label name="hud-rival-score" text="0" class="hud-score hud-score--rival" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:VisualElement class="hud-bar" picking-mode="Ignore">
+                <ui:VisualElement name="hud-bar-fill" class="hud-bar__fill" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="hud-player-team" class="hud-team hud-team--player" picking-mode="Ignore" />
+        <ui:VisualElement name="hud-rival-team" class="hud-team hud-team--rival" picking-mode="Ignore" />
+        <ui:Label name="hud-result" text="" class="hud-result" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

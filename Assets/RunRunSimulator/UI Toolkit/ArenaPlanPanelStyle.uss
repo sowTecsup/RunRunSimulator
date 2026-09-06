@@ -38,19 +38,88 @@
     margin-top: 4px;
 }
 
-.plan-result {
+.result {
     display: none;
-    margin: 10px 16px 0 16px;
-    padding: 6px 12px;
-    border-radius: 10px;
+    margin: 10px 12px 0 12px;
+    padding: 8px 10px;
+    border-radius: 12px;
     background-color: var(--mm-surface-2);
-    font-size: 17px;
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
+}
+
+.result--show {
+    display: flex;
+}
+
+.result__title {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: var(--mm-ink);
+    margin-bottom: 6px;
+}
+
+.result__title--win {
+    color: var(--mm-good);
+}
+
+.result__title--lose {
+    color: var(--mm-crit);
+}
+
+.result__title--draw {
+    color: var(--mm-ink-soft);
+}
+
+.result__teams {
+    flex-direction: row;
+}
+
+.result__team {
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.result__team--rival {
+    margin-left: 8px;
+}
+
+.result__team-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--mm-good);
+    margin-bottom: 4px;
+}
+
+.result__team-title--rival {
+    color: var(--mm-crit);
+}
+
+.result-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.result-row__swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--mm-frame-soft);
+    margin-right: 6px;
+}
+
+.result-row__name {
+    font-size: 12px;
     -unity-font-style: bold;
     color: var(--mm-ink);
 }
 
-.plan-result--show {
-    display: flex;
+.result-row__stats {
+    font-size: 9px;
+    color: var(--mm-ink-soft);
+    white-space: normal;
 }
 
 .plan-cast {
@@ -143,7 +212,7 @@
 
 .plan-tools {
     flex-direction: row;
-    padding: 4px 12px 0 12px;
+    padding: 6px 12px 0 12px;
 }
 
 .tool {
@@ -180,5 +249,108 @@
 }
 
 .plan-actions .action {
+    margin-right: 0;
+}
+
+.picker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--mm-scrim);
+}
+
+.picker--hidden {
+    display: none;
+}
+
+.picker__panel {
+    width: 760px;
+    max-width: 90%;
+    max-height: 86%;
+    border-width: 3px;
+    border-color: var(--mm-frame);
+    border-radius: 22px;
+}
+
+.picker__scroll {
+    flex-grow: 1;
+    max-height: 520px;
+    padding: 10px 12px;
+}
+
+.picker__grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.pick-card {
+    width: 168px;
+    margin: 0 8px 8px 0;
+    padding: 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    border-radius: 12px;
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
+    background-color: var(--mm-surface-2);
+}
+
+.pick-card:hover {
+    border-color: var(--mm-gold);
+}
+
+.pick-card--on {
+    border-color: var(--mm-coral-dark);
+    background-color: var(--mm-surface);
+}
+
+.pick-card__swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
+    margin-bottom: 4px;
+}
+
+.pick-card__name {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--mm-ink);
+}
+
+.pick-card__dials {
+    font-size: 9px;
+    color: var(--mm-ink-soft);
+    letter-spacing: 1px;
+    white-space: normal;
+}
+
+.picker__footer {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 16px 16px 16px;
+}
+
+.picker__count {
+    flex-grow: 1;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--mm-ink);
+}
+
+.picker__btn {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 130px;
+    width: 130px;
+    margin-right: 10px;
+}
+
+.picker__btn--last {
     margin-right: 0;
 }

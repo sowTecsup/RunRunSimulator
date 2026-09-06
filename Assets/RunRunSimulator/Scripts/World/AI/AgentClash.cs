@@ -21,6 +21,8 @@ internal class AgentClash
     private MoriMochiAgent lastAttacker;
     private float          targetableAt;
     private float          chainImmuneUntil;
+    private int            hitsLanded;
+    private int            timesKnocked;
 
     private bool                  navOverridden;
     private float                 savedSpeed;
@@ -180,6 +182,7 @@ internal class AgentClash
         knockedByClash   = true;
         lastAttacker     = attacker;
         chainImmuneUntil = Time.time + (t != null ? t.ChainImmunitySeconds : 0.8f);
+        timesKnocked++;
         owner.onKnocked?.Invoke();
     }
 
@@ -241,7 +244,12 @@ internal class AgentClash
         lastAttacker     = null;
         targetableAt     = 0f;
         chainImmuneUntil = 0f;
+        hitsLanded       = 0;
+        timesKnocked     = 0;
     }
+
+    internal int HitsLanded => hitsLanded;
+    internal int TimesKnocked => timesKnocked;
 
     internal CreatureIntent Intent => phase == Phase.Dazed ? CreatureIntent.Dazed : CreatureIntent.Clashing;
 
@@ -345,6 +353,7 @@ internal class AgentClash
 
         Vector3 force = (dir + Vector3.up * move.UpBias).normalized * move.Impulse;
         victim.ReceiveClashHit(owner, force);
+        hitsLanded++;
 
         if (move.Slot == ClashSlot.Horn && move.SelfRecoil > 0f)
         {

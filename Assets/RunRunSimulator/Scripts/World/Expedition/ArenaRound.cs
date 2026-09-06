@@ -20,9 +20,11 @@ public class ArenaRound : MonoBehaviour
     public int PlayerSecured => IsRunning ? SumSecured(ExpeditionTeam.Player) : frozenPlayerSecured;
     public int RivalSecured => IsRunning ? SumSecured(ExpeditionTeam.Rival) : frozenRivalSecured;
     public ExpeditionTeam Winner { get; private set; } = ExpeditionTeam.None;
+    public IReadOnlyList<ArenaRoundStat> Summary => summary;
 
     private int frozenPlayerSecured;
     private int frozenRivalSecured;
+    private readonly List<ArenaRoundStat> summary = new();
 
     private void Start()
     {
@@ -43,6 +45,7 @@ public class ArenaRound : MonoBehaviour
         IsRunning = true;
         IsOver = false;
         Winner = ExpeditionTeam.None;
+        summary.Clear();
     }
 
     public void Launch()
@@ -73,6 +76,9 @@ public class ArenaRound : MonoBehaviour
         Winner = frozenPlayerSecured == frozenRivalSecured
             ? ExpeditionTeam.None
             : (frozenPlayerSecured > frozenRivalSecured ? ExpeditionTeam.Player : ExpeditionTeam.Rival);
+
+        summary.Clear();
+        summary.AddRange(ArenaRoundSummary.Capture(sandbox.Spawned));
 
         Debug.Log($"[ArenaRound] fin: Player {frozenPlayerSecured} - Rival {frozenRivalSecured} → {Winner}");
     }

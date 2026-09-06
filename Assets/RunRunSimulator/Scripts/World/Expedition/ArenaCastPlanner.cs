@@ -20,6 +20,7 @@ public class ArenaCastPlanner
     private readonly Func<CreatureDNA> mint;
     private readonly List<ArenaCastEntry> planned = new();
     private readonly Dictionary<string, ArenaCastEntry> remembered = new();
+    private readonly List<CreatureDNA> localSelection = new();
     private List<CreatureDNA> localPool;
 
     public ArenaCastPlanner(ArenaRosterSO roster, Func<CreatureDNA> mint)
@@ -33,8 +34,24 @@ public class ArenaCastPlanner
     public int LocalCount { get; set; } = 3;
     public bool LocalAvailable { get; private set; } = true;
     public bool HasRoster => roster != null && roster.Entries != null && roster.Entries.Count > 0;
+    public IReadOnlyList<CreatureDNA> LocalPool => Pool();
+    public bool HasLocalSelection => localSelection.Count > 0;
 
     public void SetMode(ArenaCastMode mode) => Mode = mode;
+
+    public void SelectLocal(IReadOnlyList<CreatureDNA> picks)
+    {
+        localSelection.Clear();
+        if (picks == null) return;
+        foreach (var dna in picks)
+        {
+            if (dna == null) continue;
+            if (localSelection.Count >= LocalCount) break;
+            localSelection.Add(dna);
+        }
+    }
+
+    public void ClearLocalSelection() => localSelection.Clear();
 
     public void Prepare(int roomSeed, int castSeed, int freeCount)
     {
@@ -51,7 +68,7 @@ public class ArenaCastPlanner
 
         if (Mode == ArenaCastMode.LocalSave)
         {
-            var picked = ArenaCastSource.Pick(LocalPool(), LocalCount, castSeed);
+            var picked = localSelection.Count > 0 ? localSelection : ArenaCastSource.Pick(Pool(), LocalCount, castSeed);
             LocalAvailable = picked.Count > 0;
             foreach (var dna in picked)
                 planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Occupation = Occupation.Gather, Site = ArenaSite.Center }));
@@ -87,7 +104,7 @@ public class ArenaCastPlanner
         remembered[PlanKey(entry.Dna)] = entry;
     }
 
-    private List<CreatureDNA> LocalPool() => localPool ??= ArenaCastSource.LoadLocal();
+    private List<CreatureDNA> Pool() => localPool ??= ArenaCastSource.LoadLocal();
 
     private ArenaCastEntry FromRoster(ArenaRosterSO.Entry entry, Occupation occupation, ArenaSite site)
     {

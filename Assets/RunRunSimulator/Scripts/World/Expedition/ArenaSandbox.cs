@@ -67,6 +67,7 @@ public class ArenaSandbox : MonoBehaviour
     public int ActiveSeed => activeSeed;
     public ArenaCastMode CastMode => Planner.Mode;
     public bool LocalCastAvailable => Planner.LocalAvailable;
+    public IReadOnlyList<CreatureDNA> LocalPool => Planner.LocalPool;
     public string EntryName => layout != null && layout.IsBuilt ? layout.EntryName : "diagonal";
     public string PaletteName => palette != null && palette.Current != null ? palette.Current.DisplayName : "";
 
@@ -157,7 +158,14 @@ public class ArenaSandbox : MonoBehaviour
 
     public void ShuffleCast()
     {
+        Planner.ClearLocalSelection();
         castSeed++;
+        Planner.Prepare(activeSeed, castSeed, count);
+    }
+
+    public void SelectLocalCast(IReadOnlyList<CreatureDNA> picks)
+    {
+        Planner.SelectLocal(picks);
         Planner.Prepare(activeSeed, castSeed, count);
     }
 

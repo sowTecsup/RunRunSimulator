@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -8,141 +9,74 @@ namespace MoriMonchiSimulator
 public class ArenaRoundHud : MonoBehaviour
 {
     [Required, SerializeField] private ArenaRound round;
-    [SerializeField] private Color playerColor = new Color(0.76f, 1f, 0.6f);
-    [SerializeField] private Color rivalColor  = new Color(0.96f, 0.6f, 0.6f);
-    [SerializeField] private Color timeColor   = Color.white;
+    [SerializeField, Min(0f)] private float warnSeconds = 15f;
 
-    private VisualElement scoreboard;
-    private VisualElement resultRoot;
-    private Label playerLabel;
-    private Label timeLabel;
-    private Label rivalLabel;
-    private Label resultLabel;
-    private VisualElement rosterRoot;
-    private Label playerRoster;
-    private Label rivalRoster;
+    private class Row
+    {
+        public MoriMochiAgent Agent;
+        public Label Sub;
+        public Label Carry;
+        public VisualElement Mine;
+        public VisualElement MineFill;
+        public string LastSub;
+        public int LastCarried = -1;
+        public float LastProgress = -1f;
+    }
+
+    private VisualElement root;
     private Label seedLabel;
-    private string lastSeedText;
-    private int lastRosterCount = -1;
+    private Label playerScoreLabel;
+    private Label timeLabel;
+    private Label rivalScoreLabel;
+    private VisualElement barFill;
+    private VisualElement playerTeam;
+    private VisualElement rivalTeam;
+    private Label resultLabel;
 
-    private string lastPlayerText;
+    private readonly List<Row> rows = new();
+
+    private string lastSeedText;
+    private string lastPlayerScoreText;
     private string lastTimeText;
-    private string lastRivalText;
+    private string lastRivalScoreText;
     private string lastResultText;
+    private int lastRosterCount = -1;
+    private int lastBarPercent = -1;
+    private bool lastTimeWarn;
     private bool resultShown;
-    private bool lastShown = true;
+    private bool lastShown;
 
     private void OnEnable()
     {
-        VisualElement rootVisualElement = GetComponent<UIDocument>().rootVisualElement;
+        root = GetComponent<UIDocument>().rootVisualElement.Q("hud-root");
+        if (root == null) return;
 
-        scoreboard?.RemoveFromHierarchy();
-        resultRoot?.RemoveFromHierarchy();
+        seedLabel = root.Q<Label>("hud-seed");
+        playerScoreLabel = root.Q<Label>("hud-player-score");
+        timeLabel = root.Q<Label>("hud-time");
+        rivalScoreLabel = root.Q<Label>("hud-rival-score");
+        barFill = root.Q("hud-bar-fill");
+        playerTeam = root.Q("hud-player-team");
+        rivalTeam = root.Q("hud-rival-team");
+        resultLabel = root.Q<Label>("hud-result");
 
-        scoreboard = new VisualElement();
-        scoreboard.style.position = Position.Absolute;
-        scoreboard.style.top = 14;
-        scoreboard.style.left = Length.Percent(50);
-        scoreboard.style.translate = new Translate(Length.Percent(-50), 0);
-        scoreboard.style.flexDirection = FlexDirection.Row;
-        scoreboard.style.alignItems = Align.Center;
-
-        playerLabel = new Label();
-        playerLabel.style.fontSize = 30;
-        playerLabel.style.color = playerColor;
-        playerLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-        playerLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-
-        timeLabel = new Label();
-        timeLabel.style.fontSize = 36;
-        timeLabel.style.color = timeColor;
-        timeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-        timeLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-        timeLabel.style.marginLeft = 28;
-        timeLabel.style.marginRight = 28;
-
-        rivalLabel = new Label();
-        rivalLabel.style.fontSize = 30;
-        rivalLabel.style.color = rivalColor;
-        rivalLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-        rivalLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-
-        scoreboard.Add(playerLabel);
-        scoreboard.Add(timeLabel);
-        scoreboard.Add(rivalLabel);
-        rootVisualElement.Add(scoreboard);
-
-        rosterRoot?.RemoveFromHierarchy();
-        rosterRoot = new VisualElement();
-        rosterRoot.style.position = Position.Absolute;
-        rosterRoot.style.top = 60;
-        rosterRoot.style.left = Length.Percent(50);
-        rosterRoot.style.translate = new Translate(Length.Percent(-50), 0);
-        rosterRoot.style.flexDirection = FlexDirection.Row;
-        rosterRoot.style.alignItems = Align.Center;
-
-        playerRoster = new Label();
-        playerRoster.style.fontSize = 19;
-        playerRoster.style.color = playerColor;
-        playerRoster.style.unityFontStyleAndWeight = FontStyle.Bold;
-        playerRoster.style.unityTextAlign = TextAnchor.MiddleRight;
-        playerRoster.style.marginRight = 22;
-
-        rivalRoster = new Label();
-        rivalRoster.style.fontSize = 19;
-        rivalRoster.style.color = rivalColor;
-        rivalRoster.style.unityFontStyleAndWeight = FontStyle.Bold;
-        rivalRoster.style.unityTextAlign = TextAnchor.MiddleLeft;
-        rivalRoster.style.marginLeft = 22;
-
-        rosterRoot.Add(playerRoster);
-        rosterRoot.Add(rivalRoster);
-        rootVisualElement.Add(rosterRoot);
         lastRosterCount = -1;
-
-        seedLabel = new Label();
-        seedLabel.style.position = Position.Absolute;
-        seedLabel.style.top = 14;
-        seedLabel.style.left = 16;
-        seedLabel.style.fontSize = 16;
-        seedLabel.style.color = new Color(1f, 1f, 1f, 0.7f);
-        seedLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-        rootVisualElement.Add(seedLabel);
         lastSeedText = null;
-
-        resultRoot = new VisualElement();
-        resultRoot.style.position = Position.Absolute;
-        resultRoot.style.top = 94;
-        resultRoot.style.left = Length.Percent(50);
-        resultRoot.style.translate = new Translate(Length.Percent(-50), 0);
-
-        resultLabel = new Label();
-        resultLabel.style.fontSize = 26;
-        resultLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-        resultLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-        resultLabel.style.display = DisplayStyle.None;
-
-        resultRoot.Add(resultLabel);
-        rootVisualElement.Add(resultRoot);
-
-        lastPlayerText = null;
+        lastPlayerScoreText = null;
         lastTimeText = null;
-        lastRivalText = null;
+        lastRivalScoreText = null;
         lastResultText = null;
+        lastBarPercent = -1;
+        lastTimeWarn = false;
         resultShown = false;
-        lastShown = true;
+        lastShown = false;
     }
 
     private void OnDisable()
     {
-        scoreboard?.RemoveFromHierarchy();
-        resultRoot?.RemoveFromHierarchy();
-        rosterRoot?.RemoveFromHierarchy();
-        seedLabel?.RemoveFromHierarchy();
-        scoreboard = null;
-        resultRoot = null;
-        rosterRoot = null;
-        seedLabel = null;
+        rows.Clear();
+        playerTeam?.Clear();
+        rivalTeam?.Clear();
     }
 
     private static string Verb(Occupation occupation)
@@ -157,28 +91,6 @@ public class ArenaRoundHud : MonoBehaviour
         }
     }
 
-    private void RefreshRoster()
-    {
-        var sandbox = round.Sandbox;
-        int count = sandbox != null ? sandbox.Spawned.Count : 0;
-        if (count == lastRosterCount) return;
-        lastRosterCount = count;
-
-        var player = new System.Text.StringBuilder();
-        var rival = new System.Text.StringBuilder();
-        for (int i = 0; i < count; i++)
-        {
-            var agent = sandbox.Spawned[i] != null ? sandbox.Spawned[i].Agent : null;
-            if (agent == null || agent.DNA == null) continue;
-            var target = agent.Team == ExpeditionTeam.Rival ? rival : player;
-            if (target.Length > 0) target.Append("  ·  ");
-            target.Append(agent.DNA.CustomName).Append(' ').Append(Verb(agent.Occupation));
-        }
-
-        playerRoster.text = player.ToString();
-        rivalRoster.text = rival.ToString();
-    }
-
     private void RefreshSeed()
     {
         var sandbox = round.Sandbox;
@@ -186,6 +98,85 @@ public class ArenaRoundHud : MonoBehaviour
         if (seedText == lastSeedText) return;
         seedLabel.text = seedText;
         lastSeedText = seedText;
+    }
+
+    private void RefreshRoster()
+    {
+        var sandbox = round.Sandbox;
+        int count = sandbox != null ? sandbox.Spawned.Count : 0;
+        if (count == lastRosterCount) return;
+        lastRosterCount = count;
+
+        playerTeam.Clear();
+        rivalTeam.Clear();
+        rows.Clear();
+
+        for (int i = 0; i < count; i++)
+        {
+            var controller = sandbox.Spawned[i];
+            var agent = controller != null ? controller.Agent : null;
+            if (agent == null || agent.DNA == null) continue;
+            BuildRow(agent);
+        }
+    }
+
+    private void BuildRow(MoriMochiAgent agent)
+    {
+        bool isRival = agent.Team == ExpeditionTeam.Rival;
+
+        var row = new VisualElement();
+        row.pickingMode = PickingMode.Ignore;
+        row.AddToClassList("hud-row");
+        if (isRival) row.AddToClassList("hud-row--rival");
+
+        var swatch = new VisualElement();
+        swatch.pickingMode = PickingMode.Ignore;
+        swatch.AddToClassList("hud-row__swatch");
+        Color color = agent.DNA.BaseColor;
+        color.a = 1f;
+        swatch.style.backgroundColor = color;
+        row.Add(swatch);
+
+        var text = new VisualElement();
+        text.pickingMode = PickingMode.Ignore;
+        text.AddToClassList("hud-row__text");
+
+        var name = new Label(agent.DNA.CustomName);
+        name.pickingMode = PickingMode.Ignore;
+        name.AddToClassList("hud-row__name");
+        text.Add(name);
+
+        var sub = new Label();
+        sub.pickingMode = PickingMode.Ignore;
+        sub.AddToClassList("hud-row__sub");
+        text.Add(sub);
+
+        var mine = new VisualElement();
+        mine.pickingMode = PickingMode.Ignore;
+        mine.AddToClassList("hud-row__mine");
+        var mineFill = new VisualElement();
+        mineFill.pickingMode = PickingMode.Ignore;
+        mineFill.AddToClassList("hud-row__mine-fill");
+        mine.Add(mineFill);
+        text.Add(mine);
+
+        row.Add(text);
+
+        var carry = new Label();
+        carry.pickingMode = PickingMode.Ignore;
+        carry.AddToClassList("hud-row__carry");
+        row.Add(carry);
+
+        (isRival ? rivalTeam : playerTeam).Add(row);
+
+        rows.Add(new Row
+        {
+            Agent = agent,
+            Sub = sub,
+            Carry = carry,
+            Mine = mine,
+            MineFill = mineFill
+        });
     }
 
     private void Update()
@@ -197,17 +188,14 @@ public class ArenaRoundHud : MonoBehaviour
         bool shown = round.IsRunning || round.IsOver;
         if (shown != lastShown)
         {
-            var display = shown ? DisplayStyle.Flex : DisplayStyle.None;
-            scoreboard.style.display = display;
-            rosterRoot.style.display = display;
-            resultRoot.style.display = display;
+            root.EnableInClassList("hud--idle", !shown);
             lastShown = shown;
-            lastRosterCount = -1;
+            if (shown) lastRosterCount = -1;
         }
 
         if (!round.IsOver && resultShown)
         {
-            resultLabel.style.display = DisplayStyle.None;
+            resultLabel.EnableInClassList("hud-result--show", false);
             resultShown = false;
             lastResultText = null;
         }
@@ -216,18 +204,18 @@ public class ArenaRoundHud : MonoBehaviour
 
         RefreshRoster();
 
-        string playerText = round.PlayerSecured.ToString();
-        if (playerText != lastPlayerText)
+        string playerScoreText = round.PlayerSecured.ToString();
+        if (playerScoreText != lastPlayerScoreText)
         {
-            playerLabel.text = playerText;
-            lastPlayerText = playerText;
+            playerScoreLabel.text = playerScoreText;
+            lastPlayerScoreText = playerScoreText;
         }
 
-        string rivalText = round.RivalSecured.ToString();
-        if (rivalText != lastRivalText)
+        string rivalScoreText = round.RivalSecured.ToString();
+        if (rivalScoreText != lastRivalScoreText)
         {
-            rivalLabel.text = rivalText;
-            lastRivalText = rivalText;
+            rivalScoreLabel.text = rivalScoreText;
+            lastRivalScoreText = rivalScoreText;
         }
 
         int totalSeconds = Mathf.CeilToInt(round.Remaining);
@@ -240,36 +228,77 @@ public class ArenaRoundHud : MonoBehaviour
             lastTimeText = timeText;
         }
 
+        bool timeWarn = round.Remaining <= warnSeconds;
+        if (timeWarn != lastTimeWarn)
+        {
+            timeLabel.EnableInClassList("hud-time--warn", timeWarn);
+            barFill.EnableInClassList("hud-bar__fill--warn", timeWarn);
+            lastTimeWarn = timeWarn;
+        }
+
+        int barPercent = Mathf.RoundToInt(Mathf.Clamp01(round.Remaining / round.RoundSeconds) * 100f);
+        if (barPercent != lastBarPercent)
+        {
+            barFill.style.width = Length.Percent(barPercent);
+            lastBarPercent = barPercent;
+        }
+
+        for (int i = 0; i < rows.Count; i++)
+        {
+            var row = rows[i];
+            var agent = row.Agent;
+            if (agent == null)
+            {
+                lastRosterCount = -1;
+                continue;
+            }
+
+            string sub = $"{Verb(agent.Occupation)}  ·  {LocEnumMaps.IntentName(agent.Intent)}";
+            if (sub != row.LastSub)
+            {
+                row.Sub.text = sub;
+                row.LastSub = sub;
+            }
+
+            int carried = agent.Carried;
+            if (carried != row.LastCarried)
+            {
+                row.Carry.text = carried > 0 ? $"◆ {carried}" : "";
+                row.Carry.EnableInClassList("hud-row__carry--empty", carried == 0);
+                row.LastCarried = carried;
+            }
+
+            float progress = agent.MiningProgress;
+            if (Mathf.Abs(progress - row.LastProgress) > 0.01f)
+            {
+                row.Mine.EnableInClassList("hud-row__mine--hidden", progress <= 0f);
+                row.MineFill.style.width = Length.Percent(progress * 100f);
+                row.LastProgress = progress;
+            }
+        }
+
         if (round.IsOver)
         {
             if (!resultShown)
             {
-                resultLabel.style.display = DisplayStyle.Flex;
+                resultLabel.EnableInClassList("hud-result--show", true);
                 resultShown = true;
             }
 
             string resultText;
-            Color resultColor;
             switch (round.Winner)
             {
-                case ExpeditionTeam.Player:
-                    resultText = "Gana tu equipo";
-                    resultColor = playerColor;
-                    break;
-                case ExpeditionTeam.Rival:
-                    resultText = "Gana el rival";
-                    resultColor = rivalColor;
-                    break;
-                default:
-                    resultText = "Empate";
-                    resultColor = timeColor;
-                    break;
+                case ExpeditionTeam.Player: resultText = "Gana tu equipo"; break;
+                case ExpeditionTeam.Rival: resultText = "Gana el rival"; break;
+                default: resultText = "Empate"; break;
             }
 
             if (resultText != lastResultText)
             {
                 resultLabel.text = resultText;
-                resultLabel.style.color = resultColor;
+                resultLabel.EnableInClassList("hud-result--win", round.Winner == ExpeditionTeam.Player);
+                resultLabel.EnableInClassList("hud-result--lose", round.Winner == ExpeditionTeam.Rival);
+                resultLabel.EnableInClassList("hud-result--draw", round.Winner == ExpeditionTeam.None);
                 lastResultText = resultText;
             }
         }

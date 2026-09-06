@@ -208,11 +208,14 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public void SetGuardPost(Transform post) => ctx.GuardPost = post;
 
     public int CollectedMaterial => expedition.Collected;
+    public int SecuredMaterial => expedition.Secured;
     public Transform ExpeditionTarget => expedition.TargetTransform;
     public MoriMochiAgent SocialPartner => ctx.State == AgentState.Socializing ? social.Partner : null;
     public MoriMochiAgent ClashTarget => clash.Target;
     public string ClashGesture => clash.Gesture;
     public bool IsClashTargetable => clash.IsTargetable;
+    public int ClashHitsLanded => clash.HitsLanded;
+    public int ClashTimesKnocked => clash.TimesKnocked;
     public bool ForceClash(ClashMoveSO move, MoriMochiAgent rival) => clash.ForceMove(move, rival);
 
     public event System.Action<EmoteKind> OnEmote;

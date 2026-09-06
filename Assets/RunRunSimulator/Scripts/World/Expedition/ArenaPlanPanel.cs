@@ -15,6 +15,8 @@ public class ArenaPlanPanel : MonoBehaviour
 
     [Required, SerializeField] private ArenaSandbox sandbox;
     [Required, SerializeField] private ArenaRound round;
+    [Required, SerializeField] private ArenaCastPicker picker;
+    [Required, SerializeField] private ArenaResultPanel resultPanel;
     [SerializeField, Min(0f)] private float resultHoldSeconds = 4f;
 
     private class Card
@@ -27,9 +29,9 @@ public class ArenaPlanPanel : MonoBehaviour
     private VisualElement root;
     private VisualElement castList;
     private Label roomLabel;
-    private Label resultLabel;
     private Label rivalLabel;
     private Button castButton;
+    private Button pickButton;
     private Button shuffleButton;
     private Button paletteButton;
     private Button roomButton;
@@ -39,7 +41,9 @@ public class ArenaPlanPanel : MonoBehaviour
     private bool visible;
     private bool roundEndHandled;
     private float roundEndedAt;
-    private string pendingResult;
+    private ExpeditionTeam pendingWinner;
+    private int pendingMine;
+    private int pendingTheirs;
     private int lastPlannedCount = -1;
     private int lastSeed = int.MinValue;
 
@@ -50,15 +54,16 @@ public class ArenaPlanPanel : MonoBehaviour
 
         castList = root.Q("cast-list");
         roomLabel = root.Q<Label>("plan-room");
-        resultLabel = root.Q<Label>("plan-result");
         rivalLabel = root.Q<Label>("plan-rival");
         castButton = root.Q<Button>("btn-cast");
+        pickButton = root.Q<Button>("btn-pick");
         shuffleButton = root.Q<Button>("btn-shuffle");
         paletteButton = root.Q<Button>("btn-palette");
         roomButton = root.Q<Button>("btn-room");
         playButton = root.Q<Button>("btn-play");
 
         castButton.clicked += ToggleCastMode;
+        pickButton.clicked += OpenPicker;
         shuffleButton.clicked += Shuffle;
         paletteButton.clicked += CyclePalette;
         roomButton.clicked += NewRoom;
@@ -73,6 +78,7 @@ public class ArenaPlanPanel : MonoBehaviour
     {
         if (root == null) return;
         castButton.clicked -= ToggleCastMode;
+        pickButton.clicked -= OpenPicker;
         shuffleButton.clicked -= Shuffle;
         paletteButton.clicked -= CyclePalette;
         roomButton.clicked -= NewRoom;
@@ -93,38 +99,23 @@ public class ArenaPlanPanel : MonoBehaviour
         {
             roundEndHandled = true;
             roundEndedAt = Time.time;
-            pendingResult = ResultText();
+            pendingWinner = round.Winner;
+            pendingMine = round.PlayerSecured;
+            pendingTheirs = round.RivalSecured;
         }
 
         if (roundEndHandled && !visible && Time.time - roundEndedAt >= resultHoldSeconds)
         {
             round.Reset(false);
-            ShowResult(pendingResult);
+            resultPanel.Show(pendingWinner, pendingMine, pendingTheirs, round.Summary);
             SetVisible(true);
         }
 
         if (!visible) return;
+        if (picker.IsOpen) return;
 
         if (sandbox.PlannedCast.Count != lastPlannedCount || sandbox.ActiveSeed != lastSeed)
             Refresh();
-    }
-
-    private string ResultText()
-    {
-        int mine = round.PlayerSecured;
-        int theirs = round.RivalSecured;
-        switch (round.Winner)
-        {
-            case ExpeditionTeam.Player: return $"Ganaste {mine}-{theirs}";
-            case ExpeditionTeam.Rival: return $"Perdiste {mine}-{theirs}";
-            default: return $"Empate {mine}-{theirs}";
-        }
-    }
-
-    private void ShowResult(string text)
-    {
-        resultLabel.text = text;
-        resultLabel.EnableInClassList("plan-result--show", !string.IsNullOrEmpty(text));
     }
 
     private void SetVisible(bool value)
@@ -144,6 +135,7 @@ public class ArenaPlanPanel : MonoBehaviour
             ? (sandbox.LocalCastAvailable ? "Mis MoriMonchis" : "Mis MoriMonchis (sin save)")
             : "Elenco básico";
         paletteButton.text = "Paleta ▸";
+        pickButton.SetEnabled(sandbox.CastMode == ArenaCastMode.LocalSave && sandbox.LocalCastAvailable);
         shuffleButton.SetEnabled(sandbox.CastMode == ArenaCastMode.LocalSave && sandbox.LocalCastAvailable);
 
         BuildCards();
@@ -274,6 +266,11 @@ public class ArenaPlanPanel : MonoBehaviour
         Refresh();
     }
 
+    private void OpenPicker()
+    {
+        picker.Open(Refresh);
+    }
+
     private void Shuffle()
     {
         sandbox.ShuffleCast();
@@ -289,13 +286,13 @@ public class ArenaPlanPanel : MonoBehaviour
     private void NewRoom()
     {
         round.Reset(true);
-        ShowResult("");
+        resultPanel.Hide();
         Refresh();
     }
 
     private void Play()
     {
-        ShowResult("");
+        resultPanel.Hide();
         round.Launch();
         roundEndHandled = false;
         SetVisible(false);

@@ -8,17 +8,48 @@
                 <ui:Label name="plan-title" text="PLAN DE BAJADA" class="panel__title" />
                 <ui:Label name="plan-room" text="" class="plan-room" />
             </ui:VisualElement>
-            <ui:Label name="plan-result" text="" class="plan-result" />
+            <ui:VisualElement name="result-root" class="result">
+                <ui:Label name="result-title" text="" class="result__title" />
+                <ui:VisualElement class="result__teams">
+                    <ui:VisualElement class="result__team">
+                        <ui:Label text="TU EQUIPO" class="result__team-title" />
+                        <ui:VisualElement name="result-player" class="result__rows" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="result__team result__team--rival">
+                        <ui:Label text="RIVAL" class="result__team-title result__team-title--rival" />
+                        <ui:VisualElement name="result-rival" class="result__rows" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
             <ui:VisualElement name="cast-list" class="plan-cast" />
             <ui:VisualElement class="plan-tools">
                 <ui:Button name="btn-cast" text="Elenco" class="tool" />
-                <ui:Button name="btn-shuffle" text="Otros 3" class="tool" />
+                <ui:Button name="btn-pick" text="Elegir…" class="tool" />
+                <ui:Button name="btn-shuffle" text="Otros 3" class="tool tool--last" />
+            </ui:VisualElement>
+            <ui:VisualElement class="plan-tools">
                 <ui:Button name="btn-palette" text="Paleta" class="tool" />
                 <ui:Button name="btn-room" text="Otra sala" class="tool tool--last" />
             </ui:VisualElement>
             <ui:Label name="plan-rival" text="" class="plan-rival" />
             <ui:VisualElement class="actions plan-actions">
                 <ui:Button name="btn-play" text="¡A LA SALA!" class="action action--accept" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="picker-root" class="picker picker--hidden">
+            <ui:VisualElement class="panel picker__panel">
+                <ui:VisualElement class="panel__header plan-header">
+                    <ui:Label name="picker-title" text="MIS MORIMONCHIS" class="panel__title" />
+                    <ui:Label text="elegí hasta 3 para bajar a la sala" class="plan-room" />
+                </ui:VisualElement>
+                <ui:ScrollView name="picker-scroll" class="picker__scroll">
+                    <ui:VisualElement name="picker-grid" class="picker__grid" />
+                </ui:ScrollView>
+                <ui:VisualElement class="picker__footer">
+                    <ui:Label name="picker-count" text="0 / 3" class="picker__count" />
+                    <ui:Button name="btn-picker-cancel" text="Cancelar" class="action action--cancel picker__btn" />
+                    <ui:Button name="btn-picker-ok" text="Listo" class="action action--accept picker__btn picker__btn--last" />
+                </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>

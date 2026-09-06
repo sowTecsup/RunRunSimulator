@@ -15,6 +15,7 @@ internal class AgentExpedition
     private float          repathTimer;
     private float          elapsed;
     private int            collected;
+    private int            secured;
     private Phase          phase;
     private float          phaseTimer;
     private float          blockedTimer;
@@ -730,6 +731,7 @@ internal class AgentExpedition
     private void Secure()
     {
         exit.Deposit(carried);
+        secured += carried;
         carried = 0;
         owner.EmitEmote(EmoteKind.Feliz);
         Abort();
@@ -803,6 +805,8 @@ internal class AgentExpedition
         blockedTimer = 0f;
         lostPoint    = Vector3.zero;
         carried      = 0;
+        collected    = 0;
+        secured      = 0;
         exit         = null;
         prey         = null;
         miningTimer  = 0f;
@@ -829,6 +833,7 @@ internal class AgentExpedition
 
     internal MaterialPickup Target => target;
     internal int             Collected => collected;
+    internal int             Secured   => secured;
     internal CreatureIntent  Intent    =>
         phase == Phase.Mining    ? CreatureIntent.Taking :
         phase == Phase.Losing    ? CreatureIntent.Losing :
