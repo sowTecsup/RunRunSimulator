@@ -32,31 +32,56 @@ public class ArenaSandbox : MonoBehaviour
     [Title("Elenco")]
     [SerializeField] private ArenaRosterSO roster;
     [SerializeField] private bool useRoster = true;
+    [SerializeField] private ArenaCastMode castMode = ArenaCastMode.Roster;
+    [SerializeField, Min(1)] private int localCastCount = 3;
+    [SerializeField] private bool autoSpawnCast = true;
     [SerializeField, Min(0f)] private float teamSpawnInset = 9f;
     [SerializeField, Min(0.5f)] private float teamSpawnRadius = 2.5f;
     [Required, SerializeField] private ExitZone exitPrefab;
     [SerializeField, Min(0f)] private float exitInset = 4f;
 
+    [Title("Sala")]
     [Required, SerializeField] private MaterialPickup mineralPrefab;
     [SerializeField] private ArenaLayoutBuilder layout;
-    [SerializeField, Min(0)] private int cornerMinerals = 4;
-    [SerializeField, Min(0f)] private float cornerInset = 6f;
-    [SerializeField, Min(0f)] private float cornerJitter = 2f;
+    [SerializeField] private ArenaPaletteApplier palette;
+    [SerializeField] private int paletteIndex = -1;
     [SerializeField, Min(1f)] private float centerMineralScale = 2.5f;
     [SerializeField, Min(1)] private int centerMineralValue = 5;
-    [SerializeField, Min(1)] private int cornerMineralValue = 1;
     [SerializeField, Min(0f)] private float arenaHalfSize = 20f;
 
     private readonly List<MoriMonchiController> spawned = new();
     private readonly List<MaterialPickup> minerals = new();
     private readonly List<ExitZone> exits = new();
+    private readonly List<Perceivable> looseBuffer = new();
+    private ArenaCastPlanner planner;
     private int activeSeed;
     private Transform spawnHolder;
+    private System.Random rng;
+    private NavMeshQueryFilter filter;
+    private Vector3 center;
+    private bool roomBuilt;
 
     public IReadOnlyList<MoriMonchiController> Spawned => spawned;
-    public IReadOnlyList<MaterialPickup> Minerals => minerals;
     public IReadOnlyList<ExitZone> Exits => exits;
+    public IReadOnlyList<ArenaCastEntry> PlannedCast => Planner.Planned;
     public int ActiveSeed => activeSeed;
+    public ArenaCastMode CastMode => Planner.Mode;
+    public bool LocalCastAvailable => Planner.LocalAvailable;
+    public string EntryName => layout != null && layout.IsBuilt ? layout.EntryName : "diagonal";
+    public string PaletteName => palette != null && palette.Current != null ? palette.Current.DisplayName : "";
+
+    private ArenaCastPlanner Planner
+    {
+        get
+        {
+            if (planner == null)
+            {
+                planner = new ArenaCastPlanner(useRoster ? roster : null, MintRandom) { LocalCount = localCastCount };
+                planner.SetMode(castMode);
+            }
+            return planner;
+        }
+    }
 
     public ExitZone ExitFor(ExpeditionTeam team)
     {
@@ -65,10 +90,21 @@ public class ArenaSandbox : MonoBehaviour
         return null;
     }
 
+    private void OnEnable()
+    {
+        ExpeditionRulesSO.Activate(expeditionRules);
+    }
+
+    private void OnDisable()
+    {
+        ExpeditionRulesSO.Deactivate(expeditionRules);
+    }
+
     private void Start()
     {
         Application.runInBackground = true;
-        Spawn();
+        BuildRoom();
+        if (autoSpawnCast) SpawnCast();
     }
 
     private void Update()
@@ -84,7 +120,7 @@ public class ArenaSandbox : MonoBehaviour
         }
     }
 
-    private void Spawn()
+    public void BuildRoom()
     {
         if (spawnHolder == null)
         {
@@ -94,45 +130,114 @@ public class ArenaSandbox : MonoBehaviour
         }
 
         activeSeed = randomizeEachPlay ? System.Environment.TickCount : seed;
-        Random.InitState(castSeed);
-        var rng = new System.Random(activeSeed);
-
-        Vector3 center = spawnCenter != null ? spawnCenter.position : transform.position;
+        rng = new System.Random(activeSeed);
+        center = spawnCenter != null ? spawnCenter.position : transform.position;
 
         int agentType = creaturePrefab.GetComponent<NavMeshAgent>().agentTypeID;
-        var filter = new NavMeshQueryFilter { agentTypeID = agentType, areaMask = NavMesh.AllAreas };
+        filter = new NavMeshQueryFilter { agentTypeID = agentType, areaMask = NavMesh.AllAreas };
 
-        if (useRoster && roster != null && roster.Entries != null && roster.Entries.Count > 0)
+        if (layout != null) layout.Build(activeSeed, filter);
+        if (palette != null) palette.ApplyIndex(paletteIndex >= 0 ? paletteIndex : palette.IndexForSeed(activeSeed));
+        if (Planner.HasRoster) SpawnExits();
+        SpawnMinerals();
+
+        roomBuilt = true;
+        Planner.Prepare(activeSeed, castSeed, count);
+
+        Debug.Log($"[ArenaSandbox] sala={activeSeed} entrada={EntryName} paleta={PaletteName} minerales={minerals.Count} salidas={exits.Count} elenco={CastMode} planeados={PlannedCast.Count}");
+    }
+
+    public void SetPlayerPlan(int index, Occupation occupation, ArenaSite site) => Planner.SetPlayerPlan(index, occupation, site);
+
+    public void SetCastMode(ArenaCastMode mode)
+    {
+        Planner.SetMode(mode);
+        Planner.Prepare(activeSeed, castSeed, count);
+    }
+
+    public void ShuffleCast()
+    {
+        castSeed++;
+        Planner.Prepare(activeSeed, castSeed, count);
+    }
+
+    public void SetPaletteIndex(int index)
+    {
+        paletteIndex = index;
+        if (palette != null) palette.ApplyIndex(index);
+    }
+
+    public void CyclePalette()
+    {
+        if (palette == null || palette.Palettes.Count == 0) return;
+        SetPaletteIndex((palette.CurrentIndex + 1) % palette.Palettes.Count);
+    }
+
+    public void SpawnCast()
+    {
+        if (!roomBuilt) BuildRoom();
+        if (spawned.Count > 0) ClearCast();
+
+        foreach (var entry in PlannedCast)
         {
-            SpawnExits(filter, center);
-            if (layout != null) layout.Build(activeSeed, filter);
-            SpawnMinerals(rng, filter, center);
-
-            foreach (var entry in roster.Entries)
-            {
-                var dna = MintRandom();
-                dna.Sociability = entry.Sociability;
-                dna.Boldness = entry.Boldness;
-                if (!string.IsNullOrEmpty(entry.Name)) dna.CustomName = entry.Name;
-                if (!string.IsNullOrEmpty(entry.BodyShapeID)) dna.BodyShapeID = entry.BodyShapeID;
-                if (entry.BaseColor.a > 0f) dna.BaseColor = entry.BaseColor;
-                dna.Stamp();
-
-                SpawnCreature(dna, TeamCorner(entry.Team, center), teamSpawnRadius, rng, filter, entry.Team, entry.Occupation, ExitFor(entry.Team));
-            }
+            Vector3 around = entry.Team == ExpeditionTeam.None ? center : TeamCorner(entry.Team);
+            float radius = entry.Team == ExpeditionTeam.None ? spawnRadius : teamSpawnRadius;
+            var controller = SpawnCreature(entry.Dna, around, radius, entry.Team, entry.Occupation, ExitFor(entry.Team));
+            controller.Agent.SetGuardPost(ResolveSite(entry));
         }
-        else
+
+        Debug.Log($"[ArenaSandbox] elenco={spawned.Count} modo={CastMode} sala={activeSeed} castSeed={castSeed}");
+    }
+
+    public void ClearCast()
+    {
+        foreach (var controller in spawned)
         {
-            SpawnMinerals(rng, filter, center);
+            if (controller == null) continue;
+            if (targetGroup != null) targetGroup.RemoveMember(controller.transform);
+            Destroy(controller.gameObject);
+        }
+        spawned.Clear();
+    }
 
-            for (int i = 0; i < count; i++)
-            {
-                var dna = MintRandom();
-                SpawnCreature(dna, center, spawnRadius, rng, filter, ExpeditionTeam.None, Occupation.Gather, null);
-            }
+    public void ResetRoom(bool newSeed)
+    {
+        ClearCast();
+
+        foreach (var mineral in minerals)
+            if (mineral != null) Destroy(mineral.gameObject);
+        minerals.Clear();
+
+        PerceivableRegistry.QueryInRadius(center, 200f, null, looseBuffer);
+        foreach (var p in looseBuffer)
+            if (p != null && p.Kind == PerceivableKind.Material) Destroy(p.gameObject);
+
+        foreach (var exit in exits)
+            if (exit != null) Destroy(exit.gameObject);
+        exits.Clear();
+
+        if (layout != null) layout.Clear();
+
+        if (newSeed)
+        {
+            seed = new System.Random().Next(1, 999999);
+            randomizeEachPlay = false;
         }
 
-        Debug.Log($"[ArenaSandbox] seed={activeSeed} castSeed={castSeed} spawned={spawned.Count} minerals={minerals.Count} exits={exits.Count} roster={roster != null && useRoster}");
+        roomBuilt = false;
+        BuildRoom();
+    }
+
+    [Button] public void Respawn()
+    {
+        ResetRoom(false);
+        SpawnCast();
+    }
+
+    [Button] public void Reseed()
+    {
+        ResetRoom(true);
+        SpawnCast();
     }
 
     private CreatureDNA MintRandom()
@@ -149,7 +254,7 @@ public class ArenaSandbox : MonoBehaviour
         return dna;
     }
 
-    private MoriMonchiController SpawnCreature(CreatureDNA dna, Vector3 around, float radius, System.Random rng, NavMeshQueryFilter filter, ExpeditionTeam team, Occupation occupation, ExitZone home)
+    private MoriMonchiController SpawnCreature(CreatureDNA dna, Vector3 around, float radius, ExpeditionTeam team, Occupation occupation, ExitZone home)
     {
         float angle = (float)(rng.NextDouble() * Mathf.PI * 2f);
         float dist = (float)(rng.NextDouble() * radius);
@@ -169,7 +274,6 @@ public class ArenaSandbox : MonoBehaviour
         controller.Initialize(dna, profileTable, observer, visualBank, furDatabase);
         controller.Agent.SetOccupation(occupation);
         controller.Agent.SetHomeExit(home);
-        controller.Agent.SetGuardPost(minerals.Count > 0 && minerals[0] != null ? minerals[0].transform : null);
         spawned.Add(controller);
         if (targetGroup != null) targetGroup.AddMember(controller.transform, 1f, 1.2f);
         foreach (var tag in controller.GetComponentsInChildren<NameTag>(true)) { tag.ShowDistance = tagShowDistance; tag.ScreenSizeReferenceDistance = tagReferenceDistance; }
@@ -177,8 +281,52 @@ public class ArenaSandbox : MonoBehaviour
         return controller;
     }
 
-    private Vector3 TeamCorner(ExpeditionTeam team, Vector3 center)
+    private Transform ResolveSite(ArenaCastEntry entry)
     {
+        if (minerals.Count == 0 || minerals[0] == null) return null;
+
+        switch (entry.Site)
+        {
+            case ArenaSite.NearVein:
+            {
+                var own = ExitFor(entry.Team);
+                var vein = NearestVein(own != null ? own.transform.position : center);
+                return vein != null ? vein.transform : minerals[0].transform;
+            }
+            case ArenaSite.FarVein:
+            {
+                var rival = ExitFor(RivalOf(entry.Team));
+                var vein = NearestVein(rival != null ? rival.transform.position : center);
+                return vein != null ? vein.transform : minerals[0].transform;
+            }
+            default:
+                return minerals[0].transform;
+        }
+    }
+
+    private MaterialPickup NearestVein(Vector3 from)
+    {
+        MaterialPickup best = null;
+        float bestSqr = float.PositiveInfinity;
+        for (int i = 1; i < minerals.Count; i++)
+        {
+            var mineral = minerals[i];
+            if (mineral == null) continue;
+            Vector3 d = mineral.transform.position - from;
+            d.y = 0f;
+            if (d.sqrMagnitude < bestSqr) { bestSqr = d.sqrMagnitude; best = mineral; }
+        }
+        return best;
+    }
+
+    private static ExpeditionTeam RivalOf(ExpeditionTeam team) =>
+        team == ExpeditionTeam.Player ? ExpeditionTeam.Rival :
+        team == ExpeditionTeam.Rival ? ExpeditionTeam.Player : ExpeditionTeam.None;
+
+    private Vector3 TeamCorner(ExpeditionTeam team)
+    {
+        if (layout != null && layout.IsBuilt && team != ExpeditionTeam.None) return layout.SpawnPoint(team);
+
         switch (team)
         {
             case ExpeditionTeam.Player:
@@ -190,15 +338,15 @@ public class ArenaSandbox : MonoBehaviour
         }
     }
 
-    private void SpawnExits(NavMeshQueryFilter filter, Vector3 center)
+    private void SpawnExits()
     {
-        SpawnExit(ExpeditionTeam.Player, new Vector3(-1f, 0f, -1f), center, filter);
-        SpawnExit(ExpeditionTeam.Rival, new Vector3(1f, 0f, 1f), center, filter);
+        SpawnExit(ExpeditionTeam.Player, new Vector3(-1f, 0f, -1f));
+        SpawnExit(ExpeditionTeam.Rival, new Vector3(1f, 0f, 1f));
     }
 
-    private void SpawnExit(ExpeditionTeam team, Vector3 dir, Vector3 center, NavMeshQueryFilter filter)
+    private void SpawnExit(ExpeditionTeam team, Vector3 dir)
     {
-        Vector3 point = center + dir * (arenaHalfSize - exitInset);
+        Vector3 point = layout != null && layout.IsBuilt ? layout.ExitPoint(team) : center + dir * (arenaHalfSize - exitInset);
         Vector3 pos = NavMesh.SamplePosition(point, out var hit, 4f, filter)
             ? hit.position
             : point;
@@ -208,7 +356,7 @@ public class ArenaSandbox : MonoBehaviour
         exits.Add(exit);
     }
 
-    private void SpawnMinerals(System.Random rng, NavMeshQueryFilter filter, Vector3 center)
+    private void SpawnMinerals()
     {
         Vector3 centerPos = NavMesh.SamplePosition(center, out var centerHit, 2f, filter)
             ? centerHit.position
@@ -219,67 +367,14 @@ public class ArenaSandbox : MonoBehaviour
         centerMineral.SetValue(centerMineralValue);
         minerals.Add(centerMineral);
 
-        if (layout != null && layout.Veins.Count > 0)
+        if (layout == null) return;
+
+        foreach (var spot in layout.Veins)
         {
-            foreach (var spot in layout.Veins)
-            {
-                var vein = Instantiate(mineralPrefab, spot.Position, Quaternion.Euler(0f, rng.Next(0, 360), 0f), transform);
-                vein.SetValue(spot.Capacity);
-                minerals.Add(vein);
-            }
-
-            return;
+            var vein = Instantiate(mineralPrefab, spot.Position, Quaternion.Euler(0f, rng.Next(0, 360), 0f), transform);
+            vein.SetValue(spot.Capacity);
+            minerals.Add(vein);
         }
-
-        for (int i = 0; i < cornerMinerals; i++)
-        {
-            int k = i % 4;
-            float sx = (k & 1) == 0 ? 1f : -1f;
-            float sz = (k & 2) == 0 ? 1f : -1f;
-
-            float jitterX = (float)(rng.NextDouble() * 2f - 1f) * cornerJitter;
-            float jitterZ = (float)(rng.NextDouble() * 2f - 1f) * cornerJitter;
-
-            float x = sx * (arenaHalfSize - cornerInset) + jitterX;
-            float z = sz * (arenaHalfSize - cornerInset) + jitterZ;
-            Vector3 point = new Vector3(x, center.y, z);
-
-            if (!NavMesh.SamplePosition(point, out var hit, 4f, filter)) continue;
-
-            var mineral = Instantiate(mineralPrefab, hit.position, Quaternion.Euler(0f, rng.Next(0, 360), 0f), transform);
-            mineral.SetValue(cornerMineralValue);
-            minerals.Add(mineral);
-        }
-    }
-
-    [Button] public void Respawn()
-    {
-        foreach (var controller in spawned)
-        {
-            if (controller == null) continue;
-            if (targetGroup != null) targetGroup.RemoveMember(controller.transform);
-            Destroy(controller.gameObject);
-        }
-        spawned.Clear();
-
-        foreach (var mineral in minerals)
-            if (mineral != null) Destroy(mineral.gameObject);
-        minerals.Clear();
-
-        foreach (var exit in exits)
-            if (exit != null) Destroy(exit.gameObject);
-        exits.Clear();
-
-        if (layout != null) layout.Clear();
-
-        Spawn();
-    }
-
-    [Button] public void Reseed()
-    {
-        seed = new System.Random().Next(1, 999999);
-        randomizeEachPlay = false;
-        Respawn();
     }
 }
 }

@@ -10,9 +10,11 @@ public class ExpeditionRulesSO : SerializedScriptableObject
 {
     public static ExpeditionRulesSO Current { get; private set; }
 
-    private void OnEnable()
+    public static void Activate(ExpeditionRulesSO rules) => Current = rules;
+
+    public static void Deactivate(ExpeditionRulesSO rules)
     {
-        Current = this;
+        if (Current == rules) Current = null;
     }
 
     [Title("Reglas")]
@@ -46,6 +48,12 @@ public class ExpeditionRulesSO : SerializedScriptableObject
     [Min(1f)] public float DecoyFleeDistance = 8f;
     [Min(0.5f)] public float DecoyFleeSeconds = 5f;
     [Min(0f)] public float DecoyCooldown = 4f;
+
+    [Title("Visión")]
+    [Range(30f, 360f)] public float VisionDegrees = 150f;
+    [Min(1f)] public float VisionRadius = 11f;
+    [Min(0f)] public float NearSenseRadius = 3f;
+    [Range(0f, 0.5f)] public float BoldnessVisionSkew = 0.25f;
 
     [Button] public void PopulateDefaults()
     {

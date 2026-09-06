@@ -48,6 +48,14 @@ public class CueStyleSO : SerializedScriptableObject
     [Range(0f, 1f)] public float RingDashRatio = 0.55f;
     public float RingSpinSpeed = 0.35f;
 
+    [Title("Cono de visión")]
+    [Range(0f, 1f)] public float VisionFillInnerAlpha = 0.09f;
+    [Range(0f, 1f)] public float VisionFillOuterAlpha = 0f;
+    [Range(0f, 1f)] public float VisionEdgeAlpha = 0.5f;
+    [Range(0f, 1f)] public float VisionSideAlpha = 0.3f;
+    [Range(0f, 1f)] public float NearRingAlpha = 0.22f;
+    public float VisionTurnSmoothing = 9f;
+
     [Title("Retícula")]
     public float ReticleRadius = 0.9f;
     public float ReticleThickness = 0.06f;

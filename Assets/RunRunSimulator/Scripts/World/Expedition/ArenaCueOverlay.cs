@@ -15,11 +15,9 @@ public class ArenaCueOverlay : MonoBehaviour
     [SerializeField] private bool showPerception = true;
     [SerializeField] private bool showPath = true;
     [SerializeField] private bool showPercepts = true;
-    [SerializeField] private bool showMinerals = true;
     [SerializeField] private bool showReticle = true;
     [SerializeField] private bool showSocial = true;
     [SerializeField] private bool showClash = true;
-    [SerializeField] private bool showExits = true;
     [SerializeField] private bool showMining = true;
 
     private class CueAnim
@@ -30,29 +28,20 @@ public class ArenaCueOverlay : MonoBehaviour
 
     private class CueState
     {
-        public NavMeshAgent Nav;
-        public Vector3 ShownEnd;
-        public bool HasShown;
-        public float Alpha;
-        public Vector3[] Corners;
+        public readonly PathCueState Path = new PathCueState();
 
         public readonly CueAnim PerceptionAppear = new CueAnim();
         public int LastPerceptCount;
         public float PulseElapsed = -1f;
 
-        public readonly CueAnim DestAppear = new CueAnim();
-        public Vector3 LastDestination;
-        public bool HasDestination;
-
         public readonly CueAnim Reticle = new CueAnim();
         public Vector3 LastTargetPosition;
+
+        public float FacingAngle;
+        public bool HasFacing;
     }
 
     private readonly Dictionary<MoriMonchiController, CueState> cueCache = new();
-    private readonly Dictionary<MaterialPickup, CueAnim> mineralAnims = new();
-    private readonly List<Vector3> cornersBuffer = new();
-    private readonly List<Perceivable> mineralQueryBuffer = new();
-    private readonly Dictionary<Perceivable, MaterialPickup> mineralLookup = new();
 
     private void OnEnable()
     {
@@ -63,7 +52,7 @@ public class ArenaCueOverlay : MonoBehaviour
     {
         if (sandbox == null || style == null) return;
 
-        float perceptionRadius = SocialTuningSO.Current != null ? SocialTuningSO.Current.PerceptionRadius : 0f;
+        float globalRadius = SocialTuningSO.Current != null ? SocialTuningSO.Current.PerceptionRadius : 0f;
 
         foreach (var controller in sandbox.Spawned)
         {
@@ -71,11 +60,12 @@ public class ArenaCueOverlay : MonoBehaviour
 
             var state = GetCueState(controller);
             Vector3 origin = controller.transform.position + Vector3.up * style.HeightOffset;
+            float perceptionRadius = controller.Agent.HasVisionCone ? controller.Agent.VisionRadius : globalRadius;
 
             if (showPerception && SocialTuningSO.Current != null)
                 DrawPerception(controller, state, origin, perceptionRadius);
 
-            if (showPath) DrawPath(controller, state);
+            if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, style.ColorFor(controller.Agent.Intent), Time.deltaTime);
 
             if (showPercepts) DrawPercepts(controller, origin, perceptionRadius);
 
@@ -87,10 +77,6 @@ public class ArenaCueOverlay : MonoBehaviour
 
             if (showMining) DrawMining(controller, origin);
         }
-
-        if (showMinerals) DrawMinerals();
-
-        if (showExits) DrawExits();
     }
 
     private static float Step(CueAnim anim, bool visible, float seconds, float dt)
@@ -124,7 +110,11 @@ public class ArenaCueOverlay : MonoBehaviour
 
         Color ringColor = controller.DNA.BaseColor;
         ringColor.a = style.RingAlpha;
-        CueDrawer.DashedRing(origin, radius, style.RingThickness, style.RingDashCount, style.RingDashRatio, Time.time * style.RingSpinSpeed, ringColor);
+
+        if (controller.Agent.HasVisionCone)
+            DrawVisionCone(controller, state, origin, radius);
+        else
+            CueDrawer.DashedRing(origin, radius, style.RingThickness, style.RingDashCount, style.RingDashRatio, Time.time * style.RingSpinSpeed, ringColor);
 
         if (perceptCount == 0) return;
 
@@ -147,137 +137,49 @@ public class ArenaCueOverlay : MonoBehaviour
         CueDrawer.Arc(origin, radius, style.RingThickness, angle, -half, coreColor, edgeColor, true);
     }
 
-    private void DrawPath(MoriMonchiController controller, CueState state)
+    private void DrawVisionCone(MoriMonchiController controller, CueState state, Vector3 origin, float radius)
     {
-        var nav = state.Nav;
-
-        bool hasValidPath = nav != null && nav.enabled && nav.isOnNavMesh && nav.hasPath && nav.path.corners.Length >= 2;
-        Vector3 destination = default;
-        if (hasValidPath) destination = nav.path.corners[nav.path.corners.Length - 1];
-
-        if (hasValidPath && Vector3.Distance(controller.transform.position, destination) > 0.3f)
+        float facing = VisionProfile.FacingAngle(controller.transform.forward);
+        if (!state.HasFacing)
         {
-            var corners = nav.path.corners;
-
-            if (!state.HasShown)
-            {
-                state.ShownEnd = destination;
-                state.HasShown = true;
-            }
-            else
-            {
-                state.ShownEnd = Vector3.Lerp(state.ShownEnd, destination, 1f - Mathf.Exp(-style.PathSmoothing * Time.deltaTime));
-            }
-
-            if (!state.HasDestination || Vector3.Distance(state.LastDestination, destination) > 1f)
-            {
-                state.DestAppear.Alpha = 0f;
-                state.LastDestination = destination;
-                state.HasDestination = true;
-            }
-
-            state.Alpha = Mathf.MoveTowards(state.Alpha, 1f, Time.deltaTime / style.PathFadeSeconds);
-            state.Corners = corners;
+            state.FacingAngle = facing;
+            state.HasFacing = true;
         }
         else
         {
-            state.Alpha = Mathf.MoveTowards(state.Alpha, 0f, Time.deltaTime / style.PathFadeSeconds);
-            if (state.Alpha <= 0f)
-            {
-                state.HasShown = false;
-                state.HasDestination = false;
-            }
+            float delta = Mathf.DeltaAngle(state.FacingAngle * Mathf.Rad2Deg, facing * Mathf.Rad2Deg) * Mathf.Deg2Rad;
+            state.FacingAngle += delta * (1f - Mathf.Exp(-style.VisionTurnSmoothing * Time.deltaTime));
         }
 
-        Step(state.DestAppear, hasValidPath, style.AppearSeconds, Time.deltaTime);
+        float sweep = controller.Agent.VisionDegrees * Mathf.Deg2Rad;
+        float start = state.FacingAngle - sweep * 0.5f;
+        Color tint = controller.DNA.BaseColor;
 
-        if (state.Alpha <= 0.01f || state.Corners == null) return;
+        CueDrawer.Sector(origin, radius, start, sweep, tint, style.VisionFillInnerAlpha, style.VisionFillOuterAlpha);
 
-        Color baseColor = style.ColorFor(controller.Agent.Intent);
+        Color rimColor = tint;
+        rimColor.a = style.VisionEdgeAlpha;
+        CueDrawer.Arc(origin, radius, style.RingThickness, start, sweep, rimColor, rimColor);
 
-        cornersBuffer.Clear();
-        cornersBuffer.Add(controller.transform.position + Vector3.up * style.HeightOffset);
-        for (int i = 1; i < state.Corners.Length - 1; i++)
-            cornersBuffer.Add(state.Corners[i] + Vector3.up * style.HeightOffset);
-        cornersBuffer.Add(state.ShownEnd + Vector3.up * style.HeightOffset);
-
-        Vector3 forward = controller.transform.forward;
-        forward.y = 0f;
-        forward = forward.sqrMagnitude > 0.0001f ? forward.normalized : Vector3.forward;
-
-        Vector3 first = cornersBuffer[0];
-        Vector3 last = cornersBuffer[cornersBuffer.Count - 1];
-        Vector3 secondToLast = cornersBuffer.Count >= 2 ? cornersBuffer[cornersBuffer.Count - 2] : first;
-
-        Vector3 virtualStart = first - forward * style.StartTangent;
-        Vector3 virtualEnd = last + (last - secondToLast);
-
-        int segmentCount = cornersBuffer.Count - 1;
-        float traveledLength = 0f;
-
-        for (int seg = 0; seg < segmentCount; seg++)
+        if (sweep < Mathf.PI * 2f - 0.01f)
         {
-            Vector3 p0 = seg == 0 ? virtualStart : cornersBuffer[seg - 1];
-            Vector3 p1 = cornersBuffer[seg];
-            Vector3 p2 = cornersBuffer[seg + 1];
-            Vector3 p3 = seg == segmentCount - 1 ? virtualEnd : cornersBuffer[seg + 2];
-
-            bool isLastSegment = seg == segmentCount - 1;
-
-            Vector3 prevPoint = CatmullRom(p0, p1, p2, p3, 0f);
-            for (int s = 1; s <= style.CurveSamples; s++)
-            {
-                float t = (float)s / style.CurveSamples;
-                Vector3 point = CatmullRom(p0, p1, p2, p3, t);
-
-                float tPrev = (seg + (float)(s - 1) / style.CurveSamples) / segmentCount;
-                float tCur = (seg + t) / segmentCount;
-
-                Color colorA = baseColor;
-                colorA.a = Mathf.Lerp(style.PathTailAlpha, 1f, tPrev) * state.Alpha;
-                Color colorB = baseColor;
-                colorB.a = Mathf.Lerp(style.PathTailAlpha, 1f, tCur) * state.Alpha;
-
-                if (isLastSegment && s == style.CurveSamples)
-                {
-                    CueDrawer.Arrow(prevPoint, point, style.PathThickness, style.HeadLength, style.HeadWidth, colorA, colorB);
-                }
-                else
-                {
-                    float dashOffset = Time.time * style.PathFlowSpeed - traveledLength;
-                    CueDrawer.DashedSegment(prevPoint, point, style.PathThickness, style.PathDashLength, style.PathDashGap, dashOffset, colorA, colorB);
-                }
-
-                traveledLength += Vector3.Distance(prevPoint, point);
-                prevPoint = point;
-            }
+            Color sideNear = tint;
+            sideNear.a = 0f;
+            Color sideFar = tint;
+            sideFar.a = style.VisionSideAlpha;
+            Vector3 edgeA = origin + new Vector3(Mathf.Cos(start), 0f, Mathf.Sin(start)) * radius;
+            Vector3 edgeB = origin + new Vector3(Mathf.Cos(start + sweep), 0f, Mathf.Sin(start + sweep)) * radius;
+            CueDrawer.Segment(origin, edgeA, style.RingThickness * 0.7f, sideNear, sideFar);
+            CueDrawer.Segment(origin, edgeB, style.RingThickness * 0.7f, sideNear, sideFar);
         }
 
-        DrawDestinationMarker(state, baseColor);
-    }
-
-    private void DrawDestinationMarker(CueState state, Color intentColor)
-    {
-        if (state.DestAppear.Alpha <= 0.01f) return;
-
-        float pulse = 1f + style.DestPulseAmount * Mathf.Sin(Time.time * style.DestPulseSpeed);
-        float radius = style.DestMarkerRadius * pulse * AppearScale(state.DestAppear.Alpha, style.ReticleAppearScale);
-        float alpha = 0.6f * state.Alpha * state.DestAppear.Alpha;
-
-        CueDrawer.Disc(state.ShownEnd + Vector3.up * style.HeightOffset, radius, intentColor, alpha, 0f, true);
-    }
-
-    private static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
-    {
-        float t2 = t * t;
-        float t3 = t2 * t;
-
-        return 0.5f * (
-            (2f * p1) +
-            (-p0 + p2) * t +
-            (2f * p0 - 5f * p1 + 4f * p2 - p3) * t2 +
-            (-p0 + 3f * p1 - 3f * p2 + p3) * t3
-        );
+        float nearRadius = controller.Agent.NearSenseRadius;
+        if (nearRadius > 0f)
+        {
+            Color nearColor = tint;
+            nearColor.a = style.NearRingAlpha;
+            CueDrawer.DashedRing(origin, nearRadius, style.RingThickness * 0.8f, Mathf.Max(8, style.RingDashCount / 3), style.RingDashRatio, Time.time * style.RingSpinSpeed, nearColor);
+        }
     }
 
     private void DrawPercepts(MoriMonchiController controller, Vector3 origin, float perceptionRadius)
@@ -325,59 +227,6 @@ public class ArenaCueOverlay : MonoBehaviour
         {
             float centerAngle = (45f + k * 90f) * Mathf.Deg2Rad + spin;
             CueDrawer.Arc(center, radius, style.ReticleThickness, centerAngle - half, sweep, color, color, true);
-        }
-    }
-
-    private void DrawMinerals()
-    {
-        PerceivableRegistry.QueryInRadius(sandbox.transform.position, 200f, null, mineralQueryBuffer);
-
-        foreach (var p in mineralQueryBuffer)
-        {
-            if (p == null || p.Kind != PerceivableKind.Material) continue;
-
-            var m = GetMineralPickup(p);
-            if (m == null) continue;
-
-            var anim = GetMineralAnim(m);
-            float alpha = Step(anim, !m.Taken, style.AppearSeconds, Time.deltaTime);
-            if (alpha <= 0.01f) continue;
-
-            Vector3 center = m.transform.position + Vector3.up * style.HeightOffset;
-            float radiusScale = m.Value > 0 ? (float)m.Remaining / m.Value : 1f;
-            float radius = style.MineralDiscRadius * (m.Value > 1 ? 1.6f : 1f) * Mathf.Lerp(0.5f, 1f, radiusScale);
-
-            CueDrawer.Disc(center, radius, style.MineralColor, style.MineralInnerAlpha * alpha, style.MineralOuterAlpha * alpha);
-
-            Color ringColor = style.MineralColor;
-            ringColor.a = style.MineralRingAlpha * alpha;
-            CueDrawer.Ring(center, radius, style.MineralRingThickness, ringColor);
-
-            if (m.Value > 1)
-                CueDrawer.DashedRing(center, radius, style.MineralRingThickness, style.RingDashCount, style.RingDashRatio, Time.time * -style.RingSpinSpeed, ringColor);
-        }
-    }
-
-    private void DrawExits()
-    {
-        if (sandbox.Exits == null) return;
-
-        foreach (var exit in sandbox.Exits)
-        {
-            if (exit == null) continue;
-
-            Vector3 center = exit.transform.position + Vector3.up * style.HeightOffset;
-            Color color = exit.Team == ExpeditionTeam.Player ? style.FriendColor : style.FoeColor;
-
-            CueDrawer.Disc(center, exit.Radius, color, style.ExitAlpha, 0f);
-
-            Color ringColor = color;
-            ringColor.a = style.ExitAlpha * 2f;
-            CueDrawer.Ring(center, exit.Radius, style.ExitRingThickness, ringColor);
-
-            Color dashColor = color;
-            dashColor.a = style.ExitAlpha;
-            CueDrawer.DashedRing(center, exit.Radius, style.ExitRingThickness, style.RingDashCount, style.RingDashRatio, Time.time * style.RingSpinSpeed * 0.5f, dashColor);
         }
     }
 
@@ -435,25 +284,10 @@ public class ArenaCueOverlay : MonoBehaviour
     private CueState GetCueState(MoriMonchiController controller)
     {
         if (cueCache.TryGetValue(controller, out var state)) return state;
-        state = new CueState { Nav = controller.GetComponent<NavMeshAgent>() };
+        state = new CueState();
+        state.Path.Nav = controller.GetComponent<NavMeshAgent>();
         cueCache[controller] = state;
         return state;
-    }
-
-    private CueAnim GetMineralAnim(MaterialPickup mineral)
-    {
-        if (mineralAnims.TryGetValue(mineral, out var anim)) return anim;
-        anim = new CueAnim();
-        mineralAnims[mineral] = anim;
-        return anim;
-    }
-
-    private MaterialPickup GetMineralPickup(Perceivable p)
-    {
-        if (mineralLookup.TryGetValue(p, out var pickup)) return pickup;
-        pickup = p.GetComponent<MaterialPickup>();
-        mineralLookup[p] = pickup;
-        return pickup;
     }
 }
 }

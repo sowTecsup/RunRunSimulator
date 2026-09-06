@@ -673,6 +673,8 @@ internal class AgentExpedition
                 var p = ctx.Percepts[i];
                 if (p.Source == null || p.Source.Monchi == null || p.Source.Monchi == owner) continue;
                 if (p.Source.Monchi.ExpeditionTarget != target.transform) continue;
+                var otherIntent = p.Source.Monchi.Intent;
+                if (otherIntent != CreatureIntent.Collecting && otherIntent != CreatureIntent.Taking) continue;
 
                 Vector3 other = p.Source.Monchi.transform.position - center; other.y = 0f;
                 if (other.sqrMagnitude >= selfSqrDist) continue;
@@ -707,7 +709,12 @@ internal class AgentExpedition
     private bool BeginReturn(ExpeditionRulesSO rules)
     {
         exit = ctx.HomeExit;
-        if (exit == null) { carried = 0; return false; }
+        if (exit == null)
+        {
+            carried = 0;
+            owner.EmitEmote(EmoteKind.Feliz);
+            return false;
+        }
 
         ctx.State    = AgentState.Expedition;
         target       = null;

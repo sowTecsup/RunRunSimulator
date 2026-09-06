@@ -45,6 +45,23 @@ public class ArenaRound : MonoBehaviour
         Winner = ExpeditionTeam.None;
     }
 
+    public void Launch()
+    {
+        sandbox.SpawnCast();
+        Begin();
+    }
+
+    public void Reset(bool newSeed)
+    {
+        sandbox.ResetRoom(newSeed);
+        Elapsed = 0f;
+        IsRunning = false;
+        IsOver = false;
+        Winner = ExpeditionTeam.None;
+        frozenPlayerSecured = 0;
+        frozenRivalSecured = 0;
+    }
+
     public void End()
     {
         frozenPlayerSecured = SumSecured(ExpeditionTeam.Player);
@@ -62,8 +79,8 @@ public class ArenaRound : MonoBehaviour
 
     [Button] public void Restart()
     {
-        sandbox.Respawn();
-        Begin();
+        Reset(false);
+        Launch();
     }
 
     private int SumSecured(ExpeditionTeam team)

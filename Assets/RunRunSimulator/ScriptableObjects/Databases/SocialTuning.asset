@@ -85,7 +85,7 @@ MonoBehaviour:
       Data: 
   ScanIntervalMin: 2
   ScanIntervalMax: 4
-  PerceptionRadius: 9
+  PerceptionRadius: 6
   MaxPercepts: 8
   SameElementBonus: 0.35
   KinshipBonus: 0.4

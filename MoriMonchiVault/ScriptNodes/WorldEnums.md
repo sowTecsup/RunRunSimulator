@@ -6,16 +6,19 @@ tags: [enum, world, perception]
 
 **Ruta:** `Core/Enums/WorldEnums.cs`
 
-**Responsabilidad:** Enumeraciones para topografía y percepciones del mundo. Contiene: `WorldArea` (3 zonas: ShopFrontDesk/ShopBackroom/Storage), `PerceivableKind` (6 tipos percibibles: Player/Monchi/Customer/Prop/Material/**S101:** Exit), `ExpeditionTeam` (None/Player/Rival), `ExpeditionTeams` (static helper), `Occupation` (**S101:** None/Gather/Guard/Break/Decoy/Explore — estrategias de expedición). **S93:** Consolidación de enums de mundo en archivo dedicado. **S97:** Agregado `PerceivableKind.Material = 4`. **S99:** Agregados `ExpeditionTeam` enum y `ExpeditionTeams` static helper. **S101:** Agregados `PerceivableKind.Exit = 5` y `Occupation` enum.
+**Responsabilidad:** Enumeraciones para topografía y percepciones del mundo. Contiene: `WorldArea` (zonas: ShopFrontDesk/ShopBackroom/Storage), `PerceivableKind` (6 tipos: Player/Monchi/Customer/Prop/Material/Exit), `ExpeditionTeam` (None/Player/Rival), `Occupation` (None/Gather/Guard/Break/Decoy/Explore). **S102 NUEVO:** `ArenaCastMode` (Roster/LocalSave), `ArenaSite` (Center/NearVein/FarVein), `ArenaPaletteSlot` (Ground/Grass/Foliage/Trunk/Rock/Wall).
 
 ## Enumeraciones
 
 | Enum | Valores |
 |------|---------|
-| `WorldArea` | ShopFrontDesk (0), ShopBackroom (1), Storage (2) |
-| `PerceivableKind` | Player (0), Monchi (1), Customer (2), Prop (3), Material (4), **Exit (5) S101** |
-| `ExpeditionTeam` | None (0), Player (1), Rival (2) |
-| **`Occupation` (S101 NUEVO)** | **None (0), Gather (1), Guard (2), Break (3), Decoy (4), Explore (5)** |
+| `WorldArea` | ShopFrontDesk, ShopBackroom, Storage |
+| `PerceivableKind` | Player, Monchi, Customer, Prop, Material, Exit |
+| `ExpeditionTeam` | None, Player, Rival |
+| `Occupation` | None, Gather, Guard, Break, Decoy, Explore |
+| **`ArenaCastMode` (S102)** | **Roster, LocalSave** |
+| **`ArenaSite` (S102)** | **Center, NearVein, FarVein** |
+| **`ArenaPaletteSlot` (S102)** | **Ground, Grass, Foliage, Trunk, Rock, Wall** |
 
 ## PerceivableKind S101 NUEVO: Exit
 
@@ -31,11 +34,7 @@ public enum PerceivableKind
 }
 ```
 
-**Exit (S101 NUEVO, valor 5):**
-- Percepción de salida de base en expedición
-- Representa un [[ExitZone]] (disco con radio y Team)
-- Usado por: ArenaSandbox.SpawnCreature() marca cada salida como Perceivable
-- Consultado por: ArenaCueOverlay.DrawExits() para visualización
+Exit (5) — percepción de salida de base en expedición. Representa un [[ExitZone]] (disco con radio y Team).
 
 ## Occupation S101 NUEVO
 
@@ -51,54 +50,81 @@ public enum Occupation
 }
 ```
 
-**Estrategias de expedición asignadas por ArenaRosterSO:**
+Estrategias de expedición asignadas por ArenaRosterSO:
+- **Gather:** Noticing → Moving → Mining → Returning → Securing. Acumula material.
+- **Guard:** Guarding. Se planta en MaterialPickup (GuardPost inyectado).
+- **Break:** Hunting. Persigue rival que recolecta; golpea si en rango.
+- **Decoy:** Decoying (Approach → Taunt → Flee). Provoca rival, se retira. Cooldown 4s.
+- **Explore:** Placeholder. Traduce a Gather en AgentExpedition.TryEngage().
 
-- **Gather = 1:** Noticing → Moving → Mining → Returning → Securing. Acumula material.
-  - Intents: Collecting → Taking → Carrying → Securing
-  - Habilidad: Ninguna especial (base)
-  - Riesgo: Vulnerable mientras carga
+## ArenaCastMode S102 NUEVO
 
-- **Guard = 2:** Guarding. Se planta en MaterialPickup (GuardPost inyectado).
-  - Intent: Guarding
-  - Habilidad: Vigilancia y defensa del puesto
-  - Riesgo: Inmóvil si rival llega
-
-- **Break = 3:** Hunting. Persigue MoriMochiAgent rival que recolecta; golpea si en rango (AgentClash automático).
-  - Intent: Hunting (si persiguiendo rival); Clashing (si entra en combate)
-  - Habilidad: Combate preferente a rivales cargados; no puede iniciar Gather automático (TryEngage gateado)
-  - Riesgo: Agresivo, puede perder
-
-- **Decoy = 4:** Decoying (Approach → Taunt → Flee). Provoca rival, emota Molesto, se retira. Cooldown 4s.
-  - Intent: Approaching → Taunting → Fleeing
-  - Habilidad: Provocación (enlaza rivales a Taunting intent); evasivo
-  - Riesgo: No acumula material (solo distrae)
-
-- **Explore = 5:** Exploración (placeholder). Traduce a Gather en AgentExpedition.TryEngage().
-  - Intent: Collecting → Taking → Carrying → Securing
-  - Habilidad: Ninguna
-  - Riesgo: Ninguno, fallback
-
-**Asignación y mutabilidad:**
-- Asignado por: `ArenaRosterSO.Entry.Occupation`
-- Inyectado por: `ArenaSandbox.SpawnCreature()` → `controller.Agent.SetOccupation(occupation)`
-- Almacenado en: `AgentContext.Occupation` (inmutable durante sesión)
-- Consultado por: `AgentExpedition.TryEngage()` para elegir estrategia
-
-**Mapeo en AgentExpedition:**
 ```csharp
-var occ = ctx.Occupation;
-if (occ == Occupation.None || occ == Occupation.Explore) occ = Occupation.Gather;
-
-switch (occ)
+public enum ArenaCastMode
 {
-    case Occupation.Guard: return TryGuardEngage(rules);
-    case Occupation.Break: return TryBreakEngage(rules);
-    case Occupation.Decoy: return TryDecoyEngage(rules);
-    default: return TryGatherEngage(rules);  // Gather
+    Roster   = 0,  // elenco desde ArenaRosterSO (predefinido)
+    LocalSave = 1, // elenco desde archivo creature_database*.json local
 }
 ```
 
-## ExpeditionTeam S99 NUEVO
+**Uso:**
+- Elegido en ArenaPlanPanel → ToggleCastMode()
+- Consultado en ArenaCastPlanner.Prepare()
+- Impacta selección de criaturas y equipamiento (LocalSave usa DNA guardado; Roster clona stats de Entry)
+
+**Almacenamiento:**
+- ArenaSandbox.castMode (serializado)
+- ArenaCastPlanner.Mode (estado mutable)
+
+## ArenaSite S102 NUEVO
+
+```csharp
+public enum ArenaSite
+{
+    Center  = 0,  // centro de la sala
+    NearVein = 1, // veta cercana (distancia media)
+    FarVein = 2,  // veta lejana (distancia máxima)
+}
+```
+
+**Significado:**
+- Ubicación de recolecta asignada a cada criatura de Gather
+- Usado por ArenaCastPlanner para distribuir objetivos (rivalPlans[i].site alternado)
+- Consultado en ArenaSandbox.ResolveSite() para mapear a GuardPost (veta o salida)
+
+**Determinismo:**
+- Per-equipo: GatherSites[rivalIndex % 3] para rivales
+- Ignorado si Occupation != Gather (Decoy no respeta Site, tiene lógica propia)
+
+## ArenaPaletteSlot S102 NUEVO
+
+```csharp
+public enum ArenaPaletteSlot
+{
+    Ground  = 0,  // suelo principal
+    Grass   = 1,  // pasto
+    Foliage = 2,  // follaje/arbustos
+    Trunk   = 3,  // tronco de árbol
+    Rock    = 4,  // roca/piedra
+    Wall    = 5,  // muro/pared
+}
+```
+
+**Usado por:**
+- ArenaPaletteSO.RampFor(slot) → devuelve Ramp (Dark/Mid/Light) para el slot
+- ArenaPaletteApplier.TryClassify(material) → mapea nombre de material a slot
+- ArenaPaletteApplier.BuildRamps() → compila ramp a Texture2D 256x1 por slot
+
+**Clasificación de materiales (TryClassify):**
+- "Trunk" → Trunk
+- "Leaves"/"Tree"/"Plants" → Foliage
+- "Moss"/"Rock"/"Pebble"/"PolygonNature_0" → Rock
+- "Generic_0"/"Grass"/"Flower" → Grass
+- "ArenaGround"/"ArenaOutskirts" → Ground
+- "ArenaWall" → Wall
+- (else) → Ground (fallback)
+
+## ExpeditionTeam S99
 
 ```csharp
 public enum ExpeditionTeam
@@ -109,76 +135,37 @@ public enum ExpeditionTeam
 }
 ```
 
-## ExpeditionTeams S99 NUEVO (static helper)
-
+**ExpeditionTeams (static helper):**
 ```csharp
-public static class ExpeditionTeams
-{
-    public static bool AreRivals(ExpeditionTeam a, ExpeditionTeam b)
-        => a != ExpeditionTeam.None && b != ExpeditionTeam.None && a != b;
+public static bool AreRivals(ExpeditionTeam a, ExpeditionTeam b)
+    => a != None && b != None && a != b;
 
-    public static bool AreAllies(ExpeditionTeam a, ExpeditionTeam b)
-        => a != ExpeditionTeam.None && a == b;
-}
+public static bool AreAllies(ExpeditionTeam a, ExpeditionTeam b)
+    => a != None && a == b;
 ```
-
-**Lógica:**
-- Rivales: ambos son None y diferentes (Player ≠ Rival)
-- Aliados: ambos son None y iguales (Player == Player o Rival == Rival)
-- Neutral: al menos uno es None
 
 **Usado por:**
-- `AgentClash.TryEngage()` para validar rivales en combate
-- `ArenaCueOverlay.DrawPercepts()` para colorear percepciones por team
-- `ArenaCueOverlay.DrawExits()` para teñir salidas por team
+- AgentClash.TryEngage() para validar rivales
+- ArenaCueOverlay.DrawPercepts() para colorear percepciones
+- ArenaCueOverlay.DrawExits() para teñir salidas por team
+- AgentSenses.Tick() para filtrar Percepts
 
-## Cambios S101: Adiciones
+## Invariantes S102
 
-**PerceivableKind.Exit (línea 17):**
-```csharp
-public enum PerceivableKind
-{
-    Player   = 0,
-    Monchi   = 1,
-    Customer = 2,
-    Prop     = 3,
-    Material = 4,
-    Exit     = 5,  // S101 NUEVO
-}
-```
-
-**Occupation enum (líneas 27-35):**
-```csharp
-public enum Occupation
-{
-    None    = 0,
-    Gather  = 1,
-    Guard   = 2,
-    Break   = 3,
-    Decoy   = 4,
-    Explore = 5,
-}
-```
-
-## Uso S101 + S99
-
-- `WorldArea` — locación: restricciones de navegación
-- `PerceivableKind` — tag de percepción: qué ve el agente; **S101:** Exit marca salidas
-- `ExpeditionTeam` — bando del agente en Arena; relaciones rivales/aliados
-- `Occupation` — estrategia de expedición; cada uno genera intents propios (Collecting, Guarding, Hunting, Taunting, Securing)
-
-## Invariantes S101
-
-- **Ocupación centralizada:** ambos `AgentContext` y `AgentExpedition` consultan `ctx.Occupation` (single source of truth)
-- **PerceivableKind.Exit global:** todas las salidas son Perceivable, no parte de agent-specific Percepts (escala 200m via PerceivableRegistry query)
-- **None → Gather:** fallback seguro; Explore también traduce a Gather
-- **Immutable session:** Occupation nunca cambia post-spawn (no hay re-assignment durante expedición)
-- **Team-aware coloring:** ArenaCueOverlay usa ExpeditionTeams.AreRivals/AreAllies para teñir visuales por bando
-
-## Vinculado a
-
-- [[Index/23 - Arena Sandbox y Expedicion]] (S101: Ocupaciones con tiempo)
+- **ArenaCastMode:** determina fuente de DNA (predefinido vs guardado)
+- **ArenaSite:** estrategia espacial de recolecta (distribución de objetivos)
+- **ArenaPaletteSlot:** 1:1 con Ramp en ArenaPaletteSO (6 valores)
+- **Determinismo:** mismos valores ArenaCastMode/Site/Slot para mismas semillas reproducen escena idénticamente
 
 ## Conexiones
 
-[[AgentSenses]], [[AgentContext]], [[AgentExpedition]], [[AgentClash]], [[ArenaRosterSO]], [[ArenaSandbox]], [[ExitZone]], [[Perceivable]], [[CreatureEnums]], [[ExpeditionTeam]], [[ExpeditionTeams]], [[ArenaCueOverlay]]
+- [[ArenaCastPlanner]] — ArenaCastMode, ArenaSite
+- [[ArenaPaletteSO]] — ArenaPaletteSlot
+- [[ArenaPaletteApplier]] — ArenaPaletteSlot para mapeo de materiales
+- [[AgentExpedition]] — Occupation
+- [[ExitZone]] — ExpeditionTeam
+- [[ArenaCueOverlay]] — ExpeditionTeam para coloreado
+
+## Vinculado a
+
+[[Index/23 - Arena Sandbox y Expedicion]]

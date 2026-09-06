@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
+    <Style src="TransactionPanel.uss" />
+    <Style src="ArenaPlanPanelStyle.uss" />
+    <ui:VisualElement name="plan-root" class="mm-theme plan">
+        <ui:VisualElement name="plan-panel" class="panel plan-panel">
+            <ui:VisualElement class="panel__header plan-header">
+                <ui:Label name="plan-title" text="PLAN DE BAJADA" class="panel__title" />
+                <ui:Label name="plan-room" text="" class="plan-room" />
+            </ui:VisualElement>
+            <ui:Label name="plan-result" text="" class="plan-result" />
+            <ui:VisualElement name="cast-list" class="plan-cast" />
+            <ui:VisualElement class="plan-tools">
+                <ui:Button name="btn-cast" text="Elenco" class="tool" />
+                <ui:Button name="btn-shuffle" text="Otros 3" class="tool" />
+                <ui:Button name="btn-palette" text="Paleta" class="tool" />
+                <ui:Button name="btn-room" text="Otra sala" class="tool tool--last" />
+            </ui:VisualElement>
+            <ui:Label name="plan-rival" text="" class="plan-rival" />
+            <ui:VisualElement class="actions plan-actions">
+                <ui:Button name="btn-play" text="¡A LA SALA!" class="action action--accept" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

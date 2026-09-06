@@ -6,68 +6,101 @@ tags: [script, world, expedition, orchestrator]
 
 **Ruta:** `World/Expedition/ArenaRound.cs`
 
-**Responsabilidad:** Orquestador de tiempo y puntuación de una ronda de arena (duración: `roundSeconds`, default 90s). Mantiene máquina de estados (reposo → activa → finalizada) con propiedades de lectura: `Elapsed`, `Remaining`, `PlayerSecured`, `RivalSecured` (suman `Secured` desde todas las ExitZones). Determina ganador por mayoría de puntos asegurados. Expone API pública: `Begin()`, `End()`, `Restart()` (debug). Congela puntuaciones en `End()` para evitar cambios post-round.
+**Responsabilidad:** Orquestador de tiempo y puntuación de una ronda de arena. Máquina de estados (reposo → activa → finalizada). **S102 NUEVO:** separa construcción de ronda (Launch/Reset) de lógica de puntuación. Launch = SpawnCast + Begin. Reset(newSeed) = ResetRoom + contador a cero. Determina ganador por mayoría de puntos asegurados. Propiedades de lectura: Elapsed, Remaining, PlayerSecured, RivalSecured, Winner. Congela puntuaciones en End().
 
-## Campos serializados
+## Campos Serializados
 
-- **sandbox:** referencia a [[ArenaSandbox]] para acceder lista de salidas y respawnear
-- **roundSeconds:** duración del round en segundos (default 90f, Min 10f)
-- **autoStart:** si true, `Begin()` se llama automáticamente en Start()
+- **sandbox** (ArenaSandbox, Required)
+- **roundSeconds** (float, default 90f, Min 10f) — duración del round
+- **autoStart** (bool, default false) — **S102 NUEVO:** false por defecto (se llama Launch desde ArenaPlanPanel)
 
-## Propiedades públicas
+## Propiedades Públicas (S102)
 
-- **Sandbox → ArenaSandbox** — referencia al sandbox (Read-only)
-- **RoundSeconds → float** — duración configurada (Read-only)
-- **Elapsed → float** — tiempo transcurrido desde Begin() (Read/Write)
-- **Remaining → float** — tiempo restante (read-only, calcula `Max(0, roundSeconds - Elapsed)`)
-- **IsRunning → bool** — true si el round está en marcha (Read/Write)
-- **IsOver → bool** — true si el round ha terminado (Read/Write)
-- **PlayerSecured → int** — unidades aseguradas por equipo Player (Read-only, suma viva o congelada)
-- **RivalSecured → int** — unidades aseguradas por equipo Rival (Read-only, suma viva o congelada)
-- **Winner → ExpeditionTeam** — ganador determinado en End() (Player, Rival, None para empate)
+- **IsRunning → bool** — el round está en progreso
+- **IsOver → bool** — el round terminó
+- **Elapsed → float** — tiempo transcurrido desde Begin()
+- **Remaining → float** — Max(0, roundSeconds - Elapsed)
+- **PlayerSecured → int** — unidades aseguradas Player (vivo o congelado)
+- **RivalSecured → int** — unidades aseguradas Rival (vivo o congelado)
+- **Winner → ExpeditionTeam** — Player, Rival, o None (empate)
 
-## Métodos públicos
+## Métodos Públicos (S102 refactor)
 
-- `Begin()` — reinicia Elapsed=0, IsRunning=true, IsOver=false, Winner=None
-- `End()` — congela puntos en frozenPlayerSecured/frozenRivalSecured, calcula Winner, IsRunning=false, IsOver=true
-- `Restart()` — sandbox.Respawn() + Begin() (botón Odin)
+**Orquestación de ronda:**
 
-## Flujo
+- `Launch() → void` — **S102 NUEVO:** comienza la ronda
+  1. sandbox.SpawnCast() — spawnea elenco planeado
+  2. Begin() — Elapsed=0, IsRunning=true
 
-1. **Inicialización:** autoStart=true → Start() → Begin() (Elapsed=0, IsRunning=true)
-2. **Durante round:** Update() incrementa Elapsed += Time.deltaTime mientras IsRunning
-3. **Chequeo de tiempo:** si Elapsed >= roundSeconds → End()
-4. **End():**
-   - congela puntos: frozenPlayerSecured = SumSecured(Player), frozenRivalSecured = SumSecured(Rival)
-   - calcula Winner: si frozenPlayerSecured == frozenRivalSecured → None, sino Player o Rival
-   - IsRunning = false, IsOver = true
-   - logs: `"[ArenaRound] fin: Player {pts} - Rival {pts} → {winner}"`
-5. **Lectura de puntos:**
-   - si IsRunning: PlayerSecured/RivalSecured leen vivo desde ExitZones.Secured
-   - si !IsRunning: PlayerSecured/RivalSecured retornan congelados
+- `Reset(bool newSeed) → void` — **S102 NUEVO:** reinicia sala (opcionalmente nueva semilla)
+  1. sandbox.ResetRoom(newSeed) — limpia y reconstruye
+  2. Elapsed = 0 (no comienza a correr)
+  3. IsRunning = false, IsOver = false (reposo)
 
-## Invariantes S101
+**Lógica de tiempo/puntos:**
 
-- Una sola instancia de ArenaRound por escena (el objeto "ArenaRound" en la escena)
-- IsRunning y IsOver son mutuamente excluyentes (cuando IsOver=true, IsRunning=false)
-- frozenPlayerSecured y frozenRivalSecured se calculan solo en End(), nunca se modifican post-End()
-- Winner solo cambia en End()
-- Remaining nunca es negativo (Mathf.Max con 0)
-- SumSecured() itera ExitZones que coinciden con equipo (busca por exit.Team == team)
+- `Begin() → void` — inicia contador
+  - Elapsed = 0, IsRunning = true, IsOver = false
+
+- `End() → void` — finaliza ronda
+  1. congela: frozenPlayerSecured = SumSecured(Player), frozenRivalSecured = SumSecured(Rival)
+  2. calcula Winner
+  3. IsRunning = false, IsOver = true
+
+**Debug:**
+
+- `Restart() → void` — Reset(false) + Launch() (botón Odin)
+
+## Flujo Típico S102
+
+```
+1. Panel visible (ArenaPlanPanel)
+2. Jugador ajusta plan y presiona ¡A LA SALA!
+   → ArenaPlanPanel.Play() → round.Launch()
+   → SpawnCast() → Begin() → IsRunning=true
+3. Update() incrementa Elapsed += Time.deltaTime
+4. Si Elapsed >= roundSeconds → End()
+5. End() congela puntos, IsRunning=false, IsOver=true
+6. Panel detecta IsOver y espera resultHoldSeconds
+7. Jugador ve resultado → round.Reset(false)
+   → ResetRoom sin nueva semilla → vuelve al plan visible
+8. O: round.Reset(true) para nueva sala + nuevo plan
+```
+
+## Campos Privados
+
+- `frozenPlayerSecured`, `frozenRivalSecured` (int) — puntuaciones congeladas en End()
+- `winner` (ExpeditionTeam) — ganador calculado en End()
+
+## Métodos Privados
+
+- `SumSecured(ExpeditionTeam team) → int` — suma .Secured de todos los ExitZone con .Team == team (lectura viva)
+- `Begin() → void` — reinicia estado para comenzar a contar
+- `End() → void` — congela y calcula ganador
+
+## Invariantes S102
+
+- **Determinístico:** una sola ronda por sesión (antes del próximo Reset)
+- **Launch único:** SpawnCast solo se llama desde Launch, no desde Reset
+- **Reset sin comienza:** Reset(newSeed) prepara la sala pero no inicia el contador (Launch lo hace)
+- **IsRunning ↔ IsOver:** mutuamente excluyentes
+- **Puntuaciones congeladas:** frozenXXX calculadas solo en End(), no se modifican post-End()
+- **autoStart = false:** la escena no comienza automáticamente; se controla desde ArenaPlanPanel
+- **Remaining nunca negativo:** clamp(0, ∞)
 
 ## Conexiones
 
 **Entrada:**
-- Lectura: `Time.deltaTime`, `sandbox.Exits` (lista de ExitZones)
-- Setter público: `Begin()`, `End()`, `Restart()`
+- Time.deltaTime
+- sandbox.Exits (ExitZone list)
+- ArenaPlanPanel.Play() → Launch()
+- ArenaPlanPanel resultado → Reset()
 
 **Salida:**
-- Propiedades `PlayerSecured`, `RivalSecured`, `Winner`, `IsRunning`, `IsOver` leídas por [[ArenaRoundHud]]
-- Sandbox respawneado en `Restart()`
+- Propiedades IsRunning, IsOver, Elapsed, Remaining, PlayerSecured, RivalSecured, Winner leídas por:
+  - [[ArenaRoundHud]] (mostrar timer y puntos)
+  - [[ArenaPlanPanel]] (detectar IsOver para mostrar resultado)
 
 ## Vinculado a
 
-- [[Index/23 - Arena Sandbox y Expedicion]]
-- [[ArenaSandbox]]
-- [[ExitZone]]
-- [[ArenaRoundHud]]
+[[Index/23 - Arena Sandbox y Expedicion]]

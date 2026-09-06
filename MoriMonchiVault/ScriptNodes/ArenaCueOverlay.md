@@ -6,264 +6,161 @@ tags: [script, world, expedition, ui, cues]
 
 **Ruta:** `World/Expedition/ArenaCueOverlay.cs`
 
-**Responsabilidad:** Presentación de guías visuales (cues) sobre el terreno de la arena. **Solo lee** las fachadas públicas del agente y no muta estado. Dibuja en modo inmediato (`Graphics.RenderMesh` vía `CueDrawer`) por criatura: anillo de percepción giratorio punteado + arcos de atención hacia lo percibido, ruta suavizada Catmull-Rom con dashes fluyendo al destino y marcador pulsante, líneas hacia percepciones teñidas por afinidad **S99:** y rivalidad (Foe/Friend por Team), retícula de 4 arcos sobre el objetivo de expedición, halos radiales bajo minerales, enlaces sociales, y **S100 NUEVO:** flecha roja aditiva pulsante del atacante al ClashTarget. **S101 NUEVO:** dibuja salidas de base (discos + anillos + punteado lento por equipo), arco de minería con progreso. Todo configurado por `CueStyleSO`. Quirk S97: el flujo visual es la vara de **Shapes** (Freya Holmér) sin que Juan lo pida; convención: ángulos en radianes, 0 = +X, crece hacia +Z (Atan2).
+**Responsabilidad:** Presentación de guías visuales (cues) sobre el terreno de la arena. Dibuja en modo inmediato (`Graphics.RenderMesh` vía `CueDrawer`) por criatura: anillo de percepción (dashed giratorio o cono de visión), arcos de atención hacia lo percibido, ruta suavizada (delegada a CuePathDrawer), líneas hacia percepciones teñidas por rivalidad **S99**, retícula de 4 arcos sobre el objetivo de expedición, enlaces sociales, **S100:** flecha roja pulsante del atacante al ClashTarget. **S102 NUEVO:** dibuja cono de visión (sector suavizado, borde, lados, anillo del oído) con rumbo suavizado. **S101 NUEVO:** minerales y salidas delegadas a ArenaRoomCueOverlay. Quirk S97: flujo visual Shapes (Freya Holmér); ángulos en radianes, 0 = +X, crece hacia +Z (Atan2).
 
-## DrawExits S101 (nuevas salidas de base)
+## DrawVisionCone S102 NUEVO
 
 ```csharp
-private void DrawExits()
+private void DrawVisionCone(MoriMonchiController controller, CueState state, Vector3 origin, float radius)
 {
-    if (sandbox.Exits == null) return;
-
-    foreach (var exit in sandbox.Exits)
+    float facing = VisionProfile.FacingAngle(controller.transform.forward);
+    // Suavizado de giro con exponencial negativa
+    if (!state.HasFacing)
     {
-        if (exit == null) continue;
-
-        Vector3 center = exit.transform.position + Vector3.up * style.HeightOffset;
-        Color color = exit.Team == ExpeditionTeam.Player ? style.FriendColor : style.FoeColor;
-
-        CueDrawer.Disc(center, exit.Radius, color, style.ExitAlpha, 0f);
-
-        Color ringColor = color;
-        ringColor.a = style.ExitAlpha * 2f;
-        CueDrawer.Ring(center, exit.Radius, style.ExitRingThickness, ringColor);
-
-        Color dashColor = color;
-        dashColor.a = style.ExitAlpha;
-        CueDrawer.DashedRing(center, exit.Radius, style.ExitRingThickness, style.RingDashCount, style.RingDashRatio, Time.time * style.RingSpinSpeed * 0.5f, dashColor);
+        state.FacingAngle = facing;
+        state.HasFacing = true;
     }
-}
-```
-
-**Significado:**
-- Disco translúcido (ExitAlpha ~0.15): fondo de salida
-- Anillo sólido (ExitAlpha × 2): contorno destacado
-- Punteado lento (RingSpinSpeed × 0.5): gira media velocidad que minerales (más pausado)
-- Color por Team: verde si Player, rojo si Rival
-- Iteradas desde `sandbox.Exits` (inyectadas por ArenaSandbox)
-
-**Consumo en LateUpdate (línea 93):**
-```csharp
-if (showExits) DrawExits();
-```
-
-## DrawMining S101 (progreso de minería)
-
-```csharp
-private void DrawMining(MoriMonchiController controller, Vector3 origin)
-{
-    if (controller.Agent.Intent != CreatureIntent.Taking) return;
-
-    float progress = controller.Agent.MiningProgress;
-    if (progress <= 0f) return;
-
-    Color trackColor = style.ColorFor(CreatureIntent.Taking);
-    trackColor.a = 0.15f;
-    CueDrawer.Ring(origin, style.MiningArcRadius, style.MiningArcThickness, trackColor);
-
-    Color arcColor = style.ColorFor(CreatureIntent.Taking);
-    arcColor.a = style.MiningArcAlpha;
-
-    float startAngle = Mathf.PI * 0.5f;
-    float sweep = progress * Mathf.PI * 2f;
-    CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, startAngle, sweep, arcColor, arcColor, true);
-}
-```
-
-**Significado:**
-- Solo dibuja cuando Intent == Taking (minando activamente)
-- Anillo base (MiningArcRadius, track color, alpha 0.15): la "pista" completa
-- Arco progresivo: empieza en PI/2 (arriba), barre según progress (0–1) × 2π
-- Ejemplo: progress=0.5 → arco es media circunferencia (π radianes)
-- Color: amarillo (ColorFor Taking) o según CueStyleSO.TakingColor
-- Dibuja sobre layer normal (aditivo deshabilitado, a diferencia de Clash/Social Fighting)
-
-**Consumo en LateUpdate (línea 88):**
-```csharp
-if (showMining) DrawMining(controller, origin);
-```
-
-## DrawMinerals S101 (iteración de todos los Perceivable)
-
-```csharp
-private void DrawMinerals()
-{
-    PerceivableRegistry.QueryInRadius(sandbox.transform.position, 200f, null, mineralQueryBuffer);
-
-    foreach (var p in mineralQueryBuffer)
+    else
     {
-        if (p == null || p.Kind != PerceivableKind.Material) continue;
-
-        var m = GetMineralPickup(p);
-        if (m == null) continue;
-
-        var anim = GetMineralAnim(m);
-        float alpha = Step(anim, !m.Taken, style.AppearSeconds, Time.deltaTime);
-        if (alpha <= 0.01f) continue;
-
-        Vector3 center = m.transform.position + Vector3.up * style.HeightOffset;
-        float radiusScale = m.Value > 0 ? (float)m.Remaining / m.Value : 1f;
-        float radius = style.MineralDiscRadius * (m.Value > 1 ? 1.6f : 1f) * Mathf.Lerp(0.5f, 1f, radiusScale);
-
-        CueDrawer.Disc(center, radius, style.MineralColor, style.MineralInnerAlpha * alpha, style.MineralOuterAlpha * alpha);
-
-        Color ringColor = style.MineralColor;
-        ringColor.a = style.MineralRingAlpha * alpha;
-        CueDrawer.Ring(center, radius, style.MineralRingThickness, ringColor);
-
-        if (m.Value > 1)
-            CueDrawer.DashedRing(center, radius, style.MineralRingThickness, style.RingDashCount, style.RingDashRatio, Time.time * -style.RingSpinSpeed, ringColor);
+        float delta = Mathf.DeltaAngle(state.FacingAngle * Mathf.Rad2Deg, facing * Mathf.Rad2Deg) * Mathf.Deg2Rad;
+        state.FacingAngle += delta * (1f - Mathf.Exp(-style.VisionTurnSmoothing * Time.deltaTime));
     }
-}
-```
 
-**Cambios S101:**
-- Ahora itera `PerceivableRegistry.QueryInRadius()` directamente en lugar de recorrer Percepts (más alcance: 200m vs perception range)
-- Caché `mineralLookup` (Dict<Perceivable, MaterialPickup>) para evitar GetComponent repetido
-- Disco escala con `Remaining/Value` (más pequeño conforme se agota el mineral)
-- Punteado contrarrotatorio (×-1) para minerales múltiples
-
-## DrawPercepts S99 (filtro de Team)
-
-```csharp
-private void DrawPercepts(MoriMonchiController controller, Vector3 origin, float perceptionRadius)
-{
-    foreach (var p in controller.Agent.Percepts)
+    float sweep = controller.Agent.VisionDegrees * Mathf.Deg2Rad;
+    float start = state.FacingAngle - sweep * 0.5f;
+    
+    // Sector relleno (inner + outer alpha)
+    CueDrawer.Sector(origin, radius, start, sweep, tint, VisionFillInnerAlpha, VisionFillOuterAlpha);
+    
+    // Borde (edge del sector)
+    CueDrawer.Arc(origin, radius, ringThickness, start, sweep, rimColor, rimColor);
+    
+    // Lados (si no es 360°): dos segmentos a los extremos del cono
+    if (sweep < 2π - 0.01)
     {
-        if (p.Kind != PerceivableKind.Monchi || p.Source == null) continue;
-
-        var mine = controller.Agent.Team;  // S99 NUEVO: leer Team de la fachada
-        Color color = ExpeditionTeams.AreRivals(mine, p.Team) ? style.FoeColor
-                    : ExpeditionTeams.AreAllies(mine, p.Team) ? style.FriendColor
-                    : Color.Lerp(style.FoeColor, style.FriendColor, (p.Affinity + 1f) * 0.5f);
-
-        // Resto del dibujo (línea punteada, flujo, atenuación)
+        CueDrawer.Segment(origin, edgeA, thickness * 0.7, nearAlpha=0, farAlpha=VisionSideAlpha);
+        CueDrawer.Segment(origin, edgeB, thickness * 0.7, nearAlpha=0, farAlpha=VisionSideAlpha);
     }
+    
+    // Anillo del oído (audición, dashed fino)
+    float nearRadius = controller.Agent.NearSenseRadius;
+    if (nearRadius > 0)
+        CueDrawer.DashedRing(origin, nearRadius, thickness * 0.8, dashCount/3, NearRingAlpha);
 }
 ```
 
 **Significado:**
-- Si rivales: color rojo (FoeColor)
-- Si aliados: color verde (FriendColor)
-- Si neutral/Mixed affinity: interpolación rojo-verde según afinidad (-1 → rojo, 0 → mixto, 1 → verde)
+- **Sector:** relleno del cono (VisionFillInnerAlpha en center, VisionFillOuterAlpha en edge)
+- **Borde:** arc del sector (VisionEdgeAlpha)
+- **Lados:** dos segmentos desde origin a extremos del cono (VisionSideAlpha, fade desde near=0 a far=alpha)
+- **Anillo del oído:** dashed ring del NearSenseRadius (audición ciega, ignora cono)
+- **Rumbo suavizado:** FacingAngle se anima suavemente al forward real (exponencial negativa, VisionTurnSmoothing)
 
-## DrawClash S100 (flecha de atacante → objetivo)
-
-**Método (líneas 365-379):**
+**Integración en DrawPerception:**
 ```csharp
-private void DrawClash(MoriMonchiController controller)
-{
-    var target = controller.Agent.ClashTarget;
-    if (target == null) return;
-
-    Vector3 a = controller.transform.position + Vector3.up * style.HeightOffset;
-    Vector3 b = target.transform.position + Vector3.up * style.HeightOffset;
-
-    Color head = style.FightColor;
-    head.a = 0.55f + 0.45f * Mathf.Sin(Time.time * style.FightPulseSpeed);
-    Color tail = head;
-    tail.a *= style.PathTailAlpha;
-
-    CueDrawer.Arrow(a, b, style.PathThickness * 1.5f, style.HeadLength, style.HeadWidth, tail, head, true);
-}
+if (controller.Agent.HasVisionCone)
+    DrawVisionCone(controller, state, origin, radius);
+else
+    CueDrawer.DashedRing(origin, radius, ...);  // fallback dashed ring
 ```
 
-**Significado:**
-- Flecha gruesa (PathThickness × 1.5) roja (FightColor, igual que Social Fighting)
-- Cabeza pulsante (sin atenuación, 0.55–1.0 alpha vía sine)
-- Cola atenuada (PathTailAlpha)
-- Dibuja sobre aditivo (último parámetro `true`) para resalte brillante
+## Refactorización S102: Delegación
 
-**Consumo en LateUpdate (línea 82):**
-```csharp
-if (showClash) DrawClash(controller);
-```
+**Antes:** Todo centralizado en ArenaCueOverlay (ruta, minerales, salidas)
 
-**Razón:** Visualiza el emparejamiento atacante-objetivo durante Clashing/Striking fases de combate. Similar a Social Fighting pero dinámico (aparece al TryEngage, desaparece al Finish).
+**Ahora (S102):**
+- **Rutas:** CuePathDrawer (estático, mantiene PathCueState, dibuja Catmull-Rom)
+  - `CuePathDrawer.Draw(style, state.Path, body, baseColor, dt)`
+- **Minerales + Salidas:** ArenaRoomCueOverlay (componente nuevo, dibuja PerceivableRegistry)
+  - `ArenaRoomCueOverlay.DrawMinerals()` (discos animados)
+  - `ArenaRoomCueOverlay.DrawExits()` (anillos por team)
 
-## Métodos Privados (lógica de dibujo) S101
-
-**Núcleo:**
-- `DrawPerception(MoriMonchiController, CueState, Vector3 origin, float radius)` — anillo punteado giratorio redondeado con respiración al entrar percepto nuevo, arcos de atención hacia el más cercano.
-- `DrawPath(MoriMonchiController, CueState)` — ruta Catmull-Rom suavizada con Dashed Segment/Arrow, destino pulsante. Gestiona `CueState.HasShown`, `ShownEnd`, `Alpha`, `DestAppear`. **S97:** colorea por Intent; **S99:** colores nuevos para Taking/Losing.
-- `DrawPercepts(MoriMonchiController, Vector3 origin, float radius)` — por cada `Percept.Monchi` en la lista, línea punteada fluyente hacia ese monchi, **S99 NUEVO:** teñida por rivalidad (Foe/Friend) o afinidad, atenuada por distancia.
-- `DrawReticle(MoriMonchiController, CueState)` — retícula de 4 arcos girando sobre `ExpeditionTarget`; aparición/desaparición suave.
-- `DrawMinerals()` — **S101:** por cada material en PerceivableRegistry (radio 200m): disco radial + anillo fino, escala con mineral restante.
-- `DrawSocial(MoriMonchiController)` — enlace punteado entre criaturas que socializan; rojo pulsante aditivo si están peleando.
-- `DrawClash(MoriMonchiController)` — flecha roja pulsante del atacante al objetivo de choque.
-- **S101 NUEVO:** `DrawExits()` — por cada salida (ExitZone): disco + anillo + punteado lento por Team.
-- **S101 NUEVO:** `DrawMining(MoriMonchiController, Vector3 origin)` — arco de progreso si Intent == Taking.
-
-## Campos Internos
-
-**Cache:**
-- `cueCache` (Dict<MoriMonchiController, CueState>) — estado de animación por criatura.
-- `mineralAnims` (Dict<MaterialPickup, CueAnim>) — animaciones por mineral.
-- **S101 NUEVO:** `mineralLookup` (Dict<Perceivable, MaterialPickup>) — caché de GetComponent para minerales.
-- **S101 NUEVO:** `mineralQueryBuffer` (List<Perceivable>) — buffer temporal para query de PerceivableRegistry.
-- `cornersBuffer` (List<Vector3>) — buffer temporal para puntos de ruta.
-
-**CueState (clase interna):**
-- `Nav` (NavMeshAgent) — referencia cacheada del agente.
-- `ShownEnd`, `HasShown` — destino suavizado y bandera de inicialización.
-- `Alpha` — fade-in/out de la ruta (0–1).
-- `Corners` — puntos del path de NavMesh este frame.
-- `PerceptionAppear`, `LastPerceptCount`, `PulseElapsed` — respiración del anillo.
-- `DestAppear`, `LastDestination`, `HasDestination` — marcador de destino.
-- `Reticle`, `LastTargetPosition` — retícula del objetivo.
-
-**CueAnim (clase interna):**
-- `Alpha` — opacidad actual (0–1).
-- `Visible` — bandera de visibilidad deseada.
+**Beneficio:** Separación de responsabilidades — ArenaCueOverlay es solo agentes; visuales estáticas de sala en otro componente.
 
 ## Campos Configurables (Inspector)
 
 **Referencias requeridas:**
-- `sandbox` (ArenaSandbox) — referencia al generador de criaturas y minerales.
-- `cueMaterial` (Material) — material URP unlit con `MonchiCue.shader` (blend alpha).
-- `additiveMaterial` (Material) — material aditivo (blend One/One) para resaltes.
-- `style` (CueStyleSO) — todos los colores, espesores, velocidades y timings. **S100:** incluye colores para Clashing/Dazed. **S101:** incluye ExitAlpha, MiningArcRadius, MiningArcThickness, MiningArcAlpha.
+- `sandbox` (ArenaSandbox)
+- `cueMaterial` (Material, MonchiCue.shader)
+- `additiveMaterial` (Material, aditivo)
+- `style` (CueStyleSO) — **S102 NUEVO:** incluye VisionFillInnerAlpha, VisionFillOuterAlpha, VisionEdgeAlpha, VisionSideAlpha, NearRingAlpha, VisionTurnSmoothing
 
 **Toggles de presentación:**
-- `showPerception` (bool, default true) — anillo y arcos de atención.
-- `showPath` (bool, default true) — ruta y destino.
-- `showPercepts` (bool, default true) — líneas a lo percibido. **S99:** coloreadas por Team.
-- `showMinerals` (bool, default true) — halos bajo minerales.
-- `showReticle` (bool, default true) — retícula del objetivo expedición.
-- `showSocial` (bool, default true) — enlaces de socialización.
-- `showClash` (bool, default true) — flecha de choque (atacante → objetivo).
-- **S101 NUEVO:** `showExits` (bool, default true) — salidas de base (discos + anillos + punteado).
-- **S101 NUEVO:** `showMining` (bool, default true) — arco de progreso de minería.
+- `showPerception` (bool, default true) — anillo o cono
+- `showPath` (bool, default true) — ruta (delegada a CuePathDrawer)
+- `showPercepts` (bool, default true) — líneas a percepciones
+- `showReticle` (bool, default true) — retícula del objetivo
+- `showSocial` (bool, default true) — enlaces sociales
+- `showClash` (bool, default true) — flecha de choque
+- ~~showMinerals, showExits~~ — **S102:** delegados a ArenaRoomCueOverlay
+- ~~showMining~~ — **S102:** delegado a ArenaRoomCueOverlay
 
-## Invariantes S101 + S100 + S99
+## Métodos Privados (S102)
 
-- **Team-aware coloring:** `DrawPercepts()` filtra percepto Monchi por rivalidad usando `ExpeditionTeams.AreRivals/AreAllies()`.
-- **Afinidad como fallback:** si neutral (ambos son None o ambos misma alianza sin rivalidad), usa afinidad social para interpolar rojo-verde.
-- **Clash flecha dinámica:** `DrawClash()` solo dibuja si `ClashTarget != null` (presente durante Anticipating/Striking, desaparece en Resolving/Finish).
-- **Read-only fachada:** nunca muta estado del agente; solo lee `Agent.Percepts`, `Agent.Team`, `Agent.Intent`, `Agent.ExpeditionTarget`, `Agent.ClashTarget`, **S101:** `Agent.Carried`, `Agent.MiningProgress`.
-- **Coloración consistente:** colores `Clashing/Dazed` en `CueStyleSO.PopulateDefaults()` usan naranja / violeta para distinguir combate de recolección.
-- **S101:** Salidas son globales (fuera de loop de criaturas), dibujadas una sola vez por frame.
-- **S101:** Minería es per-criatura, solo si Intent == Taking (no dibuja si esperando o lost).
-- **S101:** Minerales iteran desde PerceivableRegistry (200m) no desde Percepts (4-8m perception), así que dibuja todos los que existan en arena.
+**Núcleo (sin cambios grandes):**
+- `DrawPerception(MoriMonchiController, CueState, Vector3 origin, float radius)` — **S102:** llama DrawVisionCone si HasVisionCone, else dashed ring
+- `DrawVisionCone(...)` — **S102 NUEVO:** sector + borde + lados + anillo del oído + rumbo suavizado
+- `DrawPercepts(...)` — per Percept, línea punteada (sin cambios conceptuales)
+- `DrawReticle(...)` — retícula del objetivo (sin cambios)
+- `DrawSocial(...)` — enlaces de socialización (sin cambios)
+- `DrawClash(...)` — flecha atacante → objetivo (sin cambios)
 
-## Vinculado a
+**Removidas (delegadas):**
+- ~~DrawMinerals()~~ → ArenaRoomCueOverlay
+- ~~DrawExits()~~ → ArenaRoomCueOverlay
+- ~~DrawMining()~~ → ArenaRoomCueOverlay
 
-- [[Index/23 - Arena Sandbox y Expedicion]] (sección 5f: Arena Sandbox y Expedicion)
+**Removidas (delegadas):**
+- ~~DrawPath()~~ → CuePathDrawer.Draw()
+
+## Campos Internos
+
+**Cache:**
+- `cueCache` (Dict<MoriMonchiController, CueState>) — estado por criatura
+- CueState ahora incluye:
+  - `Path` (PathCueState) — estado delegado a CuePathDrawer
+  - `FacingAngle`, `HasFacing` — **S102 NUEVO:** ángulo suavizado para cono
+
+## LateUpdate Flow S102
+
+```csharp
+foreach controller in sandbox.Spawned:
+  1. Calcula perceptionRadius (HasVisionCone ? VisionRadius : global)
+  2. DrawPerception(cono o ring)
+     → Si HasVisionCone: DrawVisionCone() (sector + anillo)
+  3. CuePathDrawer.Draw() (ruta, delegado)
+  4. DrawPercepts() (líneas a percepciones)
+  5. DrawReticle() (retícula)
+  6. DrawSocial() (enlaces)
+  7. DrawClash() (flecha choque)
+  
+// Salidas + Minerales dibujados por ArenaRoomCueOverlay (fuera del loop)
+```
+
+## Invariantes S102
+
+- **Cono vs Ring:** HasVisionCone determina si dibuja sector o dashed ring
+- **Rumbo suavizado:** FacingAngle no salta (exponencial negativa)
+- **Audición aparte:** NearSenseRadius dibuja como anillo dashed independiente (ignora cono)
+- **Delegación clara:** cada componente (CuePathDrawer, ArenaRoomCueOverlay) mantiene su estado (PathCueState, MineralAnim)
+- **Read-only fachadas:** nunca muta agentes, solo lee Agent properties
+- **VisionDegrees = 360:** cono omnidireccional (sin lados, sector llena círculo)
 
 ## Conexiones
 
 **Entrada (lectura de fachadas):**
-- [[MoriMonchiController]], [[MoriMochiAgent]] — fachadas de estado (Percepts, Team, Intent, ExpeditionTarget, SocialPartner, **S100:** ClashTarget, **S101:** Carried, MiningProgress)
-- **S99:** [[Percept]] — incluye Team field
-- **S99:** [[ExpeditionTeam]], [[ExpeditionTeams]] (filtro AreRivals/AreAllies)
-- [[ArenaSandbox]] — referencia a sandbox.Spawned para iterar criaturas, **S101:** sandbox.Exits para salidas
-- **S101:** [[ExitZone]] — describe salida con Team, Radius, transform
-- [[PerceivableRegistry]] — consulta minerales en radio 200m
-- [[MaterialPickup]] — describe mineral con Value, Remaining, Taken
-- [[CueStyleSO]] — todos los knobs de presentación (colores, espesores, velocidades, **S100:** Clashing/Dazed colors, **S101:** Exit/Mining style)
-- [[CueDrawer]] — motor de renderizado inmediato
-- **S100:** [[AgentClash]] (popula ClashTarget durante combate)
-- **S101:** [[AgentExpedition]] (popula MiningProgress, Carried)
+- [[MoriMochiAgent]] — HasVisionCone, VisionRadius, VisionDegrees, NearSenseRadius (fachadas)
+- [[VisionProfile]] (FacingAngle para suavizado)
+- [[CueStyleSO]] — **S102:** VisionFillInnerAlpha, VisionFillOuterAlpha, VisionEdgeAlpha, VisionSideAlpha, NearRingAlpha, VisionTurnSmoothing
+- [[ExpeditionRulesSO]] (valores base de visión)
 
-**Salida (visual):**
-- Gizmos en Game view (solo Play mode): anillos, rutas, líneas, retículas, halos, flechas de choque, **S101:** salidas, arcos de minería
+**Delegadas:**
+- [[CuePathDrawer]] — ruta (estático)
+- [[ArenaRoomCueOverlay]] — minerales y salidas
+
+**Núcleo (sin cambios):**
+- [[ArenaSandbox]], [[CueDrawer]], [[Percept]], [[ExpeditionTeam]], [[ExpeditionTeams]], [[AgentClash]]
+
+## Vinculado a
+
+[[Index/23 - Arena Sandbox y Expedicion]]

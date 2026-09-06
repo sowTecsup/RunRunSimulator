@@ -6,116 +6,181 @@ tags: [script, world, expedition, sandbox]
 
 **Ruta:** `World/Expedition/ArenaSandbox.cs`
 
-**Responsabilidad:** Escena de pruebas `ArenaSandbox.unity` para observar comportamientos emergentes. **S101 NUEVO:** Genera criaturas desde `ArenaRosterSO` (si `useRoster == true`) con ocupaciones (Gather/Guard/Break/Decoy), spawnea por equipos, asigna Team, Occupation, y HomeExit. Fallback: genera N criaturas al azar. Mantiene necesidades llenas, siembra minerales recolectables, spawnea ExitZones por equipo (salida donde depositar). Crea `ArenaLayoutBuilder` para generar obstáculos y vetas por semilla. **S100:** Referencia a `ClashTuningSO` para que choque funcione.
+**Responsabilidad:** Escena de pruebas `ArenaSandbox.unity` para observar comportamientos emergentes. Encapsula flujo: BuildRoom (layout, paleta, minerales, planner.Prepare) → SpawnCast (itera PlannedCast, spawnea agentes) → ResetRoom (limpia elenco/minerales/salidas, opcionalmente nueva semilla). Delegado de elenco: ArenaCastPlanner. Delegado de paleta: ArenaPaletteApplier. Activa/desactiva ExpeditionRulesSO en ciclo de escena.
 
-## Métodos Públicos
-
-**Configuración:**
-- `Spawn()` — generador principal llamado en Start(). **S101:** si `useRoster && roster != null`, spawnea entrada por entrada con Team, Occupation y parámetros. Setea Teams y Occupations vía perceivable y agent. Spawnea ExitZones por equipo. Siembra minerales con ArenaLayoutBuilder.
-- `SpawnExits(NavMeshQueryFilter, Vector3 center)` — **S101 NUEVO:** instancia ExitZone prefab para cada equipo en esquinas (teamSpawnInset desde centro).
-- `Respawn()` — **Botón Odin**: destruye y re-spawnea.
-- `Reseed()` — **Botón Odin**: genera seed nuevo y respawnea.
-
-**Propiedades (read-only):**
-- `Spawned → IReadOnlyList<MoriMonchiController>` — criaturas activas.
-- `Minerals → IReadOnlyList<MaterialPickup>` — minerales sembrados.
-- `Exits → IReadOnlyList<ExitZone>` — salidas por equipo. **S101 NUEVO**
-- `ExitFor(ExpeditionTeam team) → ExitZone` — getter de salida por equipo. **S101 NUEVO**
-- `ActiveSeed → int` — seed usado esta ejecución.
-
-## Campos Configurables (Inspector)
+## Campos Serializados
 
 **Referencias requeridas:**
 - `creaturePrefab` (MoriMonchiController)
 - `profileTable` (RoleWorldProfileSO)
 - `socialTuning` (SocialTuningSO)
-- `expeditionRules` (ExpeditionRulesSO)
-- `clashTuning` (ClashTuningSO) — **S100**
+- `expeditionRules` (ExpeditionRulesSO) — se activa/desactiva en OnEnable/OnDisable
+- `clashTuning` (ClashTuningSO)
 - `visualBank` (MonchiVisualBankSO)
 - `furDatabase` (FurTypeDatabaseSO)
 - `creatureDatabase` (CreatureDatabaseSO)
+
+**Configuración de escena:**
+- `observer` (Transform) — cámara/punto focal
+- `targetGroup` (CinemachineTargetGroup) — grupo de tracking
+- `spawnCenter` (Transform) — centro de arena
+
+**Configuración de seed:**
+- `seed` (int, default 4242)
+- `castSeed` (int, default 1) — seed secundaria para elenco
+- `randomizeEachPlay` (bool) — si true, ignora seed
+
+**Configuración de elenco (S102 delegado a ArenaCastPlanner):**
+- `roster` (ArenaRosterSO) — tabla de criaturas
+- `castMode` (ArenaCastMode, default Roster) — Roster vs LocalSave
+- `localCastCount` (int, default 3)
+- `autoSpawnCast` (bool, default true) — si true, SpawnCast() en Start
+- `teamSpawnInset` (float, default 9) — distancia de esquina a spawn
+- `teamSpawnRadius` (float, default 2.5) — radio de scatter spawn
+- `exitPrefab` (ExitZone, Required)
+- `exitInset` (float, default 4)
+
+**Configuración de sala:**
 - `mineralPrefab` (MaterialPickup)
-- **S101 NUEVO:** `exitPrefab` (ExitZone) — para spawnear salidas
+- `layout` (ArenaLayoutBuilder) — generador de obstáculos/vetas
+- `palette` (ArenaPaletteApplier) — gestor de paletas
+- `paletteIndex` (int, default -1) — índice paleta (-1 = por semilla)
+- `centerMineralScale`, `centerMineralValue` (float/int)
+- `arenaHalfSize` (float, default 20)
 
-**Configuración de Elenco (S101 NUEVO):**
-- `roster` (ArenaRosterSO) — tabla con Occupation por Entry
-- `useRoster` (bool, default true)
-- `teamSpawnInset` (float, default 9) — distancia de esquina
-- `teamSpawnRadius` (float, default 2.5) — radio de spawn
-- `exitInset` (float, default 4) — distancia de ExitZone desde esquina. **S101 NUEVO**
+**Otros:**
+- `keepNeedsFull` (bool, default true) — si true, Health/Energy/Affect = 100
+- `count` (int, default 3) — cantidad de criaturas fallback
 
-**Configuración de minerales:**
-- `mineralPrefab` (MaterialPickup)
-- `layout` (ArenaLayoutBuilder) — **S101 NUEVO:** generador de vetas por semilla
-- `cornerMinerals` (int, default 4)
-- `centerMineralScale` (float, default 2.5)
-- `centerMineralValue` (int, default 5)
-- `cornerMineralValue` (int, default 1)
+## Propiedades Públicas
 
-## Flujo S101 + S100
+- `Spawned → IReadOnlyList<MoriMonchiController>` — criaturas vivas
+- `Exits → IReadOnlyList<ExitZone>` — salidas por equipo
+- `PlannedCast → IReadOnlyList<ArenaCastEntry>` — elenco planeado (desde Planner)
+- `ActiveSeed → int` — semilla activa
+- `CastMode → ArenaCastMode` — modo elenco (Roster/LocalSave)
+- `LocalCastAvailable → bool` — si LocalSave tiene criaturas
+- `EntryName → string` — nombre del eje de entrada
+- `PaletteName → string` — nombre de paleta activa
+- `ExitFor(ExpeditionTeam team) → ExitZone` — getter de salida por equipo
 
-```
-Spawn():
-  if (useRoster && roster.Entries.Count > 0):
-    SpawnExits(filter, center)  // S101 NUEVO: crea ExitZone por Player/Rival
-    if (layout != null) layout.Build(activeSeed, filter)  // S101: genera obstáculos y vetas
-    
-    foreach entry in roster.Entries:
-      dna = MintRandom()
-      dna.Sociability = entry.Sociability
-      dna.Boldness = entry.Boldness
-      (copiar Name, BodyShapeID, BaseColor)
-      dna.Stamp()
-      
-      cornerPos = TeamCorner(entry.Team, center)
-      SpawnCreature(dna, cornerPos, teamSpawnRadius, rng, filter, 
-                    entry.Team, entry.Occupation,  // S101 NUEVO: Occupation
-                    ExitFor(entry.Team))  // S101 NUEVO: HomeExit
-```
+## Privadas
 
-## SpawnCreature (S101 ACTUALIZADO)
+- `planner` (ArenaCastPlanner) — gestor lazy de elenco
+- `activeSeed`, `center`, `rng`, `filter` — estado de sesión
+- `roomBuilt` (bool) — si BuildRoom completó
+- `spawnHolder` (Transform) — padre de spawns
+- `minerals`, `exits` (List) — listas de instancias
 
-```csharp
-private void SpawnCreature(CreatureDNA dna, Vector3 around, float radius,
-                          System.Random rng, NavMeshQueryFilter filter,
-                          ExpeditionTeam team, Occupation occupation,  // S101 NUEVOS
-                          ExitZone homeExit)  // S101 NUEVO
-{
-  // ... instancia controller, busca Perceivable
-  perceivable.SetTeam(team);  // S99
-  agent.Team = team;  // S99
-  agent.Occupation = occupation;  // S101 NUEVO
-  agent.HomeExit = homeExit;  // S101 NUEVO
-  agent.Initialize(dna, profileTable, observer);
-}
-```
+## Ciclo de Vida (S102)
 
-## Invariantes S101 + S100 + S99
+**OnEnable():**
+- ExpeditionRulesSO.Activate(expeditionRules) — establece Current
 
-- **Ocupación por roster:** cada Entry en ArenaRosterSO define Occupation (Gather, Guard, Break, Decoy). Agentes spawneados heredan esa ocupación.
-- **Team asignación:** Player vs Rival en esquinas opuestas, con ExitZones separadas.
-- **HomeExit:** cada agente sabe su salida (`agent.HomeExit`); usado por AgentExpedition para Returning/Securing.
-- **Layout builder:** genera obstáculos y vetas por semilla; NavMesh rehorneado; vetas cacheadas en Veins (para dibujo y gameplay).
-- **Clash tuning cargado:** ClashTuningSO.Current disponible para AgentClash durante play.
-- **Necesidades plenas:** keepNeedsFull=true mantiene Health/Energy/Affect a 100 para enfoque en comportamiento autónomo.
+**OnDisable():**
+- ExpeditionRulesSO.Deactivate(expeditionRules) — borra Current
 
-## Vinculado a
+**Start():**
+- BuildRoom()
+- Si autoSpawnCast: SpawnCast()
 
-- [[Index/23 - Arena Sandbox y Expedicion]]
+**Update():**
+- Si keepNeedsFull: mantiene Health/Energy/Affect = 100 en todos
+
+## Métodos Públicos (S102 refactor)
+
+**BuildRoom() → void** — construye sala sin criaturas:
+1. Inicializa spawnHolder (GameObject lazy)
+2. activeSeed = randomizeEachPlay ? TickCount : seed
+3. NavMeshQueryFilter por agentTypeID
+4. layout.Build(activeSeed, filter)
+5. palette.ApplyIndex (si paletteIndex ≥ 0, else por semilla)
+6. Si Planner.HasRoster: SpawnExits()
+7. SpawnMinerals()
+8. Planner.Prepare(activeSeed, castSeed, count)
+9. roomBuilt = true
+
+**SpawnCast() → void** — spawnea elenco planeado:
+1. Si !roomBuilt: BuildRoom()
+2. Si spawned.Count > 0: ClearCast()
+3. Para cada entry en PlannedCast:
+   - around = (Team==None ? center : TeamCorner), radius = (Team==None ? spawnRadius : teamSpawnRadius)
+   - controller = SpawnCreature(entry.Dna, around, radius, entry.Team, entry.Occupation, ExitFor(entry.Team))
+   - controller.Agent.SetGuardPost(ResolveSite(entry))
+
+**ClearCast() → void** — destruye elenco vivo
+
+**ResetRoom(bool newSeed) → void** — limpia total y reconstruye:
+1. ClearCast()
+2. Destruye minerals y loose Materials (raycast PerceivableRegistry)
+3. Destruye exits
+4. layout.Clear()
+5. Si newSeed: genera seed random nuevo, randomizeEachPlay = false
+6. BuildRoom()
+
+**SetPlayerPlan(int index, Occupation occupation, ArenaSite site) → void**
+- Delega: Planner.SetPlayerPlan()
+
+**SetCastMode(ArenaCastMode mode) → void**
+- Planner.SetMode(mode)
+- Planner.Prepare() con seed actual
+
+**ShuffleCast() → void**
+- castSeed++
+- Planner.Prepare() (new elenco con nuevo castSeed)
+
+**SetPaletteIndex(int index) → void**
+- paletteIndex = index
+- palette.ApplyIndex(index)
+
+**CyclePalette() → void**
+- NextIndex = (CurrentIndex + 1) % Palettes.Count
+- SetPaletteIndex(NextIndex)
+
+**[Button] Respawn() → void**
+- ResetRoom(false) + SpawnCast()
+
+**[Button] Reseed() → void**
+- ResetRoom(true) + SpawnCast()
+
+## Métodos Privados
+
+**Planner (property lazy):**
+- Si null: crea ArenaCastPlanner(useRoster ? roster : null, MintRandom)
+- Retorna instancia
+
+**SpawnExits() → void** — spawnea ExitZones por equipo
+
+**SpawnMinerals() → void** — siembra minerales
+
+**SpawnCreature(...) → MoriMonchiController** — instancia e inicializa agente
+
+**ResolveSite(ArenaCastEntry) → Vector3** — mapea ArenaSite a GuardPost (layout veta center/near/far)
+
+**TeamCorner(ExpeditionTeam) → Vector3** — esquina según equipo
+
+**MintRandom() → CreatureDNA** — crea DNA aleatorio
+
+## Invariantes S102
+
+- **BuildRoom determinístico:** seed fijo produce layout/paleta idénticos
+- **Planner lazy:** se crea al primer acceso, se reutiliza
+- **ExpeditionRulesSO.Current activo:** disponible para AgentSenses/AgentExpedition mientras escena activa
+- **Transición BuildRoom → SpawnCast → ResetRoom:** orden estricto
+- **PlannedCast desde Planner:** sandbox no construye elenco, solo accede
+- **ResetRoom(newSeed):** opción para cambiar seed sin resetear sandbox
 
 ## Conexiones
 
-**Referencias de entrada:**
-- [[ArenaRosterSO]] (tabla de criaturas con Occupation)
-- [[Occupation]] (Gather, Guard, Break, Decoy, Explore)
-- [[ExitZone]] (salida donde depositar material)
-- [[ExpeditionRulesSO]], [[ClashTuningSO]], [[RoleWorldProfileSO]], [[MonchiVisualBankSO]], [[FurTypeDatabaseSO]], [[CreatureDatabaseSO]], [[SocialTuningSO]]
+- [[ArenaCastPlanner]] (Planner lazy, Prepare, SetPlayerPlan)
+- [[ArenaPaletteApplier]] (palette, ApplyIndex)
+- [[ArenaLayoutBuilder]] (layout, Build, Veins)
+- [[ExpeditionRulesSO]] (Activate/Deactivate en OnEnable/OnDisable)
+- [[ArenaCastEntry]] (data de PlannedCast)
+- [[MoriMonchiController]], [[MoriMonchiAgent]] (spawned)
+- [[ExitZone]] (exits)
+- [[MaterialPickup]] (minerals)
 
-**Generación:**
-- [[MoriMonchiController]], [[CreatureGenerator]], [[Perceivable]], [[ExpeditionTeam]], [[ArenaLayoutBuilder]]
+## Vinculado a
 
-**Referencias de lectura (UI/Debugging):**
-- [[ArenaCueOverlay]] (itera Spawned y Minerals)
-- [[ArenaRound]] (accede a Exits y Spawned)
-- [[ArenaCameraDirector]] (accede a Spawned)
-- **S101:** [[ArenaRoundHud]] (itera Spawned para mostrar Occupation en roster)
+[[Index/23 - Arena Sandbox y Expedicion]]

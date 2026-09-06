@@ -108,6 +108,27 @@ public static class CueDrawer
         Draw(mat, center, new Vector3(2f * extent, 1f, 2f * extent));
     }
 
+    public static void Sector(Vector3 center, float radius, float startAngle, float sweep, Color color, float innerAlpha, float outerAlpha, bool additive = false)
+    {
+        Material mat = additive ? additiveMaterial : material;
+        if (mat == null) return;
+        EnsureResources();
+
+        mpb.Clear();
+        mpb.SetColor(ColorID, color);
+        mpb.SetColor(ColorBID, color);
+        mpb.SetFloat(InnerAlphaID, innerAlpha);
+        mpb.SetFloat(OuterAlphaID, outerAlpha);
+        mpb.SetFloat(ShapeID, 7f);
+        mpb.SetVector(CenterID, center);
+        mpb.SetFloat(RadiusID, radius);
+        mpb.SetFloat(ArcStartID, startAngle);
+        mpb.SetFloat(ArcSweepID, sweep);
+
+        float extent = radius;
+        Draw(mat, center, new Vector3(2f * extent, 1f, 2f * extent));
+    }
+
     public static void Disc(Vector3 center, float radius, Color color, bool additive = false)
     {
         Disc(center, radius, color, 1f, 1f, additive);

@@ -30,6 +30,7 @@ public class ArenaRoundHud : MonoBehaviour
     private string lastRivalText;
     private string lastResultText;
     private bool resultShown;
+    private bool lastShown = true;
 
     private void OnEnable()
     {
@@ -129,6 +130,7 @@ public class ArenaRoundHud : MonoBehaviour
         lastRivalText = null;
         lastResultText = null;
         resultShown = false;
+        lastShown = true;
     }
 
     private void OnDisable()
@@ -190,8 +192,29 @@ public class ArenaRoundHud : MonoBehaviour
     {
         if (round == null) return;
 
-        RefreshRoster();
         RefreshSeed();
+
+        bool shown = round.IsRunning || round.IsOver;
+        if (shown != lastShown)
+        {
+            var display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            scoreboard.style.display = display;
+            rosterRoot.style.display = display;
+            resultRoot.style.display = display;
+            lastShown = shown;
+            lastRosterCount = -1;
+        }
+
+        if (!round.IsOver && resultShown)
+        {
+            resultLabel.style.display = DisplayStyle.None;
+            resultShown = false;
+            lastResultText = null;
+        }
+
+        if (!shown) return;
+
+        RefreshRoster();
 
         string playerText = round.PlayerSecured.ToString();
         if (playerText != lastPlayerText)

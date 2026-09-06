@@ -51,13 +51,24 @@ internal class AgentSenses
             selfPerceivableResolved = true;
         }
 
-        PerceivableRegistry.QueryInRadius(ctx.Body.position, t.PerceptionRadius, selfPerceivable, buffer);
+        var rules = ExpeditionRulesSO.Current;
+        bool cone = rules != null;
+        float radius = t.PerceptionRadius;
+        float degrees = 360f;
+        float nearRadius = 0f;
+        if (cone) VisionProfile.Resolve(ctx.Dna, rules, out radius, out degrees, out nearRadius);
+
+        Vector3 origin = ctx.Body.position;
+        Vector3 forward = ctx.Body.forward;
+
+        PerceivableRegistry.QueryInRadius(origin, Mathf.Max(radius, nearRadius), selfPerceivable, buffer);
 
         ctx.Percepts.Clear();
         for (int i = 0; i < buffer.Count; i++)
         {
             var p = buffer[i];
             if (p.Kind == PerceivableKind.Monchi && p.Monchi == owner) continue;
+            if (cone && !VisionProfile.CanSense(forward, origin, p.Position, radius, degrees, nearRadius)) continue;
 
             float affinity = (p.Kind == PerceivableKind.Monchi && p.Monchi != null && p.Monchi.DNA != null)
                 ? SocialGraphService.EffectiveAffinity(ctx.Dna, p.Monchi.DNA, t)

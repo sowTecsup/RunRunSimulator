@@ -199,7 +199,7 @@ Shader "MoriMonchi/MonchiCue"
                         }
                     }
                 }
-                else
+                else if (_Shape < 6.5)
                 {
                     float2 a = _PointA.xz;
                     float2 b = _PointB.xz;
@@ -217,6 +217,33 @@ Shader "MoriMonchi/MonchiCue"
 
                     d = length(float2(along, v)) - _Thickness * 0.5;
                     t = saturate(u / len);
+                }
+                else
+                {
+                    float2 q = p - _Center.xz;
+                    float r = length(q);
+                    float ang = atan2(q.y, q.x);
+                    float tau = 6.28318530718;
+                    float rel = ang - _ArcStart;
+                    rel = rel - tau * floor(rel / tau);
+                    float sweep = max(_ArcSweep, 1e-5);
+
+                    if (rel <= sweep)
+                    {
+                        d = r - _Radius;
+                        t = rel / sweep;
+                    }
+                    else
+                    {
+                        float2 edgeStart = _Radius * float2(cos(_ArcStart), sin(_ArcStart));
+                        float2 edgeStop = _Radius * float2(cos(_ArcStart + sweep), sin(_ArcStart + sweep));
+                        float dStart = SdCapsule(q, float2(0, 0), edgeStart);
+                        float dStop = SdCapsule(q, float2(0, 0), edgeStop);
+                        d = min(dStart, dStop);
+                        t = dStart <= dStop ? 0 : 1;
+                    }
+
+                    radialT = saturate(r / _Radius);
                 }
 
                 float aa = fwidth(d);

@@ -183,6 +183,22 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         brain.Intent;
 
     public IReadOnlyList<Percept> Percepts => ctx.Percepts;
+    public bool HasVisionCone => ExpeditionRulesSO.Current != null;
+    public float VisionRadius { get { ResolveVision(out float r, out _, out _); return r; } }
+    public float VisionDegrees { get { ResolveVision(out _, out float d, out _); return d; } }
+    public float NearSenseRadius { get { ResolveVision(out _, out _, out float n); return n; } }
+    private void ResolveVision(out float radius, out float degrees, out float nearRadius)
+    {
+        var rules = ExpeditionRulesSO.Current;
+        if (rules == null)
+        {
+            radius = SocialTuningSO.Current != null ? SocialTuningSO.Current.PerceptionRadius : 0f;
+            degrees = 360f;
+            nearRadius = 0f;
+            return;
+        }
+        VisionProfile.Resolve(ctx.Dna, rules, out radius, out degrees, out nearRadius);
+    }
     public ExpeditionTeam Team => perceivable != null ? perceivable.Team : ExpeditionTeam.None;
     public Occupation Occupation => ctx.Occupation;
     public int Carried => expedition.Carried;

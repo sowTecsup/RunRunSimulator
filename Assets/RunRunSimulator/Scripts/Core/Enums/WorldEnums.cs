@@ -34,6 +34,29 @@ public enum Occupation
     Explore = 5,
 }
 
+public enum ArenaCastMode
+{
+    Roster    = 0,
+    LocalSave = 1,
+}
+
+public enum ArenaSite
+{
+    Center   = 0,
+    NearVein = 1,
+    FarVein  = 2,
+}
+
+public enum ArenaPaletteSlot
+{
+    Ground  = 0,
+    Grass   = 1,
+    Foliage = 2,
+    Trunk   = 3,
+    Rock    = 4,
+    Wall    = 5,
+}
+
 public static class ExpeditionTeams
 {
     public static bool AreRivals(ExpeditionTeam a, ExpeditionTeam b) => a != ExpeditionTeam.None && b != ExpeditionTeam.None && a != b;
