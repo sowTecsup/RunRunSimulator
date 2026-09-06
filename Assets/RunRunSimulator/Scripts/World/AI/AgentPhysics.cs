@@ -119,6 +119,8 @@ internal class AgentPhysics
 
         if (stress) ctx.Dna?.Needs.AddAffect(-owner.affectOnThrow);
         ctx.Rb.AddForce(force, ForceMode.Impulse);
+        if (owner.knockSpin > 0f)
+            ctx.Rb.AddTorque(Random.insideUnitSphere * owner.knockSpin, ForceMode.Impulse);
         owner.onThrow?.Invoke();
     }
 

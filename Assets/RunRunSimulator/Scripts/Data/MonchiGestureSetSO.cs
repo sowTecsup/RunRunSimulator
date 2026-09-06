@@ -84,6 +84,7 @@ public class MonchiGestureSetSO : SerializedScriptableObject
         if (!enterGestures.ContainsKey(CreatureIntent.Dazed)) enterGestures[CreatureIntent.Dazed] = "No";
         if (!enterGestures.ContainsKey(CreatureIntent.Taunting)) enterGestures[CreatureIntent.Taunting] = "Roar";
         if (!enterGestures.ContainsKey(CreatureIntent.Securing)) enterGestures[CreatureIntent.Securing] = "Yes";
+        if (!enterGestures.ContainsKey(CreatureIntent.Reporting)) enterGestures[CreatureIntent.Reporting] = "Yes";
 
         if (!holdGestures.ContainsKey(CreatureIntent.Resting)) holdGestures[CreatureIntent.Resting] = "Rest";
         if (!holdGestures.ContainsKey(CreatureIntent.SleepingTogether)) holdGestures[CreatureIntent.SleepingTogether] = "Rest";

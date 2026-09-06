@@ -1,139 +1,85 @@
 ---
-tags: [script, world, ai]
+tags: [script, world, ai, agent, facade]
 ---
 
 # MoriMochiAgent.cs
 
 **Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta la vida de una criatura en el mundo. Compone ocho colaboradores: AgentContext (estado compartido), AgentBrain (máquina de estados), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción throttled), AgentSocial (decisiones sociales), AgentExpedition (recolección), **S100:** AgentClash (combate). **S102 NUEVO:** expone fachada de visión (HasVisionCone, VisionRadius, VisionDegrees, NearSenseRadius) que delega a VisionProfile y ExpeditionRulesSO. Implementa IThrowable (agarrar/lanzar) e IInteractable (petting). Update() despachador de ticks por estado; FixedUpdate() para physics. **S55:** composición pura (sin partial).
+**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 8 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate). **S103:** Expone fachadas de expedición (Velocity, knockSpin, ScoutReports, SecuredMaterial, ClashHitsLanded, ClashTimesKnocked, SetBlackboard). Cancela expedición si clash ocurre (prioridad combate). Update() despachador por estado; FixedUpdate() physics.
 
-## Máquina de Estados
+**Máquina de Estados (responsables):**
+- Idle, Roaming → AgentBrain
+- Reacting → AgentBrain
+- Carried, Thrown, Recovering → AgentPhysics
+- SeekingNeed, UsingStation, HandFeed → AgentBrain
+- Courting → AgentConfinement
+- Socializing → AgentSocial
+- Expedition → AgentExpedition
+- Clashing → AgentClash (S100)
 
-| Estado | Responsable | Descripción |
-|--------|-------------|-------------|
-| `Idle` | AgentBrain | Esperando aleatorio |
-| `Roaming` | AgentBrain | NavMesh autónomo |
-| `Reacting` | AgentBrain | Persigue/huye del jugador |
-| `Carried` | AgentPhysics | Agarrado por jugador |
-| `Thrown` | AgentPhysics | Ragdoll en aire |
-| `Recovering` | AgentPhysics | Get-up post-lanzamiento |
-| `SeekingNeed` | AgentBrain | Navega a estación crítica |
-| `UsingStation` | AgentBrain | Consume de estación |
-| `Courting` | AgentConfinement | Danza de apareamiento |
-| `Socializing` | AgentSocial | Acercándose, persiguiendo, durmiendo o peleando |
-| `HandFeed` | AgentBrain | Aceptando comida de la mano |
-| `Expedition` | AgentExpedition | Persiguiendo mineral recolectable |
-| `Clashing` | **S100** AgentClash | Combatiendo |
+**Propiedades Públicas (Fachada):**
+- `DNA → CreatureDNA`
+- `Intent → CreatureIntent` — prioridad: Clashing > Socializing > Expedition > Brain
+- `Team → ExpeditionTeam` — inyectado por ArenaSandbox
+- `Occupation → Occupation` — inyectado por ArenaSandbox (S101)
+- `Carried → int` — carga actual
+- `CollectedMaterial → int` — recolectado acumulativo
+- `MiningProgress → float` — 0-1
+- `ExpeditionTarget → Transform`
 
-## Propiedades (Fachada) S102
+**S103 Propiedades Nuevas:**
+- `float Velocity { get; }` — magnitud de NavMeshAgent.velocity + fallback Rigidbody (M)
+- `float knockSpin { get; set; }` — scalar de torque en Knock (tuning MonchiSquashDriver)
+- `int SecuredMaterial { get; }` — inyectado por ExitZone al depositar (contador)
+- `int ScoutReports { get; }` — consulta expedition.scout.Reports
+- `int ClashHitsLanded { get; }` — consulta clash.hitsLanded
+- `int ClashTimesKnocked { get; }` — consulta clash.timesKnocked
 
-**Esenciales:**
-- `DNA → CreatureDNA` — read-only
-- `Intent → CreatureIntent` — intención actual (prioridad: Clashing → Socializing → Expedition → brain)
-- `IsHeld`, `IsAirborne`, `IsPenned`, `IsForSale`, `IsRecovering` — estados
+**S103 Métodos Nuevos:**
+- `SetBlackboard(TeamBlackboard board)` — inyecta pizarrón en ctx.Board (ArenaSandbox lo llama)
 
-**Percepciones y objetivos:**
-- `Percepts → IReadOnlyList<Percept>` — pobladas por AgentSenses (con filtro cono S102)
-- `CollectedMaterial → int` — acumulador
-- `Carried → int` — material siendo cargado
-- `MiningProgress → float` — progreso (0–1) si Intent == Taking
-- `ExpeditionTarget → Transform` — mineral/salida/puesto/presa
-- `SocialPartner → MoriMochiAgent` — agente de socialización o null
-- `Team → ExpeditionTeam` — None/Player/Rival
+**Métodos Públicos (IThrowable + IInteractable):**
+- `OnGrab(Transform anchor)` → physics.OnGrab()
+- `OnRelease()` → physics.OnRelease()
+- `OnThrow(Vector3 force)` → physics.OnThrow()
+- `Knock(Vector3 force)` → physics.Knock() (+ knockSpin torque vía AgentPhysics S103)
+- `Launch(Vector3 pos, vel)` → physics.Launch()
+- `Interact(Transform player)` → social.InitiatePetting()
+- `Initialize(DNA, profile, player)` — setup inicial
+- `Rebind(DNA, profile)` — reload rápido
+- `PrepareForPool()` — antes de pooling
+- `EmitEmote(EmoteKind)` — dispara emote
 
-**Visión S102 NUEVO:**
-- `HasVisionCone → bool` — si agente tiene cono de visión (ExpeditionRulesSO.Current != null)
-- `VisionRadius → float` — rango de visión (resuelto por VisionProfile.Resolve con skew por boldness)
-- `VisionDegrees → float` — ángulo del cono (resuelto por VisionProfile.Resolve)
-- `NearSenseRadius → float` — audición ciega (NearSenseRadius de ExpeditionRulesSO)
+**Update() Flow (S103 Actualizado):**
+1. TickAlways
+2. Senses.Tick()
+3. ApplyGaitSpeed()
+4. Por State (switch):
+   - Idle/Roaming: si no clash.TryEngage() y no expedition.TryEngage(), social.TryEngage()
+   - **S103:** Si `clash.TryEngage()` retorna true, `expedition.Cancel()` — prioridad combate
+   - Expedition: si `clash.TryEngage()` retorna true, `expedition.Cancel()`, sino `expedition.Tick()`
 
-**Ocupación (S101):**
-- `Occupation → Occupation` — estrategia asignada (None/Gather/Guard/Break/Decoy/Explore)
-- `SetOccupation(Occupation occupation)` → void
-- `SetHomeExit(ExitZone exit)` → void
-- `SetGuardPost(Transform post)` → void
+**FixedUpdate() Flow:**
+- physics.FixedTick() → actualiza velocity si Carried/Thrown
 
-**Clash S100:**
-- `ClashTarget → MoriMochiAgent` — rival actual o null
-- `ClashGesture → string` — gesto a disparar
-- `IsClashTargetable → bool` — puede ser golpeado
-- `ForceClash(ClashMoveSO move, MoriMochiAgent rival) → bool` — dev tool
+**S103 Cambios Principales:**
+- Propiedades `Velocity`, `knockSpin`, `SecuredMaterial`, `ScoutReports`, `ClashHitsLanded`, `ClashTimesKnocked` (exposiciones a fachada)
+- Método `SetBlackboard(board)` para inyectar pizarrón (S103 NUEVO)
+- En Update, si clash.TryEngage() en estado Idle/Roaming/Expedition: `expedition.Cancel()` (prioridad combate, S103)
+- knockSpin se aplica en AgentPhysics.Knock() (S103)
 
-## Métodos de Visión S102
+**Internals (sin cambios):**
+- OnEnable/OnDisable suscripciones a GameEvents.NavMesh
+- Awake instancia colaboradores
+- Initialize/Rebind delegados
+- RestoreNavMeshControl resetea todos
 
-**Fachada pública:**
-```csharp
-public bool HasVisionCone => ExpeditionRulesSO.Current != null;
+**Composición Pura (S55):**
+- Sin partial class
+- Colaboradores como campos privados
+- Orquestación en Update/FixedUpdate
 
-public float VisionRadius
-{
-    get
-    {
-        if (!HasVisionCone || DNA == null) return SocialTuningSO.Current?.PerceptionRadius ?? 0f;
-        VisionProfile.Resolve(DNA, ExpeditionRulesSO.Current, out float radius, out _, out _);
-        return radius;
-    }
-}
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], [[Index/06 - Player & World]]
 
-public float VisionDegrees
-{
-    get
-    {
-        if (!HasVisionCone || DNA == null) return 360f;
-        VisionProfile.Resolve(DNA, ExpeditionRulesSO.Current, out _, out float degrees, out _);
-        return degrees;
-    }
-}
-
-public float NearSenseRadius
-{
-    get
-    {
-        if (!HasVisionCone) return 0f;
-        VisionProfile.Resolve(DNA, ExpeditionRulesSO.Current, out _, out _, out float nearRadius);
-        return nearRadius;
-    }
-}
-```
-
-**Uso:**
-- ArenaCueOverlay.DrawPerception() → if (agent.HasVisionCone) DrawVisionCone() else DashedRing()
-- ArenaCueOverlay.LateUpdate() → perceptionRadius = agent.HasVisionCone ? agent.VisionRadius : global
-- AgentSenses.Tick() → si ExpeditionRulesSO.Current: filtra Percepts por CanSense()
-
-## Ciclo de Actualización S102
-
-```csharp
-Update():
-  brain.TickAlways(dt)     // decay necesidades
-  senses.Tick()            // scan perceivables (filtro cono S102)
-  
-  switch (ctx.State):
-    Idle/Roaming → if (!clash.TryEngage()) {if (!expedition.TryEngage()) social.TryEngage()}
-    Thrown       → clash.TickAirborne(); physics.TickThrown()
-    Expedition   → expedition.TickExpedition()
-    Clashing     → clash.TickClashing()
-    Socializing  → social.TickSocializing()
-```
-
-## Invariantes S102
-
-- **HasVisionCone es sensor:** lee ExpeditionRulesSO.Current != null
-- **VisionProfile.Resolve delegado:** calcula radius/degrees/nearRadius con skew por boldness
-- **Osadía skew:** osados ven más lejos pero más estrecho; tímidos ven menos lejos pero más amplio
-- **Audición aparte:** NearSenseRadius ignora conos (toque ciego)
-- **Fachada inmutable:** las propiedades no son settables desde fuera
-
-## Conexiones
-
-- [[VisionProfile]] — Resolve() para calcular parámetros
-- [[ExpeditionRulesSO]] — Current (activado en ArenaSandbox.OnEnable)
-- [[SocialTuningSO]] — fallback PerceptionRadius si !HasVisionCone
-- [[AgentSenses]] — usa VisionProfile.CanSense para filtrar Percepts
-- [[ArenaCueOverlay]] — usa HasVisionCone/VisionRadius/VisionDegrees/NearSenseRadius para dibujo
-- **Componentes internos:** AgentContext, AgentBrain, AgentPhysics, AgentConfinement, AgentSenses, AgentSocial, AgentExpedition, AgentClash
-
-## Vinculado a
-
-[[Index/23 - Arena Sandbox y Expedicion]]
+**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[TeamBlackboard]], [[ExitZone]]

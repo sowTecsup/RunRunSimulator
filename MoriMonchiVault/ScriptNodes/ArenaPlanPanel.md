@@ -1,115 +1,70 @@
 ---
-tags: [script, ui, uitk, expedition, panel]
+tags: [script, world, ui, uitk, expedition]
 ---
 
 # ArenaPlanPanel.cs
 
 **Ruta:** `World/Expedition/ArenaPlanPanel.cs`
 
-**Responsabilidad:** Panel UITK que permite al jugador seleccionar ocupación y sitio para cada criatura propia antes de lanzar la ronda. Se oculta automáticamente cuando la ronda corre, se muestra de nuevo tras resultado con delay configurable, permite cambiar elenco/paleta/sala sin reiniciar.
+**Responsabilidad:** Panel UITK de planificación pre-ronda (S103 actualizado). Permite seleccionar ocupación y sitio por criatura, alternar entre modo save local (picker) vs roster básico. Integra `ArenaCastPicker` (S103 NUEVO) para elegir MoriMonchis del save. Integra `ArenaResultPanel` (S103 NUEVO) para mostrar resultado tras combate. Botones: Mis MoriMonchis (togglea modo), Picker (abre selector), Shuffle (aleatoriza), Paleta (cicla), Sala (nueva seed), ¡A LA SALA! (lanza). La quinta píldora "Explora" activa ocupación Explore.
 
-## Campos Serializados
+**Métodos públicos:**
+- `Update()` — gestiona transición visible/oculto y delay de resultado
 
-- `sandbox` (ArenaSandbox, Required) — referencia a gestor de arena
-- `round` (ArenaRound, Required) — referencia a gestor de ronda
-- `resultHoldSeconds` (float, Min 0, default 4) — segundos a mostrar resultado antes de volver a plan
+**Constantes:**
+- Ocupaciones: [Gather, Guard, Break, Decoy, Explore] → etiquetas españolas
+- Sitios: [Center, NearVein, FarVein]
 
-## Constantes
+**Campos Serializados:**
+- `sandbox` [Required] — ArenaSandbox
+- `round` [Required] — ArenaRound
+- `picker` [Required] — ArenaCastPicker (S103 NUEVO)
+- `resultPanel` [Required] — ArenaResultPanel (S103 NUEVO)
+- `resultHoldSeconds` [Min(0)] = 4 — delay antes de ocultar resultado
 
-**Ocupaciones:**
-- Array: [Gather, Guard, Break, Decoy]
-- Labels: ["Recolecta", "Vigila", "Rompe", "Distrae"]
+**UI Structure (UXML):**
+- `plan-root` (plan--hidden clase)
+  - `plan-room` (Label) — "sala NNNN · PaletteName · entrada Entry"
+  - `plan-rival` (Label) — "Rival: nombre1 · nombre2 · ... · entra por lado opuesto"
+  - `cast-list` (VisualElement) — lista de tarjetas de criaturas player
+    - Cada `cast-card` — swatch, nombre, dials, dos filas de pills
+      - `plan-row` ocupaciones [Recolecta, Vigila, Rompe, Distrae, Explora]
+      - `plan-row` sitios [Centro, Veta cercana, Veta lejana] (deshabilitados si Decoy/Explore)
+  - Botones: `btn-cast`, `btn-pick`, `btn-shuffle`, `btn-palette`, `btn-room`, `btn-play`
 
-**Sitios:**
-- Array: [Center, NearVein, FarVein]
-- Labels: ["Centro", "Veta cercana", "Veta lejana"]
+**Métodos Privados:**
+- `SetVisible(bool)` — aplica plan--hidden, llama Refresh si visible
+- `Refresh()` — actualiza room label, cast button, construye cards, rival line
+- `BuildCards()` — itera PlannedCast, solo Player entries
+- `BuildCard(int index, ArenaCastEntry entry)` → VisualElement — swatch + nombre + dials + pills ocupación/sitio
+- `ChooseOccupation/ChooseSite(Card state, int choice)` — llamadas de pills, actualiza `sandbox.SetPlayerPlan()`
+- `RefreshPills(Card)` — destaca pills activas (pill--on clase)
+- `RefreshRivalLine()` — lista nombres rivales
+- `ToggleCastMode()` — alterna ArenaCastMode.LocalSave ↔ Roster
+- `OpenPicker()` — picker.Open(Refresh) (S103 NUEVO)
+- `Shuffle()` — sandbox.ShuffleCast()
+- `CyclePalette()` — sandbox.CyclePalette()
+- `NewRoom()` — round.Reset(true), resultPanel.Hide()
+- `Play()` — resultPanel.Hide(), round.Launch()
 
-## Ciclo de Vida
+**S103 Cambios:**
+- `ArenaCastPicker picker` [Required] — selector modal (S103 NUEVO)
+- `ArenaResultPanel resultPanel` [Required] — panel resultado (S103 NUEVO)
+- Quinta píldora "Explora" (Occupation.Explore) con etiqueta correspondiente
+- `OpenPicker()` nuevo, invocado por `btn-pick`
+- En `RefreshPills()`: sitios deshabilitados si Explore además de Decoy (Explore no elige sitio)
+- En `Update()`: llama `resultPanel.Show(pendingWinner, pendingMine, pendingTheirs, round.Summary)` tras `round.Reset(false)`
+- `btn-pick` habilitado solo si CastMode=LocalSave y LocalAvailable
 
-**OnEnable():**
-- Obtiene rootVisualElement desde UIDocument
-- Cachea referencias a VisualElements (castList, labels, botones)
-- Suscribe clicks: ToggleCastMode, Shuffle, CyclePalette, NewRoom, Play
-- Inicializa estado (-1, MinValue)
-- SetVisible(true)
+**Ciclo S103:**
+1. Panel visible, elenco mostrado
+2. Jugador elige ocupación/sitio O abre picker (btn-pick → ArenaCastPicker)
+3. Picker cierra con SelectLocalCast → Refresh automática
+4. Jugador presiona Play → oculta panel, round.Launch()
+5. Ronda corre
+6. round.IsOver → resultPanel.Show() tras resultHoldSeconds, visible=true
+7. Jugador presiona Sala (nuevo) o cierra → vuelve a flow 1
 
-**OnDisable():**
-- Desuscribe todos los clicks
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Update():**
-- Si round.IsRunning y visible: oculta panel, marca roundEndHandled=false
-- Si round.IsOver y !roundEndHandled: guarda resultado, espera resultHoldSeconds
-- Pasado delay: round.Reset(false), muestra resultado, SetVisible(true)
-- Si visible y cambios en PlannedCast.Count o Seed: Refresh()
-
-## Estados Privados
-
-- `visible` — si panel es visible (clase plan--hidden aplicada si false)
-- `roundEndHandled` — bandera para ejecutar lógica de fin una sola vez
-- `roundEndedAt` — Time.time cuando round.IsOver se detectó
-- `pendingResult` — string de resultado a mostrar
-- `lastPlannedCount`, `lastSeed` — para detectar cambios en Refresh()
-
-## Métodos Privados
-
-**Refresh():**
-- Actualiza roomLabel: `"sala {seed} · {paletteName} · entrada {entryName}"`
-- Actualiza castButton: "Mis MoriMonchis" (o "sin save" si !LocalAvailable)
-- BuildCards() — borra castList y recrea tarjetas de criaturas Player
-- RefreshRivalLine() — muestra nombres de rivales + "entra por el lado opuesto"
-
-**BuildCards():**
-- Por cada entry en PlannedCast con Team=Player y Dna!=null:
-  - BuildCard(index, entry) → VisualElement con swatch, nombre, dials, pills
-
-**BuildCard(index, entry):**
-```
-Card visual:
-  ┌─ head (color swatch + nombre + dials)
-  ├─ HACE fila: 4 pills (ocupación)
-  └─ DÓNDE fila: 3 pills (sitio, disabled si Decoy)
-```
-- Crea Card { Index, OccupationPills[], SitePills[] }
-- Pills son botones que llaman ChooseOccupation/ChooseSite
-- RefreshPills() destaca pill activa
-
-**ChooseOccupation/ChooseSite:**
-- Llama sandbox.SetPlayerPlan(index, occupation, site)
-- RefreshPills() actualiza visuales
-
-**Acciones de Botones:**
-- `ToggleCastMode()` — alterna LocalSave ↔ Roster, refresh
-- `Shuffle()` — sandbox.ShuffleCast(), refresh
-- `CyclePalette()` — sandbox.CyclePalette(), refresh
-- `NewRoom()` — round.Reset(true), limpia resultado, refresh
-- `Play()` — round.Launch(), oculta panel
-
-## Invariantes S102
-
-- **Auto-ocultarse:** se oculta cuando IsRunning, se muestra tras IsOver + delay
-- **Sin persistencia UI:** estado de cards (lastPlannedCount) se resetea en OnEnable
-- **Decoy sitios disabled:** sitios deshabilitados si Occupation.Decoy (no aplica)
-- **Resultado hold:** espera resultHoldSeconds antes de volver a plan (permite ver número)
-
-## Flujo de Sesión
-
-```
-1. Panel visible con elenco (Player + Rival)
-2. Jugador ajusta ocupaciones/sitios de propios
-3. Jugador presiona ¡A LA SALA! (Play)
-4. round.Launch() → Panel oculto
-5. Combate corre (IsRunning)
-6. round.IsOver → Resultado visible durante resultHoldSeconds
-7. Pasa tiempo → round.Reset(false) → vuelve a panel visible
-```
-
-## Conexiones
-
-- [[ArenaSandbox]] (PlannedCast, SetPlayerPlan, CastMode, ApplyPalette)
-- [[ArenaRound]] (IsRunning, IsOver, Winner, Launch, Reset)
-- [[ArenaCastEntry]] (data de tarjetas)
-- [[ArenaCastPlanner]] (subyacente en sandbox)
-
-## Vinculado a
-
-[[Index/23 - Arena Sandbox y Expedicion]]
+**Conexiones:** [[ArenaSandbox]], [[ArenaRound]], [[ArenaCastPicker]], [[ArenaResultPanel]], [[ArenaCastEntry]], [[Occupation]], [[ArenaSite]]

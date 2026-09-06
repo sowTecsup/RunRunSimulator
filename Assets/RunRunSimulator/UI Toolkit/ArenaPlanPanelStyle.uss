@@ -169,7 +169,7 @@
 }
 
 .plan-row__label {
-    width: 62px;
+    width: 52px;
     font-size: 10px;
     color: var(--mm-ink-soft);
     letter-spacing: 1px;
@@ -180,14 +180,14 @@
     flex-grow: 1;
     flex-basis: 0;
     height: 26px;
-    margin: 0 4px 0 0;
+    margin: 0 3px 0 0;
     padding: 0;
     border-radius: 8px;
     border-width: 1px;
     border-color: var(--mm-frame-soft);
     background-color: var(--mm-surface);
     color: var(--mm-ink);
-    font-size: 11px;
+    font-size: 10px;
     -unity-font-style: bold;
 }
 

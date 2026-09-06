@@ -49,6 +49,12 @@ public class ExpeditionRulesSO : SerializedScriptableObject
     [Min(0.5f)] public float DecoyFleeSeconds = 5f;
     [Min(0f)] public float DecoyCooldown = 4f;
 
+    [Title("Explorar")]
+    [Min(0f)] public float ScoutArriveDistance = 1.2f;
+    [Min(0f)] public float ReportSeconds = 0.9f;
+    [Min(0f)] public float ReportRepeatSeconds = 4f;
+    [Min(0f)] public float ScoutRestSeconds = 12f;
+
     [Title("Visión")]
     [Range(30f, 360f)] public float VisionDegrees = 150f;
     [Min(1f)] public float VisionRadius = 11f;

@@ -12,6 +12,8 @@ public class ArenaCastPlanner
         new[] { Occupation.Decoy, Occupation.Guard, Occupation.Gather },
         new[] { Occupation.Gather, Occupation.Gather, Occupation.Gather },
         new[] { Occupation.Break, Occupation.Decoy, Occupation.Gather },
+        new[] { Occupation.Explore, Occupation.Gather, Occupation.Gather },
+        new[] { Occupation.Guard, Occupation.Explore, Occupation.Gather },
     };
 
     private static readonly ArenaSite[] GatherSites = { ArenaSite.Center, ArenaSite.NearVein, ArenaSite.FarVein };

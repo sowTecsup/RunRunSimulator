@@ -53,6 +53,7 @@ public class ArenaSandbox : MonoBehaviour
     private readonly List<MaterialPickup> minerals = new();
     private readonly List<ExitZone> exits = new();
     private readonly List<Perceivable> looseBuffer = new();
+    private readonly Dictionary<ExpeditionTeam, TeamBlackboard> boards = new();
     private ArenaCastPlanner planner;
     private int activeSeed;
     private Transform spawnHolder;
@@ -82,6 +83,17 @@ public class ArenaSandbox : MonoBehaviour
             }
             return planner;
         }
+    }
+
+    public TeamBlackboard BoardFor(ExpeditionTeam team)
+    {
+        if (team == ExpeditionTeam.None) return null;
+        if (!boards.TryGetValue(team, out var board))
+        {
+            board = new TeamBlackboard(team);
+            boards[team] = board;
+        }
+        return board;
     }
 
     public ExitZone ExitFor(ExpeditionTeam team)
@@ -141,6 +153,8 @@ public class ArenaSandbox : MonoBehaviour
         if (palette != null) palette.ApplyIndex(paletteIndex >= 0 ? paletteIndex : palette.IndexForSeed(activeSeed));
         if (Planner.HasRoster) SpawnExits();
         SpawnMinerals();
+        BoardFor(ExpeditionTeam.Player).SetSites(minerals);
+        BoardFor(ExpeditionTeam.Rival).SetSites(minerals);
 
         roomBuilt = true;
         Planner.Prepare(activeSeed, castSeed, count);
@@ -282,6 +296,7 @@ public class ArenaSandbox : MonoBehaviour
         controller.Initialize(dna, profileTable, observer, visualBank, furDatabase);
         controller.Agent.SetOccupation(occupation);
         controller.Agent.SetHomeExit(home);
+        controller.Agent.SetBlackboard(BoardFor(team));
         spawned.Add(controller);
         if (targetGroup != null) targetGroup.AddMember(controller.transform, 1f, 1.2f);
         foreach (var tag in controller.GetComponentsInChildren<NameTag>(true)) { tag.ShowDistance = tagShowDistance; tag.ScreenSizeReferenceDistance = tagReferenceDistance; }

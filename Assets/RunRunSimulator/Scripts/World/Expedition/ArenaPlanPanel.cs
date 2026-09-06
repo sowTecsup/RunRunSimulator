@@ -8,8 +8,8 @@ namespace MoriMonchiSimulator
 [RequireComponent(typeof(UIDocument))]
 public class ArenaPlanPanel : MonoBehaviour
 {
-    private static readonly Occupation[] Occupations = { Occupation.Gather, Occupation.Guard, Occupation.Break, Occupation.Decoy };
-    private static readonly string[] OccupationLabels = { "Recolecta", "Vigila", "Rompe", "Distrae" };
+    private static readonly Occupation[] Occupations = { Occupation.Gather, Occupation.Guard, Occupation.Break, Occupation.Decoy, Occupation.Explore };
+    private static readonly string[] OccupationLabels = { "Recolecta", "Vigila", "Rompe", "Distrae", "Explora" };
     private static readonly ArenaSite[] Sites = { ArenaSite.Center, ArenaSite.NearVein, ArenaSite.FarVein };
     private static readonly string[] SiteLabels = { "Centro", "Veta cercana", "Veta lejana" };
 
@@ -241,7 +241,7 @@ public class ArenaPlanPanel : MonoBehaviour
         for (int k = 0; k < Occupations.Length; k++)
             card.OccupationPills[k].EnableInClassList("pill--on", Occupations[k] == entry.Occupation);
 
-        bool siteMatters = entry.Occupation != Occupation.Decoy;
+        bool siteMatters = entry.Occupation != Occupation.Decoy && entry.Occupation != Occupation.Explore;
         for (int k = 0; k < Sites.Length; k++)
         {
             card.SitePills[k].EnableInClassList("pill--on", siteMatters && Sites[k] == entry.Site);

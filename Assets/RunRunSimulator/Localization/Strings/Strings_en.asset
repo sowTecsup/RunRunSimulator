@@ -1657,6 +1657,14 @@ MonoBehaviour:
     m_Localized: Taunting
     m_Metadata:
       m_Items: []
+  - m_Id: 14900000000000106
+    m_Localized: Exploring
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000107
+    m_Localized: Reporting!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

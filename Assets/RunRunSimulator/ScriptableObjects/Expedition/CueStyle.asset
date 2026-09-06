@@ -40,7 +40,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 28
+      Data: 30
     - Name: 
       Entry: 7
       Data: 
@@ -798,6 +798,60 @@ MonoBehaviour:
       Entry: 8
       Data: 
     - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 28
+    - Name: $v
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.55
+    - Name: 
+      Entry: 4
+      Data: 0.9
+    - Name: 
+      Entry: 4
+      Data: 0.6
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 29
+    - Name: $v
+      Entry: 7
+      Data: UnityEngine.Color, UnityEngine.CoreModule
+    - Name: 
+      Entry: 4
+      Data: 0.75
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 4
+      Data: 0.45
+    - Name: 
+      Entry: 4
+      Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
       Entry: 13
       Data: 
     - Name: 
@@ -827,6 +881,12 @@ MonoBehaviour:
   RingDashCount: 28
   RingDashRatio: 0.55
   RingSpinSpeed: 0.35
+  VisionFillInnerAlpha: 0.09
+  VisionFillOuterAlpha: 0
+  VisionEdgeAlpha: 0.5
+  VisionSideAlpha: 0.3
+  NearRingAlpha: 0.22
+  VisionTurnSmoothing: 9
   ReticleRadius: 0.9
   ReticleThickness: 0.06
   ReticleSweepDegrees: 50
@@ -854,6 +914,13 @@ MonoBehaviour:
   MineralOuterAlpha: 0
   MineralRingThickness: 0.04
   MineralRingAlpha: 0.5
+  KnownVeinRingAlpha: 0.45
+  KnownVeinRingThickness: 0.05
+  KnownVeinRingOffset: 0.35
+  PingSeconds: 1.4
+  PingRadius: 2.6
+  PingAlpha: 0.8
+  PingThickness: 0.08
   SocialLinkColor: {r: 0.95, g: 0.5, b: 0.8, a: 1}
   FightColor: {r: 0.9, g: 0.15, b: 0.15, a: 1}
   SocialLinkThickness: 0.05

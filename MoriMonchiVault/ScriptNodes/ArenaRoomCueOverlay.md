@@ -1,81 +1,66 @@
 ---
-tags: [script, world, expedition, ui-overlay, visualization]
+tags: [script, world, expedition, visualization, cues]
 ---
 
 # ArenaRoomCueOverlay.cs
 
 **Ruta:** `World/Expedition/ArenaRoomCueOverlay.cs`
 
-**Responsabilidad:** Dibuja guías visuales en overlay de la sala: minerales (discos animados) y salidas (anillos con dasheado giratorio). Antes vivía integrado en ArenaCueOverlay; ahora es colaborador separado centrado en elementos estáticos de la sala (no rutas de agentes).
+**Responsabilidad:** Dibuja guías visuales en overlay de sala: minerales (discos animados), salidas (anillos giratorio), **pizarrones de equipo** (S103 NUEVO: anillos de vetas conocidas, pings de reportes). `DrawMinerals()` anima opacity de minerales según Taken. `DrawExits()` anillos de salidas con dasheado. **S103 NUEVO:** `DrawBlackboards()` itera pizarrones de cada team, dibuja anillos para vetas conocidas (con offset diferente por team), dibuja pings expansivos.
 
-## Campos Serializados
+**Campos Serializados:**
+- `sandbox` [Required] — ArenaSandbox
+- `cueMaterial`, `additiveMaterial` [Required] — CueDrawer
+- `style` [Required] — CueStyleSO
+- `showMinerals`, `showExits`, `showBlackboards` (bool, default true) — (S103 NUEVO: showBlackboards)
 
-- `sandbox` (ArenaSandbox, Required) — referencia a gestor de arena
-- `cueMaterial`, `additiveMaterial` (Material, Required) — materiales para CueDrawer
-- `style` (CueStyleSO, Required) — tuning de apariencia
-- `showMinerals`, `showExits` (bool, default true) — toggles de visualización
-
-## Caches Privados
-
-- `mineralAnims` (Dictionary<MaterialPickup, MineralAnim>) — estado de animación (alpha) por mineral
-- `mineralQueryBuffer` (List<Perceivable>) — reutilizado, no-alloc para QueryInRadius
-- `mineralLookup` (Dictionary<Perceivable, MaterialPickup>) — caché de GetComponent<MaterialPickup>
-
-## Struct MineralAnim
-
-```csharp
-class MineralAnim { public float Alpha; }
-```
-
-Guarda alpha animado del mineral (fade in/out según Taken).
-
-## Ciclo de Vida
-
-**OnEnable():**
-- CueDrawer.Configure(cueMaterial, additiveMaterial) — inicializa materiales globales
+**Caches Privados:**
+- `mineralAnims` (Dictionary<MaterialPickup, MineralAnim>)
+- `mineralQueryBuffer`, `mineralLookup` (query reutilizable, no-alloc)
 
 **LateUpdate():**
 - Si showMinerals: DrawMinerals()
 - Si showExits: DrawExits()
+- Si showBlackboards: DrawBlackboards() — (S103 NUEVO)
 
-## Métodos Privados
+**DrawBlackboards() S103 NUEVO:**
+- Itera teams [Player, Rival]
+- Obtiene board = `sandbox.BoardFor(team)`
+- Color según team (FriendColor Player, FoeColor Rival)
+- **Vetas conocidas (KnownVeins):**
+  - Para cada k en board.KnownVeins (no tomada, activa)
+  - Dibuja anillo dasheado a distancia (radius + KnownVeinRingOffset + offset extra si Rival)
+  - Rotación según team: Player +spin, Rival -spin (direcciones opuestas)
+  - Alpha = KnownVeinRingAlpha
+- **Pings (reportes frescos):**
+  - Prune pings viejos con PrunePings(Time.time)
+  - Para cada ping en board.Pings:
+    - t = (now - ping.Time) / PingSeconds (0 a 1)
+    - radius = Lerp(0.4, PingRadius, t) — crece
+    - alpha = PingAlpha * (1 - t) — desvanece
+    - Dibuja ring expansivo
 
-**DrawMinerals():**
-1. QueryInRadius(sandbox.position, 200m, null, mineralQueryBuffer) → todos los Perceivable cercanos
-2. Para cada Perceivable con Kind=Material:
-   - GetMineralAnim(p) → caché alpha
-   - GetMineralPickup(p) → MaterialPickup
-   - Anima alpha: target = p.Taken ? 0 : 1
-   - Alpha = MoveTowards(..., AppearSeconds)
-   - Si alpha > 0.01:
-     - Dibuja disco animado con CueDrawer.Disc (inner + outer alpha)
-     - Dibuja anillo: CueDrawer.Ring
-     - Si Value > 1 (multi): anillo dasheado giratorio CueDrawer.DashedRing
+**Otros métodos (sin cambios S103):**
+- `DrawMinerals()` — discos animados (alpha MoveTowards, dasheado si multi-mineral)
+- `DrawExits()` — anillos de salidas (friend/foe color)
+- `GetMineralAnim()`, `GetMineralPickup()` — caché
 
-**DrawExits():**
-- Itera sandbox.Exits (lista de salidas)
-- Para cada exit:
-  - Color según team (FriendColor si Player, FoeColor si Rival)
-  - Disc(center, radius, color, ExitAlpha, 0)
-  - Ring(center, radius, ExitRingThickness, ringColor)
-  - DashedRing(dasheado giratorio a velocidad RingSpinSpeed * 0.5)
+**S103 Cambios:**
+- Campo `showBlackboards` toggle
+- Método `DrawBlackboards()` nuevo
+- LateUpdate() llama DrawBlackboards() si habilitado
+- Integración con `TeamBlackboard.KnownVeins`, `TeamBlackboard.Pings`
 
-## Invariantes S102
+**CueStyleSO Campos S103 (usados por DrawBlackboards):**
+- `KnownVeinRingAlpha`, `KnownVeinRingThickness`, `KnownVeinRingOffset` — anillos de vetas
+- `PingSeconds`, `PingRadius`, `PingAlpha`, `PingThickness` — pings
 
-- **Query radius 200m:** captura todos los minerales en la sala (asume sala ≤ 40x40)
-- **Filtro por Kind:** solo Perceivables con Kind=Material
-- **Caché de anim:** MineralAnim se reutiliza por instancia de mineral (limpia si mineral destruido)
-- **Heights:** todos los dibujos se elevan HeightOffset (eje Y)
-- **Anillo dasheado giratorio:** rotación Time.time * -/+ RingSpinSpeed crea efecto de movimiento
+**Invariantes:**
+- Pings se descartan tras `PingKeepSeconds` (TeamBlackboard.PrunePings)
+- Spin opuesto por team (Player CW, Rival CCW) crea simetría visual
+- Offset de Rival > Player para evitar solapamiento si ambos conocen veta
+- Heights: todos con HeightOffset
 
-## Conexiones
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-- [[PerceivableRegistry]] (QueryInRadius obtiene minerales)
-- [[MaterialPickup]] (lee Taken, Value, Remaining)
-- [[CueDrawer]] (dibuja discos, anillos, dasheado)
-- [[CueStyleSO]] (tuning de colores y tamaños)
-- [[ArenaSandbox]] (Exits, transform.position)
-
-## Vinculado a
-
-[[Index/23 - Arena Sandbox y Expedicion]]
+**Conexiones:** [[PerceivableRegistry]], [[MaterialPickup]], [[ExitZone]], [[TeamBlackboard]], [[ArenaSandbox]], [[CueDrawer]], [[CueStyleSO]], [[ExpeditionTeam]]

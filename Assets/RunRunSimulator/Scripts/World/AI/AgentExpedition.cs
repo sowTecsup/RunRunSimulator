@@ -5,11 +5,12 @@ namespace MoriMonchiSimulator
 
 internal class AgentExpedition
 {
-    private enum Phase { Noticing, Moving, Mining, Losing, Returning, Securing, Guarding, Hunting, Decoying }
+    private enum Phase { Noticing, Moving, Mining, Losing, Returning, Securing, Guarding, Hunting, Decoying, Exploring }
     private enum DecoyStep { Approach, Taunt, Flee }
 
     private readonly MoriMochiAgent owner;
     private readonly AgentContext   ctx;
+    private readonly AgentScout     scout;
 
     private MaterialPickup target;
     private float          repathTimer;
@@ -33,6 +34,7 @@ internal class AgentExpedition
     {
         this.owner = owner;
         this.ctx   = ctx;
+        scout      = new AgentScout(owner, ctx);
     }
 
     internal bool TryEngage()
@@ -41,15 +43,27 @@ internal class AgentExpedition
         if (rules == null || ctx.Dna == null) return false;
 
         var occ = ctx.Occupation;
-        if (occ == Occupation.None || occ == Occupation.Explore) occ = Occupation.Gather;
+        if (occ == Occupation.None) occ = Occupation.Gather;
 
         switch (occ)
         {
-            case Occupation.Guard: return TryGuardEngage(rules);
-            case Occupation.Break: return TryBreakEngage(rules);
-            case Occupation.Decoy: return TryDecoyEngage(rules);
-            default:               return TryGatherEngage(rules);
+            case Occupation.Guard:   return TryGuardEngage(rules);
+            case Occupation.Break:   return TryBreakEngage(rules);
+            case Occupation.Decoy:   return TryDecoyEngage(rules);
+            case Occupation.Explore: return TryExploreEngage(rules);
+            default:                 return TryGatherEngage(rules);
         }
+    }
+
+    private bool TryExploreEngage(ExpeditionRulesSO rules)
+    {
+        if (!scout.TryEngage(rules)) return TryGatherEngage(rules);
+
+        target  = null;
+        prey    = null;
+        phase   = Phase.Exploring;
+        elapsed = 0f;
+        return true;
     }
 
     private bool TryGatherEngage(ExpeditionRulesSO rules)
@@ -104,6 +118,7 @@ internal class AgentExpedition
         if (carried > 0) return BeginReturn(rules);
 
         var known = InjectedPost();
+        if (known == null && ctx.Board != null) known = ctx.Board.BestKnownVein(ctx.Body.position, null);
         if (known == null) return false;
 
         target      = known;
@@ -294,6 +309,12 @@ internal class AgentExpedition
     {
         var rules = ExpeditionRulesSO.Current;
         if (rules == null) { Abort(); return; }
+
+        if (phase == Phase.Exploring)
+        {
+            if (!scout.Tick(rules)) Abort();
+            return;
+        }
 
         bool validatesTarget = phase == Phase.Noticing || phase == Phase.Moving || phase == Phase.Mining;
         if (validatesTarget && (target == null || target.Taken || !target.gameObject.activeInHierarchy))
@@ -763,13 +784,21 @@ internal class AgentExpedition
             carried = 0;
         }
 
+        Cancel();
+    }
+
+    internal void Cancel()
+    {
         target       = null;
         prey         = null;
+        exit         = null;
         phase        = Phase.Noticing;
         phaseTimer   = 0f;
         miningTimer  = 0f;
         blockedTimer = 0f;
+        lostPoint    = Vector3.zero;
         decoyStep    = DecoyStep.Approach;
+        scout.Cancel();
     }
 
     private void Drop(ExpeditionRulesSO rules)
@@ -792,6 +821,7 @@ internal class AgentExpedition
         prey         = null;
         exit         = null;
         miningTimer  = 0f;
+        scout.Cancel();
         owner.RequestRoam();
     }
 
@@ -813,9 +843,11 @@ internal class AgentExpedition
         huntTimer    = 0f;
         decoyStep    = DecoyStep.Approach;
         decoyCooldownUntil = 0f;
+        scout.ResetForReuse();
     }
 
     internal int Carried => carried;
+    internal int Reports => scout.Reports;
 
     internal float MiningProgress =>
         phase == Phase.Mining && ExpeditionRulesSO.Current != null && ExpeditionRulesSO.Current.MiningSecondsPerUnit > 0f
@@ -823,6 +855,7 @@ internal class AgentExpedition
             : 0f;
 
     internal Transform TargetTransform =>
+        phase == Phase.Exploring ? scout.TargetTransform :
         (phase == Phase.Noticing || phase == Phase.Moving || phase == Phase.Mining || phase == Phase.Guarding)
             ? (target != null ? target.transform : null) :
         (phase == Phase.Returning || phase == Phase.Securing)
@@ -835,6 +868,7 @@ internal class AgentExpedition
     internal int             Collected => collected;
     internal int             Secured   => secured;
     internal CreatureIntent  Intent    =>
+        phase == Phase.Exploring ? scout.Intent :
         phase == Phase.Mining    ? CreatureIntent.Taking :
         phase == Phase.Losing    ? CreatureIntent.Losing :
         phase == Phase.Returning ? CreatureIntent.Carrying :

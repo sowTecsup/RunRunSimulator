@@ -90,6 +90,8 @@ public enum CreatureIntent
     Guarding    = 25,
     Hunting     = 26,
     Taunting    = 27,
+    Exploring   = 28,
+    Reporting   = 29,
 }
 
 public enum ProximityReaction

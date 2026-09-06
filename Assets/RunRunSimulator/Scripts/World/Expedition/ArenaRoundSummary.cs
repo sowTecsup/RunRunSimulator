@@ -13,6 +13,7 @@ public struct ArenaRoundStat
     public int Collected;
     public int HitsLanded;
     public int TimesKnocked;
+    public int Reports;
 }
 
 public static class ArenaRoundSummary
@@ -40,7 +41,8 @@ public static class ArenaRoundSummary
                 Secured = agent.SecuredMaterial,
                 Collected = agent.CollectedMaterial,
                 HitsLanded = agent.ClashHitsLanded,
-                TimesKnocked = agent.ClashTimesKnocked
+                TimesKnocked = agent.ClashTimesKnocked,
+                Reports = agent.ScoutReports
             });
         }
         return result;

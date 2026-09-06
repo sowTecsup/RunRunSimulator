@@ -1,91 +1,49 @@
 ---
-tags: [script, ui, expedition, presentation]
+tags: [script, world, ui, expedition, presentation]
 ---
 
 # ArenaRoundHud.cs
 
 **Ruta:** `World/Expedition/ArenaRoundHud.cs`
 
-**Responsabilidad:** Presentador de UI dinámica vía UIToolkit (construcción completa por código en OnEnable). **S102 NUEVO:** oculta marcador/roster/resultado hasta que ronda corre (IsRunning) o termina (IsOver). Etiqueta de sala siempre visible. Actualiza cada frame solo si hay cambio (caché de últimos textos). Renderiza ocupaciones con Verb() (vigila/rompe/distrae/recolecta).
+**Responsabilidad:** HUD de ronda UITK en vivo (S103 reescrito). Muestra arriba: seed (sala NNNN), player score, timer con aviso de tiempo bajo (warnSeconds), rival score. Abajo: dos columnas (player team | rival team) con roster vivo. Cada fila por criatura: swatch de color, nombre, ocupación+intención, minería en progreso (barra), materiales en mano. Si IsOver, overlay resultado (Gana tu equipo/Gana rival/Empate). Cache de strings y valores para evitar ediciones DOM innecesarias.
 
-## Campos Serializados
+**Métodos públicos:**
+- `Update()` — tick principal (refresh si IsRunning o IsOver, actualiza scores, tiempo, roster, resultado)
 
-- **round** (ArenaRound, Required) — lectura de estado vivo
-- **playerColor**, **rivalColor**, **timeColor** — colores de texto
+**Métodos privados:**
+- `RefreshSeed()` — "sala {ActiveSeed}"
+- `RefreshRoster()` — itera Spawned, construye rows separadas por team, crea/limpia buffer de Rows
+- `BuildRow(MoriMochiAgent agent)` — crea VisualElement con componentes (swatch, name, sub, mine bar, carry label)
+- `Verb(Occupation)` → string — Guard→"vigila", Break→"rompe", Decoy→"distrae", Explore→"explora", default→"recolecta"
 
-## Elementos UIToolkit (instanciados en OnEnable)
+**UI Structure (UXML/USS S103):**
+- `hud-root` (hud--idle cuando no running/over)
+  - `hud-seed` (Label) — "sala NNNN" (siempre visible)
+  - Marcador: `hud-player-score` | `hud-time` | `hud-rival-score` (columnas)
+    - `hud-time` (Label con clases hud-time--warn cuando ≤ warnSeconds)
+    - `hud-bar-fill` (relleno de progreso con clases hud-bar__fill--warn)
+  - Columnas: `hud-player-team` (VisualElement) | `hud-rival-team` (VisualElement)
+    - Cada uno contiene múltiples `hud-row` (hud-row--rival para rival)
+      - `hud-row__swatch` (color DNA)
+      - `hud-row__text` (flex column)
+        - `hud-row__name` (Label)
+        - `hud-row__sub` (Label) — "ocupación · intención"
+        - `hud-row__mine` (barra de minería con `hud-row__mine-fill`)
+      - `hud-row__carry` (Label) — "◆ N" o vacío
 
-- **scoreboard** — flex row Player | Timer | Rival (arriba centro)
-  - playerLabel, timeLabel, rivalLabel
-  - **S102 NUEVO:** oculto hasta IsRunning || IsOver
-  
-- **rosterRoot** — flex row (Player names | Rival names) debajo de scoreboard
-  - playerRoster, rivalRoster
-  - **S102 NUEVO:** oculto hasta IsRunning || IsOver
-  
-- **seedLabel** — "sala NNNN" (esquina arriba-izq, opacidad 0.7)
-  - **S102 NUEVO:** siempre visible (no se oculta post-round)
-  
-- **resultRoot** — resultado (Ganas/Pierdes/Empate, centro)
-  - resultLabel
-  - **S102 NUEVO:** oculto hasta IsOver
+**Campos Serializados:**
+- `round` [Required] — ArenaRound
+- `warnSeconds` [Min(0)] = 15 — threshold para activar aviso de tiempo
 
-## Métodos Privados
+**Internals (Class Row):**
+- MoriMochiAgent Agent
+- Label Sub, Carry
+- VisualElement Mine, MineFill
+- string LastSub, int LastCarried, float LastProgress (caché)
 
-- `RefreshRoster() → void` — itera Spawned, agrupa por Team, construye strings nombre + Verb(ocupación)
-  - **S102 NUEVO:** lastRosterCount se reinicia en OnEnable (no persiste entre sesiones)
-  
-- `RefreshSeed() → void` — "sala {ActiveSeed}"
-  - nunca se oculta
+**S103:** Reescrita con UXML/USS para mejor control visual. Cronómetro con warn al acercarse el fin (rojo). Estadísticas vivas: ocupación + intención (intent names desde LocEnumMaps), minería en progreso, carga. Resultado overlay opcional. Columnas por equipo visualizan estrategia en vivo.
 
-- `Verb(Occupation) → string` — Guard→"vigila", Break→"rompe", Decoy→"distrae", default→"recolecta"
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-- `Update() → void` — tick principal:
-  1. Oculta/muestra scoreboard + roster:
-     - visible = (IsRunning || IsOver)
-  2. Si visible y cambios:
-     - RefreshRoster() si Spawned.Count != lastRosterCount
-     - actualiza playerLabel/rivalLabel si puntos cambiaron
-     - actualiza timeLabel si Remaining cambió (formato MM:SS)
-  3. Si IsOver y no resultShown:
-     - resultLabel.display = Flex
-     - determina texto (Ganas {X}-{Y} / Pierdes / Empate)
-     - actualiza solo si texto cambió
-
-## Ciclo de Vida S102
-
-**OnEnable:**
-- Instancia UI tree (scoreboard, rosterRoot, seedLabel, resultRoot)
-- **S102 NUEVO:** inicializa lastRosterCount = -1 (fuerza refresh en primer Update)
-- Oculta todo excepto seedLabel
-
-**Update:**
-- Si IsRunning || IsOver: muestra scoreboard + roster
-- Si IsOver: muestra resultLabel
-
-**OnDisable:**
-- Limpia elementos
-
-## Invariantes S102
-
-- **Visibilidad condicional:** marcador/roster ocultos hasta IsRunning || IsOver
-- **Etiqueta sala siempre visible:** seedLabel no se occulta (es referencia permanente)
-- **resultLabel oculto:** hasta IsOver=true
-- **lastRosterCount reiniciable:** se resetea en OnEnable (cada nueva sesión, fresco)
-- **Cache de strings:** previene ediciones DOM innecesarias
-- **Verb() pura:** sin estado
-
-## Conexiones
-
-**Entrada:**
-- [[ArenaRound]] — IsRunning, IsOver, PlayerSecured, RivalSecured, Remaining, Winner
-- [[ArenaSandbox]] — Spawned, ActiveSeed
-- [[MoriMochiAgent]] — Team, Occupation
-- [[CreatureDNA]] — CustomName
-
-**Salida:**
-- Labels UIToolkit (display en pantalla)
-
-## Vinculado a
-
-[[Index/23 - Arena Sandbox y Expedicion]]
+**Conexiones:** [[ArenaRound]], [[ArenaSandbox]], [[MoriMochiAgent]], [[CreatureDNA]], [[Occupation]], [[CreatureIntent]], [[LocEnumMaps]]

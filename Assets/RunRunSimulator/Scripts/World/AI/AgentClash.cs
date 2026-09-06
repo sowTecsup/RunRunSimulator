@@ -46,7 +46,7 @@ internal class AgentClash
 
         var occ = ctx.Occupation;
         if (occ == Occupation.None) occ = Occupation.Gather;
-        if (occ == Occupation.Gather || occ == Occupation.Decoy) return false;
+        if (occ == Occupation.Gather || occ == Occupation.Decoy || occ == Occupation.Explore) return false;
 
         MoriMochiAgent preferred     = null;
         float          preferredDist = float.MaxValue;

@@ -6,106 +6,78 @@ tags: [script, world, expedition, planning]
 
 **Ruta:** `World/Expedition/ArenaCastPlanner.cs`
 
-**Responsabilidad:** Planificador de elenco de arena que construye la lista de criaturas a spawnear según modo (Roster vs LocalSave), aplica planes de ocupación rivales por semilla, y remembers cambios de ocupación/sitio del jugador.
+**Responsabilidad:** Planificador de elenco de arena que construye la lista de criaturas a spawnear según modo (Roster vs LocalSave), aplica planes rivales por semilla, remembers cambios de ocupación/sitio del jugador (S103). Soporta selección explícita de criaturas locales vía `SelectLocal()` (S103 NUEVO), complementado por `ArenaCastPicker` UI. `LocalPool` propiedad pública (S103 NUEVO) para exposición a picker.
 
-## Campos Privados
+**Métodos públicos:**
+- `Prepare(int roomSeed, int castSeed, int freeCount)` — construye `planned`
+- `SetPlayerPlan(int index, Occupation occupation, ArenaSite site)` — actualiza entry[index] + remembered
+- `SelectLocal(IReadOnlyList<CreatureDNA> picks)` — (S103 NUEVO) carga selección explícita de picker (capped a LocalCount)
+- `ClearLocalSelection()` — (S103 NUEVO) limpia selección local
+- `IReadOnlyList<CreatureDNA> LocalPool { get; }` — (S103 NUEVO) propiedad para acceso a pool local
 
-- `roster` (ArenaRosterSO) — referencia al roster básico (si null → fallback mint)
-- `mint` (Func<CreatureDNA>) — callback para crear DNA (fallback)
-- `planned` (List<ArenaCastEntry>) — elenco final a spawnear
-- `remembered` (Dictionary<string, ArenaCastEntry>) — caché (CustomName → entry) con cambios previos
-- `localPool` (List<CreatureDNA>) — pool local cargado una vez (lazy)
-
-## Propiedades Públicas
-
+**Propiedades:**
 - `Planned → IReadOnlyList<ArenaCastEntry>` — elenco final
-- `Mode` (ArenaCastMode) — Roster o LocalSave (init Roster)
-- `LocalCount` (int) — cuántas criaturas cargar de LocalSave (default 3)
-- `LocalAvailable` (bool) — si LocalSave tiene criaturas (se actualiza en Prepare)
+- `Mode` (ArenaCastMode) — Roster o LocalSave
+- `LocalCount` (int) — cuántas criaturas de LocalSave (default 3)
+- `LocalAvailable` (bool) — si LocalSave tiene criaturas
 - `HasRoster` (bool) — si roster != null && entries.Count > 0
+- `HasLocalSelection` (bool) — (S103 NUEVO) si localSelection.Count > 0
 
-## Métodos Públicos
+**Campos Privados:**
+- `localSelection` (List<CreatureDNA>) — (S103 NUEVO) selección explícita del picker
+- `localPool` (List<CreatureDNA>) — cache lazy del pool local
 
-- `Prepare(int roomSeed, int castSeed, int freeCount) → void` — construye `planned`:
-  1. planned.Clear()
-  2. UnityEngine.Random.InitState(castSeed)
-  3. Si no HasRoster: crea freeCount DNAs vía mint() sin roster
-  4. Si Mode=LocalSave: Pick(LocalPool(), LocalCount, castSeed) y Remembered()
-  5. Si Mode=Roster o !LocalAvailable: itera roster.Entries con Team=Player
-  6. Construye plans rivales: selecciona plan de RivalPlans[Abs(roomSeed) % 5]
-  7. Itera roster.Entries con Team=Rival → asigna occupation + site por plan
+**Constantes de Datos (S103 actualizado):**
 
-- `SetPlayerPlan(int index, Occupation occupation, ArenaSite site) → void` — actualiza entry[index]:
-  - Valida index y Team=Player
-  - Cambia Occupation y Site
-  - Guarda en remembered[PlanKey]
-
-## Constantes de Datos
-
-**RivalPlans (5 patrones):**
+**RivalPlans (7 patrones con Explore S103):**
 ```
 0: [Guard, Gather, Gather]
 1: [Break, Gather, Gather]
 2: [Decoy, Guard, Gather]
 3: [Gather, Gather, Gather]
 4: [Break, Decoy, Gather]
+5: [Explore, Gather, Gather]     ← S103 NUEVO
+6: [Guard, Explore, Gather]       ← S103 NUEVO
 ```
 
 **GatherSites:** [Center, NearVein, FarVein]
 
-Rival i recibe `RivalPlans[roomSeed % 5][i % 3]` y site según occupation (Gather → GatherSites[i % 3], else Center)
+Rival i recibe `RivalPlans[roomSeed % 7][i % 3]` y site según occupation (Gather → GatherSites[i % 3], else Center).
 
-## Flujo Prepare S102
-
-```
+**Flujo Prepare (S103 actualizado):**
 1. Limpia planned, seed RNG, marca LocalAvailable=true
-2. Si no HasRoster:
-   - Agrega freeCount entries con Team=None, Occupation=Gather, Site=Center
-   - Retorna (fallback mode)
+2. Si no HasRoster: agrega freeCount minted entries, retorna
 3. Si Mode=LocalSave:
-   - Pick() de LocalPool con castSeed
-   - Para cada: Remembered() — aplica cambios previos si existen
+   - Si `localSelection.Count > 0`: usa localSelection (picker)
+   - Si no: Pick(LocalPool, LocalCount, castSeed)
+   - Para cada: Remembered() → restaura cambios previos
    - Team=Player, Occupation=Gather, Site=Center
 4. Si Mode=Roster o !LocalAvailable:
    - Itera roster.Entries con Team=Player
-   - Remembered() — restaura cambios previos
-   - FromRoster() clona DNA con stats del entry
+   - Remembered() → restaura cambios previos
 5. Construye rivales:
-   - plan = RivalPlans[Abs(roomSeed) % 5]
+   - plan = RivalPlans[Abs(roomSeed) % 7] (S103: 7 no 5)
    - rivalIndex = 0
    - Para cada roster.Entries con Team=Rival:
      - occupation = plan[rivalIndex % 3]
      - site = occupation==Gather ? GatherSites[rivalIndex % 3] : Center
-     - FromRoster() + agrega a planned
+     - FromRoster() → agrega a planned
      - rivalIndex++
-```
 
-## Invariantes S102
+**S103 Cambios:**
+- RivalPlans expandido de 5 a 7 patrones (agregó Explore combinaciones)
+- `SelectLocal(IReadOnlyList<CreatureDNA> picks)` — permite picker pasar selección directamente
+- `ClearLocalSelection()` — limpia si necesario
+- `LocalPool` propiedad pública (antes era método privado Pool())
+- `HasLocalSelection` propiedad para verificar si hay picks del picker
+- Prepare ahora prioriza `localSelection` si está poblada
 
-- **Determinístico:** RNG seeded vía castSeed (Pick es reproducible)
-- **Remembered entre sesiones:** cambios previos se restauran por CustomName
-- **Uno rosado:** FromRoster() clona Stats/BaseColor/BodyShapeID pero calcula Timestamp nuevo
-- **LocalPool lazy:** se carga una sola vez (línea 90)
-- **Sin mutación de roster:** FromRoster no modifica el asset
+**Integración S103:**
+1. `ArenaCastPicker` llama `sandbox.SelectLocalCast(selection)`
+2. Sandbox llama `planner.SelectLocal(selection)`
+3. Próximo `Prepare()` usa localSelection en lugar de Pick aleatorio
+4. `ClearLocalSelection()` disponible para "Shuffle" button si desea retornar a aleatorio
 
-## Construcción Típica
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-```csharp
-var planner = new ArenaCastPlanner(roster, () => mint.MinCreateDNA(DNA_random_stats));
-planner.SetMode(ArenaCastMode.LocalSave);
-planner.Prepare(roomSeed, castSeed, freeCount);
-// ... más tarde, cambios del jugador:
-planner.SetPlayerPlan(0, Occupation.Guard, ArenaSite.FarVein);
-```
-
-## Conexiones
-
-- [[ArenaCastSource]] (LoadLocal + Pick)
-- [[ArenaRosterSO]] (Entries)
-- [[ArenaCastEntry]] (struct que forma planned)
-- [[ArenaSandbox]] (propietario, llama Prepare + SetPlayerPlan)
-- [[WorldEnums]] (ArenaCastMode, Occupation, ArenaSite, ExpeditionTeam)
-
-## Vinculado a
-
-[[Index/23 - Arena Sandbox y Expedicion]]
+**Conexiones:** [[ArenaCastSource]], [[ArenaRosterSO]], [[ArenaCastEntry]], [[ArenaSandbox]], [[ArenaCastPicker]], [[CreatureDNA]], [[Occupation]], [[ArenaSite]], [[ExpeditionTeam]]

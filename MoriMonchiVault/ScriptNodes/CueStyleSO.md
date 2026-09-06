@@ -1,85 +1,88 @@
 ---
-tags: [script, data, scriptableobject, expedition]
+tags: [script, data, scriptableobject, expedition, visualization]
 ---
 
 # CueStyleSO.cs
 
 **Ruta:** `Data/Expedition/CueStyleSO.cs`
 
-**Responsabilidad:** Gancho de datos: contiene todos los knobs de presentación de guías visuales. Diccionario Odin `CreatureIntent → Color` para colorear rutas/anillos. 50+ parámetros de geometría, animación y velocidad. **S102 NUEVO:** sección Cono de visión (VisionFillInnerAlpha, VisionFillOuterAlpha, VisionEdgeAlpha, VisionSideAlpha, NearRingAlpha, VisionTurnSmoothing). Cero lógica; solo lectura desde ArenaCueOverlay. Botón `PopulateDefaults()` para precargar.
+**Responsabilidad:** Gancho de tuning visual para guías de arena. Diccionario `CreatureIntent → Color`, 50+ parámetros de geometría/animación. S102: visión cono. **S103:** Colores Exploring/Reporting, **sección Pizarrón** (vetas conocidas, pings de reportes). Sin lógica; solo lectura desde ArenaCueOverlay, ArenaRoomCueOverlay.
 
-## Campos Públicos
+**Campos Principales:**
 
 **Diccionario (Odin):**
-- `intentColors` (Dict<CreatureIntent, Color>) — mapping intención → color. S101: Carrying, Securing, Guarding, Hunting, Taunting. S100: Clashing, Dazed.
+- `intentColors` (Dict<CreatureIntent, Color>)
+- S101: Collecting, Carrying, Taking, Securing, Guarding, Hunting, Taunting
+- S100: Clashing, Dazed
+- **S103:** Exploring (verde azulado 0.55, 0.9, 0.6), Reporting (amarillo verde 0.75, 1, 0.45)
 
 **Colores predefinidos:**
-- `DefaultIntentColor`, `FriendColor` (verde), `FoeColor` (rojo), `MineralColor` (cyan), `SocialLinkColor` (rosa), `FightColor` (rojo oscuro)
+- `DefaultIntentColor`, `FriendColor`, `FoeColor`, `MineralColor`, `SocialLinkColor`, `FightColor`
 
-**Cono de Visión S102 NUEVO:**
-- `VisionFillInnerAlpha` (float, Range 0–1, default 0.25) — alfa en el centro del sector (cono relleno interior)
-- `VisionFillOuterAlpha` (float, Range 0–1, default 0.08) — alfa en el perímetro del sector (cono relleno exterior)
-- `VisionEdgeAlpha` (float, Range 0–1, default 0.8) — alfa del arco del borde del cono
-- `VisionSideAlpha` (float, Range 0–1, default 0.35) — alfa de los segmentos laterales (si sweep < 360°)
-- `NearRingAlpha` (float, Range 0–1, default 0.5) — alfa del anillo de audición (dashed)
-- `VisionTurnSmoothing` (float, Min 0, default 5) — exponente de Lerp para suavizado de giro (rumbo interpolado)
+**Secciones de Tuning:**
 
-**Parámetros de Ruta (sin cambios conceptuales S102):**
-- `PathSmoothing`, `PathFadeSeconds`, `CurveSamples`, `StartTangent`, `PathThickness`, `PathDashLength`, `PathDashGap`, `PathFlowSpeed`, `PathTailAlpha`, `HeadLength`, `HeadWidth`
+**Intención (diccionario):**
+- ColorFor(CreatureIntent) → color
 
-**Parámetros de Anillo (sin cambios S102):**
-- `RingThickness`, `RingAlpha`, `RingSpinSpeed`, `RingDashCount`, `RingDashRatio`, `AppearSeconds`, `AppearScale`, `PulseSeconds`, `PulseAmount`, `AttentionArcDegrees`, `AttentionAlpha`
+**Aparición:**
+- AppearSeconds, AppearScale (fade in)
 
-**Parámetros de Retícula (sin cambios S102):**
-- `ReticleRadius`, `ReticleThickness`, `ReticleSpinSpeed`, `ReticleSweepDegrees`, `ReticleAppearScale`
+**Geometría básica:**
+- HeightOffset, RingThickness, RingAlpha, PathThickness, HeadLength, HeadWidth, PerceptThickness
 
-**Parámetros de Mineral (sin cambios S102):**
-- `MineralDiscRadius`, `MineralColor`, `MineralInnerAlpha`, `MineralOuterAlpha`, `MineralRingAlpha`, `MineralRingThickness`
+**Percepción:**
+- FriendColor (verde), FoeColor (rojo), PerceptAlpha, PerceptFarAlpha
+- AttentionArcDegrees, AttentionAlpha
+- PulseSeconds, PulseAmount
 
-**Parámetros de Minería (sin cambios S102):**
-- `MiningArcRadius`, `MiningArcThickness`, `MiningArcAlpha`
+**Anillo de percepción:**
+- RingDashCount, RingDashRatio, RingSpinSpeed
 
-**Parámetros de Percept (sin cambios S102):**
-- `PerceptAlpha`, `PerceptFarAlpha`, `PerceptThickness`, `PerceptDashLength`, `PerceptDashGap`, `PerceptFlowSpeed`
+**Cono de visión (S102):**
+- VisionFillInnerAlpha, VisionFillOuterAlpha, VisionEdgeAlpha, VisionSideAlpha
+- NearRingAlpha, VisionTurnSmoothing
 
-## Métodos Públicos
+**Retícula:**
+- ReticleRadius, ReticleThickness, ReticleSpinSpeed, ReticleSweepDegrees, ReticleAppearScale
 
-- `ColorFor(CreatureIntent intent) → Color` — busca en diccionario, fallback a DefaultIntentColor
+**Ruta:**
+- PathFadeSeconds, PathSmoothing, CurveSamples, StartTangent, PathFlowSpeed, PathDashLength, PathDashGap
+- PathTailAlpha, DestMarkerRadius, DestPulseSpeed, DestPulseAmount
 
-- `PopulateDefaults()` → void — **Botón Odin:** inicializa diccionario con intents S101/S100
+**Salidas y minado:**
+- ExitAlpha, ExitRingThickness
+- MiningArcRadius, MiningArcThickness, MiningArcAlpha
 
-## PopulateDefaults() — Colores S101 + S100
+**Minerales:**
+- MineralColor (cyan), MineralDiscRadius, MineralInnerAlpha, MineralOuterAlpha, MineralRingThickness, MineralRingAlpha
 
-| CreatureIntent | Color | Significado |
-|---|---|---|
-| Idle/Wandering | (0.75, 0.75, 0.75) | Neutral gris |
-| Collecting | (0, 1, 1) | Cyan recolección |
-| Carrying | (1, 0.8, 0.25) | Amarillo-naranja |
-| Taking | (0.4, 1, 0.9) | Cyan claro |
-| Securing | (1, 0.92, 0.45) | Naranja claro |
-| Guarding | (0.45, 0.65, 0.95) | Azul claro |
-| Hunting | (0.9, 0.3, 0.1) | Naranja oscuro |
-| Fleeing | (0.9, 0.2, 0.2) | Rojo miedo |
-| Taunting | (0.95, 0.3, 0.75) | Rosa intenso |
-| Losing | (0.6, 0.62, 0.72) | Gris azulado |
-| Clashing | (1, 0.45, 0.15) | Naranja combate |
-| Dazed | (0.75, 0.6, 0.95) | Violeta |
+**Pizarrón S103 NUEVO:**
+- `KnownVeinRingAlpha` [Range(0,1)] = 0.45 — visibilidad anillos de vetas conocidas
+- `KnownVeinRingThickness` = 0.05 — grosor del anillo
+- `KnownVeinRingOffset` = 0.35 — distancia extra desde mineral
+- `PingSeconds` = 1.4 — duración visible del ping (expansión + fade)
+- `PingRadius` = 2.6 — radio máximo del ping
+- `PingAlpha` [Range(0,1)] = 0.8 — opacidad inicial ping
+- `PingThickness` = 0.08 — grosor del ring ping
 
-## Invariantes S102
+**Social:**
+- SocialLinkColor (rosa), FightColor (rojo), SocialLinkThickness, FightPulseSpeed
 
-- **Diccionario extensible:** nuevos intents se agregan a PopulateDefaults sin cambiar ArenaCueOverlay
-- **Paleta coherente:** cálidos (amarillo/naranja) para progreso; fríos (azul) para defensa; rojos para agresión
-- **Visión condicional:** parámetros solo aplican si agente.HasVisionCone (ExpeditionRulesSO.Current != null)
-- **Suavizado de giro:** VisionTurnSmoothing = exponente negativo para Lerp(curr, target, 1 - Exp(-smoothing * dt))
+**Métodos Públicos:**
+- `ColorFor(CreatureIntent intent) → Color` — lookup + fallback
+- `PopulateDefaults() [Button]` — inicializa diccionario con S103 intents (agrega Exploring, Reporting)
 
-## Conexiones
+**S103 Cambios:**
+- Colores nuevos en diccionario: Exploring, Reporting
+- Sección Pizarrón agregada (7 campos)
+- PopulateDefaults() actualizado para Exploring (0.55, 0.9, 0.6), Reporting (0.75, 1, 0.45)
+- ArenaRoomCueOverlay.DrawBlackboards() consume estos valores
 
-- [[ArenaCueOverlay]] — lector de todos los parámetros
-- [[CueDrawer]] — recibe valores para Disc, Ring, Arc, Sector, DashedSegment
-- [[DrawVisionCone]] — usa VisionFillInnerAlpha, VisionFillOuterAlpha, VisionEdgeAlpha, VisionSideAlpha, NearRingAlpha, VisionTurnSmoothing
-- [[CreatureIntent]] — keys del diccionario
-- [[VisionProfile]] — no accede CueStyleSO, pero ArenaCueOverlay usa ambos
+**Invariantes:**
+- Diccionario extensible
+- Parámetros solo aplican si en expedición (Current != null)
+- Spin opuesto por team en anillos (PlayerCW, RivalCCW)
 
-## Vinculado a
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+**Conexiones:** [[ArenaCueOverlay]], [[ArenaRoomCueOverlay]], [[CueDrawer]], [[DrawVisionCone]], [[CreatureIntent]], [[TeamBlackboard]], [[ExpeditionRulesSO]]

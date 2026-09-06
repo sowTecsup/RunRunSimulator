@@ -91,6 +91,15 @@ public class CueStyleSO : SerializedScriptableObject
     public float MineralRingThickness = 0.04f;
     [Range(0f, 1f)] public float MineralRingAlpha = 0.5f;
 
+    [Title("Pizarrón")]
+    [Range(0f, 1f)] public float KnownVeinRingAlpha = 0.45f;
+    public float KnownVeinRingThickness = 0.05f;
+    public float KnownVeinRingOffset = 0.35f;
+    public float PingSeconds = 1.4f;
+    public float PingRadius = 2.6f;
+    [Range(0f, 1f)] public float PingAlpha = 0.8f;
+    public float PingThickness = 0.08f;
+
     [Title("Social")]
     public Color SocialLinkColor = new Color(0.95f, 0.5f, 0.8f);
     public Color FightColor = new Color(0.9f, 0.15f, 0.15f);
@@ -133,6 +142,8 @@ public class CueStyleSO : SerializedScriptableObject
         AddIfMissing(CreatureIntent.Guarding, new Color(0.45f, 0.65f, 0.95f));
         AddIfMissing(CreatureIntent.Hunting, new Color(0.9f, 0.3f, 0.1f));
         AddIfMissing(CreatureIntent.Taunting, new Color(0.95f, 0.3f, 0.75f));
+        AddIfMissing(CreatureIntent.Exploring, new Color(0.55f, 0.9f, 0.6f));
+        AddIfMissing(CreatureIntent.Reporting, new Color(0.75f, 1f, 0.45f));
 
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);

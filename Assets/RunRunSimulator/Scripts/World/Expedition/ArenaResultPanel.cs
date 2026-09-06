@@ -87,7 +87,9 @@ public class ArenaResultPanel : MonoBehaviour
         var column = new VisualElement();
         var name = new Label(stat.Name);
         name.AddToClassList("result-row__name");
-        var stats = new Label($"{Verb(stat.Occupation)}  ·  aseguró {stat.Secured}  ·  minó {stat.Collected}  ·  tumbó {stat.HitsLanded}  ·  cayó {stat.TimesKnocked}");
+        string firstLine = $"{Verb(stat.Occupation)}  ·  aseguró {stat.Secured}  ·  minó {stat.Collected}";
+        if (stat.Reports > 0) firstLine += $"  ·  avisó {stat.Reports}";
+        var stats = new Label($"{firstLine}\ntumbó {stat.HitsLanded}  ·  cayó {stat.TimesKnocked}");
         stats.AddToClassList("result-row__stats");
         column.Add(name);
         column.Add(stats);

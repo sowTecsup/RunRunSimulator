@@ -4,6 +4,56 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-06 (Session 103 — **UI DE ARENA (SELECTOR DE MIS MORIMONCHIS + HUD DE RONDA UITK + PANEL DE RESULTADO CON ESTADÍSTICAS) ✅ + SQUASH & STRETCH POR DRIVER PROPIO Y TUMBADO AFINADO ✅ (video `s103_squash_demo_5mbps.mp4`) + EXPLORAR Y PIZARRÓN DE EQUIPO (8.10 paso 4) ✅ (video `s103_explorar_demo_b.mp4`) — 6 scripts NUEVOS + 16 MODIFICADOS, prefab del agente, 3 tablas de texto, 2 assets repoblados; todo verificado en Play con trazas numéricas y capturas miradas; commit + push al cierre (desde S103 el cierre incluye commit); ✅ CERRADA por `/cerrar-sesion`**)
+
+**Focus:** Juan: *"comitea y proponme cuáles son los siguientes pasos; sugiero empezar con la UI, mejorar el efecto ragdoll y empujes squash and stretch en los MoriMonchis, agregá el comitear al cerrar sesión"* → plan aprobado ("de acuerdo, empecemos"), luego *"continua en un /loop… solo detente cuando tengas un video para mostrarme"* → dos videos entregados por SendUserFile ("Me gusta como se ve, continua"). PC1 (E:\GitHub), Synty presente, MCP de CoplayDev vivo toda la sesión (compilar, Play, `execute_code` con coroutines de sondeo, prefab por `PrefabUtility.LoadPrefabContents`). Sub-agentes `morimonchi-coder` (7 en el bloque UI, 2 en el pizarrón); el núcleo del squash y del scout lo escribió el orquestador (rate limit de Sonnet a mitad de sesión y cambios interdependientes).
+
+1. **Cierre con commit:** `CLAUDE.md` paso 9 y `.claude/commands/cerrar-sesion.md` pasos 5-6 (commit `S{N}: …` + push). Un commit `6562d65 "previous change"` apareció a mitad de sesión con el bloque UI adentro (no lo hizo el orquestador; Juan tiene que ver de dónde salió).
+2. **UI (Bloque A):** [[ArenaCastPicker]] NUEVO (overlay UITK sobre el plan, tarjetas del save local, hasta 3, `sandbox.SelectLocalCast`; [[ArenaCastPlanner]] gana `localSelection`/`SelectLocal`/`ClearLocalSelection`, [[ArenaSandbox]] `LocalPool`/`SelectLocalCast`); [[ArenaRoundHud]] REESCRITO sobre `ArenaRoundHud.uxml/uss` (marcador, cronómetro con aviso rojo a 15 s, columnas por equipo con ocupación + intención + carga + barra de minado, resultado central); [[ArenaResultPanel]] NUEVO + [[ArenaRoundSummary]] NUEVO (`ArenaRoundStat`: asegurado, minado, tumbó, cayó, avisó) capturado en `ArenaRound.End()` y mostrado al volver al plan; contadores `secured` en [[AgentExpedition]], `hitsLanded`/`timesKnocked` en [[AgentClash]], fachadas en [[MoriMochiAgent]]. Capturas `s103_a…f`, `s103_g_picker_fixed`, `s103_k_*`.
+3. **Squash & stretch (Bloque B):** [[MonchiSquashDriver]] NUEVO en el prefab con jerarquía `SquashPivot → SquashCounter → Model` (el contador anula la rotación del pivote para no pelear con [[MonchiGazeDriver]], que escribe `Model.localRotation`); estira a lo largo de la velocidad (`MoriMochiAgent.Velocity` nueva) y aplica pulsos de resorte en `onThrow/onBounce/onLand/onGetUp/onClashTell/onClashHit`; resorte en sub-pasos de 1/120 s con dt tope 0,034 s (las capturas PNG y el hit stop meten frames de ~0,1 s que lo hacían explotar). Las tres `MMF_Scale` de Feel salieron del prefab (quedan hit stop y partículas). [[AgentPhysics]] `Knock` suma torque aleatorio `knockSpin` 5 (A/B 5 / 0 / 2,5: no cambia el tiempo de vuelo; el vuelo largo venía de `bounciness` 1 con 4 rebotes → prefab `bounciness` 0,6, `maxBounces` 2 con OK de Juan). Video `s103_squash_demo_5mbps.mp4` (Unity Recorder a 30 fps fijos, 1080p, 5 Mbps).
+4. **Explorar + pizarrón (Bloque C, 8.10 paso 4):** [[TeamBlackboard]] NUEVO (clase plana por equipo, dueño [[ArenaSandbox]] `BoardFor(team)`: sitios = vetas, visitados, `KnownVein` con restantes, pings; `NextSite(from, out newCycle)`, `ReportVein(vein, now, repeatSeconds)`, `BestKnownVein`); [[AgentScout]] NUEVO (colaborador de [[AgentExpedition]]: `Traveling → Reporting`, avisa lo que ve y al llegar, tras recorrer todo descansa `ScoutRestSeconds` 12 minando; no inicia choques: [[AgentClash]] excluye Explore); las recolectoras consultan el pizarrón cuando no ven material y su puesto se agotó (`TryGatherEngage`). Intenciones `Exploring`/`Reporting` (enum, 3 tablas de texto por YAML, `CueStyle` colores + sección Pizarrón, [[MonchiMoodDriver]], [[MonchiGestureSetSO]] Reporting → "Yes"); [[ArenaRoomCueOverlay]] dibuja anillo punteado por equipo sobre las vetas conocidas y ping al avisar; plan con quinta píldora "Explora" (fila DÓNDE apagada); planes rivales +2 con Explore; resultado con "avisó N". [[AgentContext]] `Board`; [[ExpeditionRulesSO]] sección Explorar (`ScoutArriveDistance`, `ReportSeconds`, `ReportRepeatSeconds`, `ScoutRestSeconds`). Ronda de control 60 s sala 4247: 3 y 3 avisos, 6 idas de recolectoras a vetas a 21 m (fuera de visión), 0 peleas iniciadas por exploradoras, 15-14. Video `s103_explorar_demo_b.mp4`.
+5. **Bugs corregidos de paso:** entrar en choque llamaba `expedition.ResetForReuse()` y borraba minado/asegurado/avisos → `AgentExpedition.Cancel()` (cancela la actividad sin tocar contadores; `OnKnocked` lo reusa). Bucle de "avisa" cada 0,9 s cuando solo quedaba un sitio → descanso por ciclo. Resultado con estadísticas en dos líneas.
+6. **Anomalía vista una vez (no reproducida en 4 rondas posteriores con contador de excepciones en 0):** panel de resultado vacío + NREs de `MMTimeManager` de Feel; ambos coinciden con un domain reload durante Play (planificador y time manager pierden estado). Quirk nuevo en memoria: `project-capturas-en-play-generan-hitch`.
+
+> ### 📝 Notas S103 (para decisión de Juan)
+> 1. El HUD mezcla "explora · Exploring": tu preferencia guardada (`mm_locale`) es `en` y la arena tiene la UI en español fijo; los videos se grabaron forzando `es` solo en Play. Opciones: la arena respeta la preferencia (`Loc.ApplySavedLocale`) o se localiza entera.
+> 2. Sitios de exploración = solo vetas; sumar esquinas o la salida rival es un cambio chico en `SetSites`.
+> 3. `AgentExpedition` sigue en ~870 líneas (deuda previa); el scout salió como colaborador aparte para no engordarlo más.
+> 4. `Index/23` no recibió sección 5h con estos contratos (falta OK de Juan); todo está acá y en los ScriptNodes.
+> 5. `ProjectSettings/EditorSettings.asset` cambió solo (probablemente el Recorder o el editor); entró al commit.
+
+**Lista final de `.cs` de S103 (para el vault-documenter):**
+- `Scripts/World/Expedition/ArenaCastPicker.cs` → NUEVO
+- `Scripts/World/Expedition/ArenaResultPanel.cs` → NUEVO
+- `Scripts/World/Expedition/ArenaRoundSummary.cs` → NUEVO
+- `Scripts/World/Creatures/MonchiSquashDriver.cs` → NUEVO
+- `Scripts/World/Expedition/TeamBlackboard.cs` → NUEVO
+- `Scripts/World/AI/AgentScout.cs` → NUEVO
+- `Scripts/World/Expedition/ArenaRoundHud.cs` → MODIFICADO (reescrito sobre UXML/USS)
+- `Scripts/World/Expedition/ArenaPlanPanel.cs` → MODIFICADO (picker, resultado, píldora Explora)
+- `Scripts/World/Expedition/ArenaCastPlanner.cs` → MODIFICADO (selección local, planes rivales con Explore)
+- `Scripts/World/Expedition/ArenaSandbox.cs` → MODIFICADO (`LocalPool`, `SelectLocalCast`, `BoardFor`, inyección del pizarrón)
+- `Scripts/World/Expedition/ArenaRound.cs` → MODIFICADO (`Summary`)
+- `Scripts/World/Expedition/ArenaRoomCueOverlay.cs` → MODIFICADO (`DrawBlackboards`)
+- `Scripts/World/AI/AgentExpedition.cs` → MODIFICADO (`secured`, scout, pizarrón en Gather, `Cancel`)
+- `Scripts/World/AI/AgentClash.cs` → MODIFICADO (`hitsLanded`/`timesKnocked`, Explore no inicia)
+- `Scripts/World/AI/AgentPhysics.cs` → MODIFICADO (`knockSpin`)
+- `Scripts/World/AI/AgentContext.cs` → MODIFICADO (`Board`)
+- `Scripts/World/AI/MoriMochiAgent.cs` → MODIFICADO (`Velocity`, `knockSpin`, `SetBlackboard`, `ScoutReports`, fachadas de stats, `Cancel` al chocar)
+- `Scripts/Data/Expedition/ExpeditionRulesSO.cs` → MODIFICADO (sección Explorar)
+- `Scripts/Data/Expedition/CueStyleSO.cs` → MODIFICADO (colores nuevos, sección Pizarrón)
+- `Scripts/Data/MonchiGestureSetSO.cs` → MODIFICADO (Reporting → Yes)
+- `Scripts/World/Creatures/MonchiMoodDriver.cs` → MODIFICADO (Exploring, Reporting)
+- `Scripts/Core/Enums/CreatureEnums.cs` → MODIFICADO (`Exploring`, `Reporting`)
+
+**Next session (S104):**
+1. Juan mira `s103_explorar_demo_b.mp4` y decide las notas 1-2; corregir lo que pida del squash & stretch (tope de estirón 1,6, pulsos, resorte) y del tumbado.
+2. Siguientes de 8.10: Llevar/Escoltar; oído como sentido aparte; plan rival desde tipos de parte (8.3). Después la UI de tres pasos si sigue en pie.
+3. Bajar contratos S103 a `Index/23` (5h) e `Index/12` (quirks: Recorder por API, hitch de capturas, domain reload en Play).
+4. Arrastres: sonido; `Index/02`; `Rest` sin loop; `AgentExpedition` > 400 líneas.
+
+---
+
 **Session:** 2026-09-05 (Session 102 — **`/loop` "EJECÚTATE HASTA QUE TENGAS UN GAMEPLAY PARA MOSTRARME" ✅ GAMEPLAY LOGRADO: SEMILLA QUE REPARTE LA SALA (eje de entrada, densidades, decorado) + CONO DE VISIÓN CON GUÍA PROPIA + PALETTE SHADER DEL MAPA (4 paletas) + ELENCO DESDE EL SAVE LOCAL ("Mis MoriMonchis") + PANTALLA DE PLAN PREVIA A LA RONDA (UITK) — 6 scripts NUEVOS + 11 MODIFICADOS + shader nuevo + shader de guías extendido + material + 4 assets de paleta + UXML/USS + escena; verificado en Play con capturas MIRADAS (semillas 4242 y 777, paletas Crepúsculo y Otoño, plan → ronda → resultado → plan) y una ronda completa grabada con los MoriMonchis de Juan (`s102_gameplay_local.mp4`, 26-12); 0 errores de consola (solo los 3 avisos conocidos de rocas Synty); + REVISIÓN DE CIERRE (Juan: "revisemos el código para seguir nuestra manera de iterar"): partición por composición (3 scripts nuevos más), `/code-review medium` con 5 correcciones verificadas en Play y video del flujo (`s102_flujo_plan_ronda.mp4`); ✅ CERRADA por `/cerrar-sesion` (vault-documenter con 9 ScriptNodes nuevos + 12 actualizados); sin commit (Juan no lo pidió)**)
 
 **Focus:** Juan (mensaje único, ejecución autónoma en `/loop`): *"sigamos mejorando la semilla… la idea fundamental de la semilla es que influencie en cómo se distribuye en mapa, rangos de visión en cono marcados con nuestro sistema de UI, lo único fijo es el cristal principal al medio; una vez pulido, implementá una palette shader para el mapa (¿cómo funciona?) para tener niveles más variados; después probar con 3 de mis MoriMonchis y ver cómo se desenvuelven; además es momento de hacer la UI; ejecutate en /loop hasta que tengas un gameplay para mostrarme"*. Sesión en la **PC2 (`Sowtank`)** con Synty importado (la arena abre limpia y se guarda desde el editor). **El MCP de CoplayDev vivió toda la sesión** (refresh, 4 entradas a Play, `manage_scene save`); el CLI quedó para `capture_game_view` y `recompile_status`. Sin sub-agentes: el código lo escribió el orquestador (los cambios eran interdependientes).

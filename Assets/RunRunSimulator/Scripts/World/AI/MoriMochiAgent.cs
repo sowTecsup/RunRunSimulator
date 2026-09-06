@@ -146,7 +146,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
             case AgentState.Courting:     confinement.TickCourting(); break;
             case AgentState.Socializing:  social.TickSocializing();  break;
             case AgentState.HandFeed:     brain.TickHandFeed();      break;
-            case AgentState.Expedition:   if (clash.TryEngage()) expedition.ResetForReuse(); else expedition.TickExpedition(); break;
+            case AgentState.Expedition:   if (clash.TryEngage()) expedition.Cancel(); else expedition.TickExpedition(); break;
             case AgentState.Clashing:     clash.TickClashing();      break;
         }
     }
@@ -161,6 +161,9 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     public bool IsHeld => ctx.State == AgentState.Carried;
     public bool IsAirborne => ctx.State == AgentState.Thrown;
+    public Vector3 Velocity => ctx.Rb != null && !ctx.Rb.isKinematic
+        ? ctx.Rb.linearVelocity
+        : (ctx.Agent != null && ctx.Agent.enabled ? ctx.Agent.velocity : Vector3.zero);
     public CreatureDNA DNA => ctx.Dna;
 
     public bool IsPenned => ctx.CurrentContainer != null;
@@ -206,9 +209,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public void SetOccupation(Occupation occupation) => ctx.Occupation = occupation == Occupation.None ? Occupation.Gather : occupation;
     public void SetHomeExit(ExitZone exit) => ctx.HomeExit = exit;
     public void SetGuardPost(Transform post) => ctx.GuardPost = post;
+    public void SetBlackboard(TeamBlackboard board) => ctx.Board = board;
 
     public int CollectedMaterial => expedition.Collected;
     public int SecuredMaterial => expedition.Secured;
+    public int ScoutReports => expedition.Reports;
     public Transform ExpeditionTarget => expedition.TargetTransform;
     public MoriMochiAgent SocialPartner => ctx.State == AgentState.Socializing ? social.Partner : null;
     public MoriMochiAgent ClashTarget => clash.Target;
@@ -512,6 +517,11 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [Tooltip("Upward pop blended into the knock so the creature you hit launches a bit instead of just sliding.")]
     [Range(0f, 1f)]
     [SerializeField] internal float knockUpBias = 0.35f;
+
+    [TabGroup("Tuning", "Physics")]
+    [Tooltip("Random tumble added when knocked so it spins in the air instead of flying stiff. 0 = none.")]
+    [Min(0f)]
+    [SerializeField] internal float knockSpin = 5f;
 
     [TabGroup("Tuning", "Physics"), Title("Recovery (after being thrown)")]
     [Tooltip("Seconds it stays down/dazed where it landed before standing up. Scaled per-personality by RecoverySpeed.")]

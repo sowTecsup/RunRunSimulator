@@ -25,6 +25,7 @@ internal class AgentContext
     internal Occupation Occupation = Occupation.Gather;
     internal ExitZone   HomeExit;
     internal Transform   GuardPost;
+    internal TeamBlackboard Board;
     internal int  FreeAreaMask;
     internal int  ConfinedAreaMask;
     internal bool RebakeInProgress;

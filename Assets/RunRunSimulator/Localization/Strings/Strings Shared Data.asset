@@ -1643,6 +1643,14 @@ MonoBehaviour:
     m_Key: intent.taunting
     m_Metadata:
       m_Items: []
+  - m_Id: 14900000000000106
+    m_Key: intent.exploring
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14900000000000107
+    m_Key: intent.reporting
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

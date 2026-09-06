@@ -55,6 +55,8 @@ namespace MoriMonchiSimulator
                 case CreatureIntent.Guarding: return MonchiMood.Neutral;
                 case CreatureIntent.Hunting: return MonchiMood.Enojado;
                 case CreatureIntent.Taunting: return MonchiMood.Enojado;
+                case CreatureIntent.Exploring: return MonchiMood.Neutral;
+                case CreatureIntent.Reporting: return MonchiMood.Emocionado;
                 default: return Random.value < 0.35f ? MonchiMood.Feliz : MonchiMood.Neutral;
             }
         }
