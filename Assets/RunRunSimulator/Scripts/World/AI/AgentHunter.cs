@@ -16,6 +16,11 @@ internal class AgentHunter : IExpeditionTask
     private float          idle;
     private bool           retreating;
 
+    private MoriMochiAgent chasing;
+    private float          chaseUntil;
+    private MoriMochiAgent baited;
+    private float          baitImmuneUntil;
+
     internal AgentHunter(MoriMochiAgent owner, AgentContext ctx)
     {
         this.owner = owner;
@@ -25,19 +30,7 @@ internal class AgentHunter : IExpeditionTask
     internal bool TryEngage(ExpeditionRulesSO rules)
     {
         if (Time.time < retreatUntil) return BeginRetreat();
-
-        prey = ExpeditionNav.FindPrey(ctx, owner);
-        if (prey != null)
-        {
-            ctx.State   = AgentState.Expedition;
-            post        = null;
-            retreating  = false;
-            huntTimer   = 0f;
-            elapsed     = 0f;
-            ctx.SetStopped(false);
-            ctx.SetDestinationSafe(prey.transform.position);
-            return true;
-        }
+        if (TryHunt(rules)) return true;
 
         post = ExpeditionNav.InjectedPost(ctx) ?? ExpeditionNav.FindPost(ctx);
         if (post == null) return false;
@@ -50,6 +43,24 @@ internal class AgentHunter : IExpeditionTask
         elapsed     = 0f;
         ctx.SetStopped(false);
         ctx.SetDestinationSafe(ExpeditionNav.GuardPoint(ctx, post, rules));
+        return true;
+    }
+
+    internal bool TryHunt(ExpeditionRulesSO rules)
+    {
+        if (Time.time < retreatUntil) return false;
+
+        prey = ExpeditionNav.FindPrey(ctx, owner);
+        if (prey == null) return false;
+
+        ctx.State   = AgentState.Expedition;
+        post        = null;
+        retreating  = false;
+        huntTimer   = 0f;
+        elapsed     = 0f;
+        idle        = 0f;
+        ctx.SetStopped(false);
+        ctx.SetDestinationSafe(prey.transform.position);
         return true;
     }
 
@@ -97,6 +108,47 @@ internal class AgentHunter : IExpeditionTask
             return true;
         }
 
+        if (chasing != null)
+        {
+            Vector3 toChase = chasing.transform.position - ctx.Body.position; toChase.y = 0f;
+            bool lost = Time.time >= chaseUntil || chasing.IsAirborne || chasing.IsHeld || chasing.IsRecovering ||
+                        toChase.magnitude > rules.GuardChaseRadius * 1.75f;
+            if (lost)
+            {
+                baited          = chasing;
+                baitImmuneUntil = Time.time + rules.BaitImmunitySeconds;
+                chasing         = null;
+                repathTimer     = 0f;
+            }
+            else
+            {
+                repathTimer -= dt;
+                if (repathTimer <= 0f)
+                {
+                    repathTimer = rules.HuntRepathInterval;
+                    ctx.SetStopped(false);
+                    ctx.SetDestinationSafe(chasing.transform.position);
+                }
+                return true;
+            }
+        }
+
+        if (rules.HunterBaitSeconds > 0f)
+        {
+            var taunter = ExpeditionNav.NearestTaunter(ctx, owner, rules.GuardChaseRadius);
+            if (taunter != null && !(taunter == baited && Time.time < baitImmuneUntil))
+            {
+                chasing     = taunter;
+                chaseUntil  = Time.time + rules.HunterBaitSeconds;
+                prey        = null;
+                repathTimer = rules.HuntRepathInterval;
+                ctx.SetStopped(false);
+                ctx.SetDestinationSafe(taunter.transform.position);
+                owner.EmitEmote(EmoteKind.Molesto);
+                return true;
+            }
+        }
+
         if (prey != null)
         {
             if (elapsed > rules.GiveUpSeconds) return false;
@@ -123,7 +175,7 @@ internal class AgentHunter : IExpeditionTask
             {
                 var rival = ExpeditionNav.NearestRival(ctx, owner, out _);
                 ExpeditionNav.FaceToward(ctx, rival != null ? rival.transform.position : post.transform.position, dt);
-                idle = rival != null ? 0f : idle + dt;
+                idle += dt;
             }
 
             huntTimer -= dt;
@@ -135,6 +187,7 @@ internal class AgentHunter : IExpeditionTask
                 {
                     prey    = found;
                     elapsed = 0f;
+                    idle    = 0f;
                     ctx.SetStopped(false);
                     ctx.SetDestinationSafe(prey.transform.position);
                 }
@@ -151,6 +204,7 @@ internal class AgentHunter : IExpeditionTask
     }
 
     internal float IdleSeconds => idle;
+    internal bool  IsChasing   => chasing != null;
     internal float Retreat01 => ExpeditionRulesSO.Current != null && ExpeditionRulesSO.Current.HunterRetreatSeconds > 0f
         ? Mathf.Clamp01((retreatUntil - Time.time) / ExpeditionRulesSO.Current.HunterRetreatSeconds)
         : 0f;
@@ -163,17 +217,22 @@ internal class AgentHunter : IExpeditionTask
         huntTimer   = 0f;
         repathTimer = 0f;
         idle        = 0f;
+        chasing     = null;
     }
 
     public void ResetForReuse()
     {
         Cancel();
-        elapsed      = 0f;
-        retreatUntil = 0f;
+        elapsed         = 0f;
+        retreatUntil    = 0f;
+        chaseUntil      = 0f;
+        baited          = null;
+        baitImmuneUntil = 0f;
     }
 
-    public CreatureIntent Intent => retreating ? CreatureIntent.Retreating : CreatureIntent.Hunting;
+    public CreatureIntent Intent => chasing != null ? CreatureIntent.Chasing : (retreating ? CreatureIntent.Retreating : CreatureIntent.Hunting);
     public Transform TargetTransform =>
+        chasing != null ? chasing.transform :
         retreating ? (ctx.HomeExit != null ? ctx.HomeExit.transform : null) :
         prey != null ? prey.transform : (post != null ? post.transform : null);
 }

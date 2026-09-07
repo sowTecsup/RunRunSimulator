@@ -1,0 +1,26 @@
+plan                 W   L   D winrate  margen  puntos huidas golpes    s4242    s4246
+RosterA             14   7   1     66%     2.0    13.6    0.7    3.3      55%      77%
+TresTimidos         12   5   5     66%     1.0    16.3   10.0    0.0      77%      55%
+RosterB             12   8   2     59%     2.5    11.1    2.4    2.9      73%      45%
+OsadosSociables     12  10   0     55%     0.3    11.5    1.8    5.6      55%      55%
+TresOsados           4  15   3     25%    -2.0     4.8    0.0    6.0      23%      27%
+TimidosSolitarios    3  18   1     16%    -4.6     7.5    5.6    0.0       5%      27%
+
+por postura+sitio (promedio por criatura y ronda): n aseg min golpes caidas huidas
+CazC     n=  72 aseg= 1.26 min= 2.03 golpes=1.93 caidas=1.33 huidas=0.00
+CazV     n=  72 aseg= 1.64 min= 2.64 golpes=1.64 caidas=0.94 huidas=0.00
+GuaC     n=  24 aseg= 0.00 min= 0.21 golpes=3.92 caidas=0.92 huidas=0.00
+GuaV     n=  48 aseg= 3.35 min= 3.81 golpes=1.58 caidas=0.88 huidas=0.00
+RecC     n=  96 aseg= 6.85 min= 8.62 golpes=0.00 caidas=1.05 huidas=3.00
+RecV     n=  72 aseg= 7.33 min= 8.54 golpes=0.00 caidas=0.44 huidas=1.92
+SeñC    n=  24 aseg= 0.42 min= 0.71 golpes=0.00 caidas=1.33 huidas=1.08
+SeñV    n=  24 aseg= 1.17 min= 2.38 golpes=0.00 caidas=1.42 huidas=0.62
+
+matriz (fila = jugador, columna = rival, marcador fila-columna; varios = varias rondas):
+             RosterA       RosterB       TresTimidos   TresOsados    OsadosSociabl TimidosSolita
+RosterA      11-15 14-17   9-13 12-9 19- 13-21 18-22 1 9-6 15-9 11-5 15-16 17-12 1 13-5 11-4 11-
+RosterB      13-9 9-12 13- 8-9 8-11      14-5 18-5 14- 9-6 9-7 7-1 8 9-14 8-6 7-9  14-5 16-5 16-
+TresTimidos  21-13 22-18 1 5-14 5-18 5-1 29-29 32-32   9-6 7-6 3-4 6 19-14 20-17 2 24-20 19-12 1
+TresOsados   6-9 9-15 5-11 6-9 7-9 1-7 8 6-9 6-7 4-3 6 5-7 3-6       3-6 6-4 2-5 0 2-2 6-2 4-0 1
+OsadosSociab 16-15 12-17 1 14-9 6-8 9-7  14-19 17-20 1 6-3 4-6 5-2 7 11-8 9-15     13-5 12-9 12-
+TimidosSolit 5-13 4-11 5-1 5-14 5-16 6-1 20-24 12-19 1 2-2 2-6 0-4 4 5-13 9-12 11- 11-12 11-10  

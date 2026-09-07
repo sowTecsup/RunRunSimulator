@@ -1,0 +1,60 @@
+var sandbox = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaSandbox>();
+var round = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaRound>();
+var clock = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaClockControl>();
+var dev = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaMatrixDev>();
+if (dev != null) dev.Stop();
+foreach (var o in UnityEngine.Object.FindObjectsByType<MoriMonchiSimulator.ArenaCueOverlay>(UnityEngine.FindObjectsSortMode.None)) o.enabled = true;
+foreach (var o in UnityEngine.Object.FindObjectsByType<MoriMonchiSimulator.ArenaRoomCueOverlay>(UnityEngine.FindObjectsSortMode.None)) o.enabled = true;
+string dir = "__DIR__";
+var player = MoriMonchiSimulator.ArenaMatrixPlans.Find(MoriMonchiSimulator.ArenaMatrixPlans.Plans16, "__PLAYER__");
+var rival = MoriMonchiSimulator.ArenaMatrixPlans.Find(MoriMonchiSimulator.ArenaMatrixPlans.Plans16, "__RIVAL__");
+System.Collections.IEnumerator Probe()
+{
+    clock.Set(1f);
+    sandbox.SetSeed(__SEED__);
+    round.Reset(false);
+    yield return null;
+    var planned = sandbox.PlannedCast;
+    int kp = 0, kr = 0;
+    for (int i = 0; i < planned.Count; i++)
+    {
+        var e = planned[i];
+        if (e.Team == MoriMonchiSimulator.ExpeditionTeam.Player) { e.Dna.Boldness = 0.5f; e.Dna.Sociability = 0.5f; sandbox.SetOrders(i, player.Orders[kp++]); }
+        else if (e.Team == MoriMonchiSimulator.ExpeditionTeam.Rival) { e.Dna.Boldness = 0.5f; e.Dna.Sociability = 0.5f; sandbox.SetOrders(i, rival.Orders[kr++]); }
+    }
+    round.Launch();
+    var log = new System.Text.StringBuilder();
+    float[] shots = { 12f, 25f, 40f, 60f, 80f };
+    int next = 0;
+    int chaseSeen = 0;
+    while (!round.IsOver)
+    {
+        foreach (var c in sandbox.Spawned)
+        {
+            var a = c != null ? c.Agent : null;
+            if (a == null) continue;
+            if (a.Occupation == MoriMonchiSimulator.Occupation.Break && a.Intent == MoriMonchiSimulator.CreatureIntent.Chasing) chaseSeen++;
+        }
+        if (next < shots.Length && round.Elapsed >= shots[next])
+        {
+            log.Append("t=" + round.Elapsed.ToString("0") + " " + round.PlayerSecured + "-" + round.RivalSecured + " |");
+            foreach (var c in sandbox.Spawned)
+            {
+                var a = c != null ? c.Agent : null;
+                if (a == null) continue;
+                log.Append(" " + a.Team.ToString().Substring(0, 1) + ":" + MoriMonchiSimulator.ArenaOrderCatalog.ArchetypeShort(a.Orders).Substring(0, 3) + "=" + a.Intent + "/" + a.Carried);
+            }
+            log.Append("\n");
+            yield return new UnityEngine.WaitForEndOfFrame();
+            UnityEngine.ScreenCapture.CaptureScreenshot(dir + "/shot_" + shots[next].ToString("0") + ".png");
+            next++;
+        }
+        yield return null;
+    }
+    log.Append("final " + round.PlayerSecured + "-" + round.RivalSecured + " " + round.Winner + " chaseFrames=" + chaseSeen + "\n");
+    foreach (var s in round.Summary) log.Append(s.Team + ":" + MoriMonchiSimulator.ArenaOrderCatalog.ArchetypeShort(s.Orders) + " sec=" + s.Secured + " col=" + s.Collected + " hits=" + s.HitsLanded + " knocked=" + s.TimesKnocked + " fled=" + s.Fled + "\n");
+    System.IO.File.WriteAllText(dir + "/probe.log", log.ToString());
+    System.IO.File.WriteAllText(dir + "/probe.done", "ok");
+}
+sandbox.StartCoroutine(Probe());
+return "probe armado: " + player.Name + " vs " + rival.Name;

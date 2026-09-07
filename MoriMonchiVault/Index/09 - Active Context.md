@@ -4,6 +4,44 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-07 (Session 105 — **BALANCE DEL SEÑUELO Y DE LOS CAZADORES FORZADOS (anzuelo para cazadores · carroñero · el cazador mina si no hay presa) ✅ MEDIDO CON SEIS MATRICES (1.384 rondas) + ARNÉS DE MATRIZ COMO COMPONENTE DEV EN EL REPO (`ArenaMatrixDev` + `ArenaMatrixPlans`) ✅ — 2 scripts NUEVOS + 6 MODIFICADOS, cero escena/prefabs/assets tocados; sesión desatendida: Juan autorizó `/cerrar-sesion` + push + apagar la PC al terminar**)
+
+**Focus:** Juan eligió "Decisión de balance" al abrir (opciones del cierre de S104) y fijó en `AskUserQuestion`: A1 anzuelo medido solo y después A2 carroñero; B1 "mina si no hay presa"; arnés como componente dev en el repo. A mitad de sesión: *"cuando acabes el loop, /cerrar-sesion, pusheá lo que sea que logres avanzar y apagá mi PC; tenés mi permiso"* (memoria `feedback-cierre-desatendido-y-apagado`: solo con permiso explícito por sesión). PC1, MCP de CoplayDev vivo toda la noche (cuatro recompilaciones por `refresh_unity force/all`, cinco entradas a Play, `execute_code` Roslyn). Sub-agentes `morimonchi-coder`: el arnés (2 archivos) y `AgentHunter` (variantes A1 y A1+B1 escritas a copias en el scratchpad para no recompilar durante las matrices); knobs, A2, `SetSeed`, textos del catálogo, fusiones, `analyze.pl`/`pairs.pl` y docs los escribió el orquestador.
+
+1. **Diagnóstico (con los CSV de S104, que seguían en el scratchpad de esa sesión):** el señuelo solo movía al guardián y el cazador lo ignoraba (planes con señuelo 0 % contra la Jauría); el cazador nunca minaba porque el ocio contaba "sin rivales a la vista" y `PostureEngages` lo devolvía al puesto un frame después de empezar a minar (tres Osados 8 %, 0-2 contra tres Tímidos). Todo en `Index/22` 8.11 (balance S105).
+2. **Arnés en el repo:** [[ArenaMatrixPlans]] (NUEVO: `ArenaMatrixTeam`, `Plans16`, `Subset10`, `Personalities6`, `Find`) y [[ArenaMatrixDev]] (NUEVO: `Run(players, rivals, seeds, csv)` en corrutina, CSV con el formato de S104, `.progress`/`.done`, `Stop`); [[ArenaSandbox]] `SetSeed(int)`. Se instancia por `execute_code` en Play (`s105/matrix_setup.cs.txt`); 6 cruces por minuto a 10×. Detalle en `Index/23` 5j.
+3. **Reglas (una frase cada una):** *el cazador también persigue al que lo provoca unos segundos y después lo ignora un rato* ([[AgentHunter]]: `chasing`/`baited`, `HunterBaitSeconds` 8, `BaitImmunitySeconds` 6); *el señuelo se lleva lo que cae y lo caído se levanta rápido* ([[AgentGatherer]] + [[AgentExpedition]], `DropPickupSecondsPerUnit` 0,5); *si no hay a quién cazar, el cazador mina* ([[AgentHunter]] `TryHunt` + ocio sin presa, [[AgentExpedition]] `PostureEngages` con `TryHunt`). [[ExpeditionRulesSO]] tres knobs nuevos; [[ArenaOrderCatalog]] textos de Cazador y Señuelo.
+4. **Lo medido (10 planes, dos salas, 200 rondas por variante; final 16 planes, 512 rondas; personalidades 72):** Muralla 90 % · Fortín 73 · Escolta 70 · Jauría 65 · Mixta 57 · ContraJauría 56 · **Hormiguero+Señuelo 52 (era 31)** · Doble guardia 51 · Codicia 49 · Jauría del centro 47 · Rebaño 47 · Emboscada 40 · Engaño 35 · Muralla de vetas 30 · Señuelos 24 · Hormiguero 18. Cazador 0,5 → 1,7-2,0 asegurados por ronda; **tres Osados solitarios 8 → 25 %**; nuevo piso: dos Tímidos solitarios (señuelos forzados) 16 %. Nadie ≥ 95 ni ≤ 5. Tabla por variante en `Index/22` 8.11.
+5. **Sondeo visual (Hormiguero+Señuelo vs Jauría, 4246, 1×, capturas miradas):** 12-21; los cazadores persiguieron al señuelo 2.109 frames, el señuelo cargó un caído y lo tumbaron por cargar; se ve al señuelo irse al lado rival mientras la Jauría hace la picada sobre nuestro recolector: el problema abierto es de sitio, no de knob.
+6. **Quirks nuevos en `Index/12` (S105):** knobs del SO editables en Play por `execute_code` sin recompilar; el editor estuvo `is_focused: true` toda la noche (variantes a copias en el scratchpad); ciclo de compilación verificado; **Unity a 34 GB tras ~1.300 rondas en una sesión de Play** (cortar cada ~500); un waiter de Bash fue matado por memoria baja; heredocs largos en Bash fallan → Write + `insert.pl`.
+
+> ### 📝 Notas S105 (para decisión de Juan)
+> 1. El señuelo sigue sin ganarle cruces a la Jauría: va al sitio del plan (lado rival) mientras el cazador rival caza en nuestras vetas. Arreglarlo ("va a donde hay cazadores cerca de un aliado") mete Proteger dentro de un pilar Agresivo: es diseño, no knob.
+> 2. Muralla 90 % sigue siendo el tope (como en S104); la Jauría quedó en 65-68 % con el anzuelo 8/6 (82 % con 4/12).
+> 3. Señuelos (dos señuelos + un recolector) 24 % y Hormiguero 18 % son pisos por construcción; la pantalla de plan ya avisa el primero.
+> 4. Los knobs son defaults de código; el asset `ExpeditionRules` no los guarda hasta tocarlos en el Inspector. En Play, `ExpeditionRulesSO.Current` quedó también en 8/6 (coincide con el código).
+> 5. Fuga de memoria de Unity en Play largo (34 GB): candidatos `NavMeshData` de `ArenaLayoutBuilder.Build`, drops, pools de Feel. No investigada.
+
+**Lista final de `.cs` de S105 (para el vault-documenter):**
+- `Scripts/World/Expedition/ArenaMatrixDev.cs` → NUEVO
+- `Scripts/World/Expedition/ArenaMatrixPlans.cs` → NUEVO
+- `Scripts/World/Expedition/ArenaSandbox.cs` → MODIFICADO (`SetSeed(int)`)
+- `Scripts/World/AI/AgentHunter.cs` → MODIFICADO (anzuelo `chasing`/`baited`, `TryHunt`, ocio sin presa, `IsChasing`, intención `Chasing`)
+- `Scripts/World/AI/AgentExpedition.cs` → MODIFICADO (`PostureEngages` con `hunter.TryHunt`, caídos para Decoy, `IsChasing` suma el cazador)
+- `Scripts/World/AI/AgentGatherer.cs` → MODIFICADO (`PlannedSite` con caídos para Decoy, `MiningSeconds` con `DropPickupSecondsPerUnit`)
+- `Scripts/Data/Expedition/ExpeditionRulesSO.cs` → MODIFICADO (`DropPickupSecondsPerUnit` 0,5 · `HunterBaitSeconds` 8 · `BaitImmunitySeconds` 6)
+- `Scripts/Data/Expedition/ArenaOrderCatalog.cs` → MODIFICADO (descripciones y contras de Cazador y Señuelo)
+
+**Next session (S106):**
+1. **Decisión de Juan sobre el señuelo** (nota 1): dejarlo como postura de apoyo a la Muralla/Emboscada, o darle sitio dinámico; y si Muralla 90 % molesta.
+2. **HUD de ronda, segunda pasada** (arrastre de S104): tocar una tarjeta enfoca la cámara; contador "en manos"; silbato si Juan lo aprueba; tarjetas en 720p. El cazador ahora muestra "Persigue" cuando muerde el anzuelo; falta una ranura/cue propia si se quiere.
+3. **Partes como habilidades automáticas (8.12):** `ExpeditionStats` por criatura y la primera `PartAbilitySO`.
+4. **Mis MoriMonchis con el save real** (diales ~0,5 → eligen todo); nombres largos en la pantalla de plan.
+5. **Fuga de memoria en Play largo** (nota 5) antes de la próxima maratón de matrices; el arnés ya está en el repo (`ArenaMatrixDev`), correr `Subset10` × 2 salas como regresión (33 min) después de cualquier cambio de reglas.
+6. **Deuda y arrastres:** `MoriMochiAgent` ~690 líneas, `AgentGatherer` ~470, `AgentBrain`/`AgentSocial`/`AgentClash` sobre 400; HUD mezcla castellano fijo con intención localizada; Explorar fuera de la UI; sonido; `Index/02`; `Rest` sin loop.
+
+---
+
 **Session:** 2026-09-06 (Session 104 — **ÓRDENES POR TRES PILARES DESBLOQUEADAS POR PERSONALIDAD, HUIDA Y CONFIANZA, PARTICIÓN DE `AgentExpedition` ✅ (video `s104_ordenes_demo.mp4`) + BALANCE POR MATRICES (8 matrices, 4 tandas de contras: sin 100 % ni 0 %) + UI LEGIBLE (lectura de sala y rival, contras, ruleta de carga, reloj 1-4) ✅ — 11 scripts NUEVOS + 20 MODIFICADOS + UXML/USS + escena (ArenaClockControl en ObserverCamera); ✅ CERRADA por `/cerrar-sesion` (vault-documenter + commit + push)**)
 
 **Focus:** Juan abrió con theorycrafting (*"qué decisiones debe tomar el usuario al empezar la partida; mecánicas sencillas, decisiones difíciles"*) y después fijó el diseño: *"las personalidades abren las opciones; opciones pocas que resuelvan dudas generales; las partes son habilidades automáticas; tres estrategias fundamentales, ninguna mejor, ninguna defiende todos los flancos; las decisiones: botín grande o pequeño, enfrentar o escapar, proteger o agresivo; el jugador tiene que ver MARCADAMENTE la diferencia; ejecutate en /loop hasta tener algo para mostrar; plantea los 3 arquetipos"*. PC1 (E:\GitHub), MCP de CoplayDev vivo toda la sesión (compilar, Play, `execute_code` Roslyn con corrutinas, Recorder por API). Sub-agentes `morimonchi-coder` (8: cuatro colaboradores, planificador, panel, HUD/resultado, guías); el núcleo, las reglas de órdenes, `ExpeditionNav` y los ajustes de afinado los escribió el orquestador.

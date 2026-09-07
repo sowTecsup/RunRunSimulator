@@ -126,6 +126,7 @@ internal class AgentGatherer : IExpeditionTask
     }
 
     private float MiningSeconds(ExpeditionRulesSO rules) =>
+        target != null && target.IsDrop ? rules.DropPickupSecondsPerUnit :
         target != null && target.IsLode ? rules.LodeMiningSecondsPerUnit : rules.MiningSecondsPerUnit;
 
     private int Capacity(ExpeditionRulesSO rules) =>
@@ -133,7 +134,7 @@ internal class AgentGatherer : IExpeditionTask
 
     private MaterialPickup PlannedSite(ExpeditionRulesSO rules)
     {
-        if (ctx.Occupation == Occupation.Break)
+        if (ctx.Occupation == Occupation.Break || ctx.Occupation == Occupation.Decoy)
         {
             var drop = ExpeditionNav.NearestDrop(ctx, rules.DropPickupRadius);
             if (drop != null) return drop;

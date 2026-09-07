@@ -70,7 +70,7 @@ internal class AgentExpedition
 
         if (!active.Tick(rules)) { Abort(); return; }
 
-        bool lootNearby = active == hunter && ExpeditionNav.NearestDrop(ctx, rules.DropPickupRadius) != null;
+        bool lootNearby = (active == hunter || active == decoy) && ExpeditionNav.NearestDrop(ctx, rules.DropPickupRadius) != null;
         if (active != gatherer && (lootNearby || IdleSeconds(active) >= rules.IdleMineSeconds) && gatherer.TryEngage(rules))
         {
             active.Cancel();
@@ -87,7 +87,7 @@ internal class AgentExpedition
         switch (Occupation)
         {
             case Occupation.Guard: task = guard;  engaged = guard.TryEngage(rules);  break;
-            case Occupation.Break: task = hunter; engaged = hunter.TryEngage(rules); break;
+            case Occupation.Break: task = hunter; engaged = hunter.TryHunt(rules);   break;
             case Occupation.Decoy: task = decoy;  engaged = decoy.TryEngage(rules);  break;
             default:               return false;
         }
@@ -146,7 +146,7 @@ internal class AgentExpedition
     internal float FleeCooldown01  => gatherer.FleeCooldown01;
     internal float DecoyCooldown01 => decoy.Cooldown01;
     internal float Retreat01       => hunter.Retreat01;
-    internal bool  IsChasing       => guard.IsChasing;
+    internal bool  IsChasing       => guard.IsChasing || hunter.IsChasing;
     internal float MiningProgress => gatherer.MiningProgress;
     internal Transform      TargetTransform => active != null ? active.TargetTransform : null;
     internal CreatureIntent Intent          => active != null ? active.Intent : CreatureIntent.Collecting;

@@ -190,6 +190,12 @@ public class ArenaSandbox : MonoBehaviour
     public void SetPlayerOrders(int index, ArenaOrders orders) => Planner.SetPlayerOrders(index, orders);
     public void SetOrders(int index, ArenaOrders orders) => Planner.SetOrders(index, orders);
 
+    public void SetSeed(int value)
+    {
+        seed = value;
+        randomizeEachPlay = false;
+    }
+
     public void SetCastMode(ArenaCastMode mode)
     {
         Planner.SetMode(mode);

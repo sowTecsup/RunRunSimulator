@@ -513,6 +513,36 @@ Nadie llega al 100 % ni al 0 %. El señuelo sigue siendo la postura más débil 
 
 **Legibilidad agregada en esta pasada:** la sala se lee antes de bajar (cristal central, cuántas vetas y de qué tamaño, distancia de la veta más cercana a tu salida, sala abierta/mixta/cubierta por obstáculos), cada MoriMochi propio muestra qué desbloquea su personalidad, el rival se lee como "cazador seguro / recolector seguro / puede hacer cualquiera", cada postura lleva su contra en una frase, el plan de equipo tiene nombre ("Tu plan: Fortín de las vetas"), la ruleta de carga por ranuras se ve al minar y al cargar, y las teclas 1-4 cambian la velocidad de la simulación (1×, 2×, 5×, 10×) también sobre el hit-stop de Feel.
 
+**Balance S105 (2026-09-07; Juan eligió A1 anzuelo → A2 carroñero → B1 "mina si no hay presa", y el arnés pasa al repo).** Diagnóstico sobre los CSV de S104: el señuelo solo movía al guardián (8 s) y el cazador lo ignoraba, así que los planes con señuelo perdían justo contra la Jauría (Hormiguero+Señuelo vs Jauría 10-13, Señuelos vs Fortín 1-14); y el cazador nunca minaba porque su ocio contaba "sin rivales a la vista" (en el centro siempre ve alguno) y, si llegaba a minar, `PostureEngages` lo devolvía al puesto un frame después por ver un rival custodiado (tres Osados solitarios 8 %, 0-2 contra tres Tímidos).
+
+Tres reglas nuevas, cada una en una frase:
+- **Anzuelo (A1):** *el cazador también persigue al que lo provoca unos segundos y después lo ignora un rato* (`HunterBaitSeconds` 8 · `BaitImmunitySeconds` 6 · radio compartido `GuardChaseRadius`; interrumpe una cacería en curso; intención `Chasing`, que el recolector rival no lee como amenaza). Con 4 s / 12 s casi no movió nada; con 8 / 6 la Jauría bajó de 82 a 68 %.
+- **Carroñero (A2):** *el señuelo se lleva lo que cae, como el cazador*, y *lo caído se levanta rápido* (`DropPickupSecondsPerUnit` 0,5 contra los 4 s de una veta). Le suma poco al señuelo (casi nunca hay un aliado que tumbe) y sí a la Emboscada (cazador tumba + señuelo carga) y a los cazadores. Efecto lateral coherente: un señuelo cargando es presa (intención de robo) y el cazador lo tumba.
+- **Mina si no hay presa (B1):** *si no hay a quién cazar, el cazador mina* (el ocio cuenta sin presa válida; `PostureEngages` usa `TryHunt`, que solo engancha con presa). El cazador pasa de asegurar 0,5-0,8 a 1,7-2,0 por ronda; tres Osados solitarios 8 → 25 % (4,8 puntos por ronda).
+
+**Lo medido** (10 planes todos contra todos en las salas 4242 y 4246, una ronda por cruce, 200 rondas por variante, ±8 % por plan; la última columna es la matriz de 16 planes con las reglas y knobs finales, 512 rondas):
+
+| Plan | Base S105 | A1 | A1+A2 | +B1 | +anzuelo 8/6 | Final 16 planes (8/6) |
+|---|---|---|---|---|---|---|
+| Muralla | 76 | 84 | 86 | 86 | 83 | 90 |
+| Fortín | 86 | 84 | 82 | 79 | 78 | 73 |
+| Jauría | 76 | 71 | 68 | 82 | 68 | 65 |
+| Mixta | 58 | 51 | 53 | 63 | 68 | 57 |
+| Emboscada | 61 | 45 | 59 | 45 | 32 | 40 |
+| Codicia | 49 | 43 | 45 | 36 | 51 | 49 |
+| Hormiguero+Señuelo | 38 | 47 | 30 | 39 | 42 | 52 |
+| Engaño | 25 | 28 | 24 | 29 | 25 | 35 |
+| Señuelos | 17 | 13 | 28 | 22 | 29 | 24 |
+| Hormiguero | 18 | 25 | 22 | 18 | 13 | 18 |
+
+Final 16 planes (dos salas, 512 rondas): Muralla 90 % · Fortín 73 % · Escolta 70 % · Jauría 65 % · Mixta 57 % · ContraJauría 56 % · Hormiguero+Señuelo 52 % · Doble guardia 51 % · Codicia 49 % · Jauría del centro 47 % · Rebaño 47 % · Emboscada 40 % · Engaño 35 % · Muralla de vetas 30 % · Señuelos 24 % · Hormiguero 18 %.
+
+Por postura en la matriz final (aseguró por criatura y ronda): recolector 8,3-8,6 · guardián de vetas 3,7 · cazador 1,7-2,0 (era 0,3-0,8) · señuelo 1,0-1,4 · guardián del centro 0,6. Nadie llega al 95 % ni baja del 5 % en ninguna sala. El ciclo se mantiene: Muralla > Jauría (62 %), Jauría > Hormiguero (100 %), Hormiguero+Señuelo > Hormiguero (88 %).
+
+**Personalidades (seis equipos con diales reales, dos salas, 72 rondas):** RosterA 66 % (era 92) · TresTímidos 66 % · RosterB 59 % · OsadosSociables 55 % · **TresOsados 25 % (era 8)** · TímidosSolitarios (dos señuelos forzados + un recolector) 16 %: el piso pasó de los cazadores forzados a los señuelos forzados.
+
+**Queda abierto (decisión de Juan):** (1) el señuelo sigue siendo la postura que menos puntúa y sus planes no le ganan cruces a la Jauría (Hormiguero+Señuelo vs Jauría 25 %, con empates): va al sitio del plan (centro o veta del lado rival) mientras el cazador rival caza en nuestras vetas, así que muerde el anzuelo tarde; hacer que "vaya a donde hay cazadores cerca de un aliado" mete Proteger dentro de un pilar Agresivo, es diseño, no knob. (2) Muralla 90 % en la matriz de 16: sigue siendo el tope, como en S104. (3) Señuelos (dos señuelos + un recolector) 24 % y Hormiguero 18 %: pisos por construcción (un solo puntuador / pasivo puro), la pantalla ya lo avisa. (4) Los knobs quedaron como defaults de código en `ExpeditionRulesSO`; el asset no los guarda hasta que alguien los toque en el Inspector.
+
 ### 8.12 · Habilidades automáticas por parte, al estilo Pokémon Quest (S104 · Juan ⭐ + propuesta del orquestador, no decidida)
 
 **Juan ⭐ (S104):** *"Las partes son las habilidades automáticas que se ejecutan si el MoriMochi lo ve necesario. Plantealas un poco como Pokémon Quest pero de uso automático. El objetivo es la viabilidad de múltiples estilos de juego y que haya extensión para cuando añadamos más partes por MoriMochi."*

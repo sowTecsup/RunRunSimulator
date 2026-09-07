@@ -6,66 +6,73 @@ tags: [script, world, expedition, sandbox]
 
 **Ruta:** `World/Expedition/ArenaSandbox.cs`
 
-**Responsabilidad:** Escena sandbox de arena que encapsula flujo: BuildRoom (layout, minerales, pizarrones, planner.Prepare) → SpawnCast (spawnea agentes) → ResetRoom (limpia/nueva semilla). Delegados: ArenaCastPlanner (elenco), ArenaPaletteApplier (paletas), ArenaLayoutBuilder (layout). S103: pizarrones. **S104: órdenes, lectura de sala, clasificación lode**.
+**Responsabilidad:** Escena sandbox de arena que encapsula flujo: BuildRoom (layout, minerales, pizarrones, planner.Prepare) → SpawnCast (spawnea agentes) → ResetRoom (limpia/nueva semilla). Delegados: ArenaCastPlanner (elenco), ArenaPaletteApplier (paletas), ArenaLayoutBuilder (layout). S103: pizarrones. S104: órdenes, lectura de sala, clasificación lode. **S105: SetSeed para harness automatizado**.
 
 **Métodos públicos:**
-- `void BuildRoom()` — construye sala
-- `void SpawnCast()` — spawnea elenco
-- `void ResetRoom(bool newSeed)` — limpia
-- `void SetPlayerOrders(int index, ArenaOrders orders)` — (S104 NUEVO) inyecta órdenes
-- `void SetPlayerPlan(int index, Occupation occupation, ArenaSite site)` — (legacy) traduce a órdenes
+- `void BuildRoom()` — construye sala (layout, minerales, exits, pizarrones)
+- `void SpawnCast()` — spawnea elenco planeado
+- `void ResetRoom(bool newSeed)` — limpia cast/minerales/exits, opcionalmente genera nueva semilla
+- `void SetSeed(int value)` — **(S105 NUEVO)** fija seed y apaga randomizeEachPlay (usado por ArenaMatrixDev para reproducibilidad)
+- `void SetPlayerOrders(int index, ArenaOrders orders)` — inyecta órdenes a creature índice player side
+- `void SetOrders(int index, ArenaOrders orders)` — inyecta órdenes a creature índice (ambos teams)
 - `void SetCastMode(ArenaCastMode mode)` — alterna Roster/LocalSave
 - `void ShuffleCast()` — nueva selección aleatoria
-- `void SelectLocalCast(IReadOnlyList<CreatureDNA> picks)` — (S103) selección explícita del picker
-- `void SetLode(MaterialPickup mineral)` — (S104 NUEVO) marca como lode central
-- `ArenaRoomRead ReadRoom()` — (S104 NUEVO) fotografía de sala (distancias, obstáculos, botín)
+- `void SelectLocalCast(IReadOnlyList<CreatureDNA> picks)` — selección explícita del picker
+- `void SetPaletteIndex(int index)` — fija paleta por índice
+- `void CyclePalette()` — alterna paleta circular
+- `ArenaRoomRead ReadRoom(ExpeditionTeam team)` — fotografía de sala (distancias, obstáculos, botín) desde perspectiva del team
 
 **Propiedades:**
 - `IReadOnlyList<MoriMonchiController> Spawned { get; }`
 - `IReadOnlyList<ExitZone> Exits { get; }`
 - `IReadOnlyList<ArenaCastEntry> PlannedCast { get; }`
-- `IReadOnlyList<CreatureDNA> LocalPool { get; }` — (S103)
-- `int ActiveSeed { get; }`
+- `IReadOnlyList<CreatureDNA> LocalPool { get; }`
+- `int ActiveSeed { get; }` — semilla activa (usado por RunLoop)
 - `ArenaCastMode CastMode { get; }`
 - `bool LocalCastAvailable { get; }`
+- `string EntryName { get; }` — nombre de entrada (desde layout si existe)
+- `string PaletteName { get; }` — nombre de paleta activa
 
-**BuildRoom (S104):**
-1. Layout, paleta, exits, minerales
-2. SetLode(mineralCentral) — marca como lode
-3. Pizarrones: BoardFor(Player/Rival).SetSites(minerals)
-4. Planner.Prepare()
+**BuildRoom (S104-S105):**
+1. Setea activeSeed = randomizeEachPlay ? Environment.TickCount : seed (para reproducibilidad con SetSeed)
+2. Layout.Build(activeSeed, filter)
+3. Palette.ApplyIndex()
+4. SpawnExits() si Planner.HasRoster
+5. SpawnMinerals() y marca lode central
+6. Pizarrones: BoardFor(Player/Rival).SetSites(minerals)
+7. Planner.Prepare(activeSeed, castSeed, count)
 
 **SpawnCast (S104):**
 - Para cada entry en PlannedCast:
-  - SpawnCreature(entry.Dna, ..., entry.Team, entry.Orders) — (S104: órdenes)
-  - agent.SetOrders(entry.Orders) — (S104 NUEVO) inyecta órdenes
-  - agent.SetBlackboard(BoardFor(entry.Team)) — (S103) pizarrón
+  - SpawnCreature(entry.Dna, ..., entry.Team, entry.Orders)
+  - agent.SetOrders(entry.Orders)
+  - agent.SetBlackboard(BoardFor(entry.Team))
+  - agent.SetGuardPost(ResolveSite(entry)) — post inicial según ArenaSite
 
 **ReadRoom (S104 NUEVO):**
 - Retorna ArenaRoomRead con:
   - LodeValue (central)
-  - VeinCount, VeinTotal (vetas esquinas)
+  - VeinCount, VeinTotal (vetas)
   - Obstacles (conteo)
-  - Distancias (home → lode, home → veta cercana)
-- Usado por ArenaPlanPanel para mostrar estadísticas sala
+  - CenterDistance (exit → lode)
+  - NearVeinDistance (exit → veta cercana)
 
 **Campos Privados:**
-- `planner` (ArenaCastPlanner lazy)
-- `boards` (Dictionary<ExpeditionTeam, TeamBlackboard>) — (S103)
+- `planner` (ArenaCastPlanner lazy) — con localCastCount serializado
+- `boards` (Dictionary<ExpeditionTeam, TeamBlackboard>)
 - `spawned`, `minerals`, `exits` (Lists)
+- `activeSeed` — semilla reproducible actual
+- `seed`, `randomizeEachPlay` — serializados en inspector
 
-**S104 Cambios:**
-- SetPlayerOrders() + SetOrders() para inyectar órdenes pre-spawn
-- SetLode() clasifica mineral central en MaterialPickup
-- ReadRoom() fotografía sala (usado por UI)
-- SpawnCreature ahora recibe/aplica ArenaOrders
-- Pizarrones inicializados con toda mineral (lode + vetas)
+**S105 Cambios:**
+- `SetSeed(int value)` fija seed y apaga randomizeEachPlay → reproducibilidad para harness
+- `activeSeed` guardado y usado por RunLoop/ArenaMatrixDev
 
 **Invariantes:**
-- Pizarrones lazy por team (creados en BuildRoom)
-- Lode clasificado antes de SpawnCast
-- Órdenes inmutables durante SpawnCast (ya clampeadas)
+- `activeSeed` determinado al BuildRoom (no puede cambiar mid-simulation)
+- randomizeEachPlay toggle controla si ignora seed o genera random
+- SetSeed() se usa antes de BuildRoom() para fijar semilla en harness
 
-**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**Vinculado a:** [[Index/23 - Arena Sandbox y Expedicion]]
 
-**Conexiones:** [[ArenaCastPlanner]], [[ArenaPaletteApplier]], [[ArenaLayoutBuilder]], [[ExpeditionRulesSO]], [[ArenaCastPicker]], [[TeamBlackboard]], [[MoriMonchiController]], [[MoriMochiAgent]], [[ArenaOrders]], [[MaterialPickup]], [[ExitZone]], [[ArenaPlanPanel]]
+**Conexiones:** [[ArenaCastPlanner]], [[ArenaPaletteApplier]], [[ArenaLayoutBuilder]], [[ArenaMatrixDev]], [[ExpeditionRulesSO]], [[TeamBlackboard]], [[MoriMonchiController]], [[MoriMochiAgent]], [[ArenaOrders]], [[MaterialPickup]], [[ExitZone]]

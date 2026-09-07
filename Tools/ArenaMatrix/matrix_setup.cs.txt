@@ -1,0 +1,17 @@
+var sandbox = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaSandbox>();
+var round = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaRound>();
+var clock = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaClockControl>();
+var panel = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaPlanPanel>();
+if (panel != null)
+{
+    var m = typeof(MoriMonchiSimulator.ArenaPlanPanel).GetMethod("SetVisible", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+    if (m != null) m.Invoke(panel, new object[] { false });
+    panel.enabled = false;
+}
+foreach (var o in UnityEngine.Object.FindObjectsByType<MoriMonchiSimulator.ArenaCueOverlay>(UnityEngine.FindObjectsSortMode.None)) o.enabled = false;
+foreach (var o in UnityEngine.Object.FindObjectsByType<MoriMonchiSimulator.ArenaRoomCueOverlay>(UnityEngine.FindObjectsSortMode.None)) o.enabled = false;
+var existing = UnityEngine.Object.FindFirstObjectByType<MoriMonchiSimulator.ArenaMatrixDev>();
+var dev = existing != null ? existing : new UnityEngine.GameObject("ArenaMatrixDev").AddComponent<MoriMonchiSimulator.ArenaMatrixDev>();
+dev.Sandbox = sandbox; dev.Round = round; dev.Clock = clock; dev.Speed = 10f;
+dev.Run(MoriMonchiSimulator.ArenaMatrixPlans.Subset10, MoriMonchiSimulator.ArenaMatrixPlans.Subset10, new int[] { 4242, 4246 }, "__CSV__");
+return "sandbox=" + (sandbox != null) + " round=" + (round != null) + " clock=" + (clock != null) + " total=" + dev.Total;

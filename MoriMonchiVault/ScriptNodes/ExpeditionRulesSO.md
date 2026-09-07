@@ -6,7 +6,7 @@ tags: [script, data, scriptableobject, expedition]
 
 **Ruta:** `Data/Expedition/ExpeditionRulesSO.cs`
 
-**Responsabilidad:** Singleton por escena (`Current` static) que centraliza tuning de expedición. Contiene lista polimórfica de reglas `ExpeditionRuleBase`, knobs de navegación/beats/ocupaciones/visión/exploración (S103), **órdenes/huida/contras (S104 NUEVO)**. `Activate()/Deactivate()` estáticos (ArenaSandbox.OnEnable/OnDisable). En tienda, `Current == null` → expedición desactiva. En Arena, `Current` apunta a `ExpeditionRules.asset`.
+**Responsabilidad:** Singleton por escena (`Current` static) que centraliza tuning de expedición. Contiene lista polimórfica de reglas `ExpeditionRuleBase`, knobs de navegación/beats/ocupaciones/visión/exploración. `Activate()/Deactivate()` estáticos (ArenaSandbox.OnEnable/OnDisable). En tienda, `Current == null` → expedición desactiva. En Arena, `Current` apunta a `ExpeditionRules.asset`. **S105: HunterBaitSeconds + BaitImmunitySeconds para anzuelo**.
 
 **Métodos Estáticos:**
 - `Activate(ExpeditionRulesSO rules)` — Current = rules
@@ -27,9 +27,10 @@ tags: [script, data, scriptableobject, expedition]
 
 **Ocupaciones:**
 - `MiningSecondsPerUnit` [Min(0.5)] = 4 — tiempo por unidad normal
-- `LodeMiningSecondsPerUnit` [Min(0.5)] = 2 — tiempo por unidad lode (S104 NUEVO)
+- `LodeMiningSecondsPerUnit` [Min(0.5)] = 2 — tiempo por unidad lode
+- `DropPickupSecondsPerUnit` [Min(0.5)] = 0.5 — **(S105)** tiempo por unidad caída (rápido)
 - `CarryCapacity` [Min(1)] = 3 — máximo normal
-- `SupportCarryCapacity` [Min(1)] = 2 — máximo para Guard/Break (S104)
+- `SupportCarryCapacity` [Min(1)] = 2 — máximo para Guard/Break
 - `DepositSeconds` [Min(0)] = 0.8
 - `DropPrefab`, `DropScale` — material caído por golpeo
 - `GuardRadius` [Min(1)] = 4
@@ -46,13 +47,13 @@ tags: [script, data, scriptableobject, expedition]
 - `ReportRepeatSeconds` [Min(0)] = 4
 - `ScoutRestSeconds` [Min(0)] = 12
 
-**Órdenes (S104 NUEVO):**
+**Órdenes (S104):**
 - `BoldFightLock` [Range(0,1)] = 0.65 — Boldness que fuerza Contact.Fight
 - `ShyFleeLock` [Range(0,1)] = 0.35 — Boldness que fuerza Contact.Flee
 - `SocialProtectLock` [Range(0,1)] = 0.65 — Sociability que fuerza Posture.Protect
 - `LonerAggressiveLock` [Range(0,1)] = 0.35 — Sociability que fuerza Posture.Aggressive
 
-**Huida (S104 NUEVO):**
+**Huida (S104):**
 - `FleeTriggerDistance` [Min(1)] = 6.5 — distancia a rival que activa huida
 - `FleeDistance` [Min(1)] = 9 — distancia de huida
 - `FleeSeconds` [Min(0.5)] = 3.5 — duración de huida
@@ -60,12 +61,15 @@ tags: [script, data, scriptableobject, expedition]
 - `AllyPullRadius` [Min(0)] = 15 — radio de aliados que tiran hacia ellos
 - `GuardTrustRadius` [Min(0)] = 6 — radio donde Gatherer confía en Guardian
 
-**Contras (S104 NUEVO):**
+**Contras (S104-S105):**
 - `HunterRetreatSeconds` [Min(0)] = 10 — tiempo que Hunter se retira post-golpeo
 - `GuardChaseRadius` [Min(0)] = 10 — radio de persecución de provocadores
 - `GuardChaseSeconds` [Min(0)] = 8 — duración persecución
 - `IdleMineSeconds` [Min(0)] = 8 — tiempo ocioso antes de que ocupación no-gather cambie a Gather
+- `SupportCarryCapacity` [Min(1)] = 2 — máximo Break/Decoy
 - `DropPickupRadius` [Min(0)] = 6 — radio para detectar drops caídos
+- `HunterBaitSeconds` [Min(0)] = 8f — **(S105 NUEVO)** duración persecución anzuelo (provocador)
+- `BaitImmunitySeconds` [Min(0)] = 6f — **(S105 NUEVO)** CD post-abatimiento vs taunter anterior
 
 **Visión (S102):**
 - `VisionRadius` [Min(1)] = 11
@@ -78,21 +82,17 @@ tags: [script, data, scriptableobject, expedition]
 
 **Invariantes:**
 - Singleton por escena
-- Compartido por AgentExpedition, AgentSenses, AgentScout (S103), AgentGatherer, AgentGuard, AgentHunter, AgentDecoy (S104)
+- Compartido por AgentExpedition, AgentSenses, AgentScout, AgentGatherer, AgentGuard, AgentHunter, AgentDecoy
 - Órdenes inmutables dentro de expedición (clampeadas al inicio)
 - Huida triggerada por Gatherer si rival amenaza sin custodio
-- Contras balancean ocupaciones rivales (Hunter retreat, Guard chase, idle → Gather)
+- Contras balancean ocupaciones rivales
+- **S105:** Anzuelo (Hunter + Decoy baiting) controlado por HunterBaitSeconds > 0
 
-**S104 Cambios:**
-- Secciones "Órdenes", "Huida", "Contras" agregadas
-- LodeMiningSecondsPerUnit agregado (lode más rápido que veta)
-- SupportCarryCapacity agregado (Guard/Break llevan menos)
-- ArenaOrderRules.IsLocked() consulta secciones de órdenes
-- AgentGatherer consulta Huida + AllyPullRadius
-- AgentGuard consulta GuardChase*
-- AgentHunter consulta HunterRetreatSeconds
-- AgentExpedition consulta IdleMineSeconds
+**S105 Cambios:**
+- `HunterBaitSeconds` agregado — activa persecución de provocadores
+- `BaitImmunitySeconds` agregado — previene re-baiting inmediato
+- `DropPickupSecondsPerUnit` existía pero no documentado (0.5f, rápido)
 
-**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**Vinculado a:** [[Index/23 - Arena Sandbox y Expedicion]]
 
-**Conexiones:** [[VisionProfile]], [[AgentSenses]], [[MoriMochiAgent]], [[AgentExpedition]], [[AgentGatherer]], [[AgentGuard]], [[AgentHunter]], [[AgentDecoy]], [[AgentScout]], [[TeamBlackboard]], [[ArenaSandbox]], [[ArenaOrderRules]]
+**Conexiones:** [[VisionProfile]], [[AgentSenses]], [[MoriMochiAgent]], [[AgentExpedition]], [[AgentGatherer]], [[AgentGuard]], [[AgentHunter]], [[AgentDecoy]], [[AgentScout]], [[TeamBlackboard]], [[ArenaSandbox]], [[ArenaOrderRules]], [[ArenaMatrixDev]]

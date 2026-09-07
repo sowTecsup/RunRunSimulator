@@ -6,12 +6,12 @@ tags: [script, world, ai, expedition, task]
 
 **Ruta:** `World/AI/AgentGatherer.cs`
 
-**Responsabilidad:** Colaborador de `AgentExpedition` (composición) que implementa `IExpeditionTask`. Maneja recolección de material: navega a sitio planeado o descubierto, detecta arribo, mina, carga, huye si hay rival sin custodio, vuelve a salida, deposita. Soporta orden Loot (Big/Small lode bias), Flee (huida con cadena a aliados/salida), Protect (custodio de aliados cercanos). Emite emotes (Curioso, Molesto, Feliz).
+**Responsabilidad:** Colaborador de `AgentExpedition` (composición) que implementa `IExpeditionTask`. Maneja recolección de material: navega a sitio planeado o descubierto, detecta arribo, mina, carga, huye si hay rival sin custodio, vuelve a salida, deposita. Soporta orden Loot (Big/Small lode bias), Flee (huida con cadena a aliados/salida), Protect (custodio de aliados cercanos). **S105: PlannedSite prefiere cristales caídos en Break/Decoy; MiningSeconds varía por tipo de drop**. Emite emotes (Curioso, Molesto, Feliz).
 
 **Máquina de estados:**
 - `Noticing` — espera antes de moverse a sitio
 - `Moving` — navega hacia site con repath, detecta arribo por distancia o bloqueo
-- `Mining` — extrae unidad por MiningSeconds, repite hasta lleno o site agotado
+- `Mining` — extrae unidad por MiningSeconds (varía por tipo de material), repite hasta lleno o site agotado
 - `Losing` — se detiene y orienta a último sitio tras perderlo
 - `Returning` — navega a salida
 - `Securing` — deposita carga en exit zone
@@ -31,13 +31,43 @@ tags: [script, world, ai, expedition, task]
 - `bool Tick(ExpeditionRulesSO rules)` → bool — procesa frame; retorna false al terminar
 - `Cancel()` — aborta sin resetear elapsed
 - `ResetForReuse()` — limpia para pool recycle
-- `void OnKnocked(ExpeditionRulesSO rules)` — suelta carga si tiene, aborta
+- `void OnKnocked(ExpeditionRulesSO rules)` — suelta carga si tiene (Drop con ruleta), aborta
+
+**PlannedSite (S105 NUEVO):**
+- Si Occupation es Break O Decoy: primero busca `NearestDrop(ctx, DropPickupRadius)`
+  - Cristales caídos por recolectores en contacto, se recogen rápido
+- Fallback: post inyectado → veta conocida → veta cercana
+
+**MiningSeconds (S105 NUEVO):**
+- Si target `IsDrop`: retorna `DropPickupSecondsPerUnit` (0.5f, mas rápido)
+- Si target `IsLode`: retorna `LodeMiningSecondsPerUnit` (2f)
+- Else: retorna `MiningSecondsPerUnit` (4f, vetas)
 
 **Integración:**
 - Llamado desde `AgentExpedition.TryEngage()` por defecto o si otra ocupación falla
 - Tickeado en `AgentExpedition.TickExpedition()` si es activo
 - Puede ser abortado por `PostureEngages` si hay rival y ocupación no es Gather
+- S105: PostureEngages llama `hunter.TryHunt()` directamente, Gatherer cancela
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**Flujo Tick:**
+1. Valida target usable; si no → Losing → false
+2. Si Noticing/Moving y timeout → false
+3. Chequea rival sin custodio → BeginFlee
+4. Switch fase:
+   - Noticing: countdown, luego → Moving
+   - Moving: repath, detecta arribo, → Mining
+   - Mining: extrae unidad cada MiningSeconds, repite o → Returning
+   - Losing: countdown, luego → false
+   - Returning: navega exit, detecta arribo, → Securing
+   - Securing: countdown, luego Secure() → false
+   - Fleeing: navega FleePoint, countdown, luego Returning o → false
 
-**Conexiones:** [[IExpeditionTask]], [[AgentExpedition]], [[MoriMochiAgent]], [[AgentContext]], [[ExpeditionNav]], [[TeamBlackboard]], [[ExpeditionRulesSO]]
+**Invariantes:**
+- Capacity varía por Occupation: Gather/Explore = 3; Break/Decoy = 2 (support)
+- Drop no es lode (IsLode = false), se recoge rápido
+- Huida activa CD (FleeCooldown) post-FleeSeconds
+- MiningSeconds dinámico por tipo material (no precálculado)
+
+**Vinculado a:** [[Index/23 - Arena Sandbox y Expedicion]]
+
+**Conexiones:** [[IExpeditionTask]], [[AgentExpedition]], [[MoriMochiAgent]], [[AgentContext]], [[ExpeditionNav]], [[TeamBlackboard]], [[ExpeditionRulesSO]], [[MaterialPickup]]

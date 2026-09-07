@@ -42,6 +42,7 @@ public class ExpeditionRulesSO : SerializedScriptableObject
     [Min(0f)] public float DepositSeconds = 0.8f;
     public MaterialPickup DropPrefab;
     [Min(0.1f)] public float DropScale = 0.6f;
+    [Min(0f)] public float DropPickupSecondsPerUnit = 0.5f;
     [Min(1f)] public float GuardRadius = 4f;
     [Min(0.1f)] public float HuntRepathInterval = 0.4f;
     [Min(1f)] public float DecoyRange = 4.5f;
@@ -77,6 +78,8 @@ public class ExpeditionRulesSO : SerializedScriptableObject
     [Min(0f)] public float IdleMineSeconds = 8f;
     [Min(1)] public int SupportCarryCapacity = 2;
     [Min(0f)] public float DropPickupRadius = 6f;
+    [Min(0f)] public float HunterBaitSeconds = 8f;
+    [Min(0f)] public float BaitImmunitySeconds = 6f;
 
     [Title("Visión")]
     [Range(30f, 360f)] public float VisionDegrees = 150f;

@@ -33,11 +33,11 @@ public static class ArenaOrderCatalog
         {
             if (o.Posture == PostureChoice.Protect)
                 return "Se planta en " + where + " y embiste a quien se acerque. No recolecta ni persigue.";
-            return "Ronda " + where + " cazando rivales cargados para que suelten. Recolecta poco.";
+            return "Ronda " + where + " cazando rivales cargados para que suelten. Si no hay a quién cazar, mina un poco.";
         }
         if (o.Posture == PostureChoice.Protect)
             return "Mina " + where + " y huye con la carga apenas ve un rival. Nunca pelea.";
-        return "Se acerca a los rivales de " + where + ", los provoca y huye. No pelea ni recolecta.";
+        return "Se acerca a los rivales de " + where + ", los provoca y huye; se lleva lo que cae. No pelea ni mina.";
     }
 
     public static string PastVerb(ArenaOrders o)
@@ -71,10 +71,10 @@ public static class ArenaOrderCatalog
         if (o.Contact == ContactChoice.Fight)
             return o.Posture == PostureChoice.Protect
                 ? "Frena cazadores y cubre a quien mina a su lado. Lo saca del puesto un señuelo."
-                : "Vacía recolectores sin guardián; si lo tumban se retira. No toca a quien está custodiado.";
+                : "Vacía recolectores sin guardián; si lo tumban se retira. No toca a quien está custodiado y muerde el anzuelo de un señuelo.";
         return o.Posture == PostureChoice.Protect
             ? "Es quien puntúa. Con un guardián a menos de 6 m no huye. Lo caza un cazador."
-            : "Arrastra guardianes lejos de su puesto y espanta recolectores. Sin quien aproveche el hueco, no rinde.";
+            : "Arrastra guardianes y cazadores lejos de su puesto y espanta recolectores. Sin quien aproveche el hueco, no rinde.";
     }
 
     public static string TeamPlanName(System.Collections.Generic.IReadOnlyList<ArenaOrders> orders)

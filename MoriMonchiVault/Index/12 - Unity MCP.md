@@ -293,6 +293,18 @@ Lo que SÍ vale tal cual, independiente del server: la regla de **nunca editar a
 
 ---
 
+## ⚠️ Quirks S105 (arnés de matriz · knobs en Play · memoria)
+
+1. **Knobs de un ScriptableObject en Play sin recompilar:** `execute_code` puede escribir `ExpeditionRulesSO.Current.HunterBaitSeconds = 8f` en mitad de Play y la siguiente corrida del arnés ya lo usa (así se midió 4/12 → 8/6 sin salir de Play). El valor queda en memoria del editor hasta reiniciarlo (no marca el asset sucio): lo adoptado se fija como default de código y lo descartado se restaura antes de salir de Play.
+2. **Editar `.cs` durante una corrida:** `mcpforunity://editor/state` reportó `is_focused: true` toda la noche; un `.cs` cambiado en `Assets/` con el editor enfocado y en Play dispara el import + domain reload que mata la corrutina y deja agentes sin Awake. Regla: los sub-agentes escriben variantes a copias en el scratchpad y se copian encima con Play detenido, entre corridas.
+3. **Ciclo de compilación verificado (4 veces):** `refresh_unity(mode: force, scope: all, compile: request)` → `Start-Sleep 20` por PowerShell → `mcpforunity://editor/state` (puede quedar `stale_status` justo después del reload; no bloquea) → `read_console(types: error, filter_text: "CS")`. Los "errores" `RuntimeNavMeshBuilder … does not allow read access` de las rocas Synty siguen apareciendo por ronda: filtrar por `CS` o `Exception`.
+4. **Esperas largas:** `Start-Sleep` hasta ~22 s pasa; 25 s ya lo bloquea el harness. Para una corrida de 30-100 min: Bash `until [ -f x.done ]; do sleep 30; done` con `run_in_background` (avisa al terminar). Un waiter fue matado por el harness por memoria baja del sistema (quirk 5): comprobar el `.progress` a mano si el aviso no llega.
+5. **Memoria de Unity en Play largo:** ~1.300 rondas de arena en una sesión de Play (cada una reconstruye layout + NavMesh + minerales + elenco) → Unity 34 GB working set / 43 GB privados en una PC de 64 GB. Cortar la sesión de Play cada ~500 rondas; investigar qué acumula.
+6. **Encadenar corridas:** `ArenaMatrixDev` sigue en la escena después de una corrida; `dev.Run` otra vez con otro CSV la reutiliza, y una corrutina del sandbox que espera `dev.Done` permite encadenar dos matrices sin intervención. `ScreenCapture` en el último tramo de la ronda (t=80 s) volvió a salir negra (quirk 8 de S104).
+7. **Heredocs largos en Bash:** dos scripts de documentación con varios heredocs `<<'EOF'` fallaron con "unexpected EOF while looking for matching `'`" sin ejecutar nada; escribir los bloques con la tool Write y dejar a Bash solo la inserción (`insert.pl target marker file`).
+
+---
+
 ## Historial
 
 - **2026-09-05 (S102):** loop largo con el bridge vivo toda la sesión; cableado de escena por `SerializedObject` + `manage_scene save`; assets nuevos por YAML con GUID del `.meta`; corrutinas de captura para rondas de 90 s. Quirks 1-8 de la sección S102.
