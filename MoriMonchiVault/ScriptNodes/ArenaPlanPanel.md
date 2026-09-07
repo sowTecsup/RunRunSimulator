@@ -6,65 +6,62 @@ tags: [script, world, ui, uitk, expedition]
 
 **Ruta:** `World/Expedition/ArenaPlanPanel.cs`
 
-**Responsabilidad:** Panel UITK de planificación pre-ronda (S103 actualizado). Permite seleccionar ocupación y sitio por criatura, alternar entre modo save local (picker) vs roster básico. Integra `ArenaCastPicker` (S103 NUEVO) para elegir MoriMonchis del save. Integra `ArenaResultPanel` (S103 NUEVO) para mostrar resultado tras combate. Botones: Mis MoriMonchis (togglea modo), Picker (abre selector), Shuffle (aleatoriza), Paleta (cicla), Sala (nueva seed), ¡A LA SALA! (lanza). La quinta píldora "Explora" activa ocupación Explore.
+**Responsabilidad:** Panel UITK de planificación pre-ronda. Permite elegir órdenes (S104) por criatura, alternar save local vs roster. Integra picker (S103) y resultado (S103). **S104:** muestra tres pilares (Botín/Encuentro/Equipo) con bloqueos visuales, arquetipo+descripción, contra sugerido, lectura de sala, nombre del plan, lectura de rival.
 
 **Métodos públicos:**
-- `Update()` — gestiona transición visible/oculto y delay de resultado
+- `void Update()` — gestiona visible/oculto y delay resultado
 
-**Constantes:**
-- Ocupaciones: [Gather, Guard, Break, Decoy, Explore] → etiquetas españolas
-- Sitios: [Center, NearVein, FarVein]
+**UI Structure (S104 NUEVO):**
+- `plan-root`
+  - `plan-header` — sala, entrada, paleta
+  - `plan-room-read` — (S104 NUEVO) descripción de sala: terreno, botín, vetas
+  - `cast-list` (ScrollView) — tarjetas criaturas player
+    - Cada `cast-card`:
+      - Swatch + nombre + raza/nivel
+      - **S104:** Tres filas de pilares (Botín / Encuentro / Equipo)
+        - Cada pilar: 2-3 pills con bloqueo visual (deshabilitadas si forzado)
+      - (S104) Nombre del plan ("Jauría del centro")
+      - (S104) Lectura de rival ("puede hacer guardián o cazador")
+      - (S104) Contra sugerido ("Frena cazadores...")
+  - `plan-rival` — nombres/arquetipos rivales
+  - Botones: cast, pick (si LocalSave), shuffle, palette, room (nueva semilla), play
 
-**Campos Serializados:**
-- `sandbox` [Required] — ArenaSandbox
-- `round` [Required] — ArenaRound
-- `picker` [Required] — ArenaCastPicker (S103 NUEVO)
-- `resultPanel` [Required] — ArenaResultPanel (S103 NUEVO)
-- `resultHoldSeconds` [Min(0)] = 4 — delay antes de ocultar resultado
-
-**UI Structure (UXML):**
-- `plan-root` (plan--hidden clase)
-  - `plan-room` (Label) — "sala NNNN · PaletteName · entrada Entry"
-  - `plan-rival` (Label) — "Rival: nombre1 · nombre2 · ... · entra por lado opuesto"
-  - `cast-list` (VisualElement) — lista de tarjetas de criaturas player
-    - Cada `cast-card` — swatch, nombre, dials, dos filas de pills
-      - `plan-row` ocupaciones [Recolecta, Vigila, Rompe, Distrae, Explora]
-      - `plan-row` sitios [Centro, Veta cercana, Veta lejana] (deshabilitados si Decoy/Explore)
-  - Botones: `btn-cast`, `btn-pick`, `btn-shuffle`, `btn-palette`, `btn-room`, `btn-play`
-
-**Métodos Privados:**
-- `SetVisible(bool)` — aplica plan--hidden, llama Refresh si visible
-- `Refresh()` — actualiza room label, cast button, construye cards, rival line
-- `BuildCards()` — itera PlannedCast, solo Player entries
-- `BuildCard(int index, ArenaCastEntry entry)` → VisualElement — swatch + nombre + dials + pills ocupación/sitio
-- `ChooseOccupation/ChooseSite(Card state, int choice)` — llamadas de pills, actualiza `sandbox.SetPlayerPlan()`
-- `RefreshPills(Card)` — destaca pills activas (pill--on clase)
-- `RefreshRivalLine()` — lista nombres rivales
-- `ToggleCastMode()` — alterna ArenaCastMode.LocalSave ↔ Roster
-- `OpenPicker()` — picker.Open(Refresh) (S103 NUEVO)
-- `Shuffle()` — sandbox.ShuffleCast()
-- `CyclePalette()` — sandbox.CyclePalette()
-- `NewRoom()` — round.Reset(true), resultPanel.Hide()
-- `Play()` — resultPanel.Hide(), round.Launch()
+**Métodos Privados (S104 actualizado):**
+- `Refresh()` — actualiza room, cast button, construye cards con lectura de sala
+- `BuildCard(int index, ArenaCastEntry entry)` → VisualElement — (S104) muestra 3 pilares, bloqueos, arquetipo, contra
+- `ChoosePillar(Card state, OrderPillar pillar, int choice)` — (S104 NUEVO) actualiza `sandbox.SetPlayerOrders()`
+- `RefreshPillars(Card)` — destaca pills activas, deshabilita si forzado (S104)
+- `RefreshArchetype(Card)` — muestra ArchetypeName, ArchetypeDescription, CounterHint (S104)
+- `RefreshRoomRead()` — muestra ArenaRoomRead completo (S104)
+- `RefreshRivalLine()` — muestra RivalRead (qué pueden hacer) + UnlockRead (S104)
+- `ToggleCastMode()` — Roster ↔ LocalSave
+- `OpenPicker()` — picker.Open
+- `Shuffle()` — sandbox.ShuffleCast
+- `CyclePalette()` — sandbox.CyclePalette
+- `NewRoom()` — round.Reset(true)
+- `Play()` — round.Launch
 
 **S103 Cambios:**
-- `ArenaCastPicker picker` [Required] — selector modal (S103 NUEVO)
-- `ArenaResultPanel resultPanel` [Required] — panel resultado (S103 NUEVO)
-- Quinta píldora "Explora" (Occupation.Explore) con etiqueta correspondiente
-- `OpenPicker()` nuevo, invocado por `btn-pick`
-- En `RefreshPills()`: sitios deshabilitados si Explore además de Decoy (Explore no elige sitio)
-- En `Update()`: llama `resultPanel.Show(pendingWinner, pendingMine, pendingTheirs, round.Summary)` tras `round.Reset(false)`
-- `btn-pick` habilitado solo si CastMode=LocalSave y LocalAvailable
+- Picker integrado
+- Resultado integrado
+- Explore ocupación + píldora
 
-**Ciclo S103:**
-1. Panel visible, elenco mostrado
-2. Jugador elige ocupación/sitio O abre picker (btn-pick → ArenaCastPicker)
-3. Picker cierra con SelectLocalCast → Refresh automática
-4. Jugador presiona Play → oculta panel, round.Launch()
-5. Ronda corre
-6. round.IsOver → resultPanel.Show() tras resultHoldSeconds, visible=true
-7. Jugador presiona Sala (nuevo) o cierra → vuelve a flow 1
+**S104 Cambios:**
+- Tres pilares en lugar de ocupación/sitio (más visible)
+- Bloqueos visuales (grises, deshabilitados si forzado por DNA)
+- Arquetipos dinámicos + descripciones + contras (ArenaOrderCatalog)
+- Lectura de sala detallada (terreno, obstáculos, botín, vetas)
+- Lectura de rival (qué DNA permite, qué desbloquea con stats)
+- Nombre del plan por composición de equipo
+- SetPlayerOrders en lugar de SetPlayerPlan
+- Sandbox.ReadRoom() para estadísticas
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**Invariantes:**
+- Pilares forzados deshabilitados (visual feedback claro)
+- Lectura de sala + rival: información completa antes de launch
+- Nombre del plan ayuda estrategia (equipo cohesivo vs disperso)
+- ScrollView para equipos grandes (no hardcodea 3 criaturas)
 
-**Conexiones:** [[ArenaSandbox]], [[ArenaRound]], [[ArenaCastPicker]], [[ArenaResultPanel]], [[ArenaCastEntry]], [[Occupation]], [[ArenaSite]]
+**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+
+**Conexiones:** [[ArenaSandbox]], [[ArenaRound]], [[ArenaCastPicker]], [[ArenaResultPanel]], [[ArenaCastEntry]], [[ArenaOrders]], [[ArenaOrderRules]], [[ArenaOrderCatalog]], [[ArenaRoomRead]], [[ArenaLayoutBuilder]]

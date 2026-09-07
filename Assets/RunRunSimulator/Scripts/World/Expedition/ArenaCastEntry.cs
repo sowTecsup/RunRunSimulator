@@ -7,7 +7,9 @@ public struct ArenaCastEntry
 {
     public CreatureDNA Dna;
     public ExpeditionTeam Team;
-    public Occupation Occupation;
-    public ArenaSite Site;
+    public ArenaOrders Orders;
+
+    public Occupation Occupation => ArenaOrderRules.ToOccupation(Orders);
+    public ArenaSite Site => ArenaOrderRules.ToSite(Orders);
 }
 }

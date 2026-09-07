@@ -1,14 +1,14 @@
 ---
-tags: [script, world, ai, agent, internal, data]
+tags: [script, world, ai, context, internal]
 ---
 
 # AgentContext.cs
 
 **Ruta:** `World/AI/AgentContext.cs`
 
-**Responsabilidad:** Contenedor de estado puro compartido entre colaboradores (AgentBrain, AgentPhysics, AgentExpedition, AgentClash, AgentSenses, AgentSocial, AgentConfinement). Almacena refs de componentes, DNA/perfil, estado de juego, máscaras NavMesh, percepciones, **pizarrón de equipo** (S103 NUEVO). Sin lógica de estado; solo datos y helpers (SetDestinationSafe, IsMoving, PlanarDistance, etc.).
+**Responsabilidad:** Contenedor de estado puro compartido entre colaboradores (AgentBrain, AgentPhysics, AgentExpedition, AgentClash, AgentSenses, AgentSocial, AgentConfinement). Almacena refs de componentes, DNA/perfil, estado de juego, máscaras NavMesh, percepciones, pizarrón de equipo (S103), **órdenes de arena (S104 NUEVO)**. Sin lógica de estado; solo datos y helpers (SetDestinationSafe, IsMoving, PlanarDistance, etc.).
 
-**Enum AgentState (S103 sin cambios):**
+**Enum AgentState:**
 Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting, Socializing, HandFeed, Expedition, Clashing
 
 **Campos Internos:**
@@ -16,35 +16,40 @@ Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation,
 - DNA, Profile (genética + rol)
 - Player, HoldAnchor (refs externas)
 - CurrentContainer (corral si confinado)
-- **S103 NUEVO:** `TeamBlackboard Board` — pizarrón de equipo (inyectado por ArenaSandbox.SpawnCast)
-- Occupación/expedición: Occupation, HomeExit, GuardPost (S101)
-- Percepción: Percepts (List<Percept>, S64)
-- NavMesh: FreeAreaMask, ConfinedAreaMask, RebakeInProgress
 - State (AgentState actual)
-- BaseSpeed (S98)
+- BaseSpeed (velocidad base NavMesh)
+- `Occupation Occupation` — ocupación arena (S104 NUEVO). Derivada de Orders o Gather por defecto. Consultada por AgentExpedition para switch de colaborador
+- `ArenaOrders Orders` — órdenes vigentes (S104 NUEVO). Struct con Loot/Contact/Posture. Clampeado por DNA si personalidad bloquea. Consultado por clash (Break solo golpea sin custodio), expedición (loot bias, huida), y UI
+- TeamBlackboard Board (S103) — pizarrón de equipo
+- Occupación/expedición: HomeExit, GuardPost
+- Percepción: Percepts (List<Percept>)
+- NavMesh: FreeAreaMask, ConfinedAreaMask, RebakeInProgress
 
 **Métodos Públicos:**
-- `IsNavMeshControlled() → bool` — si state es controlado por navmesh
-- `IsBreeding` — si DNA.BusyState == Breeding
-- `IsMoving` — si agente en movimiento
-- `SetStopped(bool)` — Agent.isStopped
-- `SetDestinationSafe(Vector3)` — SetDestination con sample check
-- `ApplyGaitSpeed()` — único dueño de Agent.speed (S98)
-- `SetColliderTrigger(bool)`
-- `PlanarDistanceToPlayer() → float`
-- `RandomPointInBounds(Bounds) → Vector3`
+- `bool IsNavMeshControlled() → bool` — si state es controlado por navmesh (Idle, Roaming, SeekingNeed, UsingStation, Expedition, Clashing)
+- `bool IsBreeding { get; }` — si DNA.BusyState == Breeding
+- `bool IsMoving { get; }` — si Agent activo y en movimiento
+- `void SetStopped(bool stopped)` — Agent.isStopped
+- `void SetDestinationSafe(Vector3 desired)` — SetDestination con sample check
+- `void ApplyGaitSpeed()` — aplica factor velocidad según State/Profile (solo único dueño de Agent.speed)
+- `void SetColliderTrigger(bool isTrigger)`
+- `float PlanarDistanceToPlayer() → float` — XZ distance al player
+- `static Vector3 RandomPointInBounds(Bounds b) → Vector3`
 
-**S103 Cambios:**
-- Campo `TeamBlackboard Board` agregado (nullable)
-- Inyectado por ArenaSandbox en SpawnCast vía `controller.Agent.SetBlackboard(board)`
-- Consultado por AgentExpedition.TryGatherEngage() y AgentScout para navegación inteligente
+**S104 Cambios:**
+- Campos `Occupation` y `ArenaOrders Orders` agregados
+- Orders inyectado por ArenaCastPlanner vía `arenaCast.Orders`; clampeado por ArenaOrderRules.Clamp(DNA, rules, orders)
+- Occupation derivado de Orders vía ArenaOrderRules.ToOccupation()
+- Consulta en AgentClash.TryEngage(): Contact fuerza fight si Boldness alto O Posture bloquea Gather
+- Consulta en AgentExpedition: ocupación elige colaborador, Orders pasa a loot bias en Gather
 
 **Invariantes:**
 - Contenedor puro: sin lógica de transición de estado
 - Ref compartida: todos los colaboradores leen/escriben ctx, no hay duplicación
 - State autoridad única: solo colaboradores pueden cambiar State
-- Board nullable: null si no en expedición, lazy-set por sandbox
+- Board nullable: null si no en expedición
+- Orders inmutable dentro de expedición (derivado de Orders al inicio; si cambia → reset y re-engage)
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[MoriMochiAgent]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[TeamBlackboard]], [[CreatureDNA]], [[RoleWorldProfile]]
+**Conexiones:** [[MoriMochiAgent]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[TeamBlackboard]], [[CreatureDNA]], [[ArenaOrders]], [[ArenaOrderRules]]

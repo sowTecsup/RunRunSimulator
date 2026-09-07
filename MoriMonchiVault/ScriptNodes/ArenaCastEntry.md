@@ -6,46 +6,34 @@ tags: [script, data, struct, expedition]
 
 **Ruta:** `World/Expedition/ArenaCastEntry.cs`
 
-**Responsabilidad:** Struct serializable que representa una criatura en el elenco de una ronda de arena. Contiene DNA, equipo, ocupación y sitio de recolecta.
+**Responsabilidad:** Struct serializable que representa criatura en elenco de arena. Contiene DNA, equipo, **órdenes** (S104), ocupación y sitio derivados de órdenes. Inmutable durante combate; mutado por UI antes de launch.
 
-## Campos
-
+**Campos:**
 ```csharp
 public struct ArenaCastEntry
 {
     public CreatureDNA Dna;
     public ExpeditionTeam Team;         // None, Player, Rival
-    public Occupation Occupation;       // Gather, Guard, Break, Decoy
-    public ArenaSite Site;              // Center, NearVein, FarVein
+    public ArenaOrders Orders;          // Loot/Contact/Posture (S104 NUEVO)
+    public Occupation Occupation { get; }  // derivado de Orders (S104, readonly)
+    public ArenaSite Site { get; }      // derivado de Orders (S104, readonly)
 }
 ```
 
-- `Dna` — criatura clonada desde Roster o LocalSave
-- `Team` — determina entrada/salida y bando
-- `Occupation` — rol táctico de la criatura (se puede cambiar antes de Launch)
-- `Site` — ubicación de recolecta si Occupation=Gather (ignorado si no)
+**Propiedades (S104):**
+- `Occupation Occupation { get; }` — calculado como `ArenaOrderRules.ToOccupation(Orders)`. Guardado en delegated return, no field (solo lectura)
+- `ArenaSite Site { get; }` — calculado como `ArenaOrderRules.ToSite(Orders)`. Guardado en delegated return (solo lectura)
 
-## Invariantes S102
+**Invariantes:**
+- Occupation/Site derivados de Orders (S104) → no se mutan independientemente
+- Orders clampeado por DNA si personalidad bloquea (ArenaOrderRules.Clamp)
+- Inmutable durante combate; mutado por ArenaPlanPanel antes de launch
+- Entrada recordada en ArenaCastPlanner.remembered() (Dna.CustomName → Orders last)
 
-- **Inmutable durante combate:** ArenaCastEntry no cambia mientras ArenaRound.IsRunning
-- **Entrada recordada:** ArenaCastPlanner.remembered() cachea (Occupation, Site) por DNA.CustomName
-- **Sitio ignorado para Decoy:** Occupation.Decoy no respeta Site (tiene lógica propia)
+**Construcción:**
+- ArenaCastPlanner.Prepare() → FromRoster() o LocalSave
+- ArenaPlanPanel.SetPlayerPlan() → mutación pre-launch
 
-## Construcción
+**Vinculado a:** [[Index/22 - Arena (S103-S104)]]
 
-Típicamente creado en:
-1. ArenaCastPlanner.Prepare() → FromRoster() o LocalSave
-2. ArenaPlanPanel.ChooseOccupation/ChooseSite → mutación vía SetPlayerPlan
-
-## Conexiones
-
-- [[CreatureDNA]] (Dna field)
-- [[ArenaCastPlanner]] (constructor Prepare)
-- [[ArenaSandbox]] (almacena en PlannedCast)
-- [[ArenaRound]] (itera cast para SpawnCast)
-- [[AgentExpedition]] (lee Site/Occupation del agente)
-- [[WorldEnums]] (ExpeditionTeam, Occupation, ArenaSite)
-
-## Vinculado a
-
-[[Index/23 - Arena Sandbox y Expedicion]]
+**Conexiones:** [[CreatureDNA]], [[ArenaOrders]], [[ArenaOrderRules]], [[ArenaCastPlanner]], [[ArenaSandbox]], [[AgentExpedition]], [[WorldEnums]]

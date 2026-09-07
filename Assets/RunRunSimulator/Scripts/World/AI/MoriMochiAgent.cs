@@ -22,12 +22,14 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
     private void OnEnable()
     {
+        if (confinement == null) return;
         GameEvents.OnNavMeshWillRebake += confinement.OnNavMeshWillRebake;
         GameEvents.OnNavMeshRebaked    += confinement.OnNavMeshRebaked;
     }
 
     private void OnDisable()
     {
+        if (confinement == null) return;
         GameEvents.OnNavMeshWillRebake -= confinement.OnNavMeshWillRebake;
         GameEvents.OnNavMeshRebaked    -= confinement.OnNavMeshRebaked;
     }
@@ -180,6 +182,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public bool CanBePetted => brain.CanBePetted;
 
     public CreatureIntent Intent =>
+        ctx == null                         ? CreatureIntent.Idle :
         ctx.State == AgentState.Clashing    ? clash.Intent :
         ctx.State == AgentState.Socializing ? social.Intent :
         ctx.State == AgentState.Expedition  ? expedition.Intent :
@@ -205,8 +208,21 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public ExpeditionTeam Team => perceivable != null ? perceivable.Team : ExpeditionTeam.None;
     public Occupation Occupation => ctx.Occupation;
     public int Carried => expedition.Carried;
+    public int CarryCapacity => expedition.CarryCapacity;
     public float MiningProgress => expedition.MiningProgress;
-    public void SetOccupation(Occupation occupation) => ctx.Occupation = occupation == Occupation.None ? Occupation.Gather : occupation;
+    public ArenaOrders Orders => ctx.Orders;
+    public void SetOrders(ArenaOrders orders)
+    {
+        ctx.Orders = orders;
+        ctx.Occupation = ArenaOrderRules.ToOccupation(orders);
+    }
+    public int TimesFled => expedition.Fled;
+    public MoriMochiAgent TrustedGuardian => expedition.Guardian;
+    public float ClashCooldown01 => clash.Cooldown01;
+    public float FleeCooldown01  => expedition.FleeCooldown01;
+    public float DecoyCooldown01 => expedition.DecoyCooldown01;
+    public float Retreat01       => expedition.Retreat01;
+    public bool  IsChasing       => expedition.IsChasing;
     public void SetHomeExit(ExitZone exit) => ctx.HomeExit = exit;
     public void SetGuardPost(Transform post) => ctx.GuardPost = post;
     public void SetBlackboard(TeamBlackboard board) => ctx.Board = board;

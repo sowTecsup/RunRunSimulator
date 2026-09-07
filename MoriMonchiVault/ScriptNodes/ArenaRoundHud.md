@@ -1,49 +1,62 @@
 ---
-tags: [script, world, ui, expedition, presentation]
+tags: [script, world, ui, exposition, expedition]
 ---
 
 # ArenaRoundHud.cs
 
 **Ruta:** `World/Expedition/ArenaRoundHud.cs`
 
-**Responsabilidad:** HUD de ronda UITK en vivo (S103 reescrito). Muestra arriba: seed (sala NNNN), player score, timer con aviso de tiempo bajo (warnSeconds), rival score. Abajo: dos columnas (player team | rival team) con roster vivo. Cada fila por criatura: swatch de color, nombre, ocupación+intención, minería en progreso (barra), materiales en mano. Si IsOver, overlay resultado (Gana tu equipo/Gana rival/Empate). Cache de strings y valores para evitar ediciones DOM innecesarias.
+**Responsabilidad:** HUD de ronda UITK en vivo. Muestra tarjetas estilo Pokémon Quest por equipo (arriba/abajo o lado), score, timer (S104: con control de pausa/velocidad vía ArenaClockControl), equipo rival como fichas. Cada tarjeta: swatch, nombre, ocupación+intención, minería en progreso, carga. Cache de strings y valores para evitar DOM ediciones innecesarias. **S104:** tarjetas rediseñadas, control de tiempo (1x/2x/5x/10x + pausa con Space/1234), filas/fichas de rivales.
 
 **Métodos públicos:**
-- `Update()` — tick principal (refresh si IsRunning o IsOver, actualiza scores, tiempo, roster, resultado)
+- `void Update()` — tick principal
 
 **Métodos privados:**
-- `RefreshSeed()` — "sala {ActiveSeed}"
-- `RefreshRoster()` — itera Spawned, construye rows separadas por team, crea/limpia buffer de Rows
-- `BuildRow(MoriMochiAgent agent)` — crea VisualElement con componentes (swatch, name, sub, mine bar, carry label)
-- `Verb(Occupation)` → string — Guard→"vigila", Break→"rompe", Decoy→"distrae", Explore→"explora", default→"recolecta"
+- `RefreshSeed()` — "sala NNNN"
+- `RefreshScores()` — Player score | Rival score
+- `RefreshTime()` — cronómetro con warn
+- `RefreshRoster()` — construye tarjetas/fichas por equipo
+- `BuildCard(MoriMochiAgent agent)` → VisualElement — (S104 reescritura)
+- `BuildRivalCard(MoriMochiAgent agent)` → VisualElement — (S104 NUEVO) fichas compactas
+- `Verb(Occupation)` → string — descripción de rol
 
-**UI Structure (UXML/USS S103):**
-- `hud-root` (hud--idle cuando no running/over)
-  - `hud-seed` (Label) — "sala NNNN" (siempre visible)
-  - Marcador: `hud-player-score` | `hud-time` | `hud-rival-score` (columnas)
-    - `hud-time` (Label con clases hud-time--warn cuando ≤ warnSeconds)
-    - `hud-bar-fill` (relleno de progreso con clases hud-bar__fill--warn)
-  - Columnas: `hud-player-team` (VisualElement) | `hud-rival-team` (VisualElement)
-    - Cada uno contiene múltiples `hud-row` (hud-row--rival para rival)
-      - `hud-row__swatch` (color DNA)
-      - `hud-row__text` (flex column)
-        - `hud-row__name` (Label)
-        - `hud-row__sub` (Label) — "ocupación · intención"
-        - `hud-row__mine` (barra de minería con `hud-row__mine-fill`)
-      - `hud-row__carry` (Label) — "◆ N" o vacío
+**UI Structure (S104 reescrito):**
+- `hud-root`
+  - `hud-header`
+    - `hud-seed`, `hud-scores`, `hud-timer` con `hud-speed-label` (S104)
+  - `hud-player-cards` — tarjetas player (Pokémon Quest style)
+  - `hud-rival-cards` — fichas rival (compactas) (S104)
+  - Overlay resultado si IsOver
+
+**Tarjeta Pokémon Quest (S104):**
+- Forma redondeada
+- Swatch color + borde
+- Nombre encima
+- Ocupación/Intención debajo
+- Barra de minería con animación
+- Cristales llevados (ej. "◆◆◆")
+
+**Ficha Rival (S104 NUEVO):**
+- Compacta, sin minería (no necesaria)
+- Nombre + Orders resume (ej. "Guardián")
+- Color por equipo
+
+**Control de Tiempo (S104 NUEVO via ArenaClockControl):**
+- 1-4 keys: cambia velocidad
+- Space: pausa/resume
+- Display "1x | 2x | 5x | 10x | ⏸ PAUSE"
 
 **Campos Serializados:**
-- `round` [Required] — ArenaRound
-- `warnSeconds` [Min(0)] = 15 — threshold para activar aviso de tiempo
+- `round` [Required]
+- `warnSeconds` [Min(0)] = 15
+- `clockControl` [Required] — (S104) para leer Speed/Paused
 
-**Internals (Class Row):**
-- MoriMochiAgent Agent
-- Label Sub, Carry
-- VisualElement Mine, MineFill
-- string LastSub, int LastCarried, float LastProgress (caché)
+**Invariantes:**
+- Caché de strings evita spam DOM
+- Tarjetas por equipo separadas (arriba/abajo o lado)
+- Rival cards sin barras de minería (simplificadas)
+- Timer con coloración dinámica (rojo si ≤ warn)
 
-**S103:** Reescrita con UXML/USS para mejor control visual. Cronómetro con warn al acercarse el fin (rojo). Estadísticas vivas: ocupación + intención (intent names desde LocEnumMaps), minería en progreso, carga. Resultado overlay opcional. Columnas por equipo visualizan estrategia en vivo.
+**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
-
-**Conexiones:** [[ArenaRound]], [[ArenaSandbox]], [[MoriMochiAgent]], [[CreatureDNA]], [[Occupation]], [[CreatureIntent]], [[LocEnumMaps]]
+**Conexiones:** [[ArenaRound]], [[ArenaClockControl]], [[MoriMochiAgent]], [[CreatureDNA]], [[ArenaOrders]], [[Occupation]], [[CreatureIntent]]

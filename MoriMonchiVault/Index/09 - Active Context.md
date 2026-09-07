@@ -4,6 +4,74 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-06 (Session 104 — **ÓRDENES POR TRES PILARES DESBLOQUEADAS POR PERSONALIDAD, HUIDA Y CONFIANZA, PARTICIÓN DE `AgentExpedition` ✅ (video `s104_ordenes_demo.mp4`) + BALANCE POR MATRICES (8 matrices, 4 tandas de contras: sin 100 % ni 0 %) + UI LEGIBLE (lectura de sala y rival, contras, ruleta de carga, reloj 1-4) ✅ — 11 scripts NUEVOS + 20 MODIFICADOS + UXML/USS + escena (ArenaClockControl en ObserverCamera); ✅ CERRADA por `/cerrar-sesion` (vault-documenter + commit + push)**)
+
+**Focus:** Juan abrió con theorycrafting (*"qué decisiones debe tomar el usuario al empezar la partida; mecánicas sencillas, decisiones difíciles"*) y después fijó el diseño: *"las personalidades abren las opciones; opciones pocas que resuelvan dudas generales; las partes son habilidades automáticas; tres estrategias fundamentales, ninguna mejor, ninguna defiende todos los flancos; las decisiones: botín grande o pequeño, enfrentar o escapar, proteger o agresivo; el jugador tiene que ver MARCADAMENTE la diferencia; ejecutate en /loop hasta tener algo para mostrar; plantea los 3 arquetipos"*. PC1 (E:\GitHub), MCP de CoplayDev vivo toda la sesión (compilar, Play, `execute_code` Roslyn con corrutinas, Recorder por API). Sub-agentes `morimonchi-coder` (8: cuatro colaboradores, planificador, panel, HUD/resultado, guías); el núcleo, las reglas de órdenes, `ExpeditionNav` y los ajustes de afinado los escribió el orquestador.
+
+1. **Diseño (Index/22 8.11):** tres pilares binarios por criatura; bloqueos por diales (osadía ≥ 0,65 Enfrentar fijo, ≤ 0,35 Escapar fijo; sociabilidad ≥ 0,65 Proteger fijo, ≤ 0,35 Agresivo fijo; el medio elige); cuatro posturas (Guardián / Cazador / Recolector / Señuelo) × botín (del centro / de las vetas); tres estrategias de equipo (Muralla / Hormiguero / Jauría) y seis planes rivales por semilla pasados por los bloqueos del cuerpo rival.
+2. **Agente:** [[AgentExpedition]] 881 → 104 líneas; [[IExpeditionTask]] + [[AgentGatherer]] (huida `Fleeing`, sitio planeado por botín, confianza `TrustedGuardian`), [[AgentGuard]], [[AgentHunter]], [[AgentDecoy]], [[AgentScout]]; [[ExpeditionNav]] estático. Huida: solo ante Hunting/Guarding/Clashing/Taunting/Fighting a ≤ 6,5 m, 3,5 s, con carga vuelve a la salida; no huye si un aliado que Enfrenta está a ≤ 6 m. El equipo conoce las vetas de la sala (`TeamBlackboard.NearestSite`); Pequeño nunca elige el central (`MaterialPickup.IsLode`).
+3. **Plan:** [[ArenaOrders]] / [[ArenaOrderRules]] / [[ArenaOrderCatalog]]; [[ArenaCastEntry]] con `Orders` (Occupation/Site derivados); [[ArenaCastPlanner]] con `rules` y `Clamp`; [[ArenaPlanPanel]] con tres filas de píldoras, bloqueos violeta con razón, arquetipo + descripción, rival con personalidad y bloqueos; `cast-list` en ScrollView. HUD con arquetipo; resultado con "huyó N". Overlay: cono rojo/amarillo al ver un rival según Enfrentar/Escapar, anillo de huida, enlace verde de confianza.
+4. **Lo medido (roster, 90 s):** A 4242 todos al centro 0-0 (huida vieja) → B 4242 5-2 (cazador al centro + recolectores a vetas) → C2 4246 Emboscada 4-13 → C3 4-10 → **C4 9-3** (leer al rival: cazador al centro, cazador a sus vetas, recolector al centro bajo confianza). Misma sala y rival, cuatro planes, cuatro resultados.
+5. **Video:** `Recordings/s104_ordenes_demo.mp4` grabado con Unity Recorder por `execute_code` (1080p, 30 fps constantes): plan con píldoras y bloqueos → cambio de órdenes de Equilibrado y Tímida → ronda C4 → resultado. Sondeos y capturas en el scratchpad (`s104/`).
+
+6. **Segunda mitad (Juan: "testeo de arquetipos, variaciones y combinaciones; ninguno al 100 % ni al 0 %; diversidad real; UI legible; habilidades como Pokémon Quest automáticas"):** arnés de matriz en Play por `execute_code` (12-16 planes de equipo todos contra todos, diales neutros, sala fija, 5× y luego 10× con `ArenaClockControl`; `analyze.pl` y CSVs en el scratchpad). Ocho matrices y cuatro tandas de reglas hasta que el ciclo existiera: retirada del cazador caído, persecución del señuelo por el guardián, minado ocioso de las posturas no recolectoras, el cazador ignora a los custodiados y **solo golpea recolectores**, se queda con lo que cae (`IsDrop`), cristal central a 2 s por unidad. Resultado final (`Index/22` 8.11 tabla): sin 100 % ni 0 %, tope Muralla 91 % / 84 % según sala, piso Hormiguero 12 % / Señuelos 22 %; personalidades: roster 92 %, tres Osados solitarios (tres cazadores forzados) 8 %. Diseño de habilidades por parte en `Index/22` 8.12 (propuesta, no implementada).
+7. **UI legible (pedido de Juan):** lectura de la sala antes de bajar (`ArenaRoomRead` + `RoomText`: cristal central y distancia, vetas y total, veta más cercana a la salida, sala abierta/mixta/cubierta por obstáculos), personalidad propia con lo que desbloquea (`UnlockRead`), lectura del rival (`RivalRead`: "cazador seguro"), contra por postura (`CounterHint`), nombre del plan de equipo (`TeamPlanName`), ruleta de carga por ranuras (`CarryCapacity` + `DrawMining`), velocidad de simulación por teclas 1-4 (`ArenaClockControl` en `ObserverCamera`, con el `MMTimeManager` cableado; el HUD muestra "· 10×").
+8. **Bugs corregidos:** NRE en `AgentExpedition.TickExpedition` (`PostureEngages` dejaba `active` en null); `MoriMochiAgent.Intent` y `OnEnable/OnDisable` blindados contra el estado sin Awake que deja un domain reload en Play (pasó una vez: `refresh_unity` con `scope: scripts` compila sin importar y el import se dispara al enfocar el editor → usar siempre `mode: force, scope: all` antes de Play).
+
+9. **HUD de ronda estilo Pokémon Quest (pedido de Juan al cierre):** barra inferior con una tarjeta por MoriMochi propio (postura, pilares en chips, acción, ranuras de carga, dos movimientos con enfriamiento), pausa y sala arriba a la izquierda, marcador al centro, rival como fichas a la derecha, botón de velocidad abajo a la izquierda; `ArenaClockControl` con pausa (espacio) y ciclo de velocidad, cableado al HUD en la escena (guardada). Verificado en Play con capturas.
+
+> ### 📝 Notas S104 (para decisión de Juan)
+> 1. Umbrales de bloqueo (0,35 / 0,65) y knobs de huida/confianza son defaults de código en `ExpeditionRulesSO`; el asset los guarda recién al tocarlos en el Inspector.
+> 2. Explorar quedó fuera de la UI (sigue por roster). El Señuelo (Escapar + Agresivo) no se probó en ronda.
+> 3. Theorycrafting abierto: silbato en vivo (una intervención por ronda), pilar "cuánto" (capacidad), cansancio como costo de bajar, rumor del rival en el meta asíncrono.
+> 4. El HUD sigue con la intención localizada (`en`) y el resto en castellano fijo; el video forzó `es` en Play.
+> 5. Deuda de tamaño restante: `MoriMochiAgent` 670, `AgentBrain` 471, `AgentSocial` 470, `AgentClash` 468, `AgentGatherer` ~460, `ArenaSandbox` 403.
+
+**Lista final de `.cs` de S104 (para el vault-documenter):**
+- `Scripts/Data/Expedition/ArenaOrders.cs` → NUEVO
+- `Scripts/Data/Expedition/ArenaOrderRules.cs` → NUEVO
+- `Scripts/Data/Expedition/ArenaOrderCatalog.cs` → NUEVO
+- `Scripts/World/AI/IExpeditionTask.cs` → NUEVO
+- `Scripts/World/AI/ExpeditionNav.cs` → NUEVO
+- `Scripts/World/AI/AgentGatherer.cs` → NUEVO
+- `Scripts/World/AI/AgentGuard.cs` → NUEVO
+- `Scripts/World/AI/AgentHunter.cs` → NUEVO
+- `Scripts/World/AI/AgentDecoy.cs` → NUEVO
+- `Scripts/World/Expedition/ArenaClockControl.cs` → NUEVO
+- `Scripts/Data/Expedition/ArenaRoomRead.cs` → NUEVO
+- `Scripts/World/AI/AgentClash.cs` → MODIFICADO (el cazador solo golpea recolectores no custodiados; Enfrentar salta `MinBoldness`)
+- `Scripts/World/Expedition/ArenaLayoutBuilder.cs` → MODIFICADO (`ObstacleCount`)
+- `Scripts/World/AI/AgentExpedition.cs` → MODIFICADO (reescrito como núcleo de 104 líneas)
+- `Scripts/World/AI/AgentScout.cs` → MODIFICADO (implementa `IExpeditionTask`)
+- `Scripts/World/AI/AgentContext.cs` → MODIFICADO (`Orders`)
+- `Scripts/World/AI/MoriMochiAgent.cs` → MODIFICADO (`Orders`, `SetOrders`, `TimesFled`, `TrustedGuardian`; `SetOccupation` borrado)
+- `Scripts/Core/Enums/WorldEnums.cs` → MODIFICADO (`LootChoice`, `ContactChoice`, `PostureChoice`, `OrderPillar`)
+- `Scripts/Data/Expedition/ExpeditionRulesSO.cs` → MODIFICADO (secciones Órdenes y Huida)
+- `Scripts/Data/Expedition/CueStyleSO.cs` → MODIFICADO (sección Órdenes)
+- `Scripts/World/Expedition/MaterialPickup.cs` → MODIFICADO (`IsLode`)
+- `Scripts/World/Expedition/TeamBlackboard.cs` → MODIFICADO (`BestKnownVein(…, excludeLode)`, `NearestSite`)
+- `Scripts/World/Expedition/ArenaCastEntry.cs` → MODIFICADO (`Orders`)
+- `Scripts/World/Expedition/ArenaCastPlanner.cs` → MODIFICADO (órdenes, `Clamp`, seis planes rivales)
+- `Scripts/World/Expedition/ArenaSandbox.cs` → MODIFICADO (`SetPlayerOrders`, `SetOrders`, `SetLode`)
+- `Scripts/World/Expedition/ArenaPlanPanel.cs` → MODIFICADO (tres pilares)
+- `Scripts/World/Expedition/ArenaRoundHud.cs` → MODIFICADO (arquetipo)
+- `Scripts/World/Expedition/ArenaRoundSummary.cs` → MODIFICADO (`Orders`, `Fled`)
+- `Scripts/World/Expedition/ArenaResultPanel.cs` → MODIFICADO (verbo por órdenes, "huyó N")
+- `Scripts/World/Expedition/ArenaCueOverlay.cs` → MODIFICADO (cono por contacto, huida, confianza)
+- `UI Toolkit/ArenaPlanPanel.uxml` y `ArenaPlanPanelStyle.uss` → MODIFICADOS (ScrollView, filas, bloqueos, pista de contra, lectura de sala)
+- `UI Toolkit/ArenaRoundHud.uxml` y `ArenaRoundHudStyle.uss` → MODIFICADOS (barra de tarjetas estilo Pokémon Quest)
+- `Resources/Scenes/ArenaSandbox.unity` → MODIFICADA (ArenaClockControl en ObserverCamera, cableado al HUD)
+
+**Next session (S105):**
+1. **Decisiones de Juan sobre lo medido:** el señuelo es la postura más débil (planes con señuelo 25-50 %) y tres cazadores forzados por personalidad casi no puntúan (8 %). Opciones: que el señuelo robe cristales caídos o haga huir también a cazadores; que el cazador gane algo por cada tumbado. Decidir antes de tocar números.
+2. **HUD de ronda, segunda pasada:** tocar una tarjeta enfoca la cámara en ese MoriMochi; contador "en manos" junto al marcador; el silbato (una intervención por ronda: todos a asegurar) si Juan lo aprueba; revisar el tamaño de las tarjetas en 720p.
+3. **Partes como habilidades automáticas (8.12):** construir `ExpeditionStats` por criatura (reglas × órdenes × partes) y que los colaboradores lean de ahí; recién después la primera `PartAbilitySO` (Alforja o Colibrí) ocupando una ranura de movimiento del HUD.
+4. **Balance con más muestras:** dos rondas por cruce y dos salas por matriz antes de mover otro knob; medir si el minado ocioso desdibuja al Guardián (minó 8 en una ronda sin rivales cerca).
+5. **Mis MoriMonchis:** verificar el plan con el save real (diales ~0,5 → eligen todo), y que la pantalla de plan siga legible con nombres largos.
+6. **Deuda y arrastres:** `MoriMochiAgent` 690 líneas, `AgentGatherer` ~470, `AgentBrain`, `AgentSocial`, `AgentClash` sobre 400; el HUD mezcla castellano fijo con la intención localizada (`en`); Explorar fuera de la UI; sonido; `Index/02`; `Rest` sin loop; bajar los quirks S104 a `Index/12`; el domain reload en Play solo se evita con `refresh_unity mode: force, scope: all` antes de Play.
+
+---
+
 **Session:** 2026-09-06 (Session 103 — **UI DE ARENA (SELECTOR DE MIS MORIMONCHIS + HUD DE RONDA UITK + PANEL DE RESULTADO CON ESTADÍSTICAS) ✅ + SQUASH & STRETCH POR DRIVER PROPIO Y TUMBADO AFINADO ✅ (video `s103_squash_demo_5mbps.mp4`) + EXPLORAR Y PIZARRÓN DE EQUIPO (8.10 paso 4) ✅ (video `s103_explorar_demo_b.mp4`) — 6 scripts NUEVOS + 16 MODIFICADOS, prefab del agente, 3 tablas de texto, 2 assets repoblados; todo verificado en Play con trazas numéricas y capturas miradas; commit + push al cierre (desde S103 el cierre incluye commit); ✅ CERRADA por `/cerrar-sesion`**)
 
 **Focus:** Juan: *"comitea y proponme cuáles son los siguientes pasos; sugiero empezar con la UI, mejorar el efecto ragdoll y empujes squash and stretch en los MoriMonchis, agregá el comitear al cerrar sesión"* → plan aprobado ("de acuerdo, empecemos"), luego *"continua en un /loop… solo detente cuando tengas un video para mostrarme"* → dos videos entregados por SendUserFile ("Me gusta como se ve, continua"). PC1 (E:\GitHub), Synty presente, MCP de CoplayDev vivo toda la sesión (compilar, Play, `execute_code` con coroutines de sondeo, prefab por `PrefabUtility.LoadPrefabContents`). Sub-agentes `morimonchi-coder` (7 en el bloque UI, 2 en el pizarrón); el núcleo del squash y del scout lo escribió el orquestador (rate limit de Sonnet a mitad de sesión y cambios interdependientes).

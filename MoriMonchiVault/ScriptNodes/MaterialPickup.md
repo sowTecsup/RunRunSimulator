@@ -6,65 +6,46 @@ tags: [script, world, expedition, recolectable]
 
 **Ruta:** `World/Expedition/MaterialPickup.cs`
 
-**Responsabilidad:** Recolectable de expedición: cristal mineral con valor entero. Requiere componente `Perceivable` del mismo GO (para que el agente lo vea). Expone interfaz simple: `Value`, `Remaining`, `Taken`, `TryMineUnit()`, `Radius` (perezoso). **S98 NUEVO:** soporta `disableDelay` (corrutina antes de desactivar) y `UnityEvent onTaken` para Feel. **S99 NUEVO:** `Radius` se calcula lazy desde bounds del renderer, `standoffRadius` override serializado, `ApproachPoint()` calcula punto de llegada en el borde del mineral. **S101 NUEVO:** usado en 3 contextos de ocupación: Gather (mina valores), Guard (se planta y vigila), Break (acecharé aquí esperando rival).
+**Responsabilidad:** Recolectable de expedición: cristal mineral con valor entero, clasificación de origen (lode vs drop), y radio. Requiere componente `Perceivable` del mismo GO (para que el agente lo vea). Expone interfaz: `Value`, `Remaining`, `Taken`, `IsLode`, `IsDrop`, `Radius`, `TryMineUnit()`, `ApproachPoint()`. S98: `disableDelay`, `onTaken`. S99: radio perezoso, `ApproachPoint()`. S104: `SetLode()`, `SetDrop()` para clasificar origen (afecta velocidad de minado en ExpeditionRulesSO).
 
-## Campos Serializados
+**Campos Serializados:**
+- `value` (int, min 1) — puntos que otorga al minarse completamente. Seteable vía `SetValue()`.
+- `disableDelay` (float, min 0) — segundos antes de desactivar tras recolección completa. Si ≤ 0, inmediato.
+- `onTaken` (UnityEvent) — dispara al recolectar completamente
+- `standoffRadius` (float, min 0) — override de radio: si > 0, usa este; si = 0, calcula lazy desde renderer
 
-- `value` (int, min 1, default 1) — puntos que otorga al tomarse. Seteable vía `SetValue()` para minerales central (valor alto, ej. 5) vs esquinas (valor bajo, ej. 1).
-- **S98 NUEVOS:**
-  - `disableDelay` (float, min 0, default 0) — segundos antes de desactivar el GO tras `TryMineUnit()` agotado. Si ≤ 0, desactiva inmediato.
-  - `onTaken` (UnityEvent) — dispara al recolectar completamente.
-- **S99 NUEVO:**
-  - `standoffRadius` (float, min 0, default 0) — override de radio: si > 0, usa este; si = 0, calcula lazy desde renderer bounds.
+**Propiedades Públicas:**
+- `int Value { get; }` — valor otorgado
+- `int Remaining { get; private set; }` — unidades pendientes
+- `bool Taken { get; }` — si ya fue recolectado completamente
+- `bool IsLode { get; private set; }` — clasificación lode (S104 NUEVO)
+- `bool IsDrop { get; private set; }` — clasificación drop caído (S104 NUEVO)
+- `float Radius { get; }` — radio de contacto (cacheado perezoso)
 
-## Propiedades
+**Métodos Públicos:**
+- `void TryMineUnit() → bool` — recolecta unidad. Si Taken, retorna false. Sino: decrementa Remaining, emite onTaken si completo, inicia desactivación
+- `void ApproachPoint(Vector3 from, float margin) → Vector3` — punto de llegada en borde del mineral
+- `void SetValue(int newValue)` — setter interno (ArenaSandbox.SetupMinerals)
+- `void SetLode(bool lode)` — clasifica como lode (S104 NUEVO). Consulta: ExpeditionRulesSO.LodeMiningSecondsPerUnit si true, else MiningSecondsPerUnit
+- `void SetDrop()` — marca como drop (S104 NUEVO). Usada por AgentGatherer.Drop() para material soltado
 
-- `Value → int` — valor de material que otorga. Solo lectura pública.
-- `Remaining → int` — unidades pendientes de recolectar. Decrece con `TryMineUnit()`.
-- `Taken → bool` — bandera de si ya fue completamente recolectado (Remaining <= 0).
-- **S99 NUEVO:**
-  - `Radius → float` — radio de contacto perezoso (cacheado una sola vez).
+**Ciclo de Vida:**
+1. Instancia (ArenaSandbox.SetupMinerals)
+2. SetValue() + SetLode() / SetDrop()
+3. TryMineUnit() loop hasta Remaining ≤ 0
+4. Desactiva con delay opcional
 
-## Métodos Públicos
+**Clasificación (S104):**
+- `IsLode=true` — mineral central de la sala, minado más lentamente (LodeMiningSecondsPerUnit)
+- `IsDrop=true` — material caído por golpeo, pickup solo (no minado)
+- Default (false,false) — veta chica en esquinas
 
-- `TryMineUnit() → bool` — recolecta una unidad del mineral. Si `Taken`, devuelve false. Sino: decrementa `Remaining`, emite `onTaken` si Remaining <= 0, inicia desactivación. Usado por `AgentExpedition.Phase.Mining` cada `MiningSecondsPerUnit`.
-- **S99 NUEVO:** `ApproachPoint(Vector3 from, float margin) → Vector3` — calcula punto de llegada en el borde del mineral visto desde `from`. Usado por `AgentExpedition.ApproachPoint()` para evitar apiñamiento.
-- `SetValue(int newValue)` — setter interno: clampea a min 1. Llamado por `ArenaSandbox.SpawnMinerals()`.
+**Invariantes:**
+- Perceivable requerido: `[RequireComponent]` asegura registro
+- Remaining decrementa 1 por TryMineUnit(); si Value=5, toma 5 llamadas
+- Desactivación = desregistro del registry; agentes nunca vuelven
+- Radio perezoso: calculado una vez; sandbox escala post-instancia
 
-## Ciclo de Vida
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-```csharp
-OnEnable():
-  (Perceivable automático: registra en PerceivableRegistry si Kind=Material)
-
-TryMineUnit():
-  1. Si Taken → return false
-  2. Decrementa Remaining
-  3. Si Remaining <= 0 → set Taken=true, Invoke onTaken
-  4. Si disableDelay <= 0 → gameObject.SetActive(false)
-  5. Sino → StartCoroutine(DisableAfter(disableDelay))
-
-OnDisable():
-  (Perceivable automático: desregistra del registry)
-```
-
-## Invariantes S101 + S98 + S99
-
-- **Perceivable requerido:** `[RequireComponent(typeof(Perceivable))]` asegura registro.
-- **Remaining es contador:** se decrementa 1 unidad por `TryMineUnit()`. Si `Value=5`, toma 5 llamadas vaciar.
-- **Desactivación = desregistro:** al desactivarse, Perceivable.OnDisable lo saca del registry; agentes nunca vuelven.
-- **S101 contextos:** Gather lo toma, Guard lo vigila, Break lo acecha esperando rival que llegue a tomarlo.
-- **Radio perezoso:** se calcula una sola vez; útil porque sandbox escala post-instancia.
-- **S99 ApproachPoint margin:** `margin` es buffer extra (ej. ancho del agente); `margin=0` toca exacto el borde.
-
-## Vinculado a
-
-- [[Index/23 - Arena Sandbox y Expedicion]]
-
-## Conexiones
-
-- [[Perceivable]] (requerido)
-- [[ArenaSandbox]] (instantiador, SetValue)
-- [[AgentExpedition]] (lector, TryMineUnit, ApproachPoint)
-- [[Occupation]] (contexto de Guard/Break/Decoy)
-- [[PerceivableRegistry]] (automático)
+**Conexiones:** [[Perceivable]], [[ArenaSandbox]], [[AgentGatherer]], [[AgentGuard]], [[AgentHunter]], [[TeamBlackboard]], [[ExpeditionRulesSO]]

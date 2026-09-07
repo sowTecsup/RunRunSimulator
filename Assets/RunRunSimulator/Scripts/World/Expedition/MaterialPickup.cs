@@ -17,6 +17,8 @@ public class MaterialPickup : MonoBehaviour
     public int Value => value;
     public int Remaining { get; private set; }
     public bool Taken => Remaining <= 0;
+    public bool IsLode { get; private set; }
+    public bool IsDrop { get; private set; }
 
     public float Radius
     {
@@ -37,6 +39,16 @@ public class MaterialPickup : MonoBehaviour
     {
         value = Mathf.Max(1, newValue);
         Remaining = value;
+    }
+
+    internal void SetLode(bool lode)
+    {
+        IsLode = lode;
+    }
+
+    internal void SetDrop()
+    {
+        IsDrop = true;
     }
 
     private float ComputeRadius()

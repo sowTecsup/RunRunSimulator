@@ -23,6 +23,7 @@ internal class AgentContext
     internal Transform          HoldAnchor;
     internal MoriMochiContainer CurrentContainer;
     internal Occupation Occupation = Occupation.Gather;
+    internal ArenaOrders Orders = ArenaOrders.Default;
     internal ExitZone   HomeExit;
     internal Transform   GuardPost;
     internal TeamBlackboard Board;

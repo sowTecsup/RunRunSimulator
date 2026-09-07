@@ -2,7 +2,7 @@ using UnityEngine;
 namespace MoriMonchiSimulator
 {
 
-internal class AgentScout
+internal class AgentScout : IExpeditionTask
 {
     private enum Step { Traveling, Reporting }
 
@@ -25,8 +25,8 @@ internal class AgentScout
     }
 
     internal int Reports => reports;
-    internal Transform TargetTransform => site != null ? site.transform : null;
-    internal CreatureIntent Intent => step == Step.Reporting ? CreatureIntent.Reporting : CreatureIntent.Exploring;
+    public Transform TargetTransform => site != null ? site.transform : null;
+    public CreatureIntent Intent => step == Step.Reporting ? CreatureIntent.Reporting : CreatureIntent.Exploring;
 
     internal bool TryEngage(ExpeditionRulesSO rules)
     {
@@ -52,7 +52,7 @@ internal class AgentScout
         return true;
     }
 
-    internal bool Tick(ExpeditionRulesSO rules)
+    public bool Tick(ExpeditionRulesSO rules)
     {
         var board = ctx.Board;
         if (board == null || site == null || !site.gameObject.activeInHierarchy) return false;
@@ -115,7 +115,7 @@ internal class AgentScout
         return true;
     }
 
-    internal void Cancel()
+    public void Cancel()
     {
         site         = null;
         step         = Step.Traveling;
@@ -123,7 +123,7 @@ internal class AgentScout
         blockedTimer = 0f;
     }
 
-    internal void ResetForReuse()
+    public void ResetForReuse()
     {
         Cancel();
         elapsed     = 0f;

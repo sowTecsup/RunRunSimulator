@@ -100,6 +100,14 @@ public class CueStyleSO : SerializedScriptableObject
     [Range(0f, 1f)] public float PingAlpha = 0.8f;
     public float PingThickness = 0.08f;
 
+    [Title("Órdenes")]
+    public Color FleeColor = new Color(1f, 0.85f, 0.2f);
+    [Range(0f, 1f)] public float ContactFillAlpha = 0.12f;
+    [Range(0f, 1f)] public float ContactEdgeAlpha = 0.9f;
+    public float FleeRingRadius = 1.3f;
+    public float FleeRingThickness = 0.08f;
+    public float FleePulseSpeed = 8f;
+
     [Title("Social")]
     public Color SocialLinkColor = new Color(0.95f, 0.5f, 0.8f);
     public Color FightColor = new Color(0.9f, 0.15f, 0.15f);

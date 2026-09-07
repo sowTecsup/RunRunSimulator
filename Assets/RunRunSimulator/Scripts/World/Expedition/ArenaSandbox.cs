@@ -72,13 +72,38 @@ public class ArenaSandbox : MonoBehaviour
     public string EntryName => layout != null && layout.IsBuilt ? layout.EntryName : "diagonal";
     public string PaletteName => palette != null && palette.Current != null ? palette.Current.DisplayName : "";
 
+    public ArenaRoomRead ReadRoom(ExpeditionTeam team)
+    {
+        var read = new ArenaRoomRead { LodeValue = centerMineralValue };
+        if (layout != null && layout.IsBuilt)
+        {
+            read.VeinCount = layout.Veins.Count;
+            foreach (var spot in layout.Veins) read.VeinTotal += spot.Capacity;
+            read.Obstacles = layout.ObstacleCount;
+        }
+
+        var exit = ExitFor(team);
+        Vector3 from = exit != null ? exit.transform.position : TeamCorner(team);
+        Vector3 toCenter = center - from; toCenter.y = 0f;
+        read.CenterDistance = toCenter.magnitude;
+
+        var vein = NearestVein(from);
+        if (vein != null)
+        {
+            Vector3 toVein = vein.transform.position - from; toVein.y = 0f;
+            read.NearVeinDistance = toVein.magnitude;
+        }
+
+        return read;
+    }
+
     private ArenaCastPlanner Planner
     {
         get
         {
             if (planner == null)
             {
-                planner = new ArenaCastPlanner(useRoster ? roster : null, MintRandom) { LocalCount = localCastCount };
+                planner = new ArenaCastPlanner(useRoster ? roster : null, MintRandom, expeditionRules) { LocalCount = localCastCount };
                 planner.SetMode(castMode);
             }
             return planner;
@@ -162,7 +187,8 @@ public class ArenaSandbox : MonoBehaviour
         Debug.Log($"[ArenaSandbox] sala={activeSeed} entrada={EntryName} paleta={PaletteName} minerales={minerals.Count} salidas={exits.Count} elenco={CastMode} planeados={PlannedCast.Count}");
     }
 
-    public void SetPlayerPlan(int index, Occupation occupation, ArenaSite site) => Planner.SetPlayerPlan(index, occupation, site);
+    public void SetPlayerOrders(int index, ArenaOrders orders) => Planner.SetPlayerOrders(index, orders);
+    public void SetOrders(int index, ArenaOrders orders) => Planner.SetOrders(index, orders);
 
     public void SetCastMode(ArenaCastMode mode)
     {
@@ -204,7 +230,7 @@ public class ArenaSandbox : MonoBehaviour
         {
             Vector3 around = entry.Team == ExpeditionTeam.None ? center : TeamCorner(entry.Team);
             float radius = entry.Team == ExpeditionTeam.None ? spawnRadius : teamSpawnRadius;
-            var controller = SpawnCreature(entry.Dna, around, radius, entry.Team, entry.Occupation, ExitFor(entry.Team));
+            var controller = SpawnCreature(entry.Dna, around, radius, entry.Team, entry.Orders, ExitFor(entry.Team));
             controller.Agent.SetGuardPost(ResolveSite(entry));
         }
 
@@ -276,7 +302,7 @@ public class ArenaSandbox : MonoBehaviour
         return dna;
     }
 
-    private MoriMonchiController SpawnCreature(CreatureDNA dna, Vector3 around, float radius, ExpeditionTeam team, Occupation occupation, ExitZone home)
+    private MoriMonchiController SpawnCreature(CreatureDNA dna, Vector3 around, float radius, ExpeditionTeam team, ArenaOrders orders, ExitZone home)
     {
         float angle = (float)(rng.NextDouble() * Mathf.PI * 2f);
         float dist = (float)(rng.NextDouble() * radius);
@@ -294,7 +320,7 @@ public class ArenaSandbox : MonoBehaviour
 
         controller.transform.SetParent(transform, true);
         controller.Initialize(dna, profileTable, observer, visualBank, furDatabase);
-        controller.Agent.SetOccupation(occupation);
+        controller.Agent.SetOrders(orders);
         controller.Agent.SetHomeExit(home);
         controller.Agent.SetBlackboard(BoardFor(team));
         spawned.Add(controller);
@@ -388,6 +414,7 @@ public class ArenaSandbox : MonoBehaviour
         var centerMineral = Instantiate(mineralPrefab, centerPos, Quaternion.Euler(0f, rng.Next(0, 360), 0f), transform);
         centerMineral.transform.localScale *= centerMineralScale;
         centerMineral.SetValue(centerMineralValue);
+        centerMineral.SetLode(true);
         minerals.Add(centerMineral);
 
         if (layout == null) return;

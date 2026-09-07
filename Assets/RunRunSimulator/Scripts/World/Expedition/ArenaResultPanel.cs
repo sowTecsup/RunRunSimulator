@@ -87,27 +87,17 @@ public class ArenaResultPanel : MonoBehaviour
         var column = new VisualElement();
         var name = new Label(stat.Name);
         name.AddToClassList("result-row__name");
-        string firstLine = $"{Verb(stat.Occupation)}  ·  aseguró {stat.Secured}  ·  minó {stat.Collected}";
+        string firstLine = $"{ArenaOrderCatalog.PastVerb(stat.Orders)} {ArenaOrderCatalog.LootPlace(stat.Orders)}  ·  aseguró {stat.Secured}  ·  minó {stat.Collected}";
         if (stat.Reports > 0) firstLine += $"  ·  avisó {stat.Reports}";
-        var stats = new Label($"{firstLine}\ntumbó {stat.HitsLanded}  ·  cayó {stat.TimesKnocked}");
+        string secondLine = $"tumbó {stat.HitsLanded}  ·  cayó {stat.TimesKnocked}";
+        if (stat.Fled > 0) secondLine += $"  ·  huyó {stat.Fled}";
+        var stats = new Label($"{firstLine}\n{secondLine}");
         stats.AddToClassList("result-row__stats");
         column.Add(name);
         column.Add(stats);
         row.Add(column);
 
         return row;
-    }
-
-    private static string Verb(Occupation occupation)
-    {
-        switch (occupation)
-        {
-            case Occupation.Guard: return "vigiló";
-            case Occupation.Break: return "rompió";
-            case Occupation.Decoy: return "distrajo";
-            case Occupation.Explore: return "exploró";
-            default: return "recolectó";
-        }
     }
 }
 }

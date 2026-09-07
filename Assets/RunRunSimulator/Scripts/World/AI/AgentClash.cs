@@ -42,7 +42,7 @@ internal class AgentClash
         var t = ClashTuningSO.Current;
         if (t == null || ctx.Dna == null) return false;
         if (Time.time < cooldownUntil) return false;
-        if (ctx.Dna.Boldness < t.MinBoldness) return false;
+        if (ctx.Orders.Contact != ContactChoice.Fight && ctx.Dna.Boldness < t.MinBoldness) return false;
 
         var occ = ctx.Occupation;
         if (occ == Occupation.None) occ = Occupation.Gather;
@@ -62,6 +62,8 @@ internal class AgentClash
 
             var other = p.Source.Monchi;
             if (other.IsHeld || other.IsAirborne || other.IsRecovering || !other.IsClashTargetable) continue;
+            if (occ == Occupation.Break && other.TrustedGuardian != null) continue;
+            if (occ == Occupation.Break && !ExpeditionNav.IsThiefIntent(other.Intent)) continue;
 
             float dist = PlanarDistance(other);
             if (dist > t.EngageRange) continue;
@@ -246,6 +248,16 @@ internal class AgentClash
         chainImmuneUntil = 0f;
         hitsLanded       = 0;
         timesKnocked     = 0;
+    }
+
+    internal float Cooldown01
+    {
+        get
+        {
+            var t = ClashTuningSO.Current;
+            if (t == null || t.Cooldown <= 0f) return 0f;
+            return Mathf.Clamp01((cooldownUntil - Time.time) / t.Cooldown);
+        }
     }
 
     internal int HitsLanded => hitsLanded;

@@ -6,24 +6,33 @@ tags: [script, data, expedition]
 
 **Ruta:** `World/Expedition/ArenaRoundSummary.cs`
 
-**Responsabilidad:** Captura estadísticas de una ronda de arena (S103) en un struct `ArenaRoundStat` por criatura. Clase estática `ArenaRoundSummary` con método `Capture()` que itera `MoriMonchiController` spawned, extrae DNA, ocupación, team, counters (asegurados, minados, golpes, caídas, reportes) y color. Consumida por `ArenaRound.End()` y `ArenaResultPanel.Show()`.
+**Responsabilidad:** Captura estadísticas finales de ronda en struct `ArenaRoundStat` por criatura. Extrae DNA, **órdenes (S104)**, team, counters (asegurados, minados, huidas, golpes, caídas, reportes). Consumida por ArenaRound.End() y ArenaResultPanel.Show().
 
 **Struct ArenaRoundStat:**
 - `string Name` — CustomName de DNA
 - `ExpeditionTeam Team` — Player o Rival
-- `Occupation Occupation` — qué hace
-- `Color Color` — BaseColor (alpha forzado a 1)
-- `int Secured` — `agent.SecuredMaterial`
-- `int Collected` — `agent.CollectedMaterial`
-- `int HitsLanded` — `agent.ClashHitsLanded`
-- `int TimesKnocked` — `agent.ClashTimesKnocked`
-- `int Reports` — `agent.ScoutReports`
+- `ArenaOrders Orders` — órdenes activas (S104 NUEVO)
+- `Color Color` — BaseColor
+- `int Secured` — material depositado en salida
+- `int Collected` — material minado total
+- `int Fled` — conteo de huidas (S104 NUEVO)
+- `int HitsLanded` — golpes exitosos en clash
+- `int TimesKnocked` — veces derribado
+- `int Reports` — vetas reportadas (scouts)
 
 **Métodos públicos:**
-- `static List<ArenaRoundStat> Capture(IReadOnlyList<MoriMonchiController> spawned)` — itera controllers, extrae stats de cada agente
+- `static List<ArenaRoundStat> Capture(IReadOnlyList<MoriMonchiController> spawned)` → List<ArenaRoundStat> — itera controllers, extrae stats de cada agente
 
-**S103:** Llamado por `ArenaRound.End()` para freezar stats finales antes de mostrar resultado. Panel de resultados ordena por `Secured` y renderiza filas con verbo de ocupación.
+**S104 Cambios:**
+- ArenaRoundStat.Orders agregado (extrae agent.Orders)
+- ArenaRoundStat.Fled agregado (extrae agent.TimesFled)
+- Usado por ArenaResultPanel para mostrar "huyó N veces"
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**Invariantes:**
+- Stats congelados post-ronda (snapshot)
+- Ordenados por Secured en resultado (ranking)
+- Verbo de ocupación + huyó N en descripción
 
-**Conexiones:** [[MoriMonchiController]], [[MoriMochiAgent]], [[ArenaRound]], [[ArenaResultPanel]], [[CreatureDNA]]
+**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+
+**Conexiones:** [[MoriMonchiController]], [[MoriMochiAgent]], [[ArenaRound]], [[ArenaResultPanel]], [[CreatureDNA]], [[ArenaOrders]]

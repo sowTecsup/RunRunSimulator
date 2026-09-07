@@ -1,66 +1,55 @@
 ---
-tags: [script, world, ai, agent, internal, expedition]
+tags: [script, world, ai, expedition, internal]
 ---
 
 # AgentExpedition.cs
 
 **Ruta:** `World/AI/AgentExpedition.cs`
 
-**Responsabilidad:** Colaborador interno (composición, no partial) que orquesta ocupaciones de arena: Gather, Guard, Break, Decoy, **Explore** (S103 NUEVO, delegado a AgentScout). State machine por ocupación. **S103:** Contador `secured` ahora público (no solo `collected`). Fase Exploring delegada a colaborador `AgentScout` para separación limpia. `Cancel()` nuevo, separado de `ResetForReuse()` (llamado cuando clash ocurre mid-expedition). `TryGatherEngage()` ahora consulta pizarrón si existe (`ctx.Board`).
+**Responsabilidad:** Núcleo delgado de composición (S104 reescritura por partición) que orquesta cinco colaboradores de ocupación mediante interfaz `IExpeditionTask`: `AgentGatherer` (recolector), `AgentGuard` (custodio), `AgentHunter` (cazador), `AgentDecoy` (señuelo), `AgentScout` (explorador). No contiene lógica de estado; delega todo a colaborador activo. Switch por `Occupation` (derivado de `ArenaOrders` o fallback Gather). Minado ocioso: si ocupación no-recolector ha estado ociosa `IdleMineSeconds`, Gatherer toma control. Cristales caídos: si Hunter detecta drop en radio, Gatherer toma control. Break/Hunter sí se persisten post-golpeo (pueden abortar via PostureEngages).
+
+**Constructor:**
+- `AgentExpedition(MoriMochiAgent owner, AgentContext ctx)` — instancia 5 colaboradores
 
 **Métodos públicos:**
-- `bool TryEngage()` — entry point. Según Occupation: Guard/Break/Decoy/Explore/Gather. Delega a TryXxxEngage
-- `bool Tick()` — (interno, llamado TickExpedition) procesa frame según fase
-- `Cancel()` — (S103 NUEVO) aborta sin resetear elapsed (usado cuando clash ocurre)
-- `ResetForReuse()` — pooling, limpia todo
+- `bool TryEngage()` — intenta iniciar ocupación. Switch `Occupation`: Guard→guard.TryEngage() fallback gatherer; Break→hunter fallback gatherer; Decoy→decoy fallback gatherer; Explore→scout fallback gatherer; default→gatherer
+- `void TickExpedition()` — tickea colaborador activo. Si retorna false: Abort. Si Gatherer y PostureEngages (rival detectado): cancela y cambia a Guard/Hunter/Decoy. Si Hunter/Decoy inactivo y (loot nearby OR IdleSeconds>=IdleMineSeconds): cambia a Gatherer
+- `void OnKnocked()` — notifica Gatherer y Hunter; cancela resto
+- `void Cancel()` — cancela todos colaboradores sin resetear
+- `void ResetForReuse()` — limpia todos colaboradores
 
-**Propiedades públicas:**
-- `int Collected { get; }` — acumulativo sesión local (recolectado)
-- `int Secured { get; }` — (S103 NUEVO) acumulativo sesión local (asegurado)
-- `int Carried { get; }` — carga actual
-- `float MiningProgress { get; }` — 0-1 progreso minería
-- `Transform TargetTransform { get; }` — transform objetivo o null
-- `CreatureIntent Intent { get; }` — según fase actual
+**Propiedades públicas (delegadas):**
+- `int Carried` → `gatherer.Carried`
+- `int CarryCapacity` → `gatherer.CarryCapacity`
+- `int Collected` → `gatherer.Collected`
+- `int Secured` → `gatherer.Secured`
+- `int Fled` → `gatherer.Fled`
+- `int Reports` → `scout.Reports`
+- `MoriMochiAgent Guardian` → `gatherer.Guardian`
+- `float FleeCooldown01` → `gatherer.FleeCooldown01`
+- `float DecoyCooldown01` → `decoy.Cooldown01`
+- `float Retreat01` → `hunter.Retreat01`
+- `bool IsChasing` → `guard.IsChasing`
+- `float MiningProgress` → `gatherer.MiningProgress`
+- `Transform TargetTransform` → `active.TargetTransform`
+- `CreatureIntent Intent` → `active.Intent`
 
-**Métodos Privados (por ocupación):**
-- `TryGatherEngage(rules)` — itera Percepts × Rules, elige mejor score. **S103:** consulta `ctx.Board.BestKnownVein()` si no hay perceptos vivos (conocimiento de pizarrón). Entra Noticing → Moving → Mining → Returning → Securing
-- `TryGuardEngage(rules)` — InjectedPost() o FindPost(). Entra Guarding
-- `TryBreakEngage(rules)` — FindPrey() o InjectedPost(). Entra Hunting
-- `TryDecoyEngage(rules)` — FindDecoyTarget() o InjectedPost(). Entra Decoying con cooldown
-- `TryExploreEngage(rules)` — (S103 NUEVO) `scout.TryEngage(rules)`. Si falla, fallback TryGatherEngage. Si ok: target=null, phase=Exploring
+**Internals:**
+- `active` (IExpeditionTask) — colaborador en uso; null si idle
+- `Occupation Occupation` — helper que retorna `ctx.Occupation` o Gather si None
+- `bool PostureEngages(ExpeditionRulesSO)` — chequea si hay rival; si sí, trata de activar ocupación de contacto (Guard/Hunter/Decoy)
+- `float IdleSeconds(IExpeditionTask)` — retorna IdleSeconds del colaborador si aplica
 
-**Fases:**
-- **Gather:** Noticing → Moving → Mining → Returning → Securing
-  - Mining: carried++, si >= Capacity o agotado → BeginReturn
-  - Returning: navega a HomeExit
-  - Securing: deposita, incrementa `secured`
-- **Guard:** Guarding (planta near post, vigila)
-- **Break:** Hunting (persigue prey, si no → planta)
-- **Decoy:** Decoying (Approach → Taunt → Flee)
-- **Explore:** (S103 NUEVO) delegado a `AgentScout` (Traveling → Reporting)
+**Flujo S104:**
+1. `TryEngage()` selecciona colaborador por Occupation
+2. `TickExpedition()` tickea; si ocupa activa hay rival → PostureEngages
+3. Si Hunter/Decoy ociosos O loot caído detectado → Gatherer toma control
+4. `OnKnocked()` aborta todo; Gatherer y Hunter tienen lógica post-golpeo específica
 
-**Colaborador AgentScout (S103 NUEVO):**
-- `scout` (AgentScout) — instanciado en ctor
-- Usado en `TryExploreEngage()` y `TickExpedition()` si phase=Exploring
-- `scout.Reports` contabilizado en propiedades
-
-**Métodos S103:**
-- `TryExploreEngage(rules)` — llama `scout.TryEngage(rules)`. Si false, fallback TryGatherEngage. Si true: target=null, phase=Exploring, return true
-- `Cancel()` — limpia site/prey sin resetear elapsed (abort sin penalidad)
-- `ResetForReuse()` — limpia todo + `scout.ResetForReuse()`
-
-**Internals (sin cambios S102/S103):**
-- ApproachPoint, BeginReturn, FindPost, FindPrey, FindDecoyTarget, GuardPoint, etc.
-
-**S103 Cambios:**
-- Colaborador `scout` (AgentScout) — fase Exploring delegada
-- Propiedad `Secured { get; }` pública (antes interno)
-- `TryExploreEngage()` nuevo (Explore → scout.TryEngage)
-- `Cancel()` nuevo (aborta sin ResetForReuse)
-- `TryGatherEngage()` consulta `ctx.Board.BestKnownVein()` si no hay perceptos
-- `TickExpedition()` si phase=Exploring: `scout.Tick()`, si false: Cancel()
-- `TryEngage()` chequea Explore en switch
+**Integración:**
+- Llamado desde `MoriMochiAgent.Update()` en AgentState.Expedition
+- Si clash.TryEngage() ok, expedition se cancela (prioridad clash)
 
 **Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[MoriMochiAgent]], [[AgentContext]], [[AgentScout]], [[TeamBlackboard]], [[MaterialPickup]], [[ExpeditionRulesSO]], [[CreatureIntent]], [[Occupation]]
+**Conexiones:** [[IExpeditionTask]], [[AgentGatherer]], [[AgentGuard]], [[AgentHunter]], [[AgentDecoy]], [[AgentScout]], [[MoriMochiAgent]], [[AgentContext]], [[ExpeditionRulesSO]], [[ArenaOrders]]

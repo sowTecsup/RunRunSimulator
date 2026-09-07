@@ -6,73 +6,66 @@ tags: [script, world, expedition, sandbox]
 
 **Ruta:** `World/Expedition/ArenaSandbox.cs`
 
-**Responsabilidad:** Escena sandbox de arena que encapsula flujo completo: BuildRoom (layout, paleta, minerales, pizarrones, planner.Prepare) → SpawnCast (itera PlannedCast, spawnea agentes con inyección de pizarrón) → ResetRoom (limpia elenco/minerales/salidas, opcionalmente nueva semilla). Delegados: `ArenaCastPlanner` (elenco), `ArenaPaletteApplier` (paletas), `ArenaLayoutBuilder` (layout). Activa/desactiva `ExpeditionRulesSO` en ciclo. **S103:** Expone `LocalPool` pública, `SelectLocalCast()` para picker, `BoardFor(team)` para pizarrones.
+**Responsabilidad:** Escena sandbox de arena que encapsula flujo: BuildRoom (layout, minerales, pizarrones, planner.Prepare) → SpawnCast (spawnea agentes) → ResetRoom (limpia/nueva semilla). Delegados: ArenaCastPlanner (elenco), ArenaPaletteApplier (paletas), ArenaLayoutBuilder (layout). S103: pizarrones. **S104: órdenes, lectura de sala, clasificación lode**.
 
 **Métodos públicos:**
-- `BuildRoom()` — construye sala sin criaturas (layout, paleta, minerales, pizarrones, Prepare planner)
-- `SpawnCast()` — spawnea elenco planeado, inyecta pizarrón a agentes por team
-- `ResetRoom(bool newSeed)` — limpia total, opcionalmente nueva semilla
-- `SetPlayerPlan(int index, Occupation occupation, ArenaSite site)` — delega a Planner
-- `SetCastMode(ArenaCastMode mode)` — alterna Roster/LocalSave, Prepare
-- `ShuffleCast()` — castSeed++, Prepare (new elenco aleatorio)
-- `SelectLocalCast(IReadOnlyList<CreatureDNA> picks)` — (S103 NUEVO) picker → SelectLocal + Prepare
-- `SetPaletteIndex(int index)` — aplica paleta
-- `CyclePalette()` — siguiente paleta
+- `void BuildRoom()` — construye sala
+- `void SpawnCast()` — spawnea elenco
+- `void ResetRoom(bool newSeed)` — limpia
+- `void SetPlayerOrders(int index, ArenaOrders orders)` — (S104 NUEVO) inyecta órdenes
+- `void SetPlayerPlan(int index, Occupation occupation, ArenaSite site)` — (legacy) traduce a órdenes
+- `void SetCastMode(ArenaCastMode mode)` — alterna Roster/LocalSave
+- `void ShuffleCast()` — nueva selección aleatoria
+- `void SelectLocalCast(IReadOnlyList<CreatureDNA> picks)` — (S103) selección explícita del picker
+- `void SetLode(MaterialPickup mineral)` — (S104 NUEVO) marca como lode central
+- `ArenaRoomRead ReadRoom()` — (S104 NUEVO) fotografía de sala (distancias, obstáculos, botín)
 
-**Propiedades Públicas:**
-- `Spawned → IReadOnlyList<MoriMonchiController>`
-- `Exits → IReadOnlyList<ExitZone>`
-- `PlannedCast → IReadOnlyList<ArenaCastEntry>`
-- `ActiveSeed → int`
-- `CastMode → ArenaCastMode`
-- `LocalCastAvailable → bool`
-- `LocalPool → IReadOnlyList<CreatureDNA>` — (S103 NUEVO) propiedad pública para picker
-- `EntryName → string`
-- `PaletteName → string`
+**Propiedades:**
+- `IReadOnlyList<MoriMonchiController> Spawned { get; }`
+- `IReadOnlyList<ExitZone> Exits { get; }`
+- `IReadOnlyList<ArenaCastEntry> PlannedCast { get; }`
+- `IReadOnlyList<CreatureDNA> LocalPool { get; }` — (S103)
+- `int ActiveSeed { get; }`
+- `ArenaCastMode CastMode { get; }`
+- `bool LocalCastAvailable { get; }`
 
-**Métodos Nuevos S103:**
-- `TeamBlackboard BoardFor(ExpeditionTeam team)` — retorna o crea pizarrón por team, lazy-instantiated
-- `SelectLocalCast(IReadOnlyList<CreatureDNA> picks)` — llama `Planner.SelectLocal(picks)` + `Prepare()` (integración con ArenaCastPicker)
+**BuildRoom (S104):**
+1. Layout, paleta, exits, minerales
+2. SetLode(mineralCentral) — marca como lode
+3. Pizarrones: BoardFor(Player/Rival).SetSites(minerals)
+4. Planner.Prepare()
 
-**Campos Serializados:**
-- Refs core: `creaturePrefab`, `profileTable`, `socialTuning`, `expeditionRules`, `clashTuning`, `visualBank`, `furDatabase`, `creatureDatabase`
-- Escena: `observer`, `targetGroup`, `spawnCenter`
-- Elenco (delegado a Planner): `roster`, `castMode`, `localCastCount`, `autoSpawnCast`, `teamSpawnInset`, `teamSpawnRadius`, `exitPrefab`
-- Sala: `mineralPrefab`, `layout`, `palette`, `paletteIndex`, `centerMineralScale`, `centerMineralValue`, `arenaHalfSize`
-
-**Privados:**
-- `planner` (ArenaCastPlanner lazy)
-- `boards` (Dictionary<ExpeditionTeam, TeamBlackboard>) — (S103 NUEVO) pizarrones
-- `spawned`, `minerals`, `exits` (Lists)
-- `activeSeed`, `center`, `rng`, `roomBuilt`
-
-**BuildRoom S103:**
-1. Setup spawnHolder, activeSeed, center, filter
-2. layout.Build(), palette.Apply()
-3. SpawnExits()
-4. SpawnMinerals()
-5. **S103 NUEVO:** `BoardFor(Player).SetSites(minerals)` + `BoardFor(Rival).SetSites(minerals)` — inicializa pizarrones
-6. Planner.Prepare()
-
-**SpawnCast S103:**
+**SpawnCast (S104):**
 - Para cada entry en PlannedCast:
-  - SpawnCreature(entry.Dna, around, radius, entry.Team, entry.Occupation, ExitFor(entry.Team))
-  - **S103 NUEVO:** `controller.Agent.SetBlackboard(BoardFor(entry.Team))` — inyecta pizarrón al agente
+  - SpawnCreature(entry.Dna, ..., entry.Team, entry.Orders) — (S104: órdenes)
+  - agent.SetOrders(entry.Orders) — (S104 NUEVO) inyecta órdenes
+  - agent.SetBlackboard(BoardFor(entry.Team)) — (S103) pizarrón
 
-**S103 Cambios:**
-- `BoardFor(ExpeditionTeam team)` lazy-dictionary de pizarrones (creados on-demand)
-- `LocalPool` propiedad pública (antes privada)
-- `SelectLocalCast()` nuevo, complementa `ArenaCastPicker` (picker llama esto tras confirmar)
-- `ShuffleCast()` ahora llama `Planner.ClearLocalSelection()` para resetear selección
-- Pizarrones inicializados en BuildRoom y limpiados en ResetRoom (BoardFor lazy crea nuevo)
+**ReadRoom (S104 NUEVO):**
+- Retorna ArenaRoomRead con:
+  - LodeValue (central)
+  - VeinCount, VeinTotal (vetas esquinas)
+  - Obstacles (conteo)
+  - Distancias (home → lode, home → veta cercana)
+- Usado por ArenaPlanPanel para mostrar estadísticas sala
 
-**Integración S103:**
-1. ArenaCastPicker.Open() accede `sandbox.LocalPool`
-2. Picker.Confirm() llama `sandbox.SelectLocalCast(selection)`
-3. SelectLocalCast inyecta selección en planner y re-prepara
-4. Pizarrones poblados en BuildRoom, inyectados en SpawnCast
-5. Scouts consultan pizarrón para exploración inteligente
+**Campos Privados:**
+- `planner` (ArenaCastPlanner lazy)
+- `boards` (Dictionary<ExpeditionTeam, TeamBlackboard>) — (S103)
+- `spawned`, `minerals`, `exits` (Lists)
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**S104 Cambios:**
+- SetPlayerOrders() + SetOrders() para inyectar órdenes pre-spawn
+- SetLode() clasifica mineral central en MaterialPickup
+- ReadRoom() fotografía sala (usado por UI)
+- SpawnCreature ahora recibe/aplica ArenaOrders
+- Pizarrones inicializados con toda mineral (lode + vetas)
 
-**Conexiones:** [[ArenaCastPlanner]], [[ArenaPaletteApplier]], [[ArenaLayoutBuilder]], [[ExpeditionRulesSO]], [[ArenaCastPicker]], [[TeamBlackboard]], [[MoriMonchiController]], [[MoriMochiAgent]], [[ArenaRosterSO]], [[MaterialPickup]], [[ExitZone]]
+**Invariantes:**
+- Pizarrones lazy por team (creados en BuildRoom)
+- Lode clasificado antes de SpawnCast
+- Órdenes inmutables durante SpawnCast (ya clampeadas)
+
+**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+
+**Conexiones:** [[ArenaCastPlanner]], [[ArenaPaletteApplier]], [[ArenaLayoutBuilder]], [[ExpeditionRulesSO]], [[ArenaCastPicker]], [[TeamBlackboard]], [[MoriMonchiController]], [[MoriMochiAgent]], [[ArenaOrders]], [[MaterialPickup]], [[ExitZone]], [[ArenaPlanPanel]]

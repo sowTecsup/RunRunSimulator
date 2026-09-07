@@ -1,26 +1,26 @@
 ---
-tags: [script, world, ai, expedition, internal]
+tags: [script, world, ai, expedition, task]
 ---
 
 # AgentScout.cs
 
 **Ruta:** `World/AI/AgentScout.cs`
 
-**Responsabilidad:** Colaborador interno de `AgentExpedition` (composición, no partial) que maneja fase Exploring (S103). State machine con dos pasos: Traveling (navegar a veta), Reporting (dar parte tras llegar). Consulta `ctx.Board` para elegir veta (`NextSite`), navega con repath, detecta arribo (distancia + bloqueo), marca visitada, reporta veta al pizarrón (incrementa counter si fresco), emote Curioso/Feliz. Retorna false cuando se aburre (`GiveUpSeconds`) o completa ciclo (newCycle). `Cancel()` limpia sin resetear elapsed.
+**Responsabilidad:** Colaborador de `AgentExpedition` (composición, no partial) que implementa `IExpeditionTask` (S104 adición de interfaz). Maneja fase Exploring (S103): navega a veta según `ctx.Board`, marca visitada, reporta al pizarrón incrementando counter si fresco. State machine: Traveling (navega, detecta arribo), Reporting (se detiene, cuenta segundos, emote). Retorna false cuando se aburre (GiveUpSeconds) o completa ciclo (newCycle). `Cancel()` limpia sin resetear elapsed.
 
 **Constructor:**
 - `AgentScout(MoriMochiAgent owner, AgentContext ctx)` — recibe referencias
 
-**Propiedades:**
-- `int Reports { get; }` — conteo de reportes emitidos en esta instancia
+**Propiedades públicas:**
+- `int Reports { get; }` — conteo de reportes emitidos en instancia
 - `Transform TargetTransform { get; }` — target veta (null si no hay)
-- `CreatureIntent Intent { get; }` — Exploring o Reporting
+- `CreatureIntent Intent { get; }` — Exploring o Reporting (S104: implementa IExpeditionTask.Intent)
 
 **Métodos públicos:**
-- `bool TryEngage(ExpeditionRulesSO rules)` — intenta iniciar explore. Retorna false si cooldown activo (restUntil) o no hay veta. Prepara site, timer, state=Traveling, ctx.State=Expedition
-- `bool Tick(ExpeditionRulesSO rules)` — procesa frame (Traveling: repath, arrival detect, report; Reporting: face, countdown). Retorna false si termina o falla
-- `Cancel()` — aborta sin resetear elapsed (para cuando clash ocurra)
-- `ResetForReuse()` — limpia todo para pool recycle (elapsed, repathTimer, restUntil, reports)
+- `bool TryEngage(ExpeditionRulesSO rules)` → bool — intenta iniciar explore. Retorna false si cooldown activo (restUntil) o no hay veta. Prepara site, timer, state=Traveling, ctx.State=Expedition
+- `bool Tick(ExpeditionRulesSO rules)` → bool — procesa frame (Traveling: repath, arrival detect, report; Reporting: face, countdown). Retorna false si termina o falla (S104: implementa IExpeditionTask.Tick)
+- `void Cancel()` — aborta sin resetear elapsed (para cuando clash ocurra) (S104: implementa IExpeditionTask.Cancel)
+- `void ResetForReuse()` — limpia todo para pool recycle (elapsed, repathTimer, restUntil, reports) (S104: implementa IExpeditionTask.ResetForReuse)
 
 **Internals:**
 - `ReportSeen(TeamBlackboard board, ExpeditionRulesSO rules)` — itera percepts, reporta MaterialPickup visibles (no la veta target)
@@ -31,12 +31,14 @@ tags: [script, world, ai, expedition, internal]
 - `Reporting` — se detiene, mira veta, cuenta `ReportSeconds`, luego retorna false
 
 **Integration:**
-- Llamado por `AgentExpedition.TryEngage(Explore)` vía `scout.TryEngage(rules)`
+- Llamado por `AgentExpedition.TryEngage()` si Occupation=Explore
 - Tickeado por `AgentExpedition.TickExpedition()` si phase=Exploring
 - Abortado por `AgentExpedition.Cancel()` cuando clash ocurre
 
-**S103:** Fase Exploring delegada a AgentScout (composición limpia). Equipo que explora conoce vetas vía pizarrón, estrategia de recolección mejora consultando pizarrón en `TryGatherEngage`. Intenciones Exploring/Reporting tienen colores en CueStyleSO.
+**S103 (Exploring introducido):** Fase Exploring delegada a AgentScout (composición limpia). Equipo que explora conoce vetas vía pizarrón.
+
+**S104 (IExpeditionTask):** Implementa interfaz para integración con orquestador.
 
 **Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[AgentExpedition]], [[MoriMochiAgent]], [[AgentContext]], [[TeamBlackboard]], [[ExpeditionRulesSO]], [[CreatureIntent]]
+**Conexiones:** [[IExpeditionTask]], [[AgentExpedition]], [[MoriMochiAgent]], [[AgentContext]], [[TeamBlackboard]], [[ExpeditionRulesSO]], [[CreatureIntent]]

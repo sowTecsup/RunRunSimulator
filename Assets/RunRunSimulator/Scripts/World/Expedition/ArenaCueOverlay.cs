@@ -19,6 +19,7 @@ public class ArenaCueOverlay : MonoBehaviour
     [SerializeField] private bool showSocial = true;
     [SerializeField] private bool showClash = true;
     [SerializeField] private bool showMining = true;
+    [SerializeField] private bool showFlee = true;
 
     private class CueAnim
     {
@@ -65,7 +66,8 @@ public class ArenaCueOverlay : MonoBehaviour
             if (showPerception && SocialTuningSO.Current != null)
                 DrawPerception(controller, state, origin, perceptionRadius);
 
-            if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, style.ColorFor(controller.Agent.Intent), Time.deltaTime);
+            Color pathColor = controller.Agent.Intent == CreatureIntent.Fleeing ? style.FleeColor : style.ColorFor(controller.Agent.Intent);
+            if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, pathColor, Time.deltaTime);
 
             if (showPercepts) DrawPercepts(controller, origin, perceptionRadius);
 
@@ -76,6 +78,9 @@ public class ArenaCueOverlay : MonoBehaviour
             if (showClash) DrawClash(controller);
 
             if (showMining) DrawMining(controller, origin);
+
+            if (showFlee) DrawFlee(controller, origin);
+            if (showFlee) DrawTrust(controller);
         }
     }
 
@@ -153,12 +158,28 @@ public class ArenaCueOverlay : MonoBehaviour
 
         float sweep = controller.Agent.VisionDegrees * Mathf.Deg2Rad;
         float start = state.FacingAngle - sweep * 0.5f;
-        Color tint = controller.DNA.BaseColor;
 
-        CueDrawer.Sector(origin, radius, start, sweep, tint, style.VisionFillInnerAlpha, style.VisionFillOuterAlpha);
+        bool rivalInSight = false;
+        foreach (var p in controller.Agent.Percepts)
+        {
+            if (p.Kind != PerceivableKind.Monchi) continue;
+            if (!ExpeditionTeams.AreRivals(controller.Agent.Team, p.Team)) continue;
+            rivalInSight = true;
+            break;
+        }
+
+        Color tint = rivalInSight
+            ? (controller.Agent.Orders.Contact == ContactChoice.Fight ? style.FoeColor : style.FleeColor)
+            : controller.DNA.BaseColor;
+
+        float fillInnerAlpha = rivalInSight ? style.ContactFillAlpha : style.VisionFillInnerAlpha;
+        float fillOuterAlpha = rivalInSight ? 0f : style.VisionFillOuterAlpha;
+        float edgeAlpha = rivalInSight ? style.ContactEdgeAlpha : style.VisionEdgeAlpha;
+
+        CueDrawer.Sector(origin, radius, start, sweep, tint, fillInnerAlpha, fillOuterAlpha);
 
         Color rimColor = tint;
-        rimColor.a = style.VisionEdgeAlpha;
+        rimColor.a = edgeAlpha;
         CueDrawer.Arc(origin, radius, style.RingThickness, start, sweep, rimColor, rimColor);
 
         if (sweep < Mathf.PI * 2f - 0.01f)
@@ -215,7 +236,7 @@ public class ArenaCueOverlay : MonoBehaviour
         if (alpha <= 0.01f) return;
 
         float radius = style.ReticleRadius * AppearScale(alpha, style.ReticleAppearScale);
-        Color color = style.ColorFor(controller.Agent.Intent);
+        Color color = controller.Agent.Intent == CreatureIntent.Fleeing ? style.FleeColor : style.ColorFor(controller.Agent.Intent);
         color.a *= alpha;
 
         Vector3 center = state.LastTargetPosition + Vector3.up * style.HeightOffset;
@@ -232,21 +253,61 @@ public class ArenaCueOverlay : MonoBehaviour
 
     private void DrawMining(MoriMonchiController controller, Vector3 origin)
     {
-        if (controller.Agent.Intent != CreatureIntent.Taking) return;
+        var agent = controller.Agent;
+        int capacity = agent.CarryCapacity;
+        int carried = agent.Carried;
+        bool mining = agent.Intent == CreatureIntent.Taking;
+        if (capacity <= 0 || (carried <= 0 && !mining)) return;
 
-        float progress = controller.Agent.MiningProgress;
-        if (progress <= 0f) return;
+        float gap = 0.14f;
+        float slot = Mathf.PI * 2f / capacity;
+        float start = Mathf.PI * 0.5f;
 
-        Color trackColor = style.ColorFor(CreatureIntent.Taking);
-        trackColor.a = 0.15f;
-        CueDrawer.Ring(origin, style.MiningArcRadius, style.MiningArcThickness, trackColor);
+        Color track = style.ColorFor(CreatureIntent.Taking);
+        track.a = 0.15f;
+        Color full = style.ColorFor(CreatureIntent.Carrying);
+        full.a = style.MiningArcAlpha;
+        Color live = style.ColorFor(CreatureIntent.Taking);
+        live.a = style.MiningArcAlpha;
 
-        Color arcColor = style.ColorFor(CreatureIntent.Taking);
-        arcColor.a = style.MiningArcAlpha;
+        for (int k = 0; k < capacity; k++)
+        {
+            float from = start + k * slot + gap * 0.5f;
+            float sweep = slot - gap;
+            CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, from, sweep, track, track);
 
-        float startAngle = Mathf.PI * 0.5f;
-        float sweep = progress * Mathf.PI * 2f;
-        CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, startAngle, sweep, arcColor, arcColor, true);
+            if (k < carried)
+                CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, from, sweep, full, full, true);
+            else if (k == carried && mining && agent.MiningProgress > 0f)
+                CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, from, sweep * agent.MiningProgress, live, live, true);
+        }
+    }
+
+    private void DrawFlee(MoriMonchiController controller, Vector3 origin)
+    {
+        if (controller.Agent.Intent != CreatureIntent.Fleeing) return;
+
+        Color color = style.FleeColor;
+        color.a = 0.45f + 0.45f * Mathf.Sin(Time.time * style.FleePulseSpeed);
+        CueDrawer.Ring(origin, style.FleeRingRadius, style.FleeRingThickness, color);
+
+        Color outerColor = style.FleeColor;
+        outerColor.a = color.a * 0.5f;
+        CueDrawer.Ring(origin, style.FleeRingRadius * 1.5f, style.FleeRingThickness, outerColor);
+    }
+
+    private void DrawTrust(MoriMonchiController controller)
+    {
+        var guardian = controller.Agent.TrustedGuardian;
+        if (guardian == null) return;
+
+        Vector3 a = controller.transform.position + Vector3.up * style.HeightOffset;
+        Vector3 b = guardian.transform.position + Vector3.up * style.HeightOffset;
+
+        Color color = style.FriendColor;
+        color.a = 0.55f + 0.25f * Mathf.Sin(Time.time * style.FleePulseSpeed * 0.5f);
+
+        CueDrawer.DashedSegment(a, b, style.SocialLinkThickness, style.PerceptDashLength, style.PerceptDashGap, Time.time * style.PerceptFlowSpeed, color, color);
     }
 
     private void DrawSocial(MoriMonchiController controller)

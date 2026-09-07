@@ -440,6 +440,114 @@ Es un embudo que va de lo estratégico a lo concreto y en cada paso lo que se of
 
 **Preguntas nuevas para Juan:** ¿cuánto dura una ocupación y una sala? ¿el material minado a medias se pierde o queda en el suelo como pickup? ¿el señuelo huye por nervio o por tiempo fijo? ¿se puede cambiar una ocupación en vivo (8.7)?
 
+### 8.11 · Órdenes por tres pilares, bloqueos por personalidad y arquetipos (S104 · Juan ⭐ + implementación verificada)
+
+**Juan ⭐ (S104):** *"Las personalidades abren las opciones; las opciones deben ser pocas pero resolver dudas generales sobre cómo comportarse. Las partes son las habilidades automáticas que se ejecutan si el MoriMochi lo ve necesario. Todo gira en torno a tres estrategias fundamentales, ninguna mejor que otra, depende de la situación; ganás si recolectás todo lo que puedas antes de que se acabe el tiempo. Las decisiones giran en torno a cuál es mi prioridad en el mapa: ¿prefiero ir al botín grande o a los pequeños? ¿enfrentar o escapar? ¿proteger a los demás o ser agresivo? Ninguno de los arquetipos se siente mejor que otro, solo que ninguno puede defender todos los flancos. El jugador tiene que ver MARCADAMENTE que cada decisión se diferencia de la otra. Mecánicas sencillas, decisiones difíciles."*
+
+**Regla en una frase (orquestador):** *"Cada criatura responde tres dudas antes de bajar (dónde va, qué hace al ver un rival, si cuida al grupo o va a lo suyo); su personalidad ya respondió las que no puede elegir."* Reemplaza a la UI de tres pasos de 8.8 (objetivo → rol → tres indicaciones): las tres indicaciones SON los tres pilares.
+
+**Los tres pilares** (una píldora binaria por criatura, en la pantalla de plan):
+
+| Pilar | Opciones | Qué resuelve en la arena |
+|---|---|---|
+| **BOTÍN** | Grande / Pequeño | Grande = el cristal central. Pequeño = las vetas: con Proteger, la veta más cercana a la salida propia; con Agresivo, la más cercana a la salida rival (va a buscar al rival). |
+| **ENCUENTRO** | Enfrentar / Escapar | Enfrentar = puede iniciar choque (`AgentClash`). Escapar = nunca pelea; si ve a alguien que caza, vigila, choca o provoca a ≤ 6,5 m, huye 3,5 s (con carga, hacia su salida y la asegura; con Proteger, hacia una aliada). |
+| **EQUIPO** | Proteger / Agresivo | Proteger = se queda en su sitio o con el grupo y reacciona. Agresivo = busca al rival (persigue, provoca, va a su lado del mapa). |
+
+**Bloqueos por personalidad ("las personalidades abren las opciones"):** un pilar se bloquea cuando el dial es extremo; el medio elige. Osadía ≥ 0,65 → Enfrentar fijo (*nunca huye*); ≤ 0,35 → Escapar fijo (*nunca pelea*). Sociabilidad ≥ 0,65 → Proteger fijo (*nunca deja al grupo*); ≤ 0,35 → Agresivo fijo (*va a lo suyo*). El botín siempre se elige. Con el roster: **Osado** (0,90 / 0,25) = Cazador, elige solo el botín · **Tímida** (0,15 / 0,85) = Recolector, elige solo el botín · **Equilibrado** = elige los tres. Los MoriMonchis del save (diales ~0,5) eligen los tres. La pantalla muestra las píldoras bloqueadas en violeta con la razón en una frase, y lo mismo del rival: *"Fiero · Osado solitario · nunca huye, va a lo suyo"* es la lectura del rival de 8.1 sin revelar su botín.
+
+**Las cuatro posturas** (ENCUENTRO × EQUIPO) y el flanco que dejan abierto:
+
+| Postura | Órdenes | Hace | Flanco abierto |
+|---|---|---|---|
+| **Guardián** | Enfrentar + Proteger | se planta en su botín y embiste a quien se acerque | no recolecta ni persigue |
+| **Cazador** | Enfrentar + Agresivo | ronda su botín cazando rivales cargados para que suelten | recolecta poco; si nadie viene, pierde la ronda parado |
+| **Recolector** | Escapar + Proteger | mina su botín y huye con la carga apenas ve un rival | nunca pelea; sin guardián, un cazador lo vacía |
+| **Señuelo** | Escapar + Agresivo | se acerca al rival, lo provoca y huye | no pelea ni recolecta |
+
+**Dos reglas que hacen que los pilares se combinen:** *confianza* (un Recolector no huye si un aliado que Enfrenta está a ≤ 6 m: mina mientras el guardián pelea, y corre cuando el guardián cae; enlace verde entre ambos) y *mapa conocido* (el equipo conoce las vetas de la sala como el jugador en el plan; al agotar una veta, el Recolector de vetas pasa a la siguiente; Pequeño nunca elige el central salvo que no quede nada más).
+
+**Las tres estrategias de equipo (los arquetipos que pidió Juan):** **Muralla** (Guardián + Recolectores del centro: domina el botín grande, regala las vetas) · **Hormiguero** (Recolectores de vetas + Señuelo: gana por volumen seguro, pierde contra cazadores) · **Jauría** (Cazadores + un Recolector: niega, recolecta poco, pierde contra una Muralla que lo rechaza). Hipótesis de contras: Muralla > Jauría > Hormiguero > Muralla. Los planes rivales por semilla son seis (Muralla, Hormiguero, Jauría, Muralla de vetas, Emboscada, Mixta) y cada orden pasa por los bloqueos del cuerpo rival: Fiero siempre sale Cazador y Cauta siempre Recolector, así que "leer al rival es leer sus cuerpos" ya funciona con el roster.
+
+**Lo que dijo la arena (S104, roster, sala de 90 s, sondeos por corrutina):**
+
+| Ronda | Sala · rival | Plan del jugador | Marcador | Lectura |
+|---|---|---|---|---|
+| A | 4242 · Muralla | todos al centro (2 cazadores, 4 recolectores) | 0-0 | con la huida vieja (de cualquier rival a 8 m) nadie minó; motivó el filtro por intención y la confianza |
+| B | 4242 · Muralla | Osado cazador del centro, Tímida y Equilibrado recolectores de vetas | **5-2** | el cazador niega el centro a sus recolectores; las vetas dan puntos seguros |
+| C2 | 4246 · Emboscada | Osado cazador del centro, Equilibrado guardián de vetas, Tímida recolectora de vetas | 4-13 | Cauta minó 13 sin nadie en su veta; Fiero atacó la nuestra |
+| C3 | 4246 · Emboscada | Osado cazador de vetas (va por Cauta) | 4-10 | Cauta bajó a 3, pero Templado minó 7 en el centro vacío |
+| C4 | 4246 · Emboscada | Osado cazador del centro, Equilibrado cazador de vetas, Tímida recolectora del centro | **9-3** | leer al rival: su cazador de vetas se quedó parado en una veta vacía; Tímida minó el central confiando en Osado |
+
+Misma sala, mismo rival, cuatro planes → cuatro resultados distintos: es la prueba de "ninguno defiende todos los flancos". Video `Recordings/s104_ordenes_demo.mp4` (plan con píldoras y bloqueos, cambio de órdenes, ronda con la lectura del rival y resultado 12-0).
+
+**Queda abierto (theorycrafting S104, no decidido):** el silbato en vivo (una sola intervención por ronda: "todos a asegurar"), el pilar "cuánto" (capacidad Prudente / Normal / Codiciosa), el costo de bajar (cansancio) y el rumor sobre el rival en el meta asíncrono. Explorar salió de la UI (el código sigue vivo por roster). Las preguntas ⭐ de 8.7 quedan respondidas para la v1: por criatura y solo antes de PLAY.
+
+**Balance S104, segunda mitad (Juan: "testeo de todos los arquetipos y combinaciones; ninguno al 100 % ni al 0 %; diversidad real").** Se corrieron ocho matrices de planes de equipo (12 a 16 planes, todos contra todos, una ronda por cruce, diales neutros, sala fija, 5× y 10×; detalle en `Index/23` 5i) y se ajustó el diseño entre matrices hasta que el ciclo existiera de verdad:
+
+| Contra | Regla que la produce |
+|---|---|
+| Guardián > Cazador | el cazador solo golpea recolectores; si un guardián lo tumba se retira 10 s a su salida; no toca a quien tiene guardián al lado |
+| Cazador > Recolector suelto | el recolector huye del cazador y suelta la carga si lo tumban; el cazador se queda con lo que cae |
+| Señuelo > Guardián | el guardián persigue 8 s a quien lo provoca y deja el puesto abierto |
+| Recolector > Señuelo | el señuelo no puntúa; solo rinde si alguien aprovecha el hueco |
+| Codicia (tres al centro) > equipos de vetas | el cristal central se mina a 2 s por unidad contra 3 en las vetas |
+| Cazadores > Codicia | tres recolectores sin guardián se vacían |
+
+**Resultado final por plan de equipo** (16 planes; sala 4242 con todas las reglas, sala 4246 con todas menos el último arreglo; una ronda por cruce, así que ±15 % es ruido):
+
+| Plan (tres posturas) | 4242 | 4246 | Lectura |
+|---|---|---|---|
+| Muralla (guardián + 2 recolectores del centro) | 91 % | 84 % | la más sólida: el centro rápido bajo guardia |
+| Fortín (guardián del centro + cazador de vetas + recolector del centro) | 78 % | 75 % | la respuesta a la Jauría que también puntúa |
+| ContraJauría (guardián + cazador + recolector, todos en vetas) | 75 % | 81 % | pierde contra las Murallas del centro |
+| Jauría (dos cazadores + recolector de vetas) | 66 % | 69 % | domina a los pasivos; los guardianes la frenan (88-97 % antes de las contras) |
+| Mixta, Doble guardia, Escolta | 53-62 % | 50-72 % | viables |
+| Rebaño, Engaño, Emboscada, MurallaVetas, Codicia | 38-50 % | 25-56 % | viables con contras claras |
+| JauríaCentro, Señuelos, HormigueroSeñuelo | 31-34 % | 22-47 % | débiles, no muertos |
+| Hormiguero (tres recolectores de vetas) | 12 % | 25 % | el pasivo puro: lo vacía cualquier cazador |
+
+Nadie llega al 100 % ni al 0 %. El señuelo sigue siendo la postura más débil (los planes con señuelo rondan el 25-50 %); es la próxima palanca de balance.
+
+**Personalidades (sala 4246, seis equipos con diales reales):** el roster (Osado cazador + Tímida recolectora + Equilibrado guardián de vetas) 92 %, el plan del video 75 %, tres Tímidos 58 %, dos Osados sociables (guardianes forzados) + Tímida 42 %, dos Tímidos solitarios (señuelos forzados) + Equilibrado 25 %, **tres Osados solitarios (tres cazadores forzados) 8 %**: casi no puntúan aun con el minado ocioso y los cristales caídos (0-2 por ronda). Es el único equipo degenerado que la personalidad puede imponer; la pantalla de plan lo avisa ("Sin recolector: solo puntúa lo que minen en ratos libres") y queda como decisión de diseño pendiente (un Osado debería poder aportar puntos de otra forma, por ejemplo con una parte de 8.12).
+
+**Legibilidad agregada en esta pasada:** la sala se lee antes de bajar (cristal central, cuántas vetas y de qué tamaño, distancia de la veta más cercana a tu salida, sala abierta/mixta/cubierta por obstáculos), cada MoriMochi propio muestra qué desbloquea su personalidad, el rival se lee como "cazador seguro / recolector seguro / puede hacer cualquiera", cada postura lleva su contra en una frase, el plan de equipo tiene nombre ("Tu plan: Fortín de las vetas"), la ruleta de carga por ranuras se ve al minar y al cargar, y las teclas 1-4 cambian la velocidad de la simulación (1×, 2×, 5×, 10×) también sobre el hit-stop de Feel.
+
+### 8.12 · Habilidades automáticas por parte, al estilo Pokémon Quest (S104 · Juan ⭐ + propuesta del orquestador, no decidida)
+
+**Juan ⭐ (S104):** *"Las partes son las habilidades automáticas que se ejecutan si el MoriMochi lo ve necesario. Plantealas un poco como Pokémon Quest pero de uso automático. El objetivo es la viabilidad de múltiples estilos de juego y que haya extensión para cuando añadamos más partes por MoriMochi."*
+
+**Regla en una frase (orquestador):** *"El jugador elige los tres pilares; el cuerpo decide cuán bien los cumple. Cada parte trae una habilidad automática con un disparador y un enfriamiento, y ninguna cambia la orden."* Es Pokémon Quest: no se apretan botones, cada criatura lleva un par de movimientos que se disparan solos cuando se cumple su condición, y la profundidad está en qué cuerpo bajás con qué orden.
+
+**Anatomía de una habilidad** (asset `PartAbilitySO`, uno por tipo de parte, con texto en una frase):
+- **Disparador**: una situación de la postura, no un botón (*al ver un rival hostil*, *al chocar*, *al llenar la carga*, *al caer*, *al llegar a una veta*, *al quedarse sin material a la vista*).
+- **Efecto**: modifica un knob de ejecución de la postura (capacidad, distancia de huida, velocidad, radio de visión, segundos por unidad, radio de guardia, empuje, resistencia a soltar) o dispara un beat (rugido, salto, fuga).
+- **Enfriamiento** y **costo** (más lento cargado, se ve de lejos, pierde nervio antes): toda habilidad da algo y paga algo, como en 8.3.
+- **Guía visible**: cada habilidad tiene su cue en el overlay (arco, anillo o `!` de color) para que la causa siga en pantalla (regla transversal de 8.9).
+
+**Primer catálogo, derivado de 8.3 y mapeado a los pilares** (los cuatro cuernos actuales pueden ser los primeros con nombre):
+
+| Slot | Tipo | Disparador automático | Efecto | Costo | Pilar que refuerza |
+|---|---|---|---|---|---|
+| Cuerno | Ariete | al embestir | empuje ×1,5, dominó más largo | camina más lento | Enfrentar |
+| Cuerno | Pala | al llegar a una veta | mina una unidad extra al primer golpe | no empuja | Botín pequeño |
+| Cuerno | Antena | al quedarse sin material a la vista | conoce todas las vetas y rivales a 18 m durante 4 s | huye antes (nervio) | Escapar / Agresivo |
+| Cuerno | Bocina | al ver un rival hostil | rugido: los rivales tímidos a 6 m huyen | delata: atrae cazadores | Proteger |
+| Espalda | Alforja | al minar | capacidad 5 en vez de 3 | 20 % más lenta cargada | Botín grande |
+| Espalda | Coraza | al caer | no suelta la carga | capacidad 2 | Escapar (recolector) |
+| Espalda | Cresta | al guardar | radio de guardia 6 en vez de 4 | se ve desde 15 m | Proteger (guardián) |
+| Espalda | Concha | al ver un rival hostil | se encierra 2 s: intocable, no se mueve | no mina mientras | Escapar |
+| Alas | Vela | al huir | salto que cruza obstáculos (usa la picada como fuga) | suelta 1 unidad al aterrizar | Escapar |
+| Alas | Colibrí | al huir o cazar | velocidad ×1,3 durante 3 s | capacidad 1 | Agresivo |
+| Alas | Murciélago | al asegurar | vuelve a la veta sin pasar por el centro (ruta corta) | lenta con luz (después, sala oscura) | Botín pequeño |
+| Alas | Élitro | al chocar | no queda mareado | no puede hacer la picada | Enfrentar |
+
+**Por qué esto da diversidad sin romper los pilares:** dos Recolectores con la misma orden juegan distinto si uno lleva Alforja (viajes largos y gordos) y el otro Colibrí (viajes cortos y rápidos); un Guardián con Cresta cubre una veta y su recolector, uno con Ariete rompe la Jauría. La orden sigue siendo la decisión difícil; la parte es la ejecución, y se lee en el cuerpo del rival antes de bajar (8.1).
+
+**Extensión en el código (lo que hay que construir antes de la primera parte):** hoy los colaboradores leen los knobs directo de `ExpeditionRulesSO` (`CarryCapacity`, `FleeDistance`, `GuardRadius`, `MiningSecondsPerUnit`, `VisionRadius`…). El paso previo es un `ExpeditionStats` por criatura (struct resuelto al bajar, en `MoriMochiAgent.SetOrders`: reglas × órdenes × partes), que los colaboradores consulten en lugar de las reglas globales. Con eso, cada `PartAbilitySO` es un modificador de ese struct más un disparador opcional; agregar una parte nueva no toca `AgentGatherer` ni `AgentClash`. Los tres movimientos de choque actuales (cuerno embiste, alas picada, espalda coletazo) ya son "habilidades automáticas" en ese sentido: el agente elige por distancia; el tipo de parte solo cambiaría su fuerza y su costo.
+
+**Lo que NO cambia:** las partes no desbloquean ni bloquean pilares (eso es de la personalidad); no hay botones ni órdenes en vivo; toda habilidad se explica en una frase y se ve en pantalla.
+
 ### 8.7 · Preguntas abiertas nuevas (S97)
 
 - [ ] ⭐ ¿Las tres indicaciones son **por criatura o por equipo**?

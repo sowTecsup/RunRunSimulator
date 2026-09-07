@@ -47,6 +47,31 @@ public enum ArenaSite
     FarVein  = 2,
 }
 
+public enum LootChoice
+{
+    Big   = 0,
+    Small = 1,
+}
+
+public enum ContactChoice
+{
+    Flee  = 0,
+    Fight = 1,
+}
+
+public enum PostureChoice
+{
+    Protect    = 0,
+    Aggressive = 1,
+}
+
+public enum OrderPillar
+{
+    Loot    = 0,
+    Contact = 1,
+    Posture = 2,
+}
+
 public enum ArenaPaletteSlot
 {
     Ground  = 0,

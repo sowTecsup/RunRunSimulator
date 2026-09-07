@@ -1,63 +1,89 @@
 ---
-tags: [enum, world, perception]
+tags: [enum, world, arena, expedition]
 ---
 
 # WorldEnums.cs
 
 **Ruta:** `Core/Enums/WorldEnums.cs`
 
-**Responsabilidad:** Enumeraciones para topografía y percepciones del mundo. Contiene: `WorldArea` (zonas: ShopFrontDesk/ShopBackroom/Storage), `PerceivableKind` (6 tipos: Player/Monchi/Customer/Prop/Material/Exit), `ExpeditionTeam` (None/Player/Rival), `Occupation` (None/Gather/Guard/Break/Decoy/Explore). **S102 NUEVO:** `ArenaCastMode` (Roster/LocalSave), `ArenaSite` (Center/NearVein/FarVein), `ArenaPaletteSlot` (Ground/Grass/Foliage/Trunk/Rock/Wall).
+**Responsabilidad:** Enumeraciones para topografía, percepciones, expedición y arena. Contiene tipos base (WorldArea, PerceivableKind, ExpeditionTeam), ocupaciones (Occupation), arena (ArenaCastMode, ArenaSite, ArenaPaletteSlot), y **órdenes arena (S104 NUEVO: LootChoice, ContactChoice, PostureChoice, OrderPillar)**.
 
-## Enumeraciones
+## Enumeraciones Base
 
 | Enum | Valores |
 |------|---------|
 | `WorldArea` | ShopFrontDesk, ShopBackroom, Storage |
 | `PerceivableKind` | Player, Monchi, Customer, Prop, Material, Exit |
 | `ExpeditionTeam` | None, Player, Rival |
-| `Occupation` | None, Gather, Guard, Break, Decoy, Explore |
-| **`ArenaCastMode` (S102)** | **Roster, LocalSave** |
-| **`ArenaSite` (S102)** | **Center, NearVein, FarVein** |
-| **`ArenaPaletteSlot` (S102)** | **Ground, Grass, Foliage, Trunk, Rock, Wall** |
 
-## PerceivableKind S101 NUEVO: Exit
-
-```csharp
-public enum PerceivableKind
-{
-    Player   = 0,  // jugador
-    Monchi   = 1,  // criatura rival/aliada
-    Customer = 2,  // cliente NPC
-    Prop     = 3,  // prop del mundo
-    Material = 4,  // mineral recolectable (S97)
-    Exit     = 5,  // salida de expedición (S101)
-}
-```
-
-Exit (5) — percepción de salida de base en expedición. Representa un [[ExitZone]] (disco con radio y Team).
-
-## Occupation S101 NUEVO
+## Occupación (S101)
 
 ```csharp
 public enum Occupation
 {
     None    = 0,  // fallback a Gather
     Gather  = 1,  // recolectar material
-    Guard   = 2,  // vigilar puesto
-    Break   = 3,  // atacar rivales
+    Guard   = 2,  // vigilar puesto, perseguir provocadores
+    Break   = 3,  // atacar recolectores desprotegidos
     Decoy   = 4,  // distraer rivales
-    Explore = 5,  // explorar (→ Gather)
+    Explore = 5,  // explorar y reportar vetas
 }
 ```
 
-Estrategias de expedición asignadas por ArenaRosterSO:
-- **Gather:** Noticing → Moving → Mining → Returning → Securing. Acumula material.
-- **Guard:** Guarding. Se planta en MaterialPickup (GuardPost inyectado).
-- **Break:** Hunting. Persigue rival que recolecta; golpea si en rango.
-- **Decoy:** Decoying (Approach → Taunt → Flee). Provoca rival, se retira. Cooldown 4s.
-- **Explore:** Placeholder. Traduce a Gather en AgentExpedition.TryEngage().
+Estrategias de expedición — derivadas de ArenaOrders por ArenaOrderRules.ToOccupation() (S104):
+- **Gather:** Noticing → Moving → Mining → Returning → Securing. Acumula material. Contact=Flee u ordenado Proteger.
+- **Guard:** Guarding. Se planta en MaterialPickup, persigue provocadores.
+- **Break:** Hunting. Persigue recolectores desprotegidos; se retira si golpeado.
+- **Decoy:** Decoying (Approach → Taunt → Flee). Provoca rivales. Cooldown 4s.
+- **Explore:** Traveling → Reporting. Navega vetas y reporta al pizarrón. Fallback a Gather.
 
-## ArenaCastMode S102 NUEVO
+## Órdenes de Arena (S104 NUEVO)
+
+```csharp
+public enum LootChoice
+{
+    Big   = 0,  // recolectar cristal central grande
+    Small = 1,  // recolectar vetas chicas
+}
+
+public enum ContactChoice
+{
+    Flee  = 0,  // evitar confrontación
+    Fight = 1,  // buscar y enfrentar
+}
+
+public enum PostureChoice
+{
+    Protect    = 0,  // grupo cohesivo (custodio protege recolector, huye con aliados)
+    Aggressive = 1,  // individual (sin deberes, va a lo suyo)
+}
+
+public enum OrderPillar
+{
+    Loot    = 0,  // eje botín
+    Contact = 1,  // eje contacto
+    Posture = 2,  // eje equipo
+}
+```
+
+**Combinaciones → Arquetipos:**
+- Contact=Fight + Posture=Protect → Guard (planta, bloquea)
+- Contact=Fight + Posture=Aggressive → Break (caza, vacía recolectores)
+- Contact=Flee + Posture=Protect → Gather (mina, huye con aliados)
+- Contact=Flee + Posture=Aggressive → Decoy (provoca, se va solo)
+
+**Bloqueos por Personalidad:**
+- Boldness >= BoldFightLock (0.65) → fuerza Contact=Fight
+- Boldness <= ShyFleeLock (0.35) → fuerza Contact=Flee
+- Sociability >= SocialProtectLock (0.65) → fuerza Posture=Protect
+- Sociability <= LonerAggressiveLock (0.35) → fuerza Posture=Aggressive
+
+**Lectura de Rival:**
+- Si dos pilares bloqueados → "Guardián seguro" (ej)
+- Si uno → "puede ser guardián o cazador"
+- Sino → "puede hacer cualquiera"
+
+## Arena (S102)
 
 ```csharp
 public enum ArenaCastMode
@@ -65,40 +91,14 @@ public enum ArenaCastMode
     Roster   = 0,  // elenco desde ArenaRosterSO (predefinido)
     LocalSave = 1, // elenco desde archivo creature_database*.json local
 }
-```
 
-**Uso:**
-- Elegido en ArenaPlanPanel → ToggleCastMode()
-- Consultado en ArenaCastPlanner.Prepare()
-- Impacta selección de criaturas y equipamiento (LocalSave usa DNA guardado; Roster clona stats de Entry)
-
-**Almacenamiento:**
-- ArenaSandbox.castMode (serializado)
-- ArenaCastPlanner.Mode (estado mutable)
-
-## ArenaSite S102 NUEVO
-
-```csharp
 public enum ArenaSite
 {
-    Center  = 0,  // centro de la sala
-    NearVein = 1, // veta cercana (distancia media)
-    FarVein = 2,  // veta lejana (distancia máxima)
+    Center   = 0,  // centro de la sala
+    NearVein = 1,  // veta cercana (distancia media)
+    FarVein  = 2,  // veta lejana (distancia máxima)
 }
-```
 
-**Significado:**
-- Ubicación de recolecta asignada a cada criatura de Gather
-- Usado por ArenaCastPlanner para distribuir objetivos (rivalPlans[i].site alternado)
-- Consultado en ArenaSandbox.ResolveSite() para mapear a GuardPost (veta o salida)
-
-**Determinismo:**
-- Per-equipo: GatherSites[rivalIndex % 3] para rivales
-- Ignorado si Occupation != Gather (Decoy no respeta Site, tiene lógica propia)
-
-## ArenaPaletteSlot S102 NUEVO
-
-```csharp
 public enum ArenaPaletteSlot
 {
     Ground  = 0,  // suelo principal
@@ -110,62 +110,44 @@ public enum ArenaPaletteSlot
 }
 ```
 
-**Usado por:**
-- ArenaPaletteSO.RampFor(slot) → devuelve Ramp (Dark/Mid/Light) para el slot
-- ArenaPaletteApplier.TryClassify(material) → mapea nombre de material a slot
-- ArenaPaletteApplier.BuildRamps() → compila ramp a Texture2D 256x1 por slot
+**ArenaCastMode:** determina fuente de DNA (predefinido vs guardado)
+**ArenaSite:** estrategia espacial de recolecta (distribución de objetivos)
+**ArenaPaletteSlot:** 1:1 con Ramp en ArenaPaletteSO (6 valores)
 
-**Clasificación de materiales (TryClassify):**
-- "Trunk" → Trunk
-- "Leaves"/"Tree"/"Plants" → Foliage
-- "Moss"/"Rock"/"Pebble"/"PolygonNature_0" → Rock
-- "Generic_0"/"Grass"/"Flower" → Grass
-- "ArenaGround"/"ArenaOutskirts" → Ground
-- "ArenaWall" → Wall
-- (else) → Ground (fallback)
-
-## ExpeditionTeam S99
+## Helpers
 
 ```csharp
-public enum ExpeditionTeam
+public static class ExpeditionTeams
 {
-    None   = 0,  // neutral
-    Player = 1,  // equipo jugador
-    Rival  = 2,  // equipo rival
+    public static bool AreRivals(ExpeditionTeam a, ExpeditionTeam b)
+        => a != ExpeditionTeam.None && b != ExpeditionTeam.None && a != b;
+    
+    public static bool AreAllies(ExpeditionTeam a, ExpeditionTeam b)
+        => a != ExpeditionTeam.None && a == b;
 }
-```
-
-**ExpeditionTeams (static helper):**
-```csharp
-public static bool AreRivals(ExpeditionTeam a, ExpeditionTeam b)
-    => a != None && b != None && a != b;
-
-public static bool AreAllies(ExpeditionTeam a, ExpeditionTeam b)
-    => a != None && a == b;
 ```
 
 **Usado por:**
 - AgentClash.TryEngage() para validar rivales
+- ExpeditionNav.FindPrey/FindDecoyTarget para filtrar por team
 - ArenaCueOverlay.DrawPercepts() para colorear percepciones
-- ArenaCueOverlay.DrawExits() para teñir salidas por team
-- AgentSenses.Tick() para filtrar Percepts
 
-## Invariantes S102
+## Invariantes S104
 
-- **ArenaCastMode:** determina fuente de DNA (predefinido vs guardado)
-- **ArenaSite:** estrategia espacial de recolecta (distribución de objetivos)
-- **ArenaPaletteSlot:** 1:1 con Ramp en ArenaPaletteSO (6 valores)
-- **Determinismo:** mismos valores ArenaCastMode/Site/Slot para mismas semillas reproducen escena idénticamente
-
-## Conexiones
-
-- [[ArenaCastPlanner]] — ArenaCastMode, ArenaSite
-- [[ArenaPaletteSO]] — ArenaPaletteSlot
-- [[ArenaPaletteApplier]] — ArenaPaletteSlot para mapeo de materiales
-- [[AgentExpedition]] — Occupation
-- [[ExitZone]] — ExpeditionTeam
-- [[ArenaCueOverlay]] — ExpeditionTeam para coloreado
+- **Órdenes:** encapsulan estrategia en 3 pilares; clampeadas por DNA si personalidad extrema
+- **Ocupación derivada:** ArenaOrderRules.ToOccupation(orders) es autoridad única
+- **Bloqueos:** no revocables (DNA > orden del jugador)
+- **Determinismo:** mismas órdenes + DNA = mismo comportamiento en expedición
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+[[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+
+## Conexiones
+
+- [[ArenaOrders]], [[ArenaOrderRules]], [[ArenaOrderCatalog]] — órdenes
+- [[AgentExpedition]], [[AgentContext]], [[MoriMochiAgent]] — derivación y consulta
+- [[ArenaCastPlanner]] — ArenaCastMode, ArenaSite
+- [[ArenaPaletteSO]] — ArenaPaletteSlot
+- [[ExitZone]] — ExpeditionTeam
+- [[ArenaCueOverlay]] — ExpeditionTeam para coloreado

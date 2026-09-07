@@ -7,13 +7,14 @@ public struct ArenaRoundStat
 {
     public string Name;
     public ExpeditionTeam Team;
-    public Occupation Occupation;
+    public ArenaOrders Orders;
     public Color Color;
     public int Secured;
     public int Collected;
     public int HitsLanded;
     public int TimesKnocked;
     public int Reports;
+    public int Fled;
 }
 
 public static class ArenaRoundSummary
@@ -36,13 +37,14 @@ public static class ArenaRoundSummary
             {
                 Name = agent.DNA.CustomName,
                 Team = agent.Team,
-                Occupation = agent.Occupation,
+                Orders = agent.Orders,
                 Color = color,
                 Secured = agent.SecuredMaterial,
                 Collected = agent.CollectedMaterial,
                 HitsLanded = agent.ClashHitsLanded,
                 TimesKnocked = agent.ClashTimesKnocked,
-                Reports = agent.ScoutReports
+                Reports = agent.ScoutReports,
+                Fled = agent.TimesFled
             });
         }
         return result;

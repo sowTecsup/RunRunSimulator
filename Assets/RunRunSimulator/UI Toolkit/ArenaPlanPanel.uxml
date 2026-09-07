@@ -21,7 +21,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="cast-list" class="plan-cast" />
+            <ui:ScrollView name="cast-list" class="plan-cast" />
             <ui:VisualElement class="plan-tools">
                 <ui:Button name="btn-cast" text="Elenco" class="tool" />
                 <ui:Button name="btn-pick" text="Elegir…" class="tool" />

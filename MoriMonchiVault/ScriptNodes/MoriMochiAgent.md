@@ -1,12 +1,12 @@
 ---
-tags: [script, world, ai, agent, facade]
+tags: [script, world, ai, agent, facade, expedition]
 ---
 
 # MoriMochiAgent.cs
 
 **Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 8 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate). **S103:** Expone fachadas de expedición (Velocity, knockSpin, ScoutReports, SecuredMaterial, ClashHitsLanded, ClashTimesKnocked, SetBlackboard). Cancela expedición si clash ocurre (prioridad combate). Update() despachador por estado; FixedUpdate() physics.
+**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 8 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate). Fachada pública de todas las responsabilidades. Despachador por estado en Update; Physics en FixedUpdate. S103: expedición, pizarrón. S104: órdenes de arena, cooldowns de ocupación.
 
 **Máquina de Estados (responsables):**
 - Idle, Roaming → AgentBrain
@@ -16,70 +16,79 @@ tags: [script, world, ai, agent, facade]
 - Courting → AgentConfinement
 - Socializing → AgentSocial
 - Expedition → AgentExpedition
-- Clashing → AgentClash (S100)
+- Clashing → AgentClash
 
 **Propiedades Públicas (Fachada):**
-- `DNA → CreatureDNA`
-- `Intent → CreatureIntent` — prioridad: Clashing > Socializing > Expedition > Brain
-- `Team → ExpeditionTeam` — inyectado por ArenaSandbox
-- `Occupation → Occupation` — inyectado por ArenaSandbox (S101)
-- `Carried → int` — carga actual
-- `CollectedMaterial → int` — recolectado acumulativo
-- `MiningProgress → float` — 0-1
-- `ExpeditionTarget → Transform`
-
-**S103 Propiedades Nuevas:**
-- `float Velocity { get; }` — magnitud de NavMeshAgent.velocity + fallback Rigidbody (M)
-- `float knockSpin { get; set; }` — scalar de torque en Knock (tuning MonchiSquashDriver)
-- `int SecuredMaterial { get; }` — inyectado por ExitZone al depositar (contador)
-- `int ScoutReports { get; }` — consulta expedition.scout.Reports
-- `int ClashHitsLanded { get; }` — consulta clash.hitsLanded
-- `int ClashTimesKnocked { get; }` — consulta clash.timesKnocked
-
-**S103 Métodos Nuevos:**
-- `SetBlackboard(TeamBlackboard board)` — inyecta pizarrón en ctx.Board (ArenaSandbox lo llama)
+- `CreatureDNA DNA { get; }`
+- `CreatureIntent Intent { get; }` — prioridad: Clashing > Socializing > Expedition > Brain
+- `ExpeditionTeam Team { get; }` — de Perceivable
+- `Occupation Occupation { get; }` — desde ctx.Occupation (S104)
+- `ArenaOrders Orders { get; }` — desde ctx.Orders (S104 NUEVO)
+- `void SetOrders(ArenaOrders orders)` — asigna ctx.Orders, derives Occupation (S104 NUEVO)
+- `int Carried { get; }` — desde expedition.Carried
+- `int CarryCapacity { get; }` — desde expedition.CarryCapacity (S104 NUEVO)
+- `int CollectedMaterial { get; }` — desde expedition.Collected
+- `int SecuredMaterial { get; }` — desde expedition.Secured
+- `int TimesFled { get; }` — desde expedition.Fled (S104 NUEVO)
+- `float MiningProgress { get; }` — desde expedition.MiningProgress
+- `Transform ExpeditionTarget { get; }` — desde expedition.TargetTransform
+- `MoriMochiAgent TrustedGuardian { get; }` — desde expedition.Guardian (S104 NUEVO alias)
+- `int ScoutReports { get; }` — desde expedition.Reports
+- `float ClashCooldown01 { get; }` — normalized [0,1] (S104 NUEVO)
+- `float FleeCooldown01 { get; }` — desde expedition.FleeCooldown01 (S104 NUEVO)
+- `float DecoyCooldown01 { get; }` — desde expedition.DecoyCooldown01 (S104 NUEVO)
+- `float Retreat01 { get; }` — desde expedition.Retreat01 (S104 NUEVO)
+- `bool IsChasing { get; }` — desde expedition.IsChasing (S104 NUEVO)
 
 **Métodos Públicos (IThrowable + IInteractable):**
-- `OnGrab(Transform anchor)` → physics.OnGrab()
-- `OnRelease()` → physics.OnRelease()
-- `OnThrow(Vector3 force)` → physics.OnThrow()
-- `Knock(Vector3 force)` → physics.Knock() (+ knockSpin torque vía AgentPhysics S103)
-- `Launch(Vector3 pos, vel)` → physics.Launch()
-- `Interact(Transform player)` → social.InitiatePetting()
-- `Initialize(DNA, profile, player)` — setup inicial
-- `Rebind(DNA, profile)` — reload rápido
-- `PrepareForPool()` — antes de pooling
-- `EmitEmote(EmoteKind)` — dispara emote
+- `void OnGrab(Transform anchor)` → physics
+- `void OnRelease()` → physics
+- `void OnThrow(Vector3 force)` → physics
+- `void Knock(Vector3 force)` → physics
+- `void Launch(Vector3 pos, vel)` → physics
+- `void Interact()` → brain
+- `bool BeginPetting() → bool` → brain
+- `void EndPetting()` → brain
+- `void Initialize(CreatureDNA creature, RoleWorldProfileSO profileTable, Transform playerTransform)` — setup inicial
+- `void Rebind(CreatureDNA creature, RoleWorldProfileSO profileTable)` — reload
+- `void PrepareForPool()` — antes de pooling
+- `void EmitEmote(EmoteKind kind)` — dispara evento OnEmote
+- `void SetBlackboard(TeamBlackboard board)` → ctx.Board (S103)
+- `void SetHomeExit(ExitZone exit)` → ctx.HomeExit
+- `void SetGuardPost(Transform post)` → ctx.GuardPost
+- `bool ForceClash(ClashMoveSO move, MoriMochiAgent rival) → bool` → clash.ForceMove
 
-**Update() Flow (S103 Actualizado):**
-1. TickAlways
-2. Senses.Tick()
-3. ApplyGaitSpeed()
-4. Por State (switch):
+**Update() Flow:**
+1. DevTrackState(), forceRagdoll check, RecoverIfStuckOffMesh
+2. brain.TickAlways
+3. senses.Tick()
+4. ApplyGaitSpeed()
+5. Por State (switch):
    - Idle/Roaming: si no clash.TryEngage() y no expedition.TryEngage(), social.TryEngage()
-   - **S103:** Si `clash.TryEngage()` retorna true, `expedition.Cancel()` — prioridad combate
-   - Expedition: si `clash.TryEngage()` retorna true, `expedition.Cancel()`, sino `expedition.Tick()`
+   - Expedition: si clash.TryEngage() retorna true, expedition.Cancel(); else expedition.TickExpedition()
+   - Otros: delegado a colaborador responsable
 
-**FixedUpdate() Flow:**
-- physics.FixedTick() → actualiza velocity si Carried/Thrown
+**OnEnable/OnDisable (S104 "blindados"):**
+- Solo ejecutan si confinement != null (lazy init pattern: cierra event suscripción si constructor no completó)
 
-**S103 Cambios Principales:**
-- Propiedades `Velocity`, `knockSpin`, `SecuredMaterial`, `ScoutReports`, `ClashHitsLanded`, `ClashTimesKnocked` (exposiciones a fachada)
-- Método `SetBlackboard(board)` para inyectar pizarrón (S103 NUEVO)
-- En Update, si clash.TryEngage() en estado Idle/Roaming/Expedition: `expedition.Cancel()` (prioridad combate, S103)
-- knockSpin se aplica en AgentPhysics.Knock() (S103)
+**S103 Cambios:**
+- Propiedades expedición: ScoutReports, SecuredMaterial, CollectedMaterial
+- Método SetBlackboard(board)
+- Prioridad clash sobre expedición en Update
 
-**Internals (sin cambios):**
-- OnEnable/OnDisable suscripciones a GameEvents.NavMesh
-- Awake instancia colaboradores
-- Initialize/Rebind delegados
-- RestoreNavMeshControl resetea todos
+**S104 Cambios:**
+- Propiedades Orders, SetOrders (órdenes de arena)
+- Propiedades TimesFled, TrustedGuardian, CarryCapacity, ClashCooldown01, FleeCooldown01, DecoyCooldown01, Retreat01, IsChasing
+- Orders afecta Occupation (ArenaOrderRules.ToOccupation)
+- OnEnable/OnDisable blindados (null-safe confinement)
+- Intent cuestión resuelta por composición (no hay bloqueo)
 
-**Composición Pura (S55):**
+**Internals (composición pura, S55):**
 - Sin partial class
 - Colaboradores como campos privados
 - Orquestación en Update/FixedUpdate
+- ctx autoridad única de estado
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], [[Index/06 - Player & World]]
+**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], [[Index/06 - Player & World]]
 
-**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[TeamBlackboard]], [[ExitZone]]
+**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[ArenaOrders]], [[TeamBlackboard]], [[ExitZone]], [[Occupation]]

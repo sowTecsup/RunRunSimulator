@@ -10,7 +10,11 @@
     display: none;
 }
 
-.hud--idle .hud-team {
+.hud--idle .hud-rival-team {
+    display: none;
+}
+
+.hud--idle .hud-player-team {
     display: none;
 }
 
@@ -18,14 +22,52 @@
     display: none;
 }
 
-.hud-seed {
+.hud--idle .hud-speed {
+    display: none;
+}
+
+.hud-topleft {
     position: absolute;
     top: 14px;
     left: 16px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.hud-btn {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
+    background-color: rgba(22, 15, 14, 0.86);
+    color: var(--mm-ink);
+    font-size: 16px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.hud-btn--dim {
+    opacity: 0.5;
+}
+
+.hud-btn--speed {
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    width: auto;
+    min-width: 64px;
+    padding: 0 10px;
+}
+
+.hud-seed {
     font-size: 13px;
     letter-spacing: 1px;
     color: var(--mm-ink-soft);
     -unity-font-style: bold;
+    margin-left: 10px;
 }
 
 .hud-board {
@@ -93,99 +135,205 @@
     background-color: var(--mm-crit);
 }
 
-.hud-team {
+.hud-rival-team {
     position: absolute;
-    top: 100px;
-    width: 300px;
-}
-
-.hud-team--player {
-    left: 16px;
-    align-items: flex-start;
-}
-
-.hud-team--rival {
+    top: 14px;
     right: 16px;
+    flex-direction: column;
     align-items: flex-end;
 }
 
-.hud-row {
+.hud-chip-rival {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 6px;
     padding: 5px 10px;
     border-radius: 10px;
     background-color: rgba(22, 15, 14, 0.78);
-    border-left-width: 3px;
-    border-left-color: var(--mm-good);
-    min-width: 210px;
-}
-
-.hud-row--rival {
-    flex-direction: row-reverse;
-    border-left-width: 0;
     border-right-width: 3px;
     border-right-color: var(--mm-coral);
+    min-width: 150px;
 }
 
-.hud-row__swatch {
-    width: 18px;
-    height: 18px;
-    border-radius: 6px;
+.hud-chip-rival__swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 5px;
     border-width: 1px;
     border-color: var(--mm-frame-soft);
-    margin: 0 8px;
+    margin-right: 8px;
 }
 
-.hud-row__text {
+.hud-chip-rival__text {
     flex-grow: 1;
 }
 
-.hud-row--rival .hud-row__text {
-    align-items: flex-end;
-}
-
-.hud-row__name {
-    font-size: 14px;
+.hud-chip-rival__name {
+    font-size: 12px;
     -unity-font-style: bold;
     color: var(--mm-ink);
 }
 
-.hud-row__sub {
-    font-size: 11px;
+.hud-chip-rival__archetype {
+    font-size: 10px;
+    color: var(--mm-gold);
+}
+
+.hud-chip-rival__action {
+    font-size: 10px;
     color: var(--mm-ink-soft);
 }
 
-.hud-row__carry {
-    font-size: 13px;
-    -unity-font-style: bold;
-    color: var(--mm-gold);
+.hud-player-team {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    translate: -50% 0;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.hud-card {
+    width: 250px;
     margin: 0 6px;
-    min-width: 34px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
+    border-top-width: 4px;
+    background-color: rgba(22, 15, 14, 0.86);
+}
+
+.hud-card--hit {
+    border-color: var(--mm-coral);
+}
+
+.hud-card__header {
+    flex-direction: row;
+    align-items: center;
+}
+
+.hud-card__swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: var(--mm-frame-soft);
+    margin-right: 8px;
+}
+
+.hud-card__text {
+    flex-grow: 1;
+}
+
+.hud-card__name {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: var(--mm-ink);
+}
+
+.hud-card__posture {
+    font-size: 11px;
+    color: var(--mm-gold);
+}
+
+.hud-card__pillars {
+    flex-direction: row;
+    margin-top: 6px;
+}
+
+.hud-chip {
+    font-size: 9px;
+    color: var(--mm-ink-soft);
+    border-radius: 6px;
+    border-width: 1px;
+    padding: 2px 6px;
+    margin-right: 4px;
+    background-color: rgba(255, 255, 255, 0.08);
     -unity-text-align: middle-center;
 }
 
-.hud-row__carry--empty {
-    opacity: 0;
+.hud-chip--loot {
+    border-color: var(--mm-teal);
 }
 
-.hud-row__mine {
-    height: 4px;
-    width: 120px;
-    margin-top: 3px;
-    border-radius: 2px;
-    background-color: rgba(122, 90, 70, 0.45);
+.hud-chip--contact {
+    border-color: var(--mm-coral);
+}
+
+.hud-chip--team {
+    border-color: var(--mm-plum);
+}
+
+.hud-card__action {
+    font-size: 12px;
+    color: var(--mm-ink);
+    margin-top: 6px;
+}
+
+.hud-card__carry {
+    flex-direction: row;
+    margin-top: 6px;
+}
+
+.hud-slot {
+    width: 14px;
+    height: 14px;
+    margin-right: 3px;
+    border-radius: 3px;
+    border-width: 1px;
+    border-color: var(--mm-frame-soft);
+    background-color: rgba(255, 255, 255, 0.08);
     overflow: hidden;
 }
 
-.hud-row__mine-fill {
+.hud-slot--full {
+    background-color: var(--mm-gold);
+}
+
+.hud-slot__fill {
     height: 100%;
     width: 0;
     background-color: var(--mm-teal);
 }
 
-.hud-row__mine--hidden {
-    display: none;
+.hud-card__moves {
+    flex-direction: row;
+    margin-top: 6px;
+    justify-content: space-between;
+}
+
+.hud-move {
+    width: 92px;
+    height: 30px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: var(--mm-frame-soft);
+    background-color: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+}
+
+.hud-move--on {
+    border-color: var(--mm-gold);
+    background-color: rgba(245, 185, 72, 0.18);
+}
+
+.hud-move__cool {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+}
+
+.hud-move__label {
+    font-size: 11px;
+    color: var(--mm-ink);
+    -unity-text-align: middle-center;
 }
 
 .hud-result {

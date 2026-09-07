@@ -67,6 +67,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     private int entryAxis;
 
     public IReadOnlyList<VeinSpot> Veins => veins_;
+    public int ObstacleCount => obstaclePositions.Count;
     public bool IsBuilt => generatedRoot != null;
     public Vector3 EntryDirection => EntryAxes[entryAxis];
     public string EntryName => EntryNames[entryAxis];

@@ -2739,6 +2739,7 @@ MonoBehaviour:
   showSocial: 1
   showClash: 1
   showMining: 1
+  showFlee: 1
 --- !u!4 &117751132
 Transform:
   m_ObjectHideFlags: 0
@@ -2772,6 +2773,7 @@ MonoBehaviour:
   style: {fileID: 11400000, guid: 9a94e67aca239c04cb627b3978f1c485, type: 2}
   showMinerals: 1
   showExits: 1
+  showBlackboards: 1
 --- !u!1001 &118384098
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21731,6 +21733,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaRoundHud
   round: {fileID: 900000003}
+  clock: {fileID: 1252751286}
   warnSeconds: 15
 --- !u!1001 &900237313
 PrefabInstance:
@@ -29107,6 +29110,7 @@ GameObject:
   - component: {fileID: 1252751285}
   - component: {fileID: 1252751284}
   - component: {fileID: 1252751283}
+  - component: {fileID: 1252751286}
   m_Layer: 0
   m_Name: ObserverCamera
   m_TagString: Untagged
@@ -29303,6 +29307,24 @@ MonoBehaviour:
       Wait: 1
       Time: 2
     Restrictions: 0
+--- !u!114 &1252751286
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252751279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44a3a1105f0f6b748862630b58a8a6fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaClockControl
+  timeManager: {fileID: 1965486715}
+  speeds:
+  - 1
+  - 2
+  - 5
+  - 10
 --- !u!1001 &1259246070
 PrefabInstance:
   m_ObjectHideFlags: 0

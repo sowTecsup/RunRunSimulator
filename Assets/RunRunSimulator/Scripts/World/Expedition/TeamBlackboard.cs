@@ -88,7 +88,7 @@ public class TeamBlackboard
         return true;
     }
 
-    public MaterialPickup BestKnownVein(Vector3 from, MaterialPickup exclude)
+    public MaterialPickup BestKnownVein(Vector3 from, MaterialPickup exclude, bool excludeLode = false)
     {
         MaterialPickup best = null;
         float bestScore = 0f;
@@ -98,6 +98,7 @@ public class TeamBlackboard
             var vein = known[i].Vein;
             if (vein == null) { known.RemoveAt(i); continue; }
             if (vein.Taken || !vein.gameObject.activeInHierarchy || vein == exclude) continue;
+            if (excludeLode && vein.IsLode) continue;
 
             Vector3 d = vein.transform.position - from; d.y = 0f;
             float score = known[i].Remaining / (1f + d.magnitude * 0.15f);
@@ -105,6 +106,26 @@ public class TeamBlackboard
 
             best = vein;
             bestScore = score;
+        }
+
+        return best;
+    }
+
+    public MaterialPickup NearestSite(Vector3 from, bool excludeLode)
+    {
+        MaterialPickup best = null;
+        float bestSqr = float.PositiveInfinity;
+
+        foreach (var site in sites)
+        {
+            if (site == null || site.Taken || !site.gameObject.activeInHierarchy) continue;
+            if (excludeLode && site.IsLode) continue;
+
+            Vector3 d = site.transform.position - from; d.y = 0f;
+            if (d.sqrMagnitude >= bestSqr) continue;
+
+            best = site;
+            bestSqr = d.sqrMagnitude;
         }
 
         return best;

@@ -8,10 +8,8 @@ namespace MoriMonchiSimulator
 [RequireComponent(typeof(UIDocument))]
 public class ArenaPlanPanel : MonoBehaviour
 {
-    private static readonly Occupation[] Occupations = { Occupation.Gather, Occupation.Guard, Occupation.Break, Occupation.Decoy, Occupation.Explore };
-    private static readonly string[] OccupationLabels = { "Recolecta", "Vigila", "Rompe", "Distrae", "Explora" };
-    private static readonly ArenaSite[] Sites = { ArenaSite.Center, ArenaSite.NearVein, ArenaSite.FarVein };
-    private static readonly string[] SiteLabels = { "Centro", "Veta cercana", "Veta lejana" };
+    private static readonly OrderPillar[] Pillars = { OrderPillar.Loot, OrderPillar.Contact, OrderPillar.Posture };
+    private const int ChoicesPerPillar = 2;
 
     [Required, SerializeField] private ArenaSandbox sandbox;
     [Required, SerializeField] private ArenaRound round;
@@ -22,8 +20,10 @@ public class ArenaPlanPanel : MonoBehaviour
     private class Card
     {
         public int Index;
-        public Button[] OccupationPills;
-        public Button[] SitePills;
+        public Button[][] Pills;
+        public Label Archetype;
+        public Label Description;
+        public Label Hint;
     }
 
     private VisualElement root;
@@ -130,7 +130,7 @@ public class ArenaPlanPanel : MonoBehaviour
         lastPlannedCount = sandbox.PlannedCast.Count;
         lastSeed = sandbox.ActiveSeed;
 
-        roomLabel.text = $"sala {sandbox.ActiveSeed}  ·  {sandbox.PaletteName}  ·  entrada {sandbox.EntryName}";
+        RefreshTeamLine();
         castButton.text = sandbox.CastMode == ArenaCastMode.LocalSave
             ? (sandbox.LocalCastAvailable ? "Mis MoriMonchis" : "Mis MoriMonchis (sin save)")
             : "Elenco básico";
@@ -171,65 +171,76 @@ public class ArenaPlanPanel : MonoBehaviour
         swatch.style.backgroundColor = color;
         head.Add(swatch);
 
+        var rules = ExpeditionRulesSO.Current;
+
         var text = new VisualElement();
         var name = new Label(entry.Dna.CustomName);
         name.AddToClassList("cast-card__name");
-        var dials = new Label($"osadía {entry.Dna.Boldness:0.00}  ·  sociable {entry.Dna.Sociability:0.00}");
+        var dials = new Label($"{ArenaOrderCatalog.PersonalityName(entry.Dna, rules)} → {ArenaOrderCatalog.UnlockRead(entry.Dna, rules)}  ·  osadía {entry.Dna.Boldness:0.00}  ·  sociable {entry.Dna.Sociability:0.00}");
         dials.AddToClassList("cast-card__dials");
         text.Add(name);
         text.Add(dials);
         head.Add(text);
         card.Add(head);
 
-        var state = new Card { Index = index, OccupationPills = new Button[Occupations.Length], SitePills = new Button[Sites.Length] };
+        var state = new Card { Index = index, Pills = new Button[Pillars.Length][] };
 
-        var occupationRow = new VisualElement();
-        occupationRow.AddToClassList("plan-row");
-        var occupationLabel = new Label("HACE");
-        occupationLabel.AddToClassList("plan-row__label");
-        occupationRow.Add(occupationLabel);
-        for (int k = 0; k < Occupations.Length; k++)
+        for (int p = 0; p < Pillars.Length; p++)
         {
-            int choice = k;
-            var pill = new Button(() => ChooseOccupation(state, choice)) { text = OccupationLabels[k] };
-            pill.AddToClassList("pill");
-            state.OccupationPills[k] = pill;
-            occupationRow.Add(pill);
-        }
-        card.Add(occupationRow);
+            OrderPillar pillar = Pillars[p];
+            state.Pills[p] = new Button[ChoicesPerPillar];
 
-        var siteRow = new VisualElement();
-        siteRow.AddToClassList("plan-row");
-        var siteLabel = new Label("DÓNDE");
-        siteLabel.AddToClassList("plan-row__label");
-        siteRow.Add(siteLabel);
-        for (int k = 0; k < Sites.Length; k++)
-        {
-            int choice = k;
-            var pill = new Button(() => ChooseSite(state, choice)) { text = SiteLabels[k] };
-            pill.AddToClassList("pill");
-            pill.AddToClassList("pill--site");
-            state.SitePills[k] = pill;
-            siteRow.Add(pill);
+            var row = new VisualElement();
+            row.AddToClassList("plan-row");
+            var rowLabel = new Label(ArenaOrderCatalog.PillarLabels[p]);
+            rowLabel.AddToClassList("plan-row__label");
+            row.Add(rowLabel);
+
+            for (int k = 0; k < ChoicesPerPillar; k++)
+            {
+                int choice = k;
+                var pill = new Button(() => ChoosePillar(state, pillar, choice)) { text = ArenaOrderCatalog.ChoiceLabel(pillar, k) };
+                pill.AddToClassList("pill");
+                if (pillar == OrderPillar.Loot) pill.AddToClassList("pill--site");
+                state.Pills[p][k] = pill;
+                row.Add(pill);
+            }
+
+            if (ArenaOrderRules.IsLocked(entry.Dna, rules, pillar, out int forced))
+            {
+                for (int k = 0; k < ChoicesPerPillar; k++)
+                    state.Pills[p][k].SetEnabled(false);
+                state.Pills[p][forced].AddToClassList("pill--locked");
+
+                var lockLabel = new Label(ArenaOrderCatalog.LockReason(pillar, forced));
+                lockLabel.AddToClassList("plan-row__lock");
+                row.Add(lockLabel);
+            }
+
+            card.Add(row);
         }
-        card.Add(siteRow);
+
+        state.Archetype = new Label();
+        state.Archetype.AddToClassList("cast-card__arch");
+        card.Add(state.Archetype);
+
+        state.Description = new Label();
+        state.Description.AddToClassList("cast-card__desc");
+        card.Add(state.Description);
+
+        state.Hint = new Label();
+        state.Hint.AddToClassList("cast-card__hint");
+        card.Add(state.Hint);
 
         cards.Add(state);
         RefreshPills(state);
         return card;
     }
 
-    private void ChooseOccupation(Card card, int choice)
+    private void ChoosePillar(Card card, OrderPillar pillar, int choice)
     {
         var entry = sandbox.PlannedCast[card.Index];
-        sandbox.SetPlayerPlan(card.Index, Occupations[choice], entry.Site);
-        RefreshPills(card);
-    }
-
-    private void ChooseSite(Card card, int choice)
-    {
-        var entry = sandbox.PlannedCast[card.Index];
-        sandbox.SetPlayerPlan(card.Index, entry.Occupation, Sites[choice]);
+        sandbox.SetPlayerOrders(card.Index, ArenaOrderRules.With(entry.Orders, pillar, choice));
         RefreshPills(card);
     }
 
@@ -238,26 +249,47 @@ public class ArenaPlanPanel : MonoBehaviour
         if (card.Index >= sandbox.PlannedCast.Count) return;
         var entry = sandbox.PlannedCast[card.Index];
 
-        for (int k = 0; k < Occupations.Length; k++)
-            card.OccupationPills[k].EnableInClassList("pill--on", Occupations[k] == entry.Occupation);
-
-        bool siteMatters = entry.Occupation != Occupation.Decoy && entry.Occupation != Occupation.Explore;
-        for (int k = 0; k < Sites.Length; k++)
+        for (int p = 0; p < Pillars.Length; p++)
         {
-            card.SitePills[k].EnableInClassList("pill--on", siteMatters && Sites[k] == entry.Site);
-            card.SitePills[k].SetEnabled(siteMatters);
+            int active = ArenaOrderRules.Choice(entry.Orders, Pillars[p]);
+            for (int k = 0; k < ChoicesPerPillar; k++)
+                card.Pills[p][k].EnableInClassList("pill--on", k == active);
         }
+
+        card.Archetype.text = "→ " + ArenaOrderCatalog.ArchetypeName(entry.Orders);
+        card.Description.text = ArenaOrderCatalog.ArchetypeDescription(entry.Orders);
+        card.Hint.text = ArenaOrderCatalog.CounterHint(entry.Orders);
+        RefreshTeamLine();
+    }
+
+    private void RefreshTeamLine()
+    {
+        var orders = new List<ArenaOrders>();
+        foreach (var entry in sandbox.PlannedCast)
+            if (entry.Team == ExpeditionTeam.Player && entry.Dna != null) orders.Add(entry.Orders);
+
+        string plan = ArenaOrderCatalog.TeamPlanName(orders);
+        string room = $"sala {sandbox.ActiveSeed}  ·  {sandbox.PaletteName}  ·  entrada {sandbox.EntryName}";
+        string read = ArenaOrderCatalog.RoomText(sandbox.ReadRoom(ExpeditionTeam.Player));
+        roomLabel.text = room + System.Environment.NewLine + read + (plan.Length > 0 ? System.Environment.NewLine + "Tu plan: " + plan : "");
     }
 
     private void RefreshRivalLine()
     {
-        var names = new List<string>();
+        var rules = ExpeditionRulesSO.Current;
+        var lines = new List<string>();
         foreach (var entry in sandbox.PlannedCast)
-            if (entry.Team == ExpeditionTeam.Rival && entry.Dna != null) names.Add(entry.Dna.CustomName);
+        {
+            if (entry.Team != ExpeditionTeam.Rival || entry.Dna == null) continue;
 
-        rivalLabel.text = names.Count == 0
+            string line = $"{entry.Dna.CustomName} · {ArenaOrderCatalog.PersonalityName(entry.Dna, rules)} → {ArenaOrderCatalog.RivalRead(entry.Dna, rules)}";
+
+            lines.Add(line);
+        }
+
+        rivalLabel.text = lines.Count == 0
             ? ""
-            : "Rival: " + string.Join(" · ", names) + "  ·  entra por el lado opuesto";
+            : "Rival (entra por el lado opuesto):\n" + string.Join("\n", lines);
     }
 
     private void ToggleCastMode()
