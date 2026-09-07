@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(gh repo *)",
+      "PowerShell(unity *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\RUTA\\AL\\PROYECTO\\.claude\\hooks\\session-start.ps1\""
+          }
+        ]
+      }
+    ]
+  }
+}
