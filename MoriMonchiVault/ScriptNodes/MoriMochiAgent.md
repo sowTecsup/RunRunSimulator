@@ -6,7 +6,7 @@ tags: [script, world, ai, agent, facade, expedition]
 
 **Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 8 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate). Fachada pública de todas las responsabilidades. Despachador por estado en Update; Physics en FixedUpdate. S103: expedición, pizarrón. S104: órdenes de arena, cooldowns de ocupación.
+**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 9 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate), **AgentAbilities (S107)** (habilidades dinámicas). Fachada pública de todas las responsabilidades. Despachador por estado en Update; Physics en FixedUpdate. S103: expedición, pizarrón. S104: órdenes de arena, cooldowns de ocupación. **S107:** sistema de habilidades con slots dinámicos por partes del cuerpo.
 
 **Máquina de Estados (responsables):**
 - Idle, Roaming → AgentBrain
@@ -23,22 +23,28 @@ tags: [script, world, ai, agent, facade, expedition]
 - `CreatureIntent Intent { get; }` — prioridad: Clashing > Socializing > Expedition > Brain
 - `ExpeditionTeam Team { get; }` — de Perceivable
 - `Occupation Occupation { get; }` — desde ctx.Occupation (S104)
-- `ArenaOrders Orders { get; }` — desde ctx.Orders (S104 NUEVO)
-- `void SetOrders(ArenaOrders orders)` — asigna ctx.Orders, derives Occupation (S104 NUEVO)
+- `ArenaOrders Orders { get; }` — desde ctx.Orders (S104)
+- `void SetOrders(ArenaOrders orders)` — asigna ctx.Orders, derives Occupation (S104)
 - `int Carried { get; }` — desde expedition.Carried
-- `int CarryCapacity { get; }` — desde expedition.CarryCapacity (S104 NUEVO)
+- `int CarryCapacity { get; }` — desde expedition.CarryCapacity
 - `int CollectedMaterial { get; }` — desde expedition.Collected
 - `int SecuredMaterial { get; }` — desde expedition.Secured
-- `int TimesFled { get; }` — desde expedition.Fled (S104 NUEVO)
+- `int TimesFled { get; }` — desde expedition.Fled
 - `float MiningProgress { get; }` — desde expedition.MiningProgress
 - `Transform ExpeditionTarget { get; }` — desde expedition.TargetTransform
-- `MoriMochiAgent TrustedGuardian { get; }` — desde expedition.Guardian (S104 NUEVO alias)
+- `MoriMochiAgent TrustedGuardian { get; }` — desde expedition.Guardian
 - `int ScoutReports { get; }` — desde expedition.Reports
-- `float ClashCooldown01 { get; }` — normalized [0,1] (S104 NUEVO)
-- `float FleeCooldown01 { get; }` — desde expedition.FleeCooldown01 (S104 NUEVO)
-- `float DecoyCooldown01 { get; }` — desde expedition.DecoyCooldown01 (S104 NUEVO)
-- `float Retreat01 { get; }` — desde expedition.Retreat01 (S104 NUEVO)
-- `bool IsChasing { get; }` — desde expedition.IsChasing (S104 NUEVO)
+- `float ClashCooldown01 { get; }` — normalized [0,1]
+- `float FleeCooldown01 { get; }` — desde expedition.FleeCooldown01
+- `float DecoyCooldown01 { get; }` — desde expedition.DecoyCooldown01
+- `float Retreat01 { get; }` — desde expedition.Retreat01
+- `bool IsChasing { get; }` — desde expedition.IsChasing
+- **S107 NUEVAS:**
+  - `int AbilityCount { get; }` — retorna 3 (siempre 3 slots)
+  - `AbilitySO Ability(int i) { get; }` — acceso a habilidad del slot i
+  - `float AbilityCharge01(int i) → float` — carga normalizada [0,1] del slot i
+  - `float AbilityFiredAt(int i) → float` — timestamp último disparo o -1
+  - `int ClashTimesKnocked { get; }` — desde clash.timesKnocked (para ArenaHudCard pulsación)
 
 **Métodos Públicos (IThrowable + IInteractable):**
 - `void OnGrab(Transform anchor)` → physics
@@ -56,6 +62,7 @@ tags: [script, world, ai, agent, facade, expedition]
 - `void SetBlackboard(TeamBlackboard board)` → ctx.Board (S103)
 - `void SetHomeExit(ExitZone exit)` → ctx.HomeExit
 - `void SetGuardPost(Transform post)` → ctx.GuardPost
+- `void SetAbilities(AbilitySO[] set)` → abilities.Bind(set) (S107 NUEVO)
 - `bool ForceClash(ClashMoveSO move, MoriMochiAgent rival) → bool` → clash.ForceMove
 
 **Update() Flow:**
@@ -63,13 +70,18 @@ tags: [script, world, ai, agent, facade, expedition]
 2. brain.TickAlways
 3. senses.Tick()
 4. ApplyGaitSpeed()
-5. Por State (switch):
+5. Si en Expedition: abilities.TickMobility() (procesa buffs de movilidad)
+6. Por State (switch):
    - Idle/Roaming: si no clash.TryEngage() y no expedition.TryEngage(), social.TryEngage()
    - Expedition: si clash.TryEngage() retorna true, expedition.Cancel(); else expedition.TickExpedition()
    - Otros: delegado a colaborador responsable
 
-**OnEnable/OnDisable (S104 "blindados"):**
-- Solo ejecutan si confinement != null (lazy init pattern: cierra event suscripción si constructor no completó)
+**Awake() - Inicialización de Colaboradores:**
+- Crea AgentContext, AgentBrain, AgentPhysics, AgentConfinement, AgentSenses, AgentSocial, AgentExpedition, AgentClash, **AgentAbilities** (S107)
+
+**OnEnable/OnDisable:**
+- Null-safe: solo ejecutan si confinement != null (lazy init pattern)
+- Suscribe a GameEvents.OnNavMeshWillRebake / OnNavMeshRebaked
 
 **S103 Cambios:**
 - Propiedades expedición: ScoutReports, SecuredMaterial, CollectedMaterial
@@ -80,8 +92,14 @@ tags: [script, world, ai, agent, facade, expedition]
 - Propiedades Orders, SetOrders (órdenes de arena)
 - Propiedades TimesFled, TrustedGuardian, CarryCapacity, ClashCooldown01, FleeCooldown01, DecoyCooldown01, Retreat01, IsChasing
 - Orders afecta Occupation (ArenaOrderRules.ToOccupation)
-- OnEnable/OnDisable blindados (null-safe confinement)
-- Intent cuestión resuelta por composición (no hay bloqueo)
+
+**S107 Cambios:**
+- Nuevo colaborador `abilities` (AgentAbilities)
+- Inicializado en Awake() como `abilities = new AgentAbilities(this, ctx)`
+- Propiedades públicas: AbilityCount, Ability(i), AbilityCharge01(i), AbilityFiredAt(i), ClashTimesKnocked
+- Método SetAbilities(AbilitySO[] set) para asignar array resuelto por AbilityDatabaseSO
+- TickMobility() llamado en Update si Expedition (procesa habilidades de movilidad)
+- ResetForReuse() en PrepareForPool() también llama abilities.ResetForReuse()
 
 **Internals (composición pura, S55):**
 - Sin partial class
@@ -91,4 +109,4 @@ tags: [script, world, ai, agent, facade, expedition]
 
 **Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], [[Index/06 - Player & World]]
 
-**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[ArenaOrders]], [[TeamBlackboard]], [[ExitZone]], [[Occupation]]
+**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentAbilities]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[ArenaOrders]], [[TeamBlackboard]], [[ExitZone]], [[Occupation]], [[AbilitySO]]

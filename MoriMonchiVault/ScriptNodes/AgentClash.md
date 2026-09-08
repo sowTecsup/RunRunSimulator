@@ -6,13 +6,13 @@ tags: [script, world, ai, expedition, internal]
 
 **Ruta:** `World/AI/AgentClash.cs`
 
-**Responsabilidad:** Máquina de estados interna de choque/combate físico. Maneja ciclo: enganche automático (TryEngage con cooldown y boldness), combate manual (ForceMove dev), fases (Anticipating, Striking, Resolving, Dazed), impacto en rivales, knockback, chain immunity. S103: contadores hitsLanded/timesKnocked. S104: Break solo golpea recolectores sin custodio; Contact.Fight salta MinBoldness; Cooldown01 property.
+**Responsabilidad:** Máquina de estados interna de choque/combate físico. Maneja ciclo: enganche automático (TryEngage con cooldown y boldness), combate manual (ForceMove dev), fases (Anticipating, Striking, Resolving, Dazed), impacto en rivales, knockback, chain immunity. S103: contadores hitsLanded/timesKnocked. S104: Break solo golpea recolectores sin custodio; Contact.Fight salta MinBoldness; Cooldown01 property. **S107:** TryEngage delega a AgentAbilities.TryFireDamage() para elegir movimiento de habilidad por distancia/rivals cercanos; permite habilidades dinámicas por partes del cuerpo.
 
 **Estados internos:**
 - None, Anticipating, Striking, Resolving, Dazed
 
 **Métodos públicos:**
-- `bool TryEngage() → bool` — intenta choque automático. Chequea: cooldown, (Contact!=Fight AND Boldness<MinBoldness), ocupación permite (Guard/Break sí, Gather/Decoy/Explore no). Break prioriza presa sin custodio. Retorna false si no encuentra rival en EngageRange
+- `bool TryEngage() → bool` — intenta choque automático. Chequea: cooldown, boldness (Contact!=Fight ó MinBoldness), ocupación permite (Guard/Break sí, Gather/Decoy/Explore no). **S107:** Delega a `abilities.TryFireDamage(dist, rivalsNearby, allowBack)` para obtener ClashMoveSO. Break prioriza presa sin custodio. Retorna false si no encuentra rival en EngageRange o si abilities retorna null.
 - `bool ForceMove(ClashMoveSO move, MoriMochiAgent rival) → bool` — fuerza movimiento (dev tools); solicita ReleaseStation y Roam primero
 - `void TickClashing()` — avanza fase cada frame (Anticipating face→Striking seek impact→Resolving→Dazed decision)
 - `void TickAirborne()` — detecta impacto si vuela (Wings dive, y<0.5); Impact + diving=false
@@ -40,7 +40,16 @@ tags: [script, world, ai, expedition, internal]
 **S104 Cambios:**
 - Break: solo golpea rivals sin `TrustedGuardian` (custodia = defensivo)
 - Contact.Fight: ignora MinBoldness check (Enfrentar está desbloqueado por personalidad)
-- Cooldown01: `float Cooldown01 { get; }` — normalized [0,1] cooldown post-choque (S104 NUEVO)
+- Cooldown01: `float Cooldown01 { get; }` — normalized [0,1] cooldown post-choque
+
+**S107 Cambios:**
+- TryEngage() ahora llama `abilities.TryFireDamage(dist, rivalsNearby, allowBack)` en lugar de usar movimiento fijo
+- Permite elegir habilidad de daño dinámicamente según:
+  - Distancia al rival (MinDistance threshold)
+  - Número de rivales cercanos (MinRivalsNearby threshold)
+  - Disponibilidad de habilidad (Cooldown listo)
+  - Permite que cada parte (Horn/Wings/Back) tenga habilidad única
+- Si abilities.TryFireDamage() retorna null, TryEngage retorna false (no hay habilidad disponible)
 
 **Gating por Ocupación:**
 - Guard → puede chocar (defiende puesto)
@@ -50,7 +59,8 @@ tags: [script, world, ai, expedition, internal]
 **Integración:**
 - Llamado desde MoriMochiAgent.Update() en AgentState.Expedition (prioridad sobre expedición)
 - Si TryEngage ok: expedition.Cancel()
+- TryFireDamage() retorna ClashMoveSO que se asigna a move
 
 **Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[MoriMochiAgent]], [[AgentContext]], [[AgentPhysics]], [[AgentExpedition]], [[ClashTuningSO]], [[ClashMoveSO]], [[ArenaOrders]]
+**Conexiones:** [[MoriMochiAgent]], [[AgentContext]], [[AgentPhysics]], [[AgentExpedition]], [[AgentAbilities]], [[ClashTuningSO]], [[ClashMoveSO]], [[AbilitySO]], [[ArenaOrders]]

@@ -6,149 +6,102 @@ tags: [script, world, expedition, camera]
 
 **Ruta:** `World/Expedition/ArenaCameraDirector.cs`
 
-**Responsabilidad:** Director de cámara que modula dinámicamente el peso de targets en un grupo Cinemachine. Enfoca (focusWeight) a criaturas que están en estados "interesantes" (Clashing, Dazed, Airborne, Recovering) y sus objetivos de choque; fuera de eso, desenfoca (idleWeight) a los demás. Proporciona cámara "dramatizada" sin intervención manual. **S101:** Introduce `minSwitchSeconds` para histéresis (no cambia de foco más de una vez por intervalo, evita parpadeos). Método público `Suspend(float seconds)` para pausar temporalmente (pesa todos a focusWeight). `OnDisable()` restaura pesos a focusWeight (cleanup).
+**Responsabilidad:** Director de cámara que modula dinámicamente el peso de targets en un grupo Cinemachine. Enfoca (focusWeight) a criaturas que están en estados "interesantes" (Clashing, Dazed, Airborne, Recovering) y sus objetivos de choque; fuera de eso, desenfoca (idleWeight) a los demás. Proporciona cámara "dramatizada" sin intervención manual. **S101:** Introduce `minSwitchSeconds` para histéresis (no cambia de foco más de una vez por intervalo, evita parpadeos). Método público `Suspend(float seconds)` para pausar temporalmente. `OnDisable()` restaura pesos. **S107:** Añade Pin/Unpin/TogglePin para seleccionar un target manualmente y mantenerlo enfocado; `pinIdleWeight` controla peso de otros durante pinning.
 
 ## Campos serializados
 
 - **sandbox:** referencia a [[ArenaSandbox]] para acceder a criaturas
 - **targetGroup:** referencia a CinemachineTargetGroup (componente que modula pesos)
-- **idleWeight:** peso (0-1) para targets no interesantes (default 0.35, quietos de fondo)
-- **focusWeight:** peso (0-1) para targets interesantes (default 1, enfocados)
-- **focusHoldSeconds:** cuánto tiempo mantener enfoque después de que el estado deja de ser interesante (default 4s)
-- **blendSpeed:** velocidad de transición entre pesos vía Lerp (default 0.7, 0-1 por frame)
-- **minSwitchSeconds:** **S101 NUEVO:** tiempo mínimo entre cambios de foco (default 3s). Si dos targets se vuelven interesantes dentro del mismo intervalo, el segundo espera hasta que venza el timer.
+- **idleWeight:** peso (0-1) para targets no interesantes (default 0.15)
+- **focusWeight:** peso (0-1) para targets interesantes (default 1)
+- **focusHoldSeconds:** cuánto tiempo mantener enfoque después de que el estado deja de ser interesante (default 2.5s)
+- **blendSpeed:** velocidad de transición entre pesos vía Lerp (default 2)
+- **minSwitchSeconds:** tiempo mínimo entre cambios de foco (default 3s)
+- **pinSeconds:** duración de pinning automático (default 8s); si > 0, Pinned se desactiva tras este tiempo. Si = 0, pinning indefinido.
+- **pinIdleWeight:** peso de otros targets mientras Pinned está activo (default 0, invisible) — S107 NUEVO
 
 ## Campos privados
 
-- `focusUntil` (Dict<Transform, float>) — Time.time hasta el que cada target debe mantener focusWeight
-- `lastSwitch` (float) — Time.time del último cambio de foco
-- **S101 NUEVO:** `lastSwitchFrame` (int) — frame del último cambio (para detectar múltiples Focus en el mismo frame)
+- `Pinned` (MoriMochiAgent, público) — target actualmente pinned por UI (ej. tarjeta clickeada)
+- `pinUntil` (float) — Time.time hasta el que Pinned mantiene enfoque. Si pinSeconds <= 0, PositiveInfinity.
+- `focusUntil` (Dict<Transform, float>) — Time.time hasta el que cada target debe mantener focusWeight (S101)
+- `lastSwitch`, `lastSwitchFrame` (float, int) — histéresis S101
 - `suspendedUntil` (float) — Time.time hasta el que todos los targets pesan focusWeight
 
 ## Lógica (LateUpdate)
 
-1. Por cada criatura en sandbox.Spawned:
-   - Si está en estado "interesante" (IsAirborne, IsRecovering, Intent == Clashing/Dazed):
-     - **S101:** Valida histéresis (minSwitchSeconds, permite múltiples en el mismo frame)
-     - Marca su transform en focusUntil[transform] = now + focusHoldSeconds
-   - Si está mirando un ClashTarget, también marca al target
-2. Por cada target en targetGroup.Targets:
-   - Interpola peso entre focusWeight e idleWeight
-   - Si target está en focusUntil y aún activo (until > now), weight → focusWeight
-   - Si no hay ningún focus activo, all weights → idleWeight
-   - Si hay focus pero este target no está en él, weight → idleWeight
+1. ValidatePin(now) — si Pinned no está activo en jerarquía o pinUntil venció, Unpin()
+2. Por cada criatura en sandbox.Spawned:
+   - Si está en estado "interesante" (IsAirborne, IsRecovering, Intent == Clashing/Dazed): Focus(transform, now)
+   - Si está mirando un ClashTarget, también Focus(target.transform, now)
+3. Calcula `anyFocus` — hay algún target en focusUntil aún activo
+4. Por cada target en targetGroup.Targets:
+   - Si Pinned != null: desired = (t.Object == Pinned.transform ? focusWeight : pinIdleWeight)
+   - Sino si suspended || !anyFocus || focused: desired = focusWeight
+   - Sino: desired = idleWeight
+   - Interpola t.Weight → desired con blendSpeed
 
-## Método público Suspend S101 NUEVO
+## Métodos Públicos (S107)
 
-```csharp
-public void Suspend(float seconds) => suspendedUntil = Mathf.Max(suspendedUntil, Time.time + seconds);
-```
+- `void Pin(MoriMochiAgent agent)` — fija Pinned = agent, pinUntil = now + pinSeconds (o ∞ si pinSeconds <= 0)
+- `void TogglePin(MoriMochiAgent agent)` — Pin si Pinned != agent, Unpin sino
+- `void Unpin()` — Pinned = null (cámara vuelve a dinámica)
+- `void Suspend(float seconds)` — pausa transiciones (S101)
 
-**Propósito:** Pausa transiciones de cámara, mantiene todos los targets enfocados durante el tiempo especificado. Usado por:
-- Cutscenes de arena
-- Animaciones de victoria/derrota
-- Efectos especiales que requieren cámara estable
+## Métodos Privados
 
-**Efecto:** Mientras `now < suspendedUntil`, todos los targets reciben focusWeight (se ignoran cálculos de interés).
+- `void Focus(Transform t, float now)` — marca transform como interesante con histéresis minSwitchSeconds (S101 lógica)
+- `void ValidatePin(float now)` — valida que Pinned siga activo; limpia si destruido o tiempo vencido
+- `void OnDisable()` — cleanup: restaura pesos a focusWeight, Unpin()
 
-## Método OnDisable S101 NUEVO
+## Integración
 
-```csharp
-private void OnDisable()
-{
-    if (targetGroup == null) return;
-    var targets = targetGroup.Targets;
-    for (int i = 0; i < targets.Count; i++)
-    {
-        var t = targets[i];
-        t.Weight = focusWeight;
-        targets[i] = t;
-    }
-    focusUntil.Clear();
-}
-```
+- TogglePin() llamado desde ArenaRoundHud.OnCardTapped() vía ArenaHudCard click
+- Pinned leído desde ArenaCueOverlay.LateUpdate() para reveal state de rivales (director.Pinned == controller.Agent)
+- Pinned leído desde ArenaRoundHud para actualizar clase CSS "hud-card--selected" / "hud-chip-rival--selected"
 
-**Propósito:** Cleanup al destruir component. Restaura todos los pesos a focusWeight (estado neutro, visible) y limpia diccionario.
+## S107 Cambios
 
-## S101: Histéresis con minSwitchSeconds
+- **Campos nuevos:**
+  - `Pinned` (propiedad pública, get)
+  - `pinIdleWeight` (serializado, [0,1], default 0)
+  - `pinUntil` (privado)
+  - `ValidatePin()` método privado
 
-**Línea 16: Campo nuevo**
+- **Lógica de pesos modificada:**
+  - Si Pinned != null: aplica pinIdleWeight a todos excepto Pinned (permite focus selectivo)
+  - Else: lógica anterior (dinámica automática)
 
-```csharp
-[SerializeField, Min(0f)] private float minSwitchSeconds = 3f;
-```
+## Invariantes S107
 
-**Línea 19-20: Campos privados para tracking**
+- **Pin permanente:** si pinSeconds <= 0, Pinned nunca expira automáticamente. Unpin() único método de salida.
+- **Pin temporal:** si pinSeconds > 0, ValidatePin() expira Pinned tras ese tiempo
+- **pinIdleWeight = 0:** otros targets completamente invisibles mientras Pinned. pinIdleWeight = 0.35: visibles pero desenfocados.
+- **ValidatePin() llamado cada LateUpdate:** verifica gameObject.activeInHierarchy y timer, desactiva Pinned automáticamente si vencido o destruido
 
-```csharp
-private float lastSwitch = -999f;
-private int   lastSwitchFrame = -1;
-```
-
-**Línea 57-66: Lógica de histéresis en Focus()**
-
-```csharp
-private void Focus(Transform t, float now)
-{
-    bool already = focusUntil.TryGetValue(t, out float until) && until > now;
-    if (!already)
-    {
-        bool sameFrame = Time.frameCount == lastSwitchFrame;
-        if (!sameFrame && now - lastSwitch < minSwitchSeconds) return;
-        if (!sameFrame) { lastSwitch = now; lastSwitchFrame = Time.frameCount; }
-    }
-    focusUntil[t] = now + focusHoldSeconds;
-}
-```
-
-**Significado:**
-- Si el target ya estaba enfocado, solo refresca su timer (sin validar histéresis)
-- Si es un target nuevo:
-  - Si en el mismo frame que el último cambio: permite (sameFrame = true, no valida minSwitchSeconds)
-  - Si en frame diferente:
-    - Si `now - lastSwitch < minSwitchSeconds`: rechaza (espera hasta vencer el cooldown)
-    - Si vencido: acepta, actualiza lastSwitch y lastSwitchFrame
-- Razón: Evita cambios de cámara constantes (parpadeo); permite múltiples targets "nuevos" en el mismo frame (p.ej. dos MoriMonchis chocan simultáneamente)
-
-## Valores en Escena S101
+## Valores en Escena (S101/S107)
 
 ```
-idleWeight       = 0.35  (quietos de fondo, visibles pero no enfocados)
+idleWeight       = 0.15  (quietos de fondo, visibles pero no enfocados)
 focusWeight      = 1.0   (enfocados completamente)
-focusHoldSeconds = 4.0   (gracia: mantiene foco 4s tras fin de acción)
-blendSpeed       = 0.7   (fade suave, ~0.7 unidades/frame)
-minSwitchSeconds = 3.0   (espera 3s entre cambios de foco)
+focusHoldSeconds = 2.5   (gracia: mantiene foco 2.5s tras fin de acción)
+blendSpeed       = 2.0   (fade suave)
+minSwitchSeconds = 3.0   (espera 3s entre cambios de foco automáticos)
+pinSeconds       = 8.0   (Pinned expira tras 8s)
+pinIdleWeight    = 0.0   (otros invisibles mientras Pinned)
 ```
 
-## Efecto
+## Vinculado a
 
-- Cámara suavemente enfoca al combatiente y su rival cuando chocan
-- Se desenfoca gradualmente (4s de gracia) cuando termina la acción
-- Histéresis evita cambios de cámara continua si hay muchas acciones simultáneas
-- Suspend() permite pausar dinamismo cuando se necesita cámara estable
-- Mantiene balance entre acción y ambiente
-
-## Invariantes S101
-
-- focusUntil es un Dictionary que se limpia implícitamente en próxima actualización (solo vive este frame)
-- No hay reset explícito; la lógica "olvida" targets automáticamente al no encontrarlos en el siguiente LateUpdate
-- `anyFocus` previene que todos los targets se desenfoquen si hay transición rápida
-- **S101:** minSwitchSeconds SOLO valida targets nuevos; targets ya enfocados refrescan su timer sin cooldown
-- **S101:** Múltiples targets en el mismo frame Always cuentan como un solo "cambio" (no se repite el cooldown)
-- **S101:** OnDisable restaura focusWeight (seguridad si component se disables antes de terminar sesión)
+- [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
 ## Conexiones
 
 **Entrada:**
-- **Lectura:** sandbox.Spawned → agent.IsAirborne, agent.IsRecovering, agent.Intent, agent.ClashTarget
-- **Escritura:** targetGroup.Targets[i].Weight (Cinemachine)
+- sandbox.Spawned → agent.IsAirborne, agent.IsRecovering, agent.Intent, agent.ClashTarget
+- ArenaRoundHud.OnCardTapped() → TogglePin()
+- ArenaCueOverlay → lee Pinned para reveal
 
 **Salida:**
-- CinemachineTargetGroup ajusta blend de cámara en tiempo real
-
-## Vinculado a
-
-- [[Index/23 - Arena Sandbox y Expedicion]]
-- [[ArenaSandbox]]
-- [[MoriMochiAgent]]
-- [[AgentClash]]
+- targetGroup.Targets[i].Weight (Cinemachine)
+- Pinned público (lectura por HUD/Overlay)

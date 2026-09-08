@@ -6,7 +6,7 @@ tags: [script, world, ai, context, internal]
 
 **Ruta:** `World/AI/AgentContext.cs`
 
-**Responsabilidad:** Contenedor de estado puro compartido entre colaboradores (AgentBrain, AgentPhysics, AgentExpedition, AgentClash, AgentSenses, AgentSocial, AgentConfinement). Almacena refs de componentes, DNA/perfil, estado de juego, máscaras NavMesh, percepciones, pizarrón de equipo (S103), **órdenes de arena (S104 NUEVO)**. Sin lógica de estado; solo datos y helpers (SetDestinationSafe, IsMoving, PlanarDistance, etc.).
+**Responsabilidad:** Contenedor de estado puro compartido entre colaboradores (AgentBrain, AgentPhysics, AgentExpedition, AgentClash, AgentSenses, AgentSocial, AgentConfinement, AgentAbilities). Almacena refs de componentes, DNA/perfil, estado de juego, máscaras NavMesh, percepciones, pizarrón de equipo (S103), órdenes de arena (S104), buffs de velocidad por habilidades (S107). Sin lógica de estado; solo datos y helpers (SetDestinationSafe, IsMoving, PlanarDistance, etc.).
 
 **Enum AgentState:**
 Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation, Courting, Socializing, HandFeed, Expedition, Clashing
@@ -18,10 +18,13 @@ Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation,
 - CurrentContainer (corral si confinado)
 - State (AgentState actual)
 - BaseSpeed (velocidad base NavMesh)
-- `Occupation Occupation` — ocupación arena (S104 NUEVO). Derivada de Orders o Gather por defecto. Consultada por AgentExpedition para switch de colaborador
-- `ArenaOrders Orders` — órdenes vigentes (S104 NUEVO). Struct con Loot/Contact/Posture. Clampeado por DNA si personalidad bloquea. Consultado por clash (Break solo golpea sin custodio), expedición (loot bias, huida), y UI
+- **S107 NUEVOS:**
+  - `SpeedMultiplier` (float, default 1f) — factor multiplicador de velocidad (ej. 1.35 para boost de habilidad)
+  - `SpeedBoostUntil` (float) — timestamp hasta el cual boost está activo. Si Time.time >= SpeedBoostUntil, MultipliedSpeed = 1f
+- Occupation (S104) — ocupación arena derivada de Orders
+- ArenaOrders Orders (S104) — órdenes vigentes (Loot/Contact/Posture)
 - TeamBlackboard Board (S103) — pizarrón de equipo
-- Occupación/expedición: HomeExit, GuardPost
+- Ocupación/expedición: HomeExit, GuardPost
 - Percepción: Percepts (List<Percept>)
 - NavMesh: FreeAreaMask, ConfinedAreaMask, RebakeInProgress
 
@@ -31,7 +34,11 @@ Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation,
 - `bool IsMoving { get; }` — si Agent activo y en movimiento
 - `void SetStopped(bool stopped)` — Agent.isStopped
 - `void SetDestinationSafe(Vector3 desired)` — SetDestination con sample check
-- `void ApplyGaitSpeed()` — aplica factor velocidad según State/Profile (solo único dueño de Agent.speed)
+- `void ApplyGaitSpeed()` — aplica factor velocidad según State/Profile + SpeedMultiplier si boost activo:
+  - factor = Profile.RoamSpeedFactor si Roaming, sino 1f
+  - target = BaseSpeed * factor
+  - Si Time.time < SpeedBoostUntil: target *= SpeedMultiplier
+  - Sets Agent.speed = target
 - `void SetColliderTrigger(bool isTrigger)`
 - `float PlanarDistanceToPlayer() → float` — XZ distance al player
 - `static Vector3 RandomPointInBounds(Bounds b) → Vector3`
@@ -43,13 +50,20 @@ Idle, Roaming, Reacting, Carried, Thrown, Recovering, SeekingNeed, UsingStation,
 - Consulta en AgentClash.TryEngage(): Contact fuerza fight si Boldness alto O Posture bloquea Gather
 - Consulta en AgentExpedition: ocupación elige colaborador, Orders pasa a loot bias en Gather
 
+**S107 Cambios:**
+- Campos `SpeedMultiplier` (default 1f) y `SpeedBoostUntil` (default 0)
+- Estos son seteados por AgentAbilities.TickMobility() cuando habilidad Mobility se dispara
+- SpeedMultiplier se aplica en ApplyGaitSpeed() si Time.time < SpeedBoostUntil
+- Permite buffs de velocidad dinámicos por habilidades (ej. Fleeing → boost 1.35x por 3s)
+
 **Invariantes:**
 - Contenedor puro: sin lógica de transición de estado
 - Ref compartida: todos los colaboradores leen/escriben ctx, no hay duplicación
 - State autoridad única: solo colaboradores pueden cambiar State
 - Board nullable: null si no en expedición
-- Orders inmutable dentro de expedición (derivado de Orders al inicio; si cambia → reset y re-engage)
+- Orders immutable dentro de expedición (derivado de Orders al inicio; si cambia → reset y re-engage)
+- SpeedBoostUntil comparado contra Time.time en ApplyGaitSpeed(); auto-expira tras tiempo
 
 **Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[MoriMochiAgent]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[TeamBlackboard]], [[CreatureDNA]], [[ArenaOrders]], [[ArenaOrderRules]]
+**Conexiones:** [[MoriMochiAgent]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentAbilities]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[TeamBlackboard]], [[CreatureDNA]], [[ArenaOrders]], [[ArenaOrderRules]]

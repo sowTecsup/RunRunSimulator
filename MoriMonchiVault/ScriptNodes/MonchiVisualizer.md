@@ -6,7 +6,7 @@ tags: [script, visual, component]
 
 **Ruta:** `World/Creatures/MonchiVisualizer.cs`
 
-**Responsabilidad:** Visualizador del modelo Suriyun. Instancia body FBX por BodyShapeID, mapea renderers (Face, Wings, Arms, etc.), aplica tintado por ColorGenetics.BuildHarmony. `SetMood()` swapea material Face. **S61:** `Assemble()` ahora hace `SetActive(false)` a los hijos viejos antes de `Object.Destroy()` — Destroy es diferido a fin de frame y el fotomatón renderiza en el mismo frame, causando superposición del cuerpo viejo en headshots batch.
+**Responsabilidad:** Visualizador del modelo Suriyun. Instancia body FBX por BodyShapeID, mapea renderers (Face, Wings, Arms, etc.), aplica tintado por ColorGenetics.BuildHarmony. `SetMood()` swapea material Face. **S61:** `Assemble()` ahora hace `SetActive(false)` a los hijos viejos antes de `Object.Destroy()` — Destroy es diferido a fin de frame y el fotomatón renderiza en el mismo frame, causando superposición del cuerpo viejo en headshots batch. **S107:** Sin cambios en este script; documentación preservada para contexto (usado por MonchiTurntable).
 
 ## Métodos Públicos
 
@@ -51,6 +51,11 @@ for (int i = modelRoot.childCount - 1; i >= 0; i--)
 
 - **Removido:** método `SetGhost(float alpha)` (fue descartado; ghosting visual de cadáveres se maneja en otro lado o no se soporta más)
 
+## Cambios S107
+
+- Sin cambios en lógica del script
+- MonchiTurntable (S107 NUEVO) usa MonchiVisualizer en sus booths para renderizar spinning 3D
+
 ## Vinculado a
 
 - [[Index/10 - Visualization]]
@@ -71,3 +76,9 @@ for (int i = modelRoot.childCount - 1; i >= 0; i--)
 - Assemble() desactiva visualmente los hijos viejos inmediatamente (SetActive), luego los destruye diferido
 - Fotomatón renderiza en el mismo frame; desactivar antes de Destroy evita ghosting
 - Previene artefactos visuales en headshot batch (dos criaturas superpuestas)
+
+## Notas S107
+
+- MonchiTurntable crea booths con MonchiVisualizer instanciado dinámicamente
+- SetBank() y SetFurDatabase() llamados desde MonchiTurntable.Awake()
+- Assemble() llamado desde MonchiTurntable.Show() cuando preview debe renderizar

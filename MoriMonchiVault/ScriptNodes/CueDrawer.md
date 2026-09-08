@@ -118,3 +118,5 @@ public static void Sector(Vector3 center, float radius, float startAngle, float 
 ## Vinculado a
 
 [[Index/23 - Arena Sandbox y Expedicion]]
+
+**S107:** nuevo `DashedArc(center, radius, thickness, startAngle, sweep, dashCount, dashRatio, rotation, colorA, colorB, additive = false)` → forma **8** del shader `MonchiCue` (arco con puntas redondas partido en dashes; la forma 7 es el Sector, rama `else` sin cota). Lo usa [[ArenaCueOverlay]] para el borde punteado del cono de visión (`ConeDashCount`/`ConeDashRatio`/`ConeDashSpinSpeed` de [[CueStyleSO]]).

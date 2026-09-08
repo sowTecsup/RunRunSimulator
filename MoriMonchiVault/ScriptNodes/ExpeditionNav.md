@@ -6,7 +6,7 @@ tags: [script, world, ai, expedition, util]
 
 **Ruta:** `World/AI/ExpeditionNav.cs`
 
-**Responsabilidad:** Librería estática de búsqueda y navegación para tareas de expedición. Localiza recursos (material, presas, aliados, tauntadores), computa puntos de aproximación/custodia/huida evitando aliados, y valida metas y rivales. Eje de cálculos geométricos para todas las ocupaciones.
+**Responsabilidad:** Librería estática de búsqueda y navegación para tareas de expedición. Localiza recursos (material, presas, aliados, tauntadores), computa puntos de aproximación/custodia/huida evitando aliados, y valida metas y rivales. Eje de cálculos geométricos para todas las ocupaciones. **S107:** Añade `IsRevealing()` para detectar intenciones que revelan rivales a HUD.
 
 **Métodos públicos:**
 - `bool Usable(MaterialPickup m)` — valida que no esté tomado ni desactivado
@@ -14,6 +14,7 @@ tags: [script, world, ai, expedition, util]
 - `MaterialPickup InjectedPost(AgentContext ctx)` — retorna GuardPost si es usable
 - `MaterialPickup FindPost(AgentContext ctx, bool excludeLode = false)` — busca mejor post en percepts (más material restante, o más cercano)
 - `bool IsThiefIntent(CreatureIntent intent)` — valida intenciones de carga (Taking, Carrying, Securing, Collecting)
+- `bool IsRevealing(CreatureIntent intent)` — **S107 NUEVO** detecta si intención debe revelar rival: Clashing, Fighting, Dazed, Taking, Carrying, Securing, Losing. Usado por ArenaCueOverlay.LateUpdate() para control de reveal state.
 - `MoriMochiAgent FindPrey(AgentContext ctx, MoriMochiAgent owner)` — busca recolector sin guardián custodio
 - `MoriMochiAgent FindDecoyTarget(AgentContext ctx, MoriMochiAgent owner)` — busca rival con prioridad a peleadores
 - `MoriMochiAgent NearestRival(AgentContext ctx, MoriMochiAgent owner, out float sqrDist)` — rival más cercano
@@ -31,6 +32,11 @@ tags: [script, world, ai, expedition, util]
 - Cálculos de ángulos, distancias planares, muestreo de NavMesh
 - Separación angular para evitar que múltiples recolectores ocupen el mismo rim
 
+**S107 Cambios:**
+- `IsRevealing()` método público nuevo
+- Usado por ArenaCueOverlay para determinar si rival debe ser revelado en HUD
+- Intenciones que "ponen en evidencia" el agente: activamente robando, luchando, o perdiendo
+
 **Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[AgentGatherer]], [[AgentGuard]], [[AgentHunter]], [[AgentDecoy]], [[AgentScout]], [[AgentContext]], [[TeamBlackboard]]
+**Conexiones:** [[AgentGatherer]], [[AgentGuard]], [[AgentHunter]], [[AgentDecoy]], [[AgentScout]], [[AgentContext]], [[TeamBlackboard]], [[ArenaCueOverlay]]
