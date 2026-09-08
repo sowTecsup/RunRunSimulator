@@ -23,7 +23,9 @@ public class MonchiVisualizer : MonoBehaviour
     private MonchiMood currentMood = MonchiMood.Neutral;
 
     public Animator Animator => animator;
-    public Transform ModelRoot => modelRoot;
+    public Transform ModelRoot => Root;
+
+    private Transform Root => modelRoot != null ? modelRoot : transform;
 
     public void SetBank(MonchiVisualBankSO visualBank)
     {
@@ -37,9 +39,9 @@ public class MonchiVisualizer : MonoBehaviour
 
     public void Assemble(CreatureDNA dna)
     {
-        for (int i = modelRoot.childCount - 1; i >= 0; i--)
+        for (int i = Root.childCount - 1; i >= 0; i--)
         {
-            var child = modelRoot.GetChild(i).gameObject;
+            var child = Root.GetChild(i).gameObject;
             child.SetActive(false);
             Object.Destroy(child);
         }
@@ -62,7 +64,7 @@ public class MonchiVisualizer : MonoBehaviour
             return;
         }
 
-        bodyInstance = Object.Instantiate(prefab, modelRoot);
+        bodyInstance = Object.Instantiate(prefab, Root);
         bodyInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
         animator = bodyInstance.GetComponent<Animator>();

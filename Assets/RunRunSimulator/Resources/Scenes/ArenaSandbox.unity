@@ -865,6 +865,7 @@ MonoBehaviour:
   socialTuning: {fileID: 11400000, guid: 0a1d9dcc99ebcc64b9e0e6a54aead249, type: 2}
   expeditionRules: {fileID: 11400000, guid: abb0aed279151d248a0eab42370834bb, type: 2}
   clashTuning: {fileID: 11400000, guid: 3d149631f135fd24ba0a6a3ee40677e2, type: 2}
+  abilityDatabase: {fileID: 11400000, guid: d28482b958a7cfc49bfba9d19f669734, type: 2}
   visualBank: {fileID: 11400000, guid: bde04aae719e5854687df754fb9d2b93, type: 2}
   furDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
   creatureDatabase: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
@@ -2732,14 +2733,18 @@ MonoBehaviour:
   cueMaterial: {fileID: 2100000, guid: b6161c9a839d2a44db2a08bb2d783d0f, type: 2}
   additiveMaterial: {fileID: 2100000, guid: 395e47b9e943caa4cb03a1cac9f0b16d, type: 2}
   style: {fileID: 11400000, guid: 9a94e67aca239c04cb627b3978f1c485, type: 2}
+  director: {fileID: 1185079733}
+  showBase: 1
   showPerception: 1
   showPath: 1
-  showPercepts: 1
+  showPercepts: 0
   showReticle: 1
   showSocial: 1
   showClash: 1
   showMining: 1
   showFlee: 1
+  showSelection: 1
+  showAbilities: 1
 --- !u!4 &117751132
 Transform:
   m_ObjectHideFlags: 0
@@ -14483,6 +14488,7 @@ MonoBehaviour:
   round: {fileID: 900000003}
   picker: {fileID: 581801047}
   resultPanel: {fileID: 581801046}
+  turntable: {fileID: 2114615238}
   resultHoldSeconds: 4
 --- !u!114 &581801044
 MonoBehaviour:
@@ -21734,6 +21740,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaRoundHud
   round: {fileID: 900000003}
   clock: {fileID: 1252751286}
+  director: {fileID: 1185079733}
   warnSeconds: 15
 --- !u!1001 &900237313
 PrefabInstance:
@@ -27625,6 +27632,8 @@ MonoBehaviour:
   focusHoldSeconds: 4
   blendSpeed: 0.7
   minSwitchSeconds: 3
+  pinSeconds: 8
+  pinIdleWeight: 0
 --- !u!4 &1185079734
 Transform:
   m_ObjectHideFlags: 0
@@ -48200,6 +48209,61 @@ MonoBehaviour:
   m_IgnoreFromBuild: 1
   m_ApplyToChildren: 1
   m_AffectedAgents: ffffffff
+--- !u!1 &2114615237
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2114615239}
+  - component: {fileID: 2114615238}
+  m_Layer: 0
+  m_Name: MonchiTurntable
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2114615238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2114615237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282526e199bf5984bb4b4689ca9796f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.MonchiTurntable
+  visualBank: {fileID: 11400000, guid: bde04aae719e5854687df754fb9d2b93, type: 2}
+  furDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
+  slotCount: 3
+  textureSize: 320
+  spinDegreesPerSecond: 30
+  cameraPitch: 14
+  cameraFov: 30
+  framePadding: 0.8
+  slotSpacing: 20
+  stageHeight: -500
+  focusLayerName: MonchiFocus
+--- !u!4 &2114615239
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2114615237}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2116061055
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49117,3 +49181,4 @@ SceneRoots:
   - {fileID: 900000002}
   - {fileID: 900000012}
   - {fileID: 581801045}
+  - {fileID: 2114615239}

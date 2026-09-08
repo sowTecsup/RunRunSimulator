@@ -12,6 +12,7 @@ public class ArenaSandbox : MonoBehaviour
     [Required, SerializeField] private SocialTuningSO socialTuning;
     [Required, SerializeField] private ExpeditionRulesSO expeditionRules;
     [Required, SerializeField] private ClashTuningSO clashTuning;
+    [SerializeField] private AbilityDatabaseSO abilityDatabase;
     [Required, SerializeField] private MonchiVisualBankSO visualBank;
     [Required, SerializeField] private FurTypeDatabaseSO furDatabase;
     [Required, SerializeField] private CreatureDatabaseSO creatureDatabase;
@@ -327,6 +328,7 @@ public class ArenaSandbox : MonoBehaviour
         controller.transform.SetParent(transform, true);
         controller.Initialize(dna, profileTable, observer, visualBank, furDatabase);
         controller.Agent.SetOrders(orders);
+        if (abilityDatabase != null) controller.Agent.SetAbilities(abilityDatabase.Resolve(dna));
         controller.Agent.SetHomeExit(home);
         controller.Agent.SetBlackboard(BoardFor(team));
         spawned.Add(controller);

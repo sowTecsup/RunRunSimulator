@@ -16,6 +16,8 @@
     --mm-warn: rgb(231, 146, 51);
     --mm-crit: rgb(220, 74, 56);
     --mm-scrim: rgba(62, 42, 29, 0.45);
+    --mm-ally: rgb(86, 140, 214);
+    --mm-foe: rgb(214, 92, 92);
 }
 
 .mm-theme--night {
@@ -36,4 +38,6 @@
     --mm-warn: rgb(231, 146, 51);
     --mm-crit: rgb(224, 90, 72);
     --mm-scrim: rgba(0, 0, 0, 0.55);
+    --mm-ally: rgb(150, 200, 255);
+    --mm-foe: rgb(255, 150, 140);
 }

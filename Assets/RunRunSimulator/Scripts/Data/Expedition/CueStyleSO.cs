@@ -108,6 +108,35 @@ public class CueStyleSO : SerializedScriptableObject
     public float FleeRingThickness = 0.08f;
     public float FleePulseSpeed = 8f;
 
+    [Title("Base y descubrimiento")]
+    public float BaseRadius = 0.9f;
+    [Range(0f, 1f)] public float BaseInnerAlpha = 0.35f;
+    public float BaseRingThickness = 0.05f;
+    [Range(0f, 1f)] public float BaseRingAlpha = 0.6f;
+    public float RevealSeconds = 0.3f;
+    [Min(4)] public int ConeDashCount = 48;
+    [Range(0f, 1f)] public float ConeDashRatio = 0.55f;
+    public float ConeDashSpinSpeed = 0.15f;
+
+    [Title("Habilidades")]
+    public float AbilityBurstSeconds = 0.6f;
+    public float AbilityBurstRadiusFrom = 0.8f;
+    public float AbilityBurstRadiusTo = 2.2f;
+    public float AbilityBurstThickness = 0.1f;
+    [Range(0f, 1f)] public float AbilityBurstAlpha = 0.9f;
+
+    [Title("Selección")]
+    public Color SelectColor = new Color(1f, 0.78f, 0.3f);
+    public float SelectRadius = 1.5f;
+    public float SelectThickness = 0.08f;
+    [Min(4)] public int SelectDashCount = 12;
+    [Range(0f, 1f)] public float SelectDashRatio = 0.6f;
+    public float SelectSpinSpeed = 0.5f;
+    public float SelectAppearScale = 1.4f;
+    [Range(0f, 1f)] public float SelectGlowAlpha = 0.08f;
+    public float SelectPulseSpeed = 3f;
+    [Range(0f, 1f)] public float SelectPulseAmount = 0.06f;
+
     [Title("Social")]
     public Color SocialLinkColor = new Color(0.95f, 0.5f, 0.8f);
     public Color FightColor = new Color(0.9f, 0.15f, 0.15f);

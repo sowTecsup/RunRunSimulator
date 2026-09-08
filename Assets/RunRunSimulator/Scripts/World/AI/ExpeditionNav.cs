@@ -51,6 +51,8 @@ internal static class ExpeditionNav
         intent == CreatureIntent.Taking || intent == CreatureIntent.Carrying ||
         intent == CreatureIntent.Securing || intent == CreatureIntent.Collecting;
 
+    public static bool IsRevealing(CreatureIntent intent) => intent == CreatureIntent.Clashing || intent == CreatureIntent.Fighting || intent == CreatureIntent.Dazed || intent == CreatureIntent.Taking || intent == CreatureIntent.Carrying || intent == CreatureIntent.Securing || intent == CreatureIntent.Losing;
+
     internal static MoriMochiAgent FindPrey(AgentContext ctx, MoriMochiAgent owner)
     {
         MoriMochiAgent best = null;

@@ -21,6 +21,7 @@ public class NameTag : MonoBehaviour
     [SerializeField, Min(0f)] private float screenSizeReferenceDistance = 0f;
     [SerializeField] private Color allyNameColor = new Color(0.76f, 1f, 0.6f);
     [SerializeField] private Color rivalNameColor = new Color(0.96f, 0.6f, 0.6f);
+    [SerializeField, Min(0f)] private float rivalRevealSpeed = 4f;
     public float ShowDistance { get => showDistance; set => showDistance = value; }
     public float ScreenSizeReferenceDistance { get => screenSizeReferenceDistance; set => screenSizeReferenceDistance = value; }
 
@@ -42,6 +43,8 @@ public class NameTag : MonoBehaviour
     private CreatureDNA    dna;
     private Transform      cam;
     private bool           shown = true;
+    private float          reveal = 1f;
+    private float          lastOpacity = 1f;
 
     private Vector3 baseLocalPos;
     private Vector3 baseLocalScale;
@@ -103,6 +106,15 @@ public class NameTag : MonoBehaviour
         bool  visible = distSqr <= showDistance * showDistance;
         if (visible != shown) SetShown(visible);
         if (!visible) return;
+
+        bool  rival  = agent != null && agent.Team == ExpeditionTeam.Rival;
+        float target = !rival || ExpeditionNav.IsRevealing(agent.Intent) ? 1f : 0f;
+        reveal = Mathf.MoveTowards(reveal, target, rivalRevealSpeed * Time.deltaTime);
+        if (root != null && Mathf.Abs(reveal - lastOpacity) > 0.01f)
+        {
+            root.style.opacity = reveal;
+            lastOpacity = reveal;
+        }
 
         Refresh();
 
@@ -225,7 +237,8 @@ public class NameTag : MonoBehaviour
 
         bool intentInteresting = agent != null && !dna.IsDead &&
                                   agent.Intent != CreatureIntent.Idle &&
-                                  agent.Intent != CreatureIntent.Wandering;
+                                  agent.Intent != CreatureIntent.Wandering &&
+                                  (agent == null || agent.Team == ExpeditionTeam.None);
         bool showIntent = !showPetHint && !showStatus && intentInteresting;
 
         SetDisplay(petHintLabel, showPetHint);

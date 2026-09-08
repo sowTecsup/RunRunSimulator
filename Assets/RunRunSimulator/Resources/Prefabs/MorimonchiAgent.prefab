@@ -833,7 +833,7 @@ MonoBehaviour:
   penRaise: 0.6
   penScale: 0.8
   screenSizeReferenceDistance: 0
-  allyNameColor: {r: 0.76, g: 1, b: 0.6, a: 1}
+  allyNameColor: {r: 0.55, g: 0.75, b: 1, a: 1}
   rivalNameColor: {r: 0.96, g: 0.6, b: 0.6, a: 1}
 --- !u!114 &227817693175286306
 MonoBehaviour:

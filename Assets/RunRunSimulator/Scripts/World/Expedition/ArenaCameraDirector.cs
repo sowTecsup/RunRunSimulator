@@ -14,6 +14,11 @@ public class ArenaCameraDirector : MonoBehaviour
     [SerializeField, Min(0f)] private float focusHoldSeconds = 2.5f;
     [SerializeField, Min(0.01f)] private float blendSpeed = 2f;
     [SerializeField, Min(0f)] private float minSwitchSeconds = 3f;
+    [SerializeField, Min(0f)] private float pinSeconds = 8f;
+    [SerializeField, Range(0f, 1f)] private float pinIdleWeight = 0f;
+
+    public MoriMochiAgent Pinned { get; private set; }
+    private float pinUntil;
 
     private readonly Dictionary<Transform, float> focusUntil = new();
     private float lastSwitch = -999f;
@@ -25,6 +30,7 @@ public class ArenaCameraDirector : MonoBehaviour
         if (sandbox == null || targetGroup == null) return;
 
         float now = Time.time;
+        ValidatePin(now);
         bool suspended = now < suspendedUntil;
         foreach (var controller in sandbox.Spawned)
         {
@@ -48,7 +54,7 @@ public class ArenaCameraDirector : MonoBehaviour
             var t = targets[i];
             if (t.Object == null) continue;
             bool focused = focusUntil.TryGetValue(t.Object, out float until) && until > now;
-            float desired = suspended || !anyFocus || focused ? focusWeight : idleWeight;
+            float desired = Pinned != null ? (t.Object == Pinned.transform ? focusWeight : pinIdleWeight) : (suspended || !anyFocus || focused ? focusWeight : idleWeight);
             t.Weight = Mathf.Lerp(t.Weight, desired, blend);
             targets[i] = t;
         }
@@ -68,8 +74,30 @@ public class ArenaCameraDirector : MonoBehaviour
 
     public void Suspend(float seconds) => suspendedUntil = Mathf.Max(suspendedUntil, Time.time + seconds);
 
+    public void Pin(MoriMochiAgent agent)
+    {
+        if (agent == null) { Unpin(); return; }
+        Pinned = agent;
+        pinUntil = pinSeconds > 0f ? Time.time + pinSeconds : float.PositiveInfinity;
+    }
+
+    public void TogglePin(MoriMochiAgent agent)
+    {
+        if (Pinned == agent) Unpin();
+        else Pin(agent);
+    }
+
+    public void Unpin() => Pinned = null;
+
+    private void ValidatePin(float now)
+    {
+        if (Pinned == null) return;
+        if (!Pinned.gameObject.activeInHierarchy || now >= pinUntil) Unpin();
+    }
+
     private void OnDisable()
     {
+        Unpin();
         if (targetGroup == null) return;
         var targets = targetGroup.Targets;
         for (int i = 0; i < targets.Count; i++)

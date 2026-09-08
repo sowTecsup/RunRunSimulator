@@ -10,40 +10,17 @@ public class ArenaRoundHud : MonoBehaviour
 {
     [Required, SerializeField] private ArenaRound round;
     [SerializeField] private ArenaClockControl clock;
+    [SerializeField] private ArenaCameraDirector director;
     [SerializeField, Min(0f)] private float warnSeconds = 15f;
-
-    private static readonly OrderPillar[] PillarOrder = { OrderPillar.Loot, OrderPillar.Contact, OrderPillar.Posture };
-    private static readonly string[] PillarChipClass = { "hud-chip--loot", "hud-chip--contact", "hud-chip--team" };
-
-    private class Card
-    {
-        public MoriMochiAgent Agent;
-        public Occupation Occupation;
-        public VisualElement Root;
-        public VisualElement Carry;
-        public Label Action;
-        public string LastAction;
-        public List<VisualElement> CarrySlots = new();
-        public VisualElement CarryFill;
-        public int LastCapacity = -1;
-        public int LastCarried = -1;
-        public bool LastMining;
-        public float LastMiningProgress = -1f;
-        public VisualElement Move1Cool;
-        public float LastMove1Value = -1f;
-        public VisualElement Move2Box;
-        public VisualElement Move2Cool;
-        public float LastMove2Value = -1f;
-        public bool LastChasing;
-        public int LastKnocked;
-        public float HitUntil;
-    }
 
     private class RivalChip
     {
         public MoriMochiAgent Agent;
         public Label Action;
         public string LastAction;
+        public VisualElement Root;
+        public bool LastSelected;
+        public bool LastChase;
     }
 
     private VisualElement root;
@@ -57,8 +34,10 @@ public class ArenaRoundHud : MonoBehaviour
     private VisualElement playerTeam;
     private VisualElement rivalTeam;
     private Label resultLabel;
+    private Label playerCarryLabel;
+    private Label rivalCarryLabel;
 
-    private readonly List<Card> cards = new();
+    private readonly List<ArenaHudCard> cards = new();
     private readonly List<RivalChip> chips = new();
 
     private string lastSeedText;
@@ -74,6 +53,10 @@ public class ArenaRoundHud : MonoBehaviour
     private bool lastTimeWarn;
     private bool resultShown;
     private bool lastShown;
+    private string lastPlayerCarryText;
+    private string lastRivalCarryText;
+    private bool lastPlayerCarrySome;
+    private bool lastRivalCarrySome;
 
     private void OnEnable()
     {
@@ -90,6 +73,8 @@ public class ArenaRoundHud : MonoBehaviour
         playerTeam = root.Q("hud-player-team");
         rivalTeam = root.Q("hud-rival-team");
         resultLabel = root.Q<Label>("hud-result");
+        playerCarryLabel = root.Q<Label>("hud-player-carry");
+        rivalCarryLabel = root.Q<Label>("hud-rival-carry");
 
         if (clock != null)
         {
@@ -115,6 +100,8 @@ public class ArenaRoundHud : MonoBehaviour
         lastTimeWarn = false;
         resultShown = false;
         lastShown = false;
+        lastPlayerCarryText = null;
+        lastRivalCarryText = null;
     }
 
     private void OnDisable()
@@ -184,15 +171,26 @@ public class ArenaRoundHud : MonoBehaviour
             if (agent == null || agent.DNA == null) continue;
 
             if (agent.Team == ExpeditionTeam.Rival) BuildChip(agent);
-            else BuildCard(agent);
+            else
+            {
+                var card = new ArenaHudCard(agent, OnCardTapped);
+                playerTeam.Add(card.Root);
+                cards.Add(card);
+            }
         }
+    }
+
+    private void OnCardTapped(MoriMochiAgent agent)
+    {
+        if (director != null) director.TogglePin(agent);
     }
 
     private void BuildChip(MoriMochiAgent agent)
     {
         var chip = new VisualElement();
-        chip.pickingMode = PickingMode.Ignore;
+        chip.pickingMode = PickingMode.Position;
         chip.AddToClassList("hud-chip-rival");
+        chip.RegisterCallback<ClickEvent>(_ => OnCardTapped(agent));
 
         var swatch = new VisualElement();
         swatch.pickingMode = PickingMode.Ignore;
@@ -224,124 +222,7 @@ public class ArenaRoundHud : MonoBehaviour
         chip.Add(text);
         rivalTeam.Add(chip);
 
-        chips.Add(new RivalChip { Agent = agent, Action = action });
-    }
-
-    private void BuildCard(MoriMochiAgent agent)
-    {
-        var card = new Card { Agent = agent, Occupation = agent.Occupation };
-
-        var root2 = new VisualElement();
-        root2.pickingMode = PickingMode.Ignore;
-        root2.AddToClassList("hud-card");
-        Color color = agent.DNA.BaseColor;
-        color.a = 1f;
-        root2.style.borderTopColor = color;
-        card.Root = root2;
-
-        var header = new VisualElement();
-        header.pickingMode = PickingMode.Ignore;
-        header.AddToClassList("hud-card__header");
-
-        var swatch = new VisualElement();
-        swatch.pickingMode = PickingMode.Ignore;
-        swatch.AddToClassList("hud-card__swatch");
-        swatch.style.backgroundColor = color;
-        header.Add(swatch);
-
-        var text = new VisualElement();
-        text.pickingMode = PickingMode.Ignore;
-        text.AddToClassList("hud-card__text");
-
-        var name = new Label(agent.DNA.CustomName);
-        name.pickingMode = PickingMode.Ignore;
-        name.AddToClassList("hud-card__name");
-        text.Add(name);
-
-        var posture = new Label(ArenaOrderCatalog.ArchetypeShort(agent.Orders));
-        posture.pickingMode = PickingMode.Ignore;
-        posture.AddToClassList("hud-card__posture");
-        text.Add(posture);
-
-        header.Add(text);
-        root2.Add(header);
-
-        var pillars = new VisualElement();
-        pillars.pickingMode = PickingMode.Ignore;
-        pillars.AddToClassList("hud-card__pillars");
-        for (int i = 0; i < PillarOrder.Length; i++)
-        {
-            var pillar = PillarOrder[i];
-            var chipLabel = new Label(ArenaOrderCatalog.ChoiceLabel(pillar, ArenaOrderRules.Choice(agent.Orders, pillar)));
-            chipLabel.pickingMode = PickingMode.Ignore;
-            chipLabel.AddToClassList("hud-chip");
-            chipLabel.AddToClassList(PillarChipClass[i]);
-            pillars.Add(chipLabel);
-        }
-        root2.Add(pillars);
-
-        var action = new Label();
-        action.pickingMode = PickingMode.Ignore;
-        action.AddToClassList("hud-card__action");
-        root2.Add(action);
-        card.Action = action;
-
-        var carry = new VisualElement();
-        carry.pickingMode = PickingMode.Ignore;
-        carry.AddToClassList("hud-card__carry");
-        root2.Add(carry);
-        card.Carry = carry;
-
-        var moves = new VisualElement();
-        moves.pickingMode = PickingMode.Ignore;
-        moves.AddToClassList("hud-card__moves");
-
-        string move1Label, move2Label;
-        switch (card.Occupation)
-        {
-            case Occupation.Guard: move1Label = "Embestida"; move2Label = "Persigue"; break;
-            case Occupation.Break: move1Label = "Embestida"; move2Label = "Retirada"; break;
-            case Occupation.Decoy: move1Label = "Provocar"; move2Label = "Huir"; break;
-            default: move1Label = "Minar"; move2Label = "Huir"; break;
-        }
-
-        BuildMove(moves, move1Label, out _, out card.Move1Cool);
-        BuildMove(moves, move2Label, out card.Move2Box, out card.Move2Cool);
-
-        root2.Add(moves);
-
-        playerTeam.Add(root2);
-        card.LastKnocked = agent.ClashTimesKnocked;
-        cards.Add(card);
-    }
-
-    private void BuildMove(VisualElement parent, string label, out VisualElement box, out VisualElement cool)
-    {
-        var moveBox = new VisualElement();
-        moveBox.pickingMode = PickingMode.Ignore;
-        moveBox.AddToClassList("hud-move");
-
-        var coolElement = new VisualElement();
-        coolElement.pickingMode = PickingMode.Ignore;
-        coolElement.AddToClassList("hud-move__cool");
-        moveBox.Add(coolElement);
-
-        var text = new Label(label);
-        text.pickingMode = PickingMode.Ignore;
-        text.AddToClassList("hud-move__label");
-        moveBox.Add(text);
-
-        parent.Add(moveBox);
-        box = moveBox;
-        cool = coolElement;
-    }
-
-    private static void SetMoveValue(VisualElement cool, ref float last, float value)
-    {
-        value = Mathf.Clamp01(value);
-        if (Mathf.Abs(value - last) <= 0.01f) return;
-        cool.style.width = Length.Percent(value * 100f);
-        last = value;
+        chips.Add(new RivalChip { Agent = agent, Action = action, Root = chip });
     }
 
     private void Update()
@@ -384,6 +265,24 @@ public class ArenaRoundHud : MonoBehaviour
             lastRivalScoreText = rivalScoreText;
         }
 
+        var sandboxForCarry = round.Sandbox;
+        int playerCarried = 0;
+        int rivalCarried = 0;
+        if (sandboxForCarry != null)
+        {
+            for (int i = 0; i < sandboxForCarry.Spawned.Count; i++)
+            {
+                var controller = sandboxForCarry.Spawned[i];
+                var agent = controller != null ? controller.Agent : null;
+                if (agent == null) continue;
+                if (agent.Team == ExpeditionTeam.Player) playerCarried += agent.Carried;
+                else if (agent.Team == ExpeditionTeam.Rival) rivalCarried += agent.Carried;
+            }
+        }
+
+        RefreshCarryLabel(playerCarryLabel, playerCarried, ref lastPlayerCarryText, ref lastPlayerCarrySome);
+        RefreshCarryLabel(rivalCarryLabel, rivalCarried, ref lastRivalCarryText, ref lastRivalCarrySome);
+
         int totalSeconds = Mathf.CeilToInt(round.Remaining);
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
@@ -425,40 +324,32 @@ public class ArenaRoundHud : MonoBehaviour
                 chip.Action.text = action;
                 chip.LastAction = action;
             }
+
+            bool chipSelected = director != null && director.Pinned == agent;
+            if (chipSelected != chip.LastSelected)
+            {
+                chip.Root.EnableInClassList("hud-chip-rival--selected", chipSelected);
+                chip.LastSelected = chipSelected;
+            }
+
+            bool chipChase = agent.IsChasing;
+            if (chipChase != chip.LastChase)
+            {
+                chip.Root.EnableInClassList("hud-chip-rival--chase", chipChase);
+                chip.LastChase = chipChase;
+            }
         }
 
         for (int i = 0; i < cards.Count; i++)
         {
             var card = cards[i];
-            var agent = card.Agent;
-            if (agent == null)
+            if (card.Agent == null)
             {
                 lastRosterCount = -1;
                 continue;
             }
 
-            string actionText = LocEnumMaps.IntentName(agent.Intent) + (agent.TrustedGuardian != null ? " · custodiado" : "");
-            if (actionText != card.LastAction)
-            {
-                card.Action.text = actionText;
-                card.LastAction = actionText;
-            }
-
-            RefreshCarry(card, agent);
-            RefreshMoves(card, agent);
-
-            int knocked = agent.ClashTimesKnocked;
-            if (knocked > card.LastKnocked)
-            {
-                card.LastKnocked = knocked;
-                card.Root.AddToClassList("hud-card--hit");
-                card.HitUntil = Time.time + 0.6f;
-            }
-            if (card.HitUntil > 0f && Time.time >= card.HitUntil)
-            {
-                card.Root.RemoveFromClassList("hud-card--hit");
-                card.HitUntil = 0f;
-            }
+            card.Refresh(director != null && director.Pinned == card.Agent);
         }
 
         if (round.IsOver)
@@ -488,86 +379,20 @@ public class ArenaRoundHud : MonoBehaviour
         }
     }
 
-    private void RefreshCarry(Card card, MoriMochiAgent agent)
+    private void RefreshCarryLabel(Label label, int carried, ref string lastText, ref bool lastSome)
     {
-        int capacity = agent.CarryCapacity;
-        if (capacity != card.LastCapacity)
+        if (label == null) return;
+        string text = carried + " en manos";
+        if (text != lastText)
         {
-            card.LastCapacity = capacity;
-            card.CarrySlots.Clear();
-            card.Carry.Clear();
-            for (int i = 0; i < capacity; i++)
-            {
-                var slot = new VisualElement();
-                slot.pickingMode = PickingMode.Ignore;
-                slot.AddToClassList("hud-slot");
-                card.Carry.Add(slot);
-                card.CarrySlots.Add(slot);
-            }
-            card.LastCarried = -1;
-            card.LastMining = false;
-            card.LastMiningProgress = -1f;
+            label.text = text;
+            lastText = text;
         }
-
-        int carried = agent.Carried;
-        bool mining = agent.Intent == CreatureIntent.Taking && carried < capacity;
-        if (carried != card.LastCarried || mining != card.LastMining)
+        bool some = carried > 0;
+        if (some != lastSome)
         {
-            for (int i = 0; i < card.CarrySlots.Count; i++)
-            {
-                card.CarrySlots[i].EnableInClassList("hud-slot--full", i < carried);
-                if (card.CarryFill != null && card.CarryFill.parent == card.CarrySlots[i]) card.CarrySlots[i].Remove(card.CarryFill);
-            }
-
-            if (mining)
-            {
-                card.CarryFill ??= new VisualElement { pickingMode = PickingMode.Ignore };
-                card.CarryFill.AddToClassList("hud-slot__fill");
-                card.CarrySlots[carried].Add(card.CarryFill);
-            }
-
-            card.LastCarried = carried;
-            card.LastMining = mining;
-            card.LastMiningProgress = -1f;
-        }
-
-        if (mining)
-        {
-            float progress = agent.MiningProgress;
-            if (Mathf.Abs(progress - card.LastMiningProgress) > 0.01f)
-            {
-                card.CarryFill.style.width = Length.Percent(progress * 100f);
-                card.LastMiningProgress = progress;
-            }
-        }
-    }
-
-    private void RefreshMoves(Card card, MoriMochiAgent agent)
-    {
-        switch (card.Occupation)
-        {
-            case Occupation.Guard:
-                SetMoveValue(card.Move1Cool, ref card.LastMove1Value, agent.ClashCooldown01);
-                bool chasing = agent.IsChasing;
-                if (chasing != card.LastChasing)
-                {
-                    card.Move2Box.EnableInClassList("hud-move--on", chasing);
-                    card.LastChasing = chasing;
-                }
-                break;
-            case Occupation.Break:
-                SetMoveValue(card.Move1Cool, ref card.LastMove1Value, agent.ClashCooldown01);
-                SetMoveValue(card.Move2Cool, ref card.LastMove2Value, agent.Retreat01);
-                break;
-            case Occupation.Decoy:
-                SetMoveValue(card.Move1Cool, ref card.LastMove1Value, agent.DecoyCooldown01);
-                SetMoveValue(card.Move2Cool, ref card.LastMove2Value, agent.FleeCooldown01);
-                break;
-            default:
-                float mine = agent.Intent == CreatureIntent.Taking ? 1f - agent.MiningProgress : 0f;
-                SetMoveValue(card.Move1Cool, ref card.LastMove1Value, mine);
-                SetMoveValue(card.Move2Cool, ref card.LastMove2Value, agent.FleeCooldown01);
-                break;
+            label.EnableInClassList("hud-carry--some", some);
+            lastSome = some;
         }
     }
 }

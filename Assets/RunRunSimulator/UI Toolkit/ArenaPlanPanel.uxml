@@ -31,10 +31,16 @@
                 <ui:Button name="btn-palette" text="Paleta" class="tool" />
                 <ui:Button name="btn-room" text="Otra sala" class="tool tool--last" />
             </ui:VisualElement>
-            <ui:Label name="plan-rival" text="" class="plan-rival" />
             <ui:VisualElement class="actions plan-actions">
                 <ui:Button name="btn-play" text="¡A LA SALA!" class="action action--accept" />
             </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="plan-rival-panel" class="panel plan-rival-panel">
+            <ui:VisualElement class="panel__header plan-header">
+                <ui:Label text="RIVAL" class="panel__title" />
+                <ui:Label text="entra por el lado opuesto · leelo por su cuerpo" class="plan-room" />
+            </ui:VisualElement>
+            <ui:VisualElement name="rival-list" class="rival-list" />
         </ui:VisualElement>
         <ui:VisualElement name="picker-root" class="picker picker--hidden">
             <ui:VisualElement class="panel picker__panel">

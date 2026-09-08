@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fac760f7e884874eaf30e45a2bf485e, type: 3}
+  m_Name: Ability_Embestida
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.AbilitySO
+  Name: Embestida
+  Description: Al tener un rival al alcance, embiste con el cuerno.
+  Slot: 0
+  Kind: 0
+  Cooldown: 8
+  Trigger: 1
+  Color: {r: 1, g: 0.55, b: 0.2, a: 1}
+  Move: {fileID: 11400000, guid: ce19f593a3ac2634fbf8b269ff1b5a3a, type: 2}
+  MinDistance: 0
+  MinRivalsNearby: 0
+  SpeedMultiplier: 1
+  BoostSeconds: 0

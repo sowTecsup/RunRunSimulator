@@ -11,15 +11,19 @@ public class ArenaCueOverlay : MonoBehaviour
     [Required, SerializeField] private Material cueMaterial;
     [Required, SerializeField] private Material additiveMaterial;
     [Required, SerializeField] private CueStyleSO style;
+    [SerializeField] private ArenaCameraDirector director;
 
+    [SerializeField] private bool showBase = true;
     [SerializeField] private bool showPerception = true;
     [SerializeField] private bool showPath = true;
-    [SerializeField] private bool showPercepts = true;
+    [SerializeField] private bool showPercepts = false;
     [SerializeField] private bool showReticle = true;
     [SerializeField] private bool showSocial = true;
     [SerializeField] private bool showClash = true;
     [SerializeField] private bool showMining = true;
     [SerializeField] private bool showFlee = true;
+    [SerializeField] private bool showSelection = true;
+    [SerializeField] private bool showAbilities = true;
 
     private class CueAnim
     {
@@ -40,6 +44,10 @@ public class ArenaCueOverlay : MonoBehaviour
 
         public float FacingAngle;
         public bool HasFacing;
+
+        public readonly CueAnim Selection = new CueAnim();
+
+        public readonly CueAnim Reveal = new CueAnim();
     }
 
     private readonly Dictionary<MoriMonchiController, CueState> cueCache = new();
@@ -63,6 +71,25 @@ public class ArenaCueOverlay : MonoBehaviour
             Vector3 origin = controller.transform.position + Vector3.up * style.HeightOffset;
             float perceptionRadius = controller.Agent.HasVisionCone ? controller.Agent.VisionRadius : globalRadius;
 
+            bool rival = controller.Agent.Team == ExpeditionTeam.Rival;
+            bool active = ExpeditionNav.IsRevealing(controller.Agent.Intent) || (director != null && director.Pinned == controller.Agent);
+            float reveal = rival ? Step(state.Reveal, active, style.RevealSeconds, Time.deltaTime) : 1f;
+
+            if (showBase) CreatureCueDrawer.Base(style, controller, origin);
+
+            if (rival)
+            {
+                if (reveal > 0.01f)
+                {
+                    if (showMining) CreatureCueDrawer.Mining(style, controller, origin, reveal);
+                    if (showClash) CreatureCueDrawer.Clash(style, controller, reveal);
+                    if (showAbilities) CreatureCueDrawer.AbilityBursts(style, controller, origin, reveal);
+                }
+
+                if (showSelection) DrawSelection(controller, state, origin);
+                continue;
+            }
+
             if (showPerception && SocialTuningSO.Current != null)
                 DrawPerception(controller, state, origin, perceptionRadius);
 
@@ -73,14 +100,18 @@ public class ArenaCueOverlay : MonoBehaviour
 
             if (showReticle) DrawReticle(controller, state);
 
-            if (showSocial) DrawSocial(controller);
+            if (showSocial) CreatureCueDrawer.Social(style, controller);
 
-            if (showClash) DrawClash(controller);
+            if (showClash) CreatureCueDrawer.Clash(style, controller, 1f);
 
-            if (showMining) DrawMining(controller, origin);
+            if (showMining) CreatureCueDrawer.Mining(style, controller, origin, 1f);
 
-            if (showFlee) DrawFlee(controller, origin);
-            if (showFlee) DrawTrust(controller);
+            if (showAbilities) CreatureCueDrawer.AbilityBursts(style, controller, origin, 1f);
+
+            if (showFlee) CreatureCueDrawer.Flee(style, controller, origin);
+            if (showFlee) CreatureCueDrawer.Trust(style, controller);
+
+            if (showSelection) DrawSelection(controller, state, origin);
         }
     }
 
@@ -180,7 +211,7 @@ public class ArenaCueOverlay : MonoBehaviour
 
         Color rimColor = tint;
         rimColor.a = edgeAlpha;
-        CueDrawer.Arc(origin, radius, style.RingThickness, start, sweep, rimColor, rimColor);
+        CueDrawer.DashedArc(origin, radius, style.RingThickness, start, sweep, style.ConeDashCount, style.ConeDashRatio, Time.time * style.ConeDashSpinSpeed, rimColor, rimColor);
 
         if (sweep < Mathf.PI * 2f - 0.01f)
         {
@@ -190,8 +221,8 @@ public class ArenaCueOverlay : MonoBehaviour
             sideFar.a = style.VisionSideAlpha;
             Vector3 edgeA = origin + new Vector3(Mathf.Cos(start), 0f, Mathf.Sin(start)) * radius;
             Vector3 edgeB = origin + new Vector3(Mathf.Cos(start + sweep), 0f, Mathf.Sin(start + sweep)) * radius;
-            CueDrawer.Segment(origin, edgeA, style.RingThickness * 0.7f, sideNear, sideFar);
-            CueDrawer.Segment(origin, edgeB, style.RingThickness * 0.7f, sideNear, sideFar);
+            CueDrawer.DashedSegment(origin, edgeA, style.RingThickness * 0.7f, style.PathDashLength, style.PathDashGap, 0f, sideNear, sideFar);
+            CueDrawer.DashedSegment(origin, edgeB, style.RingThickness * 0.7f, style.PathDashLength, style.PathDashGap, 0f, sideNear, sideFar);
         }
 
         float nearRadius = controller.Agent.NearSenseRadius;
@@ -251,95 +282,22 @@ public class ArenaCueOverlay : MonoBehaviour
         }
     }
 
-    private void DrawMining(MoriMonchiController controller, Vector3 origin)
+    private void DrawSelection(MoriMonchiController controller, CueState state, Vector3 origin)
     {
-        var agent = controller.Agent;
-        int capacity = agent.CarryCapacity;
-        int carried = agent.Carried;
-        bool mining = agent.Intent == CreatureIntent.Taking;
-        if (capacity <= 0 || (carried <= 0 && !mining)) return;
+        bool selected = director != null && director.Pinned != null && director.Pinned == controller.Agent;
+        float alpha = Step(state.Selection, selected, style.AppearSeconds, Time.deltaTime);
+        if (alpha <= 0.01f) return;
 
-        float gap = 0.14f;
-        float slot = Mathf.PI * 2f / capacity;
-        float start = Mathf.PI * 0.5f;
+        float radius = style.SelectRadius * AppearScale(alpha, style.SelectAppearScale) * (1f + style.SelectPulseAmount * Mathf.Sin(Time.time * style.SelectPulseSpeed));
+        Color color = style.SelectColor;
+        color.a = alpha;
 
-        Color track = style.ColorFor(CreatureIntent.Taking);
-        track.a = 0.15f;
-        Color full = style.ColorFor(CreatureIntent.Carrying);
-        full.a = style.MiningArcAlpha;
-        Color live = style.ColorFor(CreatureIntent.Taking);
-        live.a = style.MiningArcAlpha;
+        CueDrawer.Disc(origin, radius, style.SelectColor, style.SelectGlowAlpha * alpha, 0f, true);
+        CueDrawer.DashedRing(origin, radius, style.SelectThickness, style.SelectDashCount, style.SelectDashRatio, Time.time * style.SelectSpinSpeed, color, true);
 
-        for (int k = 0; k < capacity; k++)
-        {
-            float from = start + k * slot + gap * 0.5f;
-            float sweep = slot - gap;
-            CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, from, sweep, track, track);
-
-            if (k < carried)
-                CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, from, sweep, full, full, true);
-            else if (k == carried && mining && agent.MiningProgress > 0f)
-                CueDrawer.Arc(origin, style.MiningArcRadius, style.MiningArcThickness, from, sweep * agent.MiningProgress, live, live, true);
-        }
-    }
-
-    private void DrawFlee(MoriMonchiController controller, Vector3 origin)
-    {
-        if (controller.Agent.Intent != CreatureIntent.Fleeing) return;
-
-        Color color = style.FleeColor;
-        color.a = 0.45f + 0.45f * Mathf.Sin(Time.time * style.FleePulseSpeed);
-        CueDrawer.Ring(origin, style.FleeRingRadius, style.FleeRingThickness, color);
-
-        Color outerColor = style.FleeColor;
-        outerColor.a = color.a * 0.5f;
-        CueDrawer.Ring(origin, style.FleeRingRadius * 1.5f, style.FleeRingThickness, outerColor);
-    }
-
-    private void DrawTrust(MoriMonchiController controller)
-    {
-        var guardian = controller.Agent.TrustedGuardian;
-        if (guardian == null) return;
-
-        Vector3 a = controller.transform.position + Vector3.up * style.HeightOffset;
-        Vector3 b = guardian.transform.position + Vector3.up * style.HeightOffset;
-
-        Color color = style.FriendColor;
-        color.a = 0.55f + 0.25f * Mathf.Sin(Time.time * style.FleePulseSpeed * 0.5f);
-
-        CueDrawer.DashedSegment(a, b, style.SocialLinkThickness, style.PerceptDashLength, style.PerceptDashGap, Time.time * style.PerceptFlowSpeed, color, color);
-    }
-
-    private void DrawSocial(MoriMonchiController controller)
-    {
-        var partner = controller.Agent.SocialPartner;
-        if (partner == null) return;
-        if (controller.Agent.GetInstanceID() >= partner.GetInstanceID()) return;
-
-        Vector3 a = controller.transform.position + Vector3.up * style.HeightOffset;
-        Vector3 b = partner.transform.position + Vector3.up * style.HeightOffset;
-
-        bool fighting = controller.Agent.Intent == CreatureIntent.Fighting;
-        Color color = fighting ? style.FightColor : style.SocialLinkColor;
-        if (fighting) color.a = 0.5f + 0.5f * Mathf.Sin(Time.time * style.FightPulseSpeed);
-
-        CueDrawer.DashedSegment(a, b, style.SocialLinkThickness, style.PerceptDashLength, style.PerceptDashGap, Time.time * style.PerceptFlowSpeed, color, color, fighting);
-    }
-
-    private void DrawClash(MoriMonchiController controller)
-    {
-        var target = controller.Agent.ClashTarget;
-        if (target == null) return;
-
-        Vector3 a = controller.transform.position + Vector3.up * style.HeightOffset;
-        Vector3 b = target.transform.position + Vector3.up * style.HeightOffset;
-
-        Color head = style.FightColor;
-        head.a = 0.55f + 0.45f * Mathf.Sin(Time.time * style.FightPulseSpeed);
-        Color tail = head;
-        tail.a *= style.PathTailAlpha;
-
-        CueDrawer.Arrow(a, b, style.PathThickness * 1.5f, style.HeadLength, style.HeadWidth, tail, head, true);
+        Color soft = color;
+        soft.a = alpha * 0.5f;
+        CueDrawer.DashedRing(origin, radius * 0.8f, style.SelectThickness * 0.6f, style.SelectDashCount, style.SelectDashRatio, -Time.time * style.SelectSpinSpeed * 1.5f, soft, true);
     }
 
     private CueState GetCueState(MoriMonchiController controller)

@@ -15,6 +15,8 @@ internal class AgentContext
     internal readonly Collider       Col;
 
     internal float BaseSpeed;
+    internal float SpeedMultiplier = 1f;
+    internal float SpeedBoostUntil;
 
     internal AgentState         State = AgentState.Idle;
     internal CreatureDNA        Dna;
@@ -65,6 +67,7 @@ internal class AgentContext
 
         float factor = State == AgentState.Roaming && Profile != null ? Profile.RoamSpeedFactor : 1f;
         float target = BaseSpeed * factor;
+        if (Time.time < SpeedBoostUntil) target *= SpeedMultiplier;
         if (!Mathf.Approximately(Agent.speed, target)) Agent.speed = target;
     }
 

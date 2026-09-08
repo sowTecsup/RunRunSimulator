@@ -4,6 +4,56 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-08 (Session 107 — **HUD DE RONDA SEGUNDA PASADA (enfoque por tarjeta, "en manos", marcador de selección, cue de Persigue, tamaños 720p, HUD partido) ✅ + VIDEO "DEL PLAN AL COMBATE" (`Recordings/s107_plan_a_combate*.mp4`) ✅ + FEEDBACK DE JUAN IMPLEMENTADO EN LA MISMA SESIÓN: azul/rojo pastel por equipo, DESCUBRIMIENTO (rivales solo con base roja hasta pelear o recolectar), cono punteado y tenue, sin líneas a lo percibido ni intención en las placas, HABILIDADES AUTOMÁTICAS v1 (base de datos + `AgentAbilities` + tres ranuras radiales) y FICHAS RIVALES con retrato 360° ✅ + VIDEO v2 (`s107_plan_a_combate_v2_720p.mp4`) ✅ — 8 scripts NUEVOS + 14 MODIFICADOS, shader, prefab (colores de placa), material de salida, `CueStyle.asset`, 5 assets de habilidades nuevos, escena (refs y `MonchiTurntable`), UXML/USS; sesión remota con capturas por `SendUserFile`; pendiente `/cerrar-sesion` (vault-documenter + commit + push)**)
+
+**Focus:** Juan abrió remoto ("modalidad de mostrar capturas"), eligió la segunda pasada del HUD y decidió que el señuelo queda como postura de apoyo. Después pidió un video actual "desde la selección de comportamientos hasta el combate" que respondiera "¿entiendo lo que me dicen el mapa y mis rivales y por eso elijo lo que elijo?", y sobre ese video dio el feedback que ocupó la segunda mitad (detalle y decisiones en `Index/22` 8.11 "Decisiones S107" y 8.12; implementación en `Index/23` 5k; quirks en `Index/12` S107). PC1, MCP de CoplayDev vivo toda la sesión (compilar, Play, `execute_code`, `manage_components`, `manage_scene save`, `AssetDatabase.CreateAsset` sin bloqueo). Diez sub-agentes `morimonchi-coder` (uno por archivo o responsabilidad); shader revisado línea a línea por el orquestador; UXML/USS, prefab, material y assets por el orquestador.
+
+1. **HUD segunda pasada** ([[ArenaCameraDirector]] `Pin`/`TogglePin`/`Unpin`/`Pinned`; [[ArenaHudCard]] NUEVO y [[ArenaRoundHud]] 574 → ~400; "N en manos"; `hud-card--selected/--chase`; marcador dorado de selección en [[ArenaCueOverlay]] + sección Selección de [[CueStyleSO]]; fuentes para 720p). Verificado con pins por tarjeta y ficha, alphas medidos y capturas a 1080p y 720p.
+2. **Video v1** (sala 4246, Emboscada de Equilibrado contra la Emboscada rival, 19-5): grabación por frames a 30 fps fijos + subtítulos ASS con el razonamiento del jugador; 1080p 58 MB en `Recordings/` (supera el tope de 30 MiB de `SendUserFile`), 720p 20 MB entregado.
+3. **Feedback implementado** (bloques A-E): tokens `--mm-ally`/`--mm-foe`; [[NameTag]] azul pastel, sin intención en la arena, rivales con fundido; [[CreatureCueDrawer]] NUEVO (base por equipo, minado, huida, confianza, social, choque, ráfagas); `ExpeditionNav.IsRevealing`; cono con `CueDrawer.DashedArc` (forma 8 del shader); `ArenaExit.mat` neutro (el disco durazno era el mesh de la salida); [[AbilitySO]] + [[AbilityDatabaseSO]] NUEVOS con 4 assets (Embestida, Coletazo, Picada, Colibrí) y `AbilityDatabase.asset`; [[AgentAbilities]] NUEVO (tres ranuras con enfriamiento propio, `TryFireDamage`, `TickMobility`); [[AgentClash]] delega la elección del movimiento y deja el enfriamiento global como recuperación corta; [[AgentContext]] `SpeedMultiplier`/`SpeedBoostUntil`; [[MoriMochiAgent]] compone `abilities` y expone fachadas; [[RadialSlot]] NUEVO (UITK + Painter2D) y tres ranuras por tarjeta; [[MonchiTurntable]] NUEVO (tres cabinas bajo el mapa) + fallback `Root` en [[MonchiVisualizer]]; [[ArenaPlanPanel]] con columna `plan-rival-panel` (retrato 120 px, nombre, naturaleza, lectura) y sin la línea de texto del rival.
+4. **Video v2** (misma sala y mismo guion, 14-8): base azul/roja, rivales ocultos, tres poderes con radial, fichas rivales girando; 720p 16 MB entregado, 1080p en `Recordings/`.
+
+> ### 📝 Notas S107 (para decisión de Juan)
+> 1. **720p es estructural:** el panel escala con la altura sobre 1080p (chips de 13 px → ~9). La salida sería una referencia de 1600×900 en `StandartPanelSettings`, que afecta a toda la UI del juego.
+> 2. **Variedad de poderes:** todas las criaturas llevan Colibrí en alas porque comparten `WingID` (bases de partes vacías desde S75); Picada nunca sale. La variedad llega con los tipos de parte de 8.3.
+> 3. **Contenido de 8.12:** la forma está (base de datos, colaborador, HUD, ráfaga); faltan las habilidades con efecto sobre knobs (Alforja, Coraza, Cresta…) y `ExpeditionStats` por criatura.
+> 4. **Provocar no revela** (decisión de Juan): el guardián persigue una base roja que se mueve. Si molesta, `ExpeditionNav.IsRevealing` es el único lugar a tocar.
+> 5. Los nombres flotantes se pisan cuando dos criaturas se cruzan; visto en ambos videos.
+> 6. `MoriMochiAgent` 697 líneas (deuda), `AgentClash` 466.
+
+**Lista final de `.cs` de S107 (para el vault-documenter):**
+- `Scripts/World/Expedition/ArenaHudCard.cs` → NUEVO
+- `Scripts/World/Expedition/CreatureCueDrawer.cs` → NUEVO
+- `Scripts/World/AI/AgentAbilities.cs` → NUEVO
+- `Scripts/Data/Expedition/AbilitySO.cs` → NUEVO
+- `Scripts/Data/Expedition/AbilityDatabaseSO.cs` → NUEVO
+- `Scripts/UI/RadialSlot.cs` → NUEVO
+- `Scripts/UI/MonchiTurntable.cs` → NUEVO
+- `Scripts/World/Expedition/ArenaRoundHud.cs` → MODIFICADO (núcleo; tarjetas en `ArenaHudCard`; `director`; "en manos"; fichas clickeables y estados)
+- `Scripts/World/Expedition/ArenaCameraDirector.cs` → MODIFICADO (pin manual)
+- `Scripts/World/Expedition/ArenaCueOverlay.cs` → MODIFICADO (selección, base, reveal por rival, cono punteado, ráfagas; dibujos sin estado movidos a `CreatureCueDrawer`)
+- `Scripts/World/Expedition/CueDrawer.cs` → MODIFICADO (`DashedArc`)
+- `Scripts/Data/Expedition/CueStyleSO.cs` → MODIFICADO (secciones Selección, Base y descubrimiento, Habilidades)
+- `Scripts/World/AI/ExpeditionNav.cs` → MODIFICADO (`IsRevealing`)
+- `Scripts/World/Creatures/NameTag.cs` → MODIFICADO (sin intención con equipo; fundido de rivales)
+- `Scripts/World/AI/AgentClash.cs` → MODIFICADO (delega en `AgentAbilities`; recuperación corta)
+- `Scripts/World/AI/AgentContext.cs` → MODIFICADO (`SpeedMultiplier`, `SpeedBoostUntil`)
+- `Scripts/World/AI/MoriMochiAgent.cs` → MODIFICADO (compone `AgentAbilities`, fachadas de habilidades, `TickMobility`)
+- `Scripts/World/Expedition/ArenaSandbox.cs` → MODIFICADO (`abilityDatabase` → `SetAbilities`)
+- `Scripts/World/Creatures/MonchiVisualizer.cs` → MODIFICADO (fallback `Root`)
+- `Scripts/World/Expedition/ArenaPlanPanel.cs` → MODIFICADO (columna rival con tornamesa)
+- `Shaders/MonchiCue.shader` → MODIFICADO (forma 8 DashedArc)
+- `UI Toolkit/ArenaRoundHud.uxml`, `ArenaRoundHudStyle.uss`, `ArenaPlanPanel.uxml`, `ArenaPlanPanelStyle.uss`, `Theme.uss` → MODIFICADOS
+- `Resources/Prefabs/MorimonchiAgent.prefab` (colores de `NameTag`), `Resources/Materials/Arena/ArenaExit.mat`, `ScriptableObjects/Expedition/CueStyle.asset`, `ScriptableObjects/Expedition/Ability_*.asset` + `AbilityDatabase.asset` (NUEVOS), `Resources/Scenes/ArenaSandbox.unity` (refs `director`, `abilityDatabase`, `turntable`, objeto `MonchiTurntable`, `showPercepts` apagado)
+
+**Next session (S108):**
+1. **Contenido de 8.12:** `ExpeditionStats` por criatura y las primeras habilidades que modifican knobs (Alforja, Coraza, Cresta); tipos de parte para que `Resolve` varíe por cuerpo.
+2. **Decisión 720p** (nota 1) y nombres que se pisan (nota 5).
+3. **Mis MoriMonchis con el save real** (arrastre) y balance de regresión con `ArenaMatrixDev` (`Subset10` × 2 salas) tras el cambio de enfriamientos del choque: los números de S105 ya no valen tal cual.
+4. Arrastres: fuga de memoria en Play largo, deuda de líneas (`MoriMochiAgent` 697), HUD con castellano fijo, sonido, `Index/02`, `Rest` sin loop.
+
+---
+
 **Session:** 2026-09-07 (Session 106 — **SÍNTESIS DEL MÉTODO: `ClaudeStarterKit/` — 7 skills, 3 sub-agentes, 2 comandos, hook, plantillas y 15 memorias portables ✅ + AUDITORÍA que corrigió un error de fondo en la regla de `partial` — CERO scripts `.cs` tocados, cero escena/prefabs/assets; sesión paralela, no de gameplay**)
 
 **Focus:** Juan abrió fuera del flujo normal (*"esta es una sesión paralela al clásico /abrir-sesion"*): destilar en skills y sub-agentes todo lo aprendido en ~105 sesiones — arquitectura, preferencias de código, pipeline y flujo de iteración — para **arrancar proyectos nuevos sin empezar de cero**. Trabajo de documentación puro, hecho por el orquestador sin delegar (no era código). El MCP de UnityMCP estuvo caído toda la sesión (`ConnectionRefused`); no hizo falta.

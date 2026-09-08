@@ -26,9 +26,65 @@
 .plan-panel > .panel__header,
 .plan-panel > .result,
 .plan-panel > .plan-tools,
-.plan-panel > .plan-rival,
 .plan-panel > .plan-actions {
     flex-shrink: 0;
+}
+
+.plan-rival-panel {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 300px;
+    padding-bottom: 10px;
+}
+
+.rival-list {
+    padding: 8px 12px 0 12px;
+}
+
+.rival-card {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 12px;
+    border-width: 2px;
+    border-color: var(--mm-foe);
+    background-color: var(--mm-surface-2);
+}
+
+.rival-card__portrait {
+    width: 120px;
+    height: 120px;
+    margin-right: 10px;
+    border-radius: 10px;
+    background-color: var(--mm-bg-deep);
+}
+
+.rival-card__text {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.rival-card__name {
+    font-size: 16px;
+    -unity-font-style: bold;
+    color: var(--mm-foe);
+}
+
+.rival-card__nature {
+    font-size: 12px;
+    color: var(--mm-ink-soft);
+    white-space: normal;
+    margin-top: 4px;
+}
+
+.rival-card__read {
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: var(--mm-ink);
+    white-space: normal;
+    margin-top: 2px;
 }
 
 .plan-panel .panel__header {
@@ -70,11 +126,11 @@
 }
 
 .result__title--win {
-    color: var(--mm-good);
+    color: var(--mm-ally);
 }
 
 .result__title--lose {
-    color: var(--mm-crit);
+    color: var(--mm-foe);
 }
 
 .result__title--draw {
@@ -97,12 +153,12 @@
 .result__team-title {
     font-size: 10px;
     letter-spacing: 2px;
-    color: var(--mm-good);
+    color: var(--mm-ally);
     margin-bottom: 4px;
 }
 
 .result__team-title--rival {
-    color: var(--mm-crit);
+    color: var(--mm-foe);
 }
 
 .result-row {
@@ -290,13 +346,6 @@
 
 .tool:hover {
     border-color: var(--mm-gold);
-}
-
-.plan-rival {
-    margin: 8px 16px 0 16px;
-    font-size: 12px;
-    color: var(--mm-plum);
-    white-space: normal;
 }
 
 .plan-actions {

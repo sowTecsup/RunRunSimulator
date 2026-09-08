@@ -108,6 +108,31 @@ public static class CueDrawer
         Draw(mat, center, new Vector3(2f * extent, 1f, 2f * extent));
     }
 
+    public static void DashedArc(Vector3 center, float radius, float thickness, float startAngle, float sweep, int dashCount, float dashRatio, float rotation, Color colorA, Color colorB, bool additive = false)
+    {
+        Material mat = additive ? additiveMaterial : material;
+        if (mat == null) return;
+        EnsureResources();
+
+        mpb.Clear();
+        mpb.SetColor(ColorID, colorA);
+        mpb.SetColor(ColorBID, colorB);
+        mpb.SetFloat(InnerAlphaID, 1f);
+        mpb.SetFloat(OuterAlphaID, 1f);
+        mpb.SetFloat(ShapeID, 8f);
+        mpb.SetVector(CenterID, center);
+        mpb.SetFloat(RadiusID, radius);
+        mpb.SetFloat(ThicknessID, thickness);
+        mpb.SetFloat(ArcStartID, startAngle);
+        mpb.SetFloat(ArcSweepID, sweep);
+        mpb.SetFloat(DashCountID, dashCount);
+        mpb.SetFloat(DashRatioID, dashRatio);
+        mpb.SetFloat(RotationID, rotation);
+
+        float extent = radius + thickness;
+        Draw(mat, center, new Vector3(2f * extent, 1f, 2f * extent));
+    }
+
     public static void Sector(Vector3 center, float radius, float startAngle, float sweep, Color color, float innerAlpha, float outerAlpha, bool additive = false)
     {
         Material mat = additive ? additiveMaterial : material;

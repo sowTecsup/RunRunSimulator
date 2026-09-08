@@ -18,6 +18,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     private AgentSocial      social;
     private AgentExpedition  expedition;
     private AgentClash       clash;
+    private AgentAbilities   abilities;
     private Perceivable perceivable;
 
     private void OnEnable()
@@ -50,6 +51,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         social      = new AgentSocial(this, ctx);
         expedition  = new AgentExpedition(this, ctx);
         clash       = new AgentClash(this, ctx);
+        abilities   = new AgentAbilities(this, ctx);
         perceivable = GetComponent<Perceivable>();
 
         ctx.Rb.isKinematic = true;
@@ -115,6 +117,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         senses.ResetForReuse();
         expedition.ResetForReuse();
         clash.ResetForReuse();
+        abilities.ResetForReuse();
         ctx.RebakeInProgress = false;
         ctx.State            = AgentState.Idle;
     }
@@ -136,6 +139,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         brain.TickAlways(Time.deltaTime);
         senses.Tick();
         ctx.ApplyGaitSpeed();
+        if (ctx.State == AgentState.Idle || ctx.State == AgentState.Roaming || ctx.State == AgentState.Expedition)
+            abilities.TickMobility();
         switch (ctx.State)
         {
             case AgentState.Idle:         brain.TickIdle();    if (ctx.State == AgentState.Idle    && !clash.TryEngage() && !expedition.TryEngage()) social.TryEngage(); break;
@@ -238,6 +243,12 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public int ClashHitsLanded => clash.HitsLanded;
     public int ClashTimesKnocked => clash.TimesKnocked;
     public bool ForceClash(ClashMoveSO move, MoriMochiAgent rival) => clash.ForceMove(move, rival);
+    internal AgentAbilities Abilities => abilities;
+    public void SetAbilities(AbilitySO[] set) => abilities.Bind(set);
+    public int AbilityCount => abilities.Count;
+    public AbilitySO Ability(int i) => abilities.Ability(i);
+    public float AbilityCharge01(int i) => abilities.Charge01(i);
+    public float AbilityFiredAt(int i) => abilities.FiredAt(i);
 
     public event System.Action<EmoteKind> OnEmote;
     internal void EmitEmote(EmoteKind kind) => OnEmote?.Invoke(kind);

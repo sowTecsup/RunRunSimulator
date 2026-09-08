@@ -89,7 +89,7 @@ internal class AgentClash
 
         if (rival == null) return false;
 
-        var chosen = ChooseMove(t, rival, bestDist, occ);
+        var chosen = owner.Abilities.TryFireDamage(bestDist, CountRivalsWithin(t.SweepRange), occ != Occupation.Break);
         if (chosen == null) return false;
 
         Begin(t, chosen, rival);
@@ -273,21 +273,6 @@ internal class AgentClash
         phase == Phase.Striking     ? (move != null ? move.StrikeGesture : "") :
         "";
 
-    private ClashMoveSO ChooseMove(ClashTuningSO t, MoriMochiAgent rival, float dist, Occupation occ)
-    {
-        if (occ == Occupation.Break)
-        {
-            if (t.Wings != null && dist >= t.DiveMinDistance && dist <= t.Wings.Range) return t.Wings;
-            if (t.Horn != null && dist <= t.Horn.Range) return t.Horn;
-            return null;
-        }
-
-        if (t.Back != null && dist <= t.Back.Range && CountRivalsWithin(t.SweepRange) >= t.SweepMinRivals) return t.Back;
-        if (t.Wings != null && dist >= t.DiveMinDistance && dist <= t.Wings.Range) return t.Wings;
-        if (t.Horn != null && dist <= t.Horn.Range) return t.Horn;
-        return null;
-    }
-
     private int CountRivalsWithin(float r)
     {
         int count = 0;
@@ -410,7 +395,7 @@ internal class AgentClash
         target        = null;
         move          = null;
         diving        = false;
-        cooldownUntil = Time.time + (t != null ? t.Cooldown : 8f);
+        cooldownUntil = Time.time + (t != null ? t.ResolveSeconds : 0.4f);
         ctx.Agent.updateRotation = true;
         owner.RequestRoam();
     }
@@ -425,11 +410,12 @@ internal class AgentClash
         bool canCounter =
             attacker != null && !attacker.IsHeld && !attacker.IsAirborne && !attacker.IsRecovering &&
             ctx.Dna != null && ctx.Dna.Boldness >= t.ReengageBoldness &&
-            Time.time >= cooldownUntil && t.Horn != null && PlanarDistance(attacker) <= t.EngageRange;
+            Time.time >= cooldownUntil && PlanarDistance(attacker) <= t.EngageRange;
 
-        if (canCounter)
+        var counterMove = canCounter ? owner.Abilities.TryFireDamage(PlanarDistance(attacker), 0, true) : null;
+        if (counterMove != null)
         {
-            Begin(t, t.Horn, attacker);
+            Begin(t, counterMove, attacker);
             return;
         }
 

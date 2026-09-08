@@ -8,9 +8,15 @@
         </ui:VisualElement>
         <ui:VisualElement name="hud-board" class="hud-board" picking-mode="Ignore">
             <ui:VisualElement class="hud-board__row" picking-mode="Ignore">
-                <ui:Label name="hud-player-score" text="0" class="hud-score hud-score--player" picking-mode="Ignore" />
+                <ui:VisualElement class="hud-board__side" picking-mode="Ignore">
+                    <ui:Label name="hud-player-score" text="0" class="hud-score hud-score--player" picking-mode="Ignore" />
+                    <ui:Label name="hud-player-carry" text="0 en manos" class="hud-carry" picking-mode="Ignore" />
+                </ui:VisualElement>
                 <ui:Label name="hud-time" text="01:30" class="hud-time" picking-mode="Ignore" />
-                <ui:Label name="hud-rival-score" text="0" class="hud-score hud-score--rival" picking-mode="Ignore" />
+                <ui:VisualElement class="hud-board__side" picking-mode="Ignore">
+                    <ui:Label name="hud-rival-score" text="0" class="hud-score hud-score--rival" picking-mode="Ignore" />
+                    <ui:Label name="hud-rival-carry" text="0 en manos" class="hud-carry" picking-mode="Ignore" />
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement class="hud-bar" picking-mode="Ignore">
                 <ui:VisualElement name="hud-bar-fill" class="hud-bar__fill" picking-mode="Ignore" />

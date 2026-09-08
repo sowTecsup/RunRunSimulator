@@ -867,8 +867,8 @@ MonoBehaviour:
   HeadLength: 0.5
   HeadWidth: 0.4
   PerceptThickness: 0.05
-  FriendColor: {r: 0.35, g: 0.9, b: 0.35, a: 1}
-  FoeColor: {r: 0.9, g: 0.25, b: 0.25, a: 1}
+  FriendColor: {r: 0.55, g: 0.75, b: 1, a: 1}
+  FoeColor: {r: 1, g: 0.5, b: 0.5, a: 1}
   PerceptAlpha: 0.9
   AttentionArcDegrees: 50
   AttentionAlpha: 0.9
@@ -881,7 +881,7 @@ MonoBehaviour:
   RingDashCount: 28
   RingDashRatio: 0.55
   RingSpinSpeed: 0.35
-  VisionFillInnerAlpha: 0.09
+  VisionFillInnerAlpha: 0.04
   VisionFillOuterAlpha: 0
   VisionEdgeAlpha: 0.5
   VisionSideAlpha: 0.3
@@ -902,7 +902,7 @@ MonoBehaviour:
   PathTailAlpha: 0.15
   DestMarkerRadius: 0.35
   DestPulseSpeed: 2.5
-  ExitAlpha: 0.22
+  ExitAlpha: 0.28
   ExitRingThickness: 0.08
   MiningArcRadius: 1.1
   MiningArcThickness: 0.1
@@ -916,6 +916,7 @@ MonoBehaviour:
   MineralRingAlpha: 0.5
   KnownVeinRingAlpha: 0.45
   KnownVeinRingThickness: 0.05
+  ContactFillAlpha: 0.06
   KnownVeinRingOffset: 0.35
   PingSeconds: 1.4
   PingRadius: 2.6

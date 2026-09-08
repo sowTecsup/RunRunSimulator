@@ -15,6 +15,7 @@ public class ArenaPlanPanel : MonoBehaviour
     [Required, SerializeField] private ArenaRound round;
     [Required, SerializeField] private ArenaCastPicker picker;
     [Required, SerializeField] private ArenaResultPanel resultPanel;
+    [SerializeField] private MonchiTurntable turntable;
     [SerializeField, Min(0f)] private float resultHoldSeconds = 4f;
 
     private class Card
@@ -29,7 +30,7 @@ public class ArenaPlanPanel : MonoBehaviour
     private VisualElement root;
     private VisualElement castList;
     private Label roomLabel;
-    private Label rivalLabel;
+    private VisualElement rivalList;
     private Button castButton;
     private Button pickButton;
     private Button shuffleButton;
@@ -54,7 +55,7 @@ public class ArenaPlanPanel : MonoBehaviour
 
         castList = root.Q("cast-list");
         roomLabel = root.Q<Label>("plan-room");
-        rivalLabel = root.Q<Label>("plan-rival");
+        rivalList = root.Q("rival-list");
         castButton = root.Q<Button>("btn-cast");
         pickButton = root.Q<Button>("btn-pick");
         shuffleButton = root.Q<Button>("btn-shuffle");
@@ -76,6 +77,7 @@ public class ArenaPlanPanel : MonoBehaviour
 
     private void OnDisable()
     {
+        if (turntable != null) turntable.HideAll();
         if (root == null) return;
         castButton.clicked -= ToggleCastMode;
         pickButton.clicked -= OpenPicker;
@@ -123,6 +125,7 @@ public class ArenaPlanPanel : MonoBehaviour
         visible = value;
         root.EnableInClassList("plan--hidden", !value);
         if (value) Refresh();
+        else if (turntable != null) turntable.HideAll();
     }
 
     private void Refresh()
@@ -277,19 +280,42 @@ public class ArenaPlanPanel : MonoBehaviour
     private void RefreshRivalLine()
     {
         var rules = ExpeditionRulesSO.Current;
-        var lines = new List<string>();
+        rivalList.Clear();
+        if (turntable != null) turntable.HideAll();
+
+        int k = 0;
         foreach (var entry in sandbox.PlannedCast)
         {
             if (entry.Team != ExpeditionTeam.Rival || entry.Dna == null) continue;
 
-            string line = $"{entry.Dna.CustomName} · {ArenaOrderCatalog.PersonalityName(entry.Dna, rules)} → {ArenaOrderCatalog.RivalRead(entry.Dna, rules)}";
+            var card = new VisualElement();
+            card.AddToClassList("rival-card");
 
-            lines.Add(line);
+            var portrait = new VisualElement();
+            portrait.AddToClassList("rival-card__portrait");
+            card.Add(portrait);
+
+            var text = new VisualElement();
+            text.AddToClassList("rival-card__text");
+
+            var name = new Label(entry.Dna.CustomName);
+            name.AddToClassList("rival-card__name");
+            text.Add(name);
+
+            var nature = new Label(ArenaOrderCatalog.PersonalityName(entry.Dna, rules));
+            nature.AddToClassList("rival-card__nature");
+            text.Add(nature);
+
+            var read = new Label("→ " + ArenaOrderCatalog.RivalRead(entry.Dna, rules));
+            read.AddToClassList("rival-card__read");
+            text.Add(read);
+
+            card.Add(text);
+            rivalList.Add(card);
+
+            if (turntable != null && k < 3) turntable.Show(k, entry.Dna, portrait);
+            k++;
         }
-
-        rivalLabel.text = lines.Count == 0
-            ? ""
-            : "Rival (entra por el lado opuesto):\n" + string.Join("\n", lines);
     }
 
     private void ToggleCastMode()

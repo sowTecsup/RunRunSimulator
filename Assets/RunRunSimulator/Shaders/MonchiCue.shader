@@ -218,7 +218,7 @@ Shader "MoriMonchi/MonchiCue"
                     d = length(float2(along, v)) - _Thickness * 0.5;
                     t = saturate(u / len);
                 }
-                else
+                else if (_Shape < 7.5)
                 {
                     float2 q = p - _Center.xz;
                     float r = length(q);
@@ -244,6 +244,53 @@ Shader "MoriMonchi/MonchiCue"
                     }
 
                     radialT = saturate(r / _Radius);
+                }
+                else
+                {
+                    float2 q = p - _Center.xz;
+                    float r = length(q);
+                    float tau = 6.28318530718;
+
+                    float angArc = atan2(q.y, q.x);
+                    float rel = angArc - _ArcStart;
+                    rel = rel - tau * floor(rel / tau);
+                    float sweep = max(_ArcSweep, 1e-5);
+
+                    float sdfArc;
+                    if (rel <= sweep)
+                    {
+                        sdfArc = abs(r - _Radius) - _Thickness * 0.5;
+                        t = rel / sweep;
+                    }
+                    else
+                    {
+                        float2 endStart = _Radius * float2(cos(_ArcStart), sin(_ArcStart));
+                        float2 endStop = _Radius * float2(cos(_ArcStart + sweep), sin(_ArcStart + sweep));
+                        float distStart = length(q - endStart);
+                        float distStop = length(q - endStop);
+
+                        if (distStart <= distStop)
+                        {
+                            sdfArc = distStart - _Thickness * 0.5;
+                            t = 0;
+                        }
+                        else
+                        {
+                            sdfArc = distStop - _Thickness * 0.5;
+                            t = 1;
+                        }
+                    }
+
+                    float angDash = angArc + _Rotation;
+                    float period = tau / max(_DashCount, 1.0);
+                    float local = frac(angDash / period) * period - period * 0.5;
+                    float halfSpan = period * saturate(_DashRatio) * 0.5;
+                    float angDist = max(abs(local) - halfSpan, 0.0);
+                    float tangential = angDist * _Radius;
+                    float radial = r - _Radius;
+                    float sdfDash = length(float2(radial, tangential)) - _Thickness * 0.5;
+
+                    d = max(sdfArc, sdfDash);
                 }
 
                 float aa = fwidth(d);

@@ -305,6 +305,19 @@ Lo que SÍ vale tal cual, independiente del server: la regla de **nunca editar a
 
 ---
 
+## ⚠️ Quirks S107 (sesión remota con capturas · video por frames · UITK desde execute_code)
+
+1. **Click sintético en UITK desde `execute_code`:** `var cards = UnityEngine.UIElements.UQueryExtensions.Query(root, (string)null, "hud-card").ToList();` y `using (var e = ClickEvent.GetPooled()) { e.target = card; card.SendEvent(e); }` disparan los `RegisterCallback<ClickEvent>` igual que un click real. Los métodos de extensión (`Q`, `Query`) hay que llamarlos por su clase estática porque el cuerpo no acepta `using`.
+2. **Clases `internal` no son accesibles desde `execute_code`** (`ExpeditionNav`): copiar el helper inline en la sonda.
+3. **Tamaño del Game view por reflexión:** `GameViewSizes` (`ScriptableSingleton<>.instance`, `GetGroup(currentGroupType)`, `GetGameViewSize(i)` con `width/height/baseText`) + `EditorWindow.GetWindow(GameView).SizeSelectionCallback(index, null)`. El grupo Standalone ya trae "Full HD 1920x1080" (índice 3) y "Recording Resolution 1280x720" (7). El Game view arrancó la sesión en 640×480 aunque `capture_game_view` devolvía 1280×720.
+4. **Video por frames, segunda vez:** `Time.captureFramerate = 30` + corrutina `WaitForEndOfFrame` → `CaptureScreenshotAsTexture` → `EncodeToJPG(90)` a carpeta fuera de `Assets` corrió a ~30 fps reales (3.800 frames en ~2 min). `ffmpeg -framerate 30 -i f%05d.jpg -vf "ass=captions.ass,format=yuv420p" -c:v libx264 -crf 23 -maxrate 4500k` (el ffmpeg de `C:\ffmpeg\bin` es 8.0.1 completo: libx264, libass, drawtext). Para probar un subtítulo en un frame, el `-ss` va DESPUÉS del `-i` (con `-ss` de entrada las marcas de tiempo se resetean y el `ass` no muestra nada). Subtítulos en ASS con dos estilos (caja a la derecha del panel de plan; bajo el marcador en ronda).
+5. **`SendUserFile` tiene tope de 30 MiB:** el 1080p de 2 min a 3,8 Mbps (58 MB) no pasó; 720p CRF 26 (20 MB) sí. Dejar el 1080p en `Recordings/` (ignorada por git).
+6. **El waiter de Bash con `sleep` largo vuelve a morir por memoria baja** (como en S105): usar bucles de `sleep 3` × N ≤ 25 s por llamada y volver a mirar.
+7. **`AssetDatabase.CreateAsset` + `SaveAssets` desde `execute_code` NO fueron bloqueados** esta vez (cinco assets de habilidades creados de una); tampoco `manage_components set_property` para refs de escena ni `manage_scene save`. El clasificador sigue bloqueando `unity …` en Bash.
+8. **Shader `MonchiCue`:** la forma 7 es el Sector (rama `else` final sin cota, no documentada en la lista de `_Shape`); toda forma nueva empieza en 8 (`DashedArc`).
+9. **Capa `MonchiFocus`** (índice 10) existe en el proyecto; la cámara principal la incluye (máscara −1), las cabinas del tornamesa a y = −500 quedan tapadas por el suelo.
+10. **Marcador de selección visto una vez sin dibujarse** (ronda 1, Tímida fijada, tarjeta levantada pero sin anillo); no se reprodujo en seis capturas posteriores con alphas medidos.
+
 ## Historial
 
 - **2026-09-05 (S102):** loop largo con el bridge vivo toda la sesión; cableado de escena por `SerializedObject` + `manage_scene save`; assets nuevos por YAML con GUID del `.meta`; corrutinas de captura para rondas de 90 s. Quirks 1-8 de la sección S102.

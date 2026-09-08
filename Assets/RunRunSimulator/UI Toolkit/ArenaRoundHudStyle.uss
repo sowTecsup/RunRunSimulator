@@ -63,7 +63,7 @@
 }
 
 .hud-seed {
-    font-size: 13px;
+    font-size: 14px;
     letter-spacing: 1px;
     color: var(--mm-ink-soft);
     -unity-font-style: bold;
@@ -88,19 +88,36 @@
     align-items: center;
 }
 
+.hud-board__side {
+    align-items: center;
+    min-width: 104px;
+}
+
 .hud-score {
-    font-size: 30px;
+    font-size: 32px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     min-width: 52px;
 }
 
+.hud-carry {
+    font-size: 13px;
+    color: var(--mm-ink-soft);
+    -unity-text-align: middle-center;
+    margin-top: -4px;
+}
+
+.hud-carry--some {
+    color: var(--mm-gold);
+    -unity-font-style: bold;
+}
+
 .hud-score--player {
-    color: var(--mm-good);
+    color: var(--mm-ally);
 }
 
 .hud-score--rival {
-    color: var(--mm-coral);
+    color: var(--mm-foe);
 }
 
 .hud-time {
@@ -147,17 +164,36 @@
     flex-direction: row;
     align-items: flex-start;
     margin-bottom: 6px;
-    padding: 5px 10px;
+    padding: 6px 10px;
     border-radius: 10px;
     background-color: rgba(22, 15, 14, 0.78);
+    border-width: 0;
     border-right-width: 3px;
-    border-right-color: var(--mm-coral);
-    min-width: 150px;
+    border-right-color: var(--mm-foe);
+    border-left-width: 3px;
+    border-left-color: rgba(0, 0, 0, 0);
+    min-width: 172px;
+    transition-property: background-color, border-color, translate;
+    transition-duration: 0.15s;
+}
+
+.hud-chip-rival--chase {
+    background-color: rgba(84, 46, 10, 0.86);
+    border-right-color: rgb(255, 150, 40);
+}
+
+.hud-chip-rival--chase .hud-chip-rival__action {
+    color: rgb(255, 176, 74);
+}
+
+.hud-chip-rival--selected {
+    border-left-color: var(--mm-gold);
+    translate: -6px 0;
 }
 
 .hud-chip-rival__swatch {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 5px;
     border-width: 1px;
     border-color: var(--mm-frame-soft);
@@ -169,18 +205,18 @@
 }
 
 .hud-chip-rival__name {
-    font-size: 12px;
+    font-size: 14px;
     -unity-font-style: bold;
     color: var(--mm-ink);
 }
 
 .hud-chip-rival__archetype {
-    font-size: 10px;
+    font-size: 13px;
     color: var(--mm-gold);
 }
 
 .hud-chip-rival__action {
-    font-size: 10px;
+    font-size: 13px;
     color: var(--mm-ink-soft);
 }
 
@@ -195,7 +231,7 @@
 }
 
 .hud-card {
-    width: 250px;
+    width: 272px;
     margin: 0 6px;
     padding: 8px 10px;
     border-radius: 14px;
@@ -203,10 +239,26 @@
     border-color: var(--mm-frame-soft);
     border-top-width: 4px;
     background-color: rgba(22, 15, 14, 0.86);
+    transition-property: translate, border-color, background-color;
+    transition-duration: 0.15s;
+}
+
+.hud-card--chase {
+    border-color: rgb(255, 150, 40);
+    background-color: rgba(84, 46, 10, 0.88);
+}
+
+.hud-card--chase .hud-card__action {
+    color: rgb(255, 176, 74);
 }
 
 .hud-card--hit {
     border-color: var(--mm-coral);
+}
+
+.hud-card--selected {
+    border-color: var(--mm-gold);
+    translate: 0 -10px;
 }
 
 .hud-card__header {
@@ -228,13 +280,13 @@
 }
 
 .hud-card__name {
-    font-size: 15px;
+    font-size: 17px;
     -unity-font-style: bold;
     color: var(--mm-ink);
 }
 
 .hud-card__posture {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--mm-gold);
 }
 
@@ -244,11 +296,11 @@
 }
 
 .hud-chip {
-    font-size: 9px;
+    font-size: 13px;
     color: var(--mm-ink-soft);
     border-radius: 6px;
     border-width: 1px;
-    padding: 2px 6px;
+    padding: 2px 7px;
     margin-right: 4px;
     background-color: rgba(255, 255, 255, 0.08);
     -unity-text-align: middle-center;
@@ -267,7 +319,7 @@
 }
 
 .hud-card__action {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--mm-ink);
     margin-top: 6px;
 }
@@ -278,8 +330,8 @@
 }
 
 .hud-slot {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     margin-right: 3px;
     border-radius: 3px;
     border-width: 1px;
@@ -298,41 +350,42 @@
     background-color: var(--mm-teal);
 }
 
-.hud-card__moves {
+.hud-card__powers {
     flex-direction: row;
-    margin-top: 6px;
+    margin-top: 8px;
     justify-content: space-between;
 }
 
-.hud-move {
-    width: 92px;
-    height: 30px;
-    border-radius: 6px;
-    border-width: 1px;
-    border-color: var(--mm-frame-soft);
-    background-color: rgba(255, 255, 255, 0.06);
-    overflow: hidden;
+.hud-power {
+    width: 78px;
     align-items: center;
-    justify-content: center;
+    transition-property: scale, opacity;
+    transition-duration: 0.18s;
 }
 
-.hud-move--on {
-    border-color: var(--mm-gold);
-    background-color: rgba(245, 185, 72, 0.18);
+.hud-power--dim {
+    opacity: 0.35;
 }
 
-.hud-move__cool {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 0;
-    background-color: rgba(0, 0, 0, 0.55);
+.hud-power--empty {
+    opacity: 0.25;
 }
 
-.hud-move__label {
-    font-size: 11px;
+.hud-power__radial {
+    width: 44px;
+    height: 44px;
+    transition-property: scale;
+    transition-duration: 0.18s;
+}
+
+.hud-power__radial.radial--fired {
+    scale: 1.25 1.25;
+}
+
+.hud-power__label {
+    font-size: 12px;
     color: var(--mm-ink);
+    margin-top: 3px;
     -unity-text-align: middle-center;
 }
 
@@ -357,11 +410,11 @@
 }
 
 .hud-result--win {
-    color: var(--mm-good);
+    color: var(--mm-ally);
 }
 
 .hud-result--lose {
-    color: var(--mm-coral);
+    color: var(--mm-foe);
 }
 
 .hud-result--draw {
