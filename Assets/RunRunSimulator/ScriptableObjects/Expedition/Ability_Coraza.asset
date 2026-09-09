@@ -10,24 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2fac760f7e884874eaf30e45a2bf485e, type: 3}
-  m_Name: Ability_Picada
+  m_Name: Ability_Coraza
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.AbilitySO
-  Name: Picada
-  Description: Con distancia, se lanza en picada con las alas.
-  Slot: 1
-  Kind: 0
-  Cooldown: 12
-  Trigger: 1
-  Color: {r: 0.4, g: 0.75, b: 1, a: 1}
-  Move: {fileID: 11400000, guid: b079f5e332aff7547a68156e004bff1e, type: 2}
-  MinDistance: 4
+  Name: Coraza
+  Description: No suelta lo que lleva cuando la tumban, pero solo carga dos unidades.
+  Slot: 2
+  Kind: 2
+  Cooldown: 0
+  Trigger: 0
+  Color: {r: 0.6, g: 0.66, b: 0.78, a: 1}
+  Move: {fileID: 0}
+  MinDistance: 0
   MinRivalsNearby: 0
-  SpeedMultiplier: 1
-  BoostSeconds: 0
-  CarryCapacity: 0
+  SpeedMultiplier: 1.35
+  BoostSeconds: 3
+  CarryCapacity: 2
   LoadedSpeedFactor: 1
-  KeepCarryOnKnock: 0
+  KeepCarryOnKnock: 1
   GuardRadius: 0
   VisibleFrom: 0
   PartIds:
-  - W0
+  - BK1

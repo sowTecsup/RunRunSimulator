@@ -27,6 +27,9 @@ MonoBehaviour:
     Sociability: 0.25
     Boldness: 0.9
     BodyShapeID: body1
+    HornID: H0
+    BackID: BK2
+    WingID: W0
     BaseColor: {r: 0, g: 0, b: 0, a: 0}
     Occupation: 2
   - Name: "T\xEDmida"
@@ -34,6 +37,9 @@ MonoBehaviour:
     Sociability: 0.85
     Boldness: 0.15
     BodyShapeID: body2
+    HornID: H0
+    BackID: BK0
+    WingID: W0
     BaseColor: {r: 0, g: 0, b: 0, a: 0}
     Occupation: 1
   - Name: Equilibrado
@@ -41,6 +47,9 @@ MonoBehaviour:
     Sociability: 0.5
     Boldness: 0.5
     BodyShapeID: body3
+    HornID: H0
+    BackID: BK1
+    WingID: W1
     BaseColor: {r: 0, g: 0, b: 0, a: 0}
     Occupation: 1
   - Name: Fiero
@@ -48,6 +57,9 @@ MonoBehaviour:
     Sociability: 0.25
     Boldness: 0.9
     BodyShapeID: body1
+    HornID: H0
+    BackID: BK3
+    WingID: W0
     BaseColor: {r: 0, g: 0, b: 0, a: 0}
     Occupation: 3
   - Name: Cauta
@@ -55,6 +67,9 @@ MonoBehaviour:
     Sociability: 0.85
     Boldness: 0.15
     BodyShapeID: body2
+    HornID: H0
+    BackID: BK1
+    WingID: W1
     BaseColor: {r: 0, g: 0, b: 0, a: 0}
     Occupation: 4
   - Name: Templado
@@ -62,5 +77,8 @@ MonoBehaviour:
     Sociability: 0.5
     Boldness: 0.5
     BodyShapeID: body3
+    HornID: H0
+    BackID: BK0
+    WingID: W0
     BaseColor: {r: 0, g: 0, b: 0, a: 0}
     Occupation: 1

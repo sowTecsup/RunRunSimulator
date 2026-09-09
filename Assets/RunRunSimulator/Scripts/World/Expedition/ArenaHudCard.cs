@@ -117,6 +117,11 @@ public class ArenaHudCard
 
             radial.FillColor = ability != null ? ability.Color : Color.gray;
             if (ability == null) power.AddToClassList("hud-power--empty");
+            if (ability != null && ability.Kind == AbilityKind.Passive)
+            {
+                power.AddToClassList("hud-power--passive");
+                radial.ReadyColor = new Color(ability.Color.r, ability.Color.g, ability.Color.b, 0.55f);
+            }
 
             power.Add(radial);
             power.Add(label);

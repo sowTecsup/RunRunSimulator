@@ -20,6 +20,13 @@ public class AbilityDatabaseSO : ScriptableObject
 
     private AbilitySO Pick(string partId, ClashSlot slot)
     {
+        if (!string.IsNullOrEmpty(partId))
+        {
+            foreach (var ability in Abilities)
+                if (ability != null && ability.Slot == slot && ability.PartIds != null && ability.PartIds.Contains(partId))
+                    return ability;
+        }
+
         var candidates = new List<AbilitySO>();
         foreach (var ability in Abilities)
             if (ability != null && ability.Slot == slot) candidates.Add(ability);

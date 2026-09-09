@@ -24,3 +24,10 @@ MonoBehaviour:
   MinRivalsNearby: 0
   SpeedMultiplier: 1.35
   BoostSeconds: 3
+  CarryCapacity: 1
+  LoadedSpeedFactor: 1
+  KeepCarryOnKnock: 0
+  GuardRadius: 0
+  VisibleFrom: 0
+  PartIds:
+  - W1

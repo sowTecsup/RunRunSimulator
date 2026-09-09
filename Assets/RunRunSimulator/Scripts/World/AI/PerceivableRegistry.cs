@@ -20,7 +20,9 @@ public static class PerceivableRegistry
         foreach (var p in all)
         {
             if (p == null || p == exclude) continue;
-            if ((p.Position - from).sqrMagnitude <= sqrRadius) results.Add(p);
+            float sqr = (p.Position - from).sqrMagnitude;
+            float limit = p.NoticeRadius > radius ? p.NoticeRadius * p.NoticeRadius : sqrRadius;
+            if (sqr <= limit) results.Add(p);
         }
     }
 }

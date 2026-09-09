@@ -35,7 +35,7 @@ internal class AgentGatherer : IExpeditionTask
 
     internal bool TryEngage(ExpeditionRulesSO rules)
     {
-        if (carried >= Capacity(rules)) return BeginReturn(rules);
+        if (carried >= ctx.Stats.CarryCapacity) return BeginReturn(rules);
 
         var site = PlannedSite(rules);
         if (site != null)
@@ -128,9 +128,6 @@ internal class AgentGatherer : IExpeditionTask
     private float MiningSeconds(ExpeditionRulesSO rules) =>
         target != null && target.IsDrop ? rules.DropPickupSecondsPerUnit :
         target != null && target.IsLode ? rules.LodeMiningSecondsPerUnit : rules.MiningSecondsPerUnit;
-
-    private int Capacity(ExpeditionRulesSO rules) =>
-        ctx.Occupation == Occupation.Gather || ctx.Occupation == Occupation.Explore ? rules.CarryCapacity : rules.SupportCarryCapacity;
 
     private MaterialPickup PlannedSite(ExpeditionRulesSO rules)
     {
@@ -239,7 +236,7 @@ internal class AgentGatherer : IExpeditionTask
                         owner.onPickup?.Invoke();
                     }
 
-                    if (target.Taken || carried >= Capacity(rules))
+                    if (target.Taken || carried >= ctx.Stats.CarryCapacity)
                     {
                         if (carried > 0 && ctx.HomeExit != null) BeginReturn(rules);
                         else return false;
@@ -417,7 +414,7 @@ internal class AgentGatherer : IExpeditionTask
 
     internal void OnKnocked(ExpeditionRulesSO rules)
     {
-        if (carried > 0)
+        if (carried > 0 && !ctx.Stats.KeepCarryOnKnock)
         {
             if (rules != null && rules.DropPrefab != null) Drop(rules);
             carried = 0;
@@ -455,7 +452,7 @@ internal class AgentGatherer : IExpeditionTask
     internal float FleeCooldown01 => ExpeditionRulesSO.Current != null && ExpeditionRulesSO.Current.FleeSeconds + ExpeditionRulesSO.Current.FleeCooldown > 0f
         ? Mathf.Clamp01((fleeCooldownUntil - Time.time) / (ExpeditionRulesSO.Current.FleeSeconds + ExpeditionRulesSO.Current.FleeCooldown))
         : 0f;
-    internal int CarryCapacity => ExpeditionRulesSO.Current != null ? Capacity(ExpeditionRulesSO.Current) : 0;
+    internal int CarryCapacity => ctx.Stats.CarryCapacity;
     internal int Collected => collected;
     internal int Secured   => secured;
     internal int Fled      => fled;

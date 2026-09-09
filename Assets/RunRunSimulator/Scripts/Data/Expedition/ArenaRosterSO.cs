@@ -16,6 +16,9 @@ public class ArenaRosterSO : SerializedScriptableObject
         [Range(0f, 1f)] public float Sociability = 0.5f;
         [Range(0f, 1f)] public float Boldness = 0.5f;
         public string BodyShapeID = "";
+        public string HornID = "";
+        public string BackID = "";
+        public string WingID = "";
         public Color BaseColor = new Color(0f, 0f, 0f, 0f);
         public Occupation Occupation = Occupation.Gather;
     }

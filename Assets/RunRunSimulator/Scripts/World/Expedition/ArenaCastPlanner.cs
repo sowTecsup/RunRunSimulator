@@ -147,6 +147,9 @@ public class ArenaCastPlanner
         dna.Boldness = entry.Boldness;
         if (!string.IsNullOrEmpty(entry.Name)) dna.CustomName = entry.Name;
         if (!string.IsNullOrEmpty(entry.BodyShapeID)) dna.BodyShapeID = entry.BodyShapeID;
+        if (!string.IsNullOrEmpty(entry.HornID)) dna.HornID = entry.HornID;
+        if (!string.IsNullOrEmpty(entry.BackID)) dna.BackID = entry.BackID;
+        if (!string.IsNullOrEmpty(entry.WingID)) dna.WingID = entry.WingID;
         if (entry.BaseColor.a > 0f) dna.BaseColor = entry.BaseColor;
         dna.Stamp();
 

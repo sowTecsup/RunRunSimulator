@@ -22,6 +22,7 @@ MonoBehaviour:
     PrefabModifications: []
     SerializationNodes: []
   BodyShapes: {fileID: 11400000, guid: 44e6891762b141740a998ee4846d576b, type: 2}
-  Arms: {fileID: 11400000, guid: 25eaf568caff21147bed2f32283732b2, type: 2}
-  Eyes: {fileID: 11400000, guid: ae8f104b3c12a9140a9c13c275ec070f, type: 2}
-  Mouths: {fileID: 11400000, guid: a57ef5ad72255c64e8eefa3c2e8d0eca, type: 2}
+  Horns: {fileID: 11400000, guid: 79fcb7afb50569a4bb5459a03bc614b3, type: 2}
+  Backs: {fileID: 11400000, guid: a49a3ee49f183064cbabce6e0dd190d7, type: 2}
+  Wings: {fileID: 11400000, guid: 70fbed635b2764f4ea6caabdc8fb75e4, type: 2}
+  Faces: {fileID: 11400000, guid: 61afbc3f0aafab04f8757b73cebb9069, type: 2}

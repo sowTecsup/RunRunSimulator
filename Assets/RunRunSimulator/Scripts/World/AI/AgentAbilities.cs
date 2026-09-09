@@ -28,6 +28,13 @@ internal sealed class AgentAbilities
             slots[i].ReadyAt = 0f;
             slots[i].FiredAt = -1f;
         }
+        RefreshStats();
+    }
+
+    internal void RefreshStats()
+    {
+        ctx.Stats = ExpeditionStats.Resolve(ExpeditionRulesSO.Current, ctx.Occupation,
+            new[] { slots[0].Ability, slots[1].Ability, slots[2].Ability });
     }
 
     internal int Count => 3;
@@ -105,6 +112,7 @@ internal sealed class AgentAbilities
             slots[i].ReadyAt = 0f;
             slots[i].FiredAt = -1f;
         }
+        RefreshStats();
     }
 }
 }

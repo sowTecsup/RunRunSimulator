@@ -138,7 +138,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
 
         brain.TickAlways(Time.deltaTime);
         senses.Tick();
-        ctx.ApplyGaitSpeed();
+        ctx.ApplyGaitSpeed(expedition.Carried > 0);
         if (ctx.State == AgentState.Idle || ctx.State == AgentState.Roaming || ctx.State == AgentState.Expedition)
             abilities.TickMobility();
         switch (ctx.State)
@@ -220,6 +220,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     {
         ctx.Orders = orders;
         ctx.Occupation = ArenaOrderRules.ToOccupation(orders);
+        abilities.RefreshStats();
     }
     public int TimesFled => expedition.Fled;
     public MoriMochiAgent TrustedGuardian => expedition.Guardian;
@@ -253,6 +254,7 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public AbilitySO Ability(int i) => abilities.Ability(i);
     public float AbilityCharge01(int i) => abilities.Charge01(i);
     public float AbilityFiredAt(int i) => abilities.FiredAt(i);
+    public ExpeditionStats Stats => ctx.Stats;
 
     public event System.Action<EmoteKind> OnEmote;
     internal void EmitEmote(EmoteKind kind) => OnEmote?.Invoke(kind);

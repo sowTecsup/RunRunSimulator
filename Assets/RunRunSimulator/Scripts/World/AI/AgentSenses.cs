@@ -68,7 +68,7 @@ internal class AgentSenses
         {
             var p = buffer[i];
             if (p.Kind == PerceivableKind.Monchi && p.Monchi == owner) continue;
-            if (cone && !VisionProfile.CanSense(forward, origin, p.Position, radius, degrees, nearRadius)) continue;
+            if (cone && !VisionProfile.CanSense(forward, origin, p.Position, Mathf.Max(radius, p.NoticeRadius), degrees, nearRadius)) continue;
 
             float affinity = (p.Kind == PerceivableKind.Monchi && p.Monchi != null && p.Monchi.DNA != null)
                 ? SocialGraphService.EffectiveAffinity(ctx.Dna, p.Monchi.DNA, t)

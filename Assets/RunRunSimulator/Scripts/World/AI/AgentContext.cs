@@ -26,6 +26,7 @@ internal class AgentContext
     internal MoriMochiContainer CurrentContainer;
     internal Occupation Occupation = Occupation.Gather;
     internal ArenaOrders Orders = ArenaOrders.Default;
+    internal ExpeditionStats Stats = ExpeditionStats.Default;
     internal ExitZone   HomeExit;
     internal Transform   GuardPost;
     internal TeamBlackboard Board;
@@ -60,13 +61,14 @@ internal class AgentContext
         if (Agent.enabled && Agent.isOnNavMesh) Agent.isStopped = stopped;
     }
 
-    internal void ApplyGaitSpeed()
+    internal void ApplyGaitSpeed(bool loaded)
     {
         if (Agent == null) return;
         if (State == AgentState.Courting || State == AgentState.Clashing) return;
 
         float factor = State == AgentState.Roaming && Profile != null ? Profile.RoamSpeedFactor : 1f;
         float target = BaseSpeed * factor;
+        if (loaded) target *= Stats.LoadedSpeedFactor;
         if (Time.time < SpeedBoostUntil) target *= SpeedMultiplier;
         if (!Mathf.Approximately(Agent.speed, target)) Agent.speed = target;
     }

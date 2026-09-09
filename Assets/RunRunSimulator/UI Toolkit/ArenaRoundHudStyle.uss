@@ -371,6 +371,10 @@
     opacity: 0.25;
 }
 
+.hud-power--passive .hud-power__label {
+    -unity-font-style: italic;
+}
+
 .hud-power__radial {
     width: 44px;
     height: 44px;

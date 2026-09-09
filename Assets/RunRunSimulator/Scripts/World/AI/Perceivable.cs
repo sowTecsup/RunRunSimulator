@@ -26,6 +26,8 @@ public class Perceivable : MonoBehaviour
 
     public Vector3 Position => transform.position;
 
+    public float NoticeRadius => Monchi != null ? Monchi.Stats.VisibleFrom : 0f;
+
     public MoriMochiAgent Monchi { get; private set; }
 
     private void Awake()

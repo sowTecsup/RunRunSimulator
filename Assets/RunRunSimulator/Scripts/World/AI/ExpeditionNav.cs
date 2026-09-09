@@ -266,7 +266,7 @@ internal static class ExpeditionNav
         if (dir.sqrMagnitude < 0.0001f) dir = ctx.Body.forward;
         dir.Normalize();
 
-        Vector3 point = center + dir * (rules.GuardRadius * 0.6f);
+        Vector3 point = center + dir * (ctx.Stats.GuardRadius * 0.6f);
         point.y = center.y;
         return point;
     }
@@ -281,7 +281,7 @@ internal static class ExpeditionNav
     internal static bool HoldAtPost(AgentContext ctx, MaterialPickup post, ExpeditionRulesSO rules, ref float repathTimer, float dt)
     {
         Vector3 toPost = post.transform.position - ctx.Body.position; toPost.y = 0f;
-        if (toPost.magnitude > rules.GuardRadius)
+        if (toPost.magnitude > ctx.Stats.GuardRadius)
         {
             ctx.SetStopped(false);
             repathTimer -= dt;
