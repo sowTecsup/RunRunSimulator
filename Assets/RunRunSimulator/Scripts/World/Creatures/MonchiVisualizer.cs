@@ -12,6 +12,9 @@ public class MonchiVisualizer : MonoBehaviour
     private static readonly int Shade1ColorId = Shader.PropertyToID("_1st_ShadeColor");
     private static readonly int Shade2ColorId = Shader.PropertyToID("_2nd_ShadeColor");
     private static readonly int RimColorId = Shader.PropertyToID("_RimLightColor");
+    private static readonly int RimPowerId = Shader.PropertyToID("_RimLight_Power");
+    private static readonly int RimInsideMaskId = Shader.PropertyToID("_RimLight_InsideMask");
+    private static readonly int RimLightColorSwitchId = Shader.PropertyToID("_Is_LightColor_RimLight");
 
     private MonchiVisualBankSO bank;
     private FurTypeDatabaseSO furDatabase;
@@ -21,6 +24,10 @@ public class MonchiVisualizer : MonoBehaviour
     private readonly List<SkinnedMeshRenderer> tintRenderers = new();
     private CreatureDNA currentDna;
     private MonchiMood currentMood = MonchiMood.Neutral;
+    private bool rimOverride;
+    private Color rimOverrideColor;
+    private float rimOverridePower;
+    private float rimOverrideInsideMask;
 
     public Animator Animator => animator;
     public Transform ModelRoot => Root;
@@ -99,6 +106,22 @@ public class MonchiVisualizer : MonoBehaviour
         SetMood(currentMood);
     }
 
+    public void SetRimOverride(Color color, float power, float insideMask)
+    {
+        rimOverride = true;
+        rimOverrideColor = color;
+        rimOverridePower = power;
+        rimOverrideInsideMask = insideMask;
+        ApplyLook();
+    }
+
+    public void ClearRimOverride()
+    {
+        if (!rimOverride) return;
+        rimOverride = false;
+        ApplyLook();
+    }
+
     public void SetMood(MonchiMood mood)
     {
         currentMood = mood;
@@ -150,14 +173,24 @@ public class MonchiVisualizer : MonoBehaviour
         }
     }
 
-    private static void Tint(Renderer renderer, Color color)
+    private void Tint(Renderer renderer, Color color)
     {
         var palette = ColorGenetics.BuildFurPalette(color, ColorGenetics.DeriveSecondary(color));
         var mpb = new MaterialPropertyBlock();
         mpb.SetColor(BaseColorId, palette.Base);
         mpb.SetColor(Shade1ColorId, palette.Shade1);
         mpb.SetColor(Shade2ColorId, palette.Shade2);
-        mpb.SetColor(RimColorId, Color.Lerp(color, Color.white, 0.65f));
+        if (rimOverride)
+        {
+            mpb.SetColor(RimColorId, rimOverrideColor);
+            mpb.SetFloat(RimPowerId, rimOverridePower);
+            mpb.SetFloat(RimInsideMaskId, rimOverrideInsideMask);
+            mpb.SetFloat(RimLightColorSwitchId, 0f);
+        }
+        else
+        {
+            mpb.SetColor(RimColorId, Color.Lerp(color, Color.white, 0.65f));
+        }
         renderer.SetPropertyBlock(mpb);
     }
 }

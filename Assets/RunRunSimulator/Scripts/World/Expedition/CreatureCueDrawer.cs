@@ -116,7 +116,7 @@ public static class CreatureCueDrawer
         }
     }
 
-    public static void Telegraph(CueStyleSO style, MoriMonchiController controller, Vector3 origin, float alpha, float blink)
+    public static void Telegraph(CueStyleSO style, MoriMonchiController controller, Vector3 origin, float alpha, float blink, float arcAlpha, Vector3 eye)
     {
         var agent = controller.Agent;
         var move = agent.ClashMove;
@@ -190,11 +190,21 @@ public static class CreatureCueDrawer
                 closing.a = rim.a * Mathf.Lerp(0.35f, 1f, k);
                 CueDrawer.Ring(impact, ringR, style.TelegraphEdgeThickness, closing, true);
 
-                if (k < 1f)
+                if (arcAlpha > 0.01f)
                 {
-                    Color tail = rim;
-                    tail.a = rim.a * 0.35f;
-                    CueDrawer.DashedSegment(foot, impact, style.RingThickness * 0.7f, style.PathDashLength, style.PathDashGap, Time.time * style.PathFlowSpeed, tail, rim, true);
+                    Vector3 start = controller.transform.position + Vector3.up * style.DiveArcStartHeight;
+                    Vector3 flat = impact - start;
+                    flat.y = 0f;
+                    float span = flat.magnitude;
+                    if (span > 0.05f)
+                    {
+                        float apex = span * Mathf.Tan(move.LaunchAngle * Mathf.Deg2Rad) * 0.25f * style.DiveArcHeightScale;
+                        Color tail = teamColor;
+                        tail.a = style.DiveArcTailAlpha * arcAlpha;
+                        Color head = edgeColor;
+                        head.a = style.TelegraphEdgeAlpha * arcAlpha * blink;
+                        CueRibbonDrawer.Arc(start, impact, apex, style.DiveArcWidth, style.DiveArcTailScale, style.DiveArcHeadWidth, style.DiveArcHeadLength, style.DiveArcSamples, style.DiveArcDashLength, style.DiveArcDashGap, Time.time * style.DiveArcFlowSpeed, tail, head, eye, true);
+                    }
                 }
                 break;
             }

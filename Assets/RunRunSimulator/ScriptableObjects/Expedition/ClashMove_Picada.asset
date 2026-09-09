@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ClashMove_Picada
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ClashMoveSO
   Slot: 1
-  AnticipationSeconds: 0.7
+  AnticipationSeconds: 1.7
   StrikeSeconds: 1.5
   Range: 8
   HitRadius: 2.5
@@ -22,7 +22,7 @@ MonoBehaviour:
   DashSpeed: 0
   DashAcceleration: 60
   SelfRecoil: 0
-  LaunchAngle: 32
+  LaunchAngle: 45
   SweepRadius: 0
   TellGesture: FlyUp
   StrikeGesture: 

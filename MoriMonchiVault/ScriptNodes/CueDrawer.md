@@ -6,13 +6,18 @@ tags: [script, world, expedition, rendering, static]
 
 **Ruta:** `World/Expedition/CueDrawer.cs`
 
-**Responsabilidad:** Dibujante estático en modo inmediato (`Graphics.RenderMesh`). No instancia GameObjects; en cada llamada calcula un quad en mundo, asigna propiedades al shader vía `MaterialPropertyBlock`, y renderiza. Soporta 9 formas (ring, disc, segment, arrow, dashed ring, arc, dashed segment, sector, **S108 NUEVO:** capsule outline) con opcionales de color degradado, dash offset animable, y blend (opaco u aditivo). Contrato: se llama a `Configure(material, additiveMaterial)` en `OnEnable`, luego cada frame en `LateUpdate()` se invocan los métodos de dibujo; el shader evalúa SDF en espacio de mundo sobre XZ con anti-aliasing por `fwidth`.
+**Responsabilidad:** Dibujante estático en modo inmediato (`Graphics.RenderMesh`). No instancia GameObjects; en cada llamada calcula un quad en mundo, asigna propiedades al shader vía `MaterialPropertyBlock`, y renderiza. Soporta 9 formas (ring, disc, segment, arrow, dashed ring, arc, dashed segment, sector, capsule outline) con opcionales de color degradado, dash offset animable, y blend (opaco u aditivo). **S110 NUEVO:** flags públicos `AlphaScale` (multiplicador global de alfa) y `DrawBehind` (selector de material opaco/trasero). Contrato: se llama a `Configure(material, additiveMaterial)` o `Configure(material, additiveMaterial, backMaterial)` en `OnEnable`, luego cada frame en `LateUpdate()` se invocan los métodos de dibujo; el shader evalúa SDF en espacio de mundo sobre XZ con anti-aliasing por `fwidth`.
 
 ## Métodos Estáticos Públicos
 
 **Configuración:**
 - `Configure(Material material)` — establece material (opaco) global.
 - `Configure(Material material, Material additiveMaterial)` — establece material opaco y aditivo.
+- `Configure(Material material, Material additiveMaterial, Material backMaterial)` — **S110 NUEVO** establece material opaco, aditivo y trasero (para renderizado detrás).
+
+**Propiedades Públicas (Flags):**
+- `static float AlphaScale` — **S110 NUEVO** multiplicador global de alfa (1.0 por defecto, multiply en cada SetColor del MPB). Usado por ArenaCueOverlay para guiar GuideAlpha, excepto telegrafía que mantiene alpha=1.
+- `static bool DrawBehind` — **S110 NUEVO** selector de material: si true, usa backMaterial; sino, elige entre material/additiveMaterial. Usado por ArenaRoomCueOverlay.DrawExits() para renderizar salidas detrás de guías.
 
 **Dibujo:**
 - `Ring(Vector3 center, float radius, float thickness, Color color, bool additive = false)` — **Forma 0**: anillo lleno, grosor constante. `_Shape=0`.
@@ -33,7 +38,7 @@ tags: [script, world, expedition, rendering, static]
 ## Campos Internos
 
 **Estado global:**
-- `material`, `additiveMaterial` (static Material) — materiales configurados.
+- `material`, `additiveMaterial`, `backMaterial` (static Material) — **S110: backMaterial NUEVO** materiales configurados.
 - `quadMesh` (static Mesh) — quad unitario (-0.5 a +0.5 en XZ) reutilizado, construido lazy.
 - `mpb` (static MaterialPropertyBlock) — bloque de propiedades reutilizado.
 
@@ -47,6 +52,11 @@ tags: [script, world, expedition, rendering, static]
 ## Métodos Privados
 
 - `Draw(Material mat, Vector3 center, Vector3 scale)` — núcleo: calcula matriz TRS, crea `RenderParams`, llama `Graphics.RenderMesh`.
+- `Pick(bool additive)` — **S110 NUEVO** helper que elige material según `DrawBehind` y `additive`:
+  - Si `DrawBehind && backMaterial != null`: retorna backMaterial
+  - Sino si `additive && additiveMaterial != null`: retorna additiveMaterial
+  - Sino: retorna material
+  - Usado por todos los 12 métodos de dibujo para elegir material dinámicamente
 - `EnsureResources()` — lazy init de `mpb` y `quadMesh`.
 - `BuildQuadMesh() → Mesh` — crea quad unitario con vértices, normales, UVs, triángulos; `hideFlags=HideAndDontSave`.
 
@@ -54,15 +64,15 @@ tags: [script, world, expedition, rendering, static]
 
 | Propiedad | Rango | Forma | Significado |
 |---|---|---|---|
-| `_Shape` | 0-9 | — | 0 Ring, 1 Disc, 2 Segment/Capsule, 3 Arrow, 4 DashedRing, 5 Arc, 6 DashedSegment, 7 Sector, 8 DashedArc, **9 CapsuleOutline (S108)** |
-| `_Color` | RGBA | todas | Color primario. |
-| `_ColorB` | RGBA | Segment, Arrow, Arc, DashedSegment, DashedArc, **CapsuleOutline** | Degradado: borde, cabeza, angular, lejano, perímetro. |
+| `_Shape` | 0-9 | — | 0 Ring, 1 Disc, 2 Segment/Capsule, 3 Arrow, 4 DashedRing, 5 Arc, 6 DashedSegment, 7 Sector, 8 DashedArc, 9 CapsuleOutline |
+| `_Color` | RGBA | todas | Color primario; alfa se multiplica por AlphaScale |
+| `_ColorB` | RGBA | Segment, Arrow, Arc, DashedSegment, DashedArc, CapsuleOutline | Degradado: borde, cabeza, angular, lejano, perímetro; alfa se multiplica por AlphaScale |
 | `_Center` | XYZ | Ring, DashedRing, Disc, Arc, Sector | Centro en espacio de mundo. |
-| `_PointA`, `_PointB` | XYZ | Segment, Arrow, DashedSegment, **Capsule/CapsuleOutline** | Extremos A y B. |
-| `_Radius` | float | Ring, DashedRing, Disc, Arc, Sector, **CapsuleOutline** | Radio. |
+| `_PointA`, `_PointB` | XYZ | Segment, Arrow, DashedSegment, Capsule/CapsuleOutline | Extremos A y B. |
+| `_Radius` | float | Ring, DashedRing, Disc, Arc, Sector, CapsuleOutline | Radio. |
 | `_Thickness` | float | todas excepto Disc/Sector | Grosor de línea (m); Capsule: radio*2. |
-| `_InnerAlpha` | 0-1 | Disc, Sector, **Capsule** | Alfa en el centro (Disc) o interior del sector/cápsula. |
-| `_OuterAlpha` | 0-1 | Disc, Sector, **Capsule** | Alfa en el borde. |
+| `_InnerAlpha` | 0-1 | Disc, Sector, Capsule | Alfa en el centro (Disc) o interior del sector/cápsula; se multiplica por AlphaScale |
+| `_OuterAlpha` | 0-1 | Disc, Sector, Capsule | Alfa en el borde; se multiplica por AlphaScale |
 | `_DashCount` | int | DashedRing | Cantidad de dashes. |
 | `_DashRatio` | 0-1 | DashedRing | Proporción on:off. |
 | `_Rotation` | radianes | DashedRing, DashedArc | Ángulo de rotación. |
@@ -76,71 +86,7 @@ tags: [script, world, expedition, rendering, static]
 | `_SrcBlend` | blend | material | Generalmente One (aditivo) o SrcAlpha (opaco). |
 | `_DstBlend` | blend | material | Generalmente One (aditivo) o OneMinusSrcAlpha (opaco). |
 
-## Capsule (Shape 2, S108 NUEVO - Helper)
-
-```csharp
-public static void Capsule(Vector3 a, Vector3 b, float radius, Color color, float innerAlpha, float outerAlpha, bool additive = false)
-{
-    Material mat = additive ? additiveMaterial : material;
-    if (mat == null) return;
-    EnsureResources();
-
-    mpb.Clear();
-    mpb.SetColor(ColorID, color);
-    mpb.SetColor(ColorBID, color);
-    mpb.SetFloat(InnerAlphaID, innerAlpha);
-    mpb.SetFloat(OuterAlphaID, outerAlpha);
-    mpb.SetFloat(ShapeID, 2f);
-    mpb.SetVector(PointAID, a);
-    mpb.SetVector(PointBID, b);
-    mpb.SetFloat(ThicknessID, radius * 2f);
-
-    Vector3 mid = new Vector3((a.x + b.x) * 0.5f, a.y, (a.z + b.z) * 0.5f);
-    float pad = radius * 2f;
-    Vector3 scale = new Vector3(Mathf.Abs(b.x - a.x) + pad, 1f, Mathf.Abs(b.z - a.z) + pad);
-    Draw(mat, mid, scale);
-}
-```
-
-**Significado:**
-- Dibuja una cápsula (línea + puntas redondeadas) con degradado radial de alfa
-- Relleno: `innerAlpha` en el centro, `outerAlpha` en el perímetro
-- Usado por CreatureCueDrawer.Telegraph para pista de Horn (desde atacante a rival)
-
-## CapsuleOutline (Shape 9, S108 NUEVO)
-
-```csharp
-public static void CapsuleOutline(Vector3 a, Vector3 b, float radius, float thickness, Color colorA, Color colorB, bool additive = false)
-{
-    Material mat = additive ? additiveMaterial : material;
-    if (mat == null) return;
-    EnsureResources();
-
-    mpb.Clear();
-    mpb.SetColor(ColorID, colorA);
-    mpb.SetColor(ColorBID, colorB);
-    mpb.SetFloat(InnerAlphaID, 1f);
-    mpb.SetFloat(OuterAlphaID, 1f);
-    mpb.SetFloat(ShapeID, 9f);
-    mpb.SetVector(PointAID, a);
-    mpb.SetVector(PointBID, b);
-    mpb.SetFloat(RadiusID, radius);
-    mpb.SetFloat(ThicknessID, thickness);
-
-    Vector3 mid = new Vector3((a.x + b.x) * 0.5f, a.y, (a.z + b.z) * 0.5f);
-    float pad = radius * 2f + thickness;
-    Vector3 scale = new Vector3(Mathf.Abs(b.x - a.x) + pad, 1f, Mathf.Abs(b.z - a.z) + pad);
-    Draw(mat, mid, scale);
-}
-```
-
-**Significado:**
-- Dibuja el contorno (perímetro) de una cápsula
-- `radius` = radio de la cápsula, `thickness` = grosor del trazo
-- `colorA/_Color` = color en A, `colorB/_ColorB` = color en B (degradado)
-- Usado por CreatureCueDrawer.Telegraph para borde del área de impacto (Horn, Back, Wings)
-
-## Invariantes S102 + S108
+## Invariantes S102 + S108 + S110
 
 - **Sin GameObjects:** `Graphics.RenderMesh` + MPB es más eficiente que Gizmos u objetos.
 - **Mesh reutilizable:** un quad unitario se escala/posiciona vía matriz TRS.
@@ -150,18 +96,35 @@ public static void CapsuleOutline(Vector3 a, Vector3 b, float radius, float thic
 - **CapsuleOutline:** contorno con grosor variable, ideal para bordes de plantillas de combate
 - **Convención de ángulos:** `_ArcStart` y `_Rotation` en radianes; 0 = +X, π/2 = +Z.
 - **Lazy resources:** quad y MPB se crean bajo demanda.
+- **AlphaScale (S110):** multiplicador global que NO afecta shapes específicos (se multiplica en SetColor). Llamador (ArenaCueOverlay) setea AlphaScale = style.GuideAlpha, luego en Telegraph setea = 1f.
+- **DrawBehind (S110):** flag temporal (se resetea cada LateUpdate si es necesario). backMaterial tiene cola renderizado 2990 (siempre detrás).
+- **Pick helper (S110):** elige material dinámicamente; permite ExitZones renderizar detrás mientras otros usan material normal.
 
-## Conexiones
+## Cambios S108
 
-- [[ArenaCueOverlay]] (usuario, llama Configure + Draw methods en LateUpdate)
-- [[CuePathDrawer]] (delegado a Draw, usa arc/segment)
-- [[ArenaRoomCueOverlay]] (delegado a Draw, usa disc/ring/dashed)
-- [[CreatureCueDrawer]] (delegado a Draw, usa todos los métodos)
-- [[MonchiCue.shader]] (contrato de shader, shapes 0-9)
-- [[CueStyleSO]] (usuarios finales pasan valores de estilo)
+- **Métodos Capsule y CapsuleOutline:** nuevos (shapes 2 y 9)
+- Línea 31 en MD: actualiza Forma a 9 para CapsuleOutline
+
+## Cambios S110
+
+- **Campos públicos AlphaScale y DrawBehind:** nuevos flags
+- **Sobrecarga Configure(material, additiveMaterial, backMaterial):** nueva
+- **Método Pick(additive):** helper privado nuevo
+- Todos los 12 métodos de dibujo usan `Pick(additive)` en lugar de seleccionar directamente material/additiveMaterial
+- SetColor: `color.a *= AlphaScale` (multiplicación antes de escribir en MPB)
+- SetColor (ColorB): `colorB.a *= AlphaScale` (multiplicación)
+- SetFloat (InnerAlpha/OuterAlpha): `value *= AlphaScale` (multiplicación)
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+- [[Index/23 - Arena Sandbox y Expedicion]]
 
-**S108:** nuevos métodos `Capsule` (helper, Forma 2) y `CapsuleOutline` (Forma 9) para telegrafía de choque. Lo usa [[CreatureCueDrawer.Telegraph]] para dibujar plantillas de área de impacto con bordes dinámicos y relleno que crece con Tell01.
+## Conexiones
+
+- [[ArenaCueOverlay]] — usuario, configura y llama métodos en LateUpdate (S110: setea AlphaScale/DrawBehind)
+- [[ArenaRoomCueOverlay]] — usuario, configura con backMaterial, setea DrawBehind para DrawExits
+- [[CueRibbonDrawer]] — hermano estático, renderiza cintas parabólicas
+- [[CuePathDrawer]] — usa métodos de CueDrawer para rutas
+- [[CreatureCueDrawer]] — usa métodos de CueDrawer para guías individuales
+- [[MonchiCue.shader]] — contrato de shader, shapes 0-9
+

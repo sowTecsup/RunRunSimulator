@@ -10,6 +10,8 @@ public class ArenaCueOverlay : MonoBehaviour
     [Required, SerializeField] private ArenaSandbox sandbox;
     [Required, SerializeField] private Material cueMaterial;
     [Required, SerializeField] private Material additiveMaterial;
+    [Required, SerializeField] private Material ribbonMaterial;
+    [Required, SerializeField] private Material ribbonAdditiveMaterial;
     [Required, SerializeField] private CueStyleSO style;
     [SerializeField] private ArenaCameraDirector director;
 
@@ -51,6 +53,7 @@ public class ArenaCueOverlay : MonoBehaviour
 
         public readonly CueAnim Telegraph = new CueAnim();
         public float TelegraphPhase;
+        public readonly CueAnim DiveArc = new CueAnim();
     }
 
     private readonly Dictionary<MoriMonchiController, CueState> cueCache = new();
@@ -58,13 +61,17 @@ public class ArenaCueOverlay : MonoBehaviour
     private void OnEnable()
     {
         CueDrawer.Configure(cueMaterial, additiveMaterial);
+        CueRibbonDrawer.Configure(ribbonMaterial, ribbonAdditiveMaterial);
     }
 
     private void LateUpdate()
     {
         if (sandbox == null || style == null) return;
 
+        CueDrawer.AlphaScale = style.GuideAlpha;
+
         float globalRadius = SocialTuningSO.Current != null ? SocialTuningSO.Current.PerceptionRadius : 0f;
+        Vector3 eye = Camera.main != null ? Camera.main.transform.position : Vector3.up * 30f;
 
         foreach (var controller in sandbox.Spawned)
         {
@@ -85,13 +92,16 @@ public class ArenaCueOverlay : MonoBehaviour
                 bool telegraphing = controller.Agent.ClashTelegraphing;
                 if (telegraphing && !state.Telegraph.Visible) state.TelegraphPhase = 0f;
                 float tele = Step(state.Telegraph, telegraphing, style.TelegraphFadeSeconds, Time.deltaTime);
+                float arc = Step(state.DiveArc, telegraphing && controller.Agent.ClashTell01 < 1f, style.TelegraphFadeSeconds, Time.deltaTime);
                 if (tele > 0.01f)
                 {
                     float hz = Mathf.Lerp(style.TelegraphBlinkSpeed, style.TelegraphBlinkSpeedEnd, controller.Agent.ClashTell01);
                     state.TelegraphPhase += Time.deltaTime * hz;
                     float wave = 0.5f + 0.5f * Mathf.Sin(state.TelegraphPhase * Mathf.PI * 2f);
                     float blink = Mathf.Lerp(style.TelegraphBlinkMin, 1f, Mathf.SmoothStep(0.25f, 0.75f, wave));
-                    CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink);
+                    CueDrawer.AlphaScale = 1f;
+                    CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink, arc, eye);
+                    CueDrawer.AlphaScale = style.GuideAlpha;
                 }
             }
 
@@ -128,6 +138,8 @@ public class ArenaCueOverlay : MonoBehaviour
 
             if (showSelection) DrawSelection(controller, state, origin);
         }
+
+        CueDrawer.AlphaScale = 1f;
     }
 
     private static float Step(CueAnim anim, bool visible, float seconds, float dt)

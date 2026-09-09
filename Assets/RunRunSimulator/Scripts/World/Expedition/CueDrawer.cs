@@ -8,8 +8,12 @@ public static class CueDrawer
 {
     private static Material material;
     private static Material additiveMaterial;
+    private static Material backMaterial;
     private static Mesh quadMesh;
     private static MaterialPropertyBlock mpb;
+
+    public static float AlphaScale = 1f;
+    public static bool DrawBehind = false;
 
     private static readonly int ColorID = Shader.PropertyToID("_Color");
     private static readonly int ColorBID = Shader.PropertyToID("_ColorB");
@@ -43,11 +47,26 @@ public static class CueDrawer
         CueDrawer.additiveMaterial = additiveMaterial;
     }
 
+    public static void Configure(Material material, Material additiveMaterial, Material backMaterial)
+    {
+        CueDrawer.material = material;
+        CueDrawer.additiveMaterial = additiveMaterial;
+        CueDrawer.backMaterial = backMaterial;
+    }
+
+    private static Material Pick(bool additive)
+    {
+        if (DrawBehind && !additive && backMaterial != null) return backMaterial;
+        return additive ? additiveMaterial : material;
+    }
+
     public static void Ring(Vector3 center, float radius, float thickness, Color color, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        color.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, color);
@@ -65,9 +84,11 @@ public static class CueDrawer
 
     public static void DashedRing(Vector3 center, float radius, float thickness, int dashCount, float dashRatio, float rotation, Color color, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        color.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, color);
@@ -88,9 +109,12 @@ public static class CueDrawer
 
     public static void Arc(Vector3 center, float radius, float thickness, float startAngle, float sweep, Color colorA, Color colorB, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        colorA.a *= AlphaScale;
+        colorB.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, colorA);
@@ -110,9 +134,12 @@ public static class CueDrawer
 
     public static void DashedArc(Vector3 center, float radius, float thickness, float startAngle, float sweep, int dashCount, float dashRatio, float rotation, Color colorA, Color colorB, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        colorA.a *= AlphaScale;
+        colorB.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, colorA);
@@ -135,9 +162,11 @@ public static class CueDrawer
 
     public static void Sector(Vector3 center, float radius, float startAngle, float sweep, Color color, float innerAlpha, float outerAlpha, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        color.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, color);
@@ -161,9 +190,11 @@ public static class CueDrawer
 
     public static void Disc(Vector3 center, float radius, Color color, float innerAlpha, float outerAlpha, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        color.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, color);
@@ -185,9 +216,12 @@ public static class CueDrawer
 
     public static void Segment(Vector3 a, Vector3 b, float thickness, Color colorA, Color colorB, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        colorA.a *= AlphaScale;
+        colorB.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, colorA);
@@ -207,9 +241,11 @@ public static class CueDrawer
 
     public static void Capsule(Vector3 a, Vector3 b, float radius, Color color, float innerAlpha, float outerAlpha, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        color.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, color);
@@ -229,9 +265,12 @@ public static class CueDrawer
 
     public static void CapsuleOutline(Vector3 a, Vector3 b, float radius, float thickness, Color colorA, Color colorB, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        colorA.a *= AlphaScale;
+        colorB.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, colorA);
@@ -252,9 +291,12 @@ public static class CueDrawer
 
     public static void DashedSegment(Vector3 a, Vector3 b, float thickness, float dashLength, float dashGap, float dashOffset, Color colorA, Color colorB, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        colorA.a *= AlphaScale;
+        colorB.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, colorA);
@@ -282,9 +324,12 @@ public static class CueDrawer
 
     public static void Arrow(Vector3 a, Vector3 b, float thickness, float headLength, float headWidth, Color colorA, Color colorB, bool additive = false)
     {
-        Material mat = additive ? additiveMaterial : material;
+        Material mat = Pick(additive);
         if (mat == null) return;
         EnsureResources();
+
+        colorA.a *= AlphaScale;
+        colorB.a *= AlphaScale;
 
         mpb.Clear();
         mpb.SetColor(ColorID, colorA);

@@ -883,9 +883,10 @@ MonoBehaviour:
   RingSpinSpeed: 0.35
   VisionFillInnerAlpha: 0.04
   VisionFillOuterAlpha: 0
-  VisionEdgeAlpha: 0.5
-  VisionSideAlpha: 0.3
-  NearRingAlpha: 0.22
+  VisionEdgeAlpha: 0.2
+  VisionSideAlpha: 0.12
+  ContactEdgeAlpha: 0.4
+  NearRingAlpha: 0.1
   VisionTurnSmoothing: 9
   ReticleRadius: 0.9
   ReticleThickness: 0.06

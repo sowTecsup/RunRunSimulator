@@ -9,6 +9,7 @@ public class ArenaRoomCueOverlay : MonoBehaviour
     [Required, SerializeField] private ArenaSandbox sandbox;
     [Required, SerializeField] private Material cueMaterial;
     [Required, SerializeField] private Material additiveMaterial;
+    [Required, SerializeField] private Material backMaterial;
     [Required, SerializeField] private CueStyleSO style;
 
     [SerializeField] private bool showMinerals = true;
@@ -26,16 +27,25 @@ public class ArenaRoomCueOverlay : MonoBehaviour
 
     private void OnEnable()
     {
-        CueDrawer.Configure(cueMaterial, additiveMaterial);
+        CueDrawer.Configure(cueMaterial, additiveMaterial, backMaterial);
     }
 
     private void LateUpdate()
     {
         if (sandbox == null || style == null) return;
 
+        CueDrawer.AlphaScale = style.GuideAlpha;
+
         if (showMinerals) DrawMinerals();
-        if (showExits) DrawExits();
+        if (showExits)
+        {
+            CueDrawer.DrawBehind = true;
+            DrawExits();
+            CueDrawer.DrawBehind = false;
+        }
         if (showBlackboards) DrawBlackboards();
+
+        CueDrawer.AlphaScale = 1f;
     }
 
     private void DrawMinerals()

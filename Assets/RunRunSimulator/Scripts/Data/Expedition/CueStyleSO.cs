@@ -18,6 +18,7 @@ public class CueStyleSO : SerializedScriptableObject
     [Title("Aparición")]
     public float AppearSeconds = 0.25f;
     public float AppearScale = 0.85f;
+    [Range(0f, 1f)] public float GuideAlpha = 0.5f;
 
     [Title("Geometría")]
     public float HeightOffset = 0.03f;
@@ -138,6 +139,19 @@ public class CueStyleSO : SerializedScriptableObject
     public float TelegraphBlinkSpeed = 2.5f;
     public float TelegraphBlinkSpeedEnd = 8f;
     [Range(0f, 1f)] public float TelegraphBlinkMin = 0.3f;
+
+    [Title("Flecha de la picada")]
+    public float DiveArcWidth = 0.1f;
+    [Range(0f, 1f)] public float DiveArcTailScale = 0.35f;
+    public float DiveArcHeadWidth = 0.34f;
+    public float DiveArcHeadLength = 0.55f;
+    [Range(4, 64)] public int DiveArcSamples = 28;
+    public float DiveArcDashLength = 0.45f;
+    public float DiveArcDashGap = 0.22f;
+    public float DiveArcFlowSpeed = 2.5f;
+    [Range(0f, 1f)] public float DiveArcTailAlpha = 0.08f;
+    public float DiveArcStartHeight = 0.55f;
+    [Min(0.1f)] public float DiveArcHeightScale = 1.3f;
 
     [Title("Selección")]
     public Color SelectColor = new Color(1f, 0.78f, 0.3f);

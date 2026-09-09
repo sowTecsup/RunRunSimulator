@@ -2732,6 +2732,8 @@ MonoBehaviour:
   sandbox: {fileID: 46679317}
   cueMaterial: {fileID: 2100000, guid: b6161c9a839d2a44db2a08bb2d783d0f, type: 2}
   additiveMaterial: {fileID: 2100000, guid: 395e47b9e943caa4cb03a1cac9f0b16d, type: 2}
+  ribbonMaterial: {fileID: 2100000, guid: d2998be134f13e84cbe165a251e1c215, type: 2}
+  ribbonAdditiveMaterial: {fileID: 2100000, guid: 399ea839f4a3c0f408bd9c435cf83bf2, type: 2}
   style: {fileID: 11400000, guid: 9a94e67aca239c04cb627b3978f1c485, type: 2}
   director: {fileID: 1185079733}
   showBase: 1
@@ -2775,6 +2777,7 @@ MonoBehaviour:
   sandbox: {fileID: 46679317}
   cueMaterial: {fileID: 2100000, guid: b6161c9a839d2a44db2a08bb2d783d0f, type: 2}
   additiveMaterial: {fileID: 2100000, guid: 395e47b9e943caa4cb03a1cac9f0b16d, type: 2}
+  backMaterial: {fileID: 2100000, guid: ac34bafa69a2716479d1b883f7da5ef4, type: 2}
   style: {fileID: 11400000, guid: 9a94e67aca239c04cb627b3978f1c485, type: 2}
   showMinerals: 1
   showExits: 1

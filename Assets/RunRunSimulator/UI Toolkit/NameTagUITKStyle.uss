@@ -27,6 +27,7 @@
     color: var(--mm-ink);
     -unity-text-align: middle-center;
     white-space: nowrap;
+    opacity: 0.5;
 }
 
 /* Store layout: the sale price under the name, shown from code only while the
