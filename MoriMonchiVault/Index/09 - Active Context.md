@@ -49,6 +49,10 @@ tags: [index, core]
 **Next session (S110):**
 1. Juan mira `s109_gameplay_sin_ui_cuerpo_v2.mp4` y decide cuánto exagerar posturas (knobs del prefab) y si la carga se ve suficiente.
 2. Capa corporal, segunda pasada según su feedback: tell de Enfrentar ejercitado, gait o gesto distintivo del cazador si la inclinación no alcanza, y lectura de Botín (Grande/Pequeño) en el cuerpo o en el destino.
+   **Pedidos de Juan al cierre de S109 (entran en esta segunda pasada):**
+   - **Polvo mientras excavan:** partículas de polvo sostenidas durante `Taking` (hoy solo `FX_StonesHit` al recoger), vía `Feedbacks/OnMining` en el prefab con `MMF_Player` (regla Feel), que arranca al entrar en `Taking` y se corta al salir.
+   - **Rim light rojo chiquito solo en rivales:** un borde rojo tenue en los enemigos para diferenciarlos sin UI, sin pisar el color genético (rim en el shader de pelaje por `MaterialPropertyBlock` o material de borde aditivo); los aliados quedan sin nada (cuerpo puro).
+   - **Telegrafía de la Picada como flecha 3D curva:** el arco del atacante al punto de caída reemplaza la línea punteada del salto, a nivel Shapes (grosor en metros, degradado cola → cabeza, punta redonda, fundido de entrada y salida): forma nueva en `MonchiCue.shader` o malla procedural en `CueDrawer`, mejorando los assets de guías.
 3. Tercera opción por pilar (Provocar · Lejano/Lo que caiga · Seguir) recién después, con nombre, postura y guía propias (`Index/22` 8.11).
 4. Regresión de balance con `ArenaMatrixDev` (`Subset10` × 2 salas) con pasivas y anticipación nueva.
 5. Bajar contratos al vault (nota 7) y arrastres (720p, nombres que se pisan, Mis MoriMonchis con el save real, fuga de memoria en Play largo, HUD con castellano fijo, sonido, `Index/02`, `Rest` sin loop).
