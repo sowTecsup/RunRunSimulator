@@ -38,7 +38,19 @@ MonoBehaviour:
       Data: 1|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 12
+      Data: 16
+    - Name: 
+      Entry: 1
+      Data: I1
+    - Name: 
+      Entry: 1
+      Data: I1
+    - Name: 
+      Entry: 1
+      Data: I1
+    - Name: 
+      Entry: 1
+      Data: I1
     - Name: 
       Entry: 1
       Data: I1

@@ -6,11 +6,11 @@ tags: [script, data, scriptableobject, expedition]
 
 **Ruta:** `Data/Expedition/ArenaRosterSO.cs`
 
-**Responsabilidad:** Tabla de configuración de MoriMonchis para la sandbox Arena. Define entrada (`Entry`) con nombre, equipo (Player/Rival), personalidad (Sociability/Boldness), apariencia (BodyShapeID, BaseColor), y **S101 NUEVO:** ocupación (Gather/Guard/Break/Decoy/Explore). Usada por `ArenaSandbox` para spawnear agentes deterministas con ocupación asignada. Botón `PopulateDefaults()` precarga 6 ejemplares con ocupaciones variadas (3 Player, 3 Rival).
+**Responsabilidad:** Tabla de configuración de MoriMonchis para la sandbox Arena. Define entrada (`Entry`) con nombre, equipo (Player/Rival), personalidad (Sociability/Boldness), apariencia (BodyShapeID, BaseColor), **IDs de partes (S109 NUEVO: HornID, BackID, WingID)** y ocupación. Usada por `ArenaSandbox` para spawnear agentes deterministas con ocupación y habilidades asignadas. Botón `PopulateDefaults()` precarga 6 ejemplares con ocupaciones variadas (3 Player, 3 Rival).
 
 ## Estructura
 
-**Nested class Entry (S101 ACTUALIZADO):**
+**Nested class Entry (S109 ACTUALIZADO):**
 ```csharp
 public class Entry
 {
@@ -19,8 +19,11 @@ public class Entry
     [Range(0f, 1f)] public float Sociability = 0.5f;
     [Range(0f, 1f)] public float Boldness = 0.5f;
     public string BodyShapeID = "";
+    public string HornID = "";           // S109 NUEVO
+    public string BackID = "";           // S109 NUEVO
+    public string WingID = "";           // S109 NUEVO
     public Color BaseColor = new Color(0f, 0f, 0f, 0f);
-    public Occupation Occupation = Occupation.Gather;  // S101 NUEVO
+    public Occupation Occupation = Occupation.Gather;
 }
 ```
 
@@ -29,31 +32,42 @@ public class Entry
 
 ## Métodos
 
-- `PopulateDefaults()` — **Botón Odin**: inicializa `Entries` si está vacío con 6 ejemplares (3 Player + 3 Rival). **S101:** cada uno con Occupation predefinida (ej: Osado=Guard, Tímida=Gather, Equilibrado=Gather, Fiero=Break, Cauta=Gather, Templado=Decoy).
+- `PopulateDefaults()` — **Botón Odin**: inicializa `Entries` si está vacío con 6 ejemplares (3 Player + 3 Rival). Cada uno con Occupation predefinida y opcionalmente BodyShapeID + IDs de parte vacíos (defaults).
 
-**Ejemplo S101:**
+## Flujo de Uso
+
+1. **En Editor:** inspector muestra lista de Entries; cada entrada personalizable (nombre, equipo, personalidad, partes genéticas)
+2. **ArenaCastPlanner.FromRoster():** copia Entry a CreatureDNA:
+   - Sociability, Boldness, CustomName
+   - BodyShapeID (si no vacío)
+   - **S109:** HornID, BackID, WingID (si no vacíos, sobrescriben DNA.HornID/BackID/WingID)
+3. **AbilityDatabaseSO.Resolve():** resuelve habilidades según los IDs copiados
+4. **AgentAbilities.Bind():** asigna habilidades al agente
+
+## Invariantes S109
+
+- **IDs de parte opcionales:** si vacío en Entry, DNA mantiene defaults (no sobrescribir)
+- **Ocupación dual:** Sociability/Boldness modulan comportamiento dentro de ocupación (ej: Bold + Guard = vigilancia más agresiva)
+- **Equipos:** Player vs Rival. Helper static `ExpeditionTeams.AreRivals()`
+- **Ocupación default:** si Entry.Occupation == Occupation.Explore → traducir a Gather en AgentExpedition.TryEngage()
+- **Apariencia:** BodyShapeID, BaseColor, + ahora IDs de partes genéticas personalizan el look y habilidades
+- **Extensibilidad:** agregar Entry en Inspector sin recompile; `ArenaSandbox.Spawn()` itera y spawnea con Occupation, Team e IDs de parte
+
+**Ejemplo S109:**
+
 ```csharp
-Entries.Add(new Entry { 
-  Name = "Osado", Team = ExpeditionTeam.Player, Sociability = 0.25f, Boldness = 0.9f, 
-  Occupation = Occupation.Guard  // S101: guardián
-});
-Entries.Add(new Entry { 
-  Name = "Fiero", Team = ExpeditionTeam.Rival, Sociability = 0.25f, Boldness = 0.9f, 
-  Occupation = Occupation.Break  // S101: rompe
-});
-Entries.Add(new Entry { 
-  Name = "Templado", Team = ExpeditionTeam.Rival, Sociability = 0.5f, Boldness = 0.5f, 
-  Occupation = Occupation.Decoy  // S101: distrae
-});
+Entry { 
+  Name = "Osado Cuernudo", 
+  Team = ExpeditionTeam.Player, 
+  Sociability = 0.25f, 
+  Boldness = 0.9f,
+  BodyShapeID = "dragon-buff",
+  HornID = "horn-prong",        // S109: define habilidad de cuerno
+  BackID = "back-spikes",       // S109: define habilidad de espalda
+  WingID = "wing-swift",        // S109: define habilidad de alas
+  Occupation = Occupation.Guard 
+}
 ```
-
-## Invariantes S101 + S98
-
-- **Ocupación dual:** Sociability/Boldness modulan comportamiento dentro de ocupación (ej: Bold + Guard = vigilancia más agresiva).
-- **Equipos:** Player vs Rival. Helper static `ExpeditionTeams.AreRivals()`.
-- **Ocupación default:** si Entry.Occupation == Occupation.Explore → traducir a Gather en AgentExpedition.TryEngage().
-- **Apariencia:** BodyShapeID y BaseColor personalizan el look.
-- **Extensibilidad:** agregar Entry en Inspector sin recompile; `ArenaSandbox.Spawn()` itera y spawnea con Occupation y Team.
 
 ## Vinculado a
 
@@ -61,4 +75,4 @@ Entries.Add(new Entry {
 
 ## Conexiones
 
-[[ArenaSandbox]], [[MoriMochiAgent]], [[AgentExpedition]], [[Occupation]], [[ExpeditionTeam]], [[AgentContext]]
+[[ArenaSandbox]], [[ArenaCastPlanner]], [[MoriMochiAgent]], [[AgentExpedition]], [[Occupation]], [[ExpeditionTeam]], [[AgentContext]], [[AbilityDatabaseSO]], [[CreatureDNA]]

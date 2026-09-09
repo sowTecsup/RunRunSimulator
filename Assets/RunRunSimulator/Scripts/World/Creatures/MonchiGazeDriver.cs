@@ -14,36 +14,121 @@ namespace MoriMonchiSimulator
         [SerializeField] private float turnSpeed = 240f;
         [SerializeField] private float stillSpeed = 0.15f;
         [SerializeField] private float maxDistance = 8f;
+        [SerializeField] private float rivalMaxDistance = 12f;
+        [SerializeField] private float scanYaw = 55f;
+        [SerializeField] private float scanPeriod = 6f;
+        [SerializeField] private float glanceInterval = 4f;
+        [SerializeField] private float glanceHold = 0.8f;
+        [SerializeField] private float huntPitch = 12f;
+        [SerializeField] private float facePitch = 10f;
+        [SerializeField] private float pitchSpeed = 90f;
 
         private float currentYaw;
+        private float currentPitch;
+        private float scanPhase;
+        private float nextGlanceAt;
+        private float glanceUntil;
+
+        private void OnEnable()
+        {
+            scanPhase = Random.Range(0f, scanPeriod);
+            nextGlanceAt = Time.time + Random.Range(0f, glanceInterval);
+        }
 
         private void LateUpdate()
         {
-            float desired = 0f;
+            float desiredYaw = 0f;
+            float desiredPitch = 0f;
 
-            bool canGaze = visualizer.ModelRoot != null
+            bool bodyFree = visualizer.ModelRoot != null
                 && (combatDriver == null || !combatDriver.IsBusy)
-                && !agent.IsHeld && !agent.IsAirborne && !agent.IsRecovering
-                && (navAgent == null || !navAgent.enabled || !navAgent.isOnNavMesh || navAgent.velocity.magnitude < stillSpeed);
+                && !agent.IsHeld && !agent.IsAirborne && !agent.IsRecovering;
 
-            if (canGaze)
+            bool still = navAgent == null || !navAgent.enabled || !navAgent.isOnNavMesh || navAgent.velocity.magnitude < stillSpeed;
+
+            if (bodyFree)
             {
-                Transform target = agent.ExpeditionTarget;
-                if (target == null) target = agent.SocialPartner != null ? agent.SocialPartner.transform : null;
-                if (target == null) target = FindPerceptTarget();
+                var rival = FindRival();
+                var intent = agent.Intent;
+                bool hunting = intent == CreatureIntent.Hunting || intent == CreatureIntent.Chasing;
+                bool guarding = intent == CreatureIntent.Guarding;
+                bool fightOrder = agent.Orders.Contact == ContactChoice.Fight;
+                bool fleeOrder = agent.Orders.Contact == ContactChoice.Flee;
 
-                if (target != null)
+                if (hunting)
+                    desiredPitch = huntPitch;
+
+                bool yawSet = false;
+
+                if (fleeOrder && rival != null)
                 {
-                    Vector3 to = target.position - transform.position;
-                    to.y = 0f;
-                    if (to.sqrMagnitude > 0.01f)
-                        desired = Mathf.Clamp(Vector3.SignedAngle(transform.forward, to.normalized, Vector3.up), -maxYaw, maxYaw);
+                    if (Time.time >= nextGlanceAt)
+                    {
+                        glanceUntil = Time.time + glanceHold;
+                        nextGlanceAt = Time.time + glanceInterval;
+                    }
+
+                    if (Time.time < glanceUntil)
+                    {
+                        desiredYaw = YawTo(rival.position);
+                        yawSet = true;
+                    }
+                }
+
+                if (still && !yawSet)
+                {
+                    if (guarding)
+                    {
+                        desiredYaw = rival != null
+                            ? YawTo(rival.position)
+                            : scanYaw * Mathf.Sin((Time.time + scanPhase) * 2f * Mathf.PI / Mathf.Max(0.1f, scanPeriod));
+                    }
+                    else if (fightOrder && rival != null)
+                    {
+                        desiredYaw = YawTo(rival.position);
+                        desiredPitch = facePitch;
+                    }
+                    else
+                    {
+                        Transform target = agent.ExpeditionTarget;
+                        if (target == null) target = agent.SocialPartner != null ? agent.SocialPartner.transform : null;
+                        if (target == null) target = FindPerceptTarget();
+
+                        if (target != null)
+                            desiredYaw = YawTo(target.position);
+                    }
                 }
             }
 
-            currentYaw = Mathf.MoveTowardsAngle(currentYaw, desired, turnSpeed * Time.deltaTime);
+            float dt = Time.deltaTime;
+            currentYaw = Mathf.MoveTowardsAngle(currentYaw, desiredYaw, turnSpeed * dt);
+            currentPitch = Mathf.MoveTowards(currentPitch, desiredPitch, pitchSpeed * dt);
             if (visualizer.ModelRoot != null)
-                visualizer.ModelRoot.localRotation = Quaternion.Euler(0f, currentYaw, 0f);
+                visualizer.ModelRoot.localRotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
+        }
+
+        private float YawTo(Vector3 worldPos)
+        {
+            Vector3 to = worldPos - transform.position;
+            to.y = 0f;
+            if (to.sqrMagnitude <= 0.01f) return 0f;
+            return Mathf.Clamp(Vector3.SignedAngle(transform.forward, to.normalized, Vector3.up), -maxYaw, maxYaw);
+        }
+
+        private Transform FindRival()
+        {
+            float maxSqr = rivalMaxDistance * rivalMaxDistance;
+            var percepts = agent.Percepts;
+            for (int i = 0; i < percepts.Count; i++)
+            {
+                var percept = percepts[i];
+                if (percept.Kind != PerceivableKind.Monchi) continue;
+                if (percept.Source == null || percept.Source.Monchi == null) continue;
+                if (percept.SqrDistance > maxSqr) continue;
+                if (!ExpeditionTeams.AreRivals(agent.Team, percept.Team)) continue;
+                return percept.Source.transform;
+            }
+            return null;
         }
 
         private Transform FindPerceptTarget()
@@ -64,6 +149,7 @@ namespace MoriMonchiSimulator
         private void OnDisable()
         {
             currentYaw = 0f;
+            currentPitch = 0f;
             if (visualizer != null && visualizer.ModelRoot != null)
                 visualizer.ModelRoot.localRotation = Quaternion.identity;
         }

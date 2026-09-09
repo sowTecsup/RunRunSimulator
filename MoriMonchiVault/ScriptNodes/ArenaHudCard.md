@@ -6,7 +6,7 @@ tags: [script, ui, arena, expedition, presentation]
 
 **Ruta:** `UI/ArenaHudCard.cs` (presentador, no MonoBehaviour)
 
-**Responsabilidad:** Constructor de tarjeta de HUD para un agente en la arena. Genera VisualElement con nombre, color, órdenes (3 pilares Loot/Contact/Posture), intención actual, carreo de minerales con barra de progreso (Taking), y 3 slots radiales de habilidades. Maneja estado visual dinámico: pulsación por golpe recibido, dim de poderes Damage si Flee activo, índice de carga, carga de habilidades.
+**Responsabilidad:** Constructor de tarjeta de HUD para un agente en la arena. Genera VisualElement con nombre, color, órdenes (3 pilares Loot/Contact/Posture), intención actual, carreo de minerales con barra de progreso (Taking), y 3 slots radiales de habilidades. **S109:** Habilidades pasivas renderizadas con clase CSS `hud-power--passive` y RadialSlot con color semi-transparente (alfa 0.55) para diferenciación visual. Maneja estado visual dinámico: pulsación por golpe recibido, dim de poderes Damage si Flee activo, índice de carga, carga de habilidades.
 
 **Responsabilidad:** Presentación pura; lee estado vivo del agente y actualiza UIElements cada frame sin emitir eventos.
 
@@ -20,6 +20,9 @@ tags: [script, ui, arena, expedition, presentation]
 3. Action: label de intención actual
 4. Carry: N slots visuales (N = capacity) con barra de progreso si Taking
 5. Powers: 3 RadialSlot (uno por habilidad) con nombre y color
+   - **S109:** Si ability.Kind == AbilityKind.Passive:
+     - Agrega clase CSS `hud-power--passive`
+     - Asigna `radial.ReadyColor = Color(ability.Color.r/g/b, 0.55f)` (semi-transparente)
 
 **Estados internos (Refresh):**
 - `lastAction` — intención renderizada
@@ -33,7 +36,7 @@ tags: [script, ui, arena, expedition, presentation]
 
 **Internals:**
 - `RefreshCarry()` — remapea slots si capacity cambió, renderiza progreso de minado
-- `RefreshPowers()` — sincroniza carga de 3 radials, dispara `Pulse()` si ability fired, dim si Flee
+- `RefreshPowers()` — sincroniza carga de 3 radials, dispara `Pulse()` si ability fired, dim si Flee, **S109:** renderiza pasivas con color semi-transparente
 
 **Callback (wired en constructor):**
 - Click en Root → `onTapped?.Invoke(Agent)`
@@ -47,6 +50,23 @@ tags: [script, ui, arena, expedition, presentation]
 - Extrae del interior de ArenaRoundHud la lógica de tarjeta de equipo, permitiendo reutilización
 - Usada por ArenaRoundHud para team Player, mientras que Rival usa RivalChip interno más simple
 
+**S109 Cambios:**
+
+- Constructor: al iterar abilities (línea de powers):
+  - Si `ability != null && ability.Kind == AbilityKind.Passive`:
+    - `power.AddToClassList("hud-power--passive")` — marca visualmente como pasiva
+    - `radial.ReadyColor = new Color(ability.Color.r, ability.Color.g, ability.Color.b, 0.55f)` — color semi-transparente
+  - Diferencia: Damage/Mobility radial muestra carga (desde 0 a 1); Passive radial siempre semi-opaco (nunca carga)
+- CSS class `hud-power--passive` permite styling distinto (ej: borde, fondo tenue, sin animación de carga)
+
+**Invariantes:**
+
+- Un card por agente Player (rival tiene chip más simple)
+- Pasivas nunca muestran barra de carga (siempre listas, semi-transparente)
+- Damage/Mobility muestran carga 0→1 según Charge01
+- Clase CSS permite UX diferenciado: pasivas como "siempre activas", activas como "cargan"
+- RadialSlot.ReadyColor interpretado como color fijo para pasivas (no usado para carga)
+
 **Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[ArenaRoundHud]], [[RadialSlot]], [[MoriMochiAgent]], [[AgentAbilities]], [[ArenaOrderCatalog]], [[LocEnumMaps]]
+**Conexiones:** [[ArenaRoundHud]], [[RadialSlot]], [[MoriMochiAgent]], [[AgentAbilities]], [[ArenaOrderCatalog]], [[LocEnumMaps]], [[AbilitySO]]

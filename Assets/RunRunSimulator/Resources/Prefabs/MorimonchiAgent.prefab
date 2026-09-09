@@ -54,6 +54,7 @@ GameObject:
   - component: {fileID: 9088717059391076704}
   - component: {fileID: 8854611335847866071}
   - component: {fileID: 2179464034968661855}
+  - component: {fileID: 7624662110345364920}
   m_Layer: 8
   m_Name: MorimonchiAgent
   m_TagString: Untagged
@@ -510,6 +511,14 @@ MonoBehaviour:
   turnSpeed: 240
   stillSpeed: 0.15
   maxDistance: 8
+  rivalMaxDistance: 12
+  scanYaw: 55
+  scanPeriod: 6
+  glanceInterval: 4
+  glanceHold: 0.8
+  huntPitch: 12
+  facePitch: 10
+  pitchSpeed: 90
 --- !u!114 &2179464034968661855
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -538,6 +547,26 @@ MonoBehaviour:
   getUpPulse: 0.18
   tellPulse: -0.14
   hitPulse: 0.32
+--- !u!114 &7624662110345364920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3990977039202299874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7c62cd5dc67174c81abd9c109fe085, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.MonchiCarryDisplay
+  agent: {fileID: 992515727134330810}
+  visualizer: {fileID: 7322393538792137441}
+  crystalPrefab: {fileID: 5249860487971514704, guid: 48b893da1fbe3e14d9b7d6e8e1e1480e, type: 3}
+  boneName: Spine1
+  baseHeight: 0.85
+  stackStep: 0.32
+  jitter: 0.12
+  maxShown: 6
 --- !u!1 &5424381746632244388
 GameObject:
   m_ObjectHideFlags: 0
@@ -835,6 +864,7 @@ MonoBehaviour:
   screenSizeReferenceDistance: 0
   allyNameColor: {r: 0.55, g: 0.75, b: 1, a: 1}
   rivalNameColor: {r: 0.96, g: 0.6, b: 0.6, a: 1}
+  rivalRevealSpeed: 4
 --- !u!114 &227817693175286306
 MonoBehaviour:
   m_ObjectHideFlags: 0
