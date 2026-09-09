@@ -48,6 +48,9 @@ public class ArenaCueOverlay : MonoBehaviour
         public readonly CueAnim Selection = new CueAnim();
 
         public readonly CueAnim Reveal = new CueAnim();
+
+        public readonly CueAnim Telegraph = new CueAnim();
+        public float TelegraphPhase;
     }
 
     private readonly Dictionary<MoriMonchiController, CueState> cueCache = new();
@@ -77,12 +80,26 @@ public class ArenaCueOverlay : MonoBehaviour
 
             if (showBase) CreatureCueDrawer.Base(style, controller, origin);
 
+            if (showClash)
+            {
+                bool telegraphing = controller.Agent.ClashTelegraphing;
+                if (telegraphing && !state.Telegraph.Visible) state.TelegraphPhase = 0f;
+                float tele = Step(state.Telegraph, telegraphing, style.TelegraphFadeSeconds, Time.deltaTime);
+                if (tele > 0.01f)
+                {
+                    float hz = Mathf.Lerp(style.TelegraphBlinkSpeed, style.TelegraphBlinkSpeedEnd, controller.Agent.ClashTell01);
+                    state.TelegraphPhase += Time.deltaTime * hz;
+                    float wave = 0.5f + 0.5f * Mathf.Sin(state.TelegraphPhase * Mathf.PI * 2f);
+                    float blink = Mathf.Lerp(style.TelegraphBlinkMin, 1f, Mathf.SmoothStep(0.25f, 0.75f, wave));
+                    CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink);
+                }
+            }
+
             if (rival)
             {
                 if (reveal > 0.01f)
                 {
                     if (showMining) CreatureCueDrawer.Mining(style, controller, origin, reveal);
-                    if (showClash) CreatureCueDrawer.Clash(style, controller, reveal);
                     if (showAbilities) CreatureCueDrawer.AbilityBursts(style, controller, origin, reveal);
                 }
 
@@ -101,8 +118,6 @@ public class ArenaCueOverlay : MonoBehaviour
             if (showReticle) DrawReticle(controller, state);
 
             if (showSocial) CreatureCueDrawer.Social(style, controller);
-
-            if (showClash) CreatureCueDrawer.Clash(style, controller, 1f);
 
             if (showMining) CreatureCueDrawer.Mining(style, controller, origin, 1f);
 

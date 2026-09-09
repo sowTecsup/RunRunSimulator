@@ -205,6 +205,51 @@ public static class CueDrawer
         Draw(mat, mid, scale);
     }
 
+    public static void Capsule(Vector3 a, Vector3 b, float radius, Color color, float innerAlpha, float outerAlpha, bool additive = false)
+    {
+        Material mat = additive ? additiveMaterial : material;
+        if (mat == null) return;
+        EnsureResources();
+
+        mpb.Clear();
+        mpb.SetColor(ColorID, color);
+        mpb.SetColor(ColorBID, color);
+        mpb.SetFloat(InnerAlphaID, innerAlpha);
+        mpb.SetFloat(OuterAlphaID, outerAlpha);
+        mpb.SetFloat(ShapeID, 2f);
+        mpb.SetVector(PointAID, a);
+        mpb.SetVector(PointBID, b);
+        mpb.SetFloat(ThicknessID, radius * 2f);
+
+        Vector3 mid = new Vector3((a.x + b.x) * 0.5f, a.y, (a.z + b.z) * 0.5f);
+        float pad = radius * 2f;
+        Vector3 scale = new Vector3(Mathf.Abs(b.x - a.x) + pad, 1f, Mathf.Abs(b.z - a.z) + pad);
+        Draw(mat, mid, scale);
+    }
+
+    public static void CapsuleOutline(Vector3 a, Vector3 b, float radius, float thickness, Color colorA, Color colorB, bool additive = false)
+    {
+        Material mat = additive ? additiveMaterial : material;
+        if (mat == null) return;
+        EnsureResources();
+
+        mpb.Clear();
+        mpb.SetColor(ColorID, colorA);
+        mpb.SetColor(ColorBID, colorB);
+        mpb.SetFloat(InnerAlphaID, 1f);
+        mpb.SetFloat(OuterAlphaID, 1f);
+        mpb.SetFloat(ShapeID, 9f);
+        mpb.SetVector(PointAID, a);
+        mpb.SetVector(PointBID, b);
+        mpb.SetFloat(RadiusID, radius);
+        mpb.SetFloat(ThicknessID, thickness);
+
+        Vector3 mid = new Vector3((a.x + b.x) * 0.5f, a.y, (a.z + b.z) * 0.5f);
+        float pad = radius * 2f + thickness;
+        Vector3 scale = new Vector3(Mathf.Abs(b.x - a.x) + pad, 1f, Mathf.Abs(b.z - a.z) + pad);
+        Draw(mat, mid, scale);
+    }
+
     public static void DashedSegment(Vector3 a, Vector3 b, float thickness, float dashLength, float dashGap, float dashOffset, Color colorA, Color colorB, bool additive = false)
     {
         Material mat = additive ? additiveMaterial : material;

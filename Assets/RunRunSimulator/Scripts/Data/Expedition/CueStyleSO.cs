@@ -125,6 +125,20 @@ public class CueStyleSO : SerializedScriptableObject
     public float AbilityBurstThickness = 0.1f;
     [Range(0f, 1f)] public float AbilityBurstAlpha = 0.9f;
 
+    [Title("Telegrafía")]
+    [Range(0f, 1f)] public float TelegraphEdgeAlpha = 0.85f;
+    public float TelegraphEdgeThickness = 0.08f;
+    [Range(0f, 1f)] public float TelegraphTrackAlpha = 0.1f;
+    [Range(0f, 1f)] public float TelegraphFillAlpha = 0.3f;
+    [Range(0f, 1f)] public float TelegraphFillOuterAlpha = 0.08f;
+    [Min(1f)] public float TelegraphRingScale = 2f;
+    public float TelegraphPulseSpeed = 6f;
+    [Range(0f, 1f)] public float TelegraphPulseAmount = 0.06f;
+    public float TelegraphFadeSeconds = 0.15f;
+    public float TelegraphBlinkSpeed = 2.5f;
+    public float TelegraphBlinkSpeedEnd = 8f;
+    [Range(0f, 1f)] public float TelegraphBlinkMin = 0.3f;
+
     [Title("Selección")]
     public Color SelectColor = new Color(1f, 0.78f, 0.3f);
     public float SelectRadius = 1.5f;

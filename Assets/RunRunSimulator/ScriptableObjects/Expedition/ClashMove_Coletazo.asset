@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ClashMove_Coletazo
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ClashMoveSO
   Slot: 2
-  AnticipationSeconds: 0.3
+  AnticipationSeconds: 0.5
   StrikeSeconds: 0.45
   Range: 2.5
   HitRadius: 2.2

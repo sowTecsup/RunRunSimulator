@@ -23,6 +23,7 @@ internal class AgentClash
     private float          chainImmuneUntil;
     private int            hitsLanded;
     private int            timesKnocked;
+    private Vector3        impactPoint;
 
     private bool                  navOverridden;
     private float                 savedSpeed;
@@ -118,6 +119,8 @@ internal class AgentClash
         {
             case Phase.Anticipating:
                 FaceTowards(target, dt);
+                if (target != null)
+                    impactPoint = move.Slot == ClashSlot.Back ? ctx.Body.position : target.transform.position;
                 phaseTimer -= dt;
                 if (phaseTimer <= 0f) StartStrike(t);
                 break;
@@ -129,6 +132,7 @@ internal class AgentClash
                 if (move.Slot == ClashSlot.Horn)
                 {
                     ctx.SetDestinationSafe(target.transform.position);
+                    impactPoint = target.transform.position;
                     if (PlanarDistance(target) <= move.HitRadius)
                     {
                         Impact(target, t);
@@ -143,6 +147,7 @@ internal class AgentClash
                 }
                 else if (move.Slot == ClashSlot.Back)
                 {
+                    impactPoint = ctx.Body.position;
                     FaceTowards(target, dt);
                     if (phaseTimer <= 0f)
                     {
@@ -248,6 +253,7 @@ internal class AgentClash
         chainImmuneUntil = 0f;
         hitsLanded       = 0;
         timesKnocked     = 0;
+        impactPoint      = Vector3.zero;
     }
 
     internal float Cooldown01
@@ -272,6 +278,20 @@ internal class AgentClash
         phase == Phase.Anticipating ? (move != null ? move.TellGesture   : "") :
         phase == Phase.Striking     ? (move != null ? move.StrikeGesture : "") :
         "";
+
+    internal ClashMoveSO Move =>
+        phase == Phase.Anticipating || phase == Phase.Striking || phase == Phase.Resolving ? move : null;
+
+    internal bool Telegraphing =>
+        phase == Phase.Anticipating ||
+        (phase == Phase.Striking && (move == null || move.Slot != ClashSlot.Wings || diving));
+
+    internal float Tell01 =>
+        phase == Phase.Anticipating
+            ? (move != null && move.AnticipationSeconds > 0f ? 1f - Mathf.Clamp01(phaseTimer / move.AnticipationSeconds) : 1f)
+            : (phase == Phase.None || phase == Phase.Dazed ? 0f : 1f);
+
+    internal Vector3 ImpactPoint => impactPoint;
 
     private int CountRivalsWithin(float r)
     {
@@ -298,6 +318,7 @@ internal class AgentClash
         phase      = Phase.Anticipating;
         phaseTimer = move.AnticipationSeconds;
         diving     = false;
+        impactPoint = rival.transform.position;
 
         ctx.State = AgentState.Clashing;
         ctx.Agent.updateRotation = false;
@@ -333,6 +354,7 @@ internal class AgentClash
                 aim += lead * flight;
                 v    = SpawnBallistics.SolveLaunchVelocity(ctx.Body.position, aim, angle);
             }
+            impactPoint = aim;
             diving = true;
             owner.Launch(ctx.Body.position, v);
         }

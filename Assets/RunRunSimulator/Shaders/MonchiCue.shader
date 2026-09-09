@@ -134,8 +134,10 @@ Shader "MoriMonchi/MonchiCue"
                 {
                     float2 a = _PointA.xz;
                     float2 b = _PointB.xz;
-                    d = SdCapsule(p, a, b) - _Thickness * 0.5;
-                    t = saturate(dot(p - a, b - a) / dot(b - a, b - a));
+                    float axial = SdCapsule(p, a, b);
+                    d = axial - _Thickness * 0.5;
+                    t = saturate(dot(p - a, b - a) / max(dot(b - a, b - a), 1e-6));
+                    radialT = saturate(axial / max(_Thickness * 0.5, 1e-5));
                 }
                 else if (_Shape < 3.5)
                 {
@@ -245,7 +247,7 @@ Shader "MoriMonchi/MonchiCue"
 
                     radialT = saturate(r / _Radius);
                 }
-                else
+                else if (_Shape < 8.5)
                 {
                     float2 q = p - _Center.xz;
                     float r = length(q);
@@ -291,6 +293,13 @@ Shader "MoriMonchi/MonchiCue"
                     float sdfDash = length(float2(radial, tangential)) - _Thickness * 0.5;
 
                     d = max(sdfArc, sdfDash);
+                }
+                else
+                {
+                    float2 a = _PointA.xz;
+                    float2 b = _PointB.xz;
+                    d = abs(SdCapsule(p, a, b) - _Radius) - _Thickness * 0.5;
+                    t = saturate(dot(p - a, b - a) / max(dot(b - a, b - a), 1e-6));
                 }
 
                 float aa = fwidth(d);

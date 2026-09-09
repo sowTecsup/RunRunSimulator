@@ -6,7 +6,7 @@ tags: [script, world, ai, agent, facade, expedition]
 
 **Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 9 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate), **AgentAbilities (S107)** (habilidades dinámicas). Fachada pública de todas las responsabilidades. Despachador por estado en Update; Physics en FixedUpdate. S103: expedición, pizarrón. S104: órdenes de arena, cooldowns de ocupación. **S107:** sistema de habilidades con slots dinámicos por partes del cuerpo.
+**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 9 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate), **AgentAbilities (S107)** (habilidades dinámicas). Fachada pública de todas las responsabilidades. Despachador por estado en Update; Physics en FixedUpdate. S103: expedición, pizarrón. S104: órdenes de arena, cooldowns de ocupación. S107: sistema de habilidades con slots dinámicos por partes del cuerpo. **S108:** Expone 4 propiedades nuevas de fachada que delegan a clash: ClashMove, ClashTelegraphing, ClashTell01, ClashImpactPoint (para telegrafía visual).
 
 **Máquina de Estados (responsables):**
 - Idle, Roaming → AgentBrain
@@ -45,6 +45,11 @@ tags: [script, world, ai, agent, facade, expedition]
   - `float AbilityCharge01(int i) → float` — carga normalizada [0,1] del slot i
   - `float AbilityFiredAt(int i) → float` — timestamp último disparo o -1
   - `int ClashTimesKnocked { get; }` — desde clash.timesKnocked (para ArenaHudCard pulsación)
+- **S108 NUEVAS:**
+  - `ClashMoveSO ClashMove { get; }` — desde clash.Move (movimiento vigente o null)
+  - `bool ClashTelegraphing { get; }` — desde clash.Telegraphing (si debe dibujar plantilla)
+  - `float ClashTell01 { get; }` — desde clash.Tell01 (progreso 0→1 de anticipación → impacto)
+  - `Vector3 ClashImpactPoint { get; }` — desde clash.ImpactPoint (punto de impacto predicho)
 
 **Métodos Públicos (IThrowable + IInteractable):**
 - `void OnGrab(Transform anchor)` → physics
@@ -101,6 +106,15 @@ tags: [script, world, ai, agent, facade, expedition]
 - TickMobility() llamado en Update si Expedition (procesa habilidades de movilidad)
 - ResetForReuse() en PrepareForPool() también llama abilities.ResetForReuse()
 
+**S108 Cambios:**
+- Cuatro propiedades nuevas de fachada para telegrafía visual:
+  - `ClashMove` (ClashMoveSO) delega a clash.Move
+  - `ClashTelegraphing` (bool) delega a clash.Telegraphing
+  - `ClashTell01` (float) delega a clash.Tell01
+  - `ClashImpactPoint` (Vector3) delega a clash.ImpactPoint
+- Leídas por CreatureCueDrawer.Telegraph() para dibujar plantilla animada
+- Ahora 701 líneas
+
 **Internals (composición pura, S55):**
 - Sin partial class
 - Colaboradores como campos privados
@@ -109,4 +123,4 @@ tags: [script, world, ai, agent, facade, expedition]
 
 **Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], [[Index/06 - Player & World]]
 
-**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentAbilities]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[ArenaOrders]], [[TeamBlackboard]], [[ExitZone]], [[Occupation]], [[AbilitySO]]
+**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentAbilities]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[ArenaOrders]], [[TeamBlackboard]], [[ExitZone]], [[Occupation]], [[AbilitySO]], [[CreatureCueDrawer]]
