@@ -73,6 +73,11 @@ public class ArenaSandbox : MonoBehaviour
     public string EntryName => layout != null && layout.IsBuilt ? layout.EntryName : "diagonal";
     public string PaletteName => palette != null && palette.Current != null ? palette.Current.DisplayName : "";
     public string ShapeName => layout != null && layout.IsBuilt ? layout.ShapeName : "cuadrado";
+    public ArenaShape ActiveShape => layout != null && layout.IsBuilt ? layout.ActiveShape : null;
+    public IReadOnlyList<Vector4> PlacedObstacles => layout != null && layout.IsBuilt ? layout.PlacedObstacles : null;
+
+    public Vector3 SpawnPoint(ExpeditionTeam team) => layout != null && layout.IsBuilt ? layout.SpawnPoint(team) : center;
+    public Vector3 ExitPoint(ExpeditionTeam team) => layout != null && layout.IsBuilt ? layout.ExitPoint(team) : center;
 
     public ArenaRoomRead ReadRoom(ExpeditionTeam team)
     {

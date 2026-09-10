@@ -860,6 +860,7 @@ MonoBehaviour:
   DefaultIntentColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   AppearSeconds: 0.25
   AppearScale: 0.85
+  GuideAlpha: 0.5
   HeightOffset: 0.03
   RingThickness: 0.06
   RingAlpha: 0.35
@@ -881,12 +882,11 @@ MonoBehaviour:
   RingDashCount: 28
   RingDashRatio: 0.55
   RingSpinSpeed: 0.35
-  VisionFillInnerAlpha: 0.04
+  VisionFillInnerAlpha: 0.09
   VisionFillOuterAlpha: 0
-  VisionEdgeAlpha: 0.2
-  VisionSideAlpha: 0.12
-  ContactEdgeAlpha: 0.4
-  NearRingAlpha: 0.1
+  VisionEdgeAlpha: 0.34
+  VisionSideAlpha: 0.22
+  NearRingAlpha: 0.18
   VisionTurnSmoothing: 9
   ReticleRadius: 0.9
   ReticleThickness: 0.06
@@ -917,13 +917,83 @@ MonoBehaviour:
   MineralRingAlpha: 0.5
   KnownVeinRingAlpha: 0.45
   KnownVeinRingThickness: 0.05
-  ContactFillAlpha: 0.06
   KnownVeinRingOffset: 0.35
   PingSeconds: 1.4
   PingRadius: 2.6
   PingAlpha: 0.8
   PingThickness: 0.08
+  FleeColor: {r: 1, g: 0.85, b: 0.2, a: 1}
+  ContactFillAlpha: 0.11
+  ContactEdgeAlpha: 0.55
+  FleeRingRadius: 1.3
+  FleeRingThickness: 0.08
+  FleePulseSpeed: 8
+  BaseRadius: 0.9
+  BaseInnerAlpha: 0.42
+  BaseRingThickness: 0.05
+  BaseRingAlpha: 0.7
+  RevealSeconds: 0.3
+  ConeDashCount: 48
+  ConeDashRatio: 0.55
+  ConeDashSpinSpeed: 0.15
+  AbilityBurstSeconds: 0.6
+  AbilityBurstRadiusFrom: 0.8
+  AbilityBurstRadiusTo: 2.2
+  AbilityBurstThickness: 0.1
+  AbilityBurstAlpha: 0.9
+  TelegraphEdgeAlpha: 0.85
+  TelegraphEdgeThickness: 0.08
+  TelegraphTrackAlpha: 0.1
+  TelegraphFillAlpha: 0.3
+  TelegraphFillOuterAlpha: 0.08
+  TelegraphRingScale: 2
+  TelegraphPulseSpeed: 6
+  TelegraphPulseAmount: 0.06
+  TelegraphFadeSeconds: 0.15
+  TelegraphBlinkSpeed: 2.5
+  TelegraphBlinkSpeedEnd: 8
+  TelegraphBlinkMin: 0.3
+  DiveArcWidth: 0.1
+  DiveArcTailScale: 0.35
+  DiveArcHeadWidth: 0.34
+  DiveArcHeadLength: 0.55
+  DiveArcSamples: 28
+  DiveArcDashLength: 0.45
+  DiveArcDashGap: 0.22
+  DiveArcFlowSpeed: 2.5
+  DiveArcTailAlpha: 0.08
+  DiveArcStartHeight: 0.55
+  DiveArcHeightScale: 1.3
+  SelectColor: {r: 1, g: 0.78, b: 0.3, a: 1}
+  SelectRadius: 1.5
+  SelectThickness: 0.08
+  SelectDashCount: 12
+  SelectDashRatio: 0.6
+  SelectSpinSpeed: 0.5
+  SelectAppearScale: 1.4
+  SelectGlowAlpha: 0.08
+  SelectPulseSpeed: 3
+  SelectPulseAmount: 0.06
   SocialLinkColor: {r: 0.95, g: 0.5, b: 0.8, a: 1}
   FightColor: {r: 0.9, g: 0.15, b: 0.15, a: 1}
   SocialLinkThickness: 0.05
   FightPulseSpeed: 6
+  OutlineColor: {r: 0.62, g: 0.54, b: 0.2, a: 0.42}
+  OutlineThickness: 0.32
+  OutlineDashLength: 1.6
+  OutlineDashGap: 1.1
+  OutlineScrollSpeed: 0.35
+  OutlineStride: 4
+  ObstacleThickness: 0.26
+  ObstacleDashLength: 1.1
+  ObstacleDashGap: 0.8
+  LodeColor: {r: 1, g: 0.9, b: 0.55, a: 0.85}
+  LodeRadius: 2.3
+  LodeThickness: 0.16
+  LodeDashCount: 18
+  LodeSpinSpeed: 0.25
+  SpawnRadius: 1.9
+  SpawnThickness: 0.14
+  SpawnDashCount: 14
+  SpawnSpinSpeed: -0.2
+  SpawnAlpha: 0.85

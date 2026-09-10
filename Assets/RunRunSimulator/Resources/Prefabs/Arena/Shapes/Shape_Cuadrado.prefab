@@ -225,6 +225,8 @@ GameObject:
   - component: {fileID: 1720348470047768473}
   - component: {fileID: 1289105411003540136}
   - component: {fileID: 4028398934804718350}
+  - component: {fileID: 6607652984278606297}
+  - component: {fileID: 233501999207179241}
   m_Layer: 0
   m_Name: Shape_Cuadrado
   m_TagString: Untagged
@@ -278,15 +280,15 @@ MonoBehaviour:
   - {fileID: 7543378879048494274}
   - {fileID: 6690686868464080807}
   - {fileID: 2496637747897728017}
-  cliffHeight: 1.2
+  cliffHeight: 0
   cliffDepth: 1.5
+  fenceHeight: 1.5
   rockHeight: 1.2
   lakeDepth: 0.6
   waterLevel: -0.15
   pitDepth: 1.4
   uvScale: 0.25
   groundMaterial: {fileID: 2100000, guid: fbc7734c140917d439d40f62e21adccc, type: 2}
-  cliffMaterial: {fileID: 2100000, guid: 97b9c0d235aeea74cabb4a2eb373f56b, type: 2}
   rockMaterial: {fileID: 2100000, guid: 3b30ef599b3c88b4aa419a124902a8b1, type: 2}
   lakeBedMaterial: {fileID: 2100000, guid: 97b9c0d235aeea74cabb4a2eb373f56b, type: 2}
   waterMaterial: {fileID: 2100000, guid: c13d5d7048cde4e4bac6c88f1788283e, type: 2}
@@ -329,24 +331,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaShapeBrush
   mask: 
-  size: 128
+  size: 192
   cell: 0.5
   brushRadius: 3
   simplifyTolerance: 0.6
   holeKind: 1
   blobSeed: 1
   proceduralBySeed: 0
-  centerRadius: 7
-  blobCount: {x: 4, y: 8}
-  blobRadius: {x: 4, y: 8}
-  blobSpread: 13
-  blobOverlap: 0.65
+  centerRadius: 11.2
+  blobCount: {x: 4, y: 6}
+  blobRadius: {x: 8, y: 14}
+  blobSpread: 26
+  blobOverlap: 0.45
   holeCount: {x: 0, y: 2}
-  holeRadius: {x: 1.5, y: 3}
-  holeMinFromCenter: 8
+  holeRadius: {x: 2.1, y: 4.2}
+  holeMinFromCenter: 11.2
   autoEntries: 1
   entryInset: 2.5
-  entryMinFromCenter: 8
+  entryMinFromCenter: 11.2
 --- !u!114 &4028398934804718350
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -406,14 +408,81 @@ MonoBehaviour:
   - {fileID: 1588324658806122, guid: 9d05e0cabe0f8c641b0a87ecc3a9017e, type: 3}
   - {fileID: 1616784548102220, guid: 9d911d3db44ad56488c3c28cb9e9e5ab, type: 3}
   - {fileID: 1205270495780786, guid: bfe46d6e2f03af346a70ed16cbda3eee, type: 3}
-  borderStep: 2.2
+  borderStep: 1.5
   borderInset: 1.3
   borderJitter: 0.4
   borderRockChance: 0.35
   borderEntryClear: 2.5
+  borderOuterStep: 2.4
+  borderOuterOffset: 0.6
+  borderOuterSink: 0.05
   treeScale: {x: 0.8, y: 1.2}
   rockScale: {x: 0.6, y: 1.1}
   margin: 0.8
+--- !u!114 &6607652984278606297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5932738694217320547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 804dcfff92fb9764395a401315ee2f31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaShapeSurround
+  seed: 7
+  treePrefabs:
+  - {fileID: 1182756067964316, guid: fc9f550802bde56499ac8b64cac565f0, type: 3}
+  - {fileID: 1247767785291130, guid: 0734397d1a4fd924f98424ecb4ca43b9, type: 3}
+  - {fileID: 1130392368877672, guid: 1ea71f643417d124d91e53eae7c666a6, type: 3}
+  - {fileID: 1325612589990884, guid: e377b882a13405d4b9d5c3e8e747595e, type: 3}
+  - {fileID: 1500899924992442, guid: a19f2e49529f1ef4d903f3b663ce7893, type: 3}
+  - {fileID: 1467454332595294, guid: fe8147825b813cf46b4ef685a3ea56a8, type: 3}
+  bushPrefabs:
+  - {fileID: 1346982405202136, guid: 09a3b44b8937d6245b39d930062109c6, type: 3}
+  - {fileID: 1896228811670048, guid: a77401c30ad8d4a4cbf36d16e8126678, type: 3}
+  - {fileID: 1994116034729256, guid: 9b0b9e5bc77867f45ad0f3080aa409e3, type: 3}
+  - {fileID: 1153903725125606, guid: 7f253e36a99c6454e9f631317cb450b9, type: 3}
+  - {fileID: 1466427836474396, guid: 5bd70a33951586a43a423d1366da97c0, type: 3}
+  rockPrefabs:
+  - {fileID: 1732272334065596, guid: cdcb19fde9e8cba40b7bff849baf2c1b, type: 3}
+  - {fileID: 1677856023650210, guid: 0d6c136baa84fec40bbcbb09a069feda, type: 3}
+  - {fileID: 1279149807870478, guid: 51917b8e41ef6a1469249c9dfee70390, type: 3}
+  - {fileID: 1588324658806122, guid: 9d05e0cabe0f8c641b0a87ecc3a9017e, type: 3}
+  - {fileID: 1616784548102220, guid: 9d911d3db44ad56488c3c28cb9e9e5ab, type: 3}
+  - {fileID: 1205270495780786, guid: bfe46d6e2f03af346a70ed16cbda3eee, type: 3}
+  rings: 10
+  ringStart: 2.4
+  ringStep: 2.9
+  stepAlong: 2
+  jitter: 0.5
+  rockChance: 0.28
+  bushChance: 0.4
+  treeScale: {x: 1, y: 1.7}
+  bushScale: {x: 0.9, y: 1.5}
+  rockScale: {x: 0.7, y: 1.6}
+  drop: 0.05
+--- !u!114 &233501999207179241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5932738694217320547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52b58f70237973844aa6e8bd26b90394, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaShapeShafts
+  seed: 3
+  shaftPrefab: {fileID: 1948621425418297078, guid: 822d65f71c490cd4ea7263c2aa718144, type: 3}
+  count: {x: 1, y: 2}
+  scale: {x: 0.9, y: 1.5}
+  margin: 6
+  alignToSun: 1
+  tilt: 14
+  spread: 10
 --- !u!1 &6878364694121256889
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,7 +6,7 @@ tags: [script, world, expedition, procedural, scatter, dressing]
 
 **Ruta:** `World/Expedition/ArenaShapeDressing.cs`
 
-**Responsabilidad:** Componente que genera y coloca elementos decorativos (cover, acentos, borde) dentro de una sala usando scatter procedural. Escucha Rebuilt event de ArenaShape y redecora. Determinista por semilla.
+**Responsabilidad:** Componente que genera y coloca elementos decorativos (cover, acentos, borde interior/exterior) dentro y alrededor de una sala usando scatter procedural. Escucha Rebuilt event de ArenaShape y redecora. Determinista por semilla. S113: borde exterior con dos capas (inner + outer).
 
 **Propiedades:**
 - (privadas)
@@ -19,14 +19,16 @@ tags: [script, world, expedition, procedural, scatter, dressing]
 - OnDisable() → desuscribe, destruye dressing
 - Dress() → crea GO "Dressing" (DontSave), llama DressCover/DressAccents/DressBorder
 
-**Campos Serializados (S111):**
+**Campos Serializados:**
 
 | Sección | Campos | Propósito |
 |---------|--------|----------|
 | Semilla | `seed` (int) | Determinismo |
 | Cobertura | `coverPrefabs` (List<GO>), `coverSpacing` (float, min 0.5), `coverSkip` (float, 0-1), `coverScale` (Vector2) | Scatter denso (spacing 1.8, skip 0.2) |
 | Acentos | `accentPrefabs`, `accentSpacing` (min 0.5), `accentSkip`, `accentScale` | Scatter disperso (spacing 4.5, skip 0.35) |
-| Borde | `borderTreePrefabs`, `borderRockPrefabs`, `borderStep` (min 0.5), `borderInset`, `borderJitter`, `borderRockChance`, `borderEntryClear`, `treeScale`, `rockScale` | Scatter a lo largo del borde |
+| Borde (interior) | `borderTreePrefabs`, `borderRockPrefabs`, `borderStep` (min 0.5), `borderInset`, `borderJitter` (0-1), `borderRockChance`, `borderEntryClear` | Scatter a lo largo del borde interior (2.6 step, 1.3 inset) |
+| Borde exterior (S113) | `borderOuterStep`, `borderOuterOffset`, `borderOuterSink` | Scatter a distancia negativa (4 intentos, yOffset = sink) |
+| Escalas | `treeScale`, `rockScale` | Rangos de escala por tipo |
 | General | `margin` (float, min 0) | Distancia mínima de obstáculos |
 
 **ScatterGrid (cover + acentos):**
@@ -35,28 +37,36 @@ tags: [script, world, expedition, procedural, scatter, dressing]
 3. Skip: rng.NextDouble() < skip → continúa
 4. IsClear(world, margin) → validar
 5. Spawn prefab aleatorio con yaw/scale random
+6. Colisores destruidos (sin keepColliders)
 
-**DressBorder (borde):**
-1. ArenaShapeScatter.AlongEdge() → puntos a lo largo del contorno
-2. Para cada punto:
-   - IsClear(0.3) → validar
-   - NearEntry() → filtrar cerca de entradas (borderEntryClear)
-   - Elige tree o rock por borderRockChance
-   - Spawn con escala/yaw random
+**DressBorder (interior + exterior S113):**
+1. Interior:
+   - AlongEdge(outline, step=borderStep, inset=borderInset, jitter)
+   - filterClear=true, distancia mínima 0.3
+   - NearEntry() → filtrar (borderEntryClear)
+   
+2. Exterior (S113, si borderOuterStep > 0):
+   - AlongEdge(outline, step=borderOuterStep, inset=-borderOuterOffset, jitter)
+   - filterClear=false (no chequea Clear)
+   - ScatterBorder(yOffset=borderOuterSink) — desciende cada prefab
+   - Colisores se mantienen en borde exterior
 
 **Spawn:**
-- Instantiate(prefab, position, rotation, dressing.transform)
+- Instantiate(prefab, position ± yOffset, rotation, parent)
 - hideFlags = DontSave
-- Si !keepColliders → DestroyImmediate(colliders)
+- Si !keepColliders → DestroyImmediate(colliders) (interior sí, exterior guarda)
+- Border exterior usa parent=border.transform (sub-GO de dressing)
 
 **Invariantes:**
 - Determinista: mismo seed = mismo output (si ArenaShape.OutlinePolygon igual)
-- margin filtra puntos demasiado cerca del borde
+- margin filtra puntos demasiado cerca del borde interior
 - borderEntryClear protege entradas de decoración
+- yOffset (outer sink) desciende visualmente para dar profundidad
 - Dressing GO se destruye completamente al OnDisable
 
-**S111 Nuevo:**
-- Componente de decoración procedural
+**S111-S113 Cambios:**
+- S111: componente base de decoración procedural
+- S113: borde exterior con parámetros borderOuter* (step, offset, sink), colisores retenidos, sub-GO "Border"
 
 **Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 

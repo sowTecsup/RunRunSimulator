@@ -14,6 +14,13 @@ public class ArenaPaletteApplier : MonoBehaviour
     private static readonly int AlphaClipID = Shader.PropertyToID("_AlphaClip");
     private static readonly int WindStrengthID = Shader.PropertyToID("_WindStrength");
     private static readonly int CullID = Shader.PropertyToID("_Cull");
+    private static readonly int ArenaFogCenterID = Shader.PropertyToID("_ArenaFogCenter");
+    private static readonly int ArenaFogColorID = Shader.PropertyToID("_ArenaFogColor");
+    private static readonly int ArenaFogInnerID = Shader.PropertyToID("_ArenaFogInner");
+    private static readonly int ArenaFogOuterID = Shader.PropertyToID("_ArenaFogOuter");
+    private static readonly int ArenaFogStrengthID = Shader.PropertyToID("_ArenaFogStrength");
+    private static readonly int ArenaFogDimID = Shader.PropertyToID("_ArenaFogDim");
+    private static readonly int TintID = Shader.PropertyToID("_Tint");
 
     [Required, SerializeField] private Material paletteMaterial;
     [SerializeField] private Material waterMaterial;
@@ -21,12 +28,17 @@ public class ArenaPaletteApplier : MonoBehaviour
     [SerializeField] private List<GameObject> roots = new();
     [SerializeField] private Light sun;
     [SerializeField] private Camera skyCamera;
+    [SerializeField] private Transform arenaCenter;
     [SerializeField, Min(0f)] private float foliageWind = 0.05f;
     [SerializeField, Min(0f)] private float grassWind = 0.1f;
+    [SerializeField] private List<string> dimNames = new() { "Surround", "Border" };
+    [SerializeField] private Color dimTint = new(0.42f, 0.48f, 0.5f, 1f);
 
     private readonly Dictionary<Material, Material> instanceByOriginal = new();
+    private readonly Dictionary<Material, Material> dimInstanceByOriginal = new();
     private readonly Dictionary<Material, Material> originalByInstance = new();
     private readonly Dictionary<ArenaPaletteSlot, Texture2D> ramps = new();
+    private Vector3? explicitArenaCenter;
 
     public IReadOnlyList<ArenaPaletteSO> Palettes => palettes;
     public ArenaPaletteSO Current { get; private set; }
@@ -57,6 +69,13 @@ public class ArenaPaletteApplier : MonoBehaviour
         }
 
         ApplyEnvironment(palette);
+        PushArenaFog(palette);
+    }
+
+    public void SetArenaCenter(Vector3 center)
+    {
+        explicitArenaCenter = center;
+        if (Current != null) PushArenaFog(Current);
     }
 
     private void OnDestroy()
@@ -65,6 +84,24 @@ public class ArenaPaletteApplier : MonoBehaviour
             if (ramp != null) Destroy(ramp);
         foreach (var instance in originalByInstance.Keys)
             if (instance != null) Destroy(instance);
+    }
+
+    private void OnDisable()
+    {
+        Shader.SetGlobalFloat(ArenaFogStrengthID, 0f);
+        Shader.SetGlobalFloat(ArenaFogDimID, 0f);
+        Shader.SetGlobalFloat(ArenaFogOuterID, 0f);
+    }
+
+    private void PushArenaFog(ArenaPaletteSO palette)
+    {
+        Vector3 center = explicitArenaCenter ?? (arenaCenter != null ? arenaCenter.position : transform.position);
+        Shader.SetGlobalVector(ArenaFogCenterID, center);
+        Shader.SetGlobalVector(ArenaFogColorID, palette.ArenaFogTint);
+        Shader.SetGlobalFloat(ArenaFogInnerID, palette.ArenaFogInner);
+        Shader.SetGlobalFloat(ArenaFogOuterID, palette.ArenaFogOuter);
+        Shader.SetGlobalFloat(ArenaFogStrengthID, palette.ArenaFogStrength);
+        Shader.SetGlobalFloat(ArenaFogDimID, palette.ArenaFogDim);
     }
 
     private void BuildRamps(ArenaPaletteSO palette)
@@ -93,6 +130,7 @@ public class ArenaPaletteApplier : MonoBehaviour
     {
         var materials = renderer.sharedMaterials;
         bool changed = false;
+        bool dim = IsBarrier(renderer.transform);
 
         for (int i = 0; i < materials.Length; i++)
         {
@@ -102,7 +140,7 @@ public class ArenaPaletteApplier : MonoBehaviour
             var original = originalByInstance.TryGetValue(material, out var known) ? known : material;
             if (!TryClassify(original, out var slot)) continue;
 
-            var instance = GetInstance(original, slot);
+            var instance = dim ? GetDimInstance(original, slot) : GetInstance(original, slot);
             if (instance != material)
             {
                 materials[i] = instance;
@@ -113,50 +151,84 @@ public class ArenaPaletteApplier : MonoBehaviour
         if (changed) renderer.sharedMaterials = materials;
     }
 
+    private bool IsBarrier(Transform current)
+    {
+        while (current != null)
+        {
+            if (dimNames.Contains(current.name)) return true;
+            current = current.parent;
+        }
+
+        return false;
+    }
+
     private Material GetInstance(Material original, ArenaPaletteSlot slot)
     {
         if (slot == ArenaPaletteSlot.Water && waterMaterial == null) return original;
 
         if (!instanceByOriginal.TryGetValue(original, out var instance) || instance == null)
         {
-            if (slot == ArenaPaletteSlot.Water)
-            {
-                instance = new Material(waterMaterial) { name = original.name + "_Palette" };
-            }
-            else
-            {
-                instance = new Material(paletteMaterial) { name = original.name + "_Palette" };
-
-                var baseMap = FindBaseMap(original, out string propertyName);
-                if (baseMap != null)
-                {
-                    instance.SetTexture(BaseMapID, baseMap);
-                    instance.SetTextureScale(BaseMapID, original.GetTextureScale(propertyName));
-                    instance.SetTextureOffset(BaseMapID, original.GetTextureOffset(propertyName));
-                }
-
-                bool clip = original.HasProperty("_AlphaClip") && original.GetFloat("_AlphaClip") > 0.5f;
-                instance.SetFloat(AlphaClipID, clip ? 1f : 0f);
-                if (clip) instance.EnableKeyword("_ALPHACLIP_ON");
-                else instance.DisableKeyword("_ALPHACLIP_ON");
-
-                float cutoff = original.HasProperty("_Cutoff") ? original.GetFloat("_Cutoff")
-                    : original.HasProperty("_Alpha_Clip_Threshold") ? original.GetFloat("_Alpha_Clip_Threshold")
-                    : 0.5f;
-                instance.SetFloat(CutoffID, cutoff);
-
-                float wind = slot == ArenaPaletteSlot.Foliage ? foliageWind : slot == ArenaPaletteSlot.Grass ? grassWind : 0f;
-                instance.SetFloat(WindStrengthID, wind);
-
-                float cull = original.HasProperty("_Cull") ? original.GetFloat("_Cull") : (float)CullMode.Back;
-                instance.SetFloat(CullID, cull);
-            }
-
+            instance = BuildMaterialInstance(original, slot, "_Palette");
             instanceByOriginal[original] = instance;
             originalByInstance[instance] = original;
         }
 
         instance.SetTexture(RampID, ramps[slot]);
+        return instance;
+    }
+
+    private Material GetDimInstance(Material original, ArenaPaletteSlot slot)
+    {
+        if (slot == ArenaPaletteSlot.Water && waterMaterial == null) return original;
+
+        if (!dimInstanceByOriginal.TryGetValue(original, out var instance) || instance == null)
+        {
+            instance = BuildMaterialInstance(original, slot, "_PaletteDim");
+            if (instance.HasProperty(TintID))
+            {
+                var tint = instance.GetColor(TintID);
+                instance.SetColor(TintID, new Color(tint.r * dimTint.r, tint.g * dimTint.g, tint.b * dimTint.b, tint.a));
+            }
+
+            dimInstanceByOriginal[original] = instance;
+            originalByInstance[instance] = original;
+        }
+
+        instance.SetTexture(RampID, ramps[slot]);
+        return instance;
+    }
+
+    private Material BuildMaterialInstance(Material original, ArenaPaletteSlot slot, string suffix)
+    {
+        if (slot == ArenaPaletteSlot.Water)
+            return new Material(waterMaterial) { name = original.name + suffix };
+
+        var instance = new Material(paletteMaterial) { name = original.name + suffix };
+
+        var baseMap = FindBaseMap(original, out string propertyName);
+        if (baseMap != null)
+        {
+            instance.SetTexture(BaseMapID, baseMap);
+            instance.SetTextureScale(BaseMapID, original.GetTextureScale(propertyName));
+            instance.SetTextureOffset(BaseMapID, original.GetTextureOffset(propertyName));
+        }
+
+        bool clip = original.HasProperty("_AlphaClip") && original.GetFloat("_AlphaClip") > 0.5f;
+        instance.SetFloat(AlphaClipID, clip ? 1f : 0f);
+        if (clip) instance.EnableKeyword("_ALPHACLIP_ON");
+        else instance.DisableKeyword("_ALPHACLIP_ON");
+
+        float cutoff = original.HasProperty("_Cutoff") ? original.GetFloat("_Cutoff")
+            : original.HasProperty("_Alpha_Clip_Threshold") ? original.GetFloat("_Alpha_Clip_Threshold")
+            : 0.5f;
+        instance.SetFloat(CutoffID, cutoff);
+
+        float wind = slot == ArenaPaletteSlot.Foliage ? foliageWind : slot == ArenaPaletteSlot.Grass ? grassWind : 0f;
+        instance.SetFloat(WindStrengthID, wind);
+
+        float cull = original.HasProperty("_Cull") ? original.GetFloat("_Cull") : (float)CullMode.Back;
+        instance.SetFloat(CullID, cull);
+
         return instance;
     }
 

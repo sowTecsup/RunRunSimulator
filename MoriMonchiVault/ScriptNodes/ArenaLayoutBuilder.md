@@ -6,90 +6,94 @@ tags: [script, world, expedition, procedural, generation, shapes]
 
 **Ruta:** `World/Expedition/ArenaLayoutBuilder.cs`
 
-**Responsabilidad:** Generador proceduralista de topografía de arena por semilla. **S111:** soporte para múltiples formas (ArenaShape). Construye obstáculos (árboles/rocas Synty), rebakea NavMesh, genera vetas mineras. Expone Veins, obstáculos, puntos spawn, forma activa. Delega generación de contorno a ArenaShape.ProceduralBySeed.
+**Responsabilidad:** Generador proceduralista de topografía de arena por semilla. **S111:** soporte para múltiples formas (ArenaShape). Construye obstáculos (árboles/rocas Synty), hitos grandes (landmarks), rebakea NavMesh, genera vetas mineras. Expone Veins, obstáculos, puntos spawn, forma activa. Delega generación de contorno a ArenaShape.ProceduralBySeed. **S113:** integración de landmarks para decoración grande.
 
 **Propiedades Públicas:**
 - `IReadOnlyList<VeinSpot> Veins { get; }` — vetas generadas
+- `int ObstacleCount { get; }` — total de obstáculos pequeños colocados
+- `IReadOnlyList<Vector4> PlacedObstacles { get; }` — hitos grandes (landmarks.Placed, XYZ+radio)
 - `bool IsBuilt { get; }` — si generatedRoot != null
+- `Vector3 Center { get; }` — centro de forma activa (o default)
+- `string ShapeName { get; }` — nombre display de forma activa (o "cuadrado")
 - `Vector3 EntryDirection { get; }` — eje de entrada normalizado
-- `string EntryName { get; }` — nombre eje (o desde forma si S111)
+- `string EntryName { get; }` — nombre eje (o desde forma)
 - `Vector3 EntryPoint(ExpeditionTeam team, float inset)` → Vector3
 - `Vector3 ExitPoint(ExpeditionTeam team)` → Vector3
 - `Vector3 SpawnPoint(ExpeditionTeam team)` → Vector3
-- `int ObstacleCount { get; }` — total de obstáculos colocados (S104)
-- **S111:** `IReadOnlyList<ArenaShape> Shapes { get; }` — formas disponibles
-- **S111:** `ArenaShape ActiveShape { get; }` — forma actual (null si legacySquare)
-- **S111:** `Vector3 Center { get; }` — centro de forma activa (o legacy default)
-- **S111:** `string ShapeName { get; }` — nombre display de forma activa (o "Plazuela")
-- **S111:** `int EntryPair { get; }` — índice de par de entrada
-- **S111:** `bool MirrorActive { get; }` — si forma es simétrica
 
 **Métodos Públicos:**
-- `void Build(int seed, NavMeshQueryFilter filter)` — genera layout:
+- `void Build(int seed, NavMeshQueryFilter filter)` — genera layout completo:
   1. Clear()
-  2. Si shapes.Count > 0 y !legacySquare: BuildFromShape(seed)
-  3. Sino: BuildLegacy(seed) [pre-S111 path]
-  4. surface.BuildNavMesh()
-  5. BuildVeins(seed, filter)
-- `void Clear()` — destruye generatedRoot, limpia listas
-- **S111:** `void SetActiveShape(int index)` — selecciona forma por índice, caché shapeIndex/mirrorActive
-- **S111:** `void SetEntryPair(int pair)` — selecciona par de entrada
-- **S111:** `void Regenerate(int seed)` — si ActiveShape.brush.ProceduralBySeed: forma.brush.Regenerate(seed), sino BuildObstacles(seed)
-- **S111:** `bool TryRandomPoint(System.Random rng, float margin, out Vector3 point)` — delega a forma.TryRandomPoint si existe
+  2. Desactiva obstáculos estáticos
+  3. Crea GeneratedLayout GO
+  4. Selecciona forma activa (shapes[shapeIndex % shapes.Count])
+  5. Si forma.brush.ProceduralBySeed: forma.brush.Regenerate(seed)
+  6. BuildObstacleSet(treePrefabs, rockPrefabs) con simetría
+  7. **S113:** `landmarks.Place(rng, generatedRoot.transform, activeShape, center, edgeMargin, clearCenterRadius, safePoints, clearEntryRadius, obstaclePositions)` — coloca grandes con exclusiones
+  8. surface.BuildNavMesh()
+  9. BuildVeins(rng, filter) — genera vetas post-bake
+  10. Log: seed, entrada, obstáculos, decorado, vetas, grandes, mirror, forma
 
-**Campos Serializados (S111):**
-- Legacy (pre-S111):
+- `void Clear()` — destruye generatedRoot, limpia listas (veins, obstaclePositions, decorCenters)
+
+**Campos Serializados:**
+- **Requeridos:**
   - `surface` (NavMeshSurface)
-- **S111 NUEVO:**
-  - `shapes` (List<ArenaShape>, Required) — formas disponibles
-  - `shapeIndex` (int, cached) — forma actual
-  - `legacySquare` (bool) — toggle: si true, usar topografía legacy; si false, usar forma
-  - `entryPair` (int, cached) — par de entrada seleccionado
-  - `mirrorActive` (bool, ReadOnly, cached) — forma.Symmetric
+  - `shapes` (List<ArenaShape>) — formas disponibles
 
-**BuildFromShape (S111):**
-1. Valida ActiveShape != null
-2. Si forma.brush.ProceduralBySeed: forma.brush.Regenerate(seed)
-3. Usa forma.generated como GeneratedRoot (o vincula geometría)
-4. BuildVeins respeta forma.Contains() y forma.IsClear()
-5. Usa forma.Center para referencia de ejes
+- **S113 NUEVO:**
+  - `landmarks` (ArenaLandmarks) — componente de grandes
 
-**BuildLegacy (pre-S111):**
-1. entryAxis = seed % 4
-2. BuildObstacles(rng)
-3. GeneratedRoot = GO "ArenaLayout"
+- **Densidad:**
+  - `treeCount`, `rockCount`, `veinCount` (Vector2Int) — rangos por seed
+  - `decorClusters`, `decorPerCluster`, `decorClusterRadius` (float) — clusters de decoración
 
-**EntryPoint/ExitPoint/SpawnPoint (S111):**
-- Si ActiveShape != null: EntryPoint(entryPair, team)
-- Sino: BuildLegacy axes (0..3 ejes)
+- **Forma:**
+  - `shapeIndex` (int) — índice de forma seleccionada
+  - `legacySquare` (GameObject, opcional) — geometría pre-S111
 
-**Center (S111):**
-- Si ActiveShape != null: forma.Center
-- Sino: Vector3.zero
+- **Geometría:**
+  - `arenaHalfSize` (float) — tamaño legacy
+  - `edgeMargin` (float) — margen de borde (2.5 default)
+  - `clearCenterRadius` (float) — radio limpio del centro (6)
+  - `clearEntryRadius` (float) — radio limpio de entradas (5)
+  - `spawnDistance` (float) — distancia spawn desde entrada (8.5)
+  - `exitInset` (float) — inset de salida desde entrada (4)
+  - `obstacleSpacing` (float) — separación mínima entre obstáculos (3.5)
+  - Escalas: `treeScale`, `rockScale`, `decorScale`
 
-**ShapeName (S111):**
-- Si ActiveShape != null: forma.DisplayName
-- Sino: "Plazuela" (default legacy)
+- **Vetas:**
+  - `veinMinFromCenter`, `veinSpacing`, `veinFromObstacle` (float)
+  - `veinCapacity` (Vector2Int)
+
+- **Extras:**
+  - `mirror` (bool) — espeja obstáculos/décor
+  - `staticObstacles`, `staticDecor` (List<GameObject>) — desactiva al generar
+
+**Build (S113):**
+1. BuildObstacleSet(trees, rocks) — scatter simétrico si mirror
+2. BuildDecor() — clusters simétricos
+3. landmarks.Place():
+   - safePoints = [spawn player, spawn rival, exit player, exit rival]
+   - edgeMargin = borde mínimo
+   - centerRadius = clearCenterRadius
+   - safeRadius = clearEntryRadius
+   - obstaclePositions actualizada con positions nuevas
+4. surface.BuildNavMesh() después (landmarks ya colocados)
+5. BuildVeins() con NavMesh post-bake
 
 **Invariantes:**
 - RNG seeded: determinístico por seed
-- Pre-S111: eje entrada seed%4 (diagonal, diagonal-inv, Z, X)
-- S111: eje entrada 0..forma.EntryPairCount-1
+- Landmarks se valida antes de NavMesh bake (orden: obstáculos → landmarks → bake → vetas)
+- ObstacleCount cuenta pequeños; PlacedObstacles cuenta grandes (landmarks)
+- mirror=true → cantidad par de colocadas (o impar si falla)
 - VeinSpot.Position proyectado al NavMesh post-bake
-- 40 intentos máximo por ubicación
-- ObstacleCount caché en BuildObstacles
 
-**S104 Cambios:**
-- ObstacleCount property
-- Usado por ArenaOrderCatalog.RoomText()
-
-**S111 Cambios:**
-- Soporte para múltiples formas (shapes list)
-- ProceduralBySeed integrado: si forma.brush.ProceduralBySeed → Regenerate(seed)
-- Center, ShapeName, EntryPair, MirrorActive públicas
-- TryRandomPoint delega a forma
-- Dual-path: shapes + legacy (toggle legacySquare)
+**S104-S111-S113 Cambios:**
+- S104: ObstacleCount property
+- S111: formas shape.Contains() / shape.IsClear() / shape.Center
+- S113: landmarks.Place() integrado, log con "grandes"
 
 **Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[ArenaSandbox]], [[ArenaShape]], [[ArenaShapeBrush]], [[MaterialPickup]], [[NavMeshSurface]], [[ArenaOrderCatalog]], [[ArenaPlanPanel]]
+**Conexiones:** [[ArenaSandbox]], [[ArenaShape]], [[ArenaLandmarks]], [[ArenaShapeBrush]], [[MaterialPickup]], [[NavMeshSurface]]

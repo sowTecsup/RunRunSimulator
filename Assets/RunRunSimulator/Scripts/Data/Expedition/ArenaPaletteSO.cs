@@ -44,6 +44,13 @@ public class ArenaPaletteSO : SerializedScriptableObject
     [Range(0f, 0.05f)] public float FogDensity = 0.006f;
     public Color SkyColor = new Color(0.55f, 0.75f, 0.9f);
 
+    [Title("Niebla de arena")]
+    [Min(0f)] public float ArenaFogInner = 26f;
+    [Min(0f)] public float ArenaFogOuter = 60f;
+    public Color ArenaFogTint = new Color(0.06f, 0.09f, 0.1f);
+    [Range(0f, 1f)] public float ArenaFogStrength = 0.95f;
+    [Range(0f, 1f)] public float ArenaFogDim = 0.75f;
+
     public Ramp RampFor(ArenaPaletteSlot slot)
     {
         switch (slot)

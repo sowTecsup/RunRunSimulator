@@ -32,6 +32,9 @@ public class ArenaShapeDressing : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float borderJitter = 0.4f;
     [SerializeField, Range(0f, 1f)] private float borderRockChance = 0.3f;
     [SerializeField, Min(0f)] private float borderEntryClear = 5f;
+    [SerializeField, Min(0f)] private float borderOuterStep = 2.4f;
+    [SerializeField, Min(0f)] private float borderOuterOffset = 1.2f;
+    [SerializeField, Min(0f)] private float borderOuterSink = 0.4f;
     [SerializeField] private Vector2 treeScale = new Vector2(0.8f, 1.2f);
     [SerializeField] private Vector2 rockScale = new Vector2(0.6f, 1.1f);
 
@@ -39,6 +42,7 @@ public class ArenaShapeDressing : MonoBehaviour
 
     private ArenaShape shape;
     private GameObject dressing;
+    private GameObject border;
 
     private void OnEnable()
     {
@@ -79,6 +83,9 @@ public class ArenaShapeDressing : MonoBehaviour
 
         dressing = new GameObject("Dressing") { hideFlags = HideFlags.DontSave };
         dressing.transform.SetParent(transform, false);
+
+        border = new GameObject("Border") { hideFlags = HideFlags.DontSave };
+        border.transform.SetParent(dressing.transform, false);
 
         var rng = new System.Random(seed);
 
@@ -127,13 +134,23 @@ public class ArenaShapeDressing : MonoBehaviour
     {
         if (borderTreePrefabs.Count == 0 && borderRockPrefabs.Count == 0) return;
 
-        var points = ArenaShapeScatter.AlongEdge(shape.OutlinePolygon, rng, borderStep, borderInset, borderJitter);
+        var innerPoints = ArenaShapeScatter.AlongEdge(shape.OutlinePolygon, rng, borderStep, borderInset, borderJitter);
+        ScatterBorder(rng, innerPoints, true, 0f);
 
+        if (borderOuterStep > 0f)
+        {
+            var outerPoints = ArenaShapeScatter.AlongEdge(shape.OutlinePolygon, rng, borderOuterStep, -borderOuterOffset, borderJitter);
+            ScatterBorder(rng, outerPoints, false, borderOuterSink);
+        }
+    }
+
+    private void ScatterBorder(System.Random rng, List<Vector2> points, bool filterClear, float yOffset)
+    {
         foreach (var point in points)
         {
             var world = new Vector3(point.x, shape.Center.y, point.y);
 
-            if (!shape.IsClear(world, 0.3f)) continue;
+            if (filterClear && !shape.IsClear(world, 0.3f)) continue;
             if (NearEntry(world)) continue;
 
             bool wantsRock = rng.NextDouble() < borderRockChance;
@@ -160,7 +177,7 @@ public class ArenaShapeDressing : MonoBehaviour
             float yaw = (float)(rng.NextDouble() * 360.0);
             float scale = (float)(rng.NextDouble() * (scaleRange.y - scaleRange.x) + scaleRange.x);
 
-            Spawn(prefab, world, yaw, scale, true);
+            Spawn(prefab, world, yaw, scale, true, border.transform, yOffset);
         }
     }
 
@@ -180,9 +197,10 @@ public class ArenaShapeDressing : MonoBehaviour
         return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
     }
 
-    private void Spawn(GameObject prefab, Vector3 position, float yaw, float scale, bool keepColliders)
+    private void Spawn(GameObject prefab, Vector3 position, float yaw, float scale, bool keepColliders, Transform parent = null, float yOffset = 0f)
     {
-        var instance = Instantiate(prefab, position, Quaternion.Euler(0f, yaw, 0f), dressing.transform);
+        position.y -= yOffset;
+        var instance = Instantiate(prefab, position, Quaternion.Euler(0f, yaw, 0f), parent != null ? parent : dressing.transform);
         instance.transform.localScale = Vector3.one * scale;
         instance.hideFlags = HideFlags.DontSave;
 
@@ -200,6 +218,7 @@ public class ArenaShapeDressing : MonoBehaviour
         {
             DestroyImmediate(dressing);
             dressing = null;
+            border = null;
         }
 
         for (int i = transform.childCount - 1; i >= 0; i--)

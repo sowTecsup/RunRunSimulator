@@ -15,6 +15,10 @@ public class ArenaRoomCueOverlay : MonoBehaviour
     [SerializeField] private bool showMinerals = true;
     [SerializeField] private bool showExits = true;
     [SerializeField] private bool showBlackboards = true;
+    [SerializeField] private bool showOutline = true;
+    [SerializeField] private bool showLode = true;
+    [SerializeField] private bool showSpawns = true;
+    [SerializeField] private bool showObstacles = true;
 
     private class MineralAnim
     {
@@ -37,6 +41,7 @@ public class ArenaRoomCueOverlay : MonoBehaviour
         CueDrawer.AlphaScale = style.GuideAlpha;
 
         if (showMinerals) DrawMinerals();
+        if (showLode) DrawLode();
         if (showExits)
         {
             CueDrawer.DrawBehind = true;
@@ -44,6 +49,14 @@ public class ArenaRoomCueOverlay : MonoBehaviour
             CueDrawer.DrawBehind = false;
         }
         if (showBlackboards) DrawBlackboards();
+        if (showOutline) DrawOutline();
+        if (showSpawns) DrawSpawns();
+        if (showObstacles)
+        {
+            CueDrawer.DrawBehind = true;
+            DrawObstacles();
+            CueDrawer.DrawBehind = false;
+        }
 
         CueDrawer.AlphaScale = 1f;
     }
@@ -137,6 +150,79 @@ public class ArenaRoomCueOverlay : MonoBehaviour
                 pingColor.a = style.PingAlpha * (1f - t);
                 CueDrawer.Ring(ping.Position + Vector3.up * style.HeightOffset, radius, style.PingThickness, pingColor);
             }
+        }
+    }
+
+    private void DrawOutline()
+    {
+        var shape = sandbox.ActiveShape;
+        if (shape == null) return;
+
+        var polygon = shape.OutlinePolygon;
+        if (polygon == null || polygon.Count < 3) return;
+
+        float y = shape.Center.y + style.HeightOffset;
+        float offset = Time.time * style.OutlineScrollSpeed;
+        int stride = style.OutlineStride > 0 ? style.OutlineStride : 1;
+
+        Vector3 first = new Vector3(polygon[0].x, y, polygon[0].y);
+        Vector3 previous = first;
+
+        for (int i = stride; i < polygon.Count; i += stride)
+        {
+            Vector3 current = new Vector3(polygon[i].x, y, polygon[i].y);
+            CueDrawer.DashedSegment(previous, current, style.OutlineThickness, style.OutlineDashLength, style.OutlineDashGap, offset, style.OutlineColor, style.OutlineColor);
+            previous = current;
+        }
+
+        CueDrawer.DashedSegment(previous, first, style.OutlineThickness, style.OutlineDashLength, style.OutlineDashGap, offset, style.OutlineColor, style.OutlineColor);
+    }
+
+    private void DrawLode()
+    {
+        MaterialPickup lode = null;
+        foreach (var p in mineralQueryBuffer)
+        {
+            if (p == null || p.Kind != PerceivableKind.Material) continue;
+            var m = GetMineralPickup(p);
+            if (m != null && m.IsLode) { lode = m; break; }
+        }
+        if (lode == null) return;
+
+        Vector3 center = lode.transform.position + Vector3.up * style.HeightOffset;
+        CueDrawer.DashedRing(center, style.LodeRadius, style.LodeThickness, style.LodeDashCount, 0.55f, Time.time * style.LodeSpinSpeed, style.LodeColor);
+        CueDrawer.Ring(center, style.LodeRadius * 0.5f, style.LodeThickness, style.LodeColor);
+    }
+
+    private void DrawSpawns()
+    {
+        foreach (var team in new[] { ExpeditionTeam.Player, ExpeditionTeam.Rival })
+        {
+            Vector3 center = sandbox.SpawnPoint(team) + Vector3.up * style.HeightOffset;
+            Color baseColor = team == ExpeditionTeam.Player ? style.FriendColor : style.FoeColor;
+
+            Color ringColor = baseColor;
+            ringColor.a *= style.SpawnAlpha;
+            CueDrawer.DashedRing(center, style.SpawnRadius, style.SpawnThickness, style.SpawnDashCount, style.RingDashRatio, Time.time * style.SpawnSpinSpeed, ringColor);
+
+            CueDrawer.Disc(center, style.SpawnRadius, baseColor, 0.08f, 0f);
+        }
+    }
+
+    private void DrawObstacles()
+    {
+        var placed = sandbox.PlacedObstacles;
+        if (placed == null || placed.Count == 0) return;
+
+        float offset = Time.time * style.OutlineScrollSpeed;
+
+        foreach (var obstacle in placed)
+        {
+            Vector3 center = new Vector3(obstacle.x, obstacle.y + style.HeightOffset, obstacle.z);
+            float radius = obstacle.w;
+            int dashCount = Mathf.Max(6, Mathf.RoundToInt(2f * Mathf.PI * radius / (style.ObstacleDashLength + style.ObstacleDashGap)));
+            float dashRatio = style.ObstacleDashLength / (style.ObstacleDashLength + style.ObstacleDashGap);
+            CueDrawer.DashedRing(center, radius, style.ObstacleThickness, dashCount, dashRatio, offset, style.OutlineColor);
         }
     }
 

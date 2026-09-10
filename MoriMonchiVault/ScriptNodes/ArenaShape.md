@@ -6,7 +6,7 @@ tags: [script, world, expedition, procedural, generation, spline]
 
 **Ruta:** `World/Expedition/ArenaShape.cs`
 
-**Responsabilidad:** Componente que define y construye la topografía completa de una sala de expedición usando splines. Gestiona contorno, regiones (rocas, lagos, pozos, bosques), entradas simétricas. Genera mallas de piso, acantilados, rocas, agua, decoración. S111: núcleo proceduralista que expone splines editables y delega pincelado a ArenaShapeBrush.
+**Responsabilidad:** Componente que define y construye la topografía completa de una sala de expedición usando splines. Gestiona contorno, regiones (rocas, lagos, pozos, bosques), entradas simétricas. Genera mallas de piso, acantilados, rocas, agua, decoración. S111: núcleo proceduralista que expone splines editables y delega pincelado a ArenaShapeBrush. S113: arena 40% más grande; topografía central con colisión invisible (faldon del acantilado).
 
 **Propiedades Públicas:**
 - `string DisplayName { get; }` — nombre de la sala
@@ -73,7 +73,7 @@ tags: [script, world, expedition, procedural, generation, spline]
 - OutlinePolygon CCW, RockPolygons CW (ej)
 - mallas tienen DontSave hideFlags
 
-**S111 Cambios:**
+**S111-S113 Cambios:**
 - Núcleo nuevo completo de topografía por splines
 - Expone públicamente polygons para ArenaShapeBrush.Contours()
 - Simetrización integrada (Symmetric toggle)
@@ -81,4 +81,4 @@ tags: [script, world, expedition, procedural, generation, spline]
 
 **Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
 
-**Conexiones:** [[ArenaShapeMesher]], [[ArenaShapeScatter]], [[ArenaShapeGizmos]], [[ArenaShapeBrush]], [[ArenaShapeDressing]], [[ArenaSandbox]], [[MaterialPickup]], [[NavMeshSurface]]
+**Conexiones:** [[ArenaShapeMesher]], [[ArenaShapeScatter]], [[ArenaShapeGizmos]], [[ArenaShapeBrush]], [[ArenaShapeDressing]], [[ArenaShapeShafts]], [[ArenaShapeSurround]], [[ArenaSandbox]], [[MaterialPickup]], [[NavMeshSurface]]

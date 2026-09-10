@@ -27,6 +27,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     private static readonly string[] EntryNames = { "diagonal", "diagonal inversa", "norte-sur", "este-oeste" };
 
     [Required, SerializeField] private NavMeshSurface surface;
+    [SerializeField] private ArenaLandmarks landmarks;
     [SerializeField] private GameObject staticObstacles;
     [SerializeField] private List<GameObject> staticDecor = new();
     [SerializeField] private List<GameObject> treePrefabs = new();
@@ -76,6 +77,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
 
     public IReadOnlyList<VeinSpot> Veins => veins_;
     public int ObstacleCount => obstaclePositions.Count;
+    public IReadOnlyList<Vector4> PlacedObstacles => landmarks != null ? landmarks.Placed : null;
     public bool IsBuilt => generatedRoot != null;
     public ArenaShape ActiveShape => activeShape;
     public Vector3 Center => activeShape != null ? activeShape.Center : transform.position;
@@ -163,11 +165,22 @@ public class ArenaLayoutBuilder : MonoBehaviour
         BuildObstacleSet(rng, center, rockPrefabs, rocks, rockScale);
         BuildDecor(rng, center, clusters);
 
+        int landmarksPlaced = 0;
+        if (landmarks != null)
+        {
+            var safePoints = new List<Vector3>
+            {
+                SpawnPoint(ExpeditionTeam.Player), SpawnPoint(ExpeditionTeam.Rival),
+                ExitPoint(ExpeditionTeam.Player), ExitPoint(ExpeditionTeam.Rival),
+            };
+            landmarksPlaced = landmarks.Place(rng, generatedRoot.transform, activeShape, center, edgeMargin, clearCenterRadius, safePoints, clearEntryRadius, obstaclePositions);
+        }
+
         surface.BuildNavMesh();
 
         BuildVeins(rng, filter, center, veins);
 
-        Debug.Log($"[ArenaLayoutBuilder] seed={seed} entrada={EntryName} obstáculos={obstaclePositions.Count} decorado={decorCenters.Count} vetas={veins_.Count} mirror={mirrorActive} forma={ShapeName}");
+        Debug.Log($"[ArenaLayoutBuilder] seed={seed} entrada={EntryName} obstáculos={obstaclePositions.Count} decorado={decorCenters.Count} vetas={veins_.Count} grandes={landmarksPlaced} mirror={mirrorActive} forma={ShapeName}");
     }
 
     public void Clear()

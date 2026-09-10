@@ -33,6 +33,13 @@ Shader "MoriMonchi/ArenaPalette"
             half _ShadowStrength;
         CBUFFER_END
 
+        float4 _ArenaFogCenter;
+        float4 _ArenaFogColor;
+        float _ArenaFogInner;
+        float _ArenaFogOuter;
+        float _ArenaFogStrength;
+        float _ArenaFogDim;
+
         TEXTURE2D(_BaseMap);
         SAMPLER(sampler_BaseMap);
         TEXTURE2D(_Ramp);
@@ -122,6 +129,17 @@ Shader "MoriMonchi/ArenaPalette"
                 half3 lighting = mainLight.color * ndl * shadow + ambient;
 
                 half3 color = albedo * lighting;
+
+                float dFog = distance(input.positionWS.xz, _ArenaFogCenter.xz);
+                float tFog = 0.0;
+                if (_ArenaFogOuter > _ArenaFogInner)
+                {
+                    tFog = saturate((dFog - _ArenaFogInner) / (_ArenaFogOuter - _ArenaFogInner));
+                    tFog = smoothstep(0.0, 1.0, tFog);
+                }
+                color *= lerp(1.0, 1.0 - _ArenaFogDim, tFog);
+                color = lerp(color, _ArenaFogColor.rgb, tFog * _ArenaFogStrength);
+
                 color = MixFog(color, input.fogFactor);
                 return half4(color, 1.0);
             }

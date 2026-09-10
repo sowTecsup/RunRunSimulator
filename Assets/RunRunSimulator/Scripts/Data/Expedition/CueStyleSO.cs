@@ -171,6 +171,27 @@ public class CueStyleSO : SerializedScriptableObject
     public float SocialLinkThickness = 0.05f;
     public float FightPulseSpeed = 6f;
 
+    [Title("Contorno y puntos")]
+    public Color OutlineColor = new Color(0.62f, 0.54f, 0.2f, 0.42f);
+    public float OutlineThickness = 0.32f;
+    public float OutlineDashLength = 1.6f;
+    public float OutlineDashGap = 1.1f;
+    public float OutlineScrollSpeed = 0.35f;
+    public int OutlineStride = 4;
+    public float ObstacleThickness = 0.26f;
+    public float ObstacleDashLength = 1.1f;
+    public float ObstacleDashGap = 0.8f;
+    public Color LodeColor = new Color(1f, 0.9f, 0.55f, 0.85f);
+    public float LodeRadius = 2.3f;
+    public float LodeThickness = 0.16f;
+    public int LodeDashCount = 18;
+    public float LodeSpinSpeed = 0.25f;
+    public float SpawnRadius = 1.9f;
+    public float SpawnThickness = 0.14f;
+    public int SpawnDashCount = 14;
+    public float SpawnSpinSpeed = -0.2f;
+    [Range(0f, 1f)] public float SpawnAlpha = 0.85f;
+
     public Color ColorFor(CreatureIntent intent) =>
         intentColors != null && intentColors.TryGetValue(intent, out var color) ? color : DefaultIntentColor;
 

@@ -37,7 +37,6 @@ public class ArenaShape : MonoBehaviour
 
     [Title("Materiales")]
     [SerializeField] private Material groundMaterial;
-    [SerializeField] private Material cliffMaterial;
     [SerializeField] private Material rockMaterial;
     [SerializeField] private Material lakeBedMaterial;
     [SerializeField] private Material waterMaterial;
@@ -483,7 +482,7 @@ public class ArenaShape : MonoBehaviour
         if (cliffHeight > 0f || cliffDepth > 0f)
         {
             var mesh = ArenaShapeMesher.Skirt(outlinePolygon, Center.y + cliffHeight, Center.y - cliffDepth, true, uvScale);
-            if (mesh != null) Piece("Cliff", generated.transform, mesh, cliffMaterial, true, true);
+            if (mesh != null) Piece("Cliff", generated.transform, mesh, null, true, true, false);
         }
 
         if (fenceHeight > 0f)
