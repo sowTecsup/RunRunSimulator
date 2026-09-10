@@ -11,3 +11,9 @@ Abri sesion de trabajo siguiendo el protocolo de CLAUDE.md (pasos 1-4):
    - Si no hay tarea, preguntame en que vamos a trabajar.
 3. Lee la nota Index del dominio y los ScriptNodes relevantes ANTES de abrir cualquier `.cs`.
 4. NO abras codigo `.cs` ni escribas todavia. Presentame el plan (paso 5 del protocolo) y espera mi confirmacion.
+
+**Tope del brief de plan: 150 palabras**, mas la lista numerada de decisiones que tomo yo. Ver `## Estilo de respuesta` en CLAUDE.md.
+
+- **Dentro**: la regla del cambio en una frase; los lotes por nombre y cual se corta si falta tiempo; que muta fuera de codigo y necesita mi OK; mis decisiones numeradas.
+- **Fuera**: la lista de notas y ScriptNodes que leiste; tablas de diseno completas; nombres de metodos, campos y archivos por lote; el estado previo (ya esta en contexto).
+- Cerrar con "el detalle sale a pedido". Si lo pido, ahi si desarrollas.

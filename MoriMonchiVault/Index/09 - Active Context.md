@@ -4,6 +4,33 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-10 (Session 112 — **DEPURACION DE CONSUMO DE TOKENS + REGLA DE CONCISION ✅ (sesion sin codigo: 0 scripts `.cs` tocados)**)
+
+**Focus:** Juan abrio pidiendo analizar el consumo: *"si uso fable 5.1 me dura 30 minutos de trabajo antes de llegar al limite de 5 horas y eso que tengo una cuenta max x5"*. Despues pidio que los briefs sean mas concretos. Metodo: parseo de 4 transcripts completos de `~/.claude/projects/` con scripts node en scratchpad.
+
+1. **Medicion (S111).** 304 min, 431 requests. Contexto: 63k al abrir → 678k de pico → 454k de promedio por request. Peso ~32 M in-eq: lectura de cache 18,9 M (59 %), escritura de cache 7,9 M (25 %), salida 5,1 M (16 %). Las otras 3 sesiones dan lo mismo (picos 605k-765k, 26-45 M de peso).
+
+2. **Diagnostico.** No hay un tool result gordo culpable. El costo es que el contexto llega a 678k y **cada uno de los 431 requests lo relee entero** (431 × 454k = 189 M de tokens leidos). Con la ventana de 1 M el auto-compact no se dispara nunca en una sesion de 5 horas.
+
+3. **Palancas medidas, NO aplicadas** (quedan disponibles, son decision de Juan):
+   - **Hook `session-start.ps1`**: inyecta el Active Context entero (245 KB ≈ 61k tokens, el 97 % de la linea base) desde el turno cero. Recortarlo a las 2 sesiones mas recientes lo baja a 40 KB, **-83,6 %** (probado y revertido). El archivo tiene 23 sesiones S89-S111: las 2 ultimas son 38 KB, las otras 21 son 207 KB. Ya existe el patron de archivo historico en `09b - Session Digest (S8-S88).md`, sin uso desde S88.
+   - **Bug de encoding en el hook**: lee sin `-Encoding UTF8`, asi que hoy inyecta el Active Context con los acentos rotos.
+   - **Imagenes**: cada captura queda fija en contexto ~1.100 tokens y se relee para siempre. S111 metio 19 de `manage_camera`; la sesion del 09-09 leyo 54 (= 59k tokens permanentes, 9 % del pico).
+   - **Bash**: aporto 177k tokens, el 36,8 % de todo lo que entro al contexto. Un solo Grep sin `head_limit` metio 44,5k de una.
+   - **`effortLevel`** xhigh/high da 2.349 tokens de salida por request (16 % del peso). Bajarlo cuesta calidad.
+   - **`/compact` manual** pasa a ser responsabilidad de Juan: con la ventana de 1 M el automatico no salta.
+   - Los sub-agentes ya funcionan bien: 17 llamadas a Agent devolvieron 5k tokens en total. Extender ese patron a las lecturas grandes.
+
+4. **Incidente + regla nueva.** Aplique por mi cuenta el saque del `[1m]` de `~/.claude/settings.json` y el recorte del hook. Juan corto: *"no actues por tu cuenta no quites el 1m de contexto tendre mas cuidado"*. **Todo revertido**, `git status` limpio. Memoria `feedback_no_tocar_config_sin_permiso.md`: analizar ≠ ejecutar; `settings.json`, hooks y config del harness solo con OK explicito. **El `[1m]` se queda** — Juan prefiere cuidar el consumo con disciplina antes que perder la ventana larga.
+
+5. **Regla de concision (APLICADA).** Medidos 134 mensajes visibles de 3 sesiones: mediana 31 palabras, pero **8 mensajes (6 %) pasan de 400 y se llevan el 42 % de todo el texto**. Los peores: apertura de S111 (1.083 pal) y tres briefs de plan (816, 717, 673). Lo que sobraba en el de 1.083: los 19 ScriptNodes enumerados, dos tablas de diseno completas, nombres de metodos y campos por lote, y el estado previo que el hook ya habia inyectado; lo unico necesario eran las 4 decisiones del final. **Tope acordado: 150 palabras** para brief de plan y reporte de cierre, mas las decisiones de Juan numeradas. Aplicado en 3 lugares elegidos por Juan: paso 4 de `abrir-sesion.md`, paso 6 de `cerrar-sesion.md`, y seccion `## Estilo de respuesta` en `CLAUDE.md` (linea 32, gobierna tambien a los sub-agentes cuando reportan). Memoria `feedback_brief_conciso_150.md`.
+
+**Siguiente paso:** el test real es la proxima apertura de sesion — si el brief todavia se siente largo, el tope baja de 150. Las palancas del punto 3 quedan sin aplicar, disponibles cuando Juan las autorice.
+
+**Archivos `.cs` modificados/creados:** NINGUNO (sesion sin codigo, vault-documenter omitido por protocolo).
+
+**Otros archivos tocados:** `CLAUDE.md` (MODIFICADO — seccion nueva `## Estilo de respuesta`), `.claude/commands/abrir-sesion.md` (MODIFICADO — tope en paso 4), `.claude/commands/cerrar-sesion.md` (MODIFICADO — tope en paso 6). Fuera del repo: `memory/feedback_no_tocar_config_sin_permiso.md` (NUEVO), `memory/feedback_brief_conciso_150.md` (NUEVO), `memory/MEMORY.md` (2 punteros).
+
 **Session:** 2026-09-10 (Session 111 — **LAYOUT DE ARENA POR SPLINES ✅ + PINCEL DE SALA Y MANCHAS POR SEMILLA ✅ + MAR ALREDEDOR ✅ + VESTIDO NATURAL (árboles y boulders en la curva, pasto y acentos) ✅ (formas autoradas con `com.unity.splines`, media orilla que se completa por simetría, regiones roca/lago/pozo/bosque, acantilado y pasto de borde; después, por feedback de Juan y el video de `referencias/`: pincel de Scene view con máscara y marching squares, manchas orgánicas por semilla con `proceduralBySeed`, shader de agua con espuma por profundidad y slot `Water` de paleta) — 8 scripts NUEVOS + 8 MODIFICADOS + shader + 5 materiales + 5 prefabs + escena; verificado en Play (reloj, cruz, cuadrado, mancha vestida); ✅ CERRADA por `/cerrar-sesion` (vault-documenter + commit + push)**)
 
 **Focus:** Juan abrió pidiendo "una implementación nueva en el sandbox". Presenté el plan de la **tercera opción por pilar** (queda mapeado y pendiente, nota 9) y Juan redirigió: *"mejorar el layout de la arena, hoy es un cuadrado; un sistema en base a splines para tener un terreno irregular que se vaya generando y autocompletando a medida que juego con las splines"*, con obstáculos de entorno (árboles, arbustos, lagos, pozos) que los MoriMonchis esquiven; él hace theorycrafting de comportamientos en paralelo. Siete coders `morimonchi-coder` (mesher, forma, builder, sandbox; luego refactor por composición, HUD, panel). Materiales, prefabs y escena por MCP (`execute_code` + `manage_scene save`). PC1, MCP de CoplayDev vivo toda la sesión (tres entradas a Play, dos recompilaciones).

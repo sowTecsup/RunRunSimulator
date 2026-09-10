@@ -29,6 +29,33 @@
 
 ---
 
+## Estilo de respuesta (NO NEGOCIABLE)
+
+> **El brief dice que se va a hacer y que decide Juan. El detalle vive en el vault y sale a pedido.**
+
+Medido en S112 sobre 134 mensajes: la mediana es 31 palabras, pero 8 mensajes (6 %) pasan de 400 y se llevan el 42 % de todo el texto. Son siempre aperturas de sesion y briefs de plan.
+
+| Mensaje | Tope |
+|---------|------|
+| Resumen de estado al abrir | 3-4 lineas |
+| Brief de plan | **150 palabras** + decisiones de Juan numeradas |
+| Reporte de cierre o entrega | 150 palabras |
+| Update de progreso mientras trabajo | 1-2 lineas |
+
+**Fuera del brief, siempre** (es proceso, no informacion):
+
+- La lista de archivos leidos (`Index/XX`, ScriptNodes, `.cs`). Que los lei se da por hecho.
+- Tablas de diseno completas. Va la regla en una frase; la tabla solo a pedido.
+- Nombres de metodos, campos y archivos internos por lote. Juan aprueba el plan, no la plomeria.
+- Repetir el estado previo: el hook SessionStart ya lo inyecto.
+- Justificar por que el plan es bueno. Se afirma y listo.
+
+**Dentro del brief, siempre**: la regla del cambio en una frase; los lotes por nombre y cual se corta si falta tiempo; que muta fuera de codigo y necesita OK; las decisiones de Juan numeradas.
+
+Cerrar con "el detalle sale a pedido" en vez de adelantarlo. Aplica igual a los sub-agentes cuando reportan.
+
+---
+
 ## Proyecto
 
 Simulador de tienda retro 3D (80s). Cria/pelea MoriMonchis (Gremlins + Furby + Tamagotchi) con genetica visible, muerte permanente y combate async server-side.
