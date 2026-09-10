@@ -80,11 +80,20 @@ public enum ArenaPaletteSlot
     Trunk   = 3,
     Rock    = 4,
     Wall    = 5,
+    Water   = 6,
 }
 
 public static class ExpeditionTeams
 {
     public static bool AreRivals(ExpeditionTeam a, ExpeditionTeam b) => a != ExpeditionTeam.None && b != ExpeditionTeam.None && a != b;
     public static bool AreAllies(ExpeditionTeam a, ExpeditionTeam b) => a != ExpeditionTeam.None && a == b;
+}
+
+public enum ArenaRegionKind
+{
+    Rock  = 0,
+    Lake  = 1,
+    Pit   = 2,
+    Grove = 3,
 }
 }

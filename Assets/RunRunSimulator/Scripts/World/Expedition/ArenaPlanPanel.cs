@@ -272,7 +272,8 @@ public class ArenaPlanPanel : MonoBehaviour
             if (entry.Team == ExpeditionTeam.Player && entry.Dna != null) orders.Add(entry.Orders);
 
         string plan = ArenaOrderCatalog.TeamPlanName(orders);
-        string room = $"sala {sandbox.ActiveSeed}  ·  {sandbox.PaletteName}  ·  entrada {sandbox.EntryName}";
+        string shape = string.IsNullOrEmpty(sandbox.ShapeName) ? "" : $"  ·  {sandbox.ShapeName}";
+        string room = $"sala {sandbox.ActiveSeed}{shape}  ·  {sandbox.PaletteName}  ·  entrada {sandbox.EntryName}";
         string read = ArenaOrderCatalog.RoomText(sandbox.ReadRoom(ExpeditionTeam.Player));
         roomLabel.text = room + System.Environment.NewLine + read + (plan.Length > 0 ? System.Environment.NewLine + "Tu plan: " + plan : "");
     }

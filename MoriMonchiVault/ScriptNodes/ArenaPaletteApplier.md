@@ -6,11 +6,12 @@ tags: [script, world, expedition, graphics, material]
 
 **Ruta:** `World/Expedition/ArenaPaletteApplier.cs`
 
-**Responsabilidad:** Gestor de paletas de arena que compila rampas a texturas y remapea materiales de la escena vía substitución de paleta. Instancia materiales por original (cacheo), clasifica renderer materials por nombre, aplica sol/ambient/fog/cielo. Llamado desde ArenaSandbox.ApplyPalette().
+**Responsabilidad:** Gestor de paletas de arena que compila rampas a texturas y remapea materiales de la escena vía substitución de paleta. Instancia materiales por original (cacheo), clasifica renderer materials por nombre, aplica sol/ambient/fog/cielo. **S111:** soporte para material de agua (waterMaterial, slot Water). Llamado desde ArenaSandbox.ApplyPalette().
 
 ## Campos Serializados
 
 - `paletteMaterial` (Material, Required) — material plantilla "ArenaPalette.mat" con slots _Ramp, _BaseMap, etc.
+- **S111:** `waterMaterial` (Material) — material especial para agua (no usa _BaseMap, solo _Ramp)
 - `palettes` (List<ArenaPaletteSO>) — lista de assets de paleta (pradera, desierto, etc.)
 - `roots` (List<GameObject>) — gameobjects con Renderers a remapear
 - `sun` (Light) — foco directional (recibe SunColor/Intensity de paleta)
@@ -29,14 +30,14 @@ tags: [script, world, expedition, graphics, material]
 - `ApplyIndex(int index) → void` — normaliza index al rango, aplica paleta[index]
 - `Apply(ArenaPaletteSO palette) → void` — aplica paleta:
   1. Guarda Current = palette
-  2. BuildRamps(palette) — compila rampas a Texture2D 256x1
+  2. BuildRamps(palette) — compila rampas a Texture2D 256x1 (incluyendo Water en S111)
   3. Itera roots → Renderers → Remap(renderer)
   4. ApplyEnvironment(palette) — RenderSettings + Sun + Sky
 
 ## Flujo Privado
 
 **BuildRamps(palette):**
-- Por cada ArenaPaletteSlot (6 totales):
+- Por cada ArenaPaletteSlot (7 totales en S111: Ground, Grass, Foliage, Trunk, Rock, Wall, Water):
   - Crea o reutiliza Texture2D(256, 1, RGBA32, mipChain=false)
   - Llena 256 píxeles: `texture.SetPixel(x, ramp.Evaluate(x/255))`
   - Apply(false, false) → GPU
@@ -48,37 +49,39 @@ tags: [script, world, expedition, graphics, material]
   - GetInstance(original, slot) → crea/cachea material instancia
   - Reemplaza en sharedMaterials
 
-**GetInstance(original, slot):**
-- Si no está cached:
-  1. new Material(paletteMaterial) + nombre + slot
-  2. FindBaseMap(original) → busca _BaseMap, _Main_Texture, _Albedo_Map, _MainTex, _Texture
-  3. Copia baseMap + scale/offset a la instancia
-  4. Copia _AlphaClip, _Cutoff, _Cull, habilita keywords si aplica
-  5. SetFloat(WindStrengthID) según foliageWind/grassWind
+**GetInstance(original, slot) (S111):**
+- **Si Water y waterMaterial exists:** new Material(waterMaterial)
+- **Sino:** new Material(paletteMaterial)
+  - FindBaseMap(original) → busca _BaseMap, _Main_Texture, _Albedo_Map, _MainTex, _Texture
+  - Copia baseMap + scale/offset
+  - Copia _AlphaClip, _Cutoff, _Cull, keywords
+  - SetFloat(WindStrengthID) según foliageWind/grassWind
 - SetTexture(_Ramp, ramps[slot])
 - Retorna instancia
 
-**TryClassify(material) → (bool, ArenaPaletteSlot):**
+**TryClassify(material) → (bool, ArenaPaletteSlot) (S111):**
 - Busca substrings en material.name:
   - "Trunk" → Trunk
   - "Leaves"/"Tree"/"Plants" → Foliage
   - "Moss"/"Rock"/"Pebble"/"PolygonNature_0" → Rock
   - "Generic_0"/"Grass"/"Flower" → Grass
+  - **S111:** "ArenaWater"/"ArenaSea" → Water
   - "ArenaGround"/"ArenaOutskirts" → Ground
   - "ArenaWall" → Wall
-  - (else) → Ground, retorna false (no clasificado)
+  - (else) → Ground, retorna false
 
 **ApplyEnvironment(palette):**
 - Sun: color + intensity
 - RenderSettings: AmbientMode.Flat, ambientLight, fog=exponentialSquared, fogColor, fogDensity
 - SkyCamera (si existe): clearFlags=SolidColor, backgroundColor
 
-## Invariantes S102
+## Invariantes S102+S111
 
 - **Cacheo por original:** cada material original → una instancia per slot
 - **Rampas 256x1:** evaluadas en Evaluate() para suavidad
 - **Clasificación por nombre:** fallback a Ground si no coincide
 - **Wind per slot:** solo foliage y grass tienen viento
+- **Water slot (S111):** usa waterMaterial si existe, sino paletteMaterial (fallback)
 - **Clonación lazy:** materiales instancia se crean bajo demanda
 - **Cleanup en Destroy():** limpia rampas y materials instancia
 
@@ -87,8 +90,8 @@ tags: [script, world, expedition, graphics, material]
 - [[ArenaPaletteSO]] (lee paletas y rampas)
 - [[ArenaSandbox]] (llama ApplyIndex/ApplySeed en BuildRoom)
 - [[WorldEnums]] (ArenaPaletteSlot enum)
-- [[ArenaPalette.mat]] (template material Synty)
+- [[ArenaPalette.mat]], [[ArenaPaletteWater.mat]] (template materials)
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+[[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]

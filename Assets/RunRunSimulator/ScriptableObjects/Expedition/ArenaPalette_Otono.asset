@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaPaletteSO
   serializationData:
     SerializedFormat: 2
-    SerializedBytes:
+    SerializedBytes: 
     ReferencedUnityObjects: []
-    SerializedBytesString:
+    SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  DisplayName: "Otoño"
+  DisplayName: "Oto\xF1o"
   Ground:
     Dark: {r: 0.35, g: 0.25, b: 0.12, a: 1}
     Mid: {r: 0.62, g: 0.45, b: 0.2, a: 1}
@@ -46,6 +46,10 @@ MonoBehaviour:
     Dark: {r: 0.2, g: 0.14, b: 0.1, a: 1}
     Mid: {r: 0.32, g: 0.24, b: 0.17, a: 1}
     Light: {r: 0.48, g: 0.38, b: 0.28, a: 1}
+  Water:
+    Dark: {r: 0.1, g: 0.22, b: 0.24, a: 1}
+    Mid: {r: 0.24, g: 0.48, b: 0.46, a: 1}
+    Light: {r: 0.9, g: 0.93, b: 0.82, a: 1}
   SunColor: {r: 1, g: 0.85, b: 0.65, a: 1}
   SunIntensity: 1.2
   AmbientColor: {r: 0.5, g: 0.4, b: 0.35, a: 1}

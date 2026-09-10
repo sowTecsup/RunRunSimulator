@@ -6,7 +6,7 @@ tags: [script, data, scriptableobject, expedition, palette]
 
 **Ruta:** `Data/Expedition/ArenaPaletteSO.cs`
 
-**Responsabilidad:** Asset ScriptableObject que define una paleta de color para una escena de arena. Contiene rampas de colores (Dark/Mid/Light) por tipo de material (Ground, Grass, Foliage, Trunk, Rock, Wall) y tuning de iluminación/ambiente/fog/cielo. Serializado vía Odin para edición en Inspector.
+**Responsabilidad:** Asset ScriptableObject que define una paleta de color para una escena de arena. Contiene rampas de colores (Dark/Mid/Light) por tipo de material (Ground, Grass, Foliage, Trunk, Rock, Wall, **S111:** Water) y tuning de iluminación/ambiente/fog/cielo. Serializado vía Odin para edición en Inspector.
 
 ## Struct Ramp
 
@@ -28,13 +28,14 @@ Ramp es una rampa tricolor suavizada: `t < 0.5 ? Lerp(Dark, Mid, t*2) : Lerp(Mid
 **Identidad:**
 - `DisplayName` (string, default "Pradera") — nombre legible en UI
 
-**Rampas por slot de material (6 total):**
+**Rampas por slot de material (7 total en S111):**
 - `Ground` — suelo principal (verde terroso)
 - `Grass` — pasto (verde claro)
 - `Foliage` — follaje/arbustos (verde oscuro)
 - `Trunk` — tronco de árbol (marrón)
 - `Rock` — roca/piedra (gris)
 - `Wall` — muro/pared (gris oscuro)
+- **S111:** `Water` — agua (azul océano) con Dark/Mid/Light
 
 Cada ramp está pre-cargada con colores específicos por escena (pradera, desierto, etc.).
 
@@ -55,11 +56,12 @@ Cada ramp está pre-cargada con colores específicos por escena (pradera, desier
   - Trunk → Trunk
   - Rock → Rock
   - Wall → Wall
+  - **S111:** Water → Water
   - (default) → Ground
 
-## Invariantes S102
+## Invariantes S102+S111
 
-- **6 slots de material:** correspondencia 1:1 con enum ArenaPaletteSlot
+- **7 slots de material:** correspondencia 1:1 con enum ArenaPaletteSlot (+ Water)
 - **Colores precargados:** valores RGB editables en Inspector (no procedurales)
 - **Luz global:** Sun, Ambient, Fog, Sky afectan RenderSettings (aplicado por ArenaPaletteApplier)
 - **No instancia:** es un asset de data, no prefab
@@ -72,4 +74,4 @@ Cada ramp está pre-cargada con colores específicos por escena (pradera, desier
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+[[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]

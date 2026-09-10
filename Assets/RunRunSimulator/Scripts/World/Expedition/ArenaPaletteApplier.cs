@@ -16,6 +16,7 @@ public class ArenaPaletteApplier : MonoBehaviour
     private static readonly int CullID = Shader.PropertyToID("_Cull");
 
     [Required, SerializeField] private Material paletteMaterial;
+    [SerializeField] private Material waterMaterial;
     [SerializeField] private List<ArenaPaletteSO> palettes = new();
     [SerializeField] private List<GameObject> roots = new();
     [SerializeField] private Light sun;
@@ -114,33 +115,42 @@ public class ArenaPaletteApplier : MonoBehaviour
 
     private Material GetInstance(Material original, ArenaPaletteSlot slot)
     {
+        if (slot == ArenaPaletteSlot.Water && waterMaterial == null) return original;
+
         if (!instanceByOriginal.TryGetValue(original, out var instance) || instance == null)
         {
-            instance = new Material(paletteMaterial) { name = original.name + "_Palette" };
-
-            var baseMap = FindBaseMap(original, out string propertyName);
-            if (baseMap != null)
+            if (slot == ArenaPaletteSlot.Water)
             {
-                instance.SetTexture(BaseMapID, baseMap);
-                instance.SetTextureScale(BaseMapID, original.GetTextureScale(propertyName));
-                instance.SetTextureOffset(BaseMapID, original.GetTextureOffset(propertyName));
+                instance = new Material(waterMaterial) { name = original.name + "_Palette" };
             }
+            else
+            {
+                instance = new Material(paletteMaterial) { name = original.name + "_Palette" };
 
-            bool clip = original.HasProperty("_AlphaClip") && original.GetFloat("_AlphaClip") > 0.5f;
-            instance.SetFloat(AlphaClipID, clip ? 1f : 0f);
-            if (clip) instance.EnableKeyword("_ALPHACLIP_ON");
-            else instance.DisableKeyword("_ALPHACLIP_ON");
+                var baseMap = FindBaseMap(original, out string propertyName);
+                if (baseMap != null)
+                {
+                    instance.SetTexture(BaseMapID, baseMap);
+                    instance.SetTextureScale(BaseMapID, original.GetTextureScale(propertyName));
+                    instance.SetTextureOffset(BaseMapID, original.GetTextureOffset(propertyName));
+                }
 
-            float cutoff = original.HasProperty("_Cutoff") ? original.GetFloat("_Cutoff")
-                : original.HasProperty("_Alpha_Clip_Threshold") ? original.GetFloat("_Alpha_Clip_Threshold")
-                : 0.5f;
-            instance.SetFloat(CutoffID, cutoff);
+                bool clip = original.HasProperty("_AlphaClip") && original.GetFloat("_AlphaClip") > 0.5f;
+                instance.SetFloat(AlphaClipID, clip ? 1f : 0f);
+                if (clip) instance.EnableKeyword("_ALPHACLIP_ON");
+                else instance.DisableKeyword("_ALPHACLIP_ON");
 
-            float wind = slot == ArenaPaletteSlot.Foliage ? foliageWind : slot == ArenaPaletteSlot.Grass ? grassWind : 0f;
-            instance.SetFloat(WindStrengthID, wind);
+                float cutoff = original.HasProperty("_Cutoff") ? original.GetFloat("_Cutoff")
+                    : original.HasProperty("_Alpha_Clip_Threshold") ? original.GetFloat("_Alpha_Clip_Threshold")
+                    : 0.5f;
+                instance.SetFloat(CutoffID, cutoff);
 
-            float cull = original.HasProperty("_Cull") ? original.GetFloat("_Cull") : (float)CullMode.Back;
-            instance.SetFloat(CullID, cull);
+                float wind = slot == ArenaPaletteSlot.Foliage ? foliageWind : slot == ArenaPaletteSlot.Grass ? grassWind : 0f;
+                instance.SetFloat(WindStrengthID, wind);
+
+                float cull = original.HasProperty("_Cull") ? original.GetFloat("_Cull") : (float)CullMode.Back;
+                instance.SetFloat(CullID, cull);
+            }
 
             instanceByOriginal[original] = instance;
             originalByInstance[instance] = original;
@@ -173,6 +183,7 @@ public class ArenaPaletteApplier : MonoBehaviour
         else if (n.Contains("Leaves") || n.Contains("Tree") || n.Contains("Plants")) slot = ArenaPaletteSlot.Foliage;
         else if (n.Contains("Moss") || n.Contains("Rock") || n.Contains("Pebble") || n.StartsWith("PolygonNature_0")) slot = ArenaPaletteSlot.Rock;
         else if (n.StartsWith("Generic_0") || n.Contains("Grass") || n.Contains("Flower")) slot = ArenaPaletteSlot.Grass;
+        else if (n.Contains("ArenaWater") || n.Contains("ArenaSea")) slot = ArenaPaletteSlot.Water;
         else if (n == "ArenaGround" || n == "ArenaOutskirts") slot = ArenaPaletteSlot.Ground;
         else if (n == "ArenaWall") slot = ArenaPaletteSlot.Wall;
         else

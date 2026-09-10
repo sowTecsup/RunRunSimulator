@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ArenaPaletteSO
   serializationData:
     SerializedFormat: 2
-    SerializedBytes:
+    SerializedBytes: 
     ReferencedUnityObjects: []
-    SerializedBytesString:
+    SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes: []
-  DisplayName: "Crepúsculo"
+  DisplayName: "Crep\xFAsculo"
   Ground:
     Dark: {r: 0.12, g: 0.08, b: 0.25, a: 1}
     Mid: {r: 0.28, g: 0.18, b: 0.45, a: 1}
@@ -46,6 +46,10 @@ MonoBehaviour:
     Dark: {r: 0.08, g: 0.06, b: 0.14, a: 1}
     Mid: {r: 0.16, g: 0.12, b: 0.24, a: 1}
     Light: {r: 0.28, g: 0.22, b: 0.36, a: 1}
+  Water:
+    Dark: {r: 0.16, g: 0.06, b: 0.32, a: 1}
+    Mid: {r: 0.42, g: 0.22, b: 0.62, a: 1}
+    Light: {r: 0.95, g: 0.78, b: 0.95, a: 1}
   SunColor: {r: 0.95, g: 0.65, b: 0.8, a: 1}
   SunIntensity: 0.95
   AmbientColor: {r: 0.3, g: 0.25, b: 0.45, a: 1}

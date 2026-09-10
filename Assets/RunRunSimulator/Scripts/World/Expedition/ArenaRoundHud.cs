@@ -120,7 +120,7 @@ public class ArenaRoundHud : MonoBehaviour
     private void RefreshSeed()
     {
         var sandbox = round.Sandbox;
-        string seedText = sandbox != null ? "sala " + sandbox.ActiveSeed + (ArenaClockControl.Speed != 1f ? "  ·  " + ArenaClockControl.Speed + "×" : "") : "";
+        string seedText = sandbox != null ? "sala " + sandbox.ActiveSeed + (!string.IsNullOrEmpty(sandbox.ShapeName) ? "  ·  " + sandbox.ShapeName : "") + (ArenaClockControl.Speed != 1f ? "  ·  " + ArenaClockControl.Speed + "×" : "") : "";
         if (seedText == lastSeedText) return;
         seedLabel.text = seedText;
         lastSeedText = seedText;

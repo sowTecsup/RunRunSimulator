@@ -34,6 +34,7 @@ public class ArenaPaletteSO : SerializedScriptableObject
     public Ramp Trunk = new Ramp(new Color(0.25f, 0.16f, 0.1f), new Color(0.45f, 0.3f, 0.18f), new Color(0.65f, 0.5f, 0.35f));
     public Ramp Rock = new Ramp(new Color(0.3f, 0.32f, 0.34f), new Color(0.55f, 0.56f, 0.55f), new Color(0.8f, 0.8f, 0.76f));
     public Ramp Wall = new Ramp(new Color(0.2f, 0.17f, 0.14f), new Color(0.3f, 0.26f, 0.22f), new Color(0.45f, 0.4f, 0.34f));
+    public Ramp Water = new Ramp(new Color(0.08f, 0.22f, 0.42f), new Color(0.2f, 0.5f, 0.75f), new Color(0.85f, 0.95f, 1f));
 
     [Title("Luz y aire")]
     public Color SunColor = new Color(1f, 0.96f, 0.88f);
@@ -52,6 +53,7 @@ public class ArenaPaletteSO : SerializedScriptableObject
             case ArenaPaletteSlot.Trunk: return Trunk;
             case ArenaPaletteSlot.Rock: return Rock;
             case ArenaPaletteSlot.Wall: return Wall;
+            case ArenaPaletteSlot.Water: return Water;
             default: return Ground;
         }
     }

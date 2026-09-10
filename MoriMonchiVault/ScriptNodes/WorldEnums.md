@@ -6,7 +6,7 @@ tags: [enum, world, arena, expedition]
 
 **Ruta:** `Core/Enums/WorldEnums.cs`
 
-**Responsabilidad:** Enumeraciones para topografía, percepciones, expedición y arena. Contiene tipos base (WorldArea, PerceivableKind, ExpeditionTeam), ocupaciones (Occupation), arena (ArenaCastMode, ArenaSite, ArenaPaletteSlot), y **órdenes arena (S104 NUEVO: LootChoice, ContactChoice, PostureChoice, OrderPillar)**.
+**Responsabilidad:** Enumeraciones para topografía, percepciones, expedición y arena. Contiene tipos base (WorldArea, PerceivableKind, ExpeditionTeam), ocupaciones (Occupation), arena (ArenaCastMode, ArenaSite, ArenaPaletteSlot), órdenes arena (S104: LootChoice, ContactChoice, PostureChoice, OrderPillar), **S111:** ArenaRegionKind (regiones de topografía).
 
 ## Enumeraciones Base
 
@@ -31,13 +31,13 @@ public enum Occupation
 ```
 
 Estrategias de expedición — derivadas de ArenaOrders por ArenaOrderRules.ToOccupation() (S104):
-- **Gather:** Noticing → Moving → Mining → Returning → Securing. Acumula material. Contact=Flee u ordenado Proteger.
+- **Gather:** Noticing → Moving → Mining → Returning. Acumula material. Contact=Flee u ordenado Proteger.
 - **Guard:** Guarding. Se planta en MaterialPickup, persigue provocadores.
 - **Break:** Hunting. Persigue recolectores desprotegidos; se retira si golpeado.
 - **Decoy:** Decoying (Approach → Taunt → Flee). Provoca rivales. Cooldown 4s.
-- **Explore:** Traveling → Reporting. Navega vetas y reporta al pizarrón. Fallback a Gather.
+- **Explore:** Traveling → Reporting. Navega vetas y reporta. Fallback a Gather.
 
-## Órdenes de Arena (S104 NUEVO)
+## Órdenes de Arena (S104)
 
 ```csharp
 public enum LootChoice
@@ -79,17 +79,17 @@ public enum OrderPillar
 - Sociability <= LonerAggressiveLock (0.35) → fuerza Posture=Aggressive
 
 **Lectura de Rival:**
-- Si dos pilares bloqueados → "Guardián seguro" (ej)
+- Si dos pilares bloqueados → "Guardián seguro"
 - Si uno → "puede ser guardián o cazador"
 - Sino → "puede hacer cualquiera"
 
-## Arena (S102)
+## Arena (S102+S111)
 
 ```csharp
 public enum ArenaCastMode
 {
-    Roster   = 0,  // elenco desde ArenaRosterSO (predefinido)
-    LocalSave = 1, // elenco desde archivo creature_database*.json local
+    Roster    = 0,  // elenco desde ArenaRosterSO (predefinido)
+    LocalSave = 1,  // elenco desde archivo creature_database*.json local
 }
 
 public enum ArenaSite
@@ -107,12 +107,23 @@ public enum ArenaPaletteSlot
     Trunk   = 3,  // tronco de árbol
     Rock    = 4,  // roca/piedra
     Wall    = 5,  // muro/pared
+    Water   = 6,  // agua (S111 NUEVO)
+}
+
+// S111 NUEVO: regiones de topografía procedurales
+public enum ArenaRegionKind
+{
+    Rock  = 0,  // rocas altas
+    Lake  = 1,  // lagos (agua baja)
+    Pit   = 2,  // pozos (hoyos profundos)
+    Grove = 3,  // bosques (árboles/decoración)
 }
 ```
 
 **ArenaCastMode:** determina fuente de DNA (predefinido vs guardado)
 **ArenaSite:** estrategia espacial de recolecta (distribución de objetivos)
-**ArenaPaletteSlot:** 1:1 con Ramp en ArenaPaletteSO (6 valores)
+**ArenaPaletteSlot:** 1:1 con Ramp en ArenaPaletteSO (7 valores en S111, añadido Water=6)
+**ArenaRegionKind (S111):** tipo de región proceduralista (usado por ArenaShape.WriteRegions, ArenaShapeBrush.Regenerate)
 
 ## Helpers
 
@@ -132,12 +143,14 @@ public static class ExpeditionTeams
 - ExpeditionNav.FindPrey/FindDecoyTarget para filtrar por team
 - ArenaCueOverlay.DrawPercepts() para colorear percepciones
 
-## Invariantes S104
+## Invariantes S104+S111
 
 - **Órdenes:** encapsulan estrategia en 3 pilares; clampeadas por DNA si personalidad extrema
 - **Ocupación derivada:** ArenaOrderRules.ToOccupation(orders) es autoridad única
 - **Bloqueos:** no revocables (DNA > orden del jugador)
 - **Determinismo:** mismas órdenes + DNA = mismo comportamiento en expedición
+- **Paleta Water (S111):** slot 6 dedicado (ArenaPaletteApplier detecta "ArenaWater"/"ArenaSea")
+- **Regiones (S111):** cuatro tipos de geometría proceduralista (rocas, lagos, pozos, bosques)
 
 ## Vinculado a
 
@@ -148,6 +161,8 @@ public static class ExpeditionTeams
 - [[ArenaOrders]], [[ArenaOrderRules]], [[ArenaOrderCatalog]] — órdenes
 - [[AgentExpedition]], [[AgentContext]], [[MoriMochiAgent]] — derivación y consulta
 - [[ArenaCastPlanner]] — ArenaCastMode, ArenaSite
-- [[ArenaPaletteSO]] — ArenaPaletteSlot
+- [[ArenaPaletteSO]] — ArenaPaletteSlot (incluyendo Water en S111)
+- [[ArenaPaletteApplier]] — clasificación por nombre y rampas (S111: Water)
 - [[ExitZone]] — ExpeditionTeam
 - [[ArenaCueOverlay]] — ExpeditionTeam para coloreado
+- [[ArenaShape]], [[ArenaShapeBrush]] — ArenaRegionKind (S111)

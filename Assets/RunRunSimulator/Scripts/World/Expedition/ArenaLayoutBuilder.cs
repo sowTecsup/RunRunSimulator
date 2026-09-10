@@ -42,6 +42,11 @@ public class ArenaLayoutBuilder : MonoBehaviour
     [SerializeField, Min(0.5f)] private float decorClusterRadius = 2.2f;
     [SerializeField] private bool mirror = true;
 
+    [Title("Forma de la sala")]
+    [SerializeField] private List<ArenaShape> shapes = new();
+    [SerializeField] private int shapeIndex = -1;
+    [SerializeField] private GameObject legacySquare;
+
     [Title("Geometría")]
     [SerializeField, Min(1f)] private float arenaHalfSize = 20f;
     [SerializeField, Min(0f)] private float edgeMargin = 2.5f;
@@ -65,16 +70,39 @@ public class ArenaLayoutBuilder : MonoBehaviour
     private readonly List<Vector3> decorCenters = new();
     private GameObject generatedRoot;
     private int entryAxis;
+    private ArenaShape activeShape;
+    private int entryPair;
+    private bool mirrorActive;
 
     public IReadOnlyList<VeinSpot> Veins => veins_;
     public int ObstacleCount => obstaclePositions.Count;
     public bool IsBuilt => generatedRoot != null;
-    public Vector3 EntryDirection => EntryAxes[entryAxis];
-    public string EntryName => EntryNames[entryAxis];
+    public ArenaShape ActiveShape => activeShape;
+    public Vector3 Center => activeShape != null ? activeShape.Center : transform.position;
+    public string ShapeName => activeShape != null ? activeShape.DisplayName : "cuadrado";
+
+    public Vector3 EntryDirection => activeShape != null
+        ? DirectionToAnchor(activeShape.EntryPoint(entryPair, ExpeditionTeam.Rival))
+        : EntryAxes[entryAxis];
+
+    public string EntryName => activeShape != null ? activeShape.EntryName(entryPair) : EntryNames[entryAxis];
     private float EntryScale => 1f / Mathf.Max(Mathf.Abs(EntryDirection.x), Mathf.Abs(EntryDirection.z));
+
+    private Vector3 DirectionToAnchor(Vector3 anchor)
+    {
+        Vector3 dir = anchor - Center;
+        dir.y = 0f;
+        return dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector3.forward;
+    }
 
     public Vector3 EntryPoint(ExpeditionTeam team, float insetFromBorder)
     {
+        if (activeShape != null)
+        {
+            Vector3 anchor = activeShape.EntryPoint(entryPair, team);
+            return anchor - DirectionToAnchor(anchor) * insetFromBorder;
+        }
+
         float sign = team == ExpeditionTeam.Rival ? 1f : -1f;
         return transform.position + EntryDirection * (sign * (arenaHalfSize - insetFromBorder) * EntryScale);
     }
@@ -83,6 +111,12 @@ public class ArenaLayoutBuilder : MonoBehaviour
 
     public Vector3 SpawnPoint(ExpeditionTeam team)
     {
+        if (activeShape != null)
+        {
+            Vector3 anchor = activeShape.EntryPoint(entryPair, team);
+            return Center + DirectionToAnchor(anchor) * spawnDistance;
+        }
+
         float sign = team == ExpeditionTeam.Rival ? 1f : -1f;
         return transform.position + EntryDirection * (sign * spawnDistance);
     }
@@ -99,9 +133,27 @@ public class ArenaLayoutBuilder : MonoBehaviour
         generatedRoot.transform.SetParent(transform, false);
 
         var rng = new System.Random(seed);
-        Vector3 center = transform.position;
 
-        entryAxis = rng.Next(EntryAxes.Length);
+        activeShape = shapes.Count > 0 ? shapes[(shapeIndex >= 0 ? shapeIndex : Math.Abs(seed)) % shapes.Count] : null;
+        foreach (var s in shapes)
+            if (s != null) s.gameObject.SetActive(s == activeShape);
+        if (legacySquare != null) legacySquare.SetActive(activeShape == null);
+
+        if (activeShape != null)
+        {
+            var brush = activeShape.GetComponent<ArenaShapeBrush>();
+            if (brush != null && brush.ProceduralBySeed) brush.Regenerate(seed);
+        }
+
+        mirrorActive = mirror && (activeShape == null || activeShape.Symmetric);
+
+        Vector3 center = Center;
+
+        if (activeShape != null && activeShape.EntryPairCount > 0)
+            entryPair = rng.Next(activeShape.EntryPairCount);
+        else
+            entryAxis = rng.Next(EntryAxes.Length);
+
         int trees = RangeDraw(rng, treeCount);
         int rocks = RangeDraw(rng, rockCount);
         int veins = RangeDraw(rng, veinCount);
@@ -115,7 +167,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
 
         BuildVeins(rng, filter, center, veins);
 
-        Debug.Log($"[ArenaLayoutBuilder] seed={seed} entrada={EntryName} obstáculos={obstaclePositions.Count} decorado={decorCenters.Count} vetas={veins_.Count} mirror={mirror}");
+        Debug.Log($"[ArenaLayoutBuilder] seed={seed} entrada={EntryName} obstáculos={obstaclePositions.Count} decorado={decorCenters.Count} vetas={veins_.Count} mirror={mirrorActive} forma={ShapeName}");
     }
 
     public void Clear()
@@ -142,7 +194,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     {
         if (prefabs == null || prefabs.Count == 0 || count <= 0) return;
 
-        int toPlace = mirror ? Mathf.CeilToInt(count / 2f) : count;
+        int toPlace = mirrorActive ? Mathf.CeilToInt(count / 2f) : count;
 
         for (int i = 0; i < toPlace; i++)
         {
@@ -154,7 +206,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
 
             SpawnObstacle(prefab, point, yaw, scale);
 
-            if (mirror)
+            if (mirrorActive)
                 SpawnObstacle(prefab, Mirror(point, center), yaw + 180f, scale);
         }
     }
@@ -170,7 +222,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     {
         if (decorPrefabs == null || decorPrefabs.Count == 0 || clusters <= 0) return;
 
-        int toPlace = mirror ? Mathf.CeilToInt(clusters / 2f) : clusters;
+        int toPlace = mirrorActive ? Mathf.CeilToInt(clusters / 2f) : clusters;
 
         for (int i = 0; i < toPlace; i++)
         {
@@ -187,11 +239,11 @@ public class ArenaLayoutBuilder : MonoBehaviour
                 float scale = Lerp(rng, decorScale);
 
                 SpawnDecor(prefab, clusterCenter + offset, yaw, scale);
-                if (mirror) SpawnDecor(prefab, Mirror(clusterCenter + offset, center), yaw + 180f, scale);
+                if (mirrorActive) SpawnDecor(prefab, Mirror(clusterCenter + offset, center), yaw + 180f, scale);
             }
 
             decorCenters.Add(clusterCenter);
-            if (mirror) decorCenters.Add(Mirror(clusterCenter, center));
+            if (mirrorActive) decorCenters.Add(Mirror(clusterCenter, center));
         }
     }
 
@@ -207,7 +259,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     {
         for (int attempt = 0; attempt < 40; attempt++)
         {
-            Vector3 candidate = RandomPointInSquare(rng, center);
+            if (!TryRandomPoint(rng, center, out Vector3 candidate)) continue;
 
             if (Vector3.Distance(candidate, center) < clearCenterRadius) continue;
             if (IsNearEntries(candidate, clearEntryRadius)) continue;
@@ -225,7 +277,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     {
         for (int attempt = 0; attempt < 40; attempt++)
         {
-            Vector3 candidate = RandomPointInSquare(rng, center);
+            if (!TryRandomPoint(rng, center, out Vector3 candidate)) continue;
 
             if (Vector3.Distance(candidate, center) < clearCenterRadius * 0.6f) continue;
             if (IsNearEntries(candidate, clearEntryRadius * 0.6f)) continue;
@@ -244,7 +296,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     {
         if (count <= 0) return;
 
-        int toPlace = mirror ? Mathf.CeilToInt(count / 2f) : count;
+        int toPlace = mirrorActive ? Mathf.CeilToInt(count / 2f) : count;
         var placed = new List<Vector3>();
 
         for (int i = 0; i < toPlace; i++)
@@ -254,7 +306,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
             int capacity = rng.Next(veinCapacity.x, veinCapacity.y + 1);
             AddVeinIfOnNavMesh(point, capacity, filter, placed);
 
-            if (mirror)
+            if (mirrorActive)
                 AddVeinIfOnNavMesh(Mirror(point, center), capacity, filter, placed);
         }
     }
@@ -271,7 +323,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     {
         for (int attempt = 0; attempt < 40; attempt++)
         {
-            Vector3 candidate = RandomPointInSquare(rng, center);
+            if (!TryRandomPoint(rng, center, out Vector3 candidate)) continue;
 
             if (Vector3.Distance(candidate, center) < veinMinFromCenter) continue;
             if (IsNearEntries(candidate, clearEntryRadius)) continue;
@@ -286,13 +338,17 @@ public class ArenaLayoutBuilder : MonoBehaviour
         return false;
     }
 
-    private Vector3 RandomPointInSquare(System.Random rng, Vector3 center)
+    private bool TryRandomPoint(System.Random rng, Vector3 center, out Vector3 point)
     {
+        if (activeShape != null)
+            return activeShape.TryRandomPoint(rng, edgeMargin, out point);
+
         float min = -arenaHalfSize + edgeMargin;
         float max = arenaHalfSize - edgeMargin;
         float x = (float)(rng.NextDouble() * (max - min) + min);
         float z = (float)(rng.NextDouble() * (max - min) + min);
-        return center + new Vector3(x, 0f, z);
+        point = center + new Vector3(x, 0f, z);
+        return true;
     }
 
     private static float Lerp(System.Random rng, Vector2 range) =>

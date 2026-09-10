@@ -72,6 +72,7 @@ public class ArenaSandbox : MonoBehaviour
     public IReadOnlyList<CreatureDNA> LocalPool => Planner.LocalPool;
     public string EntryName => layout != null && layout.IsBuilt ? layout.EntryName : "diagonal";
     public string PaletteName => palette != null && palette.Current != null ? palette.Current.DisplayName : "";
+    public string ShapeName => layout != null && layout.IsBuilt ? layout.ShapeName : "cuadrado";
 
     public ArenaRoomRead ReadRoom(ExpeditionTeam team)
     {
@@ -170,12 +171,12 @@ public class ArenaSandbox : MonoBehaviour
 
         activeSeed = randomizeEachPlay ? System.Environment.TickCount : seed;
         rng = new System.Random(activeSeed);
-        center = spawnCenter != null ? spawnCenter.position : transform.position;
 
         int agentType = creaturePrefab.GetComponent<NavMeshAgent>().agentTypeID;
         filter = new NavMeshQueryFilter { agentTypeID = agentType, areaMask = NavMesh.AllAreas };
 
         if (layout != null) layout.Build(activeSeed, filter);
+        center = layout != null && layout.IsBuilt ? layout.Center : (spawnCenter != null ? spawnCenter.position : transform.position);
         if (palette != null) palette.ApplyIndex(paletteIndex >= 0 ? paletteIndex : palette.IndexForSeed(activeSeed));
         if (Planner.HasRoster) SpawnExits();
         SpawnMinerals();
@@ -185,7 +186,7 @@ public class ArenaSandbox : MonoBehaviour
         roomBuilt = true;
         Planner.Prepare(activeSeed, castSeed, count);
 
-        Debug.Log($"[ArenaSandbox] sala={activeSeed} entrada={EntryName} paleta={PaletteName} minerales={minerals.Count} salidas={exits.Count} elenco={CastMode} planeados={PlannedCast.Count}");
+        Debug.Log($"[ArenaSandbox] sala={activeSeed} forma={ShapeName} entrada={EntryName} paleta={PaletteName} minerales={minerals.Count} salidas={exits.Count} elenco={CastMode} planeados={PlannedCast.Count}");
     }
 
     public void SetPlayerOrders(int index, ArenaOrders orders) => Planner.SetPlayerOrders(index, orders);
