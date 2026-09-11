@@ -74,6 +74,9 @@ public class MonchiVisualizer : MonoBehaviour
         bodyInstance = Object.Instantiate(prefab, Root);
         bodyInstance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
+        foreach (var childTransform in bodyInstance.GetComponentsInChildren<Transform>(true))
+            childTransform.gameObject.layer = Root.gameObject.layer;
+
         animator = bodyInstance.GetComponent<Animator>();
         if (animator == null)
             animator = bodyInstance.AddComponent<Animator>();

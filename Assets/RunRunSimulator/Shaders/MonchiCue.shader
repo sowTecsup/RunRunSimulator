@@ -36,8 +36,13 @@ Shader "MoriMonchi/MonchiCue"
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Cull Off
+            Stencil
+            {
+                Ref 1
+                Comp NotEqual
+            }
 
             HLSLPROGRAM
             #pragma vertex Vert
@@ -308,8 +313,9 @@ Shader "MoriMonchi/MonchiCue"
 
                 half4 color = lerp(_Color, _ColorB, t);
                 float alphaMul = lerp(_InnerAlpha, _OuterAlpha, radialT);
+                half alpha = color.a * coverage * alphaMul;
 
-                return half4(color.rgb, color.a * coverage * alphaMul);
+                return half4(color.rgb * alpha, alpha);
             }
             ENDHLSL
         }

@@ -6,7 +6,7 @@ tags: [script, world, expedition, ui, cues]
 
 **Ruta:** `World/Expedition/ArenaCueOverlay.cs`
 
-**Responsabilidad:** Presentación de guías visuales sobre terreno de arena. Dibuja en modo inmediato (`Graphics.RenderMesh` vía `CueDrawer` + `CueRibbonDrawer`) por criatura: percepción/visión, atención, rutas, líneas a percepciones, retícula objetivo, enlaces sociales, plantilla de choque (telegrafía con cinta parabólica S110), minería, huida, custodia, ráfagas de habilidades. S107: Delega guías de criaturas individuales a CreatureCueDrawer (Base, Mining, Clash, Flee, Trust, Social, AbilityBursts); mantiene interna lógica de percepción, reticle, path drawer. S108: Reemplaza Clash (flecha roja) por Telegraph (plantilla animada con parpadeo); incorpora estado de telegrafía (CueState.Telegraph, TelegraphPhase) y cálculo de parpadeo (Hz interpolado, onda sinusoidal, blink suave). S110: Agrega state `DiveArc` (fade de cinta parabólica) y configura `CueRibbonDrawer`. **S114:** Agrega CueState.Hold para fase Holding (embestida bloqueada, lead acotado).
+**Responsabilidad:** Presentación de guías visuales sobre terreno de arena. Dibuja en modo inmediato (`Graphics.RenderMesh` vía `CueDrawer` + `CueRibbonDrawer`) por criatura: percepción/visión, atención, rutas, líneas a percepciones, retícula objetivo, enlaces sociales, plantilla de choque (telegrafía con cinta parabólica S110), minería, huida, custodia, ráfagas de habilidades. S107: Delega guías de criaturas individuales a CreatureCueDrawer (Base, Mining, Clash, Flee, Trust, Social, AbilityBursts); mantiene interna lógica de percepción, reticle, path drawer. S108: Reemplaza Clash (flecha roja) por Telegraph (plantilla animada con parpadeo); incorpora estado de telegrafía (CueState.Telegraph, TelegraphPhase) y cálculo de parpadeo (Hz interpolado, onda sinusoidal, blink suave). S110: Agrega state `DiveArc` (fade de cinta parabólica) y configura `CueRibbonDrawer`. S114: Agrega CueState.Hold para fase Holding (embestida bloqueada, lead acotado). **S115:** Salta guías de criaturas con intent Dazed/Tumbling (línea 83); `OnScreen(Vector3)` valida viewport con margen 5%; pasa `OnScreen(...)` a `CuePathDrawer.Draw` para que rutas se desvanezcan cuando dueño sale de pantalla.
 
 **Métodos públicos (Entry):**
 - `void LateUpdate()` — dibuja todas las criaturas en escena
@@ -46,7 +46,7 @@ tags: [script, world, expedition, ui, cues]
    - Base (siempre)
    - Percepción (anillo/cono visión con pulsación)
    - Atención (arcos amarillos hacia nearest percept)
-   - Path (ruta suavizada vía CuePathDrawer)
+   - Path (ruta suavizada vía CuePathDrawer) — **S115** solo si OnScreen
    - Percepts (líneas a percepciones coloreadas)
    - Reticle (retícula sobre objetivo expedición)
    - Social (enlace rosa pulsante)
@@ -84,9 +84,10 @@ tags: [script, world, expedition, ui, cues]
 - `CueDrawer.Configure(cueMaterial, additiveMaterial)` — configura dibujante de shapes
 - `CueRibbonDrawer.Configure(ribbonMaterial, ribbonAdditiveMaterial)` — **S110 NUEVO** configura dibujante de cintas
 
-**LateUpdate (S110 MEJORADO S114):**
+**LateUpdate (S110 MEJORADO S114-S115):**
 - `CueDrawer.AlphaScale = style.GuideAlpha` — multiplicador global (excepto telegrafía)
 - `eye = Camera.main.transform.position` — posición cámara para orientar cintas **S110**
+- **S115 NUEVO:** Loop por criaturas SALTA si intent Dazed/Tumbling (línea 83: `continue`)
 - Loop por criaturas:
   - Calcula reveal state (rivales)
   - Si showClash:
@@ -142,7 +143,47 @@ tags: [script, world, expedition, ui, cues]
 - `Telegraph()` recibe parámetro `hold` (fracción [0,1]) y lo usa para extender telegrafía (no cambia rampas visuales, solo informa duración)
 - Tell01 ahora incluye Holding en la ventana [0,1] (Anticipating=0→Holding=progreso→Striking=1)
 
-## Invariantes S102 + S108 + S110 + S114
+## Cambios S115
+
+**LateUpdate() línea 83 — SALTAR DAZED/TUMBLING:**
+```csharp
+if (controller == null || controller.DNA == null) continue;
+
+var state = GetCueState(controller);
+var intent = controller.Agent.Intent;
+if (intent == CreatureIntent.Dazed || intent == CreatureIntent.Tumbling) continue;  // S115 NUEVO
+```
+- Tras validar controller, chequea si intent es Dazed O Tumbling
+- Si sí, salta toda la lógica de dibujo de guías (continue)
+- Contexto: criaturas noqueadas no muestran rutas/telegrafía/etc.
+
+**LateUpdate() línea 130 — PASAR ONSCREEN A CUEPATHDRWER:**
+```csharp
+Color pathColor = controller.Agent.Intent == CreatureIntent.Fleeing ? style.FleeColor : style.ColorFor(controller.Agent.Intent);
+if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, pathColor, Time.deltaTime, OnScreen(controller.transform.position));
+```
+- Calcula `OnScreen(controller.transform.position)` — valida si criatura está visible en viewport
+- Pasa resultado como parámetro `bool ownerVisible` a CuePathDrawer.Draw()
+- Contexto: ruta solo se dibuja si dueño está en pantalla (con margen de seguridad)
+
+**OnScreen() método — NUEVO VALIDACIÓN VIEWPORT (línea 336):**
+```csharp
+private static bool OnScreen(Vector3 world)
+{
+    // Calcula si punto está dentro de viewport con margen 5%
+}
+```
+- Valida posición world contra Camera.main viewport
+- Incluye margen de seguridad (5% extra)
+- Retorna bool: true si en pantalla, false si fuera
+
+**Impacto S115:**
+- Guías (especialmente rutas) desaparecen cuando dueño sale de encuadre
+- Transición suave vía fade existente en CuePathDrawer.Draw() (ownerVisible controls hasValidPath)
+- Noqueados (Dazed/Tumbling) no muestran guías en absoluto
+- Reduce clutter visual cuando hay múltiples criaturas
+
+## Invariantes S102 + S108 + S110 + S114 + S115
 
 - Dibuja solo criaturas activas (Spawned)
 - Rivales tienen lógica de reveal separada (reveal state suave)
@@ -153,6 +194,8 @@ tags: [script, world, expedition, ui, cues]
 - Telegrafía con cinta es aditiva (siempre visible, no afectada por GuideAlpha)
 - Cinta parabólica solo se dibuja durante anticipación (Tell01 < 1), desvanece en impacto
 - Holding visible durante su duración, sin cambios de color respecto a Anticipating
+- **S115:** Dazed/Tumbling saltan todas las guías (no route, no telegraph, etc.)
+- **S115:** Rutas respetan viewport (desvanecen cuando owner sale de pantalla)
 
 ## Métodos Privados
 
@@ -168,19 +211,20 @@ tags: [script, world, expedition, ui, cues]
 
 ## Vinculado a
 
-- [[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]], S114
+- [[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]], S114, S115
 
 ## Conexiones
 
 - [[ArenaSandbox]] — acceso a criaturas
 - [[CueDrawer]] — renderizado de shapes
 - [[CueRibbonDrawer]] — **S110** renderizado de cintas
-- [[CuePathDrawer]] — renderizado de rutas
+- [[CuePathDrawer]] — renderizado de rutas; **S115** recibe ownerVisible
 - [[ArenaRoomCueOverlay]] — renderiza terreno/minerales por separado
 - [[CreatureCueDrawer]] — lógica de guías por criatura
 - [[MoriMonchiController]] — control de criatura
-- [[MoriMochiAgent]] — estado de criatura, ClashTelegraphing, ClashTell01 (S114: incluye Holding)
+- [[MoriMochiAgent]] — estado de criatura, ClashTelegraphing, ClashTell01 (S114: incluye Holding), Intent (S115: Dazed/Tumbling)
 - [[CueStyleSO]] — parámetros de estilo
 - [[ArenaCameraDirector]] — focalización de cámara
 - [[ExpeditionNav]] — reveal conditions
 - [[AgentClash]] — lee fase Holding, HoldTimer, Move.HoldSeconds
+

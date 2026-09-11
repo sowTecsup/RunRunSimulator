@@ -197,6 +197,30 @@ public class ArenaShapeDressing : MonoBehaviour
         return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
     }
 
+    public void ClearAround(IReadOnlyList<Vector4> zones)
+    {
+        if (dressing == null || zones == null || zones.Count == 0) return;
+
+        for (int i = dressing.transform.childCount - 1; i >= 0; i--)
+        {
+            var child = dressing.transform.GetChild(i);
+            if (child.gameObject == border) continue;
+
+            for (int z = 0; z < zones.Count; z++)
+            {
+                var zone = zones[z];
+                var center = new Vector3(zone.x, zone.y, zone.z);
+
+                if (PlanarDistance(child.position, center) < zone.w)
+                {
+                    if (Application.isPlaying) Destroy(child.gameObject);
+                    else DestroyImmediate(child.gameObject);
+                    break;
+                }
+            }
+        }
+    }
+
     private void Spawn(GameObject prefab, Vector3 position, float yaw, float scale, bool keepColliders, Transform parent = null, float yOffset = 0f)
     {
         position.y -= yOffset;

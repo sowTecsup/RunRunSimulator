@@ -6,7 +6,7 @@ tags: [script, world, expedition, ui-overlay, visualization, static-utility]
 
 **Ruta:** `World/Expedition/CuePathDrawer.cs`
 
-**Responsabilidad:** Utilidad estática para dibujar rutas de navegación suavizadas (Catmull-Rom) con destino pulsante. Antes vivía integrado en ArenaCueOverlay; ahora separado para enfocarse en rutas de agentes. Mantiene PathCueState por agente (alpha, corners, destino).
+**Responsabilidad:** Utilidad estática para dibujar rutas de navegación suavizadas (Catmull-Rom) con destino pulsante. Antes vivía integrado en ArenaCueOverlay; ahora separado para enfocarse en rutas de agentes. Mantiene PathCueState por agente (alpha, corners, destino). **S115:** Firma de `Draw()` incluye parámetro `bool ownerVisible`; si dueño no está visible en viewport, ruta no se dibuja (hasValidPath exige ownerVisible).
 
 ## Struct PathCueState
 
@@ -26,11 +26,12 @@ public class PathCueState
 
 ## Método Estático Principal
 
-**Draw(CueStyleSO style, PathCueState state, Transform body, Color baseColor, float dt) → void**
+**Draw(CueStyleSO style, PathCueState state, Transform body, Color baseColor, float dt, bool ownerVisible) → void**
 
 Dibuja ruta + marcador destino. Maneja:
-1. **Validación de path:**
-   - `hasValidPath = nav.enabled && nav.isOnNavMesh && nav.hasPath && path.corners.Length ≥ 2`
+1. **Validación de path (S115 ACTUALIZADO):**
+   - `hasValidPath = nav.enabled && nav.isOnNavMesh && nav.hasPath && path.corners.Length ≥ 2 && ownerVisible`
+   - **S115 NUEVO:** `ownerVisible` bloqueado si dueño fuera de viewport
    - Destino = última esquina
 
 2. **Suavizado de destino (Lerp exponencial):**
@@ -86,23 +87,51 @@ Produce curva suave C2-continua (tercera derivada saltos en puntos de control, p
 - `ReticleAppearScale` — escala inicial cuando aparece
 - `HeightOffset` — elevación Y
 
-## Invariantes S102
+## Cambios S115
+
+**Firma de Draw() — NUEVO PARÁMETRO (línea 23):**
+```csharp
+public static void Draw(CueStyleSO style, PathCueState state, Transform body, Color baseColor, float dt, bool ownerVisible)
+```
+- Parámetro nuevo `bool ownerVisible` — indica si dueño está visible en viewport (S115 nuevo)
+- Llamador (ArenaCueOverlay línea 130) pasa `OnScreen(controller.transform.position)`
+
+**Validación de path — ACTUALIZADA (línea 27):**
+```csharp
+bool hasValidPath = nav != null && nav.enabled && nav.isOnNavMesh && nav.hasPath && nav.path.corners.Length >= 2 && ownerVisible;
+```
+- Agrega `&& ownerVisible` al final de cadena de validación
+- Si `ownerVisible` es false: ruta NO se dibuja (incluso si path es válido)
+- Contexto: criatura fuera de pantalla → ruta desvanece
+
+**Impacto S115:**
+- Rutas respetan viewport: solo visibles cuando dueño en encuadre
+- Transición suave vía fade existente:
+  - ownerVisible = false → hasValidPath = false → Alpha → 0 (PathFadeSeconds)
+  - ownerVisible = true → hasValidPath = true (si path válido) → Alpha → 1 (PathFadeSeconds)
+- Reduce clutter visual cuando hay múltiples criaturas
+- La ruta se desvanece suavemente al salir de pantalla (no pop-out abrupto)
+
+## Invariantes S102 + S115
 
 - **Suavizado exponencial:** destino no salta, sigue suavemente
 - **State por agente:** cada PathCueState es independiente (multiagente)
 - **Ruta desaparece:** si nav invalid o sin path, alpha → 0 (fade out)
+- **S115:** Ruta también desaparece si dueño fuera de viewport
 - **Catmull-Rom:** pasa por p1 y p2, no por p0/p3 (control points tangentes)
 - **Dashes fluyen:** offset Time-based crea efecto de movimiento
 - **Último segmento Arrow:** punta indica dirección final
 - **Pulso de destino:** sin(Time * speed) para ondulación visual
+- **S115:** ownerVisible es booleano simple: on/off, no fade gradual (fade ocurre vía Alpha en Draw)
 
 ## Conexiones
 
 - [[CueStyleSO]] (tuning)
 - [[CueDrawer]] (Disc, Ring, Arrow, DashedSegment)
-- [[ArenaCueOverlay]] (propietario, llama Draw en LateUpdate)
+- [[ArenaCueOverlay]] (propietario, llama Draw en LateUpdate; **S115** pasa ownerVisible)
 - [[MoriMochiAgent]] (proporciona NavMeshAgent + body.forward)
 
 ## Vinculado a
 
 [[Index/23 - Arena Sandbox y Expedicion]]
+

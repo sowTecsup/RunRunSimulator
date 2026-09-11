@@ -868,11 +868,11 @@ MonoBehaviour:
   HeadLength: 0.5
   HeadWidth: 0.4
   PerceptThickness: 0.05
-  FriendColor: {r: 0.55, g: 0.75, b: 1, a: 1}
-  FoeColor: {r: 1, g: 0.5, b: 0.5, a: 1}
+  FriendColor: {r: 0.25, g: 0.72, b: 1, a: 1}
+  FoeColor: {r: 1, g: 0.42, b: 0.18, a: 1}
   PerceptAlpha: 0.9
   AttentionArcDegrees: 50
-  AttentionAlpha: 0.9
+  AttentionAlpha: 0
   PulseSeconds: 0.35
   PulseAmount: 0.05
   PerceptDashLength: 0.2
@@ -882,11 +882,11 @@ MonoBehaviour:
   RingDashCount: 28
   RingDashRatio: 0.55
   RingSpinSpeed: 0.35
-  VisionFillInnerAlpha: 0.09
+  VisionFillInnerAlpha: 0.12
   VisionFillOuterAlpha: 0
-  VisionEdgeAlpha: 0.34
-  VisionSideAlpha: 0.22
-  NearRingAlpha: 0.18
+  VisionEdgeAlpha: 0
+  VisionSideAlpha: 0
+  NearRingAlpha: 0
   VisionTurnSmoothing: 9
   ReticleRadius: 0.9
   ReticleThickness: 0.06
@@ -914,7 +914,7 @@ MonoBehaviour:
   MineralInnerAlpha: 0.35
   MineralOuterAlpha: 0
   MineralRingThickness: 0.04
-  MineralRingAlpha: 0.5
+  MineralRingAlpha: 0
   KnownVeinRingAlpha: 0.45
   KnownVeinRingThickness: 0.05
   KnownVeinRingOffset: 0.35
@@ -924,7 +924,7 @@ MonoBehaviour:
   PingThickness: 0.08
   FleeColor: {r: 1, g: 0.85, b: 0.2, a: 1}
   ContactFillAlpha: 0.11
-  ContactEdgeAlpha: 0.55
+  ContactEdgeAlpha: 0
   FleeRingRadius: 1.3
   FleeRingThickness: 0.08
   FleePulseSpeed: 8

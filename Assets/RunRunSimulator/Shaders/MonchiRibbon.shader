@@ -20,8 +20,13 @@ Shader "MoriMonchi/MonchiRibbon"
 
             Blend [_SrcBlend] [_DstBlend]
             ZWrite Off
-            ZTest LEqual
+            ZTest Always
             Cull Off
+            Stencil
+            {
+                Ref 1
+                Comp NotEqual
+            }
 
             HLSLPROGRAM
             #pragma vertex Vert

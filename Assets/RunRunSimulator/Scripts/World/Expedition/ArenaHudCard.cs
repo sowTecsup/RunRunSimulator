@@ -30,6 +30,7 @@ public class ArenaHudCard
     private float hitUntil;
     private bool lastSelected;
     private bool lastChase;
+    private bool lastDazed;
 
     public ArenaHudCard(MoriMochiAgent agent, Action<MoriMochiAgent> onTapped)
     {
@@ -149,6 +150,13 @@ public class ArenaHudCard
 
         RefreshCarry();
         RefreshPowers();
+
+        bool dazed = agent.Intent == CreatureIntent.Dazed || agent.Intent == CreatureIntent.Tumbling;
+        if (dazed != lastDazed)
+        {
+            lastDazed = dazed;
+            Root.EnableInClassList("hud-card--dazed", dazed);
+        }
 
         int knocked = agent.ClashTimesKnocked;
         if (knocked > lastKnocked)

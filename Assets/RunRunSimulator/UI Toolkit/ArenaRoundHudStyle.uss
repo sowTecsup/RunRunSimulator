@@ -286,6 +286,10 @@
     border-color: var(--mm-coral);
 }
 
+.hud-card--dazed {
+    opacity: 0.4;
+}
+
 .hud-card--selected {
     border-color: var(--mm-gold);
     translate: 0 -10px;

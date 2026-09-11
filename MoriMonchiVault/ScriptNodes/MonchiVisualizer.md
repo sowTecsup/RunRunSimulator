@@ -6,7 +6,7 @@ tags: [script, visual, component]
 
 **Ruta:** `World/Creatures/MonchiVisualizer.cs`
 
-**Responsabilidad:** Visualizador del modelo Suriyun. Instancia body FBX por BodyShapeID, mapea renderers (Face, Wings, Arms, etc.), aplica tintado por ColorGenetics.BuildHarmony. `SetMood()` swapea material Face. **S61:** `Assemble()` ahora hace `SetActive(false)` a los hijos viejos antes de `Object.Destroy()` — Destroy es diferido a fin de frame y el fotomatón renderiza en el mismo frame, causando superposición del cuerpo viejo en headshots batch. **S110:** Nuevos métodos `SetRimOverride()` y `ClearRimOverride()` para controlar rim light genético (anulable con color/power/mask de rival).
+**Responsabilidad:** Visualizador del modelo Suriyun. Instancia body FBX por BodyShapeID, mapea renderers (Face, Wings, Arms, etc.), aplica tintado por ColorGenetics.BuildHarmony. `SetMood()` swapea material Face. **S61:** `Assemble()` ahora hace `SetActive(false)` a los hijos viejos antes de `Object.Destroy()` — Destroy es diferido a fin de frame y el fotomatón renderiza en el mismo frame, causando superposición del cuerpo viejo en headshots batch. **S110:** Nuevos métodos `SetRimOverride()` y `ClearRimOverride()` para controlar rim light genético (anulable con color/power/mask de rival). **S115:** Assemble() propaga la capa del Root (`modelRoot.gameObject.layer`) a todos los hijos del body instanciado; esto permite la pasada de renderer URP (RenderObjects de `PC_Renderer` con tags CreatureBodyMask/CreatureBodySilhouette sobre capa `CreatureBody`) que filtra por esa capa para dibujo de silueta/stencil.
 
 ## Métodos Públicos
 
@@ -14,7 +14,7 @@ tags: [script, visual, component]
 |--------|-------------|
 | `SetBank(MonchiVisualBankSO)` | Asigna banco visual |
 | `SetFurDatabase(FurTypeDatabaseSO)` | Asigna database de pelajes |
-| `Assemble(CreatureDNA dna)` | Instancia body, mapea renderers, aplica look; desactiva hijos viejos antes de destruir |
+| `Assemble(CreatureDNA dna)` | Instancia body, mapea renderers, aplica look; desactiva hijos viejos antes de destruir; **S115** propaga capa Root a todos los hijos |
 | `RefreshLook(CreatureDNA dna)` | Retinta sin re-instanciar |
 | `SetMood(MonchiMood)` | Swapea material Face |
 | `SetRimOverride(Color color, float power, float insideMask)` | **S110 NUEVO** anula rim light genético con color/power/mask de rival |
@@ -118,12 +118,28 @@ public void ClearRimOverride()
 - Aliados conservan rim genético por color de pelaje
 - Override se aplica en tintado, no globalizado (cada criatura teñida independientemente)
 
+## Cambios S115
+
+**Assemble() — propagación de capa (línea 77-78 ACTUALIZADO):**
+```csharp
+foreach (var childTransform in bodyInstance.GetComponentsInChildren<Transform>(true))
+    childTransform.gameObject.layer = Root.gameObject.layer;
+```
+- Tras instanciar body, propaga layer del Root (modelRoot) a todos los hijos del body instanciado
+- URP PC_Renderer utiliza `RenderObjects` pass con tags CreatureBodyMask/CreatureBodySilhouette que filtra por capa `CreatureBody`
+- Esto permite que la pasada de silueta/stencil (shaders `MonchiCue`, `MonchiRibbon` con ZTest Always + stencil NotEqual 1) dibuje correctamente solo cuando la capa coincide
+
+**Impacto S115:**
+- Guías visuales (rutas, telegrafía, etc.) se dibujan sobre MoriMonchis (prioridad shaders: criaturas > guías > escenario)
+- La capa permite filtrado granular en pass URP para control de profundidad y stencil
+
 ## Invariantes
 
 - Assemble() desactiva visualmente los hijos viejos inmediatamente (SetActive), luego los destruye diferido
 - Fotomatón renderiza en el mismo frame; desactivar antes de Destroy evita ghosting
 - Previene artefactos visuales en headshot batch (dos criaturas superpuestas)
 - Override de rim es toggle (bool rimOverride) sin estado gradual — on/off nítido
+- **S115:** Layer propagation es determinístico: todos los hijos heredan exactamente del Root
 
 ## Notas S61
 
@@ -144,6 +160,12 @@ public void ClearRimOverride()
 - Color/power/insideMask editables en MonchiTeamRim para tuning
 - ApplyLook() recalcula todo el tintado; no es performance-critical (una vez per assembly o team change)
 
+## Notas S115
+
+- Layer propagation es parte del flujo Assemble(): se ejecuta inmediatamente tras instanciar, antes de ApplyLook()
+- La capa Root debe estar configurada en el prefab del MoriMochiAgent (se heredará automáticamente)
+- Este cambio es esencial para que URP RenderObjects pass con capa `CreatureBody` funcione correctamente en la pasada de silueta
+
 ## Vinculado a
 
 - [[Index/10 - Visualization]]
@@ -159,7 +181,7 @@ public void ClearRimOverride()
 - SetRimOverride/ClearRimOverride: MonchiTeamRim (S110)
 
 **Salida:**
-- Modelo visual world-space
+- Modelo visual world-space con capa Root propagada a hijos (S115)
 - Material Face swapped por mood
 - MPB de rim light (genético u override)
 

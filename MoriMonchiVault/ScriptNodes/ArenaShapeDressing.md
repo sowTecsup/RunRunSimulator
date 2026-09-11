@@ -6,13 +6,13 @@ tags: [script, world, expedition, procedural, scatter, dressing]
 
 **Ruta:** `World/Expedition/ArenaShapeDressing.cs`
 
-**Responsabilidad:** Componente que genera y coloca elementos decorativos (cover, acentos, borde interior/exterior) dentro y alrededor de una sala usando scatter procedural. Escucha Rebuilt event de ArenaShape y redecora. Determinista por semilla. S113: borde exterior con dos capas (inner + outer).
+**Responsabilidad:** Componente que genera y coloca elementos decorativos (cover, acentos, borde interior/exterior) dentro y alrededor de una sala usando scatter procedural. Escucha Rebuilt event de ArenaShape y redecora. Determinista por semilla. S113: borde exterior con dos capas (inner + outer). **S115:** Método público nuevo `ClearAround(IReadOnlyList<Vector4> zones)` que destruye hijos directos del GO Dressing (salvo border), cuya distancia planar a alguna zona sea menor que radio de zona; usado por ArenaLayoutBuilder al final para limpiar piezas decorativas que caen dentro de exclusiones de vetas/centro.
 
 **Propiedades:**
 - (privadas)
 
 **Métodos Públicos:**
-- (ninguno; lógica vía OnEnable/OnDisable)
+- `void ClearAround(IReadOnlyList<Vector4> zones)` — **S115 NUEVO** destruye piezas decorativas dentro de zonas de exclusión
 
 **Ciclo de Vida:**
 - OnEnable() → suscribe a shape.Rebuilt, llama Dress()
@@ -57,17 +57,78 @@ tags: [script, world, expedition, procedural, scatter, dressing]
 - Si !keepColliders → DestroyImmediate(colliders) (interior sí, exterior guarda)
 - Border exterior usa parent=border.transform (sub-GO de dressing)
 
-**Invariantes:**
-- Determinista: mismo seed = mismo output (si ArenaShape.OutlinePolygon igual)
-- margin filtra puntos demasiado cerca del borde interior
-- borderEntryClear protege entradas de decoración
-- yOffset (outer sink) desciende visualmente para dar profundidad
-- Dressing GO se destruye completamente al OnDisable
+## Cambios S115
 
-**S111-S113 Cambios:**
+**ClearAround(IReadOnlyList<Vector4> zones) — NUEVO MÉTODO PÚBLICO (línea 200-222):**
+```csharp
+public void ClearAround(IReadOnlyList<Vector4> zones)
+{
+    if (dressing == null || zones == null || zones.Count == 0) return;
+
+    for (int i = dressing.transform.childCount - 1; i >= 0; i--)
+    {
+        var child = dressing.transform.GetChild(i);
+        if (child.gameObject == border) continue;  // Salta border
+
+        for (int z = 0; z < zones.Count; z++)
+        {
+            var zone = zones[z];
+            var center = new Vector3(zone.x, zone.y, zone.z);
+
+            if (PlanarDistance(child.position, center) < zone.w)  // Validación XZ
+            {
+                if (Application.isPlaying) Destroy(child.gameObject);
+                else DestroyImmediate(child.gameObject);
+                break;
+            }
+        }
+    }
+}
+```
+
+**Propósito S115:**
+- Llamado por ArenaLayoutBuilder.Build() al final tras BuildDecor
+- Recibe lista de Vector4: (center.x, center.y, center.z, radius)
+- Itera hijos directos de Dressing GO
+- Salta GO "Border" (borde exterior se protege)
+- Para cada zona: calcula distancia planar (XZ, ignorar Y) entre posición de hijo y centro de zona
+- Si distancia < radius de zona: destruye el hijo
+- Contexto: limpia piezas decorativas (cover/acentos/borde interior) que caen dentro de radio de vetas o doble-radio del centro
+
+**Uso en BuildDecor:**
+- ArenaLayoutBuilder.Build() línea 188:
+  ```csharp
+  if (activeShape != null)
+  {
+      var dressing = activeShape.GetComponent<ArenaShapeDressing>();
+      if (dressing != null) dressing.ClearAround(DecorClearZones(center));
+  }
+  ```
+- Se ejecuta DESPUÉS de BuildDecor (que ya validó InsideAnyZone en spawn)
+- ClearAround() es segunda pasada: destruye cualquier pieza que haya entrado (edge cases planar)
+
+**PlanarDistance helper (línea 195-198):**
+```csharp
+private static float PlanarDistance(Vector3 a, Vector3 b)
+{
+    return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
+}
+```
+- Calcula distancia XZ (horizontal, ignorar altura)
+- Usado por ClearAround y NearEntry
+
+**Invariantes S115:**
+- ClearAround valida distancia planar (XZ): islas flotantes no interfieren
+- Border siempre se preserva (no se limpia)
+- Destroy vs DestroyImmediate: branching por Play/Edit mode
+- Zonas son siempre Vector4 con (x, y, z, radius)
+
+**S111-S113-S115 Cambios:**
 - S111: componente base de decoración procedural
 - S113: borde exterior con parámetros borderOuter* (step, offset, sink), colisores retenidos, sub-GO "Border"
+- S115: método público ClearAround(zones) con validación planar, llamado al final de Build()
 
-**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], S115
 
-**Conexiones:** [[ArenaShape]], [[ArenaShapeScatter]]
+**Conexiones:** [[ArenaShape]], [[ArenaShapeScatter]], [[ArenaLayoutBuilder]]
+

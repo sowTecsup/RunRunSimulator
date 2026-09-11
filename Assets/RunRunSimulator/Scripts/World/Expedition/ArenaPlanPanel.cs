@@ -299,17 +299,13 @@ public class ArenaPlanPanel : MonoBehaviour
             var text = new VisualElement();
             text.AddToClassList("rival-card__text");
 
-            var name = new Label(entry.Dna.CustomName);
-            name.AddToClassList("rival-card__name");
-            text.Add(name);
-
             var nature = new Label(ArenaOrderCatalog.PersonalityName(entry.Dna, rules));
             nature.AddToClassList("rival-card__nature");
             text.Add(nature);
 
-            var read = new Label("→ " + ArenaOrderCatalog.RivalRead(entry.Dna, rules));
-            read.AddToClassList("rival-card__read");
-            text.Add(read);
+            var name = new Label(entry.Dna.CustomName);
+            name.AddToClassList("rival-card__name");
+            text.Add(name);
 
             card.Add(text);
             rivalList.Add(card);

@@ -20,11 +20,11 @@ public static class CuePathDrawer
 {
     private static readonly List<Vector3> corners = new();
 
-    public static void Draw(CueStyleSO style, PathCueState state, Transform body, Color baseColor, float dt)
+    public static void Draw(CueStyleSO style, PathCueState state, Transform body, Color baseColor, float dt, bool ownerVisible)
     {
         var nav = state.Nav;
 
-        bool hasValidPath = nav != null && nav.enabled && nav.isOnNavMesh && nav.hasPath && nav.path.corners.Length >= 2;
+        bool hasValidPath = nav != null && nav.enabled && nav.isOnNavMesh && nav.hasPath && nav.path.corners.Length >= 2 && ownerVisible;
         Vector3 destination = default;
         if (hasValidPath) destination = nav.path.corners[nav.path.corners.Length - 1];
 

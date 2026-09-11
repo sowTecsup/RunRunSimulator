@@ -11,6 +11,7 @@ namespace MoriMonchiSimulator
         [SerializeField] private Vector2 tickSeconds = new Vector2(2.5f, 5f);
 
         private float nextTick;
+        private bool knocked;
 
         private void OnEnable()
         {
@@ -19,10 +20,17 @@ namespace MoriMonchiSimulator
 
         private void Update()
         {
+            bool knockedNow = agent != null && (agent.Intent == CreatureIntent.Dazed || agent.Intent == CreatureIntent.Tumbling);
+            if (knockedNow != knocked)
+            {
+                knocked = knockedNow;
+                nextTick = Time.time;
+            }
+
             if (Time.time < nextTick) return;
             nextTick = Time.time + Random.Range(tickSeconds.x, tickSeconds.y);
 
-            if (combatDriver != null && combatDriver.IsBusy) return;
+            if (!knockedNow && combatDriver != null && combatDriver.IsBusy) return;
             if (agent == null || visualizer == null) return;
 
             visualizer.SetMood(ResolveMood());

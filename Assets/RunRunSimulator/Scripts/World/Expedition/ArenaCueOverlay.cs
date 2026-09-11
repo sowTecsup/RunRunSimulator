@@ -79,6 +79,8 @@ public class ArenaCueOverlay : MonoBehaviour
             if (controller == null || controller.DNA == null) continue;
 
             var state = GetCueState(controller);
+            var intent = controller.Agent.Intent;
+            if (intent == CreatureIntent.Dazed || intent == CreatureIntent.Tumbling) continue;
             Vector3 origin = controller.transform.position + Vector3.up * style.HeightOffset;
             float perceptionRadius = controller.Agent.HasVisionCone ? controller.Agent.VisionRadius : globalRadius;
 
@@ -125,7 +127,7 @@ public class ArenaCueOverlay : MonoBehaviour
                 DrawPerception(controller, state, origin, perceptionRadius);
 
             Color pathColor = controller.Agent.Intent == CreatureIntent.Fleeing ? style.FleeColor : style.ColorFor(controller.Agent.Intent);
-            if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, pathColor, Time.deltaTime);
+            if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, pathColor, Time.deltaTime, OnScreen(controller.transform.position));
 
             if (showPercepts) DrawPercepts(controller, origin, perceptionRadius);
 
@@ -329,6 +331,14 @@ public class ArenaCueOverlay : MonoBehaviour
         Color soft = color;
         soft.a = alpha * 0.5f;
         CueDrawer.DashedRing(origin, radius * 0.8f, style.SelectThickness * 0.6f, style.SelectDashCount, style.SelectDashRatio, -Time.time * style.SelectSpinSpeed * 1.5f, soft, true);
+    }
+
+    private static bool OnScreen(Vector3 world)
+    {
+        var cam = Camera.main;
+        if (cam == null) return true;
+        Vector3 v = cam.WorldToViewportPoint(world);
+        return v.z > 0f && v.x > -0.05f && v.x < 1.05f && v.y > -0.05f && v.y < 1.05f;
     }
 
     private CueState GetCueState(MoriMonchiController controller)

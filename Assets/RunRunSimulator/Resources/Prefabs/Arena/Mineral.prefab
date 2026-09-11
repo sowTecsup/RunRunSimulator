@@ -116,14 +116,14 @@ MonoBehaviour:
   crystal: {fileID: 7871697693807631144}
   crystalRenderer: {fileID: 2756243882702494158}
   glow: {fileID: 4400643307660777971}
-  bobAmplitude: 0.08
+  bobAmplitude: 0
   bobSpeed: 1.2
-  spinDegreesPerSecond: 18
+  spinDegreesPerSecond: 0
   pulseSpeed: 1.6
   pulseAmount: 0.5
   veinColor: {r: 0.45, g: 0.95, b: 1, a: 1}
-  lodeColor: {r: 1, g: 0.85, b: 0.35, a: 1}
-  dropColor: {r: 0.6, g: 1, b: 0.6, a: 1}
+  lodeColor: {r: 0.3, g: 0.55, b: 1, a: 1}
+  dropColor: {r: 0.75, g: 0.9, b: 1, a: 1}
   emissionStrength: 1.1
   minScaleFraction: 0.45
   shrinkSmoothing: 6

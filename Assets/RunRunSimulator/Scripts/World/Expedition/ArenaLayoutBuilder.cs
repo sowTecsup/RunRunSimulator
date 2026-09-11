@@ -65,6 +65,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     [SerializeField, Min(0f)] private float veinSpacing = 8f;
     [SerializeField, Min(0f)] private float veinFromObstacle = 2.5f;
     [SerializeField] private Vector2Int veinCapacity = new Vector2Int(4, 8);
+    [SerializeField, Min(0f)] private float decorClearAroundVein = 1.4f;
 
     private readonly List<VeinSpot> veins_ = new();
     private readonly List<Vector3> obstaclePositions = new();
@@ -163,7 +164,6 @@ public class ArenaLayoutBuilder : MonoBehaviour
 
         BuildObstacleSet(rng, center, treePrefabs, trees, treeScale);
         BuildObstacleSet(rng, center, rockPrefabs, rocks, rockScale);
-        BuildDecor(rng, center, clusters);
 
         int landmarksPlaced = 0;
         if (landmarks != null)
@@ -179,6 +179,14 @@ public class ArenaLayoutBuilder : MonoBehaviour
         surface.BuildNavMesh();
 
         string veinPattern = BuildVeins(rng, filter, center, pairs);
+
+        BuildDecor(rng, center, clusters);
+
+        if (activeShape != null)
+        {
+            var dressing = activeShape.GetComponent<ArenaShapeDressing>();
+            if (dressing != null) dressing.ClearAround(DecorClearZones(center));
+        }
 
         Debug.Log($"[ArenaLayoutBuilder] seed={seed} entrada={EntryName} obstáculos={obstaclePositions.Count} decorado={decorCenters.Count} vetas={veins_.Count} grandes={landmarksPlaced} mirror={mirrorActive} forma={ShapeName} cristales={veinPattern}");
     }
@@ -236,11 +244,12 @@ public class ArenaLayoutBuilder : MonoBehaviour
     {
         if (decorPrefabs == null || decorPrefabs.Count == 0 || clusters <= 0) return;
 
+        var zones = DecorClearZones(center);
         int toPlace = mirrorActive ? Mathf.CeilToInt(clusters / 2f) : clusters;
 
         for (int i = 0; i < toPlace; i++)
         {
-            if (!TryFindDecorCenter(rng, center, out Vector3 clusterCenter)) continue;
+            if (!TryFindDecorCenter(rng, center, zones, out Vector3 clusterCenter)) continue;
 
             int items = RangeDraw(rng, decorPerCluster);
             for (int k = 0; k < items; k++)
@@ -252,13 +261,36 @@ public class ArenaLayoutBuilder : MonoBehaviour
                 float yaw = (float)(rng.NextDouble() * 360.0);
                 float scale = Lerp(rng, decorScale);
 
-                SpawnDecor(prefab, clusterCenter + offset, yaw, scale);
-                if (mirrorActive) SpawnDecor(prefab, Mirror(clusterCenter + offset, center), yaw + 180f, scale);
+                Vector3 piecePos = clusterCenter + offset;
+                if (!InsideAnyZone(piecePos, zones)) SpawnDecor(prefab, piecePos, yaw, scale);
+
+                if (mirrorActive)
+                {
+                    Vector3 mirrorPos = Mirror(piecePos, center);
+                    if (!InsideAnyZone(mirrorPos, zones)) SpawnDecor(prefab, mirrorPos, yaw + 180f, scale);
+                }
             }
 
             decorCenters.Add(clusterCenter);
             if (mirrorActive) decorCenters.Add(Mirror(clusterCenter, center));
         }
+    }
+
+    private List<Vector4> DecorClearZones(Vector3 center)
+    {
+        var zones = new List<Vector4>(veins_.Count + 1);
+        foreach (var vein in veins_)
+            zones.Add(new Vector4(vein.Position.x, vein.Position.y, vein.Position.z, decorClearAroundVein));
+        zones.Add(new Vector4(center.x, center.y, center.z, decorClearAroundVein * 2f));
+        return zones;
+    }
+
+    private static bool InsideAnyZone(Vector3 point, List<Vector4> zones)
+    {
+        foreach (var zone in zones)
+            if (Planar(point, new Vector3(zone.x, zone.y, zone.z)) < zone.w) return true;
+
+        return false;
     }
 
     private void SpawnDecor(GameObject prefab, Vector3 position, float yaw, float scale)
@@ -287,7 +319,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
         return false;
     }
 
-    private bool TryFindDecorCenter(System.Random rng, Vector3 center, out Vector3 point)
+    private bool TryFindDecorCenter(System.Random rng, Vector3 center, List<Vector4> zones, out Vector3 point)
     {
         for (int attempt = 0; attempt < 40; attempt++)
         {
@@ -297,6 +329,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
             if (IsNearEntries(candidate, clearEntryRadius * 0.6f)) continue;
             if (IsNearAnyPoint(candidate, obstaclePositions, 1.5f)) continue;
             if (IsNearAnyPoint(candidate, decorCenters, decorClusterRadius * 1.5f)) continue;
+            if (InsideAnyZone(candidate, zones)) continue;
 
             point = candidate;
             return true;
