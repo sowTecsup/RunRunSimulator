@@ -50,6 +50,22 @@ MonoBehaviour:
     Dark: {r: 0.16, g: 0.06, b: 0.32, a: 1}
     Mid: {r: 0.42, g: 0.22, b: 0.62, a: 1}
     Light: {r: 0.95, g: 0.78, b: 0.95, a: 1}
+  FoliageVariants:
+  - Dark: {r: 0.15, g: 0.08, b: 0.25, a: 1}
+    Mid: {r: 0.38, g: 0.22, b: 0.55, a: 1}
+    Light: {r: 0.7, g: 0.55, b: 0.85, a: 1}
+  - Dark: {r: 0.35, g: 0.12, b: 0.25, a: 1}
+    Mid: {r: 0.75, g: 0.35, b: 0.55, a: 1}
+    Light: {r: 0.95, g: 0.7, b: 0.8, a: 1}
+  - Dark: {r: 0.08, g: 0.22, b: 0.1, a: 1}
+    Mid: {r: 0.18, g: 0.42, b: 0.18, a: 1}
+    Light: {r: 0.4, g: 0.62, b: 0.3, a: 1}
+  - Dark: {r: 0.08, g: 0.12, b: 0.3, a: 1}
+    Mid: {r: 0.2, g: 0.3, b: 0.6, a: 1}
+    Light: {r: 0.5, g: 0.6, b: 0.85, a: 1}
+  - Dark: {r: 0.28, g: 0.16, b: 0.08, a: 1}
+    Mid: {r: 0.55, g: 0.35, b: 0.16, a: 1}
+    Light: {r: 0.78, g: 0.6, b: 0.38, a: 1}
   SunColor: {r: 0.95, g: 0.65, b: 0.8, a: 1}
   SunIntensity: 0.95
   AmbientColor: {r: 0.3, g: 0.25, b: 0.45, a: 1}

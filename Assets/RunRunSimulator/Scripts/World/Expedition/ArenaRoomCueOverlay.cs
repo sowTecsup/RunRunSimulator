@@ -19,6 +19,7 @@ public class ArenaRoomCueOverlay : MonoBehaviour
     [SerializeField] private bool showLode = true;
     [SerializeField] private bool showSpawns = true;
     [SerializeField] private bool showObstacles = true;
+    [SerializeField, Min(0f)] private float outlineInset = 2.5f;
 
     private class MineralAnim
     {
@@ -28,6 +29,7 @@ public class ArenaRoomCueOverlay : MonoBehaviour
     private readonly Dictionary<MaterialPickup, MineralAnim> mineralAnims = new();
     private readonly List<Perceivable> mineralQueryBuffer = new();
     private readonly Dictionary<Perceivable, MaterialPickup> mineralLookup = new();
+    private readonly List<Vector2> outlineInsetBuffer = new();
 
     private void OnEnable()
     {
@@ -161,16 +163,36 @@ public class ArenaRoomCueOverlay : MonoBehaviour
         var polygon = shape.OutlinePolygon;
         if (polygon == null || polygon.Count < 3) return;
 
+        int count = polygon.Count;
+        outlineInsetBuffer.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            Vector2 prev = polygon[(i - 1 + count) % count];
+            Vector2 curr = polygon[i];
+            Vector2 next = polygon[(i + 1) % count];
+
+            Vector2 edgeIn = curr - prev;
+            Vector2 normalIn = new Vector2(-edgeIn.y, edgeIn.x).normalized;
+
+            Vector2 edgeOut = next - curr;
+            Vector2 normalOut = new Vector2(-edgeOut.y, edgeOut.x).normalized;
+
+            Vector2 normal = normalIn + normalOut;
+            normal = normal.sqrMagnitude > 0.0001f ? normal.normalized : normalIn;
+
+            outlineInsetBuffer.Add(curr + normal * outlineInset);
+        }
+
         float y = shape.Center.y + style.HeightOffset;
         float offset = Time.time * style.OutlineScrollSpeed;
         int stride = style.OutlineStride > 0 ? style.OutlineStride : 1;
 
-        Vector3 first = new Vector3(polygon[0].x, y, polygon[0].y);
+        Vector3 first = new Vector3(outlineInsetBuffer[0].x, y, outlineInsetBuffer[0].y);
         Vector3 previous = first;
 
-        for (int i = stride; i < polygon.Count; i += stride)
+        for (int i = stride; i < outlineInsetBuffer.Count; i += stride)
         {
-            Vector3 current = new Vector3(polygon[i].x, y, polygon[i].y);
+            Vector3 current = new Vector3(outlineInsetBuffer[i].x, y, outlineInsetBuffer[i].y);
             CueDrawer.DashedSegment(previous, current, style.OutlineThickness, style.OutlineDashLength, style.OutlineDashGap, offset, style.OutlineColor, style.OutlineColor);
             previous = current;
         }

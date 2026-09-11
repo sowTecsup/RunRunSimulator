@@ -236,6 +236,12 @@ public class ArenaSandbox : MonoBehaviour
 
     public void SpawnCast()
     {
+        if (!Application.isPlaying)
+        {
+            Debug.Log("[ArenaSandbox] el elenco solo se suelta en Play; la sala quedó generada.");
+            return;
+        }
+
         if (!roomBuilt) BuildRoom();
         if (spawned.Count > 0) ClearCast();
 
@@ -256,25 +262,44 @@ public class ArenaSandbox : MonoBehaviour
         {
             if (controller == null) continue;
             if (targetGroup != null) targetGroup.RemoveMember(controller.transform);
-            Destroy(controller.gameObject);
         }
+
+        var toDiscard = new HashSet<GameObject>();
+        foreach (var controller in spawned)
+            if (controller != null) toDiscard.Add(controller.gameObject);
+        foreach (var controller in GetComponentsInChildren<MoriMonchiController>(true))
+            if (controller != null) toDiscard.Add(controller.gameObject);
+        if (spawnHolder != null)
+            foreach (var controller in spawnHolder.GetComponentsInChildren<MoriMonchiController>(true))
+                if (controller != null) toDiscard.Add(controller.gameObject);
+
+        foreach (var go in toDiscard) Discard(go);
         spawned.Clear();
+    }
+
+    private static void Discard(GameObject target)
+    {
+        if (target == null) return;
+
+        if (Application.isPlaying) Destroy(target);
+        else DestroyImmediate(target);
     }
 
     public void ResetRoom(bool newSeed)
     {
         ClearCast();
 
-        foreach (var mineral in minerals)
-            if (mineral != null) Destroy(mineral.gameObject);
-        minerals.Clear();
+        foreach (var mineral in GetComponentsInChildren<MaterialPickup>(true))
+            if (mineral != null) Discard(mineral.gameObject);
 
         PerceivableRegistry.QueryInRadius(center, 200f, null, looseBuffer);
         foreach (var p in looseBuffer)
-            if (p != null && p.Kind == PerceivableKind.Material) Destroy(p.gameObject);
+            if (p != null && p.Kind == PerceivableKind.Material) Discard(p.gameObject);
 
-        foreach (var exit in exits)
-            if (exit != null) Destroy(exit.gameObject);
+        foreach (var exit in GetComponentsInChildren<ExitZone>(true))
+            if (exit != null) Discard(exit.gameObject);
+
+        minerals.Clear();
         exits.Clear();
 
         if (layout != null) layout.Clear();
@@ -326,6 +351,7 @@ public class ArenaSandbox : MonoBehaviour
             : around;
 
         var controller = Instantiate(creaturePrefab, pos, Quaternion.Euler(0f, rng.Next(0, 360), 0f), spawnHolder);
+        spawned.Add(controller);
         controller.GetComponent<NavMeshAgent>().areaMask = NavMesh.AllAreas;
 
         var perceivable = controller.GetComponentInChildren<Perceivable>(true);
@@ -337,7 +363,6 @@ public class ArenaSandbox : MonoBehaviour
         if (abilityDatabase != null) controller.Agent.SetAbilities(abilityDatabase.Resolve(dna));
         controller.Agent.SetHomeExit(home);
         controller.Agent.SetBlackboard(BoardFor(team));
-        spawned.Add(controller);
         if (targetGroup != null) targetGroup.AddMember(controller.transform, 1f, 1.2f);
         foreach (var tag in controller.GetComponentsInChildren<NameTag>(true)) { tag.ShowDistance = tagShowDistance; tag.ScreenSizeReferenceDistance = tagReferenceDistance; }
 

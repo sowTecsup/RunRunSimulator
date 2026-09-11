@@ -34,10 +34,9 @@ public class ArenaPaletteApplier : MonoBehaviour
     [SerializeField] private List<string> dimNames = new() { "Surround", "Border" };
     [SerializeField] private Color dimTint = new(0.42f, 0.48f, 0.5f, 1f);
 
-    private readonly Dictionary<Material, Material> instanceByOriginal = new();
-    private readonly Dictionary<Material, Material> dimInstanceByOriginal = new();
+    private readonly Dictionary<(Material Original, int Variant, bool Dim), Material> instances = new();
     private readonly Dictionary<Material, Material> originalByInstance = new();
-    private readonly Dictionary<ArenaPaletteSlot, Texture2D> ramps = new();
+    private readonly Dictionary<(ArenaPaletteSlot Slot, int Variant), Texture2D> ramps = new();
     private Vector3? explicitArenaCenter;
 
     public IReadOnlyList<ArenaPaletteSO> Palettes => palettes;
@@ -108,22 +107,32 @@ public class ArenaPaletteApplier : MonoBehaviour
     {
         foreach (ArenaPaletteSlot slot in System.Enum.GetValues(typeof(ArenaPaletteSlot)))
         {
-            if (!ramps.TryGetValue(slot, out var texture) || texture == null)
-            {
-                texture = new Texture2D(256, 1, TextureFormat.RGBA32, false)
-                {
-                    wrapMode = TextureWrapMode.Clamp,
-                    filterMode = FilterMode.Bilinear,
-                    name = "Ramp_" + slot,
-                };
-                ramps[slot] = texture;
-            }
+            BuildRamp(palette, slot, 0);
 
-            var ramp = palette.RampFor(slot);
-            for (int x = 0; x < 256; x++)
-                texture.SetPixel(x, 0, ramp.Evaluate(x / 255f));
-            texture.Apply(false, false);
+            if (!UsesVariant(slot)) continue;
+            for (int v = 0; v < palette.VariantCount; v++)
+                BuildRamp(palette, slot, v);
         }
+    }
+
+    private void BuildRamp(ArenaPaletteSO palette, ArenaPaletteSlot slot, int variant)
+    {
+        var key = (slot, variant);
+        if (!ramps.TryGetValue(key, out var texture) || texture == null)
+        {
+            texture = new Texture2D(256, 1, TextureFormat.RGBA32, false)
+            {
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Bilinear,
+                name = "Ramp_" + slot + "_" + variant,
+            };
+            ramps[key] = texture;
+        }
+
+        var ramp = palette.RampFor(slot, variant);
+        for (int x = 0; x < 256; x++)
+            texture.SetPixel(x, 0, ramp.Evaluate(x / 255f));
+        texture.Apply(false, false);
     }
 
     private void Remap(Renderer renderer)
@@ -131,6 +140,8 @@ public class ArenaPaletteApplier : MonoBehaviour
         var materials = renderer.sharedMaterials;
         bool changed = false;
         bool dim = IsBarrier(renderer.transform);
+        int variantCount = Mathf.Max(1, Current != null ? Current.VariantCount : 1);
+        int variantIndex = VariantIndexFor(renderer.transform.position, variantCount);
 
         for (int i = 0; i < materials.Length; i++)
         {
@@ -140,7 +151,8 @@ public class ArenaPaletteApplier : MonoBehaviour
             var original = originalByInstance.TryGetValue(material, out var known) ? known : material;
             if (!TryClassify(original, out var slot)) continue;
 
-            var instance = dim ? GetDimInstance(original, slot) : GetInstance(original, slot);
+            int variant = UsesVariant(slot) ? variantIndex : 0;
+            var instance = dim ? GetDimInstance(original, slot, variant) : GetInstance(original, slot, variant);
             if (instance != material)
             {
                 materials[i] = instance;
@@ -149,6 +161,18 @@ public class ArenaPaletteApplier : MonoBehaviour
         }
 
         if (changed) renderer.sharedMaterials = materials;
+    }
+
+    private static bool UsesVariant(ArenaPaletteSlot slot) =>
+        slot == ArenaPaletteSlot.Foliage || slot == ArenaPaletteSlot.Grass;
+
+    private static int VariantIndexFor(Vector3 position, int variantCount)
+    {
+        int x = Mathf.RoundToInt(position.x * 10f);
+        int y = Mathf.RoundToInt(position.y * 10f);
+        int z = Mathf.RoundToInt(position.z * 10f);
+        int hash = unchecked(x * 73856093 ^ y * 19349663 ^ z * 83492791);
+        return (hash & 0x7FFFFFFF) % variantCount;
     }
 
     private bool IsBarrier(Transform current)
@@ -162,43 +186,45 @@ public class ArenaPaletteApplier : MonoBehaviour
         return false;
     }
 
-    private Material GetInstance(Material original, ArenaPaletteSlot slot)
+    private Material GetInstance(Material original, ArenaPaletteSlot slot, int variant)
     {
         if (slot == ArenaPaletteSlot.Water && waterMaterial == null) return original;
 
-        if (!instanceByOriginal.TryGetValue(original, out var instance) || instance == null)
+        var key = (original, variant, false);
+        if (!instances.TryGetValue(key, out var instance) || instance == null)
         {
-            instance = BuildMaterialInstance(original, slot, "_Palette");
-            instanceByOriginal[original] = instance;
+            instance = BuildMaterialInstance(original, slot, variant, "_Palette");
+            instances[key] = instance;
             originalByInstance[instance] = original;
         }
 
-        instance.SetTexture(RampID, ramps[slot]);
+        instance.SetTexture(RampID, ramps[(slot, variant)]);
         return instance;
     }
 
-    private Material GetDimInstance(Material original, ArenaPaletteSlot slot)
+    private Material GetDimInstance(Material original, ArenaPaletteSlot slot, int variant)
     {
         if (slot == ArenaPaletteSlot.Water && waterMaterial == null) return original;
 
-        if (!dimInstanceByOriginal.TryGetValue(original, out var instance) || instance == null)
+        var key = (original, variant, true);
+        if (!instances.TryGetValue(key, out var instance) || instance == null)
         {
-            instance = BuildMaterialInstance(original, slot, "_PaletteDim");
+            instance = BuildMaterialInstance(original, slot, variant, "_PaletteDim");
             if (instance.HasProperty(TintID))
             {
                 var tint = instance.GetColor(TintID);
                 instance.SetColor(TintID, new Color(tint.r * dimTint.r, tint.g * dimTint.g, tint.b * dimTint.b, tint.a));
             }
 
-            dimInstanceByOriginal[original] = instance;
+            instances[key] = instance;
             originalByInstance[instance] = original;
         }
 
-        instance.SetTexture(RampID, ramps[slot]);
+        instance.SetTexture(RampID, ramps[(slot, variant)]);
         return instance;
     }
 
-    private Material BuildMaterialInstance(Material original, ArenaPaletteSlot slot, string suffix)
+    private Material BuildMaterialInstance(Material original, ArenaPaletteSlot slot, int variant, string suffix)
     {
         if (slot == ArenaPaletteSlot.Water)
             return new Material(waterMaterial) { name = original.name + suffix };

@@ -30,19 +30,11 @@ tags: [script, ui, visualization, rendering]
 
 **Métodos Públicos:**
 
-- `bool Show(int slot, CreatureDNA dna, VisualElement element) → bool` — renderiza MoriMochi en slot:
-  1. Valida índices y referencias
-  2. Assemble(dna) en visualizer, SetMood(Neutral), Play("Idle")
-  3. Cambia layer si focusLayer válido
-  4. Sets booth.Active = true, camera.enabled = true, element
-  5. Asigna RenderTexture como backgroundImage del element, backgroundSize=Contain
-  6. Llama Frame() para ajustar cámara
-  7. Retorna true si éxito
-
-- `void Hide(int slot)` — desactiva booth:
-  - camera.enabled = false, Active = false, Element = null
-
-- `void HideAll()` — esconde todos los slots
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `Show(slot, dna, element)` | `bool` | Renderiza MoriMochi en slot; valida que booth != null, dna != null, element != null antes de proceder (S114) |
+| `Hide(slot)` | `void` | Desactiva booth (si slot válido) |
+| `HideAll()` | `void` | Esconde todos los slots (con guardia booths != null) |
 
 **Métodos Privados:**
 
@@ -67,7 +59,7 @@ tags: [script, ui, visualization, rendering]
   6. LookRotation hacia bounds.center
 
 - `void OnDestroy()` — cleanup:
-  - Itera booths y libera RenderTextures con Release() + Destroy()
+  - Itera booths con guardia `booth?.Texture == null` (S114) y libera RenderTextures con Release() + Destroy()
 
 **Integración:**
 - Wired en ArenaPlanPanel (turntable field)
@@ -79,6 +71,10 @@ tags: [script, ui, visualization, rendering]
 - Pooling de booths permanentes (eficiente para múltiples previews)
 - Aislamiento en layer para evitar interferencia con gameplay
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**S114:**
+- Guardias de null safety en Show() y Hide() (booth == null)
+- Guardia null-coalescing en OnDestroy() (booth?.Texture)
+
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], S114
 
 **Conexiones:** [[ArenaPlanPanel]], [[MonchiVisualizer]], [[MonchiVisualBankSO]], [[FurTypeDatabaseSO]], [[CreatureDNA]]

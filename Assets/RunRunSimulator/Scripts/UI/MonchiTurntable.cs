@@ -82,7 +82,7 @@ public class MonchiTurntable : MonoBehaviour
 
     public bool Show(int slot, CreatureDNA dna, VisualElement element)
     {
-        if (slot < 0 || slot >= booths.Length || dna == null || element == null)
+        if (booths == null || slot < 0 || slot >= booths.Length || dna == null || element == null)
             return false;
 
         var booth = booths[slot];
@@ -113,7 +113,7 @@ public class MonchiTurntable : MonoBehaviour
 
     public void Hide(int slot)
     {
-        if (slot < 0 || slot >= booths.Length)
+        if (booths == null || slot < 0 || slot >= booths.Length)
             return;
 
         var booth = booths[slot];
@@ -124,12 +124,16 @@ public class MonchiTurntable : MonoBehaviour
 
     public void HideAll()
     {
+        if (booths == null) return;
+
         for (int i = 0; i < booths.Length; i++)
             Hide(i);
     }
 
     private void LateUpdate()
     {
+        if (booths == null) return;
+
         for (int i = 0; i < booths.Length; i++)
         {
             var booth = booths[i];

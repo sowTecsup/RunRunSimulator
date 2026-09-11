@@ -76,6 +76,7 @@ public class ArenaShape : MonoBehaviour
     public IReadOnlyList<IReadOnlyList<Vector2>> LakePolygons => lakePolygons;
     public IReadOnlyList<IReadOnlyList<Vector2>> PitPolygons => pitPolygons;
     public IReadOnlyList<IReadOnlyList<Vector2>> GrovePolygons => grovePolygons;
+    public bool FloorBuilt { get; private set; }
 
     public event System.Action Rebuilt;
 
@@ -377,6 +378,7 @@ public class ArenaShape : MonoBehaviour
     public void Rebuild()
     {
         dirty = false;
+        FloorBuilt = false;
 
         DestroyGenerated();
         RecalculatePolygons();
@@ -466,13 +468,10 @@ public class ArenaShape : MonoBehaviour
         holes.AddRange(pitPolygons);
 
         var mesh = ArenaShapeMesher.Floor(outlinePolygon, holes, Center.y, uvScale);
-        if (mesh == null)
-        {
-            Debug.LogWarning($"[ArenaShape] {displayName}: no se pudo generar el piso.");
-            return;
-        }
+        if (mesh == null) return;
 
         Piece("Floor", generated.transform, mesh, groundMaterial, true, false);
+        FloorBuilt = true;
     }
 
     private void BuildCliff()

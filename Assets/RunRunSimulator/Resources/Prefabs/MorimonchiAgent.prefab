@@ -597,9 +597,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.MonchiTeamRim
   agent: {fileID: 992515727134330810}
   visualizer: {fileID: 7322393538792137441}
-  rivalRimColor: {r: 1, g: 0.2, b: 0.15, a: 1}
-  rivalRimPower: 0.7
-  rivalRimInsideMask: 0.4
+  rivalRimColor: {r: 1, g: 0.16, b: 0.1, a: 1}
+  rivalRimPower: 1
+  rivalRimInsideMask: 0.62
 --- !u!1 &5424381746632244388
 GameObject:
   m_ObjectHideFlags: 0

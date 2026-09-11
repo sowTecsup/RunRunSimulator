@@ -6,35 +6,36 @@ tags: [script, world, expedition, visualization, cues]
 
 **Ruta:** `World/Expedition/ArenaRoomCueOverlay.cs`
 
-**Responsabilidad:** Dibuja guías visuales en overlay de sala: minerales (discos animados), salidas (anillos giratorio), pizarrones de equipo (anillos de vetas conocidas, pings), contorno y obstáculos grandes (S113), spawns (S113). **S113:** DrawOutline, DrawSpawns, DrawObstacles nuevos; configuración unificada vía CueStyleSO.
+**Responsabilidad:** Dibuja guías visuales en overlay de sala: minerales (discos animados), salidas (anillos giratorio), pizarrones de equipo (anillos de vetas conocidas, pings), contorno y obstáculos grandes (S113), spawns (S113). S113: DrawOutline, DrawSpawns, DrawObstacles nuevos; configuración unificada vía CueStyleSO. **S114:** `outlineInset` para desplazar contorno hacia adentro (evita overlap con borde visual).
 
 **Campos Serializados:**
 - `sandbox` [Required] — ArenaSandbox
 - `cueMaterial`, `additiveMaterial` [Required] — CueDrawer
 - `backMaterial` [Required] — material para renderizado detrás (S110)
 - `style` [Required] — CueStyleSO (estilos parametrizados para todos los elementos)
+- **S114 NUEVO:** `outlineInset` (float) — inset hacia adentro del contorno (default 0.1 m)
 - **Toggles:**
   - `showMinerals` (bool, default true)
   - `showExits` (bool, default true)
   - `showBlackboards` (bool, default true)
-  - `showOutline` (bool, default true) — **S113 NUEVO**
+  - `showOutline` (bool, default true) — S113
   - `showLode` (bool, default true)
-  - `showSpawns` (bool, default true) — **S113 NUEVO**
-  - `showObstacles` (bool, default true) — **S113 NUEVO**
+  - `showSpawns` (bool, default true) — S113
+  - `showObstacles` (bool, default true) — S113
 
 **Caches Privados:**
 - `mineralAnims` (Dictionary<MaterialPickup, MineralAnim>)
 - `mineralQueryBuffer`, `mineralLookup` (query reutilizable, no-alloc)
 
-**LateUpdate() (S103-S113):**
+**LateUpdate() (S103-S113-S114):**
 1. Setea `CueDrawer.AlphaScale = style.GuideAlpha`
 2. Si showMinerals: DrawMinerals()
 3. Si showLode: DrawLode()
 4. Si showExits: DrawBehind=true, DrawExits(), DrawBehind=false
 5. Si showBlackboards: DrawBlackboards()
-6. Si showOutline: DrawOutline() — **S113 NUEVO**
-7. Si showSpawns: DrawSpawns() — **S113 NUEVO**
-8. Si showObstacles: DrawBehind=true, DrawObstacles(), DrawBehind=false — **S113 NUEVO**
+6. Si showOutline: DrawOutline() — S113, **S114: usa outlineInset**
+7. Si showSpawns: DrawSpawns() — S113
+8. Si showObstacles: DrawBehind=true, DrawObstacles(), DrawBehind=false — S113
 9. Resetea `CueDrawer.AlphaScale = 1f`
 
 **DrawMinerals() (S103+):**
@@ -71,8 +72,10 @@ tags: [script, world, expedition, visualization, cues]
 - Dibuja anillo dasheado giratorio + pequeño anillo interior
 - Color LodeColor, radius LodeRadius
 
-**DrawOutline() (S113 NUEVO):**
+**DrawOutline() (S113, S114 ACTUALIZADO):**
 - shape = sandbox.ActiveShape (null → return)
+- polygon = shape.OutlinePolygon
+- **S114:** contrae polygon hacia el interior por outlineInset (usando normal inward)
 - Itera polygon con stride (OutlineStride)
 - Dibuja segmentos dasheados con scroll (time * OutlineScrollSpeed)
 - Color OutlineColor, thickness OutlineThickness
@@ -99,26 +102,28 @@ tags: [script, world, expedition, visualization, cues]
 | Salidas | ExitAlpha, ExitRingThickness |
 | Pizarrón | KnownVeinRingAlpha, KnownVeinRingThickness, KnownVeinRingOffset, PingSeconds, PingRadius, PingAlpha, PingThickness |
 | Lode | LodeColor, LodeRadius, LodeThickness, LodeDashCount, LodeSpinSpeed |
-| Contorno (S113) | OutlineColor, OutlineThickness, OutlineDashLength, OutlineDashGap, OutlineScrollSpeed, OutlineStride, **ObstacleThickness, ObstacleDashLength, ObstacleDashGap** |
+| Contorno (S113-S114) | OutlineColor, OutlineThickness, OutlineDashLength, OutlineDashGap, OutlineScrollSpeed, OutlineStride, **outlineInset (S114)**, **ObstacleThickness, ObstacleDashLength, ObstacleDashGap** |
 | Spawns (S113) | SpawnRadius, SpawnThickness, SpawnDashCount, SpawnSpinSpeed, SpawnAlpha |
 | General | GuideAlpha, HeightOffset, RingDashCount, RingDashRatio, RingSpinSpeed, FriendColor, FoeColor |
 
-**Invariantes (S103-S113):**
+**Invariantes (S103-S113-S114):**
 - Pings descartan tras PingKeepSeconds (TeamBlackboard.PrunePings)
 - DrawBehind=true solo para ExitZones y Obstacles (renderizado detrás)
 - Heights: todos con HeightOffset
 - AlphaScale aplicado globalmente en LateUpdate (multiplica todos los alphas)
 - Stride en Outline: si 0 → 1 (cada punto); si 4 → cada 4to punto
 - Obstacle dashCount calculado dinámico para evitar distorsión con radios distintos
+- **Outline inset (S114):** contrae hacia adentro para evitar overlap visual con borde exterior
 
-**S103-S110-S113 Cambios:**
+**S103-S110-S113-S114 Cambios:**
 - S103: DrawBlackboards, showBlackboards, backMaterial (S110)
 - S110: CueDrawer.DrawBehind para ExitZones
 - S113: DrawOutline, DrawSpawns, DrawObstacles, style centralizados
+- S114: outlineInset para DrawOutline
 
 ## Vinculado a
 
-[[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]]
+[[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]], S114
 
 ## Conexiones
 

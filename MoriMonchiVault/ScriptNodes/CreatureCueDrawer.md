@@ -42,11 +42,12 @@ tags: [script, world, visualization, expedition, util]
   - Radio interpola AbilityBurstRadiusFrom→To, alpha decay por (1-k)
   - Color de ability.Color
 
-- `Telegraph(CueStyleSO style, MoriMonchiController controller, Vector3 origin, float alpha, float blink, float arcAlpha, Vector3 eye)` — **S108+ MEJORADO** plantilla de área de impacto del movimiento de choque vigente con **S110: cinta parabólica para Wings**:
+- `Telegraph(CueStyleSO style, MoriMonchiController controller, Vector3 origin, float alpha, float blink, float arcAlpha, Vector3 eye, float hold = 0)` — **S108+ MEJORADO** plantilla de área de impacto del movimiento de choque vigente con **S110: cinta parabólica para Wings**, **S114: parámetro hold para fase Holding**:
   - Lee agent.ClashMove (movimiento vigente, null = sin telegrafía)
   - Si alpha <= 0.01 o move == null, retorna sin dibujar
   - `appear` escala 0.85→1 suave; `pulse` escala durante impacto (TelegraphPulseSpeed/Amount)
   - `blink` multiplica alfa de bordes (0.55→1) y relleno (0.55→1) para efecto de parpadeo
+  - `hold` (S114) — fracción [0,1] de duración de fase Holding; extiende telegrafía visible durante bloqueo
   - `groundY` = y del atacante, o y de ImpactPoint si atacante está en aire
   - Por slot del movimiento:
     * **Horn**: cápsula desde atacante a ImpactPoint
@@ -84,6 +85,7 @@ tags: [script, world, visualization, expedition, util]
 - `blink` (float) — onda de parpadeo [0,1], multiplica alfa de bordes y relleno para efecto pulsante
 - `arcAlpha` (float) — **S110** opacidad de la cinta de picada (fade in/out suave durante anticipación)
 - `eye` (Vector3) — **S110** posición de cámara para orientar cinta a la vista
+- `hold` (float, S114) — **S114** fracción de duración Holding [0,1]; extiende ventana de telegrafía
 
 **Integración:**
 - Llamados desde ArenaCueOverlay.LateUpdate() en el loop por criaturas
@@ -112,6 +114,12 @@ tags: [script, world, visualization, expedition, util]
 - Parámetros consumidos de CueStyleSO sección "Flecha de la picada"
 - Cinta aditiva (additive=true) con flujo de trazos animado
 
+## Cambios S114
+
+- `Telegraph()` gana parámetro `hold` (fracción de Holding phase [0,1])
+- Extiende telegrafía visible durante embestida recta y lead acotado (Horn y Wings)
+- CueAnim Hold en ArenaCueOverlay (fase explícita distinta de Striking)
+
 ## Invariantes S108+
 
 - Sin estado en el método (todo stateless, state es en ArenaCueOverlay.CueState)
@@ -121,16 +129,15 @@ tags: [script, world, visualization, expedition, util]
 
 ## Vinculado a
 
-- [[Index/23 - Arena Sandbox y Expedicion]]
+- [[Index/20 - MVP Combate]], [[Index/23 - Arena Sandbox y Expedicion]], S114
 
 ## Conexiones
 
-- [[ArenaCueOverlay]] — caller del loop
+- [[ArenaCueOverlay]] — caller del loop con CueState.Hold
 - [[CueDrawer]] — renderizado de shapes base
 - [[CueRibbonDrawer]] — **S110** renderizado de cintas parabólicas
 - [[CueStyleSO]] — parámetros de estilo
 - [[MoriMonchiController]] — acceso a DNA, Agent, transform
 - [[MoriMochiAgent]] — lee ClashMove, Team, Intent, etc.
-- [[ClashMoveSO]] — define Slot, HitRadius, SweepRadius, LaunchAngle
+- [[ClashMoveSO]] — define Slot, HitRadius, SweepRadius, LaunchAngle, **HoldSeconds (S114)**
 - [[AbilitySO]] — define Color del poder
-

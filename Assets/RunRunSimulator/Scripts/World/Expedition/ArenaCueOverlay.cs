@@ -54,6 +54,7 @@ public class ArenaCueOverlay : MonoBehaviour
         public readonly CueAnim Telegraph = new CueAnim();
         public float TelegraphPhase;
         public readonly CueAnim DiveArc = new CueAnim();
+        public readonly CueAnim Hold = new CueAnim();
     }
 
     private readonly Dictionary<MoriMonchiController, CueState> cueCache = new();
@@ -90,17 +91,20 @@ public class ArenaCueOverlay : MonoBehaviour
             if (showClash)
             {
                 bool telegraphing = controller.Agent.ClashTelegraphing;
+                bool holding = controller.Agent.ClashHolding;
                 if (telegraphing && !state.Telegraph.Visible) state.TelegraphPhase = 0f;
                 float tele = Step(state.Telegraph, telegraphing, style.TelegraphFadeSeconds, Time.deltaTime);
-                float arc = Step(state.DiveArc, telegraphing && controller.Agent.ClashTell01 < 1f, style.TelegraphFadeSeconds, Time.deltaTime);
+                float hold = Step(state.Hold, holding, style.TelegraphFadeSeconds, Time.deltaTime);
+                float arc = Step(state.DiveArc, telegraphing && !controller.Agent.IsAirborne, style.TelegraphFadeSeconds, Time.deltaTime);
                 if (tele > 0.01f)
                 {
-                    float hz = Mathf.Lerp(style.TelegraphBlinkSpeed, style.TelegraphBlinkSpeedEnd, controller.Agent.ClashTell01);
+                    float hz = holding ? style.TelegraphBlinkSpeedEnd : Mathf.Lerp(style.TelegraphBlinkSpeed, style.TelegraphBlinkSpeedEnd, controller.Agent.ClashTell01);
                     state.TelegraphPhase += Time.deltaTime * hz;
                     float wave = 0.5f + 0.5f * Mathf.Sin(state.TelegraphPhase * Mathf.PI * 2f);
                     float blink = Mathf.Lerp(style.TelegraphBlinkMin, 1f, Mathf.SmoothStep(0.25f, 0.75f, wave));
+                    if (holding) blink = Mathf.Max(blink, 0.75f);
                     CueDrawer.AlphaScale = 1f;
-                    CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink, arc, eye);
+                    CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink, arc, eye, hold);
                     CueDrawer.AlphaScale = style.GuideAlpha;
                 }
             }

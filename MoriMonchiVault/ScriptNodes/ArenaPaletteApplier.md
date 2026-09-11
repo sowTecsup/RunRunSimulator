@@ -6,7 +6,7 @@ tags: [script, world, expedition, graphics, material, palette]
 
 **Ruta:** `World/Expedition/ArenaPaletteApplier.cs`
 
-**Responsabilidad:** Gestor de paletas de arena que compila rampas a texturas, remapea materiales de la escena vía substitución de paleta, y aplica globales de shader para niebla radial. Instancia materiales por original (cacheo), clasifica renderer materials por nombre, aplica sol/ambient/fog/cielo. **S111:** soporte para material de agua. **S113:** niebla radial (ArenaFog) empujada a shaders globales por paleta, centro configurable.
+**Responsabilidad:** Gestor de paletas de arena que compila rampas a texturas, remapea materiales de la escena vía substitución de paleta, y aplica globales de shader para niebla radial. Instancia materiales por original (cacheo), clasifica renderer materials por nombre, aplica sol/ambient/fog/cielo. S111: soporte para material de agua. S113: niebla radial (ArenaFog) empujada a shaders globales por paleta, centro configurable. **S114:** variantes de follaje (rampas alternativas por índice procedural para pasto y árboles).
 
 ## Campos Serializados
 
@@ -33,7 +33,7 @@ tags: [script, world, expedition, graphics, material, palette]
 - `ApplyIndex(int index) → void` — normaliza index al rango, aplica paleta[index]
 - `Apply(ArenaPaletteSO palette) → void` — aplica paleta:
   1. Guarda Current = palette
-  2. BuildRamps(palette) — compila rampas a Texture2D 256x1
+  2. BuildRamps(palette) — compila rampas a Texture2D 256x1 (S114: con variantes de follaje)
   3. Itera roots → Renderers → Remap(renderer)
   4. ApplyEnvironment(palette) — RenderSettings + Sun + Sky
   5. PushArenaFog(palette) — **S113:** push globales de niebla radial
@@ -42,33 +42,40 @@ tags: [script, world, expedition, graphics, material, palette]
 
 ## Flujo Privado
 
-**BuildRamps(palette):**
+**BuildRamps(palette) (S114 ACTUALIZADO):**
 - Por cada ArenaPaletteSlot (7 totales: Ground, Grass, Foliage, Trunk, Rock, Wall, Water):
   - Crea o reutiliza Texture2D(256, 1, RGBA32, mipChain=false)
-  - Llena 256 píxeles: `texture.SetPixel(x, ramp.Evaluate(x/255))`
+  - **S114:** si Foliage o Grass:
+    - Itera palette.FoliageVariants y compila cada ramp a ramas alternativas
+    - Usa `palette.RampFor(slot, variantIndex)` para obtener ramp con variante
+    - Estructura: ramas[slot] = principal, variantRamps[slot] = lista de alternativas
+  - Sino: llena 256 píxeles: `texture.SetPixel(x, ramp.Evaluate(x/255))`
   - Apply(false, false) → GPU
 
-**Remap(renderer) (S113):**
+**Remap(renderer) (S113, S114):**
 - **Novedad S113:** IsBarrier(renderer.transform) → detecta si GO está en dimNames
 - Por cada material en sharedMaterials:
   - Busca original (caché en originalByInstance)
   - TryClassify(material) → ArenaPaletteSlot
   - **S113:** GetDimInstance vs GetInstance según dim
+  - **S114:** si Foliage/Grass, elige variante proceduralmente (ej. por posición o hash)
   - Reemplaza en sharedMaterials
 
-**GetInstance(original, slot) (S111-S113):**
+**GetInstance(original, slot) (S111-S113-S114):**
 - **Si Water y waterMaterial exists:** new Material(waterMaterial)
 - **Sino:** new Material(paletteMaterial)
   - FindBaseMap(original) → busca _BaseMap, _Main_Texture, _Albedo_Map, _MainTex, _Texture
   - Copia baseMap + scale/offset + keywords + _AlphaClip, _Cutoff, _Cull
   - SetFloat(WindStrengthID) según foliageWind/grassWind
-- SetTexture(_Ramp, ramps[slot])
+  - **S114:** si Foliage/Grass, calcula variantIndex y usa ramp con variante
+- SetTexture(_Ramp, ramps[slot] o variantRamps[slot][variantIndex])
 - Retorna instancia
 
-**GetDimInstance(original, slot) (S113):**
+**GetDimInstance(original, slot) (S113-S114):**
 - Similar a GetInstance pero:
   - Crea nuevo Material(paletteMaterial)
   - SetColor(_Tint, dimTint) — matiz gris oscuro
+  - **S114:** si Foliage/Grass, aplica variante igual que GetInstance
   - Resto igual
 
 **IsBarrier(transform) (S113):**
@@ -104,7 +111,7 @@ tags: [script, world, expedition, graphics, material, palette]
 **OnDisable (S113):**
 - Setea ArenaFogStrength, Dim, Outer → 0f para desactivar niebla
 
-## Invariantes S102+S111+S113
+## Invariantes S102+S111+S113+S114
 
 - **Cacheo por original:** cada material original → una instancia per slot
 - **Rampas 256x1:** evaluadas en Evaluate() para suavidad
@@ -114,14 +121,17 @@ tags: [script, world, expedition, graphics, material, palette]
 - **Dim materials (S113):** detecta por nombre de GO parent, aplica tint gris
 - **ArenaFog globals (S113):** push en Apply(), limpieza en OnDisable
 - **Center explicit (S113):** SetArenaCenter() fija centro para niebla independiente de arenaCenter
+- **Variantes de follaje (S114):** Foliage y Grass leen variante desde palette.FoliageVariants por índice procedural
+- **Pares siempre (S114):** variante pares en lista → índice procedural % VariantCount siempre retorna válido
 
 ## Conexiones
 
-- [[ArenaPaletteSO]] (lee paletas y rampas ArenaFog*)
+- [[ArenaPaletteSO]] (lee paletas y rampas ArenaFog* y FoliageVariants)
 - [[ArenaSandbox]] (llama ApplyIndex en BuildRoom)
 - [[WorldEnums]] (ArenaPaletteSlot enum)
 - [[ArenaPalette.mat]], [[ArenaPaletteWater.mat]] (template materials)
+- [[ArenaShapeDressing]] (usa variantes procedurales para pasto de borde, S114)
 
 ## Vinculado a
 
-[[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+[[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], S114

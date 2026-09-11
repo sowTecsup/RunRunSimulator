@@ -6,7 +6,7 @@ tags: [script, world, expedition, procedural, brush, editor]
 
 **Ruta:** `World/Expedition/ArenaShapeBrush.cs`
 
-**Responsabilidad:** Componente que gestiona máscara binaria de pincelado interactivo para definir regiones (lagos, rocas, pozos). Soporta pintura manual (via ArenaShapeBrushTool), generación procedural por semilla, aplicación a splines de ArenaShape. Delegados: ArenaShapeMask (geometría), ArenaShape (escritura).
+**Responsabilidad:** Componente que gestiona máscara binaria de pincelado interactivo para definir regiones (lagos, rocas, pozos). Soporta pintura manual (via ArenaShapeBrushTool), generación procedural por semilla, aplicación a splines de ArenaShape. Delegados: ArenaShapeMask (geometría), ArenaShape (escritura). **S114:** PlaceEntries automático delegado a ArenaShape, validación de pares.
 
 **Propiedades Públicas:**
 - `int Size { get; }` — resolución de máscara (128 default)
@@ -20,15 +20,16 @@ tags: [script, world, expedition, procedural, brush, editor]
 **Métodos Públicos:**
 - `void PaintAt(Vector3 world, bool erase)` — pinta disco en posición world
   - Convierte world a máscara local
-  - Si erase=false: simetrizase automáticamente si Symmetric
+  - Si erase=false: simetriza automáticamente si Symmetric
   - Si erase=true: pinta también la imagen espejada
   - Incrementa version
-- `void Apply()` — convierte máscara a contornos y escribe a ArenaShape.WriteOutline/WriteRegions
+- `void Apply()` — convierte máscara a contornos y escribe a ArenaShape.WriteOutline/WriteRegions (S114: **delegación de entrada**)
   - Extrae contornos (marching squares)
   - Identifica exterior (mayor área)
   - Filtra islas (desconectadas del exterior)
   - Simplifica poligonos
-  - Llama PlaceEntries() si autoEntries
+  - **S114:** no llama PlaceEntries (delegado a ArenaShape.Rebuild si entries vacías)
+  - Escribe a ArenaShape.WriteOutline + ArenaShape.WriteRegions(holeKind)
 - `void Regenerate(int seed)` — genera layout procedural por semilla
   - BlueParams con rng seeded
   - ArenaShapeMask.Blobs() para crear manchas
@@ -38,7 +39,7 @@ tags: [script, world, expedition, procedural, brush, editor]
 - `void Regenerate()` → Regenerate(blobSeed)
 - `void Clear()` → ArenaShapeMask.Clear(mask), version++
 
-**Campos Serializados (S111):**
+**Campos Serializados (S111-S114):**
 - `size` (int, default 128) — resolución grilla
 - `cell` (float, min 0.1, default 0.5) — metros/celda
 - `brushRadius` (float, min 0.5, default 3) — radio del pincel (metros)
@@ -48,31 +49,33 @@ tags: [script, world, expedition, procedural, brush, editor]
 - `proceduralBySeed` (bool) — toggle (si false, usar pincelado manual)
 - `centerRadius`, `blobCount`, `blobRadius`, `blobSpread`, `blobOverlap` — parámetros de blobs
 - `holeCount`, `holeRadius`, `holeMinFromCenter` — parámetros de agujeros
-- `autoEntries` (bool, default true) — auto-place entries si Apply()
-- `entryInset`, `entryMinFromCenter` — parámetros de entrada
-
-**PlaceEntries (auto si autoEntries=true):**
-1. Define 4 direcciones: diagonal, diagonal-inversa, norte-sur, este-oeste
-2. Para cada dirección: busca punto en outline más lejano en esa dirección
-3. Filtra por ángulo (< 25°) y distancia mínima
-4. Crea GOs "Entries" y coloca entradas con inset hacia adentro
+- **S114 REMOVIDO:** `autoEntries` (bool) — ya no es responsabilidad de brush
+- `entryInset`, `entryMinFromCenter` — **S114:** solo para referencia (delegado a ArenaShape)
 
 **Ciclo de Uso:**
 1. Editor: ArenaShapeBrushTool llama PaintAt() durante drag
 2. Al soltar: llama Apply() automáticamente
 3. O: llama Regenerate(seed) para generar proceduralmente
-4. Apply() escribe splines a ArenaShape, que hace Rebuild()
+4. **S114:** Apply() escribe splines; ArenaShape.Rebuild() auto-place entradas si vacías
+5. ArenaShape.Rebuilt evento se dispara (notifica listeners como ArenaShapeDressing)
 
-**Invariantes:**
+**Invariantes (S111-S114):**
 - Máscara es tamaño*tamaño bytes (lazy-init a new byte[] si null o tamaño incorrecto)
 - Origin = Center - (size*cell/2) * Vector2.one
 - BrushRadius solo se modifica durante interacción (ArenaShapeBrushTool [ y ])
 - Version incrementa con cada cambio (para caché de preview mesh)
 - Simetrización ocurre automáticamente si ArenaShape.Symmetric
+- **S114:** PlaceEntries responsabilidad de ArenaShape, no de brush
+- **S114:** Pares de entradas validados en ArenaShape.SetEntries
 
 **S111 Nuevo:**
 - Componente de interacción para pincelado y generación procedural de layout
 
-**Vinculado a:** [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**S114 Cambios:**
+- Simplificación: Apply() solo escribe geometría, no coloca entradas
+- EntryInset/EntryMinFromCenter son metadatos sin efecto en brush (leídos por ArenaShape)
+- AutoEntries removido (siempre delegado a ArenaShape.Rebuild)
 
-**Conexiones:** [[ArenaShape]], [[ArenaShapeMask]], [[ArenaShapeBrushTool]]
+**Vinculado a:** [[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], S114
+
+**Conexiones:** [[ArenaShape]], [[ArenaShapeMask]], [[ArenaShapeBrushTool]], [[ArenaShapeAxes]]

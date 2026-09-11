@@ -12,18 +12,15 @@ public class ExitZone : MonoBehaviour
 
     private Perceivable perceivable;
 
-    public float Radius => radius;
-    public ExpeditionTeam Team => perceivable.Team;
-    public int Secured { get; private set; }
+    private Perceivable PerceivableComponent => perceivable != null ? perceivable : (perceivable = GetComponent<Perceivable>());
 
-    private void Awake()
-    {
-        perceivable = GetComponent<Perceivable>();
-    }
+    public float Radius => radius;
+    public ExpeditionTeam Team => PerceivableComponent.Team;
+    public int Secured { get; private set; }
 
     public void SetTeam(ExpeditionTeam team)
     {
-        perceivable.SetTeam(team);
+        PerceivableComponent.SetTeam(team);
     }
 
     public bool Contains(Vector3 worldPosition)

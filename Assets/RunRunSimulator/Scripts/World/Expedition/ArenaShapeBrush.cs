@@ -93,7 +93,7 @@ public class ArenaShapeBrush : MonoBehaviour
         version++;
     }
 
-    public void Apply()
+    public bool Apply()
     {
         EnsureMask();
 
@@ -101,7 +101,7 @@ public class ArenaShapeBrush : MonoBehaviour
         if (loops.Count == 0)
         {
             Debug.LogWarning($"[ArenaShapeBrush] {name}: la máscara está vacía, no hay nada que aplicar.");
-            return;
+            return false;
         }
 
         int exteriorIndex = 0;
@@ -145,12 +145,32 @@ public class ArenaShapeBrush : MonoBehaviour
         if (autoEntries) PlaceEntries();
 
         version++;
+        return true;
     }
 
     public void Regenerate(int seed)
     {
         EnsureMask();
 
+        for (int attempt = 0; attempt < 4; attempt++)
+        {
+            int trySeed = attempt == 0 ? seed : seed * 31 + attempt;
+
+            ArenaShapeMask.Clear(mask);
+            GenerateBlobs(trySeed);
+
+            if (Apply() && shape.FloorBuilt)
+            {
+                blobSeed = trySeed;
+                return;
+            }
+        }
+
+        Debug.LogWarning($"[ArenaShapeBrush] {name}: ninguna variante de la semilla {seed} dio piso.");
+    }
+
+    private void GenerateBlobs(int seed)
+    {
         var rng = new System.Random(seed);
         var p = new ArenaShapeMask.BlobParams
         {
@@ -193,9 +213,6 @@ public class ArenaShapeBrush : MonoBehaviour
                 break;
             }
         }
-
-        Apply();
-        blobSeed = seed;
     }
 
     [Button] public void Regenerate() => Regenerate(blobSeed);
@@ -209,47 +226,43 @@ public class ArenaShapeBrush : MonoBehaviour
 
     private void PlaceEntries()
     {
-        var directions = new (string name, Vector2 dir)[]
-        {
-            ("diagonal", new Vector2(-1f, -1f).normalized),
-            ("diagonal inversa", new Vector2(1f, -1f).normalized),
-            ("norte-sur", new Vector2(0f, -1f)),
-            ("este-oeste", new Vector2(-1f, 0f)),
-        };
-
         var centerXZ = new Vector2(shape.Center.x, shape.Center.z);
+        var axes = ArenaShapeAxes.Longest(shape.OutlinePolygon, centerXZ, 1, 40f, 0.85f, 0.15f);
+
         var names = new List<string>();
         var positions = new List<Vector3>();
 
-        foreach (var entry in directions)
+        foreach (var axis in axes)
         {
-            bool found = false;
-            var best = Vector2.zero;
-            float bestDot = float.NegativeInfinity;
+            var offsetA = axis.A - centerXZ;
+            var offsetB = axis.B - centerXZ;
+            var anchorPoint = Vector2.Dot(offsetA, Vector2.one) <= Vector2.Dot(offsetB, Vector2.one) ? axis.A : axis.B;
 
-            foreach (var point in shape.OutlinePolygon)
+            var outward = anchorPoint - centerXZ;
+            if (outward.magnitude < entryMinFromCenter) continue;
+
+            var anchor = anchorPoint - outward.normalized * entryInset;
+
+            var baseName = ArenaShapeAxes.Name(axis.B - axis.A);
+            var entryName = baseName;
+            int suffix = 2;
+            while (names.Contains(entryName))
             {
-                var offset = point - centerXZ;
-                if (Vector2.Angle(offset, entry.dir) > 25f) continue;
-
-                float dot = Vector2.Dot(offset, entry.dir);
-                if (dot > bestDot)
-                {
-                    bestDot = dot;
-                    best = point;
-                    found = true;
-                }
+                entryName = $"{baseName} {suffix}";
+                suffix++;
             }
 
-            if (!found) continue;
-            if ((best - centerXZ).magnitude < entryMinFromCenter) continue;
-
-            var anchor = best - entry.dir * entryInset;
-            names.Add(entry.name);
+            names.Add(entryName);
             positions.Add(new Vector3(anchor.x, shape.Center.y, anchor.y));
         }
 
-        if (names.Count > 0) shape.SetEntries(names, positions);
+        if (names.Count == 0)
+        {
+            Debug.LogWarning($"[ArenaShapeBrush] {name}: la mancha no dio ejes útiles para las entradas.");
+            return;
+        }
+
+        shape.SetEntries(names, positions);
     }
 
     private Vector2 Rotate180(Vector2 point)

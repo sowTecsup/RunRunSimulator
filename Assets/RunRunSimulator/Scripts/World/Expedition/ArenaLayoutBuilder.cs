@@ -37,7 +37,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     [Title("Densidad por semilla")]
     [SerializeField] private Vector2Int treeCount = new Vector2Int(4, 9);
     [SerializeField] private Vector2Int rockCount = new Vector2Int(2, 6);
-    [SerializeField] private Vector2Int veinCount = new Vector2Int(2, 5);
+    [SerializeField] private Vector2Int veinPairs = new Vector2Int(1, 3);
     [SerializeField] private Vector2Int decorClusters = new Vector2Int(6, 12);
     [SerializeField] private Vector2Int decorPerCluster = new Vector2Int(3, 7);
     [SerializeField, Min(0.5f)] private float decorClusterRadius = 2.2f;
@@ -54,7 +54,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     [SerializeField, Min(0f)] private float clearCenterRadius = 6f;
     [SerializeField, Min(0f)] private float clearEntryRadius = 5f;
     [SerializeField, Min(0f)] private float spawnDistance = 8.5f;
-    [SerializeField, Min(0f)] private float exitInset = 4f;
+    [SerializeField, Range(0.1f, 1f)] private float spawnReach = 0.72f;
     [SerializeField, Min(0.5f)] private float obstacleSpacing = 3.5f;
     [SerializeField] private Vector2 treeScale = new Vector2(0.8f, 1.3f);
     [SerializeField] private Vector2 rockScale = new Vector2(0.6f, 1.2f);
@@ -109,14 +109,14 @@ public class ArenaLayoutBuilder : MonoBehaviour
         return transform.position + EntryDirection * (sign * (arenaHalfSize - insetFromBorder) * EntryScale);
     }
 
-    public Vector3 ExitPoint(ExpeditionTeam team) => EntryPoint(team, exitInset);
+    public Vector3 ExitPoint(ExpeditionTeam team) => SpawnPoint(team);
 
     public Vector3 SpawnPoint(ExpeditionTeam team)
     {
         if (activeShape != null)
         {
             Vector3 anchor = activeShape.EntryPoint(entryPair, team);
-            return Center + DirectionToAnchor(anchor) * spawnDistance;
+            return Center + (anchor - Center) * spawnReach;
         }
 
         float sign = team == ExpeditionTeam.Rival ? 1f : -1f;
@@ -158,7 +158,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
 
         int trees = RangeDraw(rng, treeCount);
         int rocks = RangeDraw(rng, rockCount);
-        int veins = RangeDraw(rng, veinCount);
+        int pairs = RangeDraw(rng, veinPairs);
         int clusters = RangeDraw(rng, decorClusters);
 
         BuildObstacleSet(rng, center, treePrefabs, trees, treeScale);
@@ -178,18 +178,19 @@ public class ArenaLayoutBuilder : MonoBehaviour
 
         surface.BuildNavMesh();
 
-        BuildVeins(rng, filter, center, veins);
+        string veinPattern = BuildVeins(rng, filter, center, pairs);
 
-        Debug.Log($"[ArenaLayoutBuilder] seed={seed} entrada={EntryName} obstáculos={obstaclePositions.Count} decorado={decorCenters.Count} vetas={veins_.Count} grandes={landmarksPlaced} mirror={mirrorActive} forma={ShapeName}");
+        Debug.Log($"[ArenaLayoutBuilder] seed={seed} entrada={EntryName} obstáculos={obstaclePositions.Count} decorado={decorCenters.Count} vetas={veins_.Count} grandes={landmarksPlaced} mirror={mirrorActive} forma={ShapeName} cristales={veinPattern}");
     }
 
     public void Clear()
     {
-        if (generatedRoot != null)
+        for (int i = transform.childCount - 1; i >= 0; i--)
         {
-            DestroyImmediate(generatedRoot);
-            generatedRoot = null;
+            var child = transform.GetChild(i);
+            if (child.name == "GeneratedLayout") DestroyImmediate(child.gameObject);
         }
+        generatedRoot = null;
 
         obstaclePositions.Clear();
         decorCenters.Clear();
@@ -305,31 +306,165 @@ public class ArenaLayoutBuilder : MonoBehaviour
         return false;
     }
 
-    private void BuildVeins(System.Random rng, NavMeshQueryFilter filter, Vector3 center, int count)
+    private string BuildVeins(System.Random rng, NavMeshQueryFilter filter, Vector3 center, int pairs)
     {
-        if (count <= 0) return;
+        var pattern = ArenaVeinLayouts.Pick(rng);
+        if (pairs <= 0) return ArenaVeinLayouts.Name(pattern);
 
-        int toPlace = mirrorActive ? Mathf.CeilToInt(count / 2f) : count;
+        float innerRadius = veinMinFromCenter;
+        float outerRadius = ShapeOuterRadius();
+        Vector2 acrossDirection = Perpendicular(EntryDirection);
+        Vector2 centerXZ = new Vector2(center.x, center.z);
         var placed = new List<Vector3>();
 
-        for (int i = 0; i < toPlace; i++)
+        if (mirrorActive)
         {
-            if (!TryFindVeinPoint(rng, center, placed, out Vector3 point)) continue;
+            var candidates = ArenaVeinLayouts.Candidates(pattern, rng, centerXZ, acrossDirection, innerRadius, outerRadius, pairs);
+            int placedPairs = 0;
 
-            int capacity = rng.Next(veinCapacity.x, veinCapacity.y + 1);
-            AddVeinIfOnNavMesh(point, capacity, filter, placed);
+            for (int i = 0; i < pairs; i++)
+            {
+                int capacity = rng.Next(veinCapacity.x, veinCapacity.y + 1);
+                bool hasCandidate = i < candidates.Count;
 
-            if (mirrorActive)
-                AddVeinIfOnNavMesh(Mirror(point, center), capacity, filter, placed);
+                if (TryBuildVeinPair(rng, hasCandidate ? candidates[i] : default, hasCandidate, center, placed, filter, capacity))
+                    placedPairs++;
+            }
+
+            if (placedPairs < pairs)
+                Debug.Log($"[ArenaLayoutBuilder] pidió {pairs} pares de vetas, entraron {placedPairs}");
         }
+        else
+        {
+            int toPlace = pairs * 2;
+            var candidates = ArenaVeinLayouts.Candidates(pattern, rng, centerXZ, acrossDirection, innerRadius, outerRadius, toPlace);
+            int placedCount = 0;
+
+            for (int i = 0; i < toPlace; i++)
+            {
+                int capacity = rng.Next(veinCapacity.x, veinCapacity.y + 1);
+                bool hasCandidate = i < candidates.Count;
+
+                if (TryBuildSingleVein(rng, hasCandidate ? candidates[i] : default, hasCandidate, center, placed, filter, capacity))
+                    placedCount++;
+            }
+
+            if (placedCount % 2 != 0)
+            {
+                veins_.RemoveAt(veins_.Count - 1);
+                placed.RemoveAt(placed.Count - 1);
+                placedCount--;
+            }
+
+            if (placedCount < toPlace)
+                Debug.Log($"[ArenaLayoutBuilder] pidió {pairs} pares de vetas, entraron {placedCount / 2}");
+        }
+
+        return ArenaVeinLayouts.Name(pattern);
     }
 
-    private void AddVeinIfOnNavMesh(Vector3 point, int capacity, NavMeshQueryFilter filter, List<Vector3> placed)
+    private float ShapeOuterRadius()
     {
-        if (!NavMesh.SamplePosition(point, out var hit, 3f, filter)) return;
+        if (activeShape == null) return arenaHalfSize - edgeMargin;
 
-        veins_.Add(new VeinSpot { Position = hit.position, Capacity = capacity });
-        placed.Add(point);
+        var bounds = activeShape.Bounds;
+        return Mathf.Min(bounds.extents.x, bounds.extents.z) - edgeMargin;
+    }
+
+    private static Vector2 Perpendicular(Vector3 direction) => new Vector2(-direction.z, direction.x);
+
+    private bool TryPlaceVeinCandidate(Vector2 candidate, Vector3 center, List<Vector3> placed, out Vector3 point)
+    {
+        Vector2 offset = candidate - new Vector2(center.x, center.z);
+
+        for (int attempt = 0; attempt < 4; attempt++)
+        {
+            Vector3 candidatePos = center + new Vector3(offset.x, 0f, offset.y);
+
+            if (IsValidVeinPoint(candidatePos, center, placed))
+            {
+                point = candidatePos;
+                return true;
+            }
+
+            offset *= attempt % 2 == 0 ? 0.85f : 1.2f;
+        }
+
+        point = default;
+        return false;
+    }
+
+    private bool IsValidVeinPoint(Vector3 candidate, Vector3 center, List<Vector3> placed)
+    {
+        if (activeShape != null && !activeShape.IsClear(candidate, edgeMargin)) return false;
+        if (Vector3.Distance(candidate, center) < veinMinFromCenter) return false;
+        if (IsNearEntries(candidate, clearEntryRadius)) return false;
+        if (IsNearAnyPoint(candidate, placed, veinSpacing)) return false;
+        if (IsNearAnyPoint(candidate, obstaclePositions, veinFromObstacle)) return false;
+        if (IsNearAnyLandmark(candidate)) return false;
+
+        return true;
+    }
+
+    private bool IsNearAnyLandmark(Vector3 point)
+    {
+        if (landmarks == null || landmarks.Placed == null) return false;
+
+        foreach (var mark in landmarks.Placed)
+            if (Planar(point, new Vector3(mark.x, mark.y, mark.z)) < mark.w + veinFromObstacle) return true;
+
+        return false;
+    }
+
+    private bool TryBuildVeinPair(System.Random rng, Vector2 candidate, bool hasCandidate, Vector3 center, List<Vector3> placed, NavMeshQueryFilter filter, int capacity)
+    {
+        for (int attempt = 0; attempt < 6; attempt++)
+        {
+            Vector3 point;
+            bool found = hasCandidate && attempt == 0
+                ? TryPlaceVeinCandidate(candidate, center, placed, out point)
+                : TryFindVeinPoint(rng, center, placed, out point);
+
+            if (!found) continue;
+
+            Vector3 mirrorPoint = Mirror(point, center);
+            if (!IsValidVeinPoint(mirrorPoint, center, placed)) continue;
+
+            if (!NavMesh.SamplePosition(point, out var hit, 1.5f, filter)) continue;
+            if (!NavMesh.SamplePosition(mirrorPoint, out var mirrorHit, 1.5f, filter)) continue;
+
+            if (!IsValidVeinPoint(hit.position, center, placed)) continue;
+            if (!IsValidVeinPoint(mirrorHit.position, center, placed)) continue;
+
+            veins_.Add(new VeinSpot { Position = hit.position, Capacity = capacity });
+            veins_.Add(new VeinSpot { Position = mirrorHit.position, Capacity = capacity });
+            placed.Add(point);
+            placed.Add(mirrorPoint);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryBuildSingleVein(System.Random rng, Vector2 candidate, bool hasCandidate, Vector3 center, List<Vector3> placed, NavMeshQueryFilter filter, int capacity)
+    {
+        for (int attempt = 0; attempt < 6; attempt++)
+        {
+            Vector3 point;
+            bool found = hasCandidate && attempt == 0
+                ? TryPlaceVeinCandidate(candidate, center, placed, out point)
+                : TryFindVeinPoint(rng, center, placed, out point);
+
+            if (!found) continue;
+            if (!NavMesh.SamplePosition(point, out var hit, 1.5f, filter)) continue;
+            if (!IsValidVeinPoint(hit.position, center, placed)) continue;
+
+            veins_.Add(new VeinSpot { Position = hit.position, Capacity = capacity });
+            placed.Add(point);
+            return true;
+        }
+
+        return false;
     }
 
     private bool TryFindVeinPoint(System.Random rng, Vector3 center, List<Vector3> placed, out Vector3 point)
@@ -376,9 +511,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     private bool IsNearEntries(Vector3 point, float radius)
     {
         return Planar(point, SpawnPoint(ExpeditionTeam.Player)) < radius
-            || Planar(point, SpawnPoint(ExpeditionTeam.Rival)) < radius
-            || Planar(point, ExitPoint(ExpeditionTeam.Player)) < radius
-            || Planar(point, ExitPoint(ExpeditionTeam.Rival)) < radius;
+            || Planar(point, SpawnPoint(ExpeditionTeam.Rival)) < radius;
     }
 
     private static float Planar(Vector3 a, Vector3 b) =>

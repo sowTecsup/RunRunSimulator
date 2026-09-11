@@ -6,6 +6,7 @@
             <ui:Button name="hud-pause" text="II" class="hud-btn hud-btn--pause" />
             <ui:Label name="hud-seed" text="" class="hud-seed" picking-mode="Ignore" />
         </ui:VisualElement>
+        <ui:VisualElement name="hud-palettes" class="hud-palettes" />
         <ui:VisualElement name="hud-board" class="hud-board" picking-mode="Ignore">
             <ui:VisualElement class="hud-board__row" picking-mode="Ignore">
                 <ui:VisualElement class="hud-board__side" picking-mode="Ignore">

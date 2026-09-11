@@ -6,7 +6,7 @@ tags: [script, world, expedition, ui, cues]
 
 **Ruta:** `World/Expedition/ArenaCueOverlay.cs`
 
-**Responsabilidad:** Presentación de guías visuales sobre terreno de arena. Dibuja en modo inmediato (`Graphics.RenderMesh` vía `CueDrawer` + `CueRibbonDrawer`) por criatura: percepción/visión, atención, rutas, líneas a percepciones, retícula objetivo, enlaces sociales, plantilla de choque (telegrafía con cinta parabólica S110), minería, huida, custodia, ráfagas de habilidades. S107: Delega guías de criaturas individuales a CreatureCueDrawer (Base, Mining, Clash, Flee, Trust, Social, AbilityBursts); mantiene interna lógica de percepción, reticle, path drawer. **S108:** Reemplaza Clash (flecha roja) por Telegraph (plantilla animada con parpadeo); incorpora estado de telegrafía (CueState.Telegraph, TelegraphPhase) y cálculo de parpadeo (Hz interpolado, onda sinusoidal, blink suave). **S110:** Agrega state `DiveArc` (fade de cinta parabólica) y configura `CueRibbonDrawer`.
+**Responsabilidad:** Presentación de guías visuales sobre terreno de arena. Dibuja en modo inmediato (`Graphics.RenderMesh` vía `CueDrawer` + `CueRibbonDrawer`) por criatura: percepción/visión, atención, rutas, líneas a percepciones, retícula objetivo, enlaces sociales, plantilla de choque (telegrafía con cinta parabólica S110), minería, huida, custodia, ráfagas de habilidades. S107: Delega guías de criaturas individuales a CreatureCueDrawer (Base, Mining, Clash, Flee, Trust, Social, AbilityBursts); mantiene interna lógica de percepción, reticle, path drawer. S108: Reemplaza Clash (flecha roja) por Telegraph (plantilla animada con parpadeo); incorpora estado de telegrafía (CueState.Telegraph, TelegraphPhase) y cálculo de parpadeo (Hz interpolado, onda sinusoidal, blink suave). S110: Agrega state `DiveArc` (fade de cinta parabólica) y configura `CueRibbonDrawer`. **S114:** Agrega CueState.Hold para fase Holding (embestida bloqueada, lead acotado).
 
 **Métodos públicos (Entry):**
 - `void LateUpdate()` — dibuja todas las criaturas en escena
@@ -14,7 +14,7 @@ tags: [script, world, expedition, ui, cues]
 **Delegación a CreatureCueDrawer:**
 - `CreatureCueDrawer.Base()` — disco base + anillo
 - `CreatureCueDrawer.Mining()` — arcos de minería (reveal-dependent para rivales)
-- `CreatureCueDrawer.Telegraph()` — **S108+** plantilla de choque con parpadeo + **S110** cinta parabólica (reemplaza Clash)
+- `CreatureCueDrawer.Telegraph()` — **S108+** plantilla de choque con parpadeo + **S110** cinta parabólica + **S114** fase Hold (reemplaza Clash)
 - `CreatureCueDrawer.Flee()` — anillo de huida pulsante
 - `CreatureCueDrawer.Trust()` — línea hacia custodio
 - `CreatureCueDrawer.Social()` — línea a pareja social
@@ -22,18 +22,19 @@ tags: [script, world, expedition, ui, cues]
 
 **Dibujo Interno:**
 1. Para ambos equipos (sin rama de rivales en telegrafía):
-   - **Telegraph (S108+ MEJORADO S110):**
+   - **Telegraph (S108+ MEJORADO S110+S114):**
      * Si `showClash == true`:
        - Chequea si `telegraphing` (agent.ClashTelegraphing) y reinicia TelegraphPhase si es nuevo
        - Interpola `tele` alpha suave con Step() (fade in/out TelegraphFadeSeconds)
        - Interpola `arc` alpha suave para cinta de picada (fade in/out TelegraphFadeSeconds, solo si Tell01 < 1)
+       - Calcula `hold` fracción de fase Holding: si AgentClash.phase == Holding, `hold = HoldTimer / HoldSeconds`, sino 0
        - Si tele > 0.01:
-         * Calcula Hz interpolado: `Lerp(TelegraphBlinkSpeed, TelegraphBlinkSpeedEnd, ClashTell01)`
+         * Calcula Hz interpolado: `Lerp(TelegraphBlinkSpeed, TelegraphBlinkSpeedEnd, ClashTell01)` (S114: Tell01 ahora incluye Holding)
          * Avanza fase: `TelegraphPhase += dt * hz`
          * Calcula onda: `wave = 0.5 + 0.5 * sin(phase * 2π)`
          * Calcula blink: `Lerp(TelegraphBlinkMin, 1, SmoothStep(0.25, 0.75, wave))`
          * Configura alpha scale: `CueDrawer.AlphaScale = 1f` (telegrafía siempre visible)
-         * Llama `CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink, arc, eye)`
+         * Llama `CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink, arc, eye, hold)` — **S114 parámetro hold**
          * Restaura alpha scale: `CueDrawer.AlphaScale = style.GuideAlpha`
 
 2. Equipo Rival:
@@ -62,7 +63,7 @@ tags: [script, world, expedition, ui, cues]
 - `style` (CueStyleSO) — tuning visual de todas las guías
 - `director` (ArenaCameraDirector) — para leer Pinned (reveal condition)
 - Toggles de visibilidad:
-  - `showBase`, `showPerception`, `showPath`, `showPercepts`, `showReticle`, `showSocial`, `showClash` (S108: ahora gobierna telegrafía + S110: cinta), `showMining`, `showFlee`, `showSelection`, `showAbilities`
+  - `showBase`, `showPerception`, `showPath`, `showPercepts`, `showReticle`, `showSocial`, `showClash` (S108: ahora gobierna telegrafía + S110: cinta + S114: Hold), `showMining`, `showFlee`, `showSelection`, `showAbilities`
 
 **Clases Internas:**
 - `CueAnim` — state de fade (Alpha, Visible)
@@ -72,6 +73,7 @@ tags: [script, world, expedition, ui, cues]
   - `Telegraph` (CueAnim) — estado de fade de telegrafía
   - `TelegraphPhase` (float) — fase de parpadeo [0, ∞)
   - `DiveArc` (CueAnim) — **S110 NUEVO** estado de fade de cinta parabólica
+  - `Hold` (CueAnim) — **S114 NUEVO** estado de fase Holding (bloqueo explícito antes de impacto)
 
 **Reveal State (Rivales):**
 - `active = ExpeditionNav.IsRevealing(intent) || director.Pinned == agent`
@@ -82,18 +84,19 @@ tags: [script, world, expedition, ui, cues]
 - `CueDrawer.Configure(cueMaterial, additiveMaterial)` — configura dibujante de shapes
 - `CueRibbonDrawer.Configure(ribbonMaterial, ribbonAdditiveMaterial)` — **S110 NUEVO** configura dibujante de cintas
 
-**LateUpdate (S110 MEJORADO):**
+**LateUpdate (S110 MEJORADO S114):**
 - `CueDrawer.AlphaScale = style.GuideAlpha` — multiplicador global (excepto telegrafía)
-- `eye = Camera.main.transform.position` — posición cámara para orienrar cintas **S110**
+- `eye = Camera.main.transform.position` — posición cámara para orientar cintas **S110**
 - Loop por criaturas:
   - Calcula reveal state (rivales)
   - Si showClash:
     - Calcula `tele` alpha (fade suave)
     - Calcula `arc` alpha (fade suave, Tell01-dependent) — **S110**
+    - Calcula `hold` fracción (S114: si Holding, hold = HoldTimer / HoldSeconds; sino 0)
     - Si tele > 0.01:
       - Calcula Hz de parpadeo, onda sinusoidal, blink
       - Setea `AlphaScale = 1f` (excepción: telegrafía siempre visible)
-      - Llama `Telegraph(style, controller, origin, tele, blink, arc, eye)` — **S110 arc y eye aditivos**
+      - Llama `Telegraph(style, controller, origin, tele, blink, arc, eye, hold)` — **S114 hold aditivo**
       - Restaura `AlphaScale = style.GuideAlpha`
 
 ## Cambios S107
@@ -128,7 +131,18 @@ tags: [script, world, expedition, ui, cues]
   - Pasa `eye` (Camera.main.position) a Telegraph (parámetro nuevo)
 - `Telegraph()` recibe `arcAlpha` y `eye` y usa CueRibbonDrawer.Arc() en rama Wings si arcAlpha > 0.01
 
-## Invariantes S102 + S108 + S110
+## Cambios S114
+
+- `CueState.Hold` (CueAnim) — fase explícita de bloqueo (embestida recta, lead acotado)
+  - Visible si fase == Holding (AgentClash), invisible cuando Striking
+  - Alpha interpola suave (TelegraphFadeSeconds)
+- Cálculo de `hold` en LateUpdate():
+  - Si `agent.Clash.phase == Holding`, `hold = agent.Clash.HoldTimer / agent.Clash.Move.HoldSeconds`
+  - Sino, `hold = 0`
+- `Telegraph()` recibe parámetro `hold` (fracción [0,1]) y lo usa para extender telegrafía (no cambia rampas visuales, solo informa duración)
+- Tell01 ahora incluye Holding en la ventana [0,1] (Anticipating=0→Holding=progreso→Striking=1)
+
+## Invariantes S102 + S108 + S110 + S114
 
 - Dibuja solo criaturas activas (Spawned)
 - Rivales tienen lógica de reveal separada (reveal state suave)
@@ -138,6 +152,7 @@ tags: [script, world, expedition, ui, cues]
 - Parpadeo es suave (onda sinusoidal → SmoothStep, no cuadrado)
 - Telegrafía con cinta es aditiva (siempre visible, no afectada por GuideAlpha)
 - Cinta parabólica solo se dibuja durante anticipación (Tell01 < 1), desvanece en impacto
+- Holding visible durante su duración, sin cambios de color respecto a Anticipating
 
 ## Métodos Privados
 
@@ -153,8 +168,7 @@ tags: [script, world, expedition, ui, cues]
 
 ## Vinculado a
 
-- [[Index/22 - Arena (S103-S104)]]
-- [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]]
+- [[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]], S114
 
 ## Conexiones
 
@@ -165,8 +179,8 @@ tags: [script, world, expedition, ui, cues]
 - [[ArenaRoomCueOverlay]] — renderiza terreno/minerales por separado
 - [[CreatureCueDrawer]] — lógica de guías por criatura
 - [[MoriMonchiController]] — control de criatura
-- [[MoriMochiAgent]] — estado de criatura
+- [[MoriMochiAgent]] — estado de criatura, ClashTelegraphing, ClashTell01 (S114: incluye Holding)
 - [[CueStyleSO]] — parámetros de estilo
 - [[ArenaCameraDirector]] — focalización de cámara
 - [[ExpeditionNav]] — reveal conditions
-
+- [[AgentClash]] — lee fase Holding, HoldTimer, Move.HoldSeconds

@@ -13,6 +13,7 @@ public class ClashMoveSO : ScriptableObject
 
     [Title("Tiempos")]
     [Min(0f)] public float AnticipationSeconds = 0.3f;
+    [Min(0f)] public float HoldSeconds = 0.3f;
     [Min(0.1f)] public float StrikeSeconds = 1.2f;
 
     [Title("Alcance e impacto")]

@@ -63,6 +63,35 @@
     padding: 0 10px;
 }
 
+.hud-palettes {
+    position: absolute;
+    top: 62px;
+    left: 16px;
+    flex-direction: row;
+}
+
+.hud-palette-btn {
+    height: 26px;
+    width: auto;
+    margin: 0;
+    margin-right: 6px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
+    background-color: rgba(22, 15, 14, 0.86);
+    color: var(--mm-ink);
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    opacity: 0.5;
+}
+
+.hud-palette-btn--on {
+    border-color: var(--mm-frame);
+    opacity: 1;
+}
+
 .hud-seed {
     font-size: 14px;
     letter-spacing: 1px;
