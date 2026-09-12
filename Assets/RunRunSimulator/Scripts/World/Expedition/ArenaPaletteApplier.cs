@@ -21,6 +21,9 @@ public class ArenaPaletteApplier : MonoBehaviour
     private static readonly int ArenaFogStrengthID = Shader.PropertyToID("_ArenaFogStrength");
     private static readonly int ArenaFogDimID = Shader.PropertyToID("_ArenaFogDim");
     private static readonly int TintID = Shader.PropertyToID("_Tint");
+    private static readonly int TrampleBendID = Shader.PropertyToID("_TrampleBend");
+    private static readonly int SnowReceiverID = Shader.PropertyToID("_SnowReceiver");
+    private static readonly int ArenaSnowAmountID = Shader.PropertyToID("_ArenaSnowAmount");
 
     [Required, SerializeField] private Material paletteMaterial;
     [SerializeField] private Material waterMaterial;
@@ -151,7 +154,7 @@ public class ArenaPaletteApplier : MonoBehaviour
             var original = originalByInstance.TryGetValue(material, out var known) ? known : material;
             if (!TryClassify(original, out var slot)) continue;
 
-            int variant = UsesVariant(slot) ? variantIndex : 0;
+            int variant = UsesVariant(slot) && !original.HasProperty(TrampleBendID) ? variantIndex : 0;
             var instance = dim ? GetDimInstance(original, slot, variant) : GetInstance(original, slot, variant);
             if (instance != material)
             {
@@ -229,6 +232,9 @@ public class ArenaPaletteApplier : MonoBehaviour
         if (slot == ArenaPaletteSlot.Water)
             return new Material(waterMaterial) { name = original.name + suffix };
 
+        if (original.HasProperty(TrampleBendID))
+            return new Material(original) { name = original.name + suffix };
+
         var instance = new Material(paletteMaterial) { name = original.name + suffix };
 
         var baseMap = FindBaseMap(original, out string propertyName);
@@ -251,6 +257,7 @@ public class ArenaPaletteApplier : MonoBehaviour
 
         float wind = slot == ArenaPaletteSlot.Foliage ? foliageWind : slot == ArenaPaletteSlot.Grass ? grassWind : 0f;
         instance.SetFloat(WindStrengthID, wind);
+        instance.SetFloat(SnowReceiverID, slot == ArenaPaletteSlot.Ground ? 1f : 0f);
 
         float cull = original.HasProperty("_Cull") ? original.GetFloat("_Cull") : (float)CullMode.Back;
         instance.SetFloat(CullID, cull);
@@ -277,7 +284,8 @@ public class ArenaPaletteApplier : MonoBehaviour
     {
         string n = material.name;
 
-        if (n.Contains("Trunk")) slot = ArenaPaletteSlot.Trunk;
+        if (n.Contains("Blades")) slot = ArenaPaletteSlot.Ground;
+        else if (n.Contains("Trunk")) slot = ArenaPaletteSlot.Trunk;
         else if (n.Contains("Leaves") || n.Contains("Tree") || n.Contains("Plants")) slot = ArenaPaletteSlot.Foliage;
         else if (n.Contains("Moss") || n.Contains("Rock") || n.Contains("Pebble") || n.StartsWith("PolygonNature_0")) slot = ArenaPaletteSlot.Rock;
         else if (n.StartsWith("Generic_0") || n.Contains("Grass") || n.Contains("Flower")) slot = ArenaPaletteSlot.Grass;
@@ -294,6 +302,12 @@ public class ArenaPaletteApplier : MonoBehaviour
     }
 
     private void ApplyEnvironment(ArenaPaletteSO palette)
+    {
+        Shader.SetGlobalFloat(ArenaSnowAmountID, palette.Snow ? 1f : 0f);
+        ApplyLighting(palette);
+    }
+
+    private void ApplyLighting(ArenaPaletteSO palette)
     {
         if (sun != null)
         {

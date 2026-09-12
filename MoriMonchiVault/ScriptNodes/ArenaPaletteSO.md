@@ -6,7 +6,7 @@ tags: [script, data, scriptableobject, expedition, palette]
 
 **Ruta:** `Data/Expedition/ArenaPaletteSO.cs`
 
-**Responsabilidad:** Asset ScriptableObject que define una paleta de color para una escena de arena. Contiene rampas de colores (Dark/Mid/Light) por tipo de material, tuning de iluminación/ambiente/fog/cielo, y parámetros de niebla radial. Serializado vía Odin para edición en Inspector. **S113:** niebla radial (ArenaFog*) configurable por paleta. **S114:** variantes de follaje (rampas alternativas para árboles y pasto).
+**Responsabilidad:** Asset ScriptableObject que define una paleta de color para una escena de arena. Contiene rampas de colores (Dark/Mid/Light) por tipo de material, tuning de iluminación/ambiente/fog/cielo, y parámetros de niebla radial. Serializado vía Odin para edición en Inspector. S113: niebla radial (ArenaFog*) configurable por paleta. S114: variantes de follaje (rampas alternativas para árboles y pasto). **S117:** flag de nieve para escenas nevadas (Nevado).
 
 ## Struct Ramp
 
@@ -27,6 +27,7 @@ Ramp es una rampa tricolor suavizada: `t < 0.5 ? Lerp(Dark, Mid, t*2) : Lerp(Mid
 
 **Identidad:**
 - `DisplayName` (string, default "Pradera") — nombre legible en UI
+- **S117:** `Snow` (bool, default false) — true solo en paleta Nevado; publica _ArenaSnowAmount=1.0 via ArenaPaletteApplier
 
 **Rampas por slot de material (7 total):**
 - `Ground` — suelo principal (verde terroso)
@@ -37,7 +38,7 @@ Ramp es una rampa tricolor suavizada: `t < 0.5 ? Lerp(Dark, Mid, t*2) : Lerp(Mid
 - `Wall` — muro/pared (gris oscuro)
 - `Water` — agua (azul océano) con Dark/Mid/Light
 
-Cada ramp está pre-cargada con colores específicos por escena (pradera, desierto, etc.).
+Cada ramp está pre-cargada con colores específicos por escena (pradera, desierto, nevado, etc.).
 
 **Variación natural (S114):**
 - `FoliageVariants` — `List<Ramp>` (5 rampas por defecto): paleta de colores para árboles y pasto según índice procedural
@@ -65,22 +66,24 @@ Cada ramp está pre-cargada con colores específicos por escena (pradera, desier
 | `RampFor(ArenaPaletteSlot slot, int variant)` | `Ramp` | **S114:** Ramp con variante para Foliage/Grass; otros slots ignoran variant |
 | `VariantCount` | `int` | Cantidad de variantes disponibles (length de FoliageVariants) |
 
-## Invariantes S102+S111+S113+S114
+## Invariantes S102+S111+S113+S114+S117
 
 - **7 slots de material:** correspondencia 1:1 con enum ArenaPaletteSlot
 - **Colores precargados:** valores RGB editables en Inspector (no procedurales)
 - **Luz global:** Sun, Ambient, Fog, Sky afectan RenderSettings (aplicado por ArenaPaletteApplier)
 - **ArenaFog:** parámetros globales de niebla radial (aplicados por ArenaPaletteApplier.PushArenaFog)
 - **FoliageVariants:** pares de folaje siempre indexados módulo a VariantCount
+- **Snow flag (S117):** true solo en Nevado; publica _ArenaSnowAmount=1.0; shader lee para aplicar efecto de nieve
 - **No instancia:** es un asset de data, no prefab
 
 ## Conexiones
 
-- [[ArenaPaletteApplier]] (lee paleta, compila rampas a Texture2D 256x1, push ArenaFog globales)
+- [[ArenaPaletteApplier]] (lee paleta, compila rampas a Texture2D 256x1, push ArenaFog globales, publica _ArenaSnowAmount según Snow)
 - [[WorldEnums]] (ArenaPaletteSlot enum)
 - [[ArenaSandbox]] (lista de palettes, selección por semilla o índice)
-- [[ArenaShapeDressing]] (usa variantes para pasto de borde)
+- [[ArenaShapeDressing]] (usa variantes procedurales para pasto de borde)
+- [[ArenaTrampleMap]] (S117: recibe nieve de _ArenaSnowAmount)
 
 ## Vinculado a
 
-[[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], S114
+[[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], S114, S117

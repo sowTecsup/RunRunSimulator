@@ -27,6 +27,7 @@ public class ArenaPaletteSO : SerializedScriptableObject
     }
 
     public string DisplayName = "Pradera";
+    public bool Snow;
 
     [Title("Rampas por material")]
     public Ramp Ground = new Ramp(new Color(0.22f, 0.42f, 0.16f), new Color(0.45f, 0.66f, 0.28f), new Color(0.72f, 0.84f, 0.45f));

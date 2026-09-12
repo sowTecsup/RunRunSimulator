@@ -12,6 +12,15 @@ Shader "MoriMonchi/ArenaPalette"
         _WindSpeed ("Wind Speed", Float) = 1.2
         _WindScale ("Wind Scale", Float) = 0.35
         _ShadowStrength ("Shadow Strength", Range(0,1)) = 0.75
+        _SnowReceiver ("Snow Receiver", Float) = 0
+        _ToonStep ("Toon Step", Range(0,1)) = 0.5
+        _ToonFeather ("Toon Feather", Range(0.001,0.5)) = 0.11
+        _ShadeTint ("Shade Tint", Color) = (0.58,0.56,0.68,1)
+        _ShadeLight ("Shade Light", Range(0,1)) = 0.35
+        _LitLight ("Lit Light", Range(0,2)) = 0.72
+        _RimColor ("Rim Color", Color) = (1,1,1,1)
+        _RimPower ("Rim Power", Float) = 4
+        _RimStrength ("Rim Strength", Range(0,2)) = 0.18
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2
     }
     SubShader
@@ -31,6 +40,15 @@ Shader "MoriMonchi/ArenaPalette"
             half _WindSpeed;
             half _WindScale;
             half _ShadowStrength;
+            half _SnowReceiver;
+            half _ToonStep;
+            half _ToonFeather;
+            half4 _ShadeTint;
+            half _ShadeLight;
+            half _LitLight;
+            half4 _RimColor;
+            half _RimPower;
+            half _RimStrength;
         CBUFFER_END
 
         float4 _ArenaFogCenter;
@@ -39,6 +57,12 @@ Shader "MoriMonchi/ArenaPalette"
         float _ArenaFogOuter;
         float _ArenaFogStrength;
         float _ArenaFogDim;
+
+        float4 _ArenaTrampleArea;
+        float _ArenaSnowAmount;
+
+        TEXTURE2D(_ArenaTrampleTex);
+        SAMPLER(sampler_ArenaTrampleTex);
 
         TEXTURE2D(_BaseMap);
         SAMPLER(sampler_BaseMap);
@@ -120,15 +144,30 @@ Shader "MoriMonchi/ArenaPalette"
                 half3 palette = SAMPLE_TEXTURE2D(_Ramp, sampler_Ramp, float2(lum, 0.5)).rgb;
                 half3 albedo = lerp(tex.rgb, palette, _RampInfluence) * _Tint.rgb;
 
+                float snowMark = _SnowReceiver * _ArenaSnowAmount;
+                if (snowMark > 0.0)
+                {
+                    float2 trampleUV = (input.positionWS.xz - _ArenaTrampleArea.xy) * _ArenaTrampleArea.zw;
+                    float packed = saturate(SAMPLE_TEXTURE2D(_ArenaTrampleTex, sampler_ArenaTrampleTex, trampleUV).a);
+                    albedo = lerp(albedo, albedo * half3(0.52, 0.6, 0.78), packed * snowMark);
+                }
+
                 float4 shadowCoord = TransformWorldToShadowCoord(input.positionWS);
                 Light mainLight = GetMainLight(shadowCoord);
                 half3 normalWS = normalize(input.normalWS);
-                half ndl = saturate(dot(normalWS, mainLight.direction));
-                half shadow = lerp(1.0, mainLight.shadowAttenuation * mainLight.distanceAttenuation, _ShadowStrength);
-                half3 ambient = SampleSH(normalWS);
-                half3 lighting = mainLight.color * ndl * shadow + ambient;
+                half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 
-                half3 color = albedo * lighting;
+                half attenuation = lerp(1.0, mainLight.shadowAttenuation * mainLight.distanceAttenuation, _ShadowStrength);
+                half wrapped = dot(normalWS, mainLight.direction) * 0.5 + 0.5;
+                half lit = smoothstep(_ToonStep - _ToonFeather, _ToonStep + _ToonFeather, wrapped * attenuation);
+
+                half3 ambient = SampleSH(normalWS);
+                half3 baseLit = albedo * (mainLight.color * _LitLight + ambient);
+                half3 shadeLit = albedo * _ShadeTint.rgb * (mainLight.color * _ShadeLight + ambient);
+                half3 color = lerp(shadeLit, baseLit, lit);
+
+                half fresnel = pow(saturate(1.0 - saturate(dot(normalWS, viewDirWS))), _RimPower);
+                color += _RimColor.rgb * fresnel * _RimStrength * lit;
 
                 float dFog = distance(input.positionWS.xz, _ArenaFogCenter.xz);
                 float tFog = 0.0;
