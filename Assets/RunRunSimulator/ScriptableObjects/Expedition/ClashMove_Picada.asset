@@ -22,7 +22,8 @@ MonoBehaviour:
   DashSpeed: 0
   DashAcceleration: 60
   SelfRecoil: 0
-  LaunchAngle: 45
+  RiseHeight: 3
+  DiveSeconds: 0.3
   SweepRadius: 0
   TellGesture: FlyUp
   StrikeGesture: 

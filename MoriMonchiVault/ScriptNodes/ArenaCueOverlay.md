@@ -6,7 +6,7 @@ tags: [script, world, expedition, ui, cues]
 
 **Ruta:** `World/Expedition/ArenaCueOverlay.cs`
 
-**Responsabilidad:** Presentación de guías visuales sobre terreno de arena. Dibuja en modo inmediato (`Graphics.RenderMesh` vía `CueDrawer` + `CueRibbonDrawer`) por criatura: percepción/visión, atención, rutas, líneas a percepciones, retícula objetivo, enlaces sociales, plantilla de choque (telegrafía con cinta parabólica S110), minería, huida, custodia, ráfagas de habilidades. S107: Delega guías de criaturas individuales a CreatureCueDrawer (Base, Mining, Clash, Flee, Trust, Social, AbilityBursts); mantiene interna lógica de percepción, reticle, path drawer. S108: Reemplaza Clash (flecha roja) por Telegraph (plantilla animada con parpadeo); incorpora estado de telegrafía (CueState.Telegraph, TelegraphPhase) y cálculo de parpadeo (Hz interpolado, onda sinusoidal, blink suave). S110: Agrega state `DiveArc` (fade de cinta parabólica) y configura `CueRibbonDrawer`. S114: Agrega CueState.Hold para fase Holding (embestida bloqueada, lead acotado). **S115:** Salta guías de criaturas con intent Dazed/Tumbling (línea 83); `OnScreen(Vector3)` valida viewport con margen 5%; pasa `OnScreen(...)` a `CuePathDrawer.Draw` para que rutas se desvanezcan cuando dueño sale de pantalla.
+**Responsabilidad:** Presentación de guías visuales sobre terreno de arena. Dibuja en modo inmediato (`Graphics.RenderMesh` vía `CueDrawer`) por criatura: percepción/visión, atención, rutas, líneas a percepciones, retícula objetivo, enlaces sociales, plantilla de choque (telegrafía con hitbox + anillo de impacto), minería, huida, custodia, ráfagas de habilidades. S107: Delega guías de criaturas individuales a CreatureCueDrawer; mantiene interna lógica de percepción, reticle, path drawer. S108+: Telegraph con parpadeo. **S116:** Sin ribbon ni campos ribbonMaterial; CueState con StrikeAt/LastHitAt/HitCenter/HitRadius; flash e ImpactRing; Dazed/Tumbling no se saltan si telegrafían o tienen anillo vivo; ruta en color de equipo y oculta mientras ClashMove != null.
 
 **Métodos públicos (Entry):**
 - `void LateUpdate()` — dibuja todas las criaturas en escena
@@ -14,56 +14,12 @@ tags: [script, world, expedition, ui, cues]
 **Delegación a CreatureCueDrawer:**
 - `CreatureCueDrawer.Base()` — disco base + anillo
 - `CreatureCueDrawer.Mining()` — arcos de minería (reveal-dependent para rivales)
-- `CreatureCueDrawer.Telegraph()` — **S108+** plantilla de choque con parpadeo + **S110** cinta parabólica + **S114** fase Hold (reemplaza Clash)
+- `CreatureCueDrawer.Telegraph()` — **S116** plantilla de choque con hitbox (disco) + **ImpactRing** post-golpe
 - `CreatureCueDrawer.Flee()` — anillo de huida pulsante
 - `CreatureCueDrawer.Trust()` — línea hacia custodio
 - `CreatureCueDrawer.Social()` — línea a pareja social
 - `CreatureCueDrawer.AbilityBursts()` — ráfagas post-disparo
-
-**Dibujo Interno:**
-1. Para ambos equipos (sin rama de rivales en telegrafía):
-   - **Telegraph (S108+ MEJORADO S110+S114):**
-     * Si `showClash == true`:
-       - Chequea si `telegraphing` (agent.ClashTelegraphing) y reinicia TelegraphPhase si es nuevo
-       - Interpola `tele` alpha suave con Step() (fade in/out TelegraphFadeSeconds)
-       - Interpola `arc` alpha suave para cinta de picada (fade in/out TelegraphFadeSeconds, solo si Tell01 < 1)
-       - Calcula `hold` fracción de fase Holding: si AgentClash.phase == Holding, `hold = HoldTimer / HoldSeconds`, sino 0
-       - Si tele > 0.01:
-         * Calcula Hz interpolado: `Lerp(TelegraphBlinkSpeed, TelegraphBlinkSpeedEnd, ClashTell01)` (S114: Tell01 ahora incluye Holding)
-         * Avanza fase: `TelegraphPhase += dt * hz`
-         * Calcula onda: `wave = 0.5 + 0.5 * sin(phase * 2π)`
-         * Calcula blink: `Lerp(TelegraphBlinkMin, 1, SmoothStep(0.25, 0.75, wave))`
-         * Configura alpha scale: `CueDrawer.AlphaScale = 1f` (telegrafía siempre visible)
-         * Llama `CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink, arc, eye, hold)` — **S114 parámetro hold**
-         * Restaura alpha scale: `CueDrawer.AlphaScale = style.GuideAlpha`
-
-2. Equipo Rival:
-   - Base (siempre)
-   - Mining/AbilityBursts si reveal > 0.01 (IsRevealing OR Pinned)
-   - Selection (marker simple)
-   
-3. Equipo Jugador:
-   - Base (siempre)
-   - Percepción (anillo/cono visión con pulsación)
-   - Atención (arcos amarillos hacia nearest percept)
-   - Path (ruta suavizada vía CuePathDrawer) — **S115** solo si OnScreen
-   - Percepts (líneas a percepciones coloreadas)
-   - Reticle (retícula sobre objetivo expedición)
-   - Social (enlace rosa pulsante)
-   - Mining (arcos de minería)
-   - Flee (anillo amarillo pulsante)
-   - Trust (línea de custodia)
-   - AbilityBursts (ráfagas radiales)
-   - Selection (marker simple)
-
-**Campos Serializados:**
-- `sandbox` [Required] — acceso a criaturas
-- `cueMaterial`, `additiveMaterial` [Required] — materiales de renderizado CueDrawer
-- `ribbonMaterial`, `ribbonAdditiveMaterial` [Required] — **S110 NUEVO** materiales de renderizado CueRibbonDrawer (cinta)
-- `style` (CueStyleSO) — tuning visual de todas las guías
-- `director` (ArenaCameraDirector) — para leer Pinned (reveal condition)
-- Toggles de visibilidad:
-  - `showBase`, `showPerception`, `showPath`, `showPercepts`, `showReticle`, `showSocial`, `showClash` (S108: ahora gobierna telegrafía + S110: cinta + S114: Hold), `showMining`, `showFlee`, `showSelection`, `showAbilities`
+- `CreatureCueDrawer.ImpactRing()` — **S116 NUEVO** anillo de impacto post-golpe exitoso
 
 **Clases Internas:**
 - `CueAnim` — state de fade (Alpha, Visible)
@@ -71,160 +27,186 @@ tags: [script, world, expedition, ui, cues]
   - `Path` (PathCueState)
   - `PerceptionAppear`, `Reticle`, `Reveal`, `Selection` (CueAnim)
   - `Telegraph` (CueAnim) — estado de fade de telegrafía
-  - `TelegraphPhase` (float) — fase de parpadeo [0, ∞)
-  - `DiveArc` (CueAnim) — **S110 NUEVO** estado de fade de cinta parabólica
-  - `Hold` (CueAnim) — **S114 NUEVO** estado de fase Holding (bloqueo explícito antes de impacto)
+  - **S116:** `StrikeAt` (float) — timestamp cuando transición a Striking completa
+  - **S116:** `LastHitAt` (float) — timestamp del último impacto (tracking para ImpactRing)
+  - **S116:** `HitCenter` (Vector3) — posición del impacto (centro de ImpactRing)
+  - **S116:** `HitRadius` (float) — radio de impacto (tamaño de ImpactRing)
 
 **Reveal State (Rivales):**
 - `active = ExpeditionNav.IsRevealing(intent) || director.Pinned == agent`
 - `reveal = Step(state.Reveal, active, style.RevealSeconds, dt)`
 - Si reveal > 0.01, dibuja Mining/AbilityBursts (desvanecimiento suave)
 
-**OnEnable (S110 MEJORADO):**
+**OnEnable (S116 SIMPLIFICADO):**
 - `CueDrawer.Configure(cueMaterial, additiveMaterial)` — configura dibujante de shapes
-- `CueRibbonDrawer.Configure(ribbonMaterial, ribbonAdditiveMaterial)` — **S110 NUEVO** configura dibujante de cintas
+- **S116:** Sin `CueRibbonDrawer.Configure()`
 
-**LateUpdate (S110 MEJORADO S114-S115):**
-- `CueDrawer.AlphaScale = style.GuideAlpha` — multiplicador global (excepto telegrafía)
-- `eye = Camera.main.transform.position` — posición cámara para orientar cintas **S110**
-- **S115 NUEVO:** Loop por criaturas SALTA si intent Dazed/Tumbling (línea 83: `continue`)
-- Loop por criaturas:
-  - Calcula reveal state (rivales)
-  - Si showClash:
-    - Calcula `tele` alpha (fade suave)
-    - Calcula `arc` alpha (fade suave, Tell01-dependent) — **S110**
-    - Calcula `hold` fracción (S114: si Holding, hold = HoldTimer / HoldSeconds; sino 0)
-    - Si tele > 0.01:
-      - Calcula Hz de parpadeo, onda sinusoidal, blink
-      - Setea `AlphaScale = 1f` (excepción: telegrafía siempre visible)
-      - Llama `Telegraph(style, controller, origin, tele, blink, arc, eye, hold)` — **S114 hold aditivo**
-      - Restaura `AlphaScale = style.GuideAlpha`
+**LateUpdate (S116 MEJORADO):**
 
-## Cambios S107
+1. **Loop por criaturas — S116 CAMBIO**: Salta si Dazed/Tumbling Y no están telegrafiendo Y no tienen anillo vivo
+   ```csharp
+   if ((intent == CreatureIntent.Dazed || intent == CreatureIntent.Tumbling) && 
+       !clashVisual) continue;  // clashVisual = ClashTelegraphing || (Time.time - HitAt < ImpactRingSeconds)
+   ```
 
-- Delegación de 7 métodos a CreatureCueDrawer (Base, Mining, Clash, Flee, Trust, Social, AbilityBursts)
-- Reduced internal complexity: ArenaCueOverlay ahora solo maneja percepción/atención/reticle/path
-- Mejor separación de responsabilidades: CreatureCueDrawer trata guías individuales, ArenaCueOverlay trata terreno/equipo
+2. **Telegraph (S116 SIMPLIFICADO):**
+   - Si `showClash == true`:
+     - Chequea si `telegraphing` (agent.ClashTelegraphing)
+     - Calcula `tele` alpha suave con Step() (fade in/out TelegraphFadeSeconds)
+     - Calcula `flash` normalizado: `1 - Clamp01((Time.time - StrikeAt) / FlashSeconds)` si StrikeAt >= 0, sino 0
+     - Si tele > 0.01:
+       - Configura alpha scale: `CueDrawer.AlphaScale = 1f` (telegrafía siempre visible)
+       - Llama `CreatureCueDrawer.Telegraph(style, controller, origin, tele, flash)`
+       - Restaura alpha scale: `CueDrawer.AlphaScale = style.GuideAlpha`
 
-## Cambios S108
+3. **ImpactRing (S116 NUEVO):**
+   - Si `showClash == true` y `LastHitAt >= 0`:
+     - Calcula `ringT = (Time.time - LastHitAt) / ImpactRingSeconds`
+     - Si ringT < 1:
+       - Configura alpha scale: `CueDrawer.AlphaScale = 1f` (impacto siempre visible)
+       - Llama `CreatureCueDrawer.ImpactRing(style, controller, HitCenter, HitRadius, ringT)`
+       - Restaura alpha scale: `CueDrawer.AlphaScale = style.GuideAlpha`
 
-- `CueState` gana Telegraph (CueAnim) y TelegraphPhase (float)
-- Reemplazo de rama `showClash`:
-  - Antes: dos llamadas a CreatureCueDrawer.Clash (rival en reveal + jugador)
-  - Ahora: lógica unificada de Telegraph para ambos equipos, sin reveal gate
-  - Calcula Hz dinámico interpolado (TelegraphBlinkSpeed → BlinkSpeedEnd por Tell01)
-  - Mantiene phase persistente en CueState (suma dt*hz cada frame)
-  - Calcula onda sinusoidal y blink suave (SmoothStep de 0.25 a 0.75 de la onda)
-  - Llama Telegraph una sola vez con alpha y blink calculados
-- Invariante: presentación solo lee fachadas (nadie escribe en AgentClash desde overlay)
-- Telegrafía visible para ambos equipos (excepción deliberada a reveal, usuario necesita ver los golpes)
+4. **Ruta (S116 CAMBIO):**
+   - Color: color de equipo (Player → FriendColor, Rival → FoeColor, neutro → DNA.BaseColor)
+   - **Visible solo si `ClashMove == null`** (no se dibuja ruta durante combate)
+   - Pasa `OnScreen(controller.transform.position)` para fade out si sale de viewport
 
-## Cambios S110
+5. **Equipo Rival:**
+   - Base (siempre)
+   - Mining/AbilityBursts si reveal > 0.01
+   - Selection (marker simple)
+   
+6. **Equipo Jugador:**
+   - Base (siempre)
+   - Percepción (anillo/cono visión con pulsación)
+   - Atención (arcos amarillos hacia nearest percept)
+   - Path (ruta suavizada, color de equipo, visible si ClashMove == null)
+   - Percepts (líneas a percepciones)
+   - Reticle (retícula sobre objetivo expedición)
+   - Social (enlace pulsante)
+   - Mining (arcos de minería)
+   - Flee (anillo pulsante)
+   - Trust (línea de custodia)
+   - AbilityBursts (ráfagas radiales)
+   - Selection (marker simple)
 
-- `CueState.DiveArc` (CueAnim) — fade de cinta parabólica
-  - Visible si `telegraphing && Tell01 < 1f` (anticipación, antes del impacto)
-  - Alpha interpola suave (TelegraphFadeSeconds)
-- Campos serializados: `ribbonMaterial`, `ribbonAdditiveMaterial` [Required]
-- `OnEnable()` llama `CueRibbonDrawer.Configure(ribbonMaterial, ribbonAdditiveMaterial)`
-- `LateUpdate()`:
-  - Calcula `arc = Step(state.DiveArc, telegraphing && Tell01 < 1f, TelegraphFadeSeconds, dt)`
-  - Pasa `arc` alpha a Telegraph (parámetro nuevo)
-  - Pasa `eye` (Camera.main.position) a Telegraph (parámetro nuevo)
-- `Telegraph()` recibe `arcAlpha` y `eye` y usa CueRibbonDrawer.Arc() en rama Wings si arcAlpha > 0.01
+**Campos Serializados:**
+- `sandbox` [Required] — acceso a criaturas
+- `cueMaterial`, `additiveMaterial` [Required] — materiales de renderizado CueDrawer
+- `style` (CueStyleSO) — tuning visual de todas las guías
+- `director` (ArenaCameraDirector) — para leer Pinned
+- Toggles de visibilidad:
+  - `showBase`, `showPerception`, `showPath`, `showPercepts`, `showReticle`, `showSocial`, `showClash` (S116: governa telegrafía + ImpactRing), `showMining`, `showFlee`, `showSelection`, `showAbilities`
 
-## Cambios S114
+## S116 Cambios
 
-- `CueState.Hold` (CueAnim) — fase explícita de bloqueo (embestida recta, lead acotado)
-  - Visible si fase == Holding (AgentClash), invisible cuando Striking
-  - Alpha interpola suave (TelegraphFadeSeconds)
-- Cálculo de `hold` en LateUpdate():
-  - Si `agent.Clash.phase == Holding`, `hold = agent.Clash.HoldTimer / agent.Clash.Move.HoldSeconds`
-  - Sino, `hold = 0`
-- `Telegraph()` recibe parámetro `hold` (fracción [0,1]) y lo usa para extender telegrafía (no cambia rampas visuales, solo informa duración)
-- Tell01 ahora incluye Holding en la ventana [0,1] (Anticipating=0→Holding=progreso→Striking=1)
+**Eliminación de ribbon:**
+- Se remueven campos `ribbonMaterial`, `ribbonAdditiveMaterial`
+- Se elimina llamada `CueRibbonDrawer.Configure()` en OnEnable
+- Telegraph ahora es plantilla única: un disco por golpe (no arco parabólico)
 
-## Cambios S115
-
-**LateUpdate() línea 83 — SALTAR DAZED/TUMBLING:**
+**CueState nuevos campos (S116):**
 ```csharp
-if (controller == null || controller.DNA == null) continue;
-
-var state = GetCueState(controller);
-var intent = controller.Agent.Intent;
-if (intent == CreatureIntent.Dazed || intent == CreatureIntent.Tumbling) continue;  // S115 NUEVO
+public float StrikeAt = -1f;        // timestamp cuando Tell01 alcanza 1 (impacto inminente)
+public float LastHitAt = -1f;       // timestamp del último impacto (hit conectado)
+public Vector3 HitCenter;           // posición del impacto (para ImpactRing)
+public float HitRadius = 1f;        // radio de impacto
 ```
-- Tras validar controller, chequea si intent es Dazed O Tumbling
-- Si sí, salta toda la lógica de dibujo de guías (continue)
-- Contexto: criaturas noqueadas no muestran rutas/telegrafía/etc.
 
-**LateUpdate() línea 130 — PASAR ONSCREEN A CUEPATHDRWER:**
-```csharp
-Color pathColor = controller.Agent.Intent == CreatureIntent.Fleeing ? style.FleeColor : style.ColorFor(controller.Agent.Intent);
-if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, pathColor, Time.deltaTime, OnScreen(controller.transform.position));
-```
-- Calcula `OnScreen(controller.transform.position)` — valida si criatura está visible en viewport
-- Pasa resultado como parámetro `bool ownerVisible` a CuePathDrawer.Draw()
-- Contexto: ruta solo se dibuja si dueño está en pantalla (con margen de seguridad)
+**Lógica de Dazed/Tumbling (S116):**
+- Línea ~82: Chequea `clashVisual = agent.ClashTelegraphing || (Time.time - agent.ClashHitAt < style.ImpactRingSeconds)`
+- Si intent es Dazed O Tumbling Y clashVisual == false, salta guías
+- Si clashVisual == true, mantiene visualización (usuario ve impacto en noqueado)
 
-**OnScreen() método — NUEVO VALIDACIÓN VIEWPORT (línea 336):**
+**Lógica de Path (S116):**
+- Línea ~143: Dibuja ruta solo si `ClashMove == null` (no hay combate activo)
+- Color: `style.FriendColor` (Player), `style.FoeColor` (Rival), `DNA.BaseColor` (neutro)
+- Contexto: evita clutter visual durante combate
+
+**Lógica de Telegraph (S116 SIMPLIFICADA):**
 ```csharp
-private static bool OnScreen(Vector3 world)
+if (showClash)
 {
-    // Calcula si punto está dentro de viewport con margen 5%
+    var agent = controller.Agent;
+    bool telegraphing = agent.ClashTelegraphing;
+    float tele = Step(state.Telegraph, telegraphing, style.TelegraphFadeSeconds, Time.deltaTime);
+    
+    bool striking = telegraphing && agent.ClashTell01 >= 1f;
+    if (!telegraphing) state.StrikeAt = -1f;
+    else if (striking && state.StrikeAt < 0f) state.StrikeAt = Time.time;
+    
+    float flash = state.StrikeAt >= 0f 
+        ? 1f - Mathf.Clamp01((Time.time - state.StrikeAt) / Mathf.Max(0.01f, style.TelegraphFlashSeconds)) 
+        : 0f;
+    
+    if (tele > 0.01f)
+    {
+        CueDrawer.AlphaScale = 1f;
+        CreatureCueDrawer.Telegraph(style, controller, origin, tele, flash);
+        CueDrawer.AlphaScale = style.GuideAlpha;
+    }
+    
+    // ImpactRing
+    if (agent.ClashHitAt > state.LastHitAt)
+    {
+        state.LastHitAt = agent.ClashHitAt;
+        state.HitCenter = agent.ClashHitPoint + Vector3.up * style.HeightOffset;
+        var move = agent.ClashMove;
+        state.HitRadius = move == null ? 1f : (move.Slot == ClashSlot.Back ? move.SweepRadius : move.HitRadius);
+    }
+    
+    if (state.LastHitAt >= 0f)
+    {
+        float ringT = (Time.time - state.LastHitAt) / Mathf.Max(0.01f, style.TelegraphImpactRingSeconds);
+        if (ringT < 1f)
+        {
+            CueDrawer.AlphaScale = 1f;
+            CreatureCueDrawer.ImpactRing(style, controller, state.HitCenter, state.HitRadius, ringT);
+            CueDrawer.AlphaScale = style.GuideAlpha;
+        }
+    }
 }
 ```
-- Valida posición world contra Camera.main viewport
-- Incluye margen de seguridad (5% extra)
-- Retorna bool: true si en pantalla, false si fuera
 
-**Impacto S115:**
-- Guías (especialmente rutas) desaparecen cuando dueño sale de encuadre
-- Transición suave vía fade existente en CuePathDrawer.Draw() (ownerVisible controls hasValidPath)
-- Noqueados (Dazed/Tumbling) no muestran guías en absoluto
-- Reduce clutter visual cuando hay múltiples criaturas
-
-## Invariantes S102 + S108 + S110 + S114 + S115
+## Invariantes S116
 
 - Dibuja solo criaturas activas (Spawned)
-- Rivales tienen lógica de reveal separada (reveal state suave)
-- Pulsaciones animadas por time (Sin(time * speed)) o state (phase)
-- Colors desde CueStyleSO + intención del agente
-- Toggles permiten debug granular de cada capa visual
-- Parpadeo es suave (onda sinusoidal → SmoothStep, no cuadrado)
-- Telegrafía con cinta es aditiva (siempre visible, no afectada por GuideAlpha)
-- Cinta parabólica solo se dibuja durante anticipación (Tell01 < 1), desvanece en impacto
-- Holding visible durante su duración, sin cambios de color respecto a Anticipating
-- **S115:** Dazed/Tumbling saltan todas las guías (no route, no telegraph, etc.)
-- **S115:** Rutas respetan viewport (desvanecen cuando owner sale de pantalla)
+- Rivales tienen lógica de reveal separada
+- Dazed/Tumbling sin guías SALVO si telegrafián o tienen anillo vivo (combate visible)
+- Rutas solo si ClashMove == null (no combate)
+- Telegrafía con disco unitario (hitbox visual)
+- ImpactRing post-impacto en posición real (no predicho)
+- Flash lineal sin parpadeo previo
+- Todos los colores desde CueStyleSO + intención del agente
+- Toggles permiten debug granular
 
 ## Métodos Privados
 
-- `DrawPerception()` — anillo giratorio dashed O cono de visión suavizado (S102)
+- `DrawPerception()` — anillo giratorio dashed O cono de visión suavizado
 - `DrawVisionCone()` — sector relleno con turn smoothing exponencial
-- `DrawAttention()` — arcos pulsantes hacia nearest percept
-- `DrawPercepts()` — líneas coloreadas (verde aliado, rojo rival)
-- `DrawReticle()` — retícula sobre target expedición con pulsación
-- `DrawSelection()` — marker simple si Pinned o focused
-- `Step()` — fade suave de alpha (entrada/salida)
-- `AppearScale()` — interpolación suave de escala de aparición
+- `DrawPercepts()` — líneas coloreadas
+- `DrawReticle()` — retícula sobre target expedición
+- `DrawSelection()` — marker simple si Pinned
+- `Step()` — fade suave de alpha
+- `AppearScale()` — interpolación suave de escala
 - `GetCueState()` — lookup/create cache per controller
+- `OnScreen()` — valida viewport
 
 ## Vinculado a
 
-- [[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]], S114, S115
+[[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion]], S116
 
 ## Conexiones
 
-- [[ArenaSandbox]] — acceso a criaturas
-- [[CueDrawer]] — renderizado de shapes
-- [[CueRibbonDrawer]] — **S110** renderizado de cintas
-- [[CuePathDrawer]] — renderizado de rutas; **S115** recibe ownerVisible
-- [[ArenaRoomCueOverlay]] — renderiza terreno/minerales por separado
-- [[CreatureCueDrawer]] — lógica de guías por criatura
-- [[MoriMonchiController]] — control de criatura
-- [[MoriMochiAgent]] — estado de criatura, ClashTelegraphing, ClashTell01 (S114: incluye Holding), Intent (S115: Dazed/Tumbling)
-- [[CueStyleSO]] — parámetros de estilo
-- [[ArenaCameraDirector]] — focalización de cámara
-- [[ExpeditionNav]] — reveal conditions
-- [[AgentClash]] — lee fase Holding, HoldTimer, Move.HoldSeconds
-
+- [[ArenaSandbox]]
+- [[CueDrawer]]
+- [[CuePathDrawer]]
+- [[ArenaRoomCueOverlay]]
+- [[CreatureCueDrawer]]
+- [[MoriMonchiController]]
+- [[MoriMochiAgent]]
+- [[CueStyleSO]]
+- [[ArenaCameraDirector]]
+- [[ExpeditionNav]]
+- [[AgentClash]]

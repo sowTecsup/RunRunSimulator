@@ -10,8 +10,6 @@ public class ArenaCueOverlay : MonoBehaviour
     [Required, SerializeField] private ArenaSandbox sandbox;
     [Required, SerializeField] private Material cueMaterial;
     [Required, SerializeField] private Material additiveMaterial;
-    [Required, SerializeField] private Material ribbonMaterial;
-    [Required, SerializeField] private Material ribbonAdditiveMaterial;
     [Required, SerializeField] private CueStyleSO style;
     [SerializeField] private ArenaCameraDirector director;
 
@@ -52,9 +50,10 @@ public class ArenaCueOverlay : MonoBehaviour
         public readonly CueAnim Reveal = new CueAnim();
 
         public readonly CueAnim Telegraph = new CueAnim();
-        public float TelegraphPhase;
-        public readonly CueAnim DiveArc = new CueAnim();
-        public readonly CueAnim Hold = new CueAnim();
+        public float StrikeAt = -1f;
+        public float LastHitAt = -1f;
+        public Vector3 HitCenter;
+        public float HitRadius = 1f;
     }
 
     private readonly Dictionary<MoriMonchiController, CueState> cueCache = new();
@@ -62,7 +61,6 @@ public class ArenaCueOverlay : MonoBehaviour
     private void OnEnable()
     {
         CueDrawer.Configure(cueMaterial, additiveMaterial);
-        CueRibbonDrawer.Configure(ribbonMaterial, ribbonAdditiveMaterial);
     }
 
     private void LateUpdate()
@@ -72,7 +70,6 @@ public class ArenaCueOverlay : MonoBehaviour
         CueDrawer.AlphaScale = style.GuideAlpha;
 
         float globalRadius = SocialTuningSO.Current != null ? SocialTuningSO.Current.PerceptionRadius : 0f;
-        Vector3 eye = Camera.main != null ? Camera.main.transform.position : Vector3.up * 30f;
 
         foreach (var controller in sandbox.Spawned)
         {
@@ -80,7 +77,8 @@ public class ArenaCueOverlay : MonoBehaviour
 
             var state = GetCueState(controller);
             var intent = controller.Agent.Intent;
-            if (intent == CreatureIntent.Dazed || intent == CreatureIntent.Tumbling) continue;
+            bool clashVisual = controller.Agent.ClashTelegraphing || Time.time - controller.Agent.ClashHitAt < style.TelegraphImpactRingSeconds;
+            if ((intent == CreatureIntent.Dazed || intent == CreatureIntent.Tumbling) && !clashVisual) continue;
             Vector3 origin = controller.transform.position + Vector3.up * style.HeightOffset;
             float perceptionRadius = controller.Agent.HasVisionCone ? controller.Agent.VisionRadius : globalRadius;
 
@@ -92,22 +90,35 @@ public class ArenaCueOverlay : MonoBehaviour
 
             if (showClash)
             {
-                bool telegraphing = controller.Agent.ClashTelegraphing;
-                bool holding = controller.Agent.ClashHolding;
-                if (telegraphing && !state.Telegraph.Visible) state.TelegraphPhase = 0f;
+                var agent = controller.Agent;
+                bool telegraphing = agent.ClashTelegraphing;
                 float tele = Step(state.Telegraph, telegraphing, style.TelegraphFadeSeconds, Time.deltaTime);
-                float hold = Step(state.Hold, holding, style.TelegraphFadeSeconds, Time.deltaTime);
-                float arc = Step(state.DiveArc, telegraphing && !controller.Agent.IsAirborne, style.TelegraphFadeSeconds, Time.deltaTime);
+                bool striking = telegraphing && !agent.ClashHolding && agent.ClashTell01 >= 1f;
+                if (!telegraphing) state.StrikeAt = -1f;
+                else if (striking && state.StrikeAt < 0f) state.StrikeAt = Time.time;
+                float flash = state.StrikeAt >= 0f ? 1f - Mathf.Clamp01((Time.time - state.StrikeAt) / Mathf.Max(0.01f, style.TelegraphFlashSeconds)) : 0f;
                 if (tele > 0.01f)
                 {
-                    float hz = holding ? style.TelegraphBlinkSpeedEnd : Mathf.Lerp(style.TelegraphBlinkSpeed, style.TelegraphBlinkSpeedEnd, controller.Agent.ClashTell01);
-                    state.TelegraphPhase += Time.deltaTime * hz;
-                    float wave = 0.5f + 0.5f * Mathf.Sin(state.TelegraphPhase * Mathf.PI * 2f);
-                    float blink = Mathf.Lerp(style.TelegraphBlinkMin, 1f, Mathf.SmoothStep(0.25f, 0.75f, wave));
-                    if (holding) blink = Mathf.Max(blink, 0.75f);
                     CueDrawer.AlphaScale = 1f;
-                    CreatureCueDrawer.Telegraph(style, controller, origin, tele, blink, arc, eye, hold);
+                    CreatureCueDrawer.Telegraph(style, controller, origin, tele, flash);
                     CueDrawer.AlphaScale = style.GuideAlpha;
+                }
+                if (agent.ClashHitAt > state.LastHitAt)
+                {
+                    state.LastHitAt = agent.ClashHitAt;
+                    state.HitCenter = agent.ClashHitPoint + Vector3.up * style.HeightOffset;
+                    var move = agent.ClashMove;
+                    state.HitRadius = move == null ? 1f : (move.Slot == ClashSlot.Back ? move.SweepRadius : move.HitRadius);
+                }
+                if (state.LastHitAt >= 0f)
+                {
+                    float ringT = (Time.time - state.LastHitAt) / Mathf.Max(0.01f, style.TelegraphImpactRingSeconds);
+                    if (ringT < 1f)
+                    {
+                        CueDrawer.AlphaScale = 1f;
+                        CreatureCueDrawer.ImpactRing(style, controller, state.HitCenter, state.HitRadius, ringT);
+                        CueDrawer.AlphaScale = style.GuideAlpha;
+                    }
                 }
             }
 
@@ -126,8 +137,10 @@ public class ArenaCueOverlay : MonoBehaviour
             if (showPerception && SocialTuningSO.Current != null)
                 DrawPerception(controller, state, origin, perceptionRadius);
 
-            Color pathColor = controller.Agent.Intent == CreatureIntent.Fleeing ? style.FleeColor : style.ColorFor(controller.Agent.Intent);
-            if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, pathColor, Time.deltaTime, OnScreen(controller.transform.position));
+            Color pathColor = controller.Agent.Team == ExpeditionTeam.Player ? style.FriendColor
+                            : controller.Agent.Team == ExpeditionTeam.Rival ? style.FoeColor
+                            : controller.DNA.BaseColor;
+            if (showPath) CuePathDrawer.Draw(style, state.Path, controller.transform, pathColor, Time.deltaTime, OnScreen(controller.transform.position) && controller.Agent.ClashMove == null);
 
             if (showPercepts) DrawPercepts(controller, origin, perceptionRadius);
 

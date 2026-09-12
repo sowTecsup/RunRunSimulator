@@ -359,6 +359,24 @@ Sesión remota con capturas por `SendUserFile`. Primera mitad: la segunda pasada
 
 ---
 
+## 5l · Plantilla única de choque, picada en dos tiempos y un color de movimiento (S116, feel)
+
+Regla de Juan (S116, inspiración Brawl Stars / Pokémon Quest): **una plantilla = una forma = el hitbox real**, del color del equipo, que se llena de 0 a 100 % al ritmo del tell, destella al disparar y muere con un anillo de impacto. Nada más.
+
+**Dibujo ([[CreatureCueDrawer]] `Telegraph(style, controller, origin, alpha, flash)` + `ImpactRing(style, controller, center, baseRadius, t01)`):** Horn = cápsula de largo `Range` y radio `HitRadius` desde los pies en la dirección al rival (ya no se estira hasta donde esté el rival); Back = disco `SweepRadius` bajo el atacante; Wings = disco `HitRadius` en el punto de caída. Tres capas por forma: pista (`TelegraphTrackAlpha`), relleno que crece con `ClashTell01` lineal (`TelegraphFillAlpha`) y borde fino (`TelegraphEdgeAlpha/Thickness`), todo en `FriendColor`/`FoeColor`. Al entrar en Striking el overlay manda `flash` 1→0 en `TelegraphFlashSeconds`; tras cada golpe conectado dibuja un anillo que se expande `×TelegraphImpactRingScale` y se apaga en `TelegraphImpactRingSeconds`. Murieron: parpadeo, pulso, anillo que se contrae, color de habilidad en el borde, doble anillo de Hold y la **cinta parabólica** (`CueRibbonDrawer.cs`, `MonchiRibbon.shader`, `MonchiRibbon*.mat` borrados). [[CueStyleSO]] queda con 8 campos de telegrafía; los `DiveArc*` se fueron.
+
+**Estado en [[ArenaCueOverlay]]:** `CueState` guarda `StrikeAt`, `LastHitAt`, `HitCenter`, `HitRadius`; lee `ClashHitAt`/`ClashHitPoint` (fachadas nuevas de [[MoriMochiAgent]] sobre [[AgentClash]] `HitAt`/`HitPoint`, escritas en `Impact`). Las criaturas en `Dazed`/`Tumbling` siguen saltándose las guías **salvo** que estén telegrafiando o con anillo de impacto vivo (el buceador en el aire es `Tumbling`). La ruta ([[CuePathDrawer]]) ahora es siempre del color del equipo y funde mientras `ClashMove != null`: un solo color de movimiento.
+
+**Picada en dos tiempos ([[AgentClash]] + [[ClashMoveSO]] `RiseHeight` 3 m / `DiveSeconds` 0,3 s, reemplazan a `LaunchAngle`):** Anticipating en el suelo (gesto FlyUp, disco llenándose sobre el rival) → `EnterHolding` fija el punto de caída (adelanto sobre `flight = √(2H/g) + DiveSeconds`) y **despega vertical** (`Launch` desde +0,15 m con `√(2gH)`, damping 0) → `TickAirborne` en Holding espera el ápice (`vy ≤ 0,05` y `y > riseFromY + 0,3`) → `StartStrike` fija la velocidad exacta `(d − ½g·T²)/T` → `Land` cuando `y ≤ impacto + 0,4` o llega al punto: **golpe zonal** a todo rival dentro de `HitRadius` del punto (ya no depende del blanco), damping restaurado y velocidad `down·2` para clavar el aterrizaje. Medido a 0,3×: sube 3,1 m en 0,78 s, cae en 0,27 s, conecta.
+
+**Física ([[AgentPhysics]]):** `Launch` también escribe `Rb.position` (con `Interpolate` el transform solo no llegaba al step) y `HandleCollisionEnter` **no rebota cuando la velocidad se aleja del contacto** (`Dot(lastVelocity, normal) > 0`): antes el despegue vertical desde el piso se reflejaba y la picada no subía.
+
+**Assets tocados:** `CueStyle.asset` (8 campos nuevos, alfas 0,7 / 0,06 / 0,12 / 0,45 / 0,15 / 0,12 / 0,35 / 1,8), `ClashMove_{Embestida,Picada,Coletazo}.asset` (`RiseHeight`/`DiveSeconds` en lugar de `LaunchAngle`). Radios de golpe sin cambio (decisión de Juan).
+
+**Pendiente S116:** jank de contacto entre cuerpos (evasión del NavMesh en choque) no se tocó; las capturas naturales cayeron fuera de cámara (la RTS queda en el spawn), así que el feel a 1× lo valida Juan a mano.
+
+---
+
 ## 6 · Pendientes y deuda
 
 - **S105:** el señuelo sigue siendo la postura que menos puntúa y no le gana cruces a la Jauría (problema de sitio, decisión de diseño pendiente en `Index/22` 8.11 balance S105); Muralla 90 % sigue siendo el tope; fuga de memoria de Unity en sesiones largas de Play (5j); `ArenaMatrixDev` no vive en la escena (se instancia por `execute_code`).

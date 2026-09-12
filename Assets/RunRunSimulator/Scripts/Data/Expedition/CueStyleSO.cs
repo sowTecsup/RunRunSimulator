@@ -127,31 +127,14 @@ public class CueStyleSO : SerializedScriptableObject
     [Range(0f, 1f)] public float AbilityBurstAlpha = 0.9f;
 
     [Title("Telegrafía")]
-    [Range(0f, 1f)] public float TelegraphEdgeAlpha = 0.85f;
-    public float TelegraphEdgeThickness = 0.08f;
-    [Range(0f, 1f)] public float TelegraphTrackAlpha = 0.1f;
-    [Range(0f, 1f)] public float TelegraphFillAlpha = 0.3f;
-    [Range(0f, 1f)] public float TelegraphFillOuterAlpha = 0.08f;
-    [Min(1f)] public float TelegraphRingScale = 2f;
-    public float TelegraphPulseSpeed = 6f;
-    [Range(0f, 1f)] public float TelegraphPulseAmount = 0.06f;
+    [Range(0f, 1f)] public float TelegraphEdgeAlpha = 0.7f;
+    public float TelegraphEdgeThickness = 0.06f;
+    [Range(0f, 1f)] public float TelegraphTrackAlpha = 0.12f;
+    [Range(0f, 1f)] public float TelegraphFillAlpha = 0.45f;
     public float TelegraphFadeSeconds = 0.15f;
-    public float TelegraphBlinkSpeed = 2.5f;
-    public float TelegraphBlinkSpeedEnd = 8f;
-    [Range(0f, 1f)] public float TelegraphBlinkMin = 0.3f;
-
-    [Title("Flecha de la picada")]
-    public float DiveArcWidth = 0.1f;
-    [Range(0f, 1f)] public float DiveArcTailScale = 0.35f;
-    public float DiveArcHeadWidth = 0.34f;
-    public float DiveArcHeadLength = 0.55f;
-    [Range(4, 64)] public int DiveArcSamples = 28;
-    public float DiveArcDashLength = 0.45f;
-    public float DiveArcDashGap = 0.22f;
-    public float DiveArcFlowSpeed = 2.5f;
-    [Range(0f, 1f)] public float DiveArcTailAlpha = 0.08f;
-    public float DiveArcStartHeight = 0.55f;
-    [Min(0.1f)] public float DiveArcHeightScale = 1.3f;
+    public float TelegraphFlashSeconds = 0.12f;
+    public float TelegraphImpactRingSeconds = 0.35f;
+    [Min(1f)] public float TelegraphImpactRingScale = 1.8f;
 
     [Title("Selección")]
     public Color SelectColor = new Color(1f, 0.78f, 0.3f);

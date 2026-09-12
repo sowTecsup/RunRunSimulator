@@ -67,10 +67,12 @@ internal class AgentPhysics
             }
         }
 
+        Vector3 contactNormal = collision.GetContact(0).normal;
+        if (Vector3.Dot(lastVelocity, contactNormal) > 0f) return;
+
         if (bounceCount < owner.maxBounces)
         {
-            Vector3 normal = collision.GetContact(0).normal;
-            ctx.Rb.linearVelocity = Vector3.Reflect(lastVelocity, normal) * owner.bounciness;
+            ctx.Rb.linearVelocity = Vector3.Reflect(lastVelocity, contactNormal) * owner.bounciness;
             if (owner.bounceSpin > 0f)
                 ctx.Rb.AddTorque(Random.insideUnitSphere * owner.bounceSpin, ForceMode.Impulse);
 
@@ -128,6 +130,7 @@ internal class AgentPhysics
     {
         DetachToPhysics();
         ctx.Body.position = launchPos;
+        ctx.Rb.position   = launchPos;
         ApplyThrownPhysics();
         ctx.HoldAnchor = null;
         ctx.State      = AgentState.Thrown;

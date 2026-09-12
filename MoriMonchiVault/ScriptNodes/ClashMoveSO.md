@@ -6,7 +6,7 @@ tags: [script, data, expedition, clash]
 
 **Ruta:** `Data/Expedition/ClashMoveSO.cs`
 
-**Responsabilidad:** Define los parámetros de un movimiento de choque basado en la parte corporal elegida (Horn/Wings/Back). Un ClashMoveSO contiene timings de anticipación, bloqueo y golpe, alcance e impacto, y parámetros específicos de cada tipo de ataque (embestida con recoil, picada con ángulo, coletazo con radio barrido). Cada movimiento expone sus gestos de aviso y golpe para sincronía con MonchiGestureDriver. **S114:** fase Holding con duración independiente.
+**Responsabilidad:** Define los parámetros de un movimiento de choque basado en la parte corporal elegida (Horn/Wings/Back). Un ClashMoveSO contiene timings de anticipación, bloqueo y golpe, alcance e impacto, y parámetros específicos de cada tipo de ataque (embestida con recoil, picada con altura y duración, coletazo con radio barrido). Cada movimiento expone sus gestos de aviso y golpe para sincronía con MonchiGestureDriver. **S116:** plantilla única = hitbox, un solo color de movimiento.
 
 ## Estructura
 
@@ -19,7 +19,7 @@ public class ClashMoveSO : ScriptableObject
     
     // Timings
     public float AnticipationSeconds;   // default 0.3
-    public float HoldSeconds;           // S114: default 0.3
+    public float HoldSeconds;           // default 0.3
     public float StrikeSeconds;         // default 1.2
     
     // Alcance e impacto compartido
@@ -33,8 +33,9 @@ public class ClashMoveSO : ScriptableObject
     public float DashAcceleration;      // default 60
     public float SelfRecoil;            // default 0
     
-    // Picada (Wings)
-    public float LaunchAngle;           // 5-85 grados, default 45
+    // Picada (Wings) — S116: simplificada
+    public float RiseHeight;            // default 3 metros
+    public float DiveSeconds;           // default 0.3 segundos
     
     // Coletazo (Back)
     public float SweepRadius;           // default 2.2
@@ -51,7 +52,7 @@ public class ClashMoveSO : ScriptableObject
 |-------|-------|---------|-------------|
 | `Slot` | — | — | Parte corporal (Horn/Wings/Back) |
 | `AnticipationSeconds` | [0, ∞) | 0.3 | Duración del tell previo al bloqueo |
-| `HoldSeconds` | [0, ∞) | 0.3 | **S114:** Duración de la fase de bloqueo (embestida recta multi-golpe, lead acotado en picada) |
+| `HoldSeconds` | [0, ∞) | 0.3 | Duración de la fase de bloqueo |
 | `StrikeSeconds` | [0.1, ∞) | 1.2 | Duración del golpe efectivo (ventana de impacto) |
 | `Range` | [0.5, ∞) | 5 | Distancia máxima a rivales viables (m) |
 | `HitRadius` | [0.2, ∞) | 1.1 | Radio de impacto alrededor del monchi (m) |
@@ -60,7 +61,8 @@ public class ClashMoveSO : ScriptableObject
 | `DashSpeed` | [0, ∞) | 14 | Velocidad de embestida (Horn, m/s) |
 | `DashAcceleration` | [0, ∞) | 60 | Aceleración de embestida (Horn, m/s²) |
 | `SelfRecoil` | [0, ∞) | 0 | Retroceso del atacante (Horn) |
-| `LaunchAngle` | [5, 85] | 45 | Ángulo de lanzamiento (Wings, grados) |
+| `RiseHeight` | [0.5, ∞) | 3 | **S116:** Altura de despegue en picada (m) |
+| `DiveSeconds` | [0.1, ∞) | 0.3 | **S116:** Duración de la caída en picada (s) |
 | `SweepRadius` | [0, ∞) | 2.2 | Radio de barrido (Back, m) |
 | `TellGesture` | — | "Roar" | Gesto de aviso (Anticipating) |
 | `StrikeGesture` | — | "" | Gesto del golpe (Striking) |
@@ -69,11 +71,20 @@ public class ClashMoveSO : ScriptableObject
 
 - `Summary() → string` — devuelve resumen de debugging: "Horn: alcance 5 m, impulso 9"
 
-## Ciclo de timing S114
+## Ciclo de timing
 
-1. **Anticipation:** `AnticipationSeconds`, tell visual/auditivo
+1. **Anticipation:** `AnticipationSeconds`, tell visual/auditivo, impactPoint calculado
 2. **Hold:** `HoldSeconds`, bloqueo físico (embestida recta, lead acotado en picada)
 3. **Strike:** `StrikeSeconds`, impacto y resolución
+
+## S116 Cambios
+
+**Picada (Wings) simplificada:**
+- Se elimina `LaunchAngle` (ángulo variable 5-85 grados)
+- Se agregan `RiseHeight` (3 metros) y `DiveSeconds` (0.3 segundos)
+- Plantilla única = hitbox: disco en punto de impacto (sin arco parabólico visual ni cinta)
+- Despegue vertical sin ángulo variable; caída en línea recta
+- Impacto en ápice esperado mediante TickAirborne (cuando velocidad Y ≤ 0)
 
 ## Conexiones
 
@@ -83,13 +94,13 @@ public class ClashMoveSO : ScriptableObject
 - [[AgentClash.ForceMove()]] recibe ClashMoveSO explícito
 
 **Salida:**
-- Se aplica en [[AgentClash]] en fases Anticipating, Holding (S114), Striking, Resolving
+- Se aplica en [[AgentClash]] en fases Anticipating, Holding, Striking, Resolving
 - Los gestos (TellGesture/StrikeGesture) los lee [[MonchiGestureDriver]]
-- Telegraph con hold en [[CreatureCueDrawer]]
+- Telegraph con plantilla unitaria en [[CreatureCueDrawer]]
 
 ## Vinculado a
 
-- [[Index/20 - MVP Combate]], S114
+- [[Index/20 - MVP Combate]], S116
 - [[ClashTuningSO]]
 - [[AgentClash]]
 - [[CreatureCueDrawer]]

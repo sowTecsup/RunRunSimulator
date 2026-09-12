@@ -941,29 +941,14 @@ MonoBehaviour:
   AbilityBurstRadiusTo: 2.2
   AbilityBurstThickness: 0.1
   AbilityBurstAlpha: 0.9
-  TelegraphEdgeAlpha: 0.85
-  TelegraphEdgeThickness: 0.11
-  TelegraphTrackAlpha: 0.16
-  TelegraphFillAlpha: 0.4
-  TelegraphFillOuterAlpha: 0.08
-  TelegraphRingScale: 2
-  TelegraphPulseSpeed: 6
-  TelegraphPulseAmount: 0.06
+  TelegraphEdgeAlpha: 0.7
+  TelegraphEdgeThickness: 0.06
+  TelegraphTrackAlpha: 0.12
+  TelegraphFillAlpha: 0.45
   TelegraphFadeSeconds: 0.15
-  TelegraphBlinkSpeed: 2.5
-  TelegraphBlinkSpeedEnd: 8
-  TelegraphBlinkMin: 0.3
-  DiveArcWidth: 0.22
-  DiveArcTailScale: 0.5
-  DiveArcHeadWidth: 0.5
-  DiveArcHeadLength: 0.75
-  DiveArcSamples: 28
-  DiveArcDashLength: 0.45
-  DiveArcDashGap: 0.22
-  DiveArcFlowSpeed: 2.5
-  DiveArcTailAlpha: 0.3
-  DiveArcStartHeight: 0.55
-  DiveArcHeightScale: 1.3
+  TelegraphFlashSeconds: 0.12
+  TelegraphImpactRingSeconds: 0.35
+  TelegraphImpactRingScale: 1.8
   SelectColor: {r: 1, g: 0.78, b: 0.3, a: 1}
   SelectRadius: 1.5
   SelectThickness: 0.08

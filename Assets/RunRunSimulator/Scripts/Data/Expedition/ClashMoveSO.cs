@@ -28,7 +28,8 @@ public class ClashMoveSO : ScriptableObject
     [Min(0f)] public float SelfRecoil = 0f;
 
     [Title("Picada (Wings)")]
-    [Range(5f, 85f)] public float LaunchAngle = 45f;
+    [Min(0.5f)] public float RiseHeight = 3f;
+    [Min(0.1f)] public float DiveSeconds = 0.3f;
 
     [Title("Coletazo (Back)")]
     [Min(0f)] public float SweepRadius = 2.2f;

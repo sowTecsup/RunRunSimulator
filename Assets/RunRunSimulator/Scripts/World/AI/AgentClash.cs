@@ -26,6 +26,10 @@ internal class AgentClash
     private Vector3        impactPoint;
     private Vector3        lockedForward;
     private bool           hornPathSettled;
+    private float          riseFromY;
+    private const float    LiftOffClearance = 0.15f;
+    private float          hitAt = -1f;
+    private Vector3        hitPoint;
     private readonly HashSet<MoriMochiAgent> struckThisStrike = new HashSet<MoriMochiAgent>();
 
     private bool                  navOverridden;
@@ -123,7 +127,18 @@ internal class AgentClash
             case Phase.Anticipating:
                 if (move.Slot != ClashSlot.Back) FaceTowards(target, dt);
                 if (target != null)
-                    impactPoint = move.Slot == ClashSlot.Back ? ctx.Body.position : target.transform.position;
+                {
+                    if (move.Slot == ClashSlot.Back)
+                        impactPoint = ctx.Body.position;
+                    else if (move.Slot == ClashSlot.Horn)
+                    {
+                        Vector3 dir = target.transform.position - ctx.Body.position; dir.y = 0f;
+                        dir = dir.sqrMagnitude > 0.0001f ? dir.normalized : new Vector3(ctx.Body.forward.x, 0f, ctx.Body.forward.z).normalized;
+                        impactPoint = ctx.Body.position + dir * move.Range;
+                    }
+                    else
+                        impactPoint = target.transform.position;
+                }
                 phaseTimer -= dt;
                 if (phaseTimer <= 0f) EnterHolding(t);
                 break;
@@ -185,14 +200,17 @@ internal class AgentClash
     internal void TickAirborne()
     {
         if (!diving || move == null) return;
-        if (target == null || target.IsAirborne || target.IsHeld) { diving = false; return; }
-
-        if (PlanarDistance(target) <= move.HitRadius && ctx.Rb.linearVelocity.y <= 0.5f)
+        var t = ClashTuningSO.Current;
+        if (phase == Phase.Holding)
         {
-            Impact(target, ClashTuningSO.Current);
-            owner.onClashHit?.Invoke();
-            diving = false;
+            if (ctx.Rb.linearVelocity.y <= 0.05f && ctx.Body.position.y > riseFromY + 0.3f) StartStrike(t);
+            return;
         }
+        if (phase != Phase.Striking) return;
+
+        bool landed  = ctx.Rb.linearVelocity.y <= 0f && ctx.Body.position.y <= impactPoint.y + 0.4f;
+        bool arrived = PlanarDistanceToPoint(impactPoint) <= 0.5f && ctx.Body.position.y <= impactPoint.y + 0.8f;
+        if (landed || arrived) Land(t);
     }
 
     internal void ReceiveHit(MoriMochiAgent attacker)
@@ -216,6 +234,7 @@ internal class AgentClash
         phase  = Phase.None;
         target = null;
         move   = null;
+        if (diving) ctx.Rb.linearDamping = owner.thrownLinearDamping;
         diving = false;
         struckThisStrike.Clear();
         lockedForward = Vector3.zero;
@@ -228,6 +247,7 @@ internal class AgentClash
         move   = null;
         target = null;
         bool wasDiving = diving;
+        if (wasDiving) ctx.Rb.linearDamping = owner.thrownLinearDamping;
         diving = false;
 
         var t = ClashTuningSO.Current;
@@ -268,6 +288,7 @@ internal class AgentClash
         hitsLanded       = 0;
         timesKnocked     = 0;
         impactPoint      = Vector3.zero;
+        hitAt            = -1f;
         struckThisStrike.Clear();
         lockedForward    = Vector3.zero;
     }
@@ -310,6 +331,8 @@ internal class AgentClash
             : (phase == Phase.None || phase == Phase.Dazed ? 0f : 1f);
 
     internal Vector3 ImpactPoint => impactPoint;
+    internal float   HitAt => hitAt;
+    internal Vector3 HitPoint => hitPoint;
 
     private int CountRivalsWithin(float r)
     {
@@ -370,22 +393,36 @@ internal class AgentClash
         }
 
         if (move.Slot == ClashSlot.Horn)
+        {
             impactPoint = ctx.Body.position + lockedForward * move.Range;
+            phase       = Phase.Holding;
+            phaseTimer  = move.HoldSeconds;
+            if (move.HoldSeconds <= 0f) StartStrike(t);
+        }
         else if (move.Slot == ClashSlot.Wings)
+        {
             impactPoint = ComputeWingsImpactPoint();
-
-        phase      = Phase.Holding;
-        phaseTimer = move.HoldSeconds;
-
-        if (move.HoldSeconds <= 0f) StartStrike(t);
+            float riseSpeed = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * move.RiseHeight);
+            diving = true;
+            riseFromY = ctx.Body.position.y;
+            owner.Launch(ctx.Body.position + Vector3.up * LiftOffClearance, Vector3.up * riseSpeed);
+            ctx.Rb.linearDamping = 0f;
+            phase      = Phase.Holding;
+            phaseTimer = move.HoldSeconds;
+        }
+        else
+        {
+            phase      = Phase.Holding;
+            phaseTimer = move.HoldSeconds;
+            if (move.HoldSeconds <= 0f) StartStrike(t);
+        }
     }
 
     private Vector3 ComputeWingsImpactPoint()
     {
-        float   angle  = move.LaunchAngle * Mathf.Deg2Rad;
         Vector3 aim    = target.transform.position;
-        Vector3 v      = SpawnBallistics.SolveLaunchVelocity(ctx.Body.position, aim, angle);
-        float   flight = 2f * v.y / Mathf.Max(0.01f, Mathf.Abs(Physics.gravity.y));
+        float   g      = Mathf.Abs(Physics.gravity.y);
+        float   flight = Mathf.Sqrt(2f * move.RiseHeight / g) + move.DiveSeconds;
 
         var nav = target.GetComponent<NavMeshAgent>();
         if (nav != null && nav.enabled)
@@ -424,10 +461,9 @@ internal class AgentClash
         }
         else if (move.Slot == ClashSlot.Wings)
         {
-            float   angle = move.LaunchAngle * Mathf.Deg2Rad;
-            Vector3 v     = SpawnBallistics.SolveLaunchVelocity(ctx.Body.position, impactPoint, angle);
-            diving = true;
-            owner.Launch(ctx.Body.position, v);
+            float   T = move.DiveSeconds;
+            Vector3 d = impactPoint - ctx.Body.position;
+            ctx.Rb.linearVelocity = (d - 0.5f * Physics.gravity * T * T) / T;
         }
         else if (move.Slot == ClashSlot.Back)
         {
@@ -454,12 +490,37 @@ internal class AgentClash
         Vector3 force = (dir + Vector3.up * move.UpBias).normalized * move.Impulse;
         victim.ReceiveClashHit(owner, force);
         hitsLanded++;
+        hitAt    = Time.time;
+        hitPoint = victim.transform.position;
 
         if (move.Slot == ClashSlot.Horn && move.SelfRecoil > 0f)
         {
             RestoreNav();
             owner.RequestPlayfulKnock((-dir + Vector3.up * 0.3f).normalized * move.SelfRecoil);
         }
+    }
+
+    private void Land(ClashTuningSO t)
+    {
+        buffer.Clear();
+        PerceivableRegistry.QueryInRadius(impactPoint, move.HitRadius, null, buffer);
+
+        bool hitAny = false;
+        for (int i = 0; i < buffer.Count; i++)
+        {
+            var p = buffer[i];
+            if (p == null || p.Monchi == null || p.Monchi == owner) continue;
+            if (!ExpeditionTeams.AreRivals(owner.Team, p.Monchi.Team)) continue;
+            if (p.Monchi.IsAirborne || p.Monchi.IsHeld || !p.Monchi.IsClashTargetable) continue;
+
+            Impact(p.Monchi, t);
+            hitAny = true;
+        }
+        if (hitAny) owner.onClashHit?.Invoke();
+
+        diving = false;
+        ctx.Rb.linearDamping = owner.thrownLinearDamping;
+        ctx.Rb.linearVelocity = Vector3.down * 2f;
     }
 
     private bool Sweep(ClashTuningSO t)

@@ -249,6 +249,8 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public bool ClashHolding => clash.Holding;
     public float ClashTell01 => clash.Tell01;
     public Vector3 ClashImpactPoint => clash.ImpactPoint;
+    public float ClashHitAt => clash.HitAt;
+    public Vector3 ClashHitPoint => clash.HitPoint;
     internal AgentAbilities Abilities => abilities;
     public void SetAbilities(AbilitySO[] set) => abilities.Bind(set);
     public int AbilityCount => abilities.Count;

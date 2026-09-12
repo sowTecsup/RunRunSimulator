@@ -116,48 +116,25 @@ public static class CreatureCueDrawer
         }
     }
 
-    private const float HoldEdgeThicknessBoost = 0.6f;
-    private const float HoldFillBoost = 1.6f;
-    private const float HoldRingScale = 1.15f;
-    private const float HoldRingAlpha = 0.5f;
-    private const float HoldDiveArcTailAlpha = 0.6f;
-
-    public static void Telegraph(CueStyleSO style, MoriMonchiController controller, Vector3 origin, float alpha, float blink, float arcAlpha, Vector3 eye, float hold)
+    public static void Telegraph(CueStyleSO style, MoriMonchiController controller, Vector3 origin, float alpha, float flash)
     {
         var agent = controller.Agent;
         var move = agent.ClashMove;
         if (move == null || alpha <= 0.01f) return;
 
         float k = agent.ClashTell01;
-        bool striking = k >= 1f && agent.ClashTelegraphing;
-
         float appear = Mathf.Lerp(0.85f, 1f, Mathf.SmoothStep(0f, 1f, alpha));
-        float pulse = striking ? 1f + style.TelegraphPulseAmount * Mathf.Sin(Time.time * style.TelegraphPulseSpeed) : 1f;
 
         var team = agent.Team;
         Color teamColor = team == ExpeditionTeam.Player ? style.FriendColor
                 : team == ExpeditionTeam.Rival ? style.FoeColor
                 : controller.DNA.BaseColor;
 
-        Color edgeColor = style.FightColor;
-        for (int i = 0; i < agent.AbilityCount; i++)
-        {
-            var ability = agent.Ability(i);
-            if (ability == null || ability.Move != move) continue;
-            edgeColor = ability.Color;
-            break;
-        }
-
-        float edgeThickness = style.TelegraphEdgeThickness * (1f + HoldEdgeThicknessBoost * hold);
-        float edgeBlend = Mathf.Lerp(style.TelegraphEdgeAlpha * blink, 1f, hold);
-
         float trackAlpha = style.TelegraphTrackAlpha * alpha;
         Color fill = teamColor;
-        Color rim = edgeColor;
-        rim.a = edgeBlend * alpha;
-        float fillAlpha = style.TelegraphFillAlpha * alpha * Mathf.Lerp(0.55f, 1f, blink);
-        fillAlpha = Mathf.Min(1f, Mathf.Lerp(fillAlpha, fillAlpha * HoldFillBoost, hold));
-        float fillOuterAlpha = style.TelegraphFillOuterAlpha * alpha * Mathf.Lerp(0.55f, 1f, blink);
+        float fillAlpha = Mathf.Lerp(style.TelegraphFillAlpha, 1f, flash) * alpha;
+        Color rim = teamColor;
+        rim.a = Mathf.Lerp(style.TelegraphEdgeAlpha, 1f, flash) * alpha;
 
         float groundY = agent.IsAirborne ? agent.ClashImpactPoint.y : controller.transform.position.y;
         Vector3 impact = new Vector3(agent.ClashImpactPoint.x, groundY + style.HeightOffset, agent.ClashImpactPoint.z);
@@ -175,68 +152,43 @@ public static class CreatureCueDrawer
 
                 CueDrawer.Capsule(foot, b, r, fill, trackAlpha, trackAlpha);
                 if (k > 0.01f)
-                    CueDrawer.Capsule(foot, Vector3.Lerp(foot, b, k), r, fill, fillAlpha, fillOuterAlpha);
-                CueDrawer.CapsuleOutline(foot, b, r * pulse, edgeThickness, rim, rim, true);
-                if (hold > 0.01f)
-                {
-                    Color clic = edgeColor;
-                    clic.a = HoldRingAlpha * hold;
-                    CueDrawer.CapsuleOutline(foot, b, r * pulse * HoldRingScale, style.TelegraphEdgeThickness, clic, clic, true);
-                }
+                    CueDrawer.Capsule(foot, Vector3.Lerp(foot, b, k), r, fill, fillAlpha, fillAlpha);
+                CueDrawer.CapsuleOutline(foot, b, r, style.TelegraphEdgeThickness, rim, rim, true);
                 break;
             }
             case ClashSlot.Back:
             {
                 float R = move.SweepRadius * appear;
-                CueDrawer.Disc(foot, R, fill, trackAlpha, trackAlpha * 0.5f);
+                CueDrawer.Disc(foot, R, fill, trackAlpha, trackAlpha);
                 if (k > 0.01f)
-                    CueDrawer.Disc(foot, R * k, fill, fillAlpha, fillOuterAlpha);
-                CueDrawer.Ring(foot, R * pulse, edgeThickness, rim, true);
-                if (hold > 0.01f)
-                {
-                    Color clic = edgeColor;
-                    clic.a = HoldRingAlpha * hold;
-                    CueDrawer.Ring(foot, R * pulse * HoldRingScale, style.TelegraphEdgeThickness, clic, true);
-                }
+                    CueDrawer.Disc(foot, R * k, fill, fillAlpha, fillAlpha);
+                CueDrawer.Ring(foot, R, style.TelegraphEdgeThickness, rim, true);
                 break;
             }
             case ClashSlot.Wings:
             {
                 float r = move.HitRadius * appear;
-                CueDrawer.Disc(impact, r, fill, trackAlpha, trackAlpha * 0.5f);
+                CueDrawer.Disc(impact, r, fill, trackAlpha, trackAlpha);
                 if (k > 0.01f)
-                    CueDrawer.Disc(impact, r * k, fill, fillAlpha, fillOuterAlpha);
-
-                float ringR = Mathf.Lerp(r * style.TelegraphRingScale, r, Mathf.SmoothStep(0f, 1f, k)) * pulse;
-                Color closing = rim;
-                closing.a = rim.a * Mathf.Lerp(0.35f, 1f, k);
-                CueDrawer.Ring(impact, ringR, edgeThickness, closing, true);
-                if (hold > 0.01f)
-                {
-                    Color clic = edgeColor;
-                    clic.a = HoldRingAlpha * hold;
-                    CueDrawer.Ring(impact, ringR * HoldRingScale, style.TelegraphEdgeThickness, clic, true);
-                }
-
-                if (arcAlpha > 0.01f)
-                {
-                    Vector3 start = controller.transform.position + Vector3.up * style.DiveArcStartHeight;
-                    Vector3 flat = impact - start;
-                    flat.y = 0f;
-                    float span = flat.magnitude;
-                    if (span > 0.05f)
-                    {
-                        float apex = span * Mathf.Tan(move.LaunchAngle * Mathf.Deg2Rad) * 0.25f * style.DiveArcHeightScale;
-                        Color tail = teamColor;
-                        tail.a = Mathf.Lerp(style.DiveArcTailAlpha, HoldDiveArcTailAlpha, hold) * arcAlpha;
-                        Color head = edgeColor;
-                        head.a = edgeBlend * arcAlpha;
-                        CueRibbonDrawer.Arc(start, impact, apex, style.DiveArcWidth, style.DiveArcTailScale, style.DiveArcHeadWidth, style.DiveArcHeadLength, style.DiveArcSamples, style.DiveArcDashLength, style.DiveArcDashGap, Time.time * style.DiveArcFlowSpeed, tail, head, eye, true);
-                    }
-                }
+                    CueDrawer.Disc(impact, r * k, fill, fillAlpha, fillAlpha);
+                CueDrawer.Ring(impact, r, style.TelegraphEdgeThickness, rim, true);
                 break;
             }
         }
+    }
+
+    public static void ImpactRing(CueStyleSO style, MoriMonchiController controller, Vector3 center, float baseRadius, float t01)
+    {
+        var team = controller.Agent.Team;
+        Color teamColor = team == ExpeditionTeam.Player ? style.FriendColor
+                : team == ExpeditionTeam.Rival ? style.FoeColor
+                : controller.DNA.BaseColor;
+
+        float e = 1f - (1f - t01) * (1f - t01);
+        float radius = baseRadius * Mathf.Lerp(1f, style.TelegraphImpactRingScale, e);
+        Color color = teamColor;
+        color.a = style.TelegraphEdgeAlpha * (1f - t01);
+        CueDrawer.Ring(center, radius, style.TelegraphEdgeThickness * 1.5f, color, true);
     }
 }
 }

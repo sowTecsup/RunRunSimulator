@@ -6,7 +6,7 @@ tags: [script, data, scriptableobject, expedition, visualization]
 
 **Ruta:** `Data/Expedition/CueStyleSO.cs`
 
-**Responsabilidad:** Gancho de tuning visual centralizado para guías de arena. Diccionario `CreatureIntent → Color`, 100+ parámetros de geometría/animación. Cubre: percepción, orden, base, habilidades, telegrafía, **S113: contorno/obstáculos/lode/spawns**. Sin lógica; solo lectura desde ArenaCueOverlay, ArenaRoomCueOverlay, CreatureCueDrawer.
+**Responsabilidad:** Gancho de tuning visual centralizado para guías de arena. Diccionario `CreatureIntent → Color`, 100+ parámetros de geometría/animación. Cubre: percepción, orden, base, habilidades, telegrafía, contorno/obstáculos/lode/spawns. Sin lógica; solo lectura desde ArenaCueOverlay, ArenaRoomCueOverlay, CreatureCueDrawer. **S116:** sección Telegrafía podada a 8 campos; "Flecha de la picada" (DiveArc*) eliminada.
 
 **Diccionario (Odin):**
 - `intentColors` (Dict<CreatureIntent, Color>) — mapea intención a color de guía
@@ -30,8 +30,7 @@ tags: [script, data, scriptableobject, expedition, visualization]
 | **Órdenes (S104)** | `FleeColor`, `ContactFillAlpha`, `ContactEdgeAlpha`, `FleeRingRadius`, `FleeRingThickness`, `FleePulseSpeed` | Conos de orden |
 | **Base (S107)** | `BaseRadius`, `BaseInnerAlpha`, `BaseRingThickness`, `BaseRingAlpha`, `RevealSeconds`, `ConeDashCount`, `ConeDashRatio`, `ConeDashSpinSpeed` | Disco base + anillo |
 | **Habilidades (S107)** | `AbilityBurstSeconds`, `AbilityBurstRadiusFrom`, `AbilityBurstRadiusTo`, `AbilityBurstThickness`, `AbilityBurstAlpha` [0-1] | Ráfaga post-disparo |
-| **Telegrafía (S108)** | `TelegraphEdgeAlpha`, `TelegraphEdgeThickness`, `TelegraphTrackAlpha`, `TelegraphFillAlpha`, `TelegraphFillOuterAlpha`, `TelegraphRingScale`, `TelegraphPulseSpeed`, `TelegraphPulseAmount`, `TelegraphFadeSeconds`, `TelegraphBlinkSpeed`, `TelegraphBlinkSpeedEnd`, `TelegraphBlinkMin` | Plantilla choque con parpadeo |
-| **Flecha picada (S110)** | `DiveArcWidth`, `DiveArcTailScale`, `DiveArcHeadWidth`, `DiveArcHeadLength`, `DiveArcSamples`, `DiveArcDashLength`, `DiveArcDashGap`, `DiveArcFlowSpeed`, `DiveArcTailAlpha`, `DiveArcStartHeight`, `DiveArcHeightScale` | Arco parabólico Wings |
+| **Telegrafía (S116)** | `EdgeAlpha`, `EdgeThickness`, `TrackAlpha`, `FillAlpha`, `FadeSeconds`, `FlashSeconds`, `ImpactRingSeconds`, `ImpactRingScale` | Plantilla unitaria = hitbox |
 | **Selección** | `SelectColor`, `SelectRadius`, `SelectThickness`, `SelectDashCount`, `SelectDashRatio`, `SelectSpinSpeed`, `SelectAppearScale`, `SelectGlowAlpha`, `SelectPulseSpeed`, `SelectPulseAmount` | Anillo selección |
 | **Social** | `SocialLinkColor`, `FightColor`, `SocialLinkThickness`, `FightPulseSpeed` | Vínculos |
 | **Contorno y puntos (S113)** | `OutlineColor`, `OutlineThickness`, `OutlineDashLength`, `OutlineDashGap`, `OutlineScrollSpeed`, `OutlineStride`, `ObstacleThickness`, `ObstacleDashLength`, `ObstacleDashGap`, `LodeColor`, `LodeRadius`, `LodeThickness`, `LodeDashCount`, `LodeSpinSpeed`, `SpawnRadius`, `SpawnThickness`, `SpawnDashCount`, `SpawnSpinSpeed`, `SpawnAlpha` [0-1] | Forma, hitos, spawns |
@@ -44,37 +43,57 @@ tags: [script, data, scriptableobject, expedition, visualization]
 - Diccionario extensible (Odin permite agregar intents en runtime)
 - GuideAlpha multiplica globalmente (excepto telegrafía en impacto)
 - Todos los parámetros públicos (edición directa en Inspector)
-- **S113:** Outline parámetros reutilizados para Obstacles (mismo color/scroll, pero distinto dashLength/gap)
-- **S113:** Lode y Spawn separados para custom styling
 
-**S113 Cambios:**
+## S116 Cambios
 
-| Título | Campos | Descripción |
-|--------|--------|-------------|
-| **Contorno** | `OutlineColor`, `OutlineThickness`, `OutlineDashLength`, `OutlineDashGap`, `OutlineScrollSpeed`, `OutlineStride` | Punteado del contorno de sala (ArenaRoomCueOverlay.DrawOutline) |
-| **Obstáculos** | `ObstacleThickness`, `ObstacleDashLength`, `ObstacleDashGap` | Anillos de hitos grandes (landmarks, ArenaRoomCueOverlay.DrawObstacles) |
-| **Lode** | `LodeColor`, `LodeRadius`, `LodeThickness`, `LodeDashCount`, `LodeSpinSpeed` | Mineral central (ArenaRoomCueOverlay.DrawLode) |
-| **Spawns** | `SpawnRadius`, `SpawnThickness`, `SpawnDashCount`, `SpawnSpinSpeed`, `SpawnAlpha` [0-1] | Puntos de entrada (ArenaRoomCueOverlay.DrawSpawns) |
+**Sección Telegrafía podada a 8 campos:**
 
-**S102-S108-S110-S113 Historial:**
-- S102: Cono visión
-- S103: Pizarrón (vetas, pings)
-- S104: Órdenes
-- S107: Base, Habilidades
-- S108: Telegrafía (12 campos)
-- S110: Flecha picada (11 campos)
-- S113: Contorno/Obstáculos/Lode/Spawns (19 campos)
+| Campo | S114 | S116 | Descripción |
+|-------|------|------|-------------|
+| `TelegraphEdgeAlpha` | ✓ | ✓ | Opacidad de bordes (ring/capsule outline) |
+| `TelegraphEdgeThickness` | ✓ | ✓ | Grosor de contorno |
+| `TelegraphTrackAlpha` | ✓ | ✓ | Opacidad de pista/track (área barrida sin progreso) |
+| `TelegraphFillAlpha` | ✓ | ✓ | Opacidad de relleno (progresa desde 0 a radio con ClashTell01) |
+| `TelegraphFadeSeconds` | ✓ | ✓ | Duración de fade in/out |
+| `TelegraphFlashSeconds` | ✓ | ✓ | Duración del flash en impacto |
+| `TelegraphImpactRingSeconds` | ✓ | ✓ | Duración del anillo de impacto tras golpe |
+| `TelegraphImpactRingScale` | ✓ | ✓ | Escala máxima del anillo de impacto |
+| ~~`TelegraphFillOuterAlpha`~~ | ✓ | ✗ | ELIMINADO en S116 |
+| ~~`TelegraphRingScale`~~ | ✓ | ✗ | ELIMINADO en S116 |
+| ~~`TelegraphPulseSpeed`~~ | ✓ | ✗ | ELIMINADO en S116 |
+| ~~`TelegraphPulseAmount`~~ | ✓ | ✗ | ELIMINADO en S116 |
+| ~~`TelegraphBlinkSpeed`~~ | ✓ | ✗ | ELIMINADO en S116 |
+| ~~`TelegraphBlinkSpeedEnd`~~ | ✓ | ✗ | ELIMINADO en S116 |
+| ~~`TelegraphBlinkMin`~~ | ✓ | ✗ | ELIMINADO en S116 |
+
+**Sección "Flecha de la picada" eliminada por completo:**
+- ~~`DiveArcWidth`~~ (ELIMINADO)
+- ~~`DiveArcTailScale`~~ (ELIMINADO)
+- ~~`DiveArcHeadWidth`~~ (ELIMINADO)
+- ~~`DiveArcHeadLength`~~ (ELIMINADO)
+- ~~`DiveArcSamples`~~ (ELIMINADO)
+- ~~`DiveArcDashLength`~~ (ELIMINADO)
+- ~~`DiveArcDashGap`~~ (ELIMINADO)
+- ~~`DiveArcFlowSpeed`~~ (ELIMINADO)
+- ~~`DiveArcTailAlpha`~~ (ELIMINADO)
+- ~~`DiveArcStartHeight`~~ (ELIMINADO)
+- ~~`DiveArcHeightScale`~~ (ELIMINADO)
+
+**Contexto S116:**
+- Plantilla única = hitbox: un disco por golpe, sin decoración parabólica
+- Un solo color de movimiento: color de equipo (no color de habilidad diferenciado)
+- Flash lineal en impacto sin parpadeo previo (sin Blink)
+- Anillo de impacto tras golpe (ImpactRing solo post-impacto, no previo)
 
 ## Vinculado a
 
-[[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]]
+[[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox y Expedicion (S102-S103)]], S116
 
 ## Conexiones
 
 - [[ArenaCueOverlay]]
-- [[ArenaRoomCueOverlay]] — lee todos los campos S113
+- [[ArenaRoomCueOverlay]]
 - [[CueDrawer]]
-- [[CueRibbonDrawer]] — S110 parámetros DiveArc*
 - [[CreatureCueDrawer]]
 - [[CreatureIntent]]
 - [[TeamBlackboard]]
