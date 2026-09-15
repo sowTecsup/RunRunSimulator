@@ -16,12 +16,16 @@ MonoBehaviour:
   Description: Con dos rivales cerca, barre con la espalda.
   Slot: 2
   Kind: 0
+  Role: 1
   Cooldown: 10
   Trigger: 1
   Color: {r: 0.85, g: 0.35, b: 0.9, a: 1}
   Move: {fileID: 11400000, guid: 04fa758ad4aaaf342a2750f4a29fbd2c, type: 2}
   MinDistance: 0
   MinRivalsNearby: 2
+  ChargeOnHit: 0.34
+  ChargeOnMined: 0.08
+  ChargeOnSecured: 0.25
   SpeedMultiplier: 1
   BoostSeconds: 0
   CarryCapacity: 0

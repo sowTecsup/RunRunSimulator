@@ -6,7 +6,7 @@ tags: [script, data, expedition, clash, singleton]
 
 **Ruta:** `Data/Expedition/ClashTuningSO.cs`
 
-**Responsabilidad:** Singleton central que centraliza TODOS los parámetros de combate físico de la arena: movimientos por slot (Horn/Wings/Back), enganche de rivales, cooldowns, post-golpe (resolución, dazed), counter-attack, retreat y gracia de víctima. Llenado al inicio de escena en [[ArenaSandbox]] para que [[AgentClash.TryEngage()]] siempre tenga valores vigentes.
+**Responsabilidad:** Singleton central que centraliza TODOS los parámetros de combate físico de la arena: movimientos por slot (Horn/Wings/Back), enganche de rivales, cooldowns, post-golpe (resolución, dazed), counter-attack, retreat y gracia de víctima. Llenado al inicio de escena en [[ArenaSandbox]] para que [[AgentClash.TryEngage()]] siempre tenga valores vigentes. Usado también por [[ClashStrike]] para parámetros de ejecución física.
 
 ## Estructura
 
@@ -37,6 +37,8 @@ public class ClashTuningSO : ScriptableObject
     public float RetreatDistance;       // default 6
     public float VictimGraceSeconds;    // default 6
     public float ChainImmunitySeconds;  // default 0.8
+    
+    public ClashMoveSO MoveFor(ClashSlot slot) { ... }
 }
 ```
 
@@ -65,11 +67,16 @@ public class ClashTuningSO : ScriptableObject
 
 - `MoveFor(ClashSlot slot) → ClashMoveSO` — devuelve el movimiento correspondiente al slot
 
-## Invariantes S100
+## Invariantes S100+
 
-- `Current` es un singleton accedido vía `OnEnable()` cuando la escena lo carga. Garantiza que [[AgentClash.TryEngage()]] siempre tenga tuning vigente.
-- Si es `null` en algún punto, los métodos de AgentClash devuelven defaults (cooldown 8, DazedSeconds 0.7, ChainImmunitySeconds 0.8).
-- El dominó de knockes se detiene si el atacante está inmune (línea 62 en [[AgentPhysics.HandleCollisionEnter()]]).
+- `Current` es un singleton accedido vía `OnEnable()` cuando la escena lo carga. Garantiza que [[AgentClash.TryEngage()]] y [[ClashStrike]] siempre tenga tuning vigente.
+- Si es `null` en algún punto, los métodos devuelven defaults.
+- El dominó de knockes se detiene si el atacante está inmune.
+
+## S118 Cambios
+
+- ClashTuningSO consultado también por [[ClashStrike]] para parámetros de movimiento (Range, HitRadius, DashSpeed, DiveSeconds, SelfRecoil, UpBias, etc. viven en [[ClashMoveSO]], no en ClashTuningSO)
+- Sin cambios estructurales en ClashTuningSO mismo; toda la física delegada a ClashMoveSO individual
 
 ## Conexiones
 
@@ -83,10 +90,12 @@ public class ClashTuningSO : ScriptableObject
 - Consultado por [[AgentClash.ReceiveHit()]] → ChainImmunitySeconds
 - Consultado por [[AgentClash.OnRecovered()]] → VictimGraceSeconds, DazedSeconds
 - Consultado por [[AgentClash.Finish()]] → Cooldown
+- Consultado por [[ClashStrike]] indirectamente vía ClashMoveSO (parámetros de movimiento)
 
 ## Vinculado a
 
 - [[Index/23 - Arena Sandbox y Expedicion]]
 - [[ClashMoveSO]]
 - [[AgentClash]]
+- [[ClashStrike]]
 - [[ArenaSandbox]]

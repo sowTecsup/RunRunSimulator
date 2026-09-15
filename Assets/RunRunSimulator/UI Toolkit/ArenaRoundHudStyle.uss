@@ -420,6 +420,16 @@
     scale: 1.25 1.25;
 }
 
+.hud-power__radial.radial--ready {
+    transition-property: scale;
+    transition-duration: 0.25s;
+    scale: 1.08 1.08;
+}
+
+.hud-power__radial.radial--armed {
+    scale: 1.12 1.12;
+}
+
 .hud-power__label {
     font-size: 12px;
     color: var(--mm-ink);

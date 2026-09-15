@@ -66,6 +66,7 @@ public class ArenaLayoutBuilder : MonoBehaviour
     [SerializeField, Min(0f)] private float veinFromObstacle = 2.5f;
     [SerializeField] private Vector2Int veinCapacity = new Vector2Int(4, 8);
     [SerializeField, Min(0f)] private float decorClearAroundVein = 1.4f;
+    [SerializeField, Min(0f)] private float grassClearAroundSpawn = 3.5f;
 
     private readonly List<VeinSpot> veins_ = new();
     private readonly List<Vector3> obstaclePositions = new();
@@ -186,6 +187,9 @@ public class ArenaLayoutBuilder : MonoBehaviour
         {
             var dressing = activeShape.GetComponent<ArenaShapeDressing>();
             if (dressing != null) dressing.ClearAround(DecorClearZones(center));
+
+            var grass = activeShape.GetComponent<ArenaGrassField>();
+            if (grass != null) grass.ClearAround(GrassClearZones());
         }
 
         Debug.Log($"[ArenaLayoutBuilder] seed={seed} entrada={EntryName} obstáculos={obstaclePositions.Count} decorado={decorCenters.Count} vetas={veins_.Count} grandes={landmarksPlaced} mirror={mirrorActive} forma={ShapeName} cristales={veinPattern}");
@@ -283,6 +287,17 @@ public class ArenaLayoutBuilder : MonoBehaviour
             zones.Add(new Vector4(vein.Position.x, vein.Position.y, vein.Position.z, decorClearAroundVein));
         zones.Add(new Vector4(center.x, center.y, center.z, decorClearAroundVein * 2f));
         return zones;
+    }
+
+    private List<Vector4> GrassClearZones()
+    {
+        var playerSpawn = SpawnPoint(ExpeditionTeam.Player);
+        var rivalSpawn = SpawnPoint(ExpeditionTeam.Rival);
+        return new List<Vector4>
+        {
+            new Vector4(playerSpawn.x, playerSpawn.y, playerSpawn.z, grassClearAroundSpawn),
+            new Vector4(rivalSpawn.x, rivalSpawn.y, rivalSpawn.z, grassClearAroundSpawn),
+        };
     }
 
     private static bool InsideAnyZone(Vector3 point, List<Vector4> zones)

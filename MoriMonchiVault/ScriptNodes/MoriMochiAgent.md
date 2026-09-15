@@ -6,7 +6,7 @@ tags: [script, world, ai, agent, facade, expedition]
 
 **Ruta:** `World/AI/MoriMochiAgent.cs`
 
-**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 9 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate), AgentAbilities (habilidades dinámicas). Fachada pública de todas las responsabilidades. Despachador por estado en Update; Physics en FixedUpdate. S103: expedición, pizarrón. S104: órdenes de arena. S107: sistema de habilidades. S108: Expone fachadas de telegrafía. S109: Stats pasivos. **S116:** Fachadas ClashHitAt, ClashHitPoint para post-impacto visual (anillo).
+**Responsabilidad:** Núcleo delgado que orquesta vida en mundo. Compone 9 colaboradores: AgentContext (estado), AgentBrain (máquina), AgentPhysics (ragdoll), AgentConfinement (pens), AgentSenses (percepción), AgentSocial (social), AgentExpedition (recolección), AgentClash (combate), AgentAbilities (habilidades dinámicas). Fachada pública de todas las responsabilidades. Despachador por estado en Update; Physics en FixedUpdate. S103: expedición, pizarrón. S104: órdenes de arena. S107: sistema de habilidades. S108: Expone fachadas de telegrafía. S109: Stats pasivos. S116: Fachadas ClashHitAt, ClashHitPoint para post-impacto visual (anillo). **S118:** integración de Super abilities con carga, notificación de impactos para UI.
 
 **Máquina de Estados (responsables):**
 - Idle, Roaming → AgentBrain
@@ -52,9 +52,12 @@ tags: [script, world, ai, agent, facade, expedition]
   - `Vector3 ClashImpactPoint { get; }` — desde clash.ImpactPoint
 - **S109:**
   - `ExpeditionStats Stats { get; }` — desde ctx.Stats
-- **S116 NUEVAS:**
+- **S116:**
   - `float ClashHitAt { get; }` — desde clash.HitAt (timestamp último impacto exitoso o -1)
   - `Vector3 ClashHitPoint { get; }` — desde clash.HitPoint (posición rival del último impacto)
+- **S118 NUEVAS:**
+  - `UnityEvent onClashHit` — evento disparado cuando golpe conecta (notificación a UI)
+  - `float thrownLinearDamping` — damping restaurado tras vuelo (controlable)
 
 **Métodos Públicos (IThrowable + IInteractable):**
 - `void OnGrab(Transform anchor)` → physics
@@ -74,13 +77,17 @@ tags: [script, world, ai, agent, facade, expedition]
 - `void SetGuardPost(Transform post)` → ctx.GuardPost
 - `void SetAbilities(AbilitySO[] set)` → abilities.Bind(set)
 - `bool ForceClash(ClashMoveSO move, MoriMochiAgent rival) → bool` → clash.ForceMove
+- **S118 NUEVAS:**
+  - `void ReceiveClashHit(MoriMochiAgent attacker, Vector3 force)` — recibe golpe, notifica a clash
+  - `void RequestPlayfulKnock(Vector3 force)` — knockback lúdico post-recoil
+  - `void NotifyCharge(AbilityChargeSource source)` — notifica carga (Hit/Mined/Secured) a abilities
 
 **Update() Flow:**
 1. DevTrackState(), forceRagdoll check, RecoverIfStuckOffMesh
 2. brain.TickAlways
 3. senses.Tick()
 4. ApplyGaitSpeed(expedition.Carried > 0)
-5. Si en Expedition: abilities.TickMobility()
+5. Si en Idle/Roaming/Expedition: abilities.TickMobility()
 6. Por State (switch):
    - Idle/Roaming: si no clash.TryEngage() y no expedition.TryEngage(), social.TryEngage()
    - Expedition: si clash.TryEngage() retorna true, expedition.Cancel(); else expedition.TickExpedition()
@@ -88,22 +95,25 @@ tags: [script, world, ai, agent, facade, expedition]
 
 **Awake() - Inicialización de Colaboradores:**
 - Crea AgentContext, AgentBrain, AgentPhysics, AgentConfinement, AgentSenses, AgentSocial, AgentExpedition, AgentClash, AgentAbilities
+- Inicializa strike privadamente dentro de clash en su Awake
 
 **OnEnable/OnDisable:**
 - Null-safe: solo ejecutan si confinement != null (lazy init pattern)
 - Suscribe a GameEvents.OnNavMeshWillRebake / OnNavMeshRebaked
 
-## S116 Cambios
+## S118 Cambios
 
-**Nuevas fachadas para post-impacto (S116):**
-- `ClashHitAt { get; }` — delega a `clash.HitAt` (timestamp de último impacto exitoso, -1 si nunca)
-- `ClashHitPoint { get; }` — delega a `clash.HitPoint` (posición rival donde se conectó el golpe)
-- Leídas por ArenaCueOverlay para activar y posicionar ImpactRing post-golpe
-- Contexto: plantilla única = hitbox visible durante impacto en punto de conexión real
+**Nuevos eventos y métodos:**
+- `onClashHit` (UnityEvent) — disparado cuando golpe conecta en rival
+- `thrownLinearDamping` (float) — parámetro de damping, controlable en inspector
+- `ReceiveClashHit(attacker, force)` — fachada que delega a `clash.ReceiveHit()` + `physics.Knock(force)`
+- `RequestPlayfulKnock(force)` — knockback sin chain immunity
+- `NotifyCharge(source)` — fachada a `abilities.AddCharge(source)`
 
-**Integración con Visualización:**
-- Visualización anterior (S114): Tell01 0→1 durante anticipación+bloqueo
-- Visualización nueva (S116): ImpactRing centra en HitPoint tras conexión exitosa
+**Integración de carga visual:**
+- ClashStrike.Impact() llama `owner.onClashHit?.Invoke()` y `owner.NotifyCharge(Hit)`
+- UI suscrita a onClashHit para anillos visuales, cambio de charge en RadialSlot
+- abilities.HasRequestedSuper consultado por HUD para mostrar Armed state
 
 **Internals (composición pura, S55):**
 - Sin partial class
@@ -111,6 +121,6 @@ tags: [script, world, ai, agent, facade, expedition]
 - Orquestación en Update/FixedUpdate
 - ctx autoridad única de estado
 
-**Vinculado a:** [[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion]], S116
+**Vinculado a:** [[Index/20 - MVP Combate]], [[Index/22 - Arena (S103-S104)]], [[Index/23 - Arena Sandbox & Expedicion]], [[Index/22 - Bajada Nocturna y Linaje]], S118
 
-**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentAbilities]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[ArenaOrders]], [[TeamBlackboard]], [[ExitZone]], [[Occupation]], [[AbilitySO]], [[CreatureCueDrawer]], [[ArenaCueOverlay]], [[ExpeditionStats]]
+**Conexiones:** [[AgentContext]], [[AgentBrain]], [[AgentPhysics]], [[AgentExpedition]], [[AgentClash]], [[AgentAbilities]], [[AgentSenses]], [[AgentSocial]], [[AgentConfinement]], [[MoriMonchiController]], [[CreatureDNA]], [[ArenaOrders]], [[TeamBlackboard]], [[ExitZone]], [[Occupation]], [[AbilitySO]], [[CreatureCueDrawer]], [[ArenaCueOverlay]], [[ExpeditionStats]], [[ClashStrike]]

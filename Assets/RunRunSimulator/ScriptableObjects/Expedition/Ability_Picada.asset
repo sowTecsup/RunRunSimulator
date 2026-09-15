@@ -16,12 +16,16 @@ MonoBehaviour:
   Description: Con distancia, se lanza en picada con las alas.
   Slot: 1
   Kind: 0
+  Role: 1
   Cooldown: 12
   Trigger: 1
   Color: {r: 0.4, g: 0.75, b: 1, a: 1}
   Move: {fileID: 11400000, guid: b079f5e332aff7547a68156e004bff1e, type: 2}
   MinDistance: 4
   MinRivalsNearby: 0
+  ChargeOnHit: 0.34
+  ChargeOnMined: 0.08
+  ChargeOnSecured: 0.25
   SpeedMultiplier: 1
   BoostSeconds: 0
   CarryCapacity: 0

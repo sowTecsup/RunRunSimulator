@@ -253,6 +253,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     public Vector3 ClashHitPoint => clash.HitPoint;
     internal AgentAbilities Abilities => abilities;
     public void SetAbilities(AbilitySO[] set) => abilities.Bind(set);
+    public void SetAbilities(AbilitySO[] set, bool manualSupers) { abilities.Bind(set); abilities.ManualSupers = manualSupers; }
+    public void RequestAbility(int i) => abilities.Request(i);
+    public bool AbilityRequested(int i) => abilities.IsRequested(i);
+    internal void NotifyCharge(AbilityChargeSource source) => abilities.AddCharge(source);
     public int AbilityCount => abilities.Count;
     public AbilitySO Ability(int i) => abilities.Ability(i);
     public float AbilityCharge01(int i) => abilities.Charge01(i);

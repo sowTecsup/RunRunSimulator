@@ -16,12 +16,16 @@ MonoBehaviour:
   Description: Al tener un rival al alcance, embiste con el cuerno.
   Slot: 0
   Kind: 0
-  Cooldown: 8
+  Role: 0
+  Cooldown: 3
   Trigger: 1
   Color: {r: 1, g: 0.55, b: 0.2, a: 1}
   Move: {fileID: 11400000, guid: ce19f593a3ac2634fbf8b269ff1b5a3a, type: 2}
   MinDistance: 0
   MinRivalsNearby: 0
+  ChargeOnHit: 0.34
+  ChargeOnMined: 0.08
+  ChargeOnSecured: 0.25
   SpeedMultiplier: 1
   BoostSeconds: 0
   CarryCapacity: 0

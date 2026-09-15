@@ -6,6 +6,10 @@ namespace MoriMonchiSimulator
 
 public enum AbilityKind { Damage = 0, Mobility = 1, Passive = 2 }
 
+public enum AbilityRole { Basic, Super }
+
+public enum AbilityChargeSource { Hit, Mined, Secured }
+
 [System.Flags]
 public enum AbilityTrigger { None = 0, RivalInReach = 1, Fleeing = 2, Chasing = 4 }
 
@@ -16,6 +20,7 @@ public class AbilitySO : ScriptableObject
     [TextArea] public string Description = "";
     public ClashSlot Slot = ClashSlot.Horn;
     public AbilityKind Kind = AbilityKind.Damage;
+    public AbilityRole Role = AbilityRole.Basic;
     [Min(0f)] public float Cooldown = 8f;
     [EnumToggleButtons] public AbilityTrigger Trigger = AbilityTrigger.RivalInReach;
     public Color Color = new Color(1f, 0.6f, 0.2f);
@@ -24,6 +29,11 @@ public class AbilitySO : ScriptableObject
     public ClashMoveSO Move;
     [Min(0f)] public float MinDistance = 0f;
     [Min(0)] public int MinRivalsNearby = 0;
+
+    [Title("Carga (Super)")]
+    [Range(0f, 1f)] public float ChargeOnHit = 0.34f;
+    [Range(0f, 1f)] public float ChargeOnMined = 0.08f;
+    [Range(0f, 1f)] public float ChargeOnSecured = 0.25f;
 
     [Title("Movilidad")]
     [Min(1f)] public float SpeedMultiplier = 1.35f;
@@ -40,5 +50,16 @@ public class AbilitySO : ScriptableObject
     public List<string> PartIds = new List<string>();
 
     public bool Triggers(AbilityTrigger t) => (Trigger & t) != 0;
+
+    public float ChargeFor(AbilityChargeSource s)
+    {
+        switch (s)
+        {
+            case AbilityChargeSource.Hit: return ChargeOnHit;
+            case AbilityChargeSource.Mined: return ChargeOnMined;
+            case AbilityChargeSource.Secured: return ChargeOnSecured;
+            default: return 0f;
+        }
+    }
 }
 }

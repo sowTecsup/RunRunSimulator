@@ -234,6 +234,7 @@ internal class AgentGatherer : IExpeditionTask
                         carried++;
                         collected++;
                         owner.onPickup?.Invoke();
+                        owner.NotifyCharge(AbilityChargeSource.Mined);
                     }
 
                     if (target.Taken || carried >= ctx.Stats.CarryCapacity)
@@ -388,6 +389,7 @@ internal class AgentGatherer : IExpeditionTask
         exit.Deposit(carried);
         secured += carried;
         carried = 0;
+        owner.NotifyCharge(AbilityChargeSource.Secured);
         owner.EmitEmote(EmoteKind.Feliz);
     }
 

@@ -140,3 +140,6 @@ tags: [script, world, expedition, procedural, generation, shapes]
 
 **Conexiones:** [[ArenaSandbox]], [[ArenaShape]], [[ArenaLandmarks]], [[ArenaShapeBrush]], [[ArenaShapeDressing]], [[ArenaVeinLayouts]], [[ArenaShapeAxes]], [[MaterialPickup]], [[NavMeshSurface]]
 
+## Cambios S118
+
+- Campo `grassClearAroundSpawn` (3,5 m) y metodo privado `GrassClearZones()` (spawn de cada equipo como Vector4 con radio); al final de `Build`, tras `dressing.ClearAround`, llama `ArenaGrassField.ClearAround(GrassClearZones())` sobre la forma activa para que el pasto no crezca en spawn/salida.

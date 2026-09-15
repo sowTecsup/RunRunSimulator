@@ -6,7 +6,7 @@ namespace MoriMonchiSimulator
 
 public static class ArenaGrassBlades
 {
-    public static Mesh Build(IReadOnlyList<Vector3> roots, System.Random rng, Vector2 heightRange, Vector2 widthRange, float tilt, Vector3 origin)
+    public static Mesh Build(IReadOnlyList<Vector3> roots, System.Random rng, Vector2 heightRange, Vector2 widthRange, float tilt, Vector3 origin, IReadOnlyList<float> heightScales = null)
     {
         if (roots == null || roots.Count == 0) return null;
 
@@ -19,6 +19,7 @@ public static class ArenaGrassBlades
         for (int i = 0; i < roots.Count; i++)
         {
             float height = (float)(rng.NextDouble() * (heightRange.y - heightRange.x) + heightRange.x);
+            if (heightScales != null && i < heightScales.Count) height *= heightScales[i];
             float width = (float)(rng.NextDouble() * (widthRange.y - widthRange.x) + widthRange.x);
             float yaw = (float)(rng.NextDouble() * Mathf.PI * 2.0);
             float side = Mathf.Cos(yaw);

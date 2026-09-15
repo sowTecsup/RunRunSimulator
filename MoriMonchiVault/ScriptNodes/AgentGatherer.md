@@ -6,7 +6,7 @@ tags: [script, world, ai, expedition, task]
 
 **Ruta:** `World/AI/AgentGatherer.cs`
 
-**Responsabilidad:** Colaborador de `AgentExpedition` (composición) que implementa `IExpeditionTask`. Maneja recolección de material: navega a sitio planeado o descubierto, detecta arribo, mina, carga, huye si hay rival sin custodio, vuelve a salida, deposita. Soporta orden Loot (Big/Small lode bias), Flee (huida con cadena a aliados/salida), Protect (custodio de aliados cercanos). **S105: PlannedSite prefiere cristales caídos en Break/Decoy; MiningSeconds varía por tipo de drop**. **S109: lee `ctx.Stats.CarryCapacity` (dinámico por habilidades); OnKnocked respeta `ctx.Stats.KeepCarryOnKnock`**. Emite emotes (Curioso, Molesto, Feliz).
+**Responsabilidad:** Colaborador de `AgentExpedition` (composición) que implementa `IExpeditionTask`. Maneja recolección de material: navega a sitio planeado o descubierto, detecta arribo, mina, carga, huye si hay rival sin custodio, vuelve a salida, deposita. Soporta orden Loot (Big/Small lode bias), Flee (huida con cadena a aliados/salida), Protect (custodio de aliados cercanos). S105: PlannedSite prefiere cristales caídos en Break/Decoy; MiningSeconds varía por tipo de drop. S109: lee `ctx.Stats.CarryCapacity` (dinámico por habilidades); OnKnocked respeta `ctx.Stats.KeepCarryOnKnock`. **S118:** notifica carga vía `owner.NotifyCharge()` al minar y asegurar, alimentando Super abilities del agente. Emite emotes (Curioso, Molesto, Feliz).
 
 **Máquina de estados:**
 - `Noticing` — espera antes de moverse a sitio
@@ -25,21 +25,24 @@ tags: [script, world, ai, expedition, task]
 - `Guardian` — aliado custodio detectado (null si sin custodio)
 - `FleeCooldown01` — normalized [0,1] de cooldown post-huida
 - `MiningProgress` — [0,1] avance de minado en fase Mining
+- `CarryCapacity` — desde ctx.Stats (S109)
 
 **Métodos público:**
-- `bool TryEngage(ExpeditionRulesSO rules)` → bool — intenta comenzar recolección; retorna false si carga llena, sin site usable, ni reglas
-- `bool Tick(ExpeditionRulesSO rules)` → bool — procesa frame; retorna false al terminar
-- `Cancel()` — aborta sin resetear elapsed
-- `ResetForReuse()` — limpia para pool recycle
-- `void OnKnocked(ExpeditionRulesSO rules)` (S109 ACTUALIZADO) — suelta carga solo si **`!ctx.Stats.KeepCarryOnKnock`** (antes: siempre soltaba), aborta
+- `bool TryEngage(ExpeditionRulesSO rules) → bool` — intenta comenzar recolección; retorna false si carga llena, sin site usable, ni reglas
+- `bool Tick(ExpeditionRulesSO rules) → bool` — procesa frame; retorna false al terminar
+- `void Cancel()` — aborta sin resetear elapsed
+- `void ResetForReuse()` — limpia para pool recycle
+- `void OnKnocked(ExpeditionRulesSO rules)` (S109 ACTUALIZADO) — suelta carga solo si `!ctx.Stats.KeepCarryOnKnock` (antes: siempre soltaba), aborta
+- `Transform TargetTransform { get; }` — actual objetivo (target o exit según fase)
+- `CreatureIntent Intent { get; }` — intención actual (Taking, Losing, Carrying, Securing, Fleeing, Collecting)
 
-**PlannedSite (S105 NUEVO):**
+**PlannedSite (S105):**
 - Si Occupation es Break O Decoy: primero busca `NearestDrop(ctx, DropPickupRadius)` (cristales caídos por recolectores en contacto)
   - Cristales se recogen rápido (DropPickupSecondsPerUnit 0.5f)
 - Fallback: post inyectado → veta conocida → veta cercana
 
-**MiningSeconds (S105 NUEVO):**
-- Si target `IsDrop`: retorna `DropPickupSecondsPerUnit` (0.5f, mas rápido)
+**MiningSeconds (S105):**
+- Si target `IsDrop`: retorna `DropPickupSecondsPerUnit` (0.5f, más rápido)
 - Si target `IsLode`: retorna `LodeMiningSecondsPerUnit` (2f)
 - Else: retorna `MiningSecondsPerUnit` (4f, vetas)
 
@@ -51,6 +54,12 @@ tags: [script, world, ai, expedition, task]
   - Habilidades pasivas pueden otorgar resistencia a golpes
   - Si KeepCarryOnKnock true, sigue cargando tras knock (ventaja defensiva)
 
+**S118 Cambios (Notificación de Carga):**
+
+- **Línea 237 (Fase Mining):** tras minar exitoso, `owner.NotifyCharge(AbilityChargeSource.Mined)` notifica a abilities (Super abilities acumulan carga)
+- **Línea 392 (Método Secure):** tras depositar en salida, `owner.NotifyCharge(AbilityChargeSource.Secured)` notifica
+- Integra loop: minado → carga Super → disparo automático tras delay
+
 **Integración:**
 
 - Llamado desde `AgentExpedition.TryEngage()` por defecto o si otra ocupación falla
@@ -58,6 +67,7 @@ tags: [script, world, ai, expedition, task]
 - Puede ser abortado por `PostureEngages` si hay rival y ocupación no es Gather
 - S105: PostureEngages llama `hunter.TryHunt()` directamente, Gatherer cancela
 - S109: Stats resueltos por AgentAbilities.Bind(), no cambian durante sesión (salvo SetOrders)
+- S118: NotifyCharge() llama a `abilities.AddCharge(source)` vía MoriMochiAgent.NotifyCharge()
 
 **Flujo Tick:**
 1. Valida target usable; si no → Losing → false
@@ -66,10 +76,10 @@ tags: [script, world, ai, expedition, task]
 4. Switch fase:
    - Noticing: countdown, luego → Moving
    - Moving: repath, detecta arribo, → Mining
-   - Mining: extrae unidad cada MiningSeconds, repite o → Returning
+   - Mining: extrae unidad cada MiningSeconds, **S118:** notifica Mined, repite o → Returning
    - Losing: countdown, luego → false
    - Returning: navega exit, detecta arribo, → Securing
-   - Securing: countdown, luego Secure() → false
+   - Securing: countdown, luego **S118:** Secure() (notifica Secured) → false
    - Fleeing: navega FleePoint, countdown, luego Returning o → false
 
 **Invariantes:**
@@ -80,7 +90,8 @@ tags: [script, world, ai, expedition, task]
 - MiningSeconds dinámico por tipo material (no precálculado)
 - **KeepCarryOnKnock:** habilidad pasiva puede prevenir drop post-golpe (valor defensivo)
 - **PlannedSite:** Break/Decoy priorizan cristales caídos (speed run)
+- **S118:** Cada minado/asegurado notifica carga, alimentando Super abilities
 
-**Vinculado a:** [[Index/23 - Arena Sandbox y Expedicion]]
+**Vinculado a:** [[Index/23 - Arena Sandbox y Expedicion]], [[Index/22 - Bajada Nocturna y Linaje]], S118
 
-**Conexiones:** [[IExpeditionTask]], [[AgentExpedition]], [[MoriMochiAgent]], [[AgentContext]], [[ExpeditionNav]], [[TeamBlackboard]], [[ExpeditionRulesSO]], [[MaterialPickup]], [[ExpeditionStats]]
+**Conexiones:** [[IExpeditionTask]], [[AgentExpedition]], [[MoriMochiAgent]], [[AgentContext]], [[AgentAbilities]], [[ExpeditionNav]], [[TeamBlackboard]], [[ExpeditionRulesSO]], [[MaterialPickup]], [[ExpeditionStats]]

@@ -6,7 +6,7 @@ tags: [script, ui, arena, expedition, presentation]
 
 **Ruta:** `World/Expedition/ArenaHudCard.cs` (presentador, no MonoBehaviour)
 
-**Responsabilidad:** Constructor de tarjeta de HUD para un agente en la arena. Genera VisualElement con nombre, color, órdenes (3 pilares Loot/Contact/Posture), intención actual, carreo de minerales con barra de progreso (Taking), y 3 slots radiales de habilidades. **S109:** Habilidades pasivas renderizadas con clase CSS `hud-power--passive` y RadialSlot con color semi-transparente (alfa 0.55) para diferenciación visual. Maneja estado visual dinámico: pulsación por golpe recibido, dim de poderes Damage si Flee activo, índice de carga, carga de habilidades. **S115:** Campo `lastDazed` detecta transición a/desde intent Dazed/Tumbling; alterna clase USS `hud-card--dazed` (opacidad 0.4) para feedback visual de noqueado.
+**Responsabilidad:** Constructor de tarjeta de HUD para un agente en la arena. Genera VisualElement con nombre, color, órdenes (3 pilares Loot/Contact/Posture), intención actual, carreo de minerales con barra de progreso (Taking), y 3 slots radiales de habilidades. S109: Habilidades pasivas renderizadas con clase CSS `hud-power--passive` y RadialSlot con color semi-transparente (alfa 0.55) para diferenciación visual. Maneja estado visual dinámico: pulsación por golpe recibido, dim de poderes Damage si Flee activo, índice de carga, carga de habilidades. S115: Campo `lastDazed` detecta transición a/desde intent Dazed/Tumbling; alterna clase USS `hud-card--dazed` (opacidad 0.4) para feedback visual de noqueado. **S118:** Super abilities muestran Armed state (doble anillo en RadialSlot) cuando solicitado por jugador.
 
 **Responsabilidad:** Presentación pura; lee estado vivo del agente y actualiza UIElements cada frame sin emitir eventos.
 
@@ -15,12 +15,13 @@ tags: [script, ui, arena, expedition, presentation]
 - `Root` (VisualElement) — contenedor raíz del card (PickingMode.Position)
 
 **Construcción (ArenaHudCard constructor):**
+
 1. Header: swatch de color + nombre + postura (archetype short label)
 2. Pillars: 3 chips (Loot/Contact/Posture) con labels de Choice
 3. Action: label de intención actual
 4. Carry: N slots visuales (N = capacity) con barra de progreso si Taking
 5. Powers: 3 RadialSlot (uno por habilidad) con nombre y color
-   - **S109:** Si ability.Kind == AbilityKind.Passive:
+   - S109: Si ability.Kind == AbilityKind.Passive:
      - Agrega clase CSS `hud-power--passive`
      - Asigna `radial.ReadyColor = Color(ability.Color.r/g/b, 0.55f)` (semi-transparente)
 
@@ -30,14 +31,16 @@ tags: [script, ui, arena, expedition, presentation]
 - `lastFired[3]`, `lastDim[3]` — abilities (cooldown y dim)
 - `lastKnocked` — feedback visual de golpe
 - `lastSelected`, `lastChase` — estilos CSS
-- `lastDazed` — **S115 NUEVO** estado noqueado (Dazed/Tumbling)
+- `lastDazed` — S115: estado noqueado (Dazed/Tumbling)
 
 **Métodos Públicos:**
 - `Refresh(bool selected)` — actualiza acción, carry, poderes, feedback hit, clases CSS de selección/chase/dazed
 
 **Internals:**
+
 - `RefreshCarry()` — remapea slots si capacity cambió, renderiza progreso de minado
-- `RefreshPowers()` — sincroniza carga de 3 radials, dispara `Pulse()` si ability fired, dim si Flee, **S109:** renderiza pasivas con color semi-transparente
+
+- `RefreshPowers()` — sincroniza carga de 3 radials, dispara `Pulse()` si ability fired, dim si Flee, **S109:** renderiza pasivas con color semi-transparente, **S118:** sincroniza Armed state
 
 **Callback (wired en constructor):**
 - Click en Root → `onTapped?.Invoke(Agent)`
@@ -47,7 +50,7 @@ tags: [script, ui, arena, expedition, presentation]
 - Creado por ArenaRoundHud.RefreshRoster() para cada agente jugador
 - Refrescado cada frame en ArenaRoundHud.Update()
 
-**S107 (NUEVO):**
+**S107 (Inicial):**
 - Extrae del interior de ArenaRoundHud la lógica de tarjeta de equipo, permitiendo reutilización
 - Usada por ArenaRoundHud para team Player, mientras que Rival usa RivalChip interno más simple
 
@@ -62,13 +65,13 @@ tags: [script, ui, arena, expedition, presentation]
 
 **S115 Cambios:**
 
-**Campos línea 33:**
+Campos línea 33:
 ```csharp
 private bool lastDazed;
 ```
 - Nuevo: bandera de estado noqueado detectada
 
-**Refresh() línea 154-159:**
+Refresh() línea 154-159:
 ```csharp
 bool dazed = agent.Intent == CreatureIntent.Dazed || agent.Intent == CreatureIntent.Tumbling;
 if (dazed != lastDazed)
@@ -81,28 +84,44 @@ if (dazed != lastDazed)
 - Si cambio: actualiza `lastDazed` y alterna clase USS `hud-card--dazed`
 - Clase CSS aplicada cuando `dazed = true`, removida cuando `false`
 
-**Clase USS `hud-card--dazed` (styling):**
+Clase USS `hud-card--dazed` (styling):
 - Opacidad 0.4 cuando aplicada (criatura está "aturdida", visual atenuado)
 - Transición suave vía CSS transitions (si están configuradas en stylesheet)
 - Diferencia visual clara de estado noqueado vs. normal
 
-**Impacto S115:**
+Impacto S115:
 - Card de agente noqueado se oscurece/atenúa visualmente
 - Transición instantánea al entrar/salir de Dazed
 - Feedback visual que complementa a MonchiMoodDriver (expresión facial) y ArenaCueOverlay (sin guías)
 - Indica al jugador que criatura está temporalmente fuera de acción
 
-## Invariantes S109-S115
+**S118 Cambios:**
+
+RefreshPowers() sincroniza Armed para cada radial:
+```csharp
+radials[i].Armed = agent.abilities.IsRequested(i) && agent.AbilityCharge01(i) >= 0.999f;
+```
+
+- Si habilidad i es Super (Kind == Damage, Role == Super) y Charge >= 1.0 y Requested:
+  - `Armed = true` → RadialSlot dibuja doble anillo interior (visual de "armado")
+- Si Super no solicitado O Charge < 1.0:
+  - `Armed = false` → RadialSlot sin anillo interior
+
+- Integración con UI:
+  - Jugador toca RadialSlot en pantalla → llama onPowerTapped(agent, i)
+  - ArenaRound.Request(i) → agent.abilities.Request(i) → Requested = true
+  - RefreshPowers() detecta Requested && Charge >= 1.0 → Armed = true
+  - Visual: anillo interior muestra Super "armado y listo a disparar por jugador"
+
+## Invariantes S109-S118
 
 - Un card por agente Player (rival tiene chip más simple)
 - Pasivas nunca muestran barra de carga (siempre listas, semi-transparente)
-- Damage/Mobility muestran carga 0→1 según Charge01
-- Clase CSS permite UX diferenciado: pasivas como "siempre activas", activas como "cargan"
-- RadialSlot.ReadyColor interpretado como color fijo para pasivas (no usado para carga)
-- **S115:** Noqueados tienen clase `hud-card--dazed` aplicada (opacidad visual)
-- **S115:** Transición es instantánea: cambio Dazed ↔ Normal pasa clase inmediatamente
+- Damage Basic/Mobility muestran carga 0→1 según Charge01, dim si Flee
+- Damage Super muestran carga acumulable, Armed cuando solicitado+listo
+- Clase CSS permite UX diferenciado: pasivas como "siempre activas", activas como "cargan/disparan"
+- Armed state es visual-only (no afecta lógica, solo UI feedback de intención del jugador)
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]], S115
+**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion]], [[Index/22 - Bajada Nocturna y Linaje]], S118
 
-**Conexiones:** [[ArenaRoundHud]], [[RadialSlot]], [[MoriMochiAgent]], [[AgentAbilities]], [[ArenaOrderCatalog]], [[LocEnumMaps]], [[AbilitySO]], [[CreatureIntent]] (Dazed/Tumbling)
-
+**Conexiones:** [[ArenaRoundHud]], [[RadialSlot]], [[AgentAbilities]], [[AbilitySO]], [[MoriMochiAgent]], [[ArenaOrderCatalog]]

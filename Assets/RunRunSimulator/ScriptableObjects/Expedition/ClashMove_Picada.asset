@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ClashMoveSO
   Slot: 1
   AnticipationSeconds: 1.7
+  HoldSeconds: 0.3
   StrikeSeconds: 1.5
   Range: 8
   HitRadius: 2.5
-  Impulse: 33
+  Impulse: 22
   UpBias: 0.45
   DashSpeed: 0
   DashAcceleration: 60

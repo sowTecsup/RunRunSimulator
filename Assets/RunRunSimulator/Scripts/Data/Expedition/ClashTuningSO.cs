@@ -26,6 +26,11 @@ public class ClashTuningSO : ScriptableObject
     [Min(1)] public int SweepMinRivals = 2;
     [Min(0f)] public float SweepRange = 2.5f;
 
+    [Title("Acercamiento")]
+    [Min(0f)] public float ApproachSeconds = 2.5f;
+    [Range(0f, 90f)] public float CommitAngle = 20f;
+    [Min(0.1f)] public float ApproachSpeed = 9.5f;
+
     [Title("Después del golpe")]
     [Min(0f)] public float ResolveSeconds = 0.4f;
     [Min(0f)] public float DazedSeconds = 0.7f;

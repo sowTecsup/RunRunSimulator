@@ -173,7 +173,7 @@ public class ArenaRoundHud : MonoBehaviour
             if (agent.Team == ExpeditionTeam.Rival) BuildChip(agent);
             else
             {
-                var card = new ArenaHudCard(agent, OnCardTapped);
+                var card = new ArenaHudCard(agent, OnCardTapped, OnPowerTapped);
                 playerTeam.Add(card.Root);
                 cards.Add(card);
             }
@@ -183,6 +183,11 @@ public class ArenaRoundHud : MonoBehaviour
     private void OnCardTapped(MoriMochiAgent agent)
     {
         if (director != null) director.TogglePin(agent);
+    }
+
+    private void OnPowerTapped(MoriMochiAgent agent, int index)
+    {
+        agent.RequestAbility(index);
     }
 
     private void BuildChip(MoriMochiAgent agent)

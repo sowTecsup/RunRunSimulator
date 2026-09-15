@@ -21,7 +21,10 @@ MonoBehaviour:
   DiveMinDistance: 4
   SweepMinRivals: 2
   SweepRange: 2.5
-  ResolveSeconds: 0.4
+  ApproachSeconds: 2.5
+  CommitAngle: 20
+  ApproachSpeed: 9.5
+  ResolveSeconds: 1
   DazedSeconds: 0.7
   ReengageBoldness: 0.7
   RetreatDistance: 8

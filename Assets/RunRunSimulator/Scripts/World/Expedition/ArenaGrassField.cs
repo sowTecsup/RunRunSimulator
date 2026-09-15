@@ -25,12 +25,24 @@ public class ArenaGrassField : MonoBehaviour
     [SerializeField] private Vector2 widthRange = new Vector2(0.045f, 0.075f);
     [SerializeField] private float tilt = 0.25f;
 
+    [Title("Cobertura")]
+    [SerializeField] private ArenaGrassCover.Settings cover = ArenaGrassCover.Settings.Default;
+
     [Title("Margenes")]
     [SerializeField] private float edgeMargin = 0.6f;
     [SerializeField] private float obstacleMargin = 0.5f;
 
     private ArenaShape shape;
     private GameObject grassField;
+    private readonly List<GrassChunk> chunks = new List<GrassChunk>();
+
+    private class GrassChunk
+    {
+        public GameObject Go;
+        public Vector3 Center;
+        public List<Vector3> Roots;
+        public List<float> Heights;
+    }
 
     private void OnEnable()
     {
@@ -110,6 +122,7 @@ public class ArenaGrassField : MonoBehaviour
 
                 int candidateCount = Mathf.RoundToInt(density * chunkSize * chunkSize);
                 var roots = new List<Vector3>(candidateCount);
+                var heights = new List<float>(candidateCount);
 
                 for (int i = 0; i < candidateCount; i++)
                 {
@@ -121,7 +134,10 @@ public class ArenaGrassField : MonoBehaviour
                     if (!obstaculoLejos && !shape.IsClear(world, obstacleMargin)) continue;
                     if (!bordeSeguro && ArenaShapeMesher.DistanceToEdge(shape.OutlinePolygon, new Vector2(x, z)) <= edgeMargin) continue;
 
+                    float density = ArenaGrassCover.Sample(new Vector2(x, z), seed, in cover, out float heightScale);
+                    if (rng.NextDouble() >= density) continue;
                     roots.Add(world);
+                    heights.Add(heightScale);
                 }
 
                 if (roots.Count == 0) continue;
@@ -131,11 +147,12 @@ public class ArenaGrassField : MonoBehaviour
                     int remaining = maxBlades - totalBlades;
                     if (remaining <= 0) return;
                     roots.RemoveRange(remaining, roots.Count - remaining);
+                    heights.RemoveRange(remaining, heights.Count - remaining);
                 }
 
                 totalBlades += roots.Count;
 
-                var mesh = ArenaGrassBlades.Build(roots, rng, heightRange, widthRange, tilt, chunkCenter);
+                var mesh = ArenaGrassBlades.Build(roots, rng, heightRange, widthRange, tilt, chunkCenter, heights);
                 if (mesh == null) continue;
 
                 var chunk = new GameObject("GrassChunk") { hideFlags = HideFlags.DontSave };
@@ -149,6 +166,8 @@ public class ArenaGrassField : MonoBehaviour
                 renderer.sharedMaterial = bladeMaterial;
                 renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 renderer.receiveShadows = true;
+
+                chunks.Add(new GrassChunk { Go = chunk, Center = chunkCenter, Roots = roots, Heights = heights });
 
                 if (totalBlades >= maxBlades) return;
             }
@@ -173,6 +192,78 @@ public class ArenaGrassField : MonoBehaviour
                 DestroyImmediate(child.gameObject);
             }
         }
+
+        chunks.Clear();
+    }
+
+    public void ClearAround(IReadOnlyList<Vector4> zones)
+    {
+        if (grassField == null || zones == null || zones.Count == 0) return;
+
+        for (int c = chunks.Count - 1; c >= 0; c--)
+        {
+            var chunk = chunks[c];
+
+            bool zonaCerca = false;
+            for (int z = 0; z < zones.Count; z++)
+            {
+                var zone = zones[z];
+                float alcance = zone.w + chunkSize * 0.7071f;
+                if (PlanarDistance(chunk.Center, zone) <= alcance)
+                {
+                    zonaCerca = true;
+                    break;
+                }
+            }
+
+            if (!zonaCerca) continue;
+
+            var rootsFiltradas = new List<Vector3>(chunk.Roots.Count);
+            var heightsFiltradas = new List<float>(chunk.Roots.Count);
+            for (int r = 0; r < chunk.Roots.Count; r++)
+            {
+                var root = chunk.Roots[r];
+                bool dentroDeAlguna = false;
+                for (int z = 0; z < zones.Count; z++)
+                {
+                    var zone = zones[z];
+                    if (PlanarDistance(root, zone) < zone.w)
+                    {
+                        dentroDeAlguna = true;
+                        break;
+                    }
+                }
+
+                if (!dentroDeAlguna)
+                {
+                    rootsFiltradas.Add(root);
+                    heightsFiltradas.Add(chunk.Heights[r]);
+                }
+            }
+
+            if (rootsFiltradas.Count == chunk.Roots.Count) continue;
+
+            var filter = chunk.Go.GetComponent<MeshFilter>();
+            if (filter != null && filter.sharedMesh != null) DestroyImmediate(filter.sharedMesh);
+
+            if (rootsFiltradas.Count == 0)
+            {
+                DestroyImmediate(chunk.Go);
+                chunks.RemoveAt(c);
+                continue;
+            }
+
+            var mesh = ArenaGrassBlades.Build(rootsFiltradas, new System.Random(seed + c), heightRange, widthRange, tilt, chunk.Center, heightsFiltradas);
+            if (filter != null) filter.sharedMesh = mesh;
+
+            chunk.Roots = rootsFiltradas;
+            chunk.Heights = heightsFiltradas;
+        }
+    }
+
+    private static float PlanarDistance(Vector3 a, Vector4 b)
+    {
+        return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
     }
 
     private static void CollectObstacleBounds(IReadOnlyList<IReadOnlyList<Vector2>> polygons, float margin, List<Rect> bounds)

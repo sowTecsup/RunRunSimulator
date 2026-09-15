@@ -32,7 +32,7 @@ public class ArenaHudCard
     private bool lastChase;
     private bool lastDazed;
 
-    public ArenaHudCard(MoriMochiAgent agent, Action<MoriMochiAgent> onTapped)
+    public ArenaHudCard(MoriMochiAgent agent, Action<MoriMochiAgent> onTapped, Action<MoriMochiAgent, int> onPowerTapped)
     {
         Agent = agent;
 
@@ -110,6 +110,8 @@ public class ArenaHudCard
 
             var radial = new RadialSlot();
             radial.AddToClassList("hud-power__radial");
+            int index = i;
+            radial.RegisterCallback<ClickEvent>(e => { e.StopPropagation(); onPowerTapped?.Invoke(Agent, index); });
 
             var ability = agent.Ability(i);
             var label = new Label(ability != null ? ability.Name : "—");
@@ -248,6 +250,7 @@ public class ArenaHudCard
         {
             var radial = radials[i];
             radial.Charge01 = agent.AbilityCharge01(i);
+            radial.Armed = agent.AbilityRequested(i);
 
             float fired = agent.AbilityFiredAt(i);
             if (fired > lastFired[i])
