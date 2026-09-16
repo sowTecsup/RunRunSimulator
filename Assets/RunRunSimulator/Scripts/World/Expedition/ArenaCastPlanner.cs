@@ -131,6 +131,7 @@ public class ArenaCastPlanner
             for (int i = 0; i < RivalCount; i++)
             {
                 var dna = mint();
+                dna.Timestamp += i + 1;
                 planned.Add(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Rival, Orders = ArenaOrderRules.Clamp(dna, rules, plan[i % plan.Length]) });
             }
             UnityEngine.Random.InitState(castSeed);

@@ -1665,6 +1665,43 @@ MonoBehaviour:
     m_Localized: Reporting!
     m_Metadata:
       m_Items: []
+  - m_Id: 19177877312954368
+    m_Localized: NIGHT DESCENT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674624
+    m_Localized: Pick up to {0} MoriMonchis to send into the room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674625
+    m_Localized: Energy {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674626
+    m_Localized: "Tired \xB7 energy {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674627
+    m_Localized: Busy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674628
+    m_Localized: No MoriMonchis are ready to go down
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674629
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674630
+    m_Localized: Descend ({0}/{1})
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674631
+    m_Localized: "Back from room {0} \xB7 {1}-{2} \xB7 +{3} material \xB7 \u2212{4}
+      energy"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -34,5 +34,8 @@ public static class GameEvents
 
     public static event Action<NpcAgent, CreatureDNA, int> OnCustomerSold;
     public static void CustomerSold(NpcAgent agent, CreatureDNA mm, int finalPrice) => OnCustomerSold?.Invoke(agent, mm, finalPrice);
+
+    public static event Action<ExpeditionReturn> OnExpeditionReturned;
+    public static void ExpeditionReturned(ExpeditionReturn r) => OnExpeditionReturned?.Invoke(r);
 }
 }

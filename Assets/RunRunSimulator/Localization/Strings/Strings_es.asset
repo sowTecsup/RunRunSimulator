@@ -1662,6 +1662,43 @@ MonoBehaviour:
     m_Localized: "\xA1Avisa!"
     m_Metadata:
       m_Items: []
+  - m_Id: 19177877312954368
+    m_Localized: BAJADA NOCTURNA
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674624
+    m_Localized: Elige hasta {0} MoriMonchis para bajar a la sala
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674625
+    m_Localized: "Energ\xEDa {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674626
+    m_Localized: "Cansado \xB7 energ\xEDa {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674627
+    m_Localized: Ocupado
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674628
+    m_Localized: No tienes MoriMonchis listos para bajar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674629
+    m_Localized: Cerrar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674630
+    m_Localized: Bajar ({0}/{1})
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674631
+    m_Localized: "Volviste de la sala {0} \xB7 {1}-{2} \xB7 +{3} material \xB7 \u2212{4}
+      energ\xEDa"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

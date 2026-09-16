@@ -10,6 +10,7 @@ public enum UIPanelType
     Storage          = 5,
     Store            = 6,
     Transaction      = 7,
+    Expedition       = 8,
 }
 
 public enum PlayerStateType

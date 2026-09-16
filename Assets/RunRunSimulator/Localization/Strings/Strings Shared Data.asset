@@ -1651,6 +1651,42 @@ MonoBehaviour:
     m_Key: intent.reporting
     m_Metadata:
       m_Items: []
+  - m_Id: 19177877312954368
+    m_Key: ui.expedition.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674624
+    m_Key: ui.expedition.subtitle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674625
+    m_Key: ui.expedition.energy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674626
+    m_Key: ui.expedition.tired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674627
+    m_Key: ui.expedition.busy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674628
+    m_Key: ui.expedition.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674629
+    m_Key: ui.expedition.close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674630
+    m_Key: ui.expedition.go
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19177877371674631
+    m_Key: ui.overlay.expedition.return
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

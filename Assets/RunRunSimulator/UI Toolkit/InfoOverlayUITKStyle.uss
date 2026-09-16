@@ -88,3 +88,31 @@
     border-radius: 12px;   /* 8 × 1.5 */
     padding: 7px 18px;
 }
+
+/* Expedition return toast, top-center. */
+.expedition-toast {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    translate: -50% 0;
+    font-size: 21px;
+    color: var(--mm-ink);
+    -unity-font-style: bold;
+    background-color: var(--mm-scrim);
+    border-radius: 12px;
+    padding: 9px 24px;
+    -unity-text-align: middle-center;
+    display: none;
+}
+
+.toast--win {
+    color: var(--mm-good);
+}
+
+.toast--lose {
+    color: var(--mm-crit);
+}
+
+.toast--draw {
+    color: var(--mm-warn);
+}

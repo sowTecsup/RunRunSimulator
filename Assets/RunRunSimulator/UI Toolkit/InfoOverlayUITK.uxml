@@ -11,5 +11,6 @@
             <ui:Label name="dabloons" text="" class="overlay-dabloons" picking-mode="Ignore" />
             <ui:Label name="material" text="" class="overlay-dabloons" picking-mode="Ignore" />
         </ui:VisualElement>
+        <ui:Label name="expedition-toast" text="" class="expedition-toast" picking-mode="Ignore" />
     </ui:VisualElement>
 </ui:UXML>

@@ -1,0 +1,21 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
+    <Style src="TransactionPanel.uss" />
+    <Style src="ExpeditionPanelUITKStyle.uss" />
+    <ui:VisualElement name="exp-root" class="mm-theme mm-theme--night exp">
+        <ui:VisualElement name="exp-backdrop" class="tx-backdrop">
+            <ui:VisualElement name="exp-panel" class="panel exp-panel">
+                <ui:VisualElement class="panel__header">
+                    <ui:Label name="exp-title" text="" class="panel__title" />
+                </ui:VisualElement>
+                <ui:Label name="exp-subtitle" text="" class="exp-subtitle" />
+                <ui:Label name="exp-empty" text="" class="exp-empty" />
+                <ui:ScrollView name="exp-list" class="exp-list" mode="Vertical" />
+                <ui:VisualElement class="actions exp-actions">
+                    <ui:Button name="exp-close" text="" class="action action--cancel" />
+                    <ui:Button name="exp-go" text="" class="action action--accept" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

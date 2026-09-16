@@ -71,6 +71,7 @@ public class ArenaSandbox : MonoBehaviour
     public bool LocalCastAvailable => Planner.LocalAvailable;
     public IReadOnlyList<CreatureDNA> LocalPool => Planner.LocalPool;
     public bool HasTeams => Planner.HasTeams;
+    public bool TeamLocked => ExpeditionHandoff.SelectedIds.Count > 0;
     public string EntryName => layout != null && layout.IsBuilt ? layout.EntryName : "diagonal";
     public string PaletteName => palette != null && palette.Current != null ? palette.Current.DisplayName : "";
     public string ShapeName => layout != null && layout.IsBuilt ? layout.ShapeName : "cuadrado";
@@ -149,7 +150,21 @@ public class ArenaSandbox : MonoBehaviour
     private void Start()
     {
         Application.runInBackground = true;
+        if (ExpeditionHandoff.CameFromStore) randomizeEachPlay = true;
         BuildRoom();
+
+        if (TeamLocked)
+        {
+            var ids = ExpeditionHandoff.SelectedIds;
+            var picks = new List<CreatureDNA>();
+            foreach (var id in ids)
+                foreach (var dna in LocalPool)
+                    if (dna != null && dna.UniqueID == id) { picks.Add(dna); break; }
+
+            Debug.Log($"[ArenaSandbox] equipo de la tienda: {picks.Count}/{ids.Count} encontradas");
+            if (picks.Count > 0) SelectLocalCast(picks);
+        }
+
         if (autoSpawnCast) SpawnCast();
     }
 

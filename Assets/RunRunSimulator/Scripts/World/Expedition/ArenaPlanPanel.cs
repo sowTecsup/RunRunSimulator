@@ -75,6 +75,10 @@ public class ArenaPlanPanel : MonoBehaviour
         returnButton.clicked += ReturnToStore;
 
         returnButton.style.display = ExpeditionHandoff.CameFromStore ? DisplayStyle.Flex : DisplayStyle.None;
+        DisplayStyle teamButtons = sandbox != null && sandbox.TeamLocked ? DisplayStyle.None : DisplayStyle.Flex;
+        castButton.style.display = teamButtons;
+        pickButton.style.display = teamButtons;
+        shuffleButton.style.display = teamButtons;
 
         lastPlannedCount = -1;
         lastSeed = int.MinValue;
@@ -155,6 +159,11 @@ public class ArenaPlanPanel : MonoBehaviour
         paletteButton.text = "Paleta ▸";
         pickButton.SetEnabled(sandbox.CastMode == ArenaCastMode.LocalSave && sandbox.LocalCastAvailable);
         shuffleButton.SetEnabled(sandbox.CastMode == ArenaCastMode.LocalSave && sandbox.LocalCastAvailable);
+
+        DisplayStyle teamButtons = sandbox.TeamLocked ? DisplayStyle.None : DisplayStyle.Flex;
+        castButton.style.display = teamButtons;
+        pickButton.style.display = teamButtons;
+        shuffleButton.style.display = teamButtons;
 
         BuildCards();
         RefreshRivalLine();

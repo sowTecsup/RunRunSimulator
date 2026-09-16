@@ -13,6 +13,17 @@ public struct ExpeditionResult
     public List<ArenaRoundStat> Stats;
 }
 
+public struct ExpeditionReturn
+{
+    public int Seed;
+    public ExpeditionTeam Winner;
+    public int PlayerSecured;
+    public int RivalSecured;
+    public int MaterialGained;
+    public int EnergySpent;
+    public int Creatures;
+}
+
 public static class ExpeditionHandoff
 {
     public const string StoreScene = "GameScene";
@@ -22,16 +33,22 @@ public static class ExpeditionHandoff
     public static bool HasResult { get; private set; }
     public static ExpeditionResult Result { get; private set; }
 
+    private static readonly List<string> selectedIds = new();
+    public static IReadOnlyList<string> SelectedIds => selectedIds;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetState()
     {
         CameFromStore = false;
         HasResult = false;
         Result = default;
+        selectedIds.Clear();
     }
 
-    public static void GoToArena()
+    public static void GoToArena(IReadOnlyList<string> ids = null)
     {
+        selectedIds.Clear();
+        if (ids != null) selectedIds.AddRange(ids);
         CameFromStore = true;
         HasResult = false;
         SceneManager.LoadScene(ArenaScene);
@@ -48,6 +65,7 @@ public static class ExpeditionHandoff
         {
             CameFromStore = false;
         }
+        selectedIds.Clear();
         Time.timeScale = 1f;
         SceneManager.LoadScene(StoreScene);
     }
@@ -58,6 +76,7 @@ public static class ExpeditionHandoff
         bool had = HasResult;
         HasResult = false;
         CameFromStore = false;
+        selectedIds.Clear();
         return had;
     }
 }

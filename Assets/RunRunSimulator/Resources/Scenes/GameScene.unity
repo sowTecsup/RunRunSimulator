@@ -23009,6 +23009,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ExpeditionBridge
   cloudSync: {fileID: 1443145214}
   syncTimeoutSeconds: 20
+  energyPerTrip: 20
+  energyPerKnock: 5
+  maxEnergyPerTrip: 40
 --- !u!4 &1038142491
 Transform:
   m_ObjectHideFlags: 0
@@ -26515,6 +26518,7 @@ Transform:
   - {fileID: 1023503745}
   - {fileID: 464847835}
   - {fileID: 1478376637}
+  - {fileID: 1887204491}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1218711424
@@ -26540,6 +26544,7 @@ MonoBehaviour:
     - {fileID: 1473995696}
     - {fileID: 1828995157}
     - {fileID: 464847833}
+    - {fileID: 1887204488}
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
@@ -26564,7 +26569,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 7
+      Data: 8
     - Name: 
       Entry: 7
       Data: 
@@ -26646,6 +26651,18 @@ MonoBehaviour:
     - Name: $v
       Entry: 10
       Data: 6
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 3
+      Data: 8
+    - Name: $v
+      Entry: 10
+      Data: 7
     - Name: 
       Entry: 8
       Data: 
@@ -26820,6 +26837,7 @@ MonoBehaviour:
     ActionKey: ui.overlay.hint.build
   - Key: Tab
     ActionKey: ui.overlay.hint.catalog
+  toastSeconds: 6
 --- !u!114 &1218711435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -28360,7 +28378,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa8ea4ed7c8d0284c82694ca7356033e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PanelTrigger
-  panel: 4
+  panel: 8
 --- !u!54 &1390625406
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -34359,6 +34377,78 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1887204488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1887204491}
+  - component: {fileID: 1887204490}
+  - component: {fileID: 1887204489}
+  m_Layer: 0
+  m_Name: ExpeditionPanelUITK
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1887204489
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1887204488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6afd6c50c57eeeb4a867aa0b58c89e75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ExpeditionPanelUITK
+  document: {fileID: 1887204490}
+  panel: 8
+  maxPick: 3
+  minEnergy: 30
+--- !u!114 &1887204490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1887204488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: 3c8a8da8175b6d54a907634fef6a08f4, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 55d59d39d622d574380583fa3371e068, type: 3}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
+--- !u!4 &1887204491
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1887204488}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1218711423}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1890482167
 GameObject:
   m_ObjectHideFlags: 0

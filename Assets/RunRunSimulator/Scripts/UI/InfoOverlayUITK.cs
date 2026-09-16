@@ -34,17 +34,24 @@ public class InfoOverlayUITK : MonoBehaviour
     private const string DateFormatKey = "ui.overlay.date.format";
     private const string DabloonsKey   = "ui.overlay.dabloons";
     private const string MaterialKey   = "ui.overlay.material";
+    private const string ExpeditionReturnKey = "ui.overlay.expedition.return";
+
+    [SerializeField, Min(0f)] private float toastSeconds = 6f;
 
     private Label dateLabel;
     private Label dabloonsLabel;
     private Label materialLabel;
+    private Label expeditionToastLabel;
     private float refreshTimer;
+    private float toastTimer;
     private string lastDateText;
+    private ExpeditionReturn? pendingToast;
 
     private void OnEnable()
     {
         GameEvents.OnInventoryChanged  += RefreshDabloons;
         GameEvents.OnInventoryReloaded += RefreshDabloons;
+        GameEvents.OnExpeditionReturned += HandleExpeditionReturned;
         UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged += HandleLocaleChanged;
     }
 
@@ -52,6 +59,7 @@ public class InfoOverlayUITK : MonoBehaviour
     {
         GameEvents.OnInventoryChanged  -= RefreshDabloons;
         GameEvents.OnInventoryReloaded -= RefreshDabloons;
+        GameEvents.OnExpeditionReturned -= HandleExpeditionReturned;
         UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged -= HandleLocaleChanged;
     }
 
@@ -65,20 +73,40 @@ public class InfoOverlayUITK : MonoBehaviour
         dateLabel     = root.Q<Label>("date");
         dabloonsLabel = root.Q<Label>("dabloons");
         materialLabel = root.Q<Label>("material");
+        expeditionToastLabel = root.Q<Label>("expedition-toast");
 
         BuildHints(root.Q<VisualElement>("hints"));
         RefreshDate(force: true);
 
         var inv = GameManager.CurrentInventory;
         if (inv != null) RefreshDabloons(inv);
+
+        if (expeditionToastLabel != null)
+        {
+            expeditionToastLabel.style.display = DisplayStyle.None;
+            if (pendingToast.HasValue)
+            {
+                ShowExpeditionToast(pendingToast.Value);
+                pendingToast = null;
+            }
+        }
     }
 
     private void Update()
     {
         refreshTimer += Time.unscaledDeltaTime;
-        if (refreshTimer < DateRefreshInterval) return;
-        refreshTimer = 0f;
-        RefreshDate(force: false);
+        if (refreshTimer >= DateRefreshInterval)
+        {
+            refreshTimer = 0f;
+            RefreshDate(force: false);
+        }
+
+        if (toastTimer > 0f)
+        {
+            toastTimer -= Time.unscaledDeltaTime;
+            if (toastTimer <= 0f && expeditionToastLabel != null)
+                expeditionToastLabel.style.display = DisplayStyle.None;
+        }
     }
 
     private void RefreshDate(bool force)
@@ -105,6 +133,30 @@ public class InfoOverlayUITK : MonoBehaviour
         if (dabloonsLabel == null || inv == null) return;
         dabloonsLabel.text = Loc.Tr(DabloonsKey, inv.Dabloons);
         if (materialLabel != null) materialLabel.text = Loc.Tr(MaterialKey, inv.AdventureMaterial);
+    }
+
+    private void HandleExpeditionReturned(ExpeditionReturn r)
+    {
+        if (expeditionToastLabel == null)
+        {
+            pendingToast = r;
+            return;
+        }
+        ShowExpeditionToast(r);
+    }
+
+    private void ShowExpeditionToast(ExpeditionReturn r)
+    {
+        expeditionToastLabel.text = Loc.Tr(ExpeditionReturnKey, r.Seed, r.PlayerSecured, r.RivalSecured, r.MaterialGained, r.EnergySpent);
+        expeditionToastLabel.RemoveFromClassList("toast--win");
+        expeditionToastLabel.RemoveFromClassList("toast--lose");
+        expeditionToastLabel.RemoveFromClassList("toast--draw");
+        string resultClass = r.Winner == ExpeditionTeam.Player ? "toast--win"
+            : r.Winner == ExpeditionTeam.Rival ? "toast--lose"
+            : "toast--draw";
+        expeditionToastLabel.AddToClassList(resultClass);
+        expeditionToastLabel.style.display = DisplayStyle.Flex;
+        toastTimer = toastSeconds;
     }
 
     private void BuildHints(VisualElement container)
