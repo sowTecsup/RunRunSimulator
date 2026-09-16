@@ -6,59 +6,39 @@ tags: [script, world, expedition, dev, harness]
 
 **Ruta:** `World/Expedition/ArenaMatrixDev.cs`
 
-**Responsabilidad:** Harness de desarrollo que ejecuta simulaciones de arena de manera automatizada (matriz de planes × rivales × semillas). Itera sobre combinaciones, aplica órdenes/personalidades (Boldness, Sociability) a DNAs, spawnea, ejecuta ronda, registra resultado en CSV con estadísticas por criatura (secured, collected, hits, knocked, fled). Controla velocidad de simulación mediante Clock o timeScale. Salida: CSV con columnas i;j;player;rival;seed;pScore;rScore;winner;secs;pFled;rFled;pHits;rHits;pKnocked;rKnocked;pCol;rCol;detail.
+**Responsabilidad:** Harness de desarrollo que ejecuta simulaciones de arena automatizadas (matriz de planes × rivales × semillas). Itera sobre combinaciones, aplica órdenes y personalidades a DNAs, ejecuta rondas, registra CSV. **S122:** Incluye Role en simulación (lee Role de Entry, abre bases, itera sobre bases en lugar de ocupaciones fijas).
 
 **Propiedades públicas:**
-- `ArenaSandbox Sandbox` — escena sandbox (requerido)
-- `ArenaRound Round` — ronda (requerido)
-- `ArenaClockControl Clock` — controlador de velocidad (opcional; fallback a timeScale)
-- `float Speed = 10f` — multiplicador de velocidad simulación
-- `bool IsRunning { get; }` — en ejecución
-- `bool Done { get; }` — completado
-- `int Completed { get; }` — conteo completado
-- `int Total { get; }` — conteo total iteraciones
-- `string OutputPath { get; }` — ruta CSV
-- `string Progress { get; }` — string para UI progreso
+- `ArenaSandbox Sandbox` — escena sandbox
+- `ArenaRound Round` — ronda
+- `ArenaClockControl Clock` — controlador de velocidad (opcional)
+- `float Speed = 10f` — multiplicador
+- `bool IsRunning`, `bool Done`
+- `int Completed`, `int Total`
+- `string OutputPath` — ruta CSV
+- `string Progress` — para UI
 
 **Métodos públicos:**
-- `void Run(IReadOnlyList<ArenaMatrixTeam> players, IReadOnlyList<ArenaMatrixTeam> rivals, IReadOnlyList<int> seeds, string csvPath)` — inicia loop simulación
-- `void Stop()` — aborta simulación activa
+- `void Run(IReadOnlyList<ArenaMatrixTeam> players, IReadOnlyList<ArenaMatrixTeam> rivals, IReadOnlyList<int> seeds, string csvPath)` — inicia simulación
+- `void Stop()` — aborta
 
-**Flujo Loop:**
-1. Valida Sandbox/Round no null
-2. Abre/crea CSV con header
-3. Setea Clock/timeScale a Speed
-4. Itera semillas → players → rivals:
-   - `Sandbox.SetSeed(seed)` — fija semilla, apaga randomizeEachPlay
-   - `Round.Reset(false)` — resetea ronda
-   - `Apply(player, Player) / Apply(rival, Rival)` — inyecta órdenes y mutaciones DNA
-   - `Round.Launch()` → espera IsOver o timeout (roundSeconds × 3 / timeScale + 30s)
-   - `AppendLine(csvPath, ...)` — registra resultado + detail string
-5. Al final: resetea timeScale, marca Done, escribe `.done`
+**Flujo (S122 actualizado):**
+1. Itera semillas → players → rivals
+2. Para cada player/rival: **S122** lee Role y bases abiertas (vía ArenaBases)
+3. `Apply(entry, Team)` — **(S122)** itera sobre ArenaBase en lugar de órdenes fijas
+   - Para cada base abierta: calcula órdenes → inyecta en DNA
+4. Round.Launch() → registra resultado
+5. CSV: detalle incluye Role + base elegida
 
-**Apply internals:**
-- Busca entries PlannedCast por team
-- Para k < team.Orders.Length: aplica boldness, sociability, órdenes al entry.Dna
-
-**AppendLine internals:**
-- Itera Round.Summary, agrupa stats por team
-- Traduce ArenaOrders a short code (via ArchetypeShort + 3 chars max)
-- Escribe línea: index i/j, nombres, seed, scores, winner, secs reales, estadísticas agregadas, detail por criatura
-
-**OnDisable:**
-- Si IsRunning, resetea Clock/timeScale a 1f
-
-**Integración:**
-- Usado por devConsole u harness automatizado para balance testing
-- Lee datos de `ArenaMatrixPlans.Plans16` / Subset10 / Personalities6
-- Genera CSV para análisis estadístico post-simulación
+**Cambios S122:**
+- **Apply() itera sobre bases:** no sobre órdenes predefinidas
+- Cada simulación: (player_idx, rival_idx, base1, base2) → órdenes + salida
+- CSV expandida con Role + base columns
 
 **Invariantes:**
-- Solo ejecuta si Sandbox y Round no null
-- SetSeed() apaga randomizeEachPlay para reproducibilidad
-- Cada iteración: Round.Reset(false) antes de Apply
-- timeScale restaurado en OnDisable y al finalizar
+- S122: Role determinístico por Entry
+- Regresión de balance: medir con ArenaMatrixDev tras cambios en ArenaBases
 
-**Vinculado a:** [[Index/23 - Arena Sandbox y Expedicion]]
+**Vinculado a:** [[Index/22 - Bajada Nocturna y Linaje]] (S122)
 
-**Conexiones:** [[ArenaSandbox]], [[ArenaMatrixPlans]], [[ArenaRound]], [[ArenaClockControl]], [[ArenaOrders]], [[ArenaOrderCatalog]], [[ExpeditionTeam]]
+**Conexiones:** [[ArenaSandbox]], [[ArenaBases]], [[ArenaRosterSO]], [[ArenaRound]]

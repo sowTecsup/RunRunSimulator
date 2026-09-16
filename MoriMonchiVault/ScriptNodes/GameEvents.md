@@ -6,11 +6,11 @@ tags: [script, core]
 
 **Ruta:** `Core/GameEvents.cs`
 
-**Responsabilidad:** Bus de eventos cross-system estático. 10 eventos: registry/breeding/furniture/inventory/navmesh/customer. Llama y evento son pares (ej. `OnRegistryChanged` + método `RegistryChanged()`). Patrón: gameplay dispara evento → GameManager persiste + UI refresca.
+**Responsabilidad:** Bus de eventos cross-system estático. 11 eventos: registry/breeding/furniture/inventory/navmesh/customer/expedition. Llama y evento son pares (ej. `OnRegistryChanged` + método `RegistryChanged()`). Patrón: gameplay dispara evento → GameManager persiste + UI refresca.
 
-**S93:** Eliminados `OnCreatureMinted`, `OnCustomerSpawned`, `OnCustomerDecided`, `OnCustomerArrivedAtRegister`, `OnCustomerLeft`. Reducido de 15 a 10 eventos.
+**S93:** Eliminados `OnCreatureMinted`, `OnCustomerSpawned`, `OnCustomerDecided`, `OnCustomerArrivedAtRegister`, `OnCustomerLeft`. Reducido de 15 a 10 eventos. **S121:** Agregado `OnExpeditionReturned`.
 
-## Eventos (10 totales)
+## Eventos (11 totales)
 
 | Evento | Parámetros | Descripción |
 |--------|-----------|-------------|
@@ -24,21 +24,29 @@ tags: [script, core]
 | `OnInventoryChanged` | `PlayerInventorySO inventory` | Mutación inventario → persist + UI |
 | `OnInventoryReloaded` | `PlayerInventorySO inventory` | Reemplazo wholesale → UI only |
 | `OnCustomerSold` | `(NpcAgent, CreatureDNA, int price)` | Venta completada |
+| `OnExpeditionReturned` | `ExpeditionReturn r` | **(S121)** Retorno de arena: resultado, materiales, energía gastada → UI toast |
 
 ## Contrato de eventos
 
 **Changed vs Reloaded:**
 - `Changed`: Mutación gameplay (gameplay code llama el evento) → GameManager persiste + cloud push + UI refresca
 - `Reloaded`: Reemplazo desde fuente externa (cloud pull / reset) → UI refresca, NO persist ni cloud push
+- `ExpeditionReturned` (S121): Mutación de arena → UI aviso temporal (InfoOverlay toast 6s)
 
 **Datos en payload:**
-- El evento transporta la data (registry, inventario, etc.)
+- El evento transporta la data (registry, inventario, resultado, etc.)
 - Suscriptores leen del payload, NUNCA hacen `GameManager.Instance.Xxx`
 - Desacoplamiento total: evento es la única comunicación
+
+## S120-S122
+
+- **S120:** Sin nuevos eventos.
+- **S121:** `OnExpeditionReturned(ExpeditionReturn r)` nuevo. Disparado por ExpeditionBridge.ApplyResult() tras sumar material y gastar energía. Suscriptor: InfoOverlayUITK para mostrar toast ("Volviste de la sala N · a-b · +M material · −E energía") por 6 s con color según ganador.
+- **S122:** Sin cambios.
 
 ## Vinculado a
 
 - [[Index/07 - Persistence & Identity]]
+- [[Index/24 - Puente Tienda-Arena]] (S121)
 
-**Conexiones:** [[GameManager]], [[CloudSyncService]], [[BreedingService]], [[FurnitureService]], [[CreatureRegistrySO]], [[PlayerInventorySO]]
-
+**Conexiones:** [[GameManager]], [[CloudSyncService]], [[BreedingService]], [[FurnitureService]], [[CreatureRegistrySO]], [[PlayerInventorySO]], [[ExpeditionBridge]], [[InfoOverlayUITK]]

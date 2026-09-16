@@ -6,47 +6,74 @@ tags: [script, ui]
 
 **Ruta:** `UI/InfoOverlayUITK.cs`
 
-**Responsabilidad:** Overlay contextual siempre-visible (top-left hints leyenda, top-right fecha/dabloons/material). **S68:** InputHint.Action renombrado a ActionKey (guarda key de localización); días/meses ahora de `Loc.Culture.DateTimeFormat`. **S68 (addendum):** Selector de idioma v1: botones EN/ES al pie de la leyenda (clases `.lang-row`/`.lang-btn`/`.lang-btn--active` en InfoOverlayUITKStyle.uss); suscrita a `LocalizationSettings.SelectedLocaleChanged` para re-renderizar hints+fecha+dabloons al cambiar idioma; llama `Loc.ApplySavedLocale()` en Start para restaurar idioma guardado. **S93:** Usa `UiPanels.RootOf()` para resolver root. **S95:** Agregado `materialLabel` para mostrar AdventureMaterial en top-right junto dabloons.
+**Responsabilidad:** Overlay contextual siempre-visible (top-left hints leyenda, top-right fecha/dabloons/material, **S121:** toast de retorno expedición). **S68:** InputHint.Action renombrado a ActionKey. **S68 (addendum):** Selector de idioma v1 (botones EN/ES). **S93:** Usa `UiPanels.RootOf()`. **S95:** Agregado `materialLabel`. **S121:** Suscriptor de `GameEvents.OnExpeditionReturned` para mostrar toast 6s con resultado.
 
 ## Campos Serializados
 
 | Campo | Tipo | Descripción |
 |-------|------|----------|
 | `document` | `UIDocument` | UIToolkit doc tree (overlay siempre visible) |
-| `hints` | `InputHint[]` | Array de controles mostrados top-left (WASD/E/Q/etc.) |
+| `hints` | `InputHint[]` | Array de controles mostrados top-left |
+| `toastSeconds` | float, Min(0) | Duración del toast expedición (default 6s, **S121**) |
 
-## InputHint struct
+## Campos Privados (S121)
 
-| Campo | Tipo | Descripción |
-|-------|------|----------|
-| `Key` | `string` | Etiqueta key (e.g., "WASD", "E", "Click") |
-| `ActionKey` | `string` | **S68** Clave de localización (e.g., "ui.overlay.hint.move", "ui.overlay.hint.interact") |
+- `Label expeditionToastLabel` — elemento de toast expedición (puede ser null en edición)
+- `float toastTimer` — cuenta atrás del toast (se decrementa cada frame)
+- `ExpeditionReturn? pendingToast` — resultado en cola si toast label no está wired aún
 
-## Lifecycle
+## Lifecycle (S121)
 
 | Método | Descripción |
 |--------|----------|
-| `OnEnable()` | Suscribe `GameEvents.OnInventoryChanged` + `OnInventoryReloaded` (dabloons/material) + `LocalizationSettings.SelectedLocaleChanged` (hints+fecha) |
-| `Start()` | Restaura idioma guardado via `Loc.ApplySavedLocale()`. Resuelve UI refs (dateLabel, dabloonsLabel, materialLabel). BuildHints. Refresh inicial |
-| `Update()` | Refresca fecha cada `DateRefreshInterval = 1s` (timer) |
-| `OnDisable()` | Desuscribe todos los eventos |
-| `RefreshDate(force)` | Recalcula fecha actual con locale + format args. Evita rebuild si texto no cambió (except si force=true) |
-| `RefreshDabloons(inv)` | **S95** Renderiza dabloons count vía `Loc.Tr(DabloonsKey, inv.Dabloons)` y material vía `Loc.Tr(MaterialKey, inv.AdventureMaterial)` |
-| `BuildHints(container)` | **S68 addendum** Crea hints + langRow (botones EN/ES). Llamado en Start + HandleLocaleChanged |
-| `MakeLangButton(code, label)` | **S68 addendum** Crea Button con callback `SetLocale(code)`, aplica clase active si CurrentCode == code |
-| `HandleLocaleChanged(locale)` | **S68 addendum** Re-renderiza hints + fecha + dabloons/material tras cambio de idioma (suscriptor SelectedLocaleChanged) |
+| `OnEnable()` | Suscribe a `GameEvents.OnExpeditionReturned += HandleExpeditionReturned` |
+| `Start()` | Resuelve `expeditionToastLabel`. Si hay `pendingToast` muestra (`ShowExpeditionToast`) |
+| `Update()` | Decrementa `toastTimer`; si ≤0 oculta toast label |
+| `OnDisable()` | Desuscribe `OnExpeditionReturned` |
+| `HandleExpeditionReturned(ExpeditionReturn r)` | **(S121)** Callback de evento. Si toast label wired: `ShowExpeditionToast(r)`. Si no: guarda en `pendingToast` |
+| `ShowExpeditionToast(ExpeditionReturn r)` | **(S121)** Renderiza: `ui.overlay.expedition.return` con params (Seed, PlayerSecured, RivalSecured, MaterialGained, EnergySpent). Aplica clase `toast--{win\|lose\|draw}` según Winner. Fija `toastTimer = toastSeconds` |
 
-**Vinculado a:**
-- [[Index/05 - UI System]]
-- [[Index/14 - Localization]]
-- [[Index/21 - Combate v3 - Dragon RPS]]
+## Toast Expedición (S121)
 
-**Conexiones:**
-- `Loc` (traducción + selector de idioma persistente)
-- `LocEnumMaps` (indirecto, vía Loc.Tr)
-- `GameManager.Inventory` (dabloons + material source)
-- `GameEvents` (OnInventoryChanged, OnInventoryReloaded)
-- `LocalizationSettings` (SelectedLocaleChanged event listener)
-- `PlayerInputs` (indirecto, hints son reference)
-- [[UiPanels]] (helper S93)
+**Componentes:**
+- Label con clase `.expedition-toast` (texto localizador + colores dinámicas)
+- Color según resultado: `toast--win` (azul), `toast--lose` (rojo), `toast--draw` (gris)
+- Duración: 6 s (hardcodeado, configurable via `toastSeconds`)
 
+**Formato localizador:** `"ui.overlay.expedition.return"` con 5 params:
+```
+Volviste de la sala {0} · {1}-{2} · +{3} material · −{4} energía
+```
+Ej: "Volviste de la sala 20234078 · 38-25 · +33 material · −46 energía"
+
+**Flujo:**
+1. `ExpeditionBridge.ApplyResult()` calcula totales → `GameEvents.ExpeditionReturned(return)`
+2. `InfoOverlayUITK.HandleExpeditionReturned(r)` recibe evento
+3. `ShowExpeditionToast(r)`: renderiza label, aplica clase, fija timer
+4. `Update()`: decrementa timer, oculta cuando ≤0
+
+## Cambios por Sesión
+
+- **S68:** InputHint.ActionKey renombrado, localizador key
+- **S68 addendum:** Selector EN/ES, suscriptor SelectedLocaleChanged
+- **S93:** UiPanels.RootOf() helper
+- **S95:** materialLabel para AdventureMaterial
+- **S121:** Toast de retorno expedición con GameEvents.OnExpeditionReturned (nuevo evento)
+
+## S120-S122
+
+- **S120:** Sin cambios (ExpeditionPanelUITK es componente separado).
+- **S121:** `OnExpeditionReturned` nuevo evento (GameEvents). Toast label + campos toastTimer/pendingToast. `HandleExpeditionReturned`, `ShowExpeditionToast` métodos nuevos. Clase `.expedition-toast` y tonos `toast--{win|lose|draw}`.
+- **S122:** Sin cambios.
+
+## Invariantes
+
+- Toast label puede estar null (edición o docs sin UXML); pendingToast guarda resultado para mostrar cuando esté disponible
+- Textos y idiomas sincronizados vía Loc
+- Suscripción/desuscripción simétrica OnEnable/OnDisable
+
+## Vinculado a
+
+[[Index/05 - UI System]], [[Index/14 - Localization]], [[Index/24 - Puente Tienda-Arena]] (S121)
+
+**Conexiones:** [[Loc]], [[GameManager]], [[GameEvents]], [[ExpeditionBridge]], [[UiPanels]]
