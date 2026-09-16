@@ -162,9 +162,50 @@ Los cuatro lotes quedaron implementados y verificados en Play: la tienda arranc�
 
 **Pendiente y abierto para Juan:** (1) el mapeo de variantes a órdenes es v1 del orquestador; (2) regresión de balance con `ArenaMatrixDev` sin correr (cada ronda tarda ~1 min real en el editor); (3) en dos rondas naturales no salió ninguna picada: la súper exige rival entre `MinDistance` 4 y el alcance del movimiento, ajuste previo a esta sesión; (4) glifo de base bajo la criatura sin hacer; (5) uso del material en la tienda.
 
+## 6d · Revisión S123 del rango `ca9fead..bfbe258` (solo lectura, sin código)
+
+**Lo que está bien (verificado en el diff y en las firmas que consume):**
+- `ExpeditionHandoff`: estado estático con reset por `SubsystemRegistration`, `timeScale` 1 al volver, `CameFromStore` apagado al volver sin resultado y al consumir. `ExpeditionBridge`: espera `StartupSyncDone` antes de tocar inventario y registro (el pull pisa ambos), un solo `RegistryChanged` y un `InventoryChanged`, costo `min(40, 20 + 5·tumbadas)`, salta muertas e ids ajenos. Regla 2 respetada: `FlushToCloud` es API pública del dueño de persistencia.
+- `ExpeditionPanelUITK`: suscribe/desuscribe en `OnEnable`/`OnDisable`, botones desconectados en `OnDestroy`, navegable registrado. `UIManager` muestra paneles por `display` del `UIDocument` (no `SetActive`), así que `OnPanelSet` sí llega y `Rebuild` corre en cada apertura; el diccionario Odin solo necesita la entrada `Expedition` que ya se cableó en S120.
+- Identidad: `PlanKey`/`IsPlanned`/`ArenaRoundStat.Id` por `UniqueID`; `UniqueID` se calcula en caliente desde `Timestamp`, así que los rivales con `Timestamp + i + 1` sí tienen IDs distintos (cierra la nota S119.1).
+- `ArenaBases`: 6 combos de órdenes únicos, `RoleFor` no es ambiguo, `RivalRead` conjuga "u" bien. Sin comentarios, sin partials, Odin correcto.
+
+**Hay que cambiar:**
+1. **Bug (regresión de matriz sesgada).** `ArenaMatrixDev` fija el `Role` solo si `RoleFor` acierta y luego `Sandbox.SetOrders` → `Planner.SetOrders` → `ArenaOrderRules.Clamp`, que cae a la base por defecto cuando las órdenes no son una variante del Role. Los 2 combos sin variante (Big·Flee·Aggressive y Small·Fight·Protect) se cambian en silencio: la matriz mediría otra cosa. Arreglo: que el camino dev (`SetOrders`) no clampee (solo `SetPlayerOrders`), o que la matriz descarte esos combos explícitamente.
+2. **Riesgo de datos al salir.** `Depart` llama `FlushToCloud` (push fire-and-forget: validar + guardar, dos viajes) y carga la escena en el mismo cuadro; `PullAsync` al volver hace `LoadFrom` directo (la nube gana sin comparar fechas). Si ese push falla (offline o `ValidateBeforePush` falso por otro dispositivo), la vuelta pisa lo hecho en la tienda desde el último push bueno. Arreglo chico: `FlushToCloud` devuelve la `Task` y el bridge la espera con tope (~5 s) antes de `GoToArena`.
+3. **Feel sin nube.** `StartupSyncDone` solo se enciende dentro de `HandleSignedInAsync`; sin sesión el bridge espera los 20 s del tope y el aviso llega tarde. Encenderlo también cuando `InitializeAsync` termina sin sesión.
+4. **Limpieza.** `ExpeditionRulesSO` `BoldFightLock`/`ShyFleeLock`/`SocialProtectLock`/`LonerAggressiveLock` ya no tienen lector; `ArenaOrderRules.Clamp(dna, rules, o)` y `ArenaOrderCatalog.PersonalityName(dna, rules)` cargan `rules` sin usarlo. `ArenaCastPlanner.Prepare` re-siembra `Random` con `castSeed` después de los rivales (reinicia la secuencia, no la restaura: inofensivo hoy). `ArenaBases` suma ~20 strings en español a la deuda de localización (igual que `ArenaOrderCatalog`).
+5. **Menor.** `ExpeditionPanelUITK` no escucha `RegistryReloaded`: si el pull llega con el panel abierto, la lista queda vieja hasta reabrir.
+
+**Decisiones de Juan:**
+1. ¿Una ronda por bajada (ocultar Play tras la ronda si `CameFromStore`) o varias? Hoy `lastResult` se pisa en cada `Play` y la energía se cobra una sola vez al volver: jugar 3 rondas cuesta lo mismo que 1.
+2. Mapeo v1: Gaviota (Empático·Oportunismo) = Small·Fight·Aggressive es un Empático que pelea con postura agresiva, y Compañera = Big·Flee·Protect. ¿Se sostiene o se invierte con Hiena (Small·Flee·Aggressive)?
+3. ¿Los 2 combos sin variante desaparecen del juego (y de la matriz) o alguna variante los toma?
+
 ## 7 · Riesgos conocidos
 
 - El pull de la nube al volver tarda unos segundos: el material aparece cuando termina (`StartupSyncDone`). Si el sign-in falla, el tope de 20 s aplica igual y el push queda para el próximo cambio de registro o el cierre.
 - `Resources.UnloadUnusedAssets` al cambiar de escena puede descargar SOs sin referencia; el registro y el inventario los re-referencia `GameManager` al recargar la tienda, y la arena no los usa (lee del disco).
 - El NavMesh de la arena se hornea en runtime con `PhysicsColliders`; en build harían falta colliders primitivos (pendiente viejo, no bloquea el editor).
 - `ArenaMatrixDev` asume roster: correr las matrices en modo `Roster` como hasta ahora.
+
+## 8 · Bajada por pisos (diseño en `Index/22` Parte 9, S123)
+
+> **Plan ejecutable detallado (contratos, lotes, verificación) en [[Index/26 - Plan H0 - Bajada por pisos]].** Esta sección es el resumen.
+>
+> **✅ S124: lotes A-E implementados y verificados en Play** (bajada ganada de 3 pisos con buffo y bajada perdida). Desvíos: ver `Index/26` §8; mediciones y pendientes en `09 - Active Context` S124.
+
+**Regla del cambio:** la arena deja de ser una ronda y pasa a ser una run de pisos; el puente aplica el total de la run, no el de una ronda.
+
+| Lote | Responsabilidad | Piezas |
+|---|---|---|
+| **A · Run** | Estado de la bajada dentro de la arena | `ArenaRun` (clase pura, `Data/Expedition`): semilla base, piso actual, `FloorSeed(n)`, `FloorKind(n)` (buffo cada 3), botín acumulado, energía por `UniqueID`, `Lost`. `ExpeditionResult` gana `Floors`, `Lost` y `Energy` por id; `ExpeditionReturn` gana `Floors`/`Lost`. |
+| **B · Piso de buffo** | Sala sin rival | `ArenaSandbox` con `ArenaFloorKind`: en `Buff` no mintea rivales ni salidas rivales, vetas solo del jugador, un `MaterialPickup` de energía en el centro (`EnergyCrystal`, reusa el pickup con un `Kind`); la ronda termina al vaciar la sala o por tiempo. |
+| **C · Panel entre pisos** | Decisión seguir / retirarse | `ArenaPlanPanel`: tras la ronda muestra resultado del piso, acumulado, vista previa del siguiente (`FloorKind` + lectura del rival) y botones **Seguir** (nueva sala con `FloorSeed(n+1)`) y **Retirarse**; al perder, solo **Volver** con "Perdiste en el piso N". `Play` desaparece cuando `CameFromStore`. |
+| **D · Puente** | Aplicar la run | `ExpeditionBridge`: material = acumulado si retiró, 0 si perdió; energía por id desde la run (buffo resta); `permadeathEnabled` (false) mata la terna al perder; aviso del overlay con pisos y resultado. |
+| **E · Arreglos §6d** | Antes de todo | Quitar los 2 combos huérfanos de `ArenaMatrixDev` y que el camino dev no clampee; `FlushToCloud` devuelve `Task` y `Depart` la espera (tope 5 s); `StartupSyncDone` también sin sesión. |
+
+Si falta tiempo se corta **B** (la run funciona con solo pisos de enemigos). Muta fuera de código: `ArenaPlanPanel.uxml/uss` (botones), `Strings` en/es (vista previa, perdiste), escena `ArenaSandbox` (cristal de energía), tabla del overlay.
+
+**Verificación:** bajada de 3 pisos desde la tienda (enemigos · enemigos · buffo) y retirada → material = suma, energía = 2 costos − 30; bajada perdida en el piso 2 → material +0, energía cobrada, terna viva (flag apagado); matriz `ArenaMatrixDev` con 6 combos sin cambios silenciosos.
+

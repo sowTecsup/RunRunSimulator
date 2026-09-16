@@ -13,6 +13,7 @@ public class ArenaPlanPanel : MonoBehaviour
     [Required, SerializeField] private ArenaCastPicker picker;
     [Required, SerializeField] private ArenaResultPanel resultPanel;
     [SerializeField] private MonchiTurntable turntable;
+    [SerializeField] private ArenaRunDirector director;
     [SerializeField, Min(0f)] private float resultHoldSeconds = 4f;
 
     private class Card
@@ -34,7 +35,7 @@ public class ArenaPlanPanel : MonoBehaviour
     private Button paletteButton;
     private Button roomButton;
     private Button playButton;
-    private Button returnButton;
+    private ArenaFloorPanel floorPanel;
 
     private readonly List<Card> cards = new();
     private bool visible;
@@ -45,7 +46,6 @@ public class ArenaPlanPanel : MonoBehaviour
     private int pendingTheirs;
     private int lastPlannedCount = -1;
     private int lastSeed = int.MinValue;
-    private ExpeditionResult? lastResult;
 
     private void OnEnable()
     {
@@ -61,7 +61,6 @@ public class ArenaPlanPanel : MonoBehaviour
         paletteButton = root.Q<Button>("btn-palette");
         roomButton = root.Q<Button>("btn-room");
         playButton = root.Q<Button>("btn-play");
-        returnButton = root.Q<Button>("btn-return");
 
         castButton.clicked += ToggleCastMode;
         pickButton.clicked += OpenPicker;
@@ -69,13 +68,14 @@ public class ArenaPlanPanel : MonoBehaviour
         paletteButton.clicked += CyclePalette;
         roomButton.clicked += NewRoom;
         playButton.clicked += Play;
-        returnButton.clicked += ReturnToStore;
 
-        returnButton.style.display = ExpeditionHandoff.CameFromStore ? DisplayStyle.Flex : DisplayStyle.None;
         DisplayStyle teamButtons = sandbox != null && sandbox.TeamLocked ? DisplayStyle.None : DisplayStyle.Flex;
         castButton.style.display = teamButtons;
         pickButton.style.display = teamButtons;
         shuffleButton.style.display = teamButtons;
+
+        floorPanel = new ArenaFloorPanel(root, director, OnFloorContinued);
+        if (director != null) director.FloorEnded += Refresh;
 
         lastPlannedCount = -1;
         lastSeed = int.MinValue;
@@ -85,6 +85,8 @@ public class ArenaPlanPanel : MonoBehaviour
     private void OnDisable()
     {
         if (turntable != null) turntable.HideAll();
+        if (director != null) director.FloorEnded -= Refresh;
+        floorPanel?.Dispose();
         if (root == null) return;
         castButton.clicked -= ToggleCastMode;
         pickButton.clicked -= OpenPicker;
@@ -92,7 +94,13 @@ public class ArenaPlanPanel : MonoBehaviour
         paletteButton.clicked -= CyclePalette;
         roomButton.clicked -= NewRoom;
         playButton.clicked -= Play;
-        returnButton.clicked -= ReturnToStore;
+    }
+
+    private void OnFloorContinued()
+    {
+        resultPanel.Hide();
+        roundEndHandled = false;
+        Refresh();
     }
 
     private void Update()
@@ -112,19 +120,11 @@ public class ArenaPlanPanel : MonoBehaviour
             pendingWinner = round.Winner;
             pendingMine = round.PlayerSecured;
             pendingTheirs = round.RivalSecured;
-            lastResult = new ExpeditionResult
-            {
-                Seed = sandbox.ActiveSeed,
-                Winner = round.Winner,
-                PlayerSecured = round.PlayerSecured,
-                RivalSecured = round.RivalSecured,
-                Stats = new List<ArenaRoundStat>(round.Summary)
-            };
         }
 
         if (roundEndHandled && !visible && Time.time - roundEndedAt >= resultHoldSeconds)
         {
-            round.Reset(false);
+            if (director == null || !director.Active) round.Reset(false);
             resultPanel.Show(pendingWinner, pendingMine, pendingTheirs, round.Summary);
             SetVisible(true);
         }
@@ -164,6 +164,8 @@ public class ArenaPlanPanel : MonoBehaviour
 
         BuildCards();
         RefreshRivalLine();
+
+        floorPanel?.Refresh();
     }
 
     private void BuildCards()
@@ -358,16 +360,9 @@ public class ArenaPlanPanel : MonoBehaviour
     private void Play()
     {
         resultPanel.Hide();
-        lastResult = null;
         round.Launch();
         roundEndHandled = false;
         SetVisible(false);
-    }
-
-    private void ReturnToStore()
-    {
-        ExpeditionHandoff.ReturnToStore(lastResult);
-        lastResult = null;
     }
 }
 }

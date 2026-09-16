@@ -57,12 +57,6 @@ public class ExpeditionRulesSO : SerializedScriptableObject
     [Min(0f)] public float ReportRepeatSeconds = 4f;
     [Min(0f)] public float ScoutRestSeconds = 12f;
 
-    [Title("Órdenes")]
-    [Range(0f, 1f)] public float BoldFightLock = 0.65f;
-    [Range(0f, 1f)] public float ShyFleeLock = 0.35f;
-    [Range(0f, 1f)] public float SocialProtectLock = 0.65f;
-    [Range(0f, 1f)] public float LonerAggressiveLock = 0.35f;
-
     [Title("Huida")]
     [Min(1f)] public float FleeTriggerDistance = 6.5f;
     [Min(1f)] public float FleeDistance = 9f;

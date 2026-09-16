@@ -6,42 +6,46 @@ tags: [script, world, expedition, planning]
 
 **Ruta:** `World/Expedition/ArenaCastPlanner.cs`
 
-**Responsabilidad:** Planificador de elenco de arena que construye lista de criaturas a spawnear según modo (Roster vs LocalSave), aplica planes de órdenes rivales por semilla (S104), remembers cambios del jugador, **S109:** copia IDs de partes genéticas del Roster Entry al DNA. **S119:** Constructor acepta `Func<CreatureDNA> mint`. **S120:** Integra `SelectedIds` del handoff para bloquear equipo elegido.
+**Responsabilidad:** Planificador de elenco que construye criaturas a spawnear (Roster vs LocalSave), aplica órdenes rivales. S120: integra SelectedIds. S122: asigna Role a rivales. **S124:** Propiedad `RivalsEnabled` (desactiva IA rival en Buff); `Clamp(role, base)` sin parámetro rules.
 
-**Constructor:**
-- `ArenaCastPlanner(ArenaRosterSO roster, Func<CreatureDNA> mint, ExpeditionRulesSO rules)` — **S119:** mint es callback para generar DNAs
+## Métodos Públicos
 
-**Métodos públicos:**
-- `void Prepare(int roomSeed, int castSeed, int freeCount)` — construye planned. **S120:** Si SelectedIds no vacío, fuerza jugador a esas 3 criaturas (bloquea Elenco/Elegir/Otros 3)
-- `void SetPlayerOrders(int index, ArenaOrders orders)` — (S104) actualiza entry[index].Orders, clampeado
-- `void SelectLocal(IReadOnlyList<CreatureDNA> picks)` — (S103) carga selección explícita del picker
-- `void SetMode(ArenaCastMode mode)` — (S119) setter explícito
-- `IReadOnlyList<string> GetTeamIds(ExpeditionTeam team)` — **(S120)** Retorna lista de UniqueID por equipo
+| Método | Descripción |
+|--------|-------------|
+| `void Prepare(int roomSeed, int castSeed, int freeCount)` | Construye planned; si SelectedIds, fuerza esas 3 |
+| `void SetPlayerOrders(int index, ArenaOrders o)` | Actualiza órdenes entrada |
+| `void SelectLocal(IReadOnlyList<CreatureDNA> picks)` | Carga selección explícita |
+| `void SetMode(ArenaCastMode mode)` | Setter modo |
+| `IReadOnlyList<string> GetTeamIds(ExpeditionTeam team)` | IDs por equipo |
 
-**Propiedades:**
-- `IReadOnlyList<ArenaCastEntry> Planned { get; }`
-- `ArenaCastMode Mode` — Roster o LocalSave
-- `bool HasTeams` — true si modo es LocalSave o HasRoster; false = elenco libre sin equipos
-- `int LocalCount`, `bool LocalAvailable`, `bool HasRoster`, `bool HasLocalSelection`
-- `IReadOnlyList<CreatureDNA> LocalPool { get; }`
+## Propiedades
 
-**Flujo Prepare (S104-S119-S120):**
-1. Si SelectedIds no vacío (**S120**): busca esas 3 criaturas en registry, carga como Player team
-2. Sino: fromRoster/LocalSave, Team=Player, Orders=Default
-3. Rival: FromRoster/mint con órdenes de RivalPlans[roomSeed % 6]
-4. **S122:** Rival minteado con Role asignado (abierto desde bases)
+| Propiedad | Descripción |
+|-----------|-------------|
+| `IReadOnlyList<ArenaCastEntry> Planned { get; }` | Elenco |
+| `ArenaCastMode Mode` | Roster/LocalSave |
+| `bool RivalsEnabled` | **(S124)** True por default; desactiva IA rival si Buff |
+| `IReadOnlyList<CreatureDNA> LocalPool { get; }` | Pool local |
 
-**S120-S122:**
-- **S120:** SelectedIds check en Prepare(). Si hay IDs: LocalPool filtrada a esos UniqueID, bloquea elenco, nueva sala (MinDistance entre rivales). Rivales minteados con `Timestamp + i + 1` para IDs únicos.
-- **S121:** Sin cambios en Prepare (energía gastada en ExpeditionBridge).
-- **S122:** Prepare() asigna Role a rivales (de RivalPlans[...] clampado por base, no por diales). **S122:** RememberedIds incluyendo rival (para relectura de base).
+## Flujo Prepare (S120-S124)
 
-**Invariantes:**
-- Clamping automático en Prepare()
-- LocalSelection priorizada sobre aleatorio
-- **S120:** SelectedIds + LocalPool = elenco forzado al principio
-- **S122:** Role determinístico por roomSeed % 6 + base abierta
+1. Si SelectedIds no vacío: busca 3 criaturas jugador
+2. Rival: FromRoster/mint con Role (base abierta)
+3. Si RivalsEnabled=false (Buff): IA rival desactiva
 
-**Vinculado a:** [[Index/24 - Puente Tienda-Arena]], [[Index/22 - Bajada Nocturna y Linaje]]
+## Cambios S124
 
-**Conexiones:** [[ExpeditionHandoff]], [[ExpeditionBridge]], [[ArenaSandbox]], [[ArenaBases]], [[ArenaOrderRules]]
+- `RivalsEnabled` property — setter por ArenaSandbox.SetFloor()
+- `Clamp(role, base)` — sin parámetro rules
+
+## Invariantes
+
+- Clamping automático
+- SelectedIds + LocalPool = elenco forzado
+- Role determinístico por seed
+
+## Vinculado a
+
+[[Index/24 - Puente Tienda-Arena]], [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
+
+**Conexiones:** [[ExpeditionHandoff]], [[ArenaSandbox]], [[ArenaBases]], [[ArenaOrderRules]]

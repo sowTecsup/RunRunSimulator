@@ -1,5 +1,6 @@
 using Sirenix.OdinInspector;
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Serialization;
 namespace MoriMonchiSimulator
@@ -113,12 +114,14 @@ public class GameManager : MonoBehaviour
         if (cloudSync != null) _ = cloudSync.PushAsync();
     }
 
-    public void FlushToCloud()
+    public Task FlushToCloudAsync()
     {
         SaveSystem.SaveDatabase(creatureRegistry);
         SaveSystem.SaveSocialGraph();
-        PushToCloud();
+        return cloudSync != null ? cloudSync.PushAsync() : Task.CompletedTask;
     }
+
+    public void FlushToCloud() => _ = FlushToCloudAsync();
 
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
     public void MintRandomCreature()

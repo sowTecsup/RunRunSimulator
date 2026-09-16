@@ -6,51 +6,47 @@ tags: [script, data, expedition, plans]
 
 **Ruta:** `World/Expedition/ArenaMatrixPlans.cs`
 
-**Responsabilidad:** Catalogo de planes (configuraciones de órdenes + personalidades) para simulaciones de arena. Define struct `ArenaMatrixTeam` (Name, Orders[], Boldness[], Sociability[]) y factories. Expone 3 conjuntos predefinidos: `Plans16` (16 arquetipos × loot), `Subset10` (10 mejores), `Personalities6` (6 perfiles de personalidad pura).
+**Responsabilidad:** Catalogo de planes (órdenes + personalidades) para simulaciones arena. Struct `ArenaMatrixTeam` (Name, Orders[], Boldness[], Sociability[]). Expone conjuntos: 10 arquetipos, 7 mejores, 3 perfiles puros. **S124:** Eliminados GuaV/CazV/RecV/SenV (Small variations).
 
-**Struct ArenaMatrixTeam:**
-- `string Name` — nombre del equipo (ej "Muralla", "Jauria")
-- `ArenaOrders[] Orders` — array de 3 órdenes (one per creature)
-- `float[] Boldness` — array de 3 valores [0,1]
-- `float[] Sociability` — array de 3 valores [0,1]
+## Struct ArenaMatrixTeam
 
-**Factories estáticas:**
-- `ArenaMatrixTeam Team(string name, ArenaOrders a, b, c)` — crea equipo con orders 3-tuple y personalidades default (0.5, 0.5)
-- `ArenaMatrixTeam Team(string name, ArenaOrders[] orders, float[] boldness, float[] sociability)` — crea con personalidades custom
+- `string Name` — ej "Muralla"
+- `ArenaOrders[] Orders` — 3 órdenes
+- `float[] Boldness` — 3 valores [0,1]
+- `float[] Sociability` — 3 valores [0,1]
 
-**Planes predefinidos:**
+## Conjuntos Predefinidos (S124)
 
-**Plans16:** 16 equipos (4 arquetipos × 4 loot combos):
-- Guardián: GuaC (Big), GuaV (Small)
-- Cazador: CazC (Big), CazV (Small)
-- Recolector: RecC (Big), RecV (Small)
-- Señuelo: SenC (Big), SenV (Small)
-- Equipos: Muralla, MurallaVetas, Hormiguero, HormigueroSenuelo, Jauria, JauriaCentro, Emboscada, Mixta, Codicia, Escolta, Senuelos, DobleGuardia, ContraJauria, Fortin, Engano, Rebano
+**Plans10:** 10 equipos arquetipos (Guardián, Cazador, Recolector, Señuelo con loot Big)
+- Muralla, Hormiguero, Jauria, Emboscada, Codicia, etc.
 
-**Subset10:** Top 10 de Plans16 para testing rápido:
-- Muralla, Fortin, Jauria, Hormiguero, HormigueroSenuelo, Senuelos, Engano, Emboscada, Codicia, Mixta
+**Subset7:** Top 7 testing rápido
+- Muralla, Fortin, Jauria, Hormiguero, Hormiguero Señuelo, Señuelos, Engaño
 
-**Personalities6:** 6 perfiles puros (personalidades locked extremas + órdenes):
-- RosterA: Cazador Big, Recolector Small, Guardián Small + personalidades asimétri cas
-- RosterB: variación RosterA con diferentes órdenes
-- TresTimidos: 3 Recolectores, todos tímidos (0.15) y sociables (0.85)
-- TresOsados: 3 Cazadores, todos osados (0.90) y solitarios (0.25)
-- OsadosSociables: Guardián + Guardián + Recolector, osados×2 + tímido, sociables×2 + sociable
-- TimidosSolitarios: Señuelo + Señuelo + Recolector, todos tímidos/solitarios
+**Personalities3:** 3 perfiles puros extremos
+- Osados (0.90), Tímidos (0.15), Balanceados (0.5)
 
-**Métodos públicos:**
-- `static ArenaMatrixTeam Find(ArenaMatrixTeam[] set, string name)` — busca por nombre en array
+## Cambios S124
 
-**Integración:**
-- Usado por `ArenaMatrixDev.Run()` para iterar planes
-- Consumido por devConsole matrix simulator
-- Ordenes y personalidades se inyectan en DNAs por índice de criatura
+- Eliminadas variantes Small (GuaV, CazV, RecV, SenV)
+- 10+7+3 estructura simplificada
+- Focus en arquetipos Big (centro)
 
-**Invariantes:**
-- Cada equipo: 3 órdenes, 3 boldness, 3 sociability (sync index)
-- Plans16 es la matriz completa (base para Subset10)
-- Personalities6 explora extremos de personalidad para balance testing
+## Métodos Públicos
 
-**Vinculado a:** [[Index/23 - Arena Sandbox y Expedicion]]
+| Método | Descripción |
+|--------|-------------|
+| `Team(name, orders)` | Factory con personalidades default |
+| `Team(name, orders, bold, sociability)` | Factory custom |
+| `Find(set, name)` | Busca por nombre |
 
-**Conexiones:** [[ArenaMatrixDev]], [[ArenaOrders]], [[ExpeditionTeam]], [[CreatureDNA]]
+## Invariantes
+
+- Cada equipo: 3 órdenes + 3 boldness + 3 sociability
+- Sincronizados por índice criatura
+
+## Vinculado a
+
+[[Index/26 - Plan H0 - Bajada por pisos]] (S124)
+
+**Conexiones:** [[ArenaMatrixDev]], [[ArenaOrders]]

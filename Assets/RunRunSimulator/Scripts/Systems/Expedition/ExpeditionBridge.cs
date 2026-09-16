@@ -10,9 +10,10 @@ public class ExpeditionBridge : MonoBehaviour
 {
     [SerializeField] private CloudSyncService cloudSync;
     [SerializeField, Min(1f)] private float syncTimeoutSeconds = 20f;
-    [SerializeField, Min(0)] private int energyPerTrip = 20;
-    [SerializeField, Min(0)] private int energyPerKnock = 5;
-    [SerializeField, Min(0)] private int maxEnergyPerTrip = 40;
+    [SerializeField, Min(0f)] private float departFlushTimeout = 5f;
+    [SerializeField] private bool permadeathEnabled = false;
+
+    private bool departing;
 
     public static event Action<IReadOnlyList<string>> OnDepartureRequested;
     public static void RequestDeparture(IReadOnlyList<string> ids) => OnDepartureRequested?.Invoke(ids);
@@ -40,10 +41,28 @@ public class ExpeditionBridge : MonoBehaviour
 
     public void Depart(IReadOnlyList<string> ids)
     {
-        if (GameManager.Instance != null) GameManager.Instance.FlushToCloud();
+        if (departing) return;
+        departing = true;
+        StartCoroutine(DepartRoutine(ids));
+    }
+
+    private IEnumerator DepartRoutine(IReadOnlyList<string> ids)
+    {
+        if (GameManager.Instance != null)
+        {
+            var task = GameManager.Instance.FlushToCloudAsync();
+            float elapsed = 0f;
+            while (!task.IsCompleted && elapsed < departFlushTimeout)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+        }
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         ExpeditionHandoff.GoToArena(ids);
+        departing = false;
     }
 
     private IEnumerator ApplyResult()
@@ -57,43 +76,49 @@ public class ExpeditionBridge : MonoBehaviour
 
         if (!ExpeditionHandoff.TryConsumeResult(out ExpeditionResult result)) yield break;
 
+        int material = result.Lost ? 0 : result.PlayerSecured;
         var inventory = GameManager.CurrentInventory;
-        if (inventory != null && result.PlayerSecured > 0)
+        if (inventory != null && material > 0)
         {
-            inventory.AddAdventureMaterial(result.PlayerSecured);
+            inventory.AddAdventureMaterial(material);
             GameEvents.InventoryChanged(inventory);
         }
 
-        int energySpent = 0;
-        int creaturesSpent = 0;
+        int net = 0;
+        int creatures = 0;
+        bool touched = false;
         var registry = GameManager.Instance != null ? GameManager.Instance.Registry : null;
-        if (registry != null && result.Stats != null)
+        if (registry != null && result.HealthById != null)
         {
-            foreach (var stat in result.Stats)
+            foreach (var pair in result.HealthById)
             {
-                if (stat.Team != ExpeditionTeam.Player || string.IsNullOrEmpty(stat.Id)) continue;
-                if (!registry.TryGet(stat.Id, out var dna) || dna == null || dna.IsDead) continue;
+                if (!registry.TryGet(pair.Key, out var dna) || dna == null || dna.IsDead) continue;
 
-                int cost = Mathf.Min(maxEnergyPerTrip, energyPerTrip + energyPerKnock * stat.TimesKnocked);
-                dna.Needs.SpendEnergy(cost);
-                energySpent += cost;
-                creaturesSpent++;
+                dna.Needs.AddHealth(pair.Value);
+                net += pair.Value;
+                creatures++;
+                touched = true;
+
+                if (permadeathEnabled && (result.Lost || dna.Needs.Health <= 0f)) dna.IsDead = true;
             }
-            if (creaturesSpent > 0) GameEvents.RegistryChanged(registry);
+            if (touched) GameEvents.RegistryChanged(registry);
         }
 
         GameEvents.ExpeditionReturned(new ExpeditionReturn
         {
             Seed = result.Seed,
             Winner = result.Winner,
-            PlayerSecured = result.PlayerSecured,
+            PlayerSecured = material,
             RivalSecured = result.RivalSecured,
-            MaterialGained = result.PlayerSecured,
-            EnergySpent = energySpent,
-            Creatures = creaturesSpent
+            MaterialGained = material,
+            HealthLost = -net,
+            Fallen = result.Fallen,
+            Creatures = creatures,
+            Floors = result.Floors,
+            Lost = result.Lost
         });
 
-        Debug.Log($"[ExpeditionBridge] sala {result.Seed}: {result.PlayerSecured}-{result.RivalSecured} {result.Winner} → +{result.PlayerSecured} material, -{energySpent} energía ({creaturesSpent} MoriMonchis)");
+        Debug.Log($"[ExpeditionBridge] run {result.Seed}: {result.Floors} pisos, perdida={result.Lost} → +{material} material, {-net} vida ({creatures} MoriMonchis, {result.Fallen} caídas)");
     }
 }
 }

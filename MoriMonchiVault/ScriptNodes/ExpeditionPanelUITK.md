@@ -6,47 +6,59 @@ tags: [script, ui, expedition, uitk]
 
 **Ruta:** `UI/ExpeditionPanelUITK.cs`
 
-**Responsabilidad (S120):** Panel UITK para elegir elenco antes de bajar a arena. Lista criaturas vivas del registro filtradas por energía (≥30), elegibles si no están ocupadas. Máximo 3 selecciones. Emite `ExpeditionBridge.RequestDeparture(ids)` con los `UniqueID` de las elegidas. Implementa `IUINavigable` para keyboard/gamepad.
+**Responsabilidad:** Panel UITK para elegir elenco antes de bajar. Lista criaturas vivas filtradas por vida > 0, elegibles si no ocupadas. Máximo 3. Emite `ExpeditionBridge.RequestDeparture(ids)`. **S124:** Elegibilidad solo por vida (no energía). Barra de vida en tarjeta.
 
-**Campos:**
-- `[SerializeField] UIDocument document` — referencia al documento UITK
-- `[SerializeField] UIPanelType panel = UIPanelType.Expedition` — tipo de panel (8)
-- `[SerializeField, Min(1)] int maxPick = 3` — máximo de criaturas elegibles
-- `[SerializeField, Range(0, 100)] float minEnergy = 30f` — energía mínima para elegir
-- `List<VisualElement> cards` — tarjetas de criaturas
-- `List<CreatureDNA> dnas` — referencias a DNAs mostrados
-- `List<bool> eligible` — estado de elegibilidad por índice
-- `List<bool> picked` — estado de selección por índice
-- `int focused` — índice con foco actual
+## Campos
 
-**Métodos públicos:**
-- `void OnUINavigate(Vector2 dir)` — navega izquierda/derecha entre tarjetas
-- `void OnUISubmit()` — toggle selección de tarjeta con foco
-- `bool OnUICancel()` — retorna false (no usar cancel aquí)
+| Campo | Descripción |
+|-------|-------------|
+| `UIDocument document` | Doc UITK |
+| `UIPanelType panel` | Tipo Expedition |
+| `int maxPick` | Max elegibles (3) |
+| `List<VisualElement> cards` | Tarjetas |
+| `List<CreatureDNA> dnas` | DNAs |
+| `List<bool> eligible` | Elegibilidad |
+| `List<bool> picked` | Selección |
 
-**Métodos privados clave:**
-- `void Rebuild()` — reconstruye lista desde registry: filtra vivas/no-vendidas, ordena elegibles primero + energía descendente
-- `int CompareEntries(CreatureDNA a, CreatureDNA b)` — comparador: elegibles > no-elegibles, energía descendente
-- `VisualElement BuildCard(CreatureDNA dna, bool ok)` — crea tarjeta con retrato (MonchiPortraitUI), nombre, estado (Ocupada/Energía/Cansada), barra de energía con color (verde ≥60, amarillo ≥30, rojo <30)
-- `void ToggleAt(int index)` — selecciona/deselecciona si elegible y bajo maxPick
-- `void UpdateGoButton()` — activa botón "Ir" solo si hay ≥1 seleccionada
-- `void Depart()` — llamado al hacer clic "Ir": cierra panel → `ExpeditionBridge.RequestDeparture(ids)` con UniqueID
+## Métodos Públicos (IUINavigable)
 
-**Flujo:**
-1. `OnEnable`: suscribe a `UIManager.OnPanelSet/Toggle`
-2. `Start`: cableado de botones, `Rebuild()`, registro como navegable
-3. Panel se muestra: `Rebuild()` filtra del registry
-4. Navegación por teclado/gamepad o clic directo
-5. `Depart()`: emite IDs → ExpeditionBridge
+| Método | Descripción |
+|--------|-------------|
+| `OnUINavigate(Vector2 dir)` | Navega tarjetas |
+| `OnUISubmit()` | Toggle selección |
+| `OnUICancel()` | Retorna false |
 
-**S120-S122:** Implementación nueva. Introduce `UIPanelType.Expedition = 8` y flujo de selección de equipo previo a la bajada. Textos localizados en tabla `Strings` en/es.
+## Métodos Privados
 
-**Invariantes:**
-- Máximo `maxPick` elegidas a la vez
-- Solo elegibles (libres + energía ≥ `minEnergy`) pueden ser seleccionadas
-- Suscripción/desuscripción simétrica `OnEnable`/`OnDisable`/`OnDestroy`
-- El botón "Ir" habilitado solo con ≥1 elegida
+| Método | Descripción |
+|--------|-------------|
+| `Rebuild()` | Filtra vivas, ordena por elegibilidad |
+| `BuildCard(dna, ok)` | Retrato + nombre + barra de vida (no barra energía) |
+| `ToggleAt(int index)` | Selecciona si elegible |
+| `Depart()` | Emite RequestDeparture(ids) |
 
-**Vinculado a:** [[Index/24 - Puente Tienda-Arena]] (§6c), [[GameScene]], `UI Toolkit/ExpeditionPanel.uxml`
+## Cambios S124
 
-**Conexiones:** [[ExpeditionBridge]], [[GameManager]], [[CreatureRegistrySO]], [[CreatureDNA]], [[UIManager]], [[MonchiPortraitUI]], [[Loc]]
+- Elegibilidad: **vida > 0** (no energía ≥ 30)
+- BuildCard: **barra de vida** en lugar de barra de energía
+- Sin gate de energía: cualquier criatura viva es elegible
+
+## Flujo
+
+1. OnEnable: suscribe UIManager
+2. Start: cableado, Rebuild
+3. Rebuild: filtra vivas > 0
+4. Seleccionar hasta 3
+5. Depart: emite IDs
+
+## Invariantes
+
+- Max `maxPick` elegidas
+- Solo vivas pueden seleccionarse
+- Botón "Ir" habilitado si ≥1 seleccionada
+
+## Vinculado a
+
+[[Index/24 - Puente Tienda-Arena]], [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
+
+**Conexiones:** [[ExpeditionBridge]], [[GameManager]], [[CreatureRegistrySO]]

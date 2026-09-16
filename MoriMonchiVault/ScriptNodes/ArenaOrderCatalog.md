@@ -6,23 +6,29 @@ tags: [script, data, expedition, catalog]
 
 **Ruta:** `Data/Expedition/ArenaOrderCatalog.cs`
 
-**Responsabilidad:** Catálogo estático de textos, etiquetas y descripciones para órdenes, arquetipos y estado de arena. Traduce enums a strings legibles, genera nombres de arquetipos, describe estrategias de equipo, infiere lectura de sala, sugiere contras. **S122:** `PersonalityName` devuelve `ArenaBases.RoleName(dna.Role)` y `RivalRead` devuelve `ArenaBases.RivalRead(dna.Role)` (p. ej. "Protector · Territorio o Rebusque"); `UnlockRead` y `LockReason` borrados (los diales ya no bloquean).
+**Responsabilidad:** Catálogo estático de textos y etiquetas para órdenes, arquetipos y equipos. Traduce enums a strings legibles, genera nombres de arquetipos, describe estrategias. **S122:** Delega rol/lectura a ArenaBases. **S124:** `PersonalityName(dna)` y `RivalRead(dna)` sin parámetro rules (simplificación).
 
-**Métodos públicos:**
-- `string[] PillarLabels { get; }` — ["BOTÍN", "ENCUENTRO", "EQUIPO"]
-- `string ChoiceLabel(OrderPillar pillar, int choice)` — etiqueta legible
-- `string ArchetypeShort(ArenaOrders o)` — "Guardián", "Cazador", "Recolector", "Señuelo"
-- `string ArchetypeName(ArenaOrders o)` — nombre largo
-- `string ArchetypeDescription(ArenaOrders o)` — descripción estratégica
-- `string CounterHint(ArenaOrders o)` — cómo counters actúan
-- `string TeamPlanName(IReadOnlyList<ArenaOrders> orders)` — nombre de estrategia de equipo
-- `string RivalRead(CreatureDNA dna, ExpeditionRulesSO rules)` — qué puede hacer un rival
-- `string RoomText(ArenaRoomRead read)` — descripción de sala
+## Métodos Públicos
 
-**S105:** Textos de Cazador + Señuelo con mecánica de anzuelo.
+| Método | Descripción |
+|--------|-------------|
+| `string ChoiceLabel(OrderPillar p, int choice)` | Etiqueta legible |
+| `string ArchetypeShort(ArenaOrders o)` | "Guardián", "Cazador", "Recolector", "Señuelo" |
+| `string ArchetypeName(ArenaOrders o)` | Nombre + ubicación |
+| `string ArchetypeDescription(ArenaOrders o)` | Descripción estratégica |
+| `string CounterHint(ArenaOrders o)` | Cómo counters actúan |
+| `string TeamPlanName(IReadOnlyList<ArenaOrders> orders)` | Estrategia equipo |
+| `string PersonalityName(CreatureDNA dna)` | **(S124)** ArenaBases.RoleName; sin rules |
+| `string RivalRead(CreatureDNA dna)` | **(S124)** ArenaBases.RivalRead; sin rules |
+| `string RoomText(ArenaRoomRead read)` | Descripción sala |
 
-**S122:** Nombre de personalidad y lectura del rival delegan en [[ArenaBases]]; arquetipos, `CounterHint` y `TeamPlanName` siguen iguales.
+## Cambios S124
 
-**Vinculado a:** [[Index/24 - Puente Tienda-Arena]], [[Index/22 - Bajada Nocturna y Linaje]]
+- `PersonalityName(dna)` — eliminado parámetro rules
+- `RivalRead(dna)` — eliminado parámetro rules
+
+## Vinculado a
+
+[[Index/26 - Plan H0 - Bajada por pisos]] (S124)
 
 **Conexiones:** [[ArenaBases]], [[ArenaOrders]], [[ArenaPlanPanel]]

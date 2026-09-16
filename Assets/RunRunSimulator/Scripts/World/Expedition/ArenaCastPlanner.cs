@@ -28,6 +28,7 @@ public class ArenaCastPlanner
     public IReadOnlyList<CreatureDNA> LocalPool => Pool();
     public bool HasLocalSelection => localSelection.Count > 0;
     public bool HasTeams => Mode == ArenaCastMode.LocalSave || HasRoster;
+    public bool RivalsEnabled = true;
 
     private const int RivalCount = 3;
 
@@ -68,7 +69,7 @@ public class ArenaCastPlanner
             var picked = localSelection.Count > 0 ? localSelection : ArenaCastSource.Pick(Pool(), LocalCount, castSeed);
             LocalAvailable = picked.Count > 0;
             foreach (var dna in picked)
-                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, rules, ArenaBases.ToOrders(dna.Role, ArenaBases.Default(dna.Role))) }));
+                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, ArenaBases.ToOrders(dna.Role, ArenaBases.Default(dna.Role))) }));
         }
 
         if (Mode == ArenaCastMode.Roster || (!LocalAvailable && HasRoster))
@@ -82,21 +83,24 @@ public class ArenaCastPlanner
             for (int i = 0; i < LocalCount; i++)
             {
                 var dna = mint();
-                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, rules, ArenaBases.ToOrders(dna.Role, ArenaBases.Default(dna.Role))) }));
+                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, ArenaBases.ToOrders(dna.Role, ArenaBases.Default(dna.Role))) }));
             }
         }
 
         if (Mode == ArenaCastMode.LocalSave)
         {
-            UnityEngine.Random.InitState(roomSeed);
-            for (int i = 0; i < RivalCount; i++)
+            if (RivalsEnabled)
             {
-                var dna = mint();
-                dna.Timestamp += i + 1;
-                ArenaBase baseValue = ArenaBases.OpenAt(dna.Role, (Math.Abs(roomSeed) >> i) & 1);
-                planned.Add(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Rival, Orders = ArenaBases.ToOrders(dna.Role, baseValue) });
+                UnityEngine.Random.InitState(roomSeed);
+                for (int i = 0; i < RivalCount; i++)
+                {
+                    var dna = mint();
+                    dna.Timestamp += i + 1;
+                    ArenaBase baseValue = ArenaBases.OpenAt(dna.Role, (Math.Abs(roomSeed) >> i) & 1);
+                    planned.Add(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Rival, Orders = ArenaBases.ToOrders(dna.Role, baseValue) });
+                }
+                UnityEngine.Random.InitState(castSeed);
             }
-            UnityEngine.Random.InitState(castSeed);
         }
         else
         {
@@ -122,7 +126,7 @@ public class ArenaCastPlanner
     {
         if (index < 0 || index >= planned.Count) return;
         var entry = planned[index];
-        entry.Orders = ArenaOrderRules.Clamp(entry.Dna, rules, orders);
+        entry.Orders = ArenaOrderRules.Clamp(entry.Dna, orders);
         planned[index] = entry;
         if (entry.Team == ExpeditionTeam.Player) remembered[PlanKey(entry.Dna)] = entry;
     }
@@ -143,13 +147,13 @@ public class ArenaCastPlanner
         if (entry.BaseColor.a > 0f) dna.BaseColor = entry.BaseColor;
         dna.Stamp();
 
-        return new ArenaCastEntry { Dna = dna, Team = entry.Team, Orders = ArenaOrderRules.Clamp(dna, rules, orders) };
+        return new ArenaCastEntry { Dna = dna, Team = entry.Team, Orders = ArenaOrderRules.Clamp(dna, orders) };
     }
 
     private ArenaCastEntry Remembered(ArenaCastEntry entry)
     {
         if (!remembered.TryGetValue(PlanKey(entry.Dna), out var previous)) return entry;
-        entry.Orders = ArenaOrderRules.Clamp(entry.Dna, rules, previous.Orders);
+        entry.Orders = ArenaOrderRules.Clamp(entry.Dna, previous.Orders);
         return entry;
     }
 

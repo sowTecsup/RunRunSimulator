@@ -49,7 +49,7 @@ public static class ArenaOrderRules
         return o;
     }
 
-    public static ArenaOrders Clamp(CreatureDNA dna, ExpeditionRulesSO rules, ArenaOrders o)
+    public static ArenaOrders Clamp(CreatureDNA dna, ArenaOrders o)
     {
         if (dna == null) return o;
         if (ArenaBases.TryBaseOf(dna.Role, o, out _)) return o;

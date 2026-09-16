@@ -66,6 +66,7 @@ public class CloudSyncService : MonoBehaviour
         auth    = new CloudAuth(s => status = s, HandleSignedInAsync);
         syncOps = new CloudSyncOps(auth, registry, furnitureRegistry, inventory, s => status = s);
         await auth.InitializeAsync();
+        if (!auth.IsSignedIn) StartupSyncDone = true;
     }
 
     private void OnDestroy() => auth?.Teardown();

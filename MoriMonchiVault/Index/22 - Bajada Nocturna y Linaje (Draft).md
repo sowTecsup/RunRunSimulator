@@ -595,6 +595,36 @@ Por postura en la matriz final (aseguró por criatura y ronda): recolector 8,3-8
 
 ---
 
+## PARTE 9 — S123: la bajada por pisos (decidido con Juan, 2026-09-16)
+
+**Regla en una frase:** una bajada es una escalera de pisos con la misma semilla; el botín viaja con la terna, retirarse lo asegura y perder un piso lo pierde todo.
+
+### 9.1 Decisiones de Juan (S123)
+1. **Perder un piso = se pierde todo** el botín acumulado y no asegurado de la run (Deep Sea Adventure).
+2. **Piso de buffo = salud y minerales gratis**: sala sin rival que recupera energía y regala material.
+3. **Permadeath: perder un piso mata a la terna.** Apagado en las demos por un flag (`permadeathEnabled` = false); la regla existe desde ya para no diseñar sin ella.
+4. Se puede bajar tan hondo como se quiera; el riesgo sube con el piso; el jugador decide cuándo retirarse.
+5. La currency que sube (material) se gasta después en breedeos (uso en la tienda, pendiente de S121).
+
+### 9.2 La run
+- **Run** = semilla base + índice de piso. La semilla del piso n es `hash(semillaBase, n)`: misma bajada, mismos pisos, para el eco y el rival asíncrono más adelante.
+- **Tipos de piso (v1):** `Enemies` (la sala actual: rival por semilla, ocupaciones, bases) y `Buff` (sin rival; cristal de energía que restaura a la terna + vetas gratis que se aseguran solas). La secuencia sale de la semilla con un piso de buffo cada 3 como piso; `Asegurar a mitad de camino` (Parte 4) queda para después.
+- **Entre pisos:** panel con el resultado del piso, el botín acumulado en juego y la **vista previa** del siguiente (tipo y, si es de enemigos, la lectura del rival "Protector · Territorio o Rebusque"). Dos botones: **Seguir** y **Retirarse (asegura N)**.
+- **Ganar un piso** = asegurar más que el rival (`Winner == Player`). **Empate** = se sigue sin perder, sin bonus. **Perder** (`Winner == Rival`) = fin de la run: botín 0, vuelta a la tienda con el aviso "Perdiste en el piso N"; con permadeath activo, la terna muere.
+- **Energía:** cada piso de enemigos cuesta por criatura `min(40, 20 + 5·tumbadas)`; el buffo devuelve `+30`. Se acumula en la run y se aplica de una vez al volver (un solo `RegistryChanged`). Una criatura con energía proyectada ≤ 0 sigue jugando en la demo; después será la que "no puede seguir".
+- **Material:** cada piso suma lo asegurado por el jugador; el buffo suma sus vetas enteras. Solo lo que vuelve a la tienda existe.
+
+### 9.2b Corrección de Juan (S124): bajar es gratis, se arriesga la vida
+*"La energía no debería ser un impedimento, debería ser la vida de las criaturas; bajar es gratis, arriesgar la vida de tus criaturas no."* Reemplaza lo de energía de 9.2:
+- Bajar no cuesta nada ni pide energía; solo no baja una criatura con **vida 0**.
+- Cada **tumbada** en un piso de enemigos quita **15 de vida**; la vida viaja entre pisos.
+- El **buffo cura +30** a las criaturas vivas; una **caída** (vida 0) queda caída hasta volver.
+- Al volver se aplica la vida neta; con permadeath activo muere quien quedó en 0 y toda la terna si se perdió el piso.
+- El panel entre pisos muestra la vida de la terna ("Vida: A 60 · B 0 (caída)") y avisa "riesgo: hay caídas" en Seguir.
+
+### 9.3 Qué se reutiliza
+Todo: la sala es el piso (`ArenaSandbox` ya rehace la sala por semilla), la ronda es la prueba del piso (`ArenaRound.Winner`), el panel de plan es el panel entre pisos, el puente aplica el total de la run, bases y variantes quedan tal cual (los 2 combos de órdenes sin variante se descartan del juego y de la matriz). Lotes en [[24 - Puente Tienda-Arena]] §8.
+
 ## Referencias citadas en la sesión
 
 Another Door (2026, multijugador por turnos semi-cooperativo: elección secreta simultánea, traición, "cobrar o abrir otra puerta") · Darkest Dungeon (estrés, antorcha, campamento, permadeath) · Deep Sea Adventure e Incan Gold (push-your-luck compartido) · Slay the Spire (mapa con vista previa, eventos, descanso) · Splatoon (Turf War, Splat Zones, Tower Control, Clam Blitz, Salmon Run) · de Blob · Pikmin 1/2 (carga, puentes, cuevas, perdidos) · Rain World · Into the Breach · Lemmings · Spelunky · Frogger / Crossy Road · Bomberman · Zelda · Pac-Man · Alien Isolation · Untitled Goose Game · Mark of the Ninja · Ooblets · Rock of Ages · Tricky Towers · Dig Dug / SteamWorld Dig · Snipperclips · Patapon · Don't Starve / Frostpunk · Donkey Kong · Stardew Valley · Kirby / Kirby Canvas Curse / Kirby's Dream Course · Yoshi's Island / Yoshi Touch & Go · Sonic · Windjammers / Lethal League · Snake / Pikuniku · Golf Story · Peggle · Angry Birds · Lightbot / RoboRally / Opus Magnum · Hitman · Buscaminas / Hexcells · Pokémon Snap / Bugsnax · Split or Steal · Modern Art / For Sale · Overcooked · Tamagotchi · Heave Ho / Chained Together · WarioWare / Mario Party · Mewgenics / Wobbledogs (sorpresa legible al criar) · Chao Garden / Umamusume / Nintendogs (mencionados en la lluvia inicial; carreras descartadas por Juan).
@@ -612,3 +642,5 @@ Fuentes sobre Another Door consultadas en sesión: página de Steam (app 2786760
 **S99 (2026-09-04).** Pulido de la arena verificado en loop de QA (ver [[Index/23 - Arena Sandbox y Expedicion]]). Juan pidió planear la Etapa 3: equipos con placas verde/rojo pastel, choque físico estilo Gang Beasts y filtro de su lluvia de IA → **Parte 8.9 acordada**: cuerpo único (ragdoll articulado como v2 opcional), sin fuego amigo, perder no cuesta mientras se prueba, tres movimientos por slot, elenco básico de tres arquetipos por equipo, y después del elenco la UI de decisión de acciones (8.8). Las dos preguntas ⭐ de 8.7 siguen abiertas; la UI obliga a responderlas.
 
 **S101 (2026-09-05).** Choque v1 afinado por datos y verificado (ver [[Index/23 - Arena Sandbox y Expedicion]] 5e). Juan ⭐ pidió explorar **decisiones emergentes que justifiquen estrategias** ("que no puedas hacer todas": recolectar toma tiempo, uno vigila, otro distrae) y **arquetipos de decisión sobre el mapa** → **Parte 8.10** (ocupaciones con tiempo, RPS estratégico emergente, orden propuesto). Juan ⭐ respondió *"de acuerdo, ejecútate en /loop hasta que tengas gameplay"* → **construido en la misma sesión** (pasos 1-3 de 8.10: minado con canal, salida y ronda; Vigilar y Romper; Distraer) y medido con siete rondas: el vigía niega el centro (12-9 contra tres recolectores), el rompedor solo empata (10-10), el señuelo anula al vigía (6-12 → 12-12 cuando el vigía prioriza al que lo provoca). Implementación y matriz en [[Index/23 - Arena Sandbox y Expedicion]] 5f. Supuestos tomados sin respuesta de Juan: ocupación fija antes de PLAY (por roster), sala de 90 s, minado 3 s por unidad con carga de 3, lo minado cae al suelo al ser tumbado (nadie lo pierde del todo), el señuelo huye por tiempo fijo (5 s) y no por nervio. Quedan para el jugador: Explorar, Llevar/Escoltar, la UI de tres pasos y las preguntas de 8.7.
+
+**S123 (2026-09-16).** Juan fijó la bajada por pisos (Parte 9): botín que viaja y se pierde entero al perder un piso, pisos de buffo con salud y minerales gratis, permadeath apagado por flag en las demos. Plan de lotes en [[24 - Puente Tienda-Arena]] §8.

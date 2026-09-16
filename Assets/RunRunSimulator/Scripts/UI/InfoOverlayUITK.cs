@@ -35,6 +35,7 @@ public class InfoOverlayUITK : MonoBehaviour
     private const string DabloonsKey   = "ui.overlay.dabloons";
     private const string MaterialKey   = "ui.overlay.material";
     private const string ExpeditionReturnKey = "ui.overlay.expedition.return";
+    private const string ExpeditionLostKey = "ui.overlay.expedition.lost";
 
     [SerializeField, Min(0f)] private float toastSeconds = 6f;
 
@@ -147,14 +148,26 @@ public class InfoOverlayUITK : MonoBehaviour
 
     private void ShowExpeditionToast(ExpeditionReturn r)
     {
-        expeditionToastLabel.text = Loc.Tr(ExpeditionReturnKey, r.Seed, r.PlayerSecured, r.RivalSecured, r.MaterialGained, r.EnergySpent);
+        string energy = r.HealthLost > 0 ? "−" + r.HealthLost : "+" + (-r.HealthLost);
+
         expeditionToastLabel.RemoveFromClassList("toast--win");
         expeditionToastLabel.RemoveFromClassList("toast--lose");
         expeditionToastLabel.RemoveFromClassList("toast--draw");
-        string resultClass = r.Winner == ExpeditionTeam.Player ? "toast--win"
-            : r.Winner == ExpeditionTeam.Rival ? "toast--lose"
-            : "toast--draw";
-        expeditionToastLabel.AddToClassList(resultClass);
+
+        if (r.Lost)
+        {
+            expeditionToastLabel.text = Loc.Tr(ExpeditionLostKey, r.Floors, energy);
+            expeditionToastLabel.AddToClassList("toast--lose");
+        }
+        else
+        {
+            expeditionToastLabel.text = Loc.Tr(ExpeditionReturnKey, r.Floors, r.MaterialGained, energy);
+            string resultClass = r.Winner == ExpeditionTeam.Player ? "toast--win"
+                : r.Winner == ExpeditionTeam.Rival ? "toast--lose"
+                : "toast--draw";
+            expeditionToastLabel.AddToClassList(resultClass);
+        }
+
         expeditionToastLabel.style.display = DisplayStyle.Flex;
         toastTimer = toastSeconds;
     }

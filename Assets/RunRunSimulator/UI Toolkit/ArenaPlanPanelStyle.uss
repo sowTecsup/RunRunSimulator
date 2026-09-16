@@ -370,6 +370,18 @@
     margin-right: 10px;
 }
 
+.plan-floor {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: var(--mm-gold);
+    margin-bottom: 8px;
+    white-space: normal;
+}
+
+.plan-floor--lost {
+    color: var(--mm-foe);
+}
+
 .picker {
     position: absolute;
     left: 0;

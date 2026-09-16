@@ -1671,11 +1671,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674625
-    m_Localized: "Energ\xEDa {0}"
+    m_Localized: Vida {0}
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674626
-    m_Localized: "Cansado \xB7 energ\xEDa {0}"
+    m_Localized: "Sin vida \xB7 {0}"
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674627
@@ -1683,7 +1683,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674628
-    m_Localized: No tienes MoriMonchis listos para bajar
+    m_Localized: No tienes MoriMonchis con vida para bajar
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674629
@@ -1695,8 +1695,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674631
-    m_Localized: "Volviste de la sala {0} \xB7 {1}-{2} \xB7 +{3} material \xB7 \u2212{4}
-      energ\xEDa"
+    m_Localized: "Volviste del piso {0} \xB7 +{1} material \xB7 {2} vida"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19241043774464000
+    m_Localized: "Perdiste en el piso {0} \xB7 sin bot\xEDn \xB7 {1} vida"
     m_Metadata:
       m_Items: []
   references:

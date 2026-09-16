@@ -6,60 +6,108 @@ tags: [script, world, expedition, orchestrator]
 
 **Ruta:** `World/Expedition/ArenaRound.cs`
 
-**Responsabilidad:** Orquestador de tiempo y puntuación de ronda de arena (S103 actualizado). Máquina de estados: reposo → activa → finalizada. Corre contador, determina ganador por asegurados. Launch = SpawnCast + Begin. Reset(newSeed) = ResetRoom + reset. End() congela puntos y captura `ArenaRoundSummary` (S103 NUEVO) para mostrar resultado. Propiedades: Elapsed, Remaining, PlayerSecured, RivalSecured, Winner, **Summary** (S103 NUEVO).
+**Responsabilidad:** Orquestador de tiempo y puntuación de ronda de arena. Máquina de estados: reposo → activa → finalizada. Corre contador, determina ganador por asegurados. Launch = SpawnCast + Begin. Reset(newSeed) = ResetRoom + reset. End() congela puntos y captura ArenaRoundSummary. **S124:** Detecta fin temprano en pisos Buff si todo el material fue recogido.
 
-**Métodos públicos:**
-- `Launch()` — SpawnCast() + Begin() (inicia ronda)
-- `Reset(bool newSeed)` — ResetRoom(newSeed) + reset contadores
-- `Begin()` — Elapsed=0, IsRunning=true, IsOver=false (interno, llamado por Launch)
-- `End()` — congela puntos, captura Summary, calcula Winner, IsRunning=false, IsOver=true
-- `[Button] Restart()` — Reset(false) + Launch() (debug)
+**S124 Cambio:** Verifica `sandbox.FloorKind == ArenaFloorKind.Buff && sandbox.AllMaterialTaken` en Update para terminación anticipada.
 
-**Propiedades públicas:**
-- `bool IsRunning { get; }` — ronda activa
-- `bool IsOver { get; }` — ronda terminada
-- `float Elapsed { get; }` — segundos transcurridos desde Begin
-- `float Remaining { get; }` — Max(0, RoundSeconds - Elapsed)
-- `int PlayerSecured { get; }` — lectura viva si IsRunning, congelada si IsOver
-- `int RivalSecured { get; }` — lectura viva si IsRunning, congelada si IsOver
-- `ExpeditionTeam Winner { get; }` — Player, Rival, o None (empate)
-- `IReadOnlyList<ArenaRoundStat> Summary { get; }` — (S103 NUEVO) estadísticas capturadas al End()
+## Métodos Públicos
 
-**Campos Serializados:**
-- `sandbox` [Required] — ArenaSandbox
-- `roundSeconds` [Min(10)] = 90 — duración
-- `autoStart` (default false)
+| Método | Descripción |
+|--------|-------------|
+| `Launch()` | SpawnCast() + Begin() (inicia ronda) |
+| `Reset(bool newSeed)` | ResetRoom(newSeed) + reset contadores |
+| `Begin()` | Elapsed=0, IsRunning=true, IsOver=false (llamado por Launch) |
+| `End()` | Congela puntos, captura Summary, calcula Winner, IsRunning=false, IsOver=true |
+| `Restart()` [Button] | Reset(false) + Launch() (debug) |
 
-**Privados:**
-- `frozenPlayerSecured`, `frozenRivalSecured` (int) — congeladas en End()
-- `summary` (List<ArenaRoundStat>) — (S103 NUEVO) capturado en End()
+## Propiedades Públicas
 
-**Métodos Privados:**
-- `SumSecured(ExpeditionTeam team) → int` — suma de .Secured en ExitZone
-- `Update()` — si IsRunning: Elapsed += Time.deltaTime, si >= roundSeconds: End()
+| Propiedad | Tipo | Descripción |
+|-----------|------|-------------|
+| `IsRunning` | `bool` | Ronda activa |
+| `IsOver` | `bool` | Ronda terminada |
+| `Elapsed` | `float` | Segundos desde Begin |
+| `Remaining` | `float` | Max(0, RoundSeconds - Elapsed) |
+| `PlayerSecured` | `int` | Material asegurado jugador (vivo si Running, congelado si Over) |
+| `RivalSecured` | `int` | Material asegurado rival (vivo si Running, congelado si Over) |
+| `Winner` | `ExpeditionTeam` | Player, Rival, o None (empate) |
+| `Summary` | `IReadOnlyList<ArenaRoundStat>` | Estadísticas capturadas al End() |
 
-**S103 Cambios:**
-- `IReadOnlyList<ArenaRoundStat> Summary { get; }` — propiedad nueva
-- `summary` (List<ArenaRoundStat>) — campo privado
-- En `End()`: antes de IsRunning=false, captura: `summary.AddRange(ArenaRoundSummary.Capture(sandbox.Spawned))`
-- En `Reset()`: `summary.Clear()`
+## Campos Serializados
 
-**Ciclo S103:**
-1. ArenaPlanPanel.Play() → Launch()
-2. SpawnCast(), Begin() → IsRunning=true
-3. Update() cuenta tiempo
-4. Elapsed >= RoundSeconds → End()
-5. End() congela puntos y captura Summary vía ArenaRoundSummary
-6. ArenaPlanPanel detecta IsOver, espera, llama resultPanel.Show(Winner, PlayerSecured, RivalSecured, Summary)
-7. Reset(false) → relimpia, vuelve a plan
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `sandbox` | `[Required] ArenaSandbox` | Referencia al sandbox |
+| `roundSeconds` | `float` | Duración máxima ronda (default 90s) |
+| `autoStart` | `bool` | Si true, Begin() en Start() (default true) |
 
-**Invariantes:**
-- Launch único: SpawnCast solo desde Launch
-- Reset sin comienza: no inicia contador (Launch lo hace)
+## Ciclo de Vida
+
+### Launch (Inicio)
+
+1. `sandbox.SpawnCast()` — genera elenco
+2. `Begin()` → Elapsed=0, IsRunning=true
+
+### Update (Conteo)
+
+Mientras IsRunning:
+```
+Elapsed += deltaTime
+Si (Buff && AllMaterialTaken): End()  [S124: terminación temprana]
+Si (Elapsed >= RoundSeconds): End()   [timeout normal]
+```
+
+### End (Finalización)
+
+1. Congela puntos: frozenPlayerSecured = SumSecured(Player), ídem Rival
+2. Determina ganador por comparación
+3. Captura Summary vía ArenaRoundSummary.Capture()
+4. IsRunning=false, IsOver=true
+
+### Reset
+
+1. `sandbox.ResetRoom(newSeed)` — limpia escena
+2. Limpia contadores y state
+3. Permite volver a Begin/Launch
+
+## S124 Cambio: Terminación Temprana en Buff
+
+**Condición:** `sandbox.FloorKind == ArenaFloorKind.Buff && sandbox.AllMaterialTaken`
+
+**Propósito:** En pisos de Buff (recuperación), no necesita timeout de 90s; cuando se recoge todo el material gratis, la ronda termina inmediatamente.
+
+**Implementación en Update:**
+```csharp
+if (sandbox.FloorKind == ArenaFloorKind.Buff && sandbox.AllMaterialTaken) 
+{ 
+    End(); 
+    return; 
+}
+```
+
+## Determinación de Ganador
+
+```csharp
+Winner = frozenPlayerSecured == frozenRivalSecured
+    ? ExpeditionTeam.None
+    : (frozenPlayerSecured > frozenRivalSecured 
+        ? ExpeditionTeam.Player 
+        : ExpeditionTeam.Rival);
+```
+
+Empate si ambos aseguran lo mismo.
+
+## Invariantes
+
+- Launch es punto único de SpawnCast
 - IsRunning y IsOver mutuamente excluyentes
 - Summary inmutable tras End()
 - Remaining nunca negativo
+- PlayerSecured/RivalSecured vivos si Running, congelados si Over
+- SumSecured sumará de ExitZone.Secured activos
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+## Vinculado a
 
-**Conexiones:** [[ArenaSandbox]], [[ExitZone]], [[ArenaRoundSummary]], [[ArenaRoundHud]], [[ArenaPlanPanel]], [[ArenaResultPanel]], [[ExpeditionTeam]]
+[[Index/23 - Arena Sandbox & Expedicion]], [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
+
+**Conexiones:** [[ArenaSandbox]], [[ExitZone]], [[ArenaRoundSummary]], [[ArenaPlanPanel]], [[ArenaRunDirector]] (S124), [[WorldEnums]]

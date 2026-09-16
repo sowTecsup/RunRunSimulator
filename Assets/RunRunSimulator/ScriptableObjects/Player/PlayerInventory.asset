@@ -38,7 +38,10 @@ MonoBehaviour:
       Data: 1|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 18
+      Data: 19
+    - Name: 
+      Entry: 1
+      Data: I1
     - Name: 
       Entry: 1
       Data: I1
@@ -182,7 +185,7 @@ MonoBehaviour:
       Data: 84
     - Name: adventureMaterial
       Entry: 3
-      Data: 38
+      Data: 84
     - Name: passiveMaterial
       Entry: 3
       Data: 0

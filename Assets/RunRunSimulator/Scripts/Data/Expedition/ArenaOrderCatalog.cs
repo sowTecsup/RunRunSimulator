@@ -47,7 +47,7 @@ public static class ArenaOrderCatalog
         return o.Posture == PostureChoice.Protect ? "recolectó" : "distrajo";
     }
 
-    public static string PersonalityName(CreatureDNA dna, ExpeditionRulesSO rules)
+    public static string PersonalityName(CreatureDNA dna)
     {
         if (dna == null) return "Equilibrado";
         return ArenaBases.RoleName(dna.Role);
@@ -90,7 +90,7 @@ public static class ArenaOrderCatalog
         return big * 2 > count ? "Codicia" : "Hormiguero";
     }
 
-    public static string RivalRead(CreatureDNA dna, ExpeditionRulesSO rules)
+    public static string RivalRead(CreatureDNA dna)
     {
         if (dna == null) return "puede hacer cualquiera";
         return ArenaBases.RivalRead(dna.Role);

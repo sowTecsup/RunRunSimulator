@@ -1687,6 +1687,10 @@ MonoBehaviour:
     m_Key: ui.overlay.expedition.return
     m_Metadata:
       m_Items: []
+  - m_Id: 19241043774464000
+    m_Key: ui.overlay.expedition.lost
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

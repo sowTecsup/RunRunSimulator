@@ -109,10 +109,17 @@ public class ArenaMatrixDev : MonoBehaviour
 
             if (k < team.Orders.Length)
             {
-                entry.Dna.Boldness = team.Boldness[k];
-                entry.Dna.Sociability = team.Sociability[k];
-                if (ArenaBases.RoleFor(team.Orders[k], out Role role)) entry.Dna.Role = role;
-                Sandbox.SetOrders(index, team.Orders[k]);
+                if (ArenaBases.RoleFor(team.Orders[k], out Role role))
+                {
+                    entry.Dna.Boldness = team.Boldness[k];
+                    entry.Dna.Sociability = team.Sociability[k];
+                    entry.Dna.Role = role;
+                    Sandbox.SetOrders(index, team.Orders[k]);
+                }
+                else
+                {
+                    Debug.LogWarning("[ArenaMatrixDev] " + team.Name + ": órdenes sin variante, se salta");
+                }
             }
             k++;
         }

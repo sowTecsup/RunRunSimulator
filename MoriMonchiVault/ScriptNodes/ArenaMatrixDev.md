@@ -6,39 +6,46 @@ tags: [script, world, expedition, dev, harness]
 
 **Ruta:** `World/Expedition/ArenaMatrixDev.cs`
 
-**Responsabilidad:** Harness de desarrollo que ejecuta simulaciones de arena automatizadas (matriz de planes × rivales × semillas). Itera sobre combinaciones, aplica órdenes y personalidades a DNAs, ejecuta rondas, registra CSV. **S122:** Incluye Role en simulación (lee Role de Entry, abre bases, itera sobre bases en lugar de ocupaciones fijas).
+**Responsabilidad:** Harness de desarrollo para simulaciones arena (matriz planes × rivales × semillas). Itera combinaciones, aplica órdenes a DNAs, ejecuta rondas, registra CSV. S122: incluye Role. **S124:** Aviso y salto si `ArenaBases.RoleFor()` falla (Role inválido).
 
-**Propiedades públicas:**
-- `ArenaSandbox Sandbox` — escena sandbox
-- `ArenaRound Round` — ronda
-- `ArenaClockControl Clock` — controlador de velocidad (opcional)
-- `float Speed = 10f` — multiplicador
-- `bool IsRunning`, `bool Done`
-- `int Completed`, `int Total`
-- `string OutputPath` — ruta CSV
-- `string Progress` — para UI
+## Métodos Públicos
 
-**Métodos públicos:**
-- `void Run(IReadOnlyList<ArenaMatrixTeam> players, IReadOnlyList<ArenaMatrixTeam> rivals, IReadOnlyList<int> seeds, string csvPath)` — inicia simulación
-- `void Stop()` — aborta
+| Método | Descripción |
+|--------|-------------|
+| `void Run(players, rivals, seeds, csvPath)` | Inicia simulación |
+| `void Stop()` | Aborta |
 
-**Flujo (S122 actualizado):**
+## Propiedades
+
+| Propiedad | Descripción |
+|-----------|-------------|
+| `IsRunning` | Simulación activa |
+| `Done` | Completada |
+| `Completed / Total` | Progreso |
+| `Progress` | UI label |
+
+## Flujo (S124)
+
 1. Itera semillas → players → rivals
-2. Para cada player/rival: **S122** lee Role y bases abiertas (vía ArenaBases)
-3. `Apply(entry, Team)` — **(S122)** itera sobre ArenaBase en lugar de órdenes fijas
-   - Para cada base abierta: calcula órdenes → inyecta en DNA
-4. Round.Launch() → registra resultado
-5. CSV: detalle incluye Role + base elegida
+2. Por cada: lee Role, abre bases
+3. `Apply(entry, Team)`: itera bases
+   - **S124:** Si `RoleFor()` retorna invalid: Debug.LogWarning + skip entrada
+4. Round.Launch() → registra CSV
+5. CSV: Role + base + resultado
 
-**Cambios S122:**
-- **Apply() itera sobre bases:** no sobre órdenes predefinidas
-- Cada simulación: (player_idx, rival_idx, base1, base2) → órdenes + salida
-- CSV expandida con Role + base columns
+## Cambios S124
 
-**Invariantes:**
-- S122: Role determinístico por Entry
-- Regresión de balance: medir con ArenaMatrixDev tras cambios en ArenaBases
+- `Apply()`: valida Role con `ArenaBases.RoleFor()`
+- Si falla: aviso (Debug.LogWarning) y salta entrada
+- No rompe simulación; continúa siguiente
 
-**Vinculado a:** [[Index/22 - Bajada Nocturna y Linaje]] (S122)
+## Invariantes
 
-**Conexiones:** [[ArenaSandbox]], [[ArenaBases]], [[ArenaRosterSO]], [[ArenaRound]]
+- Role determinístico por Entry
+- Regresión de balance post-cambios ArenaBases
+
+## Vinculado a
+
+[[Index/22 - Bajada Nocturna y Linaje]], [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
+
+**Conexiones:** [[ArenaBases]], [[ArenaSandbox]], [[ArenaRosterSO]]

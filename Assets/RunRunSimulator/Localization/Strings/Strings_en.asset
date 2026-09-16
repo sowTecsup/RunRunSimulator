@@ -1674,11 +1674,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674625
-    m_Localized: Energy {0}
+    m_Localized: Health {0}
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674626
-    m_Localized: "Tired \xB7 energy {0}"
+    m_Localized: "Down \xB7 health {0}"
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674627
@@ -1686,7 +1686,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674628
-    m_Localized: No MoriMonchis are ready to go down
+    m_Localized: No MoriMonchis with health left to go down
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674629
@@ -1698,8 +1698,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674631
-    m_Localized: "Back from room {0} \xB7 {1}-{2} \xB7 +{3} material \xB7 \u2212{4}
-      energy"
+    m_Localized: "Back from floor {0} \xB7 +{1} material \xB7 {2} health"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 19241043774464000
+    m_Localized: "Lost on floor {0} \xB7 no loot \xB7 {1} health"
     m_Metadata:
       m_Items: []
   references:

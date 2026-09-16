@@ -6,49 +6,41 @@ tags: [script, cloud, sync]
 
 **Ruta:** `Systems/Cloud/CloudSyncService.cs`
 
-**Responsabilidad:** Núcleo MonoBehaviour que orquesta autenticación + sincronización. Compone `CloudAuth` (identidad UGS) + `CloudSyncOps` (operaciones sync). Fachada pública: `InitializeAsync()`, `PushAsync()`, `PullAsync()`, `ResetProgressAsync()`, `UpdatePlayerNameAsync()`. **S75:** Sin operaciones de combate o notificaciones de resultados. **S119:** HandleSignedInAsync() ahora carga social graph post-autenticación.
-
-## Secuencia Post-Sign-In (S119 ACTUALIZADO)
-
-1. Cargar creatures locales
-2. **S119 NUEVO:** Cargar social graph local (SaveSystem.LoadSocialGraph)
-3. Cargar furniture locales
-4. Cargar inventory local
-5. FetchServerTime
-6. Pull cloud (override si existe)
-7. Dispara GameEvents.RegistryReloaded, FurnitureReloaded, InventoryReloaded
+**Responsabilidad:** Núcleo MonoBehaviour que orquesta autenticación + sincronización. Compone CloudAuth + CloudSyncOps. **S124:** `StartupSyncDone` true si sync completó O Auth no activa (tolerancia sin-sesión).
 
 ## Métodos Públicos
 
 | Método | Descripción |
 |--------|-------------|
-| `Task InitializeAsync()` | Resume sesión (anón o Unity Account) |
-| `Task PushAsync()` | Fire-and-forget push a cloud |
-| `Task PullAsync()` | Fetch cloud, override locales, dispara eventos |
-| `Task ResetProgressAsync()` | Dev: limpia cloud + resets locales |
-| `Task UpdatePlayerNameAsync(string)` | Actualiza nombre de jugador |
+| `Task InitializeAsync()` | Resume sesión (anón o UGS) |
+| `Task PushAsync()` | Fire-and-forget push cloud |
+| `Task PullAsync()` | Fetch cloud, override, dispara eventos |
+| `Task ResetProgressAsync()` | Dev: limpia cloud |
+| `Task UpdatePlayerNameAsync(string)` | Actualiza nombre |
 
 ## Propiedades
 
-| Propiedad | Tipo | Descripción |
-|-----------|------|-------------|
-| `ServerOffset` | TimeSpan | Desfase servidor (para GameManager.Now) |
-| `StartupSyncDone` | bool | true tras completar PullAsync() en init |
+| Propiedad | Descripción |
+|-----------|-------------|
+| `ServerOffset` | TimeSpan desfase servidor |
+| `StartupSyncDone` | True si sync OK o Auth no activa (S124) |
 
-## Cambios en S75
+## Ciclo Post-Sign-In (S119)
 
-- **SIN:** Operaciones de combate
-- **SIN:** NotifyPendingCombatResults
-- **MANTIENE:** Push/Pull/Reset de creatures/furniture/inventory
+1. Cargar creatures
+2. Cargar social graph
+3. Cargar furniture
+4. Cargar inventory
+5. FetchServerTime
+6. Pull cloud
+7. Dispara eventos Reloaded
 
-## Cambios en S119
+## Cambios S124
 
-- **HandleSignedInAsync()** ahora llama `SaveSystem.LoadSocialGraph(registry)` tras LoadInto()
-- Social graph cargado post-autenticación, antes de sincronización cloud
-- Permite sincronizar relaciones sociales al restaurar sesión
+- `StartupSyncDone` retorna true si no hay sesión activa (tolerancia a dev/offline)
 
 ## Vinculado a
 
-[[Index/07 - Persistence & Identity]], [[Index/24 - Puente Tienda-Arena]]
+[[Index/07 - Persistence & Identity]], [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
 
-**Conexiones:** [[CloudAuth]], [[CloudSyncOps]], [[GameEvents]], [[SaveSystem]], [[ExpeditionBridge]]
+**Conexiones:** [[CloudAuth]], [[CloudSyncOps]], [[GameEvents]], [[SaveSystem]]

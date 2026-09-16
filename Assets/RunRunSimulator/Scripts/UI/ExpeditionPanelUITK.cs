@@ -10,7 +10,6 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private UIDocument document;
     [SerializeField] private UIPanelType panel = UIPanelType.Expedition;
     [SerializeField, Min(1)] private int maxPick = 3;
-    [SerializeField, Range(0, 100)] private float minEnergy = 30f;
 
     private Label emptyLabel;
     private ScrollView list;
@@ -106,7 +105,7 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
 
         foreach (var dna in entries)
         {
-            bool ok = !dna.IsBusy && dna.Needs.Energy >= minEnergy;
+            bool ok = !dna.IsBusy && dna.Needs.Health > 0f;
             var card = BuildCard(dna, ok);
 
             int index = cards.Count;
@@ -131,10 +130,10 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
 
     private int CompareEntries(CreatureDNA a, CreatureDNA b)
     {
-        bool ea = !a.IsBusy && a.Needs.Energy >= minEnergy;
-        bool eb = !b.IsBusy && b.Needs.Energy >= minEnergy;
+        bool ea = !a.IsBusy && a.Needs.Health > 0f;
+        bool eb = !b.IsBusy && b.Needs.Health > 0f;
         if (ea != eb) return ea ? -1 : 1;
-        return b.Needs.Energy.CompareTo(a.Needs.Energy);
+        return b.Needs.Health.CompareTo(a.Needs.Health);
     }
 
     private int FirstEligible()
@@ -167,27 +166,27 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
         barTrack.AddToClassList("exp-card__bar-track");
         var barFill = new VisualElement();
         barFill.AddToClassList("exp-card__bar-fill");
-        barFill.AddToClassList(EnergyColorClass(dna.Needs.Energy));
-        barFill.style.width = new StyleLength(new Length(Mathf.Clamp(dna.Needs.Energy, 0f, 100f), LengthUnit.Percent));
+        barFill.AddToClassList(HealthColorClass(dna.Needs.Health));
+        barFill.style.width = new StyleLength(new Length(Mathf.Clamp(dna.Needs.Health, 0f, 100f), LengthUnit.Percent));
         barTrack.Add(barFill);
         card.Add(barTrack);
 
         return card;
     }
 
-    private string EnergyColorClass(float energy)
+    private string HealthColorClass(float health)
     {
-        if (energy >= 60f) return "exp-bar--good";
-        if (energy >= minEnergy) return "exp-bar--warn";
+        if (health >= 60f) return "exp-bar--good";
+        if (health >= 30f) return "exp-bar--warn";
         return "exp-bar--crit";
     }
 
     private string StateTextFor(CreatureDNA dna, bool ok)
     {
-        int energy = Mathf.RoundToInt(dna.Needs.Energy);
+        int health = Mathf.RoundToInt(dna.Needs.Health);
         if (dna.IsBusy) return Loc.Tr("ui.expedition.busy");
-        if (ok) return Loc.Tr("ui.expedition.energy", energy);
-        return Loc.Tr("ui.expedition.tired", energy);
+        if (ok) return Loc.Tr("ui.expedition.energy", health);
+        return Loc.Tr("ui.expedition.tired", health);
     }
 
     private void ToggleAt(int index)

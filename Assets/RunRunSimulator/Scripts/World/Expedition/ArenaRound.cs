@@ -36,6 +36,7 @@ public class ArenaRound : MonoBehaviour
         if (!IsRunning) return;
 
         Elapsed += Time.deltaTime;
+        if (sandbox.FloorKind == ArenaFloorKind.Buff && sandbox.AllMaterialTaken) { End(); return; }
         if (Elapsed >= roundSeconds) End();
     }
 

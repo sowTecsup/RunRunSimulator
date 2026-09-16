@@ -103,4 +103,10 @@ public enum ArenaRegionKind
     Pit   = 2,
     Grove = 3,
 }
+
+public enum ArenaFloorKind
+{
+    Enemies = 0,
+    Buff    = 1,
+}
 }

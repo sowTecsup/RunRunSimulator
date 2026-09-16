@@ -6,7 +6,7 @@ tags: [enum, world, arena, expedition]
 
 **Ruta:** `Core/Enums/WorldEnums.cs`
 
-**Responsabilidad:** Enumeraciones para topografía, percepciones, expedición y arena. Contiene tipos base (WorldArea, PerceivableKind, ExpeditionTeam), ocupaciones (Occupation), arena (ArenaCastMode, ArenaSite, ArenaPaletteSlot), órdenes arena (S104: LootChoice, ContactChoice, PostureChoice, OrderPillar), **S111:** ArenaRegionKind, **S122:** ArenaBase (estrategias de competencia por rol).
+**Responsabilidad:** Enumeraciones para topografía, percepciones, expedición y arena. Contiene tipos base (WorldArea, PerceivableKind, ExpeditionTeam), ocupaciones (Occupation), arena (ArenaCastMode, ArenaSite, ArenaPaletteSlot), órdenes arena (S104: LootChoice, ContactChoice, PostureChoice, OrderPillar), **S111:** ArenaRegionKind, **S122:** ArenaBase (estrategias de competencia por rol), **S124:** ArenaFloorKind (tipos de piso en bajada).
 
 ## Enumeraciones Base
 
@@ -68,6 +68,26 @@ public enum ArenaBase
 
 Cada `Role` (Protector/Agresivo/Empático) abre 2 de 3 bases; la variante determina órdenes concretas. Mapeo en [[ArenaBases]] (estático): rol + base → órdenes, rol + órdenes → base (inverso).
 
+## Tipos de Piso — Bajada por Pisos (S124)
+
+```csharp
+public enum ArenaFloorKind
+{
+    Enemies = 0,  // combate contra rival · vida es riesgo: -15 por golpe
+    Buff    = 1,  // piso de recuperación · +30 vida a todo el equipo + material gratis
+}
+```
+
+**Determinismo de pisos:** Piso n es Buff si `(n > 0) && (n % 3 == 0)` — cada 3 pisos. Calculado por `ArenaRun.KindOf()`. Semilla por piso = XOR determinista sobre BaseSeed + Floor.
+
+**Ciclo de vida:**
+1. Entrar piso: `run.EnterFloor()` — incrementa Floor, auto-cura si Buff
+2. Jugar combate si Enemies: ArenaRound registra golpes
+3. Fin combate: `run.RecordFloor(winner, secured, stats)` — aplica daño, acumula material, detecta derrota si Rival gana Enemies
+4. Panel de decisión: Continuar/Retirarse
+
+**Vida es riesgo:** No se restaura entre pisos excepto Buff (+30). Máximo 100. Cae 15 por golpe recibido. Si cae a 0, criatura "caída" (but no permanente); aviso al continuar.
+
 ## Arena (S102+S111+S122)
 
 ```csharp
@@ -94,17 +114,18 @@ public static class ExpeditionTeams
 }
 ```
 
-## Invariantes S104+S111+S122
+## Invariantes S104+S111+S122+S124
 
 - Órdenes: 3 pilares; clampeadas por DNA si personalidad extrema (S104)
 - Ocupación derivada: autoridad única de ArenaOrderRules.ToOccupation()
 - Bloqueos: no revocables (DNA > orden)
 - Determinismo: mismas órdenes + DNA = mismo comportamiento
 - Bases (S122): rol → 2 de 3 bases; variante → órdenes; ArenaBases mapea todo
+- Pisos (S124): cada 3 son Buff; vida es el riesgo irreversible entre combates
 
 ## Vinculado a
 
-[[Index/22 - Bajada Nocturna y Linaje]] (S122), [[Index/23 - Arena Sandbox & Expedicion]] (S102-S103), [[Index/24 - Puente Tienda-Arena]] (S122)
+[[Index/22 - Bajada Nocturna y Linaje]] (S122), [[Index/23 - Arena Sandbox & Expedicion]] (S102-S103), [[Index/24 - Puente Tienda-Arena]] (S122), [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
 
 ## Conexiones
 
@@ -114,3 +135,4 @@ public static class ExpeditionTeams
 - [[ArenaPaletteSO]], [[ArenaPaletteApplier]] — ArenaPaletteSlot (S111: Water)
 - [[ExitZone]], [[ArenaCueOverlay]] — ExpeditionTeam
 - [[ArenaShape]], [[ArenaShapeBrush]] — ArenaRegionKind (S111)
+- [[ArenaRun]], [[ArenaRunDirector]] — ArenaFloorKind, pisos (S124)

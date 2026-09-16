@@ -4,6 +4,51 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-16 (Session 124 — **H0 BAJADA POR PISOS ✅ implementada y verificada en Play + corrección de Juan: se arriesga la vida, no la energía; PAUSADA para theorycrafting; ✅ CERRADA por `/cerrar-sesion`** — 3 scripts NUEVOS + 16 MODIFICADOS, escena `ArenaSandbox`, UXML/USS del plan, tabla `Strings`; plan en `Index/26` con ajustes de ejecución §8)
+
+**Focus:** Juan: *"Ejecuta el plan creado porfavor H0"*. Cinco `morimonchi-coder` (A run, B sala por piso, E arreglos §6d en paralelo; C director y puente, D panel entre pisos en paralelo); ajustes de orquestador antes de lanzar (§8 de `Index/26`: semilla base en el handoff, `SetFloor` sin reconstruir, estado del panel por el director); un ajuste mío después (`[DefaultExecutionOrder(-50)]` en el director); cableado de escena y claves por MCP (Juan pidió ejecutar el plan, que listaba esas mutaciones).
+
+1. **Run.** [[ArenaRun]] (NUEVO, pura): semilla por piso por hash, buffo cada 3, energía `−min(40, 20+5·tumbadas)` por piso de enemigos y `+30` al entrar al buffo, material acumulado, perder = botín 0. [[ExpeditionHandoff]] `RunSeed`, `ExpeditionResult` con `Floors`/`Lost`/`EnergyById` (sin `Stats`).
+2. **Sala por piso.** [[ArenaSandbox]] `FloorKind`, `SetFloor`, `AllMaterialTaken`, buffo con solo la salida propia; [[ArenaCastPlanner]] `RivalsEnabled`; [[ArenaRound]] termina el buffo al vaciar la sala.
+3. **Director y panel.** [[ArenaRunDirector]] (NUEVO, escena): cuenta el piso al terminar la ronda, `Continue`/`Retreat`/`GiveUp`. [[ArenaFloorPanel]] (NUEVO, colaborador de [[ArenaPlanPanel]]): "Piso N · tipo", Seguir → vista previa del siguiente, Retirarse (asegura M), Volver al perder; oculta herramientas de desarrollo en la run. `btn-return` borrado.
+4. **Puente.** [[ExpeditionBridge]] aplica material solo si no perdió, energía neta por id, `permadeathEnabled` (false), un `RegistryChanged`; `Depart` espera el push (tope 5 s). [[GameManager]] `FlushToCloudAsync`. [[CloudSyncService]] `StartupSyncDone` también sin sesión. [[InfoOverlayUITK]] aviso "piso N" y variante perdida.
+5. **§6d.** Matriz sin los 2 combos sin variante (quedan 10/7/3 equipos, 0 órdenes sin variante) y aviso en vez de clamp silencioso; campos `*Lock` y parámetro `rules` borrados.
+
+**Medido en Play (sin capturas):** arena sola igual que antes (sin run, 3+3, herramientas visibles). Bajada: push `[CloudSync] Pushed` antes de cargar; piso 1 semilla = `FloorSeed(1)`, terna de la tienda, 3 rivales, 2 salidas, Retirarse oculto → forzado 12-5 → "Piso 1 terminado · llevás 12", Seguir → Piso 2 semilla correcta, Retirarse visible → forzado 7-0 → Seguir → **Piso 3 buffo**: 0 rivales, 1 salida, energía −40+30 = −10 → jugado a 8× (terminó por tiempo: 74 unidades no alcanzan a vaciarse en 90 s) 27 asegurados → Retirarse (asegura 46) → tienda: material 38 → **84**, energía neta −30 en las 3, un `GameManager`, `timeScale` 1, aviso "Back from floor 3 · +46 material · −30 energy" (editor en inglés). Bajada perdida: forzado 4-50 → "Perdiste en el piso 1 · botín perdido", solo Volver, `Continue` ignorado → tienda: material 84, −20 energía, viva, aviso rojo. Cero excepciones.
+
+> ### ➕ Corrección de Juan en la misma sesión: vida en vez de energía
+> *"bajar es gratis, arriesgar la vida de tus criaturas no"* → `Index/22` 9.2b. [[ArenaRun]] lleva vida por id (−15 por tumbada, +30 en buffo solo a vivas, caída pegajosa, `Fallen`); [[ExpeditionHandoff]] `HealthById`/`Fallen`/`HealthLost`; [[ExpeditionBridge]] aplica vida y permadeath por vida 0 o piso perdido; [[ExpeditionPanelUITK]] sin gate de energía (elegible = libre y vida > 0, barra de vida); [[ArenaRunDirector]] toma la vida inicial y nombres en `Start`; [[ArenaFloorPanel]] línea "Vida: …" y "riesgo: hay caídas". Textos en/es a "vida". Verificado: prueba pura de `ArenaRun` (50/90 → tumbadas 4 y 1 → 0/75 → buffo 0/100, 1 caída) y en Play: panel de la tienda elegible por vida, arena con "Vida: Chunky Snort 1 · Grumpy Spore 1 · Crusty Blorp 15", vuelta +9 material y 0 vida sin tocar energía, cero excepciones. **No se pudo forzar una tumbada real por sonda** (el contador del choque no es escribible): la caída en Play queda para la prueba de Juan.
+> **Hallazgo:** en la tienda la vida se drena sola hasta 0 (6 de 10 criaturas en 0, el resto entre 4 y 18): con la vida como gate casi nadie puede bajar. Es cuidado (H1), pero bloquea probar H0.
+
+> ### 📝 Notas S124 (para decisión de Juan)
+> 1. El buffo no llega a vaciarse en 90 s (74 unidades, 3 criaturas): termina por tiempo. ¿Menos material en el buffo, ronda más corta o está bien así?
+> 2. ~~Energía como gate~~ reemplazada por vida (ver arriba). Nuevo: la vida en la tienda se drena sola hasta 0.
+> 3. No se probó: fin del buffo por sala vacía (sí la lógica), toast sin sesión en la nube, matriz `ArenaMatrixDev` corriendo rondas (se verificó estáticamente que no quedan combos sin variante).
+> 4. Empate sigue como "se sigue sin bonus" (supuesto del plan).
+> 5. Falta del criterio de H0: que Juan juegue 5 bajadas a 1× y anote qué aburre.
+
+**Estado al pausar (pedido de Juan: *"hagamos una pausa importante, tengo una idea de theorycrafting"*):** H0 implementado con la corrección de vida, compila, verificado en Play salvo la tumbada real; cerrada con `/cerrar-sesion`: ScriptNodes por `vault-documenter`, commit y push S124. Editor en `GameScene`, fuera de Play.
+
+**Siguiente paso:** sesión de theorycrafting de Juan con **Opus**: plantear la idea nueva, deliberar y dejar un `.md` de diseño en el vault; después **Fable** revisa ese `.md` y arma el plan de ejecución (mismo formato que `Index/26`). Después, retomar H0: decidir el drenaje de vida en la tienda (bloquea probar) y los números −15/+30, Juan juega 5 bajadas a 1×, marcar H0 ✅ en `Index/25`.
+
+**Archivos `.cs` modificados/creados:** `ArenaRun.cs`, `ArenaRunDirector.cs`, `ArenaFloorPanel.cs` (NUEVOS); `WorldEnums.cs`, `ExpeditionHandoff.cs`, `GameManager.cs`, `CloudSyncService.cs`, `ExpeditionBridge.cs`, `InfoOverlayUITK.cs`, `ArenaSandbox.cs`, `ArenaCastPlanner.cs`, `ArenaRound.cs`, `ArenaPlanPanel.cs`, `ArenaOrderRules.cs`, `ArenaOrderCatalog.cs`, `ArenaMatrixPlans.cs`, `ArenaMatrixDev.cs`, `ExpeditionRulesSO.cs`, `ExpeditionPanelUITK.cs` (MODIFICADOS).
+
+**Otros archivos tocados:** `Resources/Scenes/ArenaSandbox.unity` (objeto `ArenaRunDirector` + ref en `ArenaPlanPanel`), `UI Toolkit/ArenaPlanPanel.uxml` y `ArenaPlanPanelStyle.uss`, tabla `Strings` en/es (`ui.overlay.expedition.return` reescrita, `ui.overlay.expedition.lost` NUEVA), `Index/26` §8.
+
+---
+
+**Session:** 2026-09-16 (Session 123 — **REVISIÓN DEL LOTE S119-S122 (`ca9fead..bfbe258`) contra `Index/24` 6b-6c** — 0 scripts tocados; solo lectura del diff y de las firmas que usan los coders; veredicto en `Index/24` §6d)
+
+**Focus:** Juan pidió *"analiza lo que se realizó y escribe en tus anotaciones si salió todo perfecto o hay que cambiar cosas"*. Se revisaron los 27 `.cs` del rango (887 líneas nuevas) con foco en los cuatro puntos pendientes: mapeo de variantes, material tras el pull, diccionario Odin de paneles y código de coders sin revisión.
+
+**Veredicto corto:** el puente y el panel están bien construidos (eventos, desuscripción, un solo `RegistryChanged`, IDs por `UniqueID`, paneles por `display` así que `Rebuild` corre en cada apertura). No salió perfecto: **1 bug real** (`ArenaMatrixDev` → `SetOrders` → `Clamp` cambia en silencio las órdenes de los 2 combos sin variante, así que la regresión de matriz saldría sesgada), **1 riesgo de datos** (`Depart` dispara el push sin esperar y el pull de vuelta pisa lo local sin comparar fechas), **1 de feel** (sin sesión en la nube el aviso tarda los 20 s del tope) y **2 decisiones de diseño** para Juan (varias rondas por bajada cobran una sola vez; Gaviota = Empático que pelea agresivo). Limpieza: 4 campos `*Lock` de `ExpeditionRulesSO` y el parámetro `rules` de `Clamp`/`PersonalityName` quedaron muertos.
+
+**Siguiente paso:** ejecutar [[Index/26 - Plan H0 - Bajada por pisos]] (lotes E, A, B en paralelo → C → D; verificación §5) en una sesión nueva con Opus; los arreglos de §6d van en el lote E.
+
+**Archivos `.cs` modificados/creados:** ninguno. **Otros:** `Index/24` §6d y §8 (NUEVAS secciones), `Index/22` Parte 9 (NUEVA), `Index/25 - Hitos hasta el lanzamiento` (NUEVA nota), `Index/26 - Plan H0 - Bajada por pisos` (NUEVA nota, plan ejecutable para la próxima sesión), fila en `00 - Index`, memoria `combate-bases-por-personalidad`.
+
+---
+
 **Session:** 2026-09-16 (Session 119 — **PUENTE TIENDA ↔ ARENA ✅: elenco del jugador por scope, rivales bot minteados por semilla, carga de escena Single con paso de mano estático, material asegurado al inventario al volver** — 2 scripts NUEVOS + 10 MODIFICADOS, 2 escenas, build settings, UXML/USS del plan, nota `Index/24` NUEVA; verificado en Play con ida y vuelta completa; ✅ CERRADA por `/cerrar-sesion`)
 
 **Focus:** Juan pidió *"plantea el plan y la hoja de ruta de esta sesión y las siguientes, analiza la escena de gameplay para poder conectarla con tus propios MoriMonchis y la escena de la tienda, por el momento te enfrentarás a bots que se generen al azar"*. Dos Explore mapearon arena y tienda; plan en `Index/24 - Puente Tienda-Arena` (diagnóstico, arquitectura, lotes, verificación, hoja de ruta S120-S122). Juan aprobó las recomendaciones (Single + paso de mano, rivales minteados por semilla, hoy solo material, selector actual de la arena, plan en `Index/24`) y pidió ejecutar. Cuatro `morimonchi-coder` en paralelo; cableado de escena, build y verificación por MCP.

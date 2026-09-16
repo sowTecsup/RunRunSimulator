@@ -21,6 +21,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
+            <ui:Label name="plan-floor" class="plan-floor" style="display: none;" />
             <ui:ScrollView name="cast-list" class="plan-cast" />
             <ui:VisualElement class="plan-tools">
                 <ui:Button name="btn-cast" text="Elenco" class="tool" />
@@ -32,8 +33,10 @@
                 <ui:Button name="btn-room" text="Otra sala" class="tool tool--last" />
             </ui:VisualElement>
             <ui:VisualElement class="actions plan-actions">
-                <ui:Button name="btn-return" text="Volver a la tienda" class="action action--cancel plan-return" />
+                <ui:Button name="btn-giveup" text="Volver a la tienda" class="action action--cancel plan-return" style="display: none;" />
+                <ui:Button name="btn-retreat" text="Retirarse" class="action action--cancel plan-return" style="display: none;" />
                 <ui:Button name="btn-play" text="¡A LA SALA!" class="action action--accept" />
+                <ui:Button name="btn-continue" text="Seguir" class="action action--accept" style="display: none;" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="plan-rival-panel" class="panel plan-rival-panel">

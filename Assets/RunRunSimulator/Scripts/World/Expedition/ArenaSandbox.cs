@@ -78,6 +78,26 @@ public class ArenaSandbox : MonoBehaviour
     public ArenaShape ActiveShape => layout != null && layout.IsBuilt ? layout.ActiveShape : null;
     public IReadOnlyList<Vector4> PlacedObstacles => layout != null && layout.IsBuilt ? layout.PlacedObstacles : null;
 
+    public ArenaFloorKind FloorKind { get; private set; } = ArenaFloorKind.Enemies;
+
+    public bool AllMaterialTaken
+    {
+        get
+        {
+            foreach (var mineral in minerals)
+                if (mineral == null || !mineral.Taken) return false;
+
+            PerceivableRegistry.QueryInRadius(center, 200f, null, looseBuffer);
+            foreach (var p in looseBuffer)
+                if (p != null && p.Kind == PerceivableKind.Material) return false;
+
+            foreach (var controller in spawned)
+                if (controller != null && controller.Agent != null && controller.Agent.Team == ExpeditionTeam.Player && controller.Agent.Carried > 0) return false;
+
+            return true;
+        }
+    }
+
     public Vector3 SpawnPoint(ExpeditionTeam team) => layout != null && layout.IsBuilt ? layout.SpawnPoint(team) : center;
     public Vector3 ExitPoint(ExpeditionTeam team) => layout != null && layout.IsBuilt ? layout.ExitPoint(team) : center;
 
@@ -150,7 +170,7 @@ public class ArenaSandbox : MonoBehaviour
     private void Start()
     {
         Application.runInBackground = true;
-        if (ExpeditionHandoff.CameFromStore) randomizeEachPlay = true;
+        if (ExpeditionHandoff.CameFromStore) SetFloor(ArenaRun.FloorSeedOf(ExpeditionHandoff.RunSeed, 1), ArenaFloorKind.Enemies);
         BuildRoom();
 
         if (TeamLocked)
@@ -217,6 +237,14 @@ public class ArenaSandbox : MonoBehaviour
     {
         seed = value;
         randomizeEachPlay = false;
+    }
+
+    public void SetFloor(int floorSeed, ArenaFloorKind kind)
+    {
+        seed = floorSeed;
+        randomizeEachPlay = false;
+        FloorKind = kind;
+        Planner.RivalsEnabled = kind == ArenaFloorKind.Enemies;
     }
 
     public void SetCastMode(ArenaCastMode mode)
@@ -446,7 +474,7 @@ public class ArenaSandbox : MonoBehaviour
     private void SpawnExits()
     {
         SpawnExit(ExpeditionTeam.Player, new Vector3(-1f, 0f, -1f));
-        SpawnExit(ExpeditionTeam.Rival, new Vector3(1f, 0f, 1f));
+        if (FloorKind == ArenaFloorKind.Enemies) SpawnExit(ExpeditionTeam.Rival, new Vector3(1f, 0f, 1f));
     }
 
     private void SpawnExit(ExpeditionTeam team, Vector3 dir)
