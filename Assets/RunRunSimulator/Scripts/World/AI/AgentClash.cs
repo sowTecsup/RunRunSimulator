@@ -433,6 +433,7 @@ internal class AgentClash
             strike.BeginDive();
             riseFromY = ctx.Body.position.y;
             owner.Launch(ctx.Body.position + Vector3.up * LiftOffClearance, Vector3.up * riseSpeed);
+            owner.onDiveLaunch?.Invoke();
             ctx.Rb.linearDamping = 0f;
             phase      = Phase.Holding;
             phaseTimer = move.HoldSeconds;

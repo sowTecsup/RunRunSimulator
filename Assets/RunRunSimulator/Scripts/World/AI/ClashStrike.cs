@@ -183,6 +183,8 @@ internal class ClashStrike
 
     private void Land()
     {
+        owner.onDiveSlam?.Invoke();
+
         buffer.Clear();
         PerceivableRegistry.QueryInRadius(impactPoint, move.HitRadius, null, buffer);
 

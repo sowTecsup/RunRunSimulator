@@ -111,6 +111,7 @@ public class ArenaMatrixDev : MonoBehaviour
             {
                 entry.Dna.Boldness = team.Boldness[k];
                 entry.Dna.Sociability = team.Sociability[k];
+                if (ArenaBases.RoleFor(team.Orders[k], out Role role)) entry.Dna.Role = role;
                 Sandbox.SetOrders(index, team.Orders[k]);
             }
             k++;

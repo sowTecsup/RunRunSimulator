@@ -54,6 +54,7 @@ public class ArenaCueOverlay : MonoBehaviour
         public float LastHitAt = -1f;
         public Vector3 HitCenter;
         public float HitRadius = 1f;
+        public ClashSlot HitSlot = ClashSlot.Horn;
     }
 
     private readonly Dictionary<MoriMonchiController, CueState> cueCache = new();
@@ -108,9 +109,10 @@ public class ArenaCueOverlay : MonoBehaviour
                     state.LastHitAt = agent.ClashHitAt;
                     state.HitCenter = agent.ClashHitPoint + Vector3.up * style.HeightOffset;
                     var move = agent.ClashMove;
+                    state.HitSlot = move == null ? ClashSlot.Horn : move.Slot;
                     state.HitRadius = move == null ? 1f : (move.Slot == ClashSlot.Back ? move.SweepRadius : move.HitRadius);
                 }
-                if (state.LastHitAt >= 0f)
+                if (state.LastHitAt >= 0f && state.HitSlot == ClashSlot.Horn)
                 {
                     float ringT = (Time.time - state.LastHitAt) / Mathf.Max(0.01f, style.TelegraphImpactRingSeconds);
                     if (ringT < 1f)

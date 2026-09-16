@@ -269,7 +269,7 @@
     border-color: var(--mm-frame-soft);
     border-top-width: 4px;
     background-color: rgba(22, 15, 14, 0.86);
-    transition-property: translate, border-color, background-color;
+    transition-property: translate, border-color, background-color, opacity;
     transition-duration: 0.15s;
 }
 
@@ -284,6 +284,16 @@
 
 .hud-card--hit {
     border-color: var(--mm-coral);
+}
+
+.hud-card--fighting {
+    opacity: 0.7;
+}
+
+.hud-card--fighting .hud-card__pillars,
+.hud-card--fighting .hud-card__carry,
+.hud-card--fighting .hud-power__label {
+    display: none;
 }
 
 .hud-card--dazed {

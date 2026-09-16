@@ -594,6 +594,10 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [SerializeField] internal UnityEvent onClashHit;
     [TabGroup("Tuning", "Presentation")]
     [SerializeField] internal UnityEvent onKnocked;
+    [TabGroup("Tuning", "Presentation")]
+    [SerializeField] internal UnityEvent onDiveLaunch;
+    [TabGroup("Tuning", "Presentation")]
+    [SerializeField] internal UnityEvent onDiveSlam;
 
     [TabGroup("Tuning", "Dev"), Title("Live State (play mode)")]
     [ShowInInspector, ReadOnly, EnumToggleButtons]

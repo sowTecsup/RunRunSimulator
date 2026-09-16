@@ -8,9 +8,6 @@ namespace MoriMonchiSimulator
 [RequireComponent(typeof(UIDocument))]
 public class ArenaPlanPanel : MonoBehaviour
 {
-    private static readonly OrderPillar[] Pillars = { OrderPillar.Loot, OrderPillar.Contact, OrderPillar.Posture };
-    private const int ChoicesPerPillar = 2;
-
     [Required, SerializeField] private ArenaSandbox sandbox;
     [Required, SerializeField] private ArenaRound round;
     [Required, SerializeField] private ArenaCastPicker picker;
@@ -21,7 +18,7 @@ public class ArenaPlanPanel : MonoBehaviour
     private class Card
     {
         public int Index;
-        public Button[][] Pills;
+        public Button[] Pills;
         public Label Archetype;
         public Label Description;
         public Label Hint;
@@ -198,54 +195,46 @@ public class ArenaPlanPanel : MonoBehaviour
         swatch.style.backgroundColor = color;
         head.Add(swatch);
 
-        var rules = ExpeditionRulesSO.Current;
+        Role role = entry.Dna.Role;
 
         var text = new VisualElement();
         var name = new Label(entry.Dna.CustomName);
         name.AddToClassList("cast-card__name");
-        var dials = new Label($"{ArenaOrderCatalog.PersonalityName(entry.Dna, rules)} → {ArenaOrderCatalog.UnlockRead(entry.Dna, rules)}  ·  osadía {entry.Dna.Boldness:0.00}  ·  sociable {entry.Dna.Sociability:0.00}");
+        var dials = new Label($"{ArenaBases.RoleName(role)} · abre {ArenaBases.Name(ArenaBases.OpenAt(role, 0))} y {ArenaBases.Name(ArenaBases.OpenAt(role, 1))}  ·  osadía {entry.Dna.Boldness:0.00}  ·  sociable {entry.Dna.Sociability:0.00}");
         dials.AddToClassList("cast-card__dials");
         text.Add(name);
         text.Add(dials);
         head.Add(text);
         card.Add(head);
 
-        var state = new Card { Index = index, Pills = new Button[Pillars.Length][] };
+        var state = new Card { Index = index, Pills = new Button[ArenaBases.All.Length] };
 
-        for (int p = 0; p < Pillars.Length; p++)
+        var row = new VisualElement();
+        row.AddToClassList("plan-row");
+        var rowLabel = new Label("BASE");
+        rowLabel.AddToClassList("plan-row__label");
+        row.Add(rowLabel);
+
+        for (int b = 0; b < ArenaBases.All.Length; b++)
         {
-            OrderPillar pillar = Pillars[p];
-            state.Pills[p] = new Button[ChoicesPerPillar];
-
-            var row = new VisualElement();
-            row.AddToClassList("plan-row");
-            var rowLabel = new Label(ArenaOrderCatalog.PillarLabels[p]);
-            rowLabel.AddToClassList("plan-row__label");
-            row.Add(rowLabel);
-
-            for (int k = 0; k < ChoicesPerPillar; k++)
+            ArenaBase baseValue = ArenaBases.All[b];
+            bool opens = ArenaBases.Opens(role, baseValue);
+            var pill = new Button(() => ChooseBase(state, baseValue)) { text = ArenaBases.Name(baseValue) };
+            pill.AddToClassList("pill");
+            if (!opens)
             {
-                int choice = k;
-                var pill = new Button(() => ChoosePillar(state, pillar, choice)) { text = ArenaOrderCatalog.ChoiceLabel(pillar, k) };
-                pill.AddToClassList("pill");
-                if (pillar == OrderPillar.Loot) pill.AddToClassList("pill--site");
-                state.Pills[p][k] = pill;
-                row.Add(pill);
+                pill.AddToClassList("pill--closed");
+                pill.SetEnabled(false);
             }
-
-            if (ArenaOrderRules.IsLocked(entry.Dna, rules, pillar, out int forced))
-            {
-                for (int k = 0; k < ChoicesPerPillar; k++)
-                    state.Pills[p][k].SetEnabled(false);
-                state.Pills[p][forced].AddToClassList("pill--locked");
-
-                var lockLabel = new Label(ArenaOrderCatalog.LockReason(pillar, forced));
-                lockLabel.AddToClassList("plan-row__lock");
-                row.Add(lockLabel);
-            }
-
-            card.Add(row);
+            state.Pills[b] = pill;
+            row.Add(pill);
         }
+
+        var lockLabel = new Label(ArenaBases.ClosedReason(role));
+        lockLabel.AddToClassList("plan-row__lock");
+        row.Add(lockLabel);
+
+        card.Add(row);
 
         state.Archetype = new Label();
         state.Archetype.AddToClassList("cast-card__arch");
@@ -264,10 +253,10 @@ public class ArenaPlanPanel : MonoBehaviour
         return card;
     }
 
-    private void ChoosePillar(Card card, OrderPillar pillar, int choice)
+    private void ChooseBase(Card card, ArenaBase baseValue)
     {
         var entry = sandbox.PlannedCast[card.Index];
-        sandbox.SetPlayerOrders(card.Index, ArenaOrderRules.With(entry.Orders, pillar, choice));
+        sandbox.SetPlayerOrders(card.Index, ArenaBases.ToOrders(entry.Dna.Role, baseValue));
         RefreshPills(card);
     }
 
@@ -275,16 +264,14 @@ public class ArenaPlanPanel : MonoBehaviour
     {
         if (card.Index >= sandbox.PlannedCast.Count) return;
         var entry = sandbox.PlannedCast[card.Index];
+        Role role = entry.Dna.Role;
+        ArenaBases.TryBaseOf(role, entry.Orders, out ArenaBase active);
 
-        for (int p = 0; p < Pillars.Length; p++)
-        {
-            int active = ArenaOrderRules.Choice(entry.Orders, Pillars[p]);
-            for (int k = 0; k < ChoicesPerPillar; k++)
-                card.Pills[p][k].EnableInClassList("pill--on", k == active);
-        }
+        for (int b = 0; b < ArenaBases.All.Length; b++)
+            card.Pills[b].EnableInClassList("pill--on", ArenaBases.All[b] == active);
 
-        card.Archetype.text = "→ " + ArenaOrderCatalog.ArchetypeName(entry.Orders);
-        card.Description.text = ArenaOrderCatalog.ArchetypeDescription(entry.Orders);
+        card.Archetype.text = "→ " + ArenaBases.VariantName(role, active) + " · " + ArenaOrderCatalog.ArchetypeName(entry.Orders);
+        card.Description.text = ArenaBases.VariantDescription(role, active);
         card.Hint.text = ArenaOrderCatalog.CounterHint(entry.Orders);
         RefreshTeamLine();
     }
@@ -304,7 +291,6 @@ public class ArenaPlanPanel : MonoBehaviour
 
     private void RefreshRivalLine()
     {
-        var rules = ExpeditionRulesSO.Current;
         rivalList.Clear();
         if (turntable != null) turntable.HideAll();
 
@@ -323,7 +309,7 @@ public class ArenaPlanPanel : MonoBehaviour
             var text = new VisualElement();
             text.AddToClassList("rival-card__text");
 
-            var nature = new Label(ArenaOrderCatalog.PersonalityName(entry.Dna, rules));
+            var nature = new Label(ArenaBases.RivalRead(entry.Dna.Role));
             nature.AddToClassList("rival-card__nature");
             text.Add(nature);
 

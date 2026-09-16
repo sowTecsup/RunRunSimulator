@@ -47,6 +47,13 @@ public enum ArenaSite
     FarVein  = 2,
 }
 
+public enum ArenaBase
+{
+    Territory    = 0,
+    Forage       = 1,
+    Opportunism  = 2,
+}
+
 public enum LootChoice
 {
     Big   = 0,

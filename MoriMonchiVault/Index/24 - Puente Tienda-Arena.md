@@ -139,6 +139,29 @@ ExpeditionBridge (Start, corrutina)                       └→ ExpeditionHando
 
 Los cuatro lotes quedaron implementados y verificados en Play: la tienda arrancó con 10 criaturas y 3 de material; la arena leyó esos 10 del scope del jugador, minteó 3 rivales y creó 2 salidas; la ronda terminó 30-18 y la vuelta dejó el material en 33, en memoria y en disco, con un solo `GameManager` y `timeScale` 1. Una segunda ida y vuelta sin jugar no duplicó nada. La arena abierta sola sigue en modo desarrollo, sin botón de volver. Corrección propia tras la prueba: `ReturnToStore(null)` apaga `CameFromStore`. Los rivales minteados de una misma sala comparten `Timestamp`, así que su `UniqueID` solo difiere por genes.
 
+## 6c · Estado de S120-S122 (misma sesión, ejecutado de corrido) ✅
+
+**S120 · Panel de bajada.** `ExpeditionPanelUITK` (`UIPanelType.Expedition` = 8, tema nocturno, textos en la tabla `Strings` en/es): lista el registro sin muertos ni vendidos, elegible = libre y energía ≥ 30, hasta 3, teclado y clic. La terminal `WORLD/Props/PanelUI (2)` de `GameScene` (antes abría el combate Dragon RPS fallido, que sigue en la consola dev) abre la bajada. `ExpeditionBridge.RequestDeparture(ids)` por evento estático → `ExpeditionHandoff.SelectedIds` → la arena bloquea ese elenco (oculta Elenco/Elegir/Otros 3) y fuerza sala nueva por bajada. Rivales minteados con `Timestamp + i + 1` (IDs únicos).
+**S121 · Costo de bajar.** Al volver, cada criatura propia gasta `20 + 5 × tumbadas` de energía (tope 40), un solo `RegistryChanged`; `GameEvents.OnExpeditionReturned(ExpeditionReturn)` → aviso de 6 s en `InfoOverlayUITK` ("Volviste de la sala N · a-b · +M material · −E energía"). Supuesto sin respuesta ⭐ de 8.7: perder no cuesta la criatura. Sin uso del material en la tienda todavía (decisión de diseño de Juan).
+**Medido:** 10 criaturas (6 elegibles, 4 cansadas bloqueadas) → 3 elegidas → arena con esas 3 y sala 20234078 → 5-5 con 6/1/5 tumbadas → material 33 → 38 y energía 46/40/30 → 4/14/0, aviso con texto correcto, sin excepciones.
+
+**S122 · Observaciones del clip S118.** (a) `ArenaHudCard` estado `hud-card--fighting` (choque, tell o mareado, con 1,2 s de gracia): opacidad 0,7 y sin órdenes, carga ni etiquetas de poder; los radiales siguen clickeables. (b) Golpes zonales (Back/Wings) ya no dibujan `ImpactRing` centrado en la víctima, y `AbilityBursts` omite las habilidades de daño: queda solo el destello del borde de la plantilla. (c) `MoriMochiAgent.onDiveLaunch` (despegue de la picada) y `onDiveSlam` (toca el suelo, pegue o no); prefab `MorimonchiAgent/Feedbacks/OnDiveLaunch` (humo) y `OnDiveSlam` (polvo de suelo + piedras), conectados por `PlayFeedbacks`. Medido con picada forzada: 1 despegue, 1 golpe.
+
+**S122 · Bases por personalidad (diseño S118).** `ArenaBases` (estática) + `enum ArenaBase`. El `Role` abre dos bases; la variante sale del Role y se ejecuta con las órdenes existentes:
+
+| Role | Base | Variante | Órdenes |
+|---|---|---|---|
+| Protector | Territorio | Dominante | guardián del centro |
+| Protector | Rebusque | Custodio (por defecto) | recolector de la veta cercana |
+| Agresivo | Territorio | Invasor (por defecto) | cazador del centro |
+| Agresivo | Oportunismo | Hiena | señuelo de las vetas |
+| Empático | Rebusque | Compañera (por defecto) | recolectora del centro |
+| Empático | Oportunismo | Gaviota | cazadora de las vetas |
+
+`ArenaOrderRules.Clamp` ajusta a una base abierta del Role; los diales ya no bloquean (`IsLocked`, `UnlockRead`, `LockReason` borrados; los diales siguen afinando visión, choque y social). Panel de plan: una fila BASE con tres píldoras (12 px) y la cerrada con su razón; rival leído como "Protector · Territorio o Rebusque". Rivales por semilla entre sus dos bases. `ArenaRosterSO.Entry.Role` (Osado/Fiero Agresivo, Tímida/Cauta Empático, Equilibrado/Templado Protector). `ArenaMatrixDev` asigna el Role que corresponde a las órdenes del plan.
+
+**Pendiente y abierto para Juan:** (1) el mapeo de variantes a órdenes es v1 del orquestador; (2) regresión de balance con `ArenaMatrixDev` sin correr (cada ronda tarda ~1 min real en el editor); (3) en dos rondas naturales no salió ninguna picada: la súper exige rival entre `MinDistance` 4 y el alcance del movimiento, ajuste previo a esta sesión; (4) glifo de base bajo la criatura sin hacer; (5) uso del material en la tienda.
+
 ## 7 · Riesgos conocidos
 
 - El pull de la nube al volver tarda unos segundos: el material aparece cuando termina (`StartupSyncDone`). Si el sign-in falla, el tope de 20 s aplica igual y el push queda para el próximo cambio de registro o el cierre.

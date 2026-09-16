@@ -31,6 +31,9 @@ public class ArenaHudCard
     private bool lastSelected;
     private bool lastChase;
     private bool lastDazed;
+    private bool lastFighting;
+    private float fightingUntil;
+    private const float FightingHoldSeconds = 1.2f;
 
     public ArenaHudCard(MoriMochiAgent agent, Action<MoriMochiAgent> onTapped, Action<MoriMochiAgent, int> onPowerTapped)
     {
@@ -158,6 +161,15 @@ public class ArenaHudCard
         {
             lastDazed = dazed;
             Root.EnableInClassList("hud-card--dazed", dazed);
+        }
+
+        bool fightingNow = agent.ClashMove != null || agent.ClashTelegraphing || dazed;
+        if (fightingNow) fightingUntil = Time.time + FightingHoldSeconds;
+        bool fighting = Time.time < fightingUntil;
+        if (fighting != lastFighting)
+        {
+            lastFighting = fighting;
+            Root.EnableInClassList("hud-card--fighting", fighting);
         }
 
         int knocked = agent.ClashTimesKnocked;

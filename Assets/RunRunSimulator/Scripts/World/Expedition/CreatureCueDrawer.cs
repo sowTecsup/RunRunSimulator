@@ -99,7 +99,7 @@ public static class CreatureCueDrawer
         for (int i = 0; i < agent.AbilityCount; i++)
         {
             var ability = agent.Ability(i);
-            if (ability == null) continue;
+            if (ability == null || ability.Kind == AbilityKind.Damage) continue;
 
             float fired = agent.AbilityFiredAt(i);
             if (fired < 0f) continue;

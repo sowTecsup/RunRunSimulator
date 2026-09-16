@@ -13,6 +13,7 @@ public class ArenaRosterSO : SerializedScriptableObject
     {
         public string Name = "";
         public ExpeditionTeam Team = ExpeditionTeam.Player;
+        public Role Role = Role.Protector;
         [Range(0f, 1f)] public float Sociability = 0.5f;
         [Range(0f, 1f)] public float Boldness = 0.5f;
         public string BodyShapeID = "";
@@ -33,12 +34,12 @@ public class ArenaRosterSO : SerializedScriptableObject
 
         if (Entries.Count == 0)
         {
-            Entries.Add(new Entry { Name = "Osado", Team = ExpeditionTeam.Player, Sociability = 0.25f, Boldness = 0.9f, Occupation = Occupation.Guard });
-            Entries.Add(new Entry { Name = "Tímida", Team = ExpeditionTeam.Player, Sociability = 0.85f, Boldness = 0.15f, Occupation = Occupation.Gather });
-            Entries.Add(new Entry { Name = "Equilibrado", Team = ExpeditionTeam.Player, Sociability = 0.5f, Boldness = 0.5f, Occupation = Occupation.Gather });
-            Entries.Add(new Entry { Name = "Fiero", Team = ExpeditionTeam.Rival, Sociability = 0.25f, Boldness = 0.9f, Occupation = Occupation.Break });
-            Entries.Add(new Entry { Name = "Cauta", Team = ExpeditionTeam.Rival, Sociability = 0.85f, Boldness = 0.15f, Occupation = Occupation.Gather });
-            Entries.Add(new Entry { Name = "Templado", Team = ExpeditionTeam.Rival, Sociability = 0.5f, Boldness = 0.5f, Occupation = Occupation.Gather });
+            Entries.Add(new Entry { Name = "Osado", Team = ExpeditionTeam.Player, Role = Role.Agresivo, Sociability = 0.25f, Boldness = 0.9f, Occupation = Occupation.Guard });
+            Entries.Add(new Entry { Name = "Tímida", Team = ExpeditionTeam.Player, Role = Role.Empatico, Sociability = 0.85f, Boldness = 0.15f, Occupation = Occupation.Gather });
+            Entries.Add(new Entry { Name = "Equilibrado", Team = ExpeditionTeam.Player, Role = Role.Protector, Sociability = 0.5f, Boldness = 0.5f, Occupation = Occupation.Gather });
+            Entries.Add(new Entry { Name = "Fiero", Team = ExpeditionTeam.Rival, Role = Role.Agresivo, Sociability = 0.25f, Boldness = 0.9f, Occupation = Occupation.Break });
+            Entries.Add(new Entry { Name = "Cauta", Team = ExpeditionTeam.Rival, Role = Role.Empatico, Sociability = 0.85f, Boldness = 0.15f, Occupation = Occupation.Gather });
+            Entries.Add(new Entry { Name = "Templado", Team = ExpeditionTeam.Rival, Role = Role.Protector, Sociability = 0.5f, Boldness = 0.5f, Occupation = Occupation.Gather });
         }
 
 #if UNITY_EDITOR

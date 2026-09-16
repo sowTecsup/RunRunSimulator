@@ -5,46 +5,6 @@ namespace MoriMonchiSimulator
 
 public class ArenaCastPlanner
 {
-    private static readonly ArenaOrders[][] RivalPlans =
-    {
-        new[]
-        {
-            new ArenaOrders(LootChoice.Big, ContactChoice.Fight, PostureChoice.Protect),
-            new ArenaOrders(LootChoice.Big, ContactChoice.Flee, PostureChoice.Protect),
-            new ArenaOrders(LootChoice.Big, ContactChoice.Flee, PostureChoice.Protect),
-        },
-        new[]
-        {
-            new ArenaOrders(LootChoice.Small, ContactChoice.Flee, PostureChoice.Protect),
-            new ArenaOrders(LootChoice.Small, ContactChoice.Flee, PostureChoice.Protect),
-            new ArenaOrders(LootChoice.Big, ContactChoice.Flee, PostureChoice.Aggressive),
-        },
-        new[]
-        {
-            new ArenaOrders(LootChoice.Big, ContactChoice.Fight, PostureChoice.Aggressive),
-            new ArenaOrders(LootChoice.Small, ContactChoice.Fight, PostureChoice.Aggressive),
-            new ArenaOrders(LootChoice.Small, ContactChoice.Flee, PostureChoice.Protect),
-        },
-        new[]
-        {
-            new ArenaOrders(LootChoice.Small, ContactChoice.Fight, PostureChoice.Protect),
-            new ArenaOrders(LootChoice.Small, ContactChoice.Flee, PostureChoice.Protect),
-            new ArenaOrders(LootChoice.Small, ContactChoice.Flee, PostureChoice.Protect),
-        },
-        new[]
-        {
-            new ArenaOrders(LootChoice.Small, ContactChoice.Fight, PostureChoice.Aggressive),
-            new ArenaOrders(LootChoice.Small, ContactChoice.Flee, PostureChoice.Aggressive),
-            new ArenaOrders(LootChoice.Big, ContactChoice.Flee, PostureChoice.Protect),
-        },
-        new[]
-        {
-            new ArenaOrders(LootChoice.Big, ContactChoice.Fight, PostureChoice.Protect),
-            new ArenaOrders(LootChoice.Big, ContactChoice.Fight, PostureChoice.Aggressive),
-            new ArenaOrders(LootChoice.Small, ContactChoice.Flee, PostureChoice.Protect),
-        },
-    };
-
     private readonly ArenaRosterSO roster;
     private readonly Func<CreatureDNA> mint;
     private readonly ExpeditionRulesSO rules;
@@ -96,7 +56,10 @@ public class ArenaCastPlanner
         if (!HasTeams)
         {
             for (int i = 0; i < freeCount; i++)
-                planned.Add(new ArenaCastEntry { Dna = mint(), Team = ExpeditionTeam.None, Orders = ArenaOrders.Default });
+            {
+                var dna = mint();
+                planned.Add(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.None, Orders = ArenaBases.ToOrders(dna.Role, ArenaBases.Default(dna.Role)) });
+            }
             return;
         }
 
@@ -105,25 +68,23 @@ public class ArenaCastPlanner
             var picked = localSelection.Count > 0 ? localSelection : ArenaCastSource.Pick(Pool(), LocalCount, castSeed);
             LocalAvailable = picked.Count > 0;
             foreach (var dna in picked)
-                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, rules, ArenaOrders.Default) }));
+                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, rules, ArenaBases.ToOrders(dna.Role, ArenaBases.Default(dna.Role))) }));
         }
 
         if (Mode == ArenaCastMode.Roster || (!LocalAvailable && HasRoster))
         {
             foreach (var entry in roster.Entries)
                 if (entry.Team == ExpeditionTeam.Player)
-                    planned.Add(Remembered(FromRoster(entry, ArenaOrderRules.FromOccupation(entry.Occupation, ArenaSite.Center))));
+                    planned.Add(Remembered(FromRoster(entry, ArenaBases.ToOrders(entry.Role, ArenaBases.Default(entry.Role)))));
         }
         else if (Mode == ArenaCastMode.LocalSave && !LocalAvailable)
         {
             for (int i = 0; i < LocalCount; i++)
             {
                 var dna = mint();
-                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, rules, ArenaOrders.Default) }));
+                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, rules, ArenaBases.ToOrders(dna.Role, ArenaBases.Default(dna.Role))) }));
             }
         }
-
-        var plan = RivalPlans[Math.Abs(roomSeed) % RivalPlans.Length];
 
         if (Mode == ArenaCastMode.LocalSave)
         {
@@ -132,7 +93,8 @@ public class ArenaCastPlanner
             {
                 var dna = mint();
                 dna.Timestamp += i + 1;
-                planned.Add(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Rival, Orders = ArenaOrderRules.Clamp(dna, rules, plan[i % plan.Length]) });
+                ArenaBase baseValue = ArenaBases.OpenAt(dna.Role, (Math.Abs(roomSeed) >> i) & 1);
+                planned.Add(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Rival, Orders = ArenaBases.ToOrders(dna.Role, baseValue) });
             }
             UnityEngine.Random.InitState(castSeed);
         }
@@ -142,7 +104,8 @@ public class ArenaCastPlanner
             foreach (var entry in roster.Entries)
             {
                 if (entry.Team != ExpeditionTeam.Rival) continue;
-                planned.Add(FromRoster(entry, plan[rivalIndex % plan.Length]));
+                ArenaBase baseValue = ArenaBases.OpenAt(entry.Role, (Math.Abs(roomSeed) >> rivalIndex) & 1);
+                planned.Add(FromRoster(entry, ArenaBases.ToOrders(entry.Role, baseValue)));
                 rivalIndex++;
             }
         }
@@ -169,6 +132,7 @@ public class ArenaCastPlanner
     private ArenaCastEntry FromRoster(ArenaRosterSO.Entry entry, ArenaOrders orders)
     {
         var dna = mint();
+        dna.Role = entry.Role;
         dna.Sociability = entry.Sociability;
         dna.Boldness = entry.Boldness;
         if (!string.IsNullOrEmpty(entry.Name)) dna.CustomName = entry.Name;

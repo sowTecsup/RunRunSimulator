@@ -49,21 +49,8 @@ public static class ArenaOrderCatalog
 
     public static string PersonalityName(CreatureDNA dna, ExpeditionRulesSO rules)
     {
-        if (dna == null || rules == null) return "Equilibrado";
-        bool bold = dna.Boldness >= rules.BoldFightLock;
-        bool shy = dna.Boldness <= rules.ShyFleeLock;
-        bool social = dna.Sociability >= rules.SocialProtectLock;
-        bool loner = dna.Sociability <= rules.LonerAggressiveLock;
-
-        if (bold && loner) return "Osado solitario";
-        if (bold && social) return "Osado sociable";
-        if (shy && social) return "Tímido sociable";
-        if (shy && loner) return "Tímido solitario";
-        if (bold) return "Osado";
-        if (shy) return "Tímido";
-        if (social) return "Sociable";
-        if (loner) return "Solitario";
-        return "Equilibrado";
+        if (dna == null) return "Equilibrado";
+        return ArenaBases.RoleName(dna.Role);
     }
 
     public static string CounterHint(ArenaOrders o)
@@ -105,24 +92,8 @@ public static class ArenaOrderCatalog
 
     public static string RivalRead(CreatureDNA dna, ExpeditionRulesSO rules)
     {
-        bool lockedContact = ArenaOrderRules.IsLocked(dna, rules, OrderPillar.Contact, out int contact);
-        bool lockedPosture = ArenaOrderRules.IsLocked(dna, rules, OrderPillar.Posture, out int posture);
-        if (lockedContact && lockedPosture)
-            return ArchetypeShort(new ArenaOrders(LootChoice.Big, (ContactChoice)contact, (PostureChoice)posture)).ToLowerInvariant() + " seguro";
-        if (lockedContact) return contact == (int)ContactChoice.Fight ? "guardián o cazador" : "recolector o señuelo";
-        if (lockedPosture) return posture == (int)PostureChoice.Protect ? "guardián o recolector" : "cazador o señuelo";
-        return "puede hacer cualquiera";
-    }
-
-    public static string UnlockRead(CreatureDNA dna, ExpeditionRulesSO rules)
-    {
-        bool lockedContact = ArenaOrderRules.IsLocked(dna, rules, OrderPillar.Contact, out int contact);
-        bool lockedPosture = ArenaOrderRules.IsLocked(dna, rules, OrderPillar.Posture, out int posture);
-        if (lockedContact && lockedPosture)
-            return "desbloquea " + ArchetypeShort(new ArenaOrders(LootChoice.Big, (ContactChoice)contact, (PostureChoice)posture)).ToLowerInvariant();
-        if (lockedContact) return contact == (int)ContactChoice.Fight ? "elige guardián o cazador" : "elige recolector o señuelo";
-        if (lockedPosture) return posture == (int)PostureChoice.Protect ? "elige guardián o recolector" : "elige cazador o señuelo";
-        return "elige las cuatro posturas";
+        if (dna == null) return "puede hacer cualquiera";
+        return ArenaBases.RivalRead(dna.Role);
     }
 
     public static string RoomText(ArenaRoomRead read)
@@ -130,15 +101,6 @@ public static class ArenaOrderCatalog
         string terrain = read.Obstacles >= 11 ? "cubierta (" + read.Obstacles + " obstáculos para escapar)" : read.Obstacles >= 7 ? "mixta (" + read.Obstacles + " obstáculos)" : "abierta (" + read.Obstacles + " obstáculos)";
         string veins = read.VeinCount == 0 ? "sin vetas" : read.VeinCount + " vetas chicas (" + read.VeinTotal + " en total, la más cercana a " + read.NearVeinDistance.ToString("0") + " m de tu salida)";
         return "Botín: cristal central de " + read.LodeValue + " a " + read.CenterDistance.ToString("0") + " m · " + veins + " · Sala " + terrain;
-    }
-
-    public static string LockReason(OrderPillar pillar, int forced)
-    {
-        if (pillar == OrderPillar.Contact)
-            return forced == (int)ContactChoice.Fight ? "nunca huye" : "nunca pelea";
-        if (pillar == OrderPillar.Posture)
-            return forced == (int)PostureChoice.Protect ? "nunca deja al grupo" : "va a lo suyo";
-        return "";
     }
 }
 }

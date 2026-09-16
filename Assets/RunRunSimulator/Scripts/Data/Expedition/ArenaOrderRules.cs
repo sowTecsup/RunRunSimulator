@@ -49,31 +49,11 @@ public static class ArenaOrderRules
         return o;
     }
 
-    public static bool IsLocked(CreatureDNA dna, ExpeditionRulesSO rules, OrderPillar pillar, out int forced)
-    {
-        forced = -1;
-        if (dna == null || rules == null) return false;
-
-        switch (pillar)
-        {
-            case OrderPillar.Contact:
-                if (dna.Boldness >= rules.BoldFightLock) forced = (int)ContactChoice.Fight;
-                else if (dna.Boldness <= rules.ShyFleeLock) forced = (int)ContactChoice.Flee;
-                break;
-            case OrderPillar.Posture:
-                if (dna.Sociability >= rules.SocialProtectLock) forced = (int)PostureChoice.Protect;
-                else if (dna.Sociability <= rules.LonerAggressiveLock) forced = (int)PostureChoice.Aggressive;
-                break;
-        }
-
-        return forced >= 0;
-    }
-
     public static ArenaOrders Clamp(CreatureDNA dna, ExpeditionRulesSO rules, ArenaOrders o)
     {
-        if (IsLocked(dna, rules, OrderPillar.Contact, out int contact)) o.Contact = (ContactChoice)contact;
-        if (IsLocked(dna, rules, OrderPillar.Posture, out int posture)) o.Posture = (PostureChoice)posture;
-        return o;
+        if (dna == null) return o;
+        if (ArenaBases.TryBaseOf(dna.Role, o, out _)) return o;
+        return ArenaBases.ToOrders(dna.Role, ArenaBases.Default(dna.Role));
     }
 }
 }

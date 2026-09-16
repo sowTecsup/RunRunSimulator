@@ -238,13 +238,14 @@
 
 .plan-row {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     margin-top: 4px;
 }
 
 .plan-row__label {
-    width: 70px;
-    font-size: 10px;
+    width: 46px;
+    font-size: 11px;
     color: var(--mm-ink-soft);
     letter-spacing: 1px;
     -unity-text-align: middle-left;
@@ -253,7 +254,7 @@
 .pill {
     flex-grow: 1;
     flex-basis: 0;
-    height: 24px;
+    height: 28px;
     margin: 0 3px 0 0;
     padding: 0;
     border-radius: 8px;
@@ -261,7 +262,7 @@
     border-color: var(--mm-frame-soft);
     background-color: var(--mm-surface);
     color: var(--mm-ink);
-    font-size: 10px;
+    font-size: 12px;
     -unity-font-style: bold;
 }
 
@@ -293,10 +294,19 @@
     opacity: 0.35;
 }
 
+.pill--closed {
+    color: var(--mm-ink-soft);
+    border-color: var(--mm-frame-soft);
+    background-color: var(--mm-surface-2);
+    -unity-font-style: italic;
+}
+
 .plan-row__lock {
-    font-size: 9px;
+    width: 100%;
+    font-size: 11px;
     color: var(--mm-plum);
-    margin-left: 4px;
+    padding-left: 46px;
+    margin-top: 2px;
     -unity-font-style: italic;
 }
 
