@@ -50,6 +50,8 @@ public class CloudSyncService : MonoBehaviour
 
     public TimeSpan ServerOffset => auth?.ServerOffset ?? TimeSpan.Zero;
 
+    public bool StartupSyncDone { get; private set; }
+
     public Task InitializeAsync() => auth.InitializeAsync();
     public Task PushAsync() => syncOps.PushAsync();
     public Task PullAsync() => syncOps.PullAsync();
@@ -89,7 +91,14 @@ public class CloudSyncService : MonoBehaviour
         }
 
         await auth.FetchServerTimeAsync();
-        await syncOps.PullAsync();
+        try
+        {
+            await syncOps.PullAsync();
+        }
+        finally
+        {
+            StartupSyncDone = true;
+        }
     }
 
     [Button("Sign In Anonymous (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.6f, 0.6f)]

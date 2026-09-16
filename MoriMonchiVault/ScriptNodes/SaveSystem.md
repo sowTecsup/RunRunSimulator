@@ -69,3 +69,6 @@ private static readonly JsonSerializerSettings Settings = new JsonSerializerSett
 
 **Conexiones:** [[GameManager]], [[CloudSyncService]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[SocialGraphService]]
 
+
+## S119 · Lectura sin registro para la arena
+- `LoadDatabaseCopy()`: devuelve el diccionario del save del scope actual (o el no scoped si el scoped no existe, sin copiarlo); `null` si no hay scope o no hay archivo. No toca `CreatureRegistrySO` ni dispara eventos. Lo consume [[ArenaCastSource]] para que la arena lea las criaturas de la cuenta activa tras venir de la tienda ([[ExpeditionHandoff]]).

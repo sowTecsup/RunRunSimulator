@@ -88,6 +88,22 @@ public static class SaveSystem
         registry.LoadFrom(data);
     }
 
+    public static Dictionary<string, CreatureDNA> LoadDatabaseCopy()
+    {
+        if (string.IsNullOrEmpty(_userScope)) return null;
+
+        string path = DbPath;
+        if (!File.Exists(path))
+        {
+            string defaultPath = Path.Combine(Application.persistentDataPath, DB_FILENAME);
+            if (File.Exists(defaultPath)) path = defaultPath;
+            else return null;
+        }
+
+        return JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(
+            File.ReadAllText(path), Settings);
+    }
+
     public static void SaveFurniture(FurnitureRegistrySO registry)
     {
         string path = ScopedPath(FURNITURE_FILENAME);

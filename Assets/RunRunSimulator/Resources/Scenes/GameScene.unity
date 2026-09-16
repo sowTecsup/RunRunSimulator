@@ -22978,6 +22978,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1218711423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1038142489
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1038142491}
+  - component: {fileID: 1038142490}
+  m_Layer: 0
+  m_Name: ExpeditionBridge
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1038142490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1038142489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d10977af695a8c142aab4e0702f5ff08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ExpeditionBridge
+  cloudSync: {fileID: 1443145214}
+  syncTimeoutSeconds: 20
+--- !u!4 &1038142491
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1038142489}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1038386430
 GameObject:
   m_ObjectHideFlags: 0
@@ -23380,6 +23426,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.DevToolsConsole
   gameManager: {fileID: 1046970362}
+  expeditionBridge: {fileID: 1038142490}
   devDabloonsAmount: 500
   devEquipmentItem: {fileID: 0}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
@@ -26409,6 +26456,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DevToolsConsole
   gameManager: {fileID: 1046970362}
+  expeditionBridge: {fileID: 0}
   devDabloonsAmount: 500
   devEquipmentItem: {fileID: 0}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
@@ -36599,3 +36647,4 @@ SceneRoots:
   - {fileID: 705842633}
   - {fileID: 1102137020}
   - {fileID: 3273127015860121874}
+  - {fileID: 1038142491}

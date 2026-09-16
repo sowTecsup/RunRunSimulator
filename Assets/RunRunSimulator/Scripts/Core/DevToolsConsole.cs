@@ -10,6 +10,9 @@ public class DevToolsConsole : MonoBehaviour
     [BoxGroup("Setup"), Required]
     [SerializeField] private GameManager gameManager;
 
+    [BoxGroup("Expedition (DEV)"), SerializeField]
+    private ExpeditionBridge expeditionBridge;
+
     [Title("Dev Tools")]
     [BoxGroup("Dev Tools"), SerializeField, LabelText("Dabloons to add")]
     private int devDabloonsAmount = 500;
@@ -141,6 +144,14 @@ public class DevToolsConsole : MonoBehaviour
         }
         GameEvents.RegistryChanged(registry);
         Debug.Log($"[DevToolsConsole] Rerolled potentials on {touched} creatures.");
+    }
+
+    [Button("Salir de expedición (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.9f, 1f), BoxGroup("Expedition (DEV)")]
+    private void DevDepartExpedition()
+    {
+        if (!Application.isPlaying) { Debug.LogWarning("[DevToolsConsole] Solo en Play."); return; }
+        if (expeditionBridge == null) { Debug.LogWarning("[DevToolsConsole] No ExpeditionBridge assigned."); return; }
+        expeditionBridge.Depart();
     }
 
     [Button("Simulate Combat (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]

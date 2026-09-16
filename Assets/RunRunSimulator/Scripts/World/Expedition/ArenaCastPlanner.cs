@@ -67,6 +67,9 @@ public class ArenaCastPlanner
     public bool HasRoster => roster != null && roster.Entries != null && roster.Entries.Count > 0;
     public IReadOnlyList<CreatureDNA> LocalPool => Pool();
     public bool HasLocalSelection => localSelection.Count > 0;
+    public bool HasTeams => Mode == ArenaCastMode.LocalSave || HasRoster;
+
+    private const int RivalCount = 3;
 
     public void SetMode(ArenaCastMode mode) => Mode = mode;
 
@@ -90,7 +93,7 @@ public class ArenaCastPlanner
         UnityEngine.Random.InitState(castSeed);
         LocalAvailable = true;
 
-        if (!HasRoster)
+        if (!HasTeams)
         {
             for (int i = 0; i < freeCount; i++)
                 planned.Add(new ArenaCastEntry { Dna = mint(), Team = ExpeditionTeam.None, Orders = ArenaOrders.Default });
@@ -105,20 +108,42 @@ public class ArenaCastPlanner
                 planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, rules, ArenaOrders.Default) }));
         }
 
-        if (Mode == ArenaCastMode.Roster || !LocalAvailable)
+        if (Mode == ArenaCastMode.Roster || (!LocalAvailable && HasRoster))
         {
             foreach (var entry in roster.Entries)
                 if (entry.Team == ExpeditionTeam.Player)
                     planned.Add(Remembered(FromRoster(entry, ArenaOrderRules.FromOccupation(entry.Occupation, ArenaSite.Center))));
         }
+        else if (Mode == ArenaCastMode.LocalSave && !LocalAvailable)
+        {
+            for (int i = 0; i < LocalCount; i++)
+            {
+                var dna = mint();
+                planned.Add(Remembered(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Player, Orders = ArenaOrderRules.Clamp(dna, rules, ArenaOrders.Default) }));
+            }
+        }
 
         var plan = RivalPlans[Math.Abs(roomSeed) % RivalPlans.Length];
-        int rivalIndex = 0;
-        foreach (var entry in roster.Entries)
+
+        if (Mode == ArenaCastMode.LocalSave)
         {
-            if (entry.Team != ExpeditionTeam.Rival) continue;
-            planned.Add(FromRoster(entry, plan[rivalIndex % plan.Length]));
-            rivalIndex++;
+            UnityEngine.Random.InitState(roomSeed);
+            for (int i = 0; i < RivalCount; i++)
+            {
+                var dna = mint();
+                planned.Add(new ArenaCastEntry { Dna = dna, Team = ExpeditionTeam.Rival, Orders = ArenaOrderRules.Clamp(dna, rules, plan[i % plan.Length]) });
+            }
+            UnityEngine.Random.InitState(castSeed);
+        }
+        else
+        {
+            int rivalIndex = 0;
+            foreach (var entry in roster.Entries)
+            {
+                if (entry.Team != ExpeditionTeam.Rival) continue;
+                planned.Add(FromRoster(entry, plan[rivalIndex % plan.Length]));
+                rivalIndex++;
+            }
         }
     }
 
@@ -163,6 +188,11 @@ public class ArenaCastPlanner
         return entry;
     }
 
-    private static string PlanKey(CreatureDNA dna) => dna == null ? "" : dna.CustomName;
+    private static string PlanKey(CreatureDNA dna)
+    {
+        if (dna == null) return "";
+        var id = dna.UniqueID;
+        return string.IsNullOrEmpty(id) ? dna.CustomName : id;
+    }
 }
 }

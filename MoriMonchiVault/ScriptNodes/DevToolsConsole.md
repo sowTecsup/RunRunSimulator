@@ -1,12 +1,12 @@
 ---
-tags: [script, dev-tools, equipment, combat]
+tags: [script, dev-tools, equipment, combat, expedition]
 ---
 
 # DevToolsConsole.cs
 
 **Ruta:** `Core/DevToolsConsole.cs`
 
-**Responsabilidad:** Componente dev (MonoBehaviour) para manipular inventario y combate en editor/testing sin interfaz de juego (playtesting rápido). Buttons Odin (BoxGroups): Dabloons, Furniture, World Props, Equipment (S33), **Combat (S95)**. Cada acción muta `gameManager.Inventory` o `gameManager.Registry` vía su API pública, emite `GameEvents.InventoryChanged()` / `GameEvents.RegistryChanged()`. Refs serializadas [SerializeField]. Solo para desarrollo (no incluir en builds release).
+**Responsabilidad:** Componente dev (MonoBehaviour) para manipular inventario, combate y expediciones en editor/testing sin interfaz de juego (playtesting rápido). Buttons Odin (BoxGroups): Dabloons, Furniture, World Props, Equipment (S33), Combat (S95), **Expedition (S119)**. Cada acción muta `gameManager.Inventory` o `gameManager.Registry` vía su API pública, emite `GameEvents.InventoryChanged()` / `GameEvents.RegistryChanged()`. Refs serializadas [SerializeField]. Solo para desarrollo (no incluir en builds release).
 
 ## BoxGroups / Buttons Odin
 
@@ -40,7 +40,14 @@ tags: [script, dev-tools, equipment, combat]
 |--------|--------|------|------|
 | `Open Combat Panel (DEV)` | Abre panel combate | — | `UIManager.RequestPanelSet(UIPanelType.Combat, true)` |
 | `Reroll Potentials (DEV)` | Re-genera potenciales todas criaturas vivas | `combatTuning` (fallback CreateInstance) | Itera registry, asigna RandomMintPotential a cada DNA, dispara RegistryChanged |
-| `Simulate Combat (DEV)` | Simula 5 combates secuenciales | `combatTuning`, seed+RNG | Crea sesiones, juega hasta fin (Play(0) repeat), logguea resultado/material/cooldown |
+
+### Expedition (DEV) — S119
+
+**Buttons para probar transiciones y flujo de expedición:**
+
+| Button | Acción | Refs | Muta |
+|--------|--------|------|------|
+| `Salir de expedición (DEV)` | **S119 NUEVO** Dispara ExpeditionBridge.Depart() | `expeditionBridge` (ref) | Llama `gameManager.FlushToCloud()`, `ExpeditionHandoff.GoToArena()`, carga ArenaSandbox |
 
 ## Campos Serializados
 
@@ -53,6 +60,8 @@ tags: [script, dev-tools, equipment, combat]
 | `equipmentDatabase` | Equipment (DEV) | `EquipmentDatabaseSO` | **S33** Para catalog completo |
 | — | — | — | — |
 | `combatTuning` | Combat (DEV) | `CombatTuningSO` | **S95** Tuning (cooldown/material/etc); fallback CreateInstance si null |
+| — | — | — | — |
+| **`expeditionBridge`** | **Expedition (DEV)** | **ExpeditionBridge** | **S119 NUEVO** Ref al componente de puente (para llamar Depart()) |
 
 ## Flujo Típico (Playtesting)
 
@@ -65,7 +74,11 @@ tags: [script, dev-tools, equipment, combat]
 ### Combate (S95)
 1. **Reroll Potentials:** Da a todas criaturas potenciales 1-3 aleatorios
 2. **Open Combat Panel:** Abre UI combate para jugar manualmente
-3. **Simulate Combat:** Corre 5 combates automáticos (Play(0)=elección aleatoria cada turno), logguea resultados
+
+### Expedición (S119)
+1. **Salir de expedición:** Click button → Parte a arena (ArenaSandbox)
+2. **Juega ronda en arena:** Combate, recolecta minerales
+3. **Retorna:** Botón "Volver a tienda" en ArenaPlanPanel → ExpeditionHandoff.ReturnToStore() → vuelve a tienda con rewards
 
 ## Mensajes Debug
 
@@ -75,15 +88,13 @@ Cada button logguea a console:
 [DevToolsConsole] Equipment owned list cleared.
 [DevToolsConsole] +1 Sword (EQ_SWORD_01)
 [DevToolsConsole] Added 23 equipment items from catalog.
-[DevToolsConsole] Combat panel requested.
-[DevToolsConsole] Rerolled potentials on 12 creatures.
-[DevToolsConsole] Combat 1: Monchi1 (budget 6) vs Salvaje Monchi2 (budget 7) → WIN 2-1 in 3 rounds | material=36 cooldownUntil=0
 ```
 
 ## Vinculado a
 
 - [[Index/09 - Dev Tools]]
 - [[Index/21 - Combate v3 - Dragon RPS]]
+- [[Index/24 - Puente Tienda-Arena]]
 - [[GameManager]] — ref, obtiene Inventory/Registry singleton
 - [[PlayerInventorySO]] — muta via API pública
 - [[CreatureRegistrySO]] — **S95** muta DNA potenciales
@@ -100,13 +111,14 @@ Cada button logguea a console:
 - `CreatureRegistrySO.GetAll()`, muta potenciales
 - `GameEvents.InventoryChanged(inventory)`, `GameEvents.RegistryChanged(registry)`
 - `UIManager.RequestPanelSet(UIPanelType.Combat, true)` **S95**
-- `DragonRpsService.Seed()`, `Start()`, `Resolve()` **S95**
+- `ExpeditionBridge.Depart()` **S119**
+- `ExpeditionHandoff.GoToArena()` **S119**
 
 ## Notas
 
 - **S33 Equipment:** Buttons para dev-test la grilla libre sin UI.
-- **S95 Combat:** 3 nuevos buttons para combate: panel directo, potencial reroll, simulación automática.
-- **combatTuning fallback:** Si no asigna SO en inspector, crea CreateInstance con defaults (20min cooldown / 3 material).
-- **Simulate Combat:** Play(0) = elección aleatoria (índice 0 siempre); ideal para testear balanceo 5-combates rápidos.
+- **S95 Combat:** Button para potencial reroll y panel directo.
+- **S119 Expedition:** Botón rápido para testear flujo de navegación arena/tienda.
+- **combatTuning fallback:** Si no asigna SO en inspector, crea CreateInstance con defaults.
 - **Safety:** Logguea warnings si refs null — no crashea.
 

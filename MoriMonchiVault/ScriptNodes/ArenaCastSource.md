@@ -6,48 +6,63 @@ tags: [script, world, expedition, data-loading, static-utility]
 
 **Ruta:** `World/Expedition/ArenaCastSource.cs`
 
-**Responsabilidad:** Utilidad estática de lectura pura (sin estado mutable) para cargar el elenco de criaturas desde el save local o muestrear un pool vía semilla. Busca el archivo `creature_database*.json` más reciente en PersistentDataPath, deserializa e filtra vivos.
+**Responsabilidad:** Utilidad estática de lectura pura (sin estado mutable) para cargar el elenco de criaturas desde el save local o muestrear un pool vía semilla. Busca el archivo `creature_database*.json` más reciente en PersistentDataPath, deserializa y filtra vivos. **S119:** sin cambios de API; parte del flujo ArenaCastPlanner/ArenaSandbox.
 
 ## Métodos Estáticos
 
-- `LoadLocal() → List<CreatureDNA>` — lee save local:
-  1. Lista archivos `creature_database*.json` en Application.persistentDataPath
-  2. Si no hay: retorna empty
-  3. Ordena por LastWriteTimeUtc desc (más reciente primero)
-  4. SaveSystem.Deserialize(file[0].ReadAllText())
-  5. Filtra: `!dna.IsDead`
-  6. Ordena por Timestamp asc
-  7. Debug.Log cantidad
-  8. Try-catch + warning si error
-  9. Retorna lista
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `List<CreatureDNA> LoadLocal()` | Carga save local — lista archivos `creature_database*.json`, ordena por LastWriteTime desc (más reciente), deserializa, filtra vivos (IsDead=false), ordena por Timestamp asc, logguea |
+| `List<CreatureDNA> Pick(List<CreatureDNA> pool, int count, int seed)` | Muestrea pool con Fisher-Yates shuffle seeded, retorna primeros count elementos |
 
-- `Pick(List<CreatureDNA> pool, int count, int seed) → List<CreatureDNA>` — muestrea pool:
-  1. Si pool vacío o count ≤ 0: retorna empty
-  2. Fisher-Yates shuffle seeded
-  3. Toma primeros `count` elementos
-  4. Retorna lista
+## LoadLocal() Flujo
 
-## Invariantes S102
+1. Llamar SaveSystem.LoadDatabaseCopy() si scope activo (S119: expedición siempre tiene scope)
+2. Si scoped: retorna copia filtrada y ordenada
+3. Si no scoped o error: lista archivos `creature_database*.json` en Application.persistentDataPath
+4. Si no hay: retorna empty
+5. Ordena por LastWriteTimeUtc desc (más reciente primero)
+6. SaveSystem.Deserialize(file[0].ReadAllText())
+7. Filtra: `!dna.IsDead`
+8. Ordena por Timestamp asc
+9. Debug.Log(f"[ArenaCastSource] {result.Count} MoriMonchis vivos en {filename}")
+10. Try-catch + warning si error
+11. Retorna lista
+
+## Pick() Flujo
+
+1. Si pool vacío o count ≤ 0: retorna empty
+2. Copia pool a new List<CreatureDNA>(pool)
+3. Fisher-Yates shuffle seeded con System.Random(seed):
+   - Para i = Count-1 down to 1:
+     - j = rng.Next(i+1)
+     - Swap order[i] ↔ order[j]
+4. Toma primeros count elementos, añade a picked
+5. Retorna picked
+
+## Invariantes S102+S119
 
 - **Lectura pura:** sin estado, sin mutación global
 - **Determinístico:** Pick es reproducible por seed vía Fisher-Yates
-- **Más reciente:** ordena por LastWriteTime (respeta histórico de saves)
-- **Filtro vivos:** solo IsDead=false
+- **Más reciente:** LoadLocal ordena por LastWriteTime (respeta histórico de saves)
+- **Filtro vivos:** solo IsDead=false (criaturas muertas excluidas)
 - **Logging:** info y warning a consola para debugging
-- **Non-alloc parcial:** reutiliza lista Order en Pick, pero crea nueva para resultado
+- **S119:** integridad de save local previo a transición a arena
 
 ## Casos de Uso
 
 - **ArenaCastPlanner.Prepare():** llama LoadLocal() + Pick() si Mode=LocalSave
-- **ArenaSandbox:** obtiene elenco rival desde LoadLocal()
+- **ArenaCastPicker.BuildGrid():** usa sandbox.LocalPool que viene de ArenaCastSource
+- **S119:** flujo expedición depende de LoadLocal() consistent
 
 ## Conexiones
 
-- [[SaveSystem]] (Deserialize)
+- [[SaveSystem]] (Deserialize, LoadDatabaseCopy)
 - [[ArenaCastPlanner]] (consume LoadLocal + Pick)
-- [[CreatureDNA]] (filtro IsDead, Timestamp)
+- [[CreatureDNA]] (filtro IsDead, Timestamp, BaseColor)
 - [[ArenaSandbox]] (opción LocalSave vs Roster)
+- [[ArenaCastPicker]] (acceso pool)
 
 ## Vinculado a
 
-[[Index/23 - Arena Sandbox y Expedicion]]
+[[Index/23 - Arena Sandbox y Expedicion]], [[Index/24 - Puente Tienda-Arena]]

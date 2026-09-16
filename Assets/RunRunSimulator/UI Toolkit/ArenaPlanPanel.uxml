@@ -32,6 +32,7 @@
                 <ui:Button name="btn-room" text="Otra sala" class="tool tool--last" />
             </ui:VisualElement>
             <ui:VisualElement class="actions plan-actions">
+                <ui:Button name="btn-return" text="Volver a la tienda" class="action action--cancel plan-return" />
                 <ui:Button name="btn-play" text="¡A LA SALA!" class="action action--accept" />
             </ui:VisualElement>
         </ui:VisualElement>

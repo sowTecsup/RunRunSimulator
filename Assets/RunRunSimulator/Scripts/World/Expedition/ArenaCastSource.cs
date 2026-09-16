@@ -9,6 +9,14 @@ public static class ArenaCastSource
 {
     public static List<CreatureDNA> LoadLocal()
     {
+        var scoped = SaveSystem.LoadDatabaseCopy();
+        if (scoped != null)
+        {
+            var scopedResult = AliveOrdered(scoped);
+            Debug.Log($"[ArenaCastSource] {scopedResult.Count} MoriMonchis vivos del jugador");
+            return scopedResult;
+        }
+
         var result = new List<CreatureDNA>();
         string directory = Application.persistentDataPath;
         if (!Directory.Exists(directory)) return result;
@@ -23,10 +31,7 @@ public static class ArenaCastSource
             var data = SaveSystem.Deserialize(File.ReadAllText(files[0]));
             if (data == null) return result;
 
-            foreach (var dna in data.Values)
-                if (dna != null && !dna.IsDead) result.Add(dna);
-
-            result.Sort((a, b) => a.Timestamp.CompareTo(b.Timestamp));
+            result = AliveOrdered(data);
             Debug.Log($"[ArenaCastSource] {result.Count} MoriMonchis vivos en {Path.GetFileName(files[0])}");
         }
         catch (Exception e)
@@ -35,6 +40,16 @@ public static class ArenaCastSource
             result.Clear();
         }
 
+        return result;
+    }
+
+    private static List<CreatureDNA> AliveOrdered(Dictionary<string, CreatureDNA> data)
+    {
+        var result = new List<CreatureDNA>();
+        foreach (var dna in data.Values)
+            if (dna != null && !dna.IsDead) result.Add(dna);
+
+        result.Sort((a, b) => a.Timestamp.CompareTo(b.Timestamp));
         return result;
     }
 

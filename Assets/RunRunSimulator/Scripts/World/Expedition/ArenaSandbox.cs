@@ -70,6 +70,7 @@ public class ArenaSandbox : MonoBehaviour
     public ArenaCastMode CastMode => Planner.Mode;
     public bool LocalCastAvailable => Planner.LocalAvailable;
     public IReadOnlyList<CreatureDNA> LocalPool => Planner.LocalPool;
+    public bool HasTeams => Planner.HasTeams;
     public string EntryName => layout != null && layout.IsBuilt ? layout.EntryName : "diagonal";
     public string PaletteName => palette != null && palette.Current != null ? palette.Current.DisplayName : "";
     public string ShapeName => layout != null && layout.IsBuilt ? layout.ShapeName : "cuadrado";
@@ -183,7 +184,7 @@ public class ArenaSandbox : MonoBehaviour
         if (layout != null) layout.Build(activeSeed, filter);
         center = layout != null && layout.IsBuilt ? layout.Center : (spawnCenter != null ? spawnCenter.position : transform.position);
         if (palette != null) palette.ApplyIndex(paletteIndex >= 0 ? paletteIndex : palette.IndexForSeed(activeSeed));
-        if (Planner.HasRoster) SpawnExits();
+        if (Planner.HasTeams) SpawnExits();
         SpawnMinerals();
         BoardFor(ExpeditionTeam.Player).SetSites(minerals);
         BoardFor(ExpeditionTeam.Rival).SetSites(minerals);
@@ -206,6 +207,7 @@ public class ArenaSandbox : MonoBehaviour
     public void SetCastMode(ArenaCastMode mode)
     {
         Planner.SetMode(mode);
+        if (exits.Count == 0 && Planner.HasTeams && roomBuilt) SpawnExits();
         Planner.Prepare(activeSeed, castSeed, count);
     }
 

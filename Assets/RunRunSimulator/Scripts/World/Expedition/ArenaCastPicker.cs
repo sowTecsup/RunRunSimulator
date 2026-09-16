@@ -79,7 +79,8 @@ public class ArenaCastPicker : MonoBehaviour
         {
             if (entry.Team != ExpeditionTeam.Player || entry.Dna == null) continue;
             if (entry.Dna == dna) return true;
-            if (entry.Dna.CustomName == dna.CustomName) return true;
+            if (!string.IsNullOrEmpty(entry.Dna.UniqueID) && !string.IsNullOrEmpty(dna.UniqueID)
+                && entry.Dna.UniqueID == dna.UniqueID) return true;
         }
         return false;
     }

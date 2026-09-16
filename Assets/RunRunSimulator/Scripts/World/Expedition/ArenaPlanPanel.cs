@@ -37,6 +37,7 @@ public class ArenaPlanPanel : MonoBehaviour
     private Button paletteButton;
     private Button roomButton;
     private Button playButton;
+    private Button returnButton;
 
     private readonly List<Card> cards = new();
     private bool visible;
@@ -47,6 +48,7 @@ public class ArenaPlanPanel : MonoBehaviour
     private int pendingTheirs;
     private int lastPlannedCount = -1;
     private int lastSeed = int.MinValue;
+    private ExpeditionResult? lastResult;
 
     private void OnEnable()
     {
@@ -62,6 +64,7 @@ public class ArenaPlanPanel : MonoBehaviour
         paletteButton = root.Q<Button>("btn-palette");
         roomButton = root.Q<Button>("btn-room");
         playButton = root.Q<Button>("btn-play");
+        returnButton = root.Q<Button>("btn-return");
 
         castButton.clicked += ToggleCastMode;
         pickButton.clicked += OpenPicker;
@@ -69,6 +72,9 @@ public class ArenaPlanPanel : MonoBehaviour
         paletteButton.clicked += CyclePalette;
         roomButton.clicked += NewRoom;
         playButton.clicked += Play;
+        returnButton.clicked += ReturnToStore;
+
+        returnButton.style.display = ExpeditionHandoff.CameFromStore ? DisplayStyle.Flex : DisplayStyle.None;
 
         lastPlannedCount = -1;
         lastSeed = int.MinValue;
@@ -85,6 +91,7 @@ public class ArenaPlanPanel : MonoBehaviour
         paletteButton.clicked -= CyclePalette;
         roomButton.clicked -= NewRoom;
         playButton.clicked -= Play;
+        returnButton.clicked -= ReturnToStore;
     }
 
     private void Update()
@@ -104,6 +111,14 @@ public class ArenaPlanPanel : MonoBehaviour
             pendingWinner = round.Winner;
             pendingMine = round.PlayerSecured;
             pendingTheirs = round.RivalSecured;
+            lastResult = new ExpeditionResult
+            {
+                Seed = sandbox.ActiveSeed,
+                Winner = round.Winner,
+                PlayerSecured = round.PlayerSecured,
+                RivalSecured = round.RivalSecured,
+                Stats = new List<ArenaRoundStat>(round.Summary)
+            };
         }
 
         if (roundEndHandled && !visible && Time.time - roundEndedAt >= resultHoldSeconds)
@@ -348,9 +363,16 @@ public class ArenaPlanPanel : MonoBehaviour
     private void Play()
     {
         resultPanel.Hide();
+        lastResult = null;
         round.Launch();
         roundEndHandled = false;
         SetVisible(false);
+    }
+
+    private void ReturnToStore()
+    {
+        ExpeditionHandoff.ReturnToStore(lastResult);
+        lastResult = null;
     }
 }
 }

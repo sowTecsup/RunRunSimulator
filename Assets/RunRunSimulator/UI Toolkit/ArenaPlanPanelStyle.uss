@@ -356,6 +356,10 @@
     margin-right: 0;
 }
 
+.plan-actions .plan-return {
+    margin-right: 10px;
+}
+
 .picker {
     position: absolute;
     left: 0;

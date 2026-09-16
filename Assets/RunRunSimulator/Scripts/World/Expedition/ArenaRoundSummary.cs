@@ -5,6 +5,7 @@ namespace MoriMonchiSimulator
 
 public struct ArenaRoundStat
 {
+    public string Id;
     public string Name;
     public ExpeditionTeam Team;
     public ArenaOrders Orders;
@@ -35,6 +36,7 @@ public static class ArenaRoundSummary
 
             result.Add(new ArenaRoundStat
             {
+                Id = agent.DNA.UniqueID,
                 Name = agent.DNA.CustomName,
                 Team = agent.Team,
                 Orders = agent.Orders,
