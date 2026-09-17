@@ -4,6 +4,19 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-17 (Session 126 — **EXTRACCIÓN DEL "MINI SHAPES" A PAQUETE UPM REUTILIZABLE** — ⏸️ pendiente de revisión)
+
+**Focus:** Juan pidió sacar nuestro dibujante de guías como paquete independiente de MoriMonchi para llevarlo a otros proyectos. Copia aparte: el juego sigue usando `CueDrawer`/`MonchiCue.shader` sin cambios.
+
+- Paquete `Packages/com.sowtank.minishapes/` (namespace `Sowtank.MiniShapes`): `ShapeDraw` (10 formas, materiales autocargados de `Resources/MiniShapes`), `ShapeId`, `PathDrawer`/`PathStyle`/`PathState` genéricos (lista de puntos, sin NavMesh), shader `MiniShapes/Shape` + `MiniShapeSDF.hlsl` (una función por forma; stencil y ZTest configurables), `Samples~/Demo`, README, CHANGELOG y guía `Documentation~/MiniShapes.md` (uso, vara Shapes, cómo crear formas nuevas).
+- **Sin verificar en Unity:** el MCP estaba conectado a ApocaliptoBabylon (solo refresh + resolve, sin mutar nada ahí).
+
+**Siguiente paso (pendiente acordado con Juan):** pequeña revisión del paquete — abrir RunRunSimulator, compilar, crear los 3 `.mat` (`MiniShape` 1/10 q3100 · `MiniShapeAdditive` 1/1 q3100 · `MiniShapeBack` 1/10 q3090) y probar la demo. Luego sigue lo de S125 (`Index/27`).
+
+**Archivos `.cs` modificados/creados:** ninguno del juego (todo nuevo dentro del paquete; no requiere ScriptNodes).
+
+---
+
 **Session:** 2026-09-16 (Session 125 — **THEORYCRAFTING: INTENCIONES EN VIVO (Pelear · Huir · Recolectar por criatura, interpretadas por personalidad) → BORRADOR AISLADO `Index/27` ✅** — 0 scripts tocados; vault-documenter NO corre; ✅ CERRADA por `/cerrar-sesion` + apagado de la PC a pedido de Juan)
 
 **Focus:** Juan: *"dictas 3 intenciones del morimonchi, pelear, huir, recolectar, tres switches, solo uno a la vez; los morimonchis dependiendo de su personalidad lo interpretan a su manera"*. Deliberación en tres rondas de decisiones.
