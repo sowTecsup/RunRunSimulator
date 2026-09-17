@@ -4,6 +4,21 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-16 (Session 125 — **THEORYCRAFTING: INTENCIONES EN VIVO (Pelear · Huir · Recolectar por criatura, interpretadas por personalidad) → BORRADOR AISLADO `Index/27` ✅** — 0 scripts tocados; vault-documenter NO corre; ✅ CERRADA por `/cerrar-sesion` + apagado de la PC a pedido de Juan)
+
+**Focus:** Juan: *"dictas 3 intenciones del morimonchi, pelear, huir, recolectar, tres switches, solo uno a la vez; los morimonchis dependiendo de su personalidad lo interpretan a su manera"*. Deliberación en tres rondas de decisiones.
+
+1. **Decidido por Juan:** switch por criatura, cambio en vivo sin espera, reemplaza las bases de S122 y las órdenes de 3 pilares; Huir = ponerse a salvo (incluida la plantilla de un ataque cargándose) y poder volver a pelear, no salir de la sala; los rasgos no deciden la intención pero sí cómo responde.
+2. **Borrador** [[Index/27 - Intenciones en vivo (Draft)]] (aislado, sin enlace desde `00 - Index`): tabla Role × Intención (9 celdas), rasgos → respuesta, plan por lotes A datos · B comportamiento (`AgentEvade` nuevo) · C tarjeta y panel · D rivales (se corta), mutaciones con OK, 5 preguntas abiertas y riesgos (microgestión, huida demasiado fuerte).
+
+**Siguiente paso:** Juan analiza `Index/27` (sugerido con **Fable**, como pedía S124) y responde las 5 abiertas; después plan de ejecución en el formato de `Index/26`. H0 sigue pendiente: drenaje de vida en la tienda, números −15/+30, 5 bajadas a 1×.
+
+**Archivos `.cs` modificados/creados:** ninguno.
+
+**Otros archivos tocados:** `Index/27 - Intenciones en vivo (Draft).md` (NUEVO).
+
+---
+
 **Session:** 2026-09-16 (Session 124 — **H0 BAJADA POR PISOS ✅ implementada y verificada en Play + corrección de Juan: se arriesga la vida, no la energía; PAUSADA para theorycrafting; ✅ CERRADA por `/cerrar-sesion`** — 3 scripts NUEVOS + 16 MODIFICADOS, escena `ArenaSandbox`, UXML/USS del plan, tabla `Strings`; plan en `Index/26` con ajustes de ejecución §8)
 
 **Focus:** Juan: *"Ejecuta el plan creado porfavor H0"*. Cinco `morimonchi-coder` (A run, B sala por piso, E arreglos §6d en paralelo; C director y puente, D panel entre pisos en paralelo); ajustes de orquestador antes de lanzar (§8 de `Index/26`: semilla base en el handoff, `SetFloor` sin reconstruir, estado del panel por el director); un ajuste mío después (`[DefaultExecutionOrder(-50)]` en el director); cableado de escena y claves por MCP (Juan pidió ejecutar el plan, que listaba esas mutaciones).
