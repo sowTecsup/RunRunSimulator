@@ -224,9 +224,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -261,9 +258,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -460,9 +454,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -487,9 +478,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -686,9 +674,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -713,9 +698,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -912,9 +894,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -939,9 +918,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -1138,9 +1114,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -1165,9 +1138,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -1364,9 +1334,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -1391,9 +1358,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -1590,9 +1554,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -1617,9 +1578,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -1816,9 +1774,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -1843,9 +1798,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -2042,9 +1994,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -2069,9 +2018,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8
@@ -2268,9 +2214,6 @@ MonoBehaviour:
     - Name: BreedReadyAt
       Entry: 3
       Data: 0
-    - Name: CombatCooldownUntil
-      Entry: 3
-      Data: 0
     - Name: BreedPartnerID
       Entry: 1
       Data: 
@@ -2295,9 +2238,6 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 8
-      Data: 
-    - Name: HeldItemId
-      Entry: 1
       Data: 
     - Name: 
       Entry: 8

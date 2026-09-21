@@ -1,4 +1,3 @@
-using System.Linq;
 using Sirenix.OdinInspector;
 using UnityEngine;
 namespace MoriMonchiSimulator
@@ -23,9 +22,8 @@ public class DevToolsConsole : MonoBehaviour
         if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
         var inventory = gameManager.Inventory;
         if (inventory == null) { Debug.LogWarning("[DevToolsConsole] No inventory assigned."); return; }
-        inventory.AddDabloons(devDabloonsAmount);
-        GameEvents.InventoryChanged(inventory);
-        Debug.Log($"[DevToolsConsole] +{devDabloonsAmount} Dabloons → total: {inventory.Dabloons}");
+        Wallet.Add(Currency.Dabloons, devDabloonsAmount, "dev");
+        Debug.Log($"[DevToolsConsole] +{devDabloonsAmount} Dabloons → total: {inventory.Balance(Currency.Dabloons)}");
     }
 
     [Button("Reset Dabloons (DEV)", ButtonSizes.Medium), GUIColor(1f, 0.5f, 0.3f), BoxGroup("Dev Tools")]
@@ -34,7 +32,7 @@ public class DevToolsConsole : MonoBehaviour
         if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
         var inventory = gameManager.Inventory;
         if (inventory == null) { Debug.LogWarning("[DevToolsConsole] No inventory assigned."); return; }
-        inventory.ResetDabloons();
+        inventory.ResetCurrency(Currency.Dabloons);
         GameEvents.InventoryChanged(inventory);
         Debug.Log("[DevToolsConsole] Dabloons reset to 0.");
     }
@@ -112,22 +110,7 @@ public class DevToolsConsole : MonoBehaviour
         Debug.Log("[DevToolsConsole] Equipment owned list cleared.");
     }
 
-    [BoxGroup("Combat (DEV)"), SerializeField, AssetsOnly]
-    private CombatTuningSO combatTuning;
-
-    private CombatTuningSO ResolveTuning()
-    {
-        return combatTuning != null ? combatTuning : ScriptableObject.CreateInstance<CombatTuningSO>();
-    }
-
-    [Button("Open Combat Panel (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.9f, 1f), BoxGroup("Combat (DEV)")]
-    private void DevOpenCombatPanel()
-    {
-        UIManager.RequestPanelSet(UIPanelType.Combat, true);
-        Debug.Log("[DevToolsConsole] Combat panel requested.");
-    }
-
-    [Button("Reroll Potentials (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]
+    [Button("Reroll Potentials (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Genetics (DEV)")]
     private void DevRerollPotentials()
     {
         if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
@@ -152,30 +135,6 @@ public class DevToolsConsole : MonoBehaviour
         if (!Application.isPlaying) { Debug.LogWarning("[DevToolsConsole] Solo en Play."); return; }
         if (expeditionBridge == null) { Debug.LogWarning("[DevToolsConsole] No ExpeditionBridge assigned."); return; }
         expeditionBridge.Depart();
-    }
-
-    [Button("Simulate Combat (DEV)", ButtonSizes.Medium), GUIColor(0.9f, 0.75f, 0.2f), BoxGroup("Combat (DEV)")]
-    private void DevSimulateCombat()
-    {
-        if (gameManager == null) { Debug.LogWarning("[DevToolsConsole] No GameManager assigned."); return; }
-        var registry = gameManager.Registry;
-        if (registry == null) { Debug.LogWarning("[DevToolsConsole] No registry assigned."); return; }
-        var inventory = gameManager.Inventory;
-        if (inventory == null) { Debug.LogWarning("[DevToolsConsole] No inventory assigned."); return; }
-        var tuning = ResolveTuning();
-        var now = GameManager.Now;
-        for (int i = 0; i < 5; i++)
-        {
-            var player = registry.GetAll().Values.FirstOrDefault(dna => DragonRpsGenes.CanFight(dna, tuning, now));
-            if (player == null) { Debug.LogWarning("[DevToolsConsole] No eligible creature to fight."); return; }
-            int seed = DragonRpsService.Seed(player, now) + i;
-            var rival = DragonRpsRival.Generate(registry, player, tuning, new System.Random(seed));
-            if (rival == null) { Debug.LogWarning("[DevToolsConsole] No eligible rival to fight."); return; }
-            var session = DragonRpsService.Start(player, rival, seed);
-            while (!session.Finished) session.Play(0);
-            var outcome = DragonRpsService.Resolve(session, player, registry, inventory, tuning, now);
-            Debug.Log($"[DevToolsConsole] Combat {i + 1}: {player.CustomName} (budget {DragonRpsGenes.Budget(player)}) vs {rival.CustomName} (budget {DragonRpsGenes.Budget(rival)}) → {(outcome.Won ? "WIN" : "LOSE")} {outcome.HitsPlayer}-{outcome.HitsRival} in {outcome.Rounds} rounds | material={inventory.AdventureMaterial} cooldownUntil={outcome.CooldownUntilTicks}");
-        }
     }
 }
 }

@@ -69,15 +69,12 @@ public class CreatureDNA
     public DateTime SaleDate;
 
     public long   BreedReadyAt   = 0;
-    public long   CombatCooldownUntil = 0;
     public string BreedPartnerID = "";
     public string LocationKey  = "";
     public int    LocationSlot = -1;
 
     [HideInInspector]
     public Dictionary<EquipmentSlot, string> Equipped = new Dictionary<EquipmentSlot, string>();
-
-    [HideInInspector] public string HeldItemId = "";
 
 #if UNITY_EDITOR
     [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.BoxGroup("Equipment"), Sirenix.OdinInspector.AssetsOnly, Sirenix.OdinInspector.LabelText("Weapon")]

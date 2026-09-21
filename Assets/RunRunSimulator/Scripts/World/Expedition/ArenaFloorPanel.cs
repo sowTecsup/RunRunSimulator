@@ -87,8 +87,8 @@ public class ArenaFloorPanel
         if (director.FloorRecorded)
         {
             floorLabel.text = (run.CurrentKind == ArenaFloorKind.Buff
-                ? $"Piso {run.Floor} superado · llevás {run.Material} material"
-                : $"Piso {run.Floor} terminado · llevás {run.Material} material") + $"\n{TeamHealthLine(run)}";
+                ? $"Piso {run.Floor} superado · llevás {run.Material} Minerita"
+                : $"Piso {run.Floor} terminado · llevás {run.Material} Minerita") + $"\n{TeamHealthLine(run)}";
 
             bool anyDown = AnyDown(run);
             playButton.style.display = DisplayStyle.None;

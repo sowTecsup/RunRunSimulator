@@ -2,34 +2,33 @@
 tags: [script, core, singleton]
 ---
 
-# GameManager.cs
+# GameManager
 
 **Ruta:** `Core/GameManager.cs`
 
-**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a assets (databases, registries, configs). Único orquestador de persistencia: escucha `GameEvents.RegistryChanged`, `FurnitureChanged`, `InventoryChanged` e invoca persistencia local/cloud. Propiedades estáticas: `CurrentInventory` (PlayerInventorySO), `Now` (DateTime con offset servidor). `OnDestroy()` limpia Instance. `MintRandomCreature()` genera random creature y la registra.
-
-**S93:** Agregados getters estáticos `CurrentInventory` y `Now`. Eliminado `FlushForSceneChange()`. Eliminada referencia a `CutieMarkDatabase`. `OnDestroy()` limpia Instance de forma segura. **S124:** Sin cambios estructurales; continúa orquestando persistencia de expediciones vía GameEvents.
+**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a databases y registries. **Único orquestador de persistencia local:** escucha `GameEvents.OnRegistryChanged`, `OnFurnitureChanged`, `OnInventoryChanged` e invoca `SaveSystem` a disco. **S128:** Push agrupado a nube con `pushDelaySeconds` (default 5); se cancela y sube ya en quit/pause; `Time.unscaledTime` para que pausa no congele timer.
 
 ## Métodos Públicos
 
 | Método | Descripción |
 |--------|-------------|
-| `PushToCloud()` | Fire-and-forget async push vía `CloudSyncService.PushAsync()` |
-| `FlushToCloud()` | Save local (creatures + social graph) + push cloud |
-| `MintRandomCreature()` | Genera random creature vía `GenerateRandom()`, asigna género/elemento/rol/stats/diales/nombre, registra |
+| `PushToCloud()` | Dispara `cloudSync.PushAsync()` (fire-and-forget) |
+| `FlushToCloudAsync()` | Guarda ALL a disco + espera push cloud (síncrono de persist) |
+| `MintRandomCreature()` | Genera random, asigna género/elemento/rol/stats/diales/nombre, registra, retorna ID |
+| `CollectLooseWorldProps()` | Busca en escena props sueltos (debug) |
 
 ## Propiedades Estáticas
 
 | Propiedad | Tipo | Descripción |
 |-----------|------|-------------|
 | `Instance` | `GameManager` | Singleton; null si destroyed |
-| `CurrentInventory` | `PlayerInventorySO` | Acceso rápido: `GameManager.CurrentInventory` vs `GameManager.Instance.Inventory` |
+| `CurrentInventory` | `PlayerInventorySO` | Acceso rápido (nueva en S93) |
 | `Now` | `DateTime` | Hora con offset servidor (CloudSyncService.ServerOffset) |
 
-## Getters de Referencias
+## Getters de Referencias (serializados)
 
 - `Registry` — CreatureRegistrySO
-- `Database` — CreatureDatabaseSO (con Horns, Backs, Wings, Faces)
+- `Database` — CreatureDatabaseSO (Horns, Backs, Wings, Faces)
 - `FurnitureRegistry` — FurnitureRegistrySO
 - `Inventory` — PlayerInventorySO
 - `FurTypeDatabase` — FurTypeDatabaseSO
@@ -38,31 +37,41 @@ tags: [script, core, singleton]
 - `MonchiVisualBank` — MonchiVisualBankSO
 - `RoleWorldProfiles` — RoleWorldProfileSO
 
+## Persistencia S128
+
+**Push agrupado:**
+1. Evento gameplay → `Persist()` / `PersistFurniture()` / `PersistInventory()`
+2. Guarda a disco vía [[SaveSystem]]
+3. `RequestPush()` → `pushPending = true`, `pushDeadline = Time.unscaledTime + pushDelaySeconds`
+4. `Update()` → si `Time.unscaledTime >= pushDeadline` → `PushToCloud()`
+
+**Flush forzado:**
+- `OnApplicationQuit()` y `OnApplicationPause(paused: true)` → `FlushToCloudAsync()` (guarda a disco + espera push)
+- Expedición retorno: [[ExpeditionBridge]] aplica `RegistryChanged` → GameManager persiste
+
+**Variación S128 vs S93:** Timer usa `Time.unscaledTime` (no `Time.time`), así pausa no bloquea el push.
+
 ## Ciclo de Vida
 
 1. `Awake()` → `Instance = this`
-2. `OnEnable()` → Suscribe a eventos (OnRegistryChanged, OnFurnitureChanged, OnInventoryChanged)
-3. Gameplay → eventos → `Persist()` (SaveDatabase + PushToCloud)
-4. Expedición (S124) → ArenaRunDirector.Retreat() → ExpeditionHandoff.ReturnToStore() → carga tienda → ExpeditionBridge aplica resultado (inventario + energía)
-5. `OnApplicationQuit()` / `OnApplicationPause()` → `CollectLooseWorldProps()` + `FlushToCloud()`
+2. `OnEnable()` → Suscribe a 3 eventos (Registry/Furniture/Inventory)
+3. Gameplay → eventos → `Persist()` (SaveSystem + RequestPush)
+4. `Update()` → si deadline vencido → push async
+5. Quit/Pause → `FlushToCloudAsync()`
 6. `OnDestroy()` → Limpia `Instance` si es el mismo
 
-## Eventos Orquestados (sin lógica de gameplay)
+## Invariantes S128+
 
-GameManager **escucha** pero no **dispara**. Los eventos que monitorea:
-- `GameEvents.OnRegistryChanged` — gameplay alteró registry
-- `GameEvents.OnFurnitureChanged` — furniture mutó
-- `GameEvents.OnInventoryChanged` — inventario cambió
-
-## Invariantes S93+S124
-
-- Singleton: Awake crea Instance, OnDestroy limpia si es el mismo
+- Singleton: Awake crea, OnDestroy limpia si es el mismo
 - No disparador de eventos: solo consumidor de persistencia
-- Acceso centralizado: todas las referencias públicas por getter, no direct SerializeField exposure
-- Persistencia order: Local (SaveDatabase) → Cloud (PushAsync) — nunca inversión
+- Acceso centralizado: todas las referencias por getter, no SerializeField directo
+- Persistencia order: Disco (SaveSystem) → Nube (PushAsync) — nunca inversión
+- Push agrupado: múltiples mutaciones → un solo push en 5 s
+- Sin escala de tiempo: push no se congela con pausa
 
 ## Vinculado a
 
 [[Index/07 - Persistence & Identity]]
 
 **Conexiones:** [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[CloudSyncService]], [[CreatureGenerator]], [[GameEvents]], [[SaveSystem]]
+

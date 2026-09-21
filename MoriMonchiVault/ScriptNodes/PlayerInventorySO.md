@@ -6,63 +6,115 @@ tags: [scriptable-object, inventory, persistence]
 
 **Ruta:** `Data/Player/PlayerInventorySO.cs`
 
-**Responsabilidad:** Inventario persistente del jugador (SO único). Gestiona seis categorías: furniture (F# set), world props (I# list con dupes), equipment (EQ# grids libres por slot), hotbar (6 I# slots), Dabloons (moneda principal), Materiales (AdventureMaterial, PassiveMaterial, EvolutionEssence). Dueno de verdad de "qué posee el jugador". Mutaciones solo a través de métodos explícitos; cada mutación llama `MarkDirty()` y dispara `GameEvents.InventoryChanged(inventory)`. Persiste via JSON local + Cloud Save.
+**Responsabilidad:** Dato persistente del jugador (SO). Contiene dos monedas (`Dabloons`, `Minerita`), muebles desbloqueados, props del mundo, grillas de equipo y slots hotbar. **S128:** métodos públicos `Balance()`, `Add()`, `TrySpend()`, `ResetCurrency()`; `adventureMaterial` renombrada a `minerita` con `[PreviouslySerializedAs]`. Nunca llama `SaveSystem` ni dispara eventos; lo hace [[Wallet]] (puerta única de mutaciones).
 
-**S93:** Materiales tienen solo getters (read-only); lógica de gasto/suma vive en GameManager o sistemas de gameplay especializados.
+## Campos Públicos (Serializados Odin)
 
-**S95:** Agregado método `AddAdventureMaterial(int amount)` para suma de material de aventura (patrón idéntico a AddDabloons).
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `furnitureOwned` | `List<string>` | IDs de muebles desbloqueados (set: sin duplicados) |
+| `worldPropsStored` | `List<string>` | IDs de props del mundo (list: permite dupes) |
+| `equipmentGrids` | `Dictionary<EquipmentSlot, List<string>>` | Grillas de equipo por slot |
+| `hotbarSlots` | `string[6]` | 6 slots hotbar (I# ids, persisten) |
+| `dabloons` | `int` | Primera moneda (compras, venta, reembolso) |
+| `minerita` | `int` | Segunda moneda (exploración, evolución); migrada de `adventureMaterial` (v1→v2) |
 
-## Estructura de Datos (InventoryData)
+## Métodos Públicos
 
-| Categoría | Tipo | Descripción |
-|-----------|------|-------------|
-| **Furniture owned** | `List<string>` | FurnitureDefinitionSO; ownership = posesión |
-| **World props** | `List<string>` | ItemDefinitionSO; instances con dupes |
-| **Equipment grids** | `Dict<EquipmentSlot, List<string>>` | EquipmentSO; free-placement por slot |
-| **Hotbar slots** | `string[6]` | I# refs, persistentes entre sesiones |
-| **Dabloons** | `int` | Moneda principal |
-| **AdventureMaterial** | `int` | Material de aventura (getter only) |
-| **PassiveMaterial** | `int` | Material pasivo (getter only) |
-| **EvolutionEssence** | `int` | Esencia de evolución (getter only) |
-
-## API Pública
+### Monedas (S128 NUEVO)
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
-| `AdventureMaterial` | `int` | Getter (readonly) |
-| `AddAdventureMaterial(int amount)` | `void` | **S95** Suma material de aventura (patrón AddDabloons) |
-| `PassiveMaterial` | `int` | Getter (readonly) |
-| `EvolutionEssence` | `int` | Getter (readonly) |
-| `GetData()` | `InventoryData` | Retorna snapshot serializable |
-| `LoadFrom(InventoryData data)` | `void` | Deserializa desde cloud/JSON |
-| `AddWorldProp(itemId)` | `void` | Suma una instancia de prop |
-| ... (furniture/equipment/hotbar methods) | ... | Operaciones específicas de cada categoría |
+| `Balance(Currency c)` | `int` | Lee saldo de moneda (Dabloons o Minerita) |
+| `Add(Currency c, int amount)` | `void` | Suma cantidad a moneda (sin validar amount > 0; lo hace [[Wallet]]) |
+| `TrySpend(Currency c, int amount)` | `bool` | Intenta gastar; si saldo < amount → false; si ok → gasta, retorna true |
+| `ResetCurrency(Currency c, int value)` | `void` | Setea moneda a valor exacto (debug) |
 
-## Materiales (S93)
+### Muebles
 
-Campos internos solo lectura desde afuera:
-- `AdventureMaterial` — getter int
-- `PassiveMaterial` — getter int
-- `EvolutionEssence` — getter int
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `AddFurniture(string id)` | `bool` | Añade mueble si no existe; false si ya tiene |
+| `HasFurniture(string id)` | `bool` | Consulta si posee mueble |
+| `FurnitureOwned` (property) | `IReadOnlyList<string>` | Read-only lista de muebles |
 
-**Lógica de gasto:** Delegada a GameManager/sistemas de gameplay que mutarían el SO directamente (no hay Add/Spend públicos). Cada mutación dispara `GameEvents.InventoryChanged(inventory)`.
+### Props del Mundo
 
-## Persistencia
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `AddWorldProp(string id)` | `void` | Añade prop (permite dupes) |
+| `RemoveWorldProp(string id)` | `bool` | Remueve primera instancia de prop |
+| `WorldPropsStored` (property) | `IReadOnlyList<string>` | Read-only lista de props |
 
-**InventoryData:** Estructura JSON con 8 campos. GameManager escucha `GameEvents.InventoryChanged(inventory)` y dispara:
-1. `SaveSystem.SaveInventory(inventory)` → local JSON
-2. Cloud push vía `CloudSyncService.PushAsync()`
+### Equipo
 
-## Ciclo de Vida (carga)
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `AddEquipment(EquipmentSlot slot, string id)` | `void` | Añade equipo al primer slot vacío de grilla; si no hay → añade al final |
+| `RemoveEquipmentAt(EquipmentSlot slot, int index)` | `bool` | Remueve equipo en celda; retorna false si vacía |
+| `EquipmentAt(EquipmentSlot slot, int index)` | `string` | Lee equipo en celda (null si vacía) |
+| `GridFor(EquipmentSlot slot)` | `List<string>` | Acceso directo a grilla de slot (lazy-init) |
+| `CellCountOf(EquipmentSlot slot)` | `int` | Cantidad de celdas en grilla |
 
-1. `GameManager.Awake()` → `SaveSystem.LoadInventory(inventory)` carga JSON local
-2. `Inventory.LoadFrom(data)` embudo de carga
-3. `GameEvents.InventoryReloaded(inventory)` notifica UI
+### Hotbar
+
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `SetHotbarSlot(int slot, string id)` | `bool` | Setea ID en slot 0-5; false si fuera de rango |
+| `HotbarSlot(int slot)` | `string` | Lee ID del slot (null si vacío) |
+| `ClearHotbarSlot(int slot)` | `void` | Vacía slot |
+
+### Persistencia
+
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `LoadFrom(InventoryData data)` | `void` | Carga desde [[SaveSystem]]; null → valores por defecto |
+| `GetData()` | `InventoryData` | Retorna struct serializable para guardar |
+| `MarkDirty()` | `void` | Señala cambio (Odin, persiste el SO en disco inmediato) |
+
+## Monedas S128
+
+```csharp
+public enum Currency { Dabloons, Minerita }
+```
+
+**Dabloons:** compras en tienda, venta de criaturas, reembolso de muebles.
+
+**Minerita:** ganada en expediciones, usada en evolución. Antes `AdventureMaterial` (v1, migrada a v2).
+
+## Migración v1 → v2
+
+```csharp
+[OdinSerialize, ReadOnly, PreviouslySerializedAs("adventureMaterial")]
+private int minerita;
+```
+
+Odin `[PreviouslySerializedAs]` + [[SaveMigrations]] v1→v2 renombran `AdventureMaterial` → `Minerita`.
+
+**Borrados:** `PassiveMaterial`, `EvolutionEssence` (v1 solo).
+
+## Patrón de Acceso
+
+**Nunca mutación directa:**
+
+```csharp
+// ❌ NO:
+GameManager.CurrentInventory.dabloons -= 50;
+
+// ✅ SÍ:
+Wallet.TrySpend(Currency.Dabloons, 50, "buy_ring");
+```
+
+[[Wallet]] es la puerta única. Registra en log, dispara `GameEvents.InventoryChanged`, persiste.
+
+## CreateAssetMenu
+
+**Menu path:** `RunRunSimulator/Player/Player Inventory`
 
 ## Vinculado a
 
-- [[Index/07 - Persistence & Identity]]
-- [[Index/21 - Combate v3 - Dragon RPS]]
+[[Index/28 - Cimientos y camino a Game Ready]] (§3 · dos monedas)
+[[Index/29 - Plan HC - Cimientos (ejecutable)]] (§5 · C3 cartera)
 
-**Conexiones:** [[GameManager]], [[SaveSystem]], [[CloudSyncService]], [[GameEvents]], [[CashRegister]], [[DragonRpsService]]
+**Conexiones:** [[Wallet]], [[GameManager]], [[SaveSystem]], [[StoreManager]], [[GameEvents]], [[CreatureDisplay]], [[StorePanelUITK]]
 

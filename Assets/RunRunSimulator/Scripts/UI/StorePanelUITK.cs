@@ -114,7 +114,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     private void RefreshBalance(PlayerInventorySO inv)
     {
         if (balanceLabel == null) return;
-        balanceLabel.text = inv != null ? Loc.Tr("ui.store.balance", inv.Dabloons) : "";
+        balanceLabel.text = inv != null ? Loc.Tr("ui.store.balance", inv.Balance(Currency.Dabloons)) : "";
     }
 
     private void ShowNotify(string message)

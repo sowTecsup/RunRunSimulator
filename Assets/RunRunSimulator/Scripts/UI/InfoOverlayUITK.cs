@@ -132,8 +132,8 @@ public class InfoOverlayUITK : MonoBehaviour
     private void RefreshDabloons(PlayerInventorySO inv)
     {
         if (dabloonsLabel == null || inv == null) return;
-        dabloonsLabel.text = Loc.Tr(DabloonsKey, inv.Dabloons);
-        if (materialLabel != null) materialLabel.text = Loc.Tr(MaterialKey, inv.AdventureMaterial);
+        dabloonsLabel.text = Loc.Tr(DabloonsKey, inv.Balance(Currency.Dabloons));
+        if (materialLabel != null) materialLabel.text = Loc.Tr(MaterialKey, inv.Balance(Currency.Minerita));
     }
 
     private void HandleExpeditionReturned(ExpeditionReturn r)
@@ -161,7 +161,7 @@ public class InfoOverlayUITK : MonoBehaviour
         }
         else
         {
-            expeditionToastLabel.text = Loc.Tr(ExpeditionReturnKey, r.Floors, r.MaterialGained, energy);
+            expeditionToastLabel.text = Loc.Tr(ExpeditionReturnKey, r.Floors, r.MineritaGained, energy);
             string resultClass = r.Winner == ExpeditionTeam.Player ? "toast--win"
                 : r.Winner == ExpeditionTeam.Rival ? "toast--lose"
                 : "toast--draw";

@@ -10,6 +10,8 @@ tags: [index, plan, cimientos, hc]
 
 ## 0 · Antes de empezar (obligatorio)
 
+> **Raíz del código: `Assets/RunRunSimulator/Scripts/`** (NO `Assets/Scripts/`). Las rutas de este plan se escriben relativas a esa carpeta. Los `.js` de Cloud Code están en `CloudCode/` en la raíz del repo, fuera de `Assets/`. Anotado en S128: los tres exploradores arrancaron contra la ruta equivocada y hubo que redirigirlos (~90k tokens de desperdicio).
+
 1. Leer `09 - Active Context`, [[Index/28 - Cimientos y camino a Game Ready]] §1 (dos monedas), §3 (cimientos) y §7 (decisiones), [[Index/07 - Persistence & Identity]] y [[Index/24 - Puente Tienda-Arena]] §3.
 2. ScriptNodes: `SaveSystem`, `GameManager`, `GameEvents`, `CloudSyncService`, `CloudSyncOps`, `PlayerInventorySO`, `CreatureRegistrySO`, `CreatureDNA`, `StoreManager`, `ShopCatalogSO`, `DeliveryBox`, `BuildBrowserUITK`, `StorePanelUITK`, `InfoOverlayUITK`, `NpcAgent`, `ExpeditionBridge`, `ExpeditionHandoff`, `ExpeditionPanelUITK`, `ArenaRun`, `ArenaRunDirector`, `ArenaFloorPanel`, `MoriMochiSpawner`, `BreedingService`, `UIManager`, `DevToolsConsole`.
 3. Confirmar que compila con 0 errores antes de tocar nada (`read_console`).

@@ -15,6 +15,7 @@ public class CloudSyncOps
     private const string META_KEY      = "sync_meta";
     private const string FURNITURE_KEY = "furnitureregistry";
     private const string INVENTORY_KEY = "playerinventory";
+    private const string SOCIAL_KEY    = "socialgraph";
     private const string CANCEL_ALL_BREEDING = "cancel-all-breeding";
 
     [Serializable]
@@ -32,6 +33,7 @@ public class CloudSyncOps
     private readonly Action<string> setStatus;
 
     private bool isPushInProgress = false;
+    private bool pushAgain        = false;
 
     public string LastPullDisplay       { get; private set; } = "---";
     public string LastKnownCloudDisplay { get; private set; } = "---";
@@ -83,6 +85,26 @@ public class CloudSyncOps
         return false;
     }
 
+    private async Task<long> FetchCloudPushedAtAsync()
+    {
+        try
+        {
+            var result = await CloudSaveService.Instance.Data.Player.LoadAsync(
+                new HashSet<string> { META_KEY });
+            if (result.ContainsKey(META_KEY))
+            {
+                var cloudMeta = JsonConvert.DeserializeObject<SyncMeta>(
+                    result[META_KEY].Value.GetAs<string>());
+                return cloudMeta?.CloudPushedAt ?? 0;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[CloudSync] Could not fetch cloud meta: {e.Message}");
+        }
+        return 0;
+    }
+
     private async Task<bool> ValidateBeforePush()
     {
         var localMeta = ReadLocalMeta();
@@ -92,26 +114,14 @@ public class CloudSyncOps
             return true;
         }
 
-        SyncMeta cloudMeta = null;
-        try
-        {
-            var result = await CloudSaveService.Instance.Data.Player.LoadAsync(
-                new HashSet<string> { META_KEY });
-            if (result.ContainsKey(META_KEY))
-                cloudMeta = JsonConvert.DeserializeObject<SyncMeta>(
-                    result[META_KEY].Value.GetAs<string>());
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning($"[CloudSync] Could not fetch cloud meta: {e.Message}");
-        }
+        long cloudPushedAt = await FetchCloudPushedAtAsync();
 
-        if (cloudMeta != null && localMeta.LocalKnownCloudAt != cloudMeta.CloudPushedAt)
+        if (cloudPushedAt != 0 && localMeta.LocalKnownCloudAt != cloudPushedAt)
         {
             SecurityStatus = "CHEAT ALERT (dev: push allowed)";
             Debug.LogWarning(
                 $"[CloudSync] CHEAT ALERT: local token ({localMeta.LocalKnownCloudAt}) " +
-                $"!= cloud ({cloudMeta.CloudPushedAt}).");
+                $"!= cloud ({cloudPushedAt}).");
         }
         else
         {
@@ -123,7 +133,12 @@ public class CloudSyncOps
 
     public async Task PushAsync()
     {
-        if (isPushInProgress) { Debug.Log("[CloudSync] Push already in progress — skipping concurrent request."); return; }
+        if (isPushInProgress)
+        {
+            pushAgain = true;
+            Debug.Log("[CloudSync] Push already in progress — will repeat after it finishes.");
+            return;
+        }
         if (!EnsureSignedIn()) return;
 
         isPushInProgress = true;
@@ -141,6 +156,7 @@ public class CloudSyncOps
                 {
                     { REGISTRY_KEY, SaveSystem.Serialize(registry.GetAll()) },
                     { META_KEY,     JsonConvert.SerializeObject(new SyncMeta { CloudPushedAt = pushedAt }) },
+                    { SOCIAL_KEY,   SaveSystem.SerializeSocialGraph() },
                 };
                 if (furnitureRegistry != null)
                     payload[FURNITURE_KEY] = SaveSystem.SerializeFurniture(furnitureRegistry);
@@ -162,6 +178,12 @@ public class CloudSyncOps
         {
             isPushInProgress = false;
         }
+
+        if (pushAgain)
+        {
+            pushAgain = false;
+            await PushAsync();
+        }
     }
 
     public async Task PullAsync()
@@ -171,7 +193,7 @@ public class CloudSyncOps
         {
             setStatus("Pulling...");
             var result = await CloudSaveService.Instance.Data.Player.LoadAsync(
-                new HashSet<string> { REGISTRY_KEY, META_KEY, FURNITURE_KEY, INVENTORY_KEY });
+                new HashSet<string> { REGISTRY_KEY, META_KEY, FURNITURE_KEY, INVENTORY_KEY, SOCIAL_KEY });
 
             if (!result.ContainsKey(REGISTRY_KEY))
             {
@@ -201,6 +223,12 @@ public class CloudSyncOps
                 GameEvents.InventoryReloaded(inventory);
             }
 
+            if (result.ContainsKey(SOCIAL_KEY))
+            {
+                var sData = SaveSystem.DeserializeSocialGraph(result[SOCIAL_KEY].Value.GetAs<string>());
+                SocialGraphService.ImportData(sData, id => registry.TryGet(id, out _));
+            }
+
             long cloudPushedAt = 0;
             if (result.ContainsKey(META_KEY))
             {
@@ -221,6 +249,69 @@ public class CloudSyncOps
         }, setStatus);
     }
 
+    public async Task SyncOnStartupAsync()
+    {
+        if (!EnsureSignedIn()) return;
+
+        long cloudPushedAt     = await FetchCloudPushedAtAsync();
+        long localKnownCloudAt = ReadLocalMeta().LocalKnownCloudAt;
+        long latestLocal       = SaveSystem.LatestLocalSavedAt();
+
+        if (cloudPushedAt == 0)
+        {
+            if (latestLocal > 0)
+            {
+                await PushAsync();
+                SecurityStatus = "Cloud empty — pushed local";
+                Debug.Log("[CloudSync] Cloud empty — pushed local.");
+            }
+            else
+            {
+                SecurityStatus = "Cloud empty — nothing to sync";
+                Debug.Log("[CloudSync] Cloud empty — nothing to sync.");
+            }
+            return;
+        }
+
+        if (localKnownCloudAt == cloudPushedAt)
+        {
+            if (latestLocal > localKnownCloudAt)
+            {
+                await PushAsync();
+                SecurityStatus = "Local newer — pushed";
+                Debug.Log("[CloudSync] Local newer — pushed.");
+            }
+            else
+            {
+                SecurityStatus = "Up to date";
+                Debug.Log("[CloudSync] Up to date.");
+            }
+            return;
+        }
+
+        if (latestLocal <= localKnownCloudAt || latestLocal == 0)
+        {
+            await PullAsync();
+            SecurityStatus = "Cloud newer — pulled";
+            Debug.Log("[CloudSync] Cloud newer — pulled.");
+            return;
+        }
+
+        SaveSystem.BackupLocal("conflict");
+        if (cloudPushedAt > latestLocal)
+        {
+            await PullAsync();
+            SecurityStatus = "Conflict — cloud won (backup saved)";
+            Debug.Log("[CloudSync] Conflict — cloud won (backup saved).");
+        }
+        else
+        {
+            await PushAsync();
+            SecurityStatus = "Conflict — local won (backup saved)";
+            Debug.Log("[CloudSync] Conflict — local won (backup saved).");
+        }
+    }
+
     public async Task ResetProgressAsync()
     {
         if (!EnsureSignedIn()) return;
@@ -235,6 +326,7 @@ public class CloudSyncOps
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY,           new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY,      new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY,      new PlayerDeleteOptions()); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(SOCIAL_KEY,         new PlayerDeleteOptions()); } catch { }
 
             registry.LoadFrom(new System.Collections.Generic.Dictionary<string, CreatureDNA>());
             SaveSystem.SaveDatabase(registry);

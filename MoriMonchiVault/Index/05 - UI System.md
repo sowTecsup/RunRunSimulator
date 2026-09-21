@@ -26,7 +26,6 @@ tags: [index, ui]
 | [[InfoOverlayUITK]] | `UI/InfoOverlayUITK.cs` | Overlay contextual |
 | [[MorimonchiDetailInfoUITK]] | `UI/MorimonchiDetailInfoUITK.cs` | Detalle criatura |
 | [[StoragePanelUITK]] | `UI/StoragePanelUITK.cs` | Panel almacenamiento |
-| [[CombatPanelUITK]] | `UI/CombatPanelUITK.cs` | Panel del duelo Dragon RPS (S95, `UIPanelType.Combat = 4`, tema `mm-theme--night`); estados Pick → Duel → Result con [[CombatPickPresenter]] / [[CombatDuelPresenter]] / [[CombatResultPresenter]]; abre por botón dev hasta E3 |
 | [[StorePanelUITK]] | `UI/StorePanelUITK.cs` | Panel tienda |
 
 **Reglas de Oro:**
@@ -63,7 +62,7 @@ Patron completo en [[CombatLineupUITK]]: `PointerDownEvent` (guardar candidato +
 
 ### Quirks de editor/workflow
 - **Hot-reload de USS/UXML con Play corriendo huerfana el arbol**: UIDocument recrea `rootVisualElement` y TODAS las refs cacheadas (Q<>) mueren → panel vacio. No es bug del juego: reiniciar Play. Afecta a todos los paneles (guard `wired`).
-- Tab nueva agregada AL FINAL del TabView queda fuera de la navegacion por teclado (el clamp de `CombatPanelUITK.Navigation` es 0..3) — patron util para tabs WIP mouse-only sin tocar la navegacion.
+- Tab nueva agregada AL FINAL del TabView queda fuera de la navegacion por teclado si el clamp del panel no la incluye — patron util para tabs WIP mouse-only sin tocar la navegacion. (El ejemplo vivo era `CombatPanelUITK`, borrado en S128.)
 - Iterar diseno con Unity MCP: abrir el panel por codigo (`UIManager.RequestPanelSet` via reflection en `execute_code`) + `manage_camera screenshot` del Game view = ver el layout real antes de entregar. Los numeros "se ve bien" del USS mienten; el screenshot no.
 - Componente de UI nuevo = MonoBehaviour hermano con su ref `UIDocument` serializada (patron F3/DevConsoles) — no engordar el partial del panel.
 
@@ -71,7 +70,7 @@ Patron completo en [[CombatLineupUITK]]: `PointerDownEvent` (guardar candidato +
 
 ## Paleta y helpers compartidos (S93)
 
-- **La paleta canonica ES `UI Toolkit/Theme.uss`**: 17 tokens `--mm-*` bajo `.mm-theme` (papel/tinta/coral/teal/gold/plum + good/warn/crit + scrim) que coinciden exacto con los 5 colores del kit "Diario del Pet Shop" de [[Index/14 - Art Prompts]]. Variante **`.mm-theme--night`** completa y sin usar hasta el panel de combate (Index/21 Parte 9). Inventario detallado de tokens, formas (3px `--mm-frame`, radios 8/10/16/22, `letter-spacing 4px`) y clases reutilizables por familia (`.panel*`, `.action*`, `.mm-swatch`, `.card*`, tabs pill, `.stat--*`, `.part-row`, `.combat-card*` huerfano del 3v3) en [[Index/21 - Combate v3 - Dragon RPS]] §9.0. Ningun color nuevo fuera del tema; rareza por `BodyPart.RarityColor`.
+- **La paleta canonica ES `UI Toolkit/Theme.uss`**: 17 tokens `--mm-*` bajo `.mm-theme` (papel/tinta/coral/teal/gold/plum + good/warn/crit + scrim) que coinciden exacto con los 5 colores del kit "Diario del Pet Shop" de [[Index/14 - Art Prompts]]. Variante **`.mm-theme--night`** completa y **otra vez sin usar** desde que S128 borro el panel de combate. Inventario detallado de tokens, formas (3px `--mm-frame`, radios 8/10/16/22, `letter-spacing 4px`) y clases reutilizables por familia (`.panel*`, `.action*`, `.mm-swatch`, `.card*`, tabs pill, `.stat--*`, `.part-row`, `.combat-card*` huerfano del 3v3) en [[Index/21 - Combate v3 - Dragon RPS]] §9.0. Ningun color nuevo fuera del tema; rareza por `BodyPart.RarityColor`.
 - **Arbol por codigo** (`EquipmentBackpackUITK`) exige `AddToClassList("mm-theme")` + `styleSheets.Add(themeStyleSheet)` o las `var(--mm-*)` no resuelven.
 - **Helpers** (S93): `UI/UiPanels` (`RootOf(document)`, `SetActiveIndex(items, index, clase)`, `ClampSelection(count, index)` — usarlos en vez de repetir el idioma) · `UI/CreatureDisplay` (`StateOf(dna)` localizada UNICA, `RarityColor(r, palette)`, `ApplyIconVisual`, `ApplyRarityBorder`) · `UI/MonchiPortraitUI.Apply(elemento, dna)` para retratos (sin spawnear; `ApplyLive` solo con la criatura en el mundo).
 - Show/hide de paneles: `UIManager.SetPanelShown` es el dueno; los paneles solo togglean sub-vistas propias (etiquetas de vacio, toasts). `BuildBrowserUITK` y `HotbarHUDUITK` no son paneles de `UIManager` a proposito.

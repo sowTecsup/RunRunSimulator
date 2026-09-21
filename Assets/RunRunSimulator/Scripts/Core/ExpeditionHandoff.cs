@@ -22,7 +22,7 @@ public struct ExpeditionReturn
     public ExpeditionTeam Winner;
     public int PlayerSecured;
     public int RivalSecured;
-    public int MaterialGained;
+    public int MineritaGained;
     public int HealthLost;
     public int Fallen;
     public int Creatures;

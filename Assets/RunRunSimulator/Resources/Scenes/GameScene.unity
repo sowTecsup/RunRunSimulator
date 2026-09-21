@@ -23009,9 +23009,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.ExpeditionBridge
   cloudSync: {fileID: 1443145214}
   syncTimeoutSeconds: 20
-  energyPerTrip: 20
-  energyPerKnock: 5
-  maxEnergyPerTrip: 40
+  departFlushTimeout: 5
+  permadeathEnabled: 0
 --- !u!4 &1038142491
 Transform:
   m_ObjectHideFlags: 0
@@ -23376,6 +23375,7 @@ MonoBehaviour:
   furTypeDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
   cloudSync: {fileID: 1443145214}
+  pushDelaySeconds: 5
 --- !u!4 &1046970363
 Transform:
   m_ObjectHideFlags: 0
@@ -23392,7 +23392,6 @@ Transform:
   - {fileID: 1443145215}
   - {fileID: 1999386638}
   - {fileID: 1227227760}
-  - {fileID: 1813964819}
   - {fileID: 1750792024}
   - {fileID: 2004143670}
   - {fileID: 513610713}
@@ -23433,7 +23432,6 @@ MonoBehaviour:
   devDabloonsAmount: 500
   devEquipmentItem: {fileID: 0}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
-  combatTuning: {fileID: 11400000, guid: 53e26437de6935e47ac19e83d72d4c12, type: 2}
 --- !u!1 &1047145380
 GameObject:
   m_ObjectHideFlags: 0
@@ -23465,77 +23463,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 48724954}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1051803673
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1051803675}
-  - component: {fileID: 1051803674}
-  - component: {fileID: 1051803676}
-  m_Layer: 5
-  m_Name: CombatPanelUITK
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1051803674
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1051803673}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
-  m_PanelSettings: {fileID: 11400000, guid: 3c8a8da8175b6d54a907634fef6a08f4, type: 2}
-  m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: 174fd77deb44ef74bae02155ff014a31, type: 3}
-  m_SortingOrder: 0
-  m_Position: 0
-  m_WorldSpaceSizeMode: 1
-  m_WorldSpaceWidth: 1920
-  m_WorldSpaceHeight: 1080
-  m_PivotReferenceSize: 0
-  m_Pivot: 0
-  m_WorldSpaceCollider: {fileID: 0}
---- !u!4 &1051803675
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1051803673}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1218711423}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1051803676
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1051803673}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e62a84b4f8935814aa5819a5f20931bc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatPanelUITK
-  document: {fileID: 1051803674}
-  tuning: {fileID: 11400000, guid: 53e26437de6935e47ac19e83d72d4c12, type: 2}
-  panel: 4
 --- !u!1 &1067912611
 GameObject:
   m_ObjectHideFlags: 0
@@ -26463,7 +26390,6 @@ MonoBehaviour:
   devDabloonsAmount: 500
   devEquipmentItem: {fileID: 0}
   equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
-  combatTuning: {fileID: 11400000, guid: 53e26437de6935e47ac19e83d72d4c12, type: 2}
 --- !u!1 &1218711422
 GameObject:
   m_ObjectHideFlags: 0
@@ -26478,14 +26404,12 @@ GameObject:
   - component: {fileID: 1218711426}
   - component: {fileID: 1218711427}
   - component: {fileID: 1218711428}
-  - component: {fileID: 1218711429}
   - component: {fileID: 1218711432}
   - component: {fileID: 1218711431}
   - component: {fileID: 1218711430}
   - component: {fileID: 1218711433}
   - component: {fileID: 1218711434}
   - component: {fileID: 1218711435}
-  - component: {fileID: 1218711436}
   m_Layer: 0
   m_Name: UIManager
   m_TagString: Untagged
@@ -26509,7 +26433,6 @@ Transform:
   - {fileID: 1283425035}
   - {fileID: 937280822}
   - {fileID: 1507172387}
-  - {fileID: 1051803675}
   - {fileID: 1126007362}
   - {fileID: 641695215}
   - {fileID: 919182992}
@@ -26540,7 +26463,6 @@ MonoBehaviour:
     - {fileID: 1283425032}
     - {fileID: 937280820}
     - {fileID: 1507172385}
-    - {fileID: 1051803673}
     - {fileID: 1473995696}
     - {fileID: 1828995157}
     - {fileID: 464847833}
@@ -26569,7 +26491,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 8
+      Data: 7
     - Name: 
       Entry: 7
       Data: 
@@ -26611,7 +26533,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 3
-      Data: 4
+      Data: 5
     - Name: $v
       Entry: 10
       Data: 3
@@ -26623,7 +26545,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 3
-      Data: 5
+      Data: 6
     - Name: $v
       Entry: 10
       Data: 4
@@ -26635,7 +26557,7 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 3
-      Data: 6
+      Data: 7
     - Name: $v
       Entry: 10
       Data: 5
@@ -26647,22 +26569,10 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 3
-      Data: 7
-    - Name: $v
-      Entry: 10
-      Data: 6
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
       Data: 8
     - Name: $v
       Entry: 10
-      Data: 7
+      Data: 6
     - Name: 
       Entry: 8
       Data: 
@@ -26738,18 +26648,6 @@ MonoBehaviour:
   sortingOrder: 100
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
   asyncBreedingService: {fileID: 1227227761}
---- !u!114 &1218711429
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1218711422}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2684cfe098ee0d94e85469717eaa72c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CombatPanelUITK
 --- !u!114 &1218711430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26851,18 +26749,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.TransactionPanelUITK
   document: {fileID: 464847834}
---- !u!114 &1218711436
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1218711422}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a5262e2e00167114dbff39816f3efa86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.CombatLineupUITK
 --- !u!1 &1224935784
 GameObject:
   m_ObjectHideFlags: 0
@@ -32512,76 +32398,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &1813964816
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1813964819}
-  - component: {fileID: 1813964818}
-  - component: {fileID: 1813964817}
-  - component: {fileID: 1813964820}
-  m_Layer: 0
-  m_Name: CombatController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1813964817
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1813964816}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c8b946c8fd07f046ad9fd7e378f5110, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AsyncCombatService
---- !u!114 &1813964818
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1813964816}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd186e1431f391c499353f16887657d9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CombatController
---- !u!4 &1813964819
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1813964816}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.80012, y: 0, z: -12.39213}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1046970363}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1813964820
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1813964816}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d627f1a95b00b674ba006f36187a6e04, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CombatDevConsole
 --- !u!1 &1816910918
 GameObject:
   m_ObjectHideFlags: 0
@@ -34410,7 +34226,6 @@ MonoBehaviour:
   document: {fileID: 1887204490}
   panel: 8
   maxPick: 3
-  minEnergy: 30
 --- !u!114 &1887204490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35648,11 +35463,9 @@ MonoBehaviour:
       Affect: 0
     BusyState: 0
     BreedReadyAt: 0
-    CombatCooldownUntil: 0
     BreedPartnerID: 
     LocationKey: 
     LocationSlot: -1
-    HeldItemId: 
   currentDNAString: ---
   loadIDInput: 
 --- !u!1 &2067556434

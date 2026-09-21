@@ -6,28 +6,33 @@ tags: [persistence, io, serialization]
 
 **Ruta:** `Core/SaveSystem.cs`
 
-**Responsabilidad:** I/O de persistencia local (JSON) y serialización. Guarda/carga CreatureRegistry, FurnitureRegistry, PlayerInventory y SocialGraph aislados por scope de jugador (multi-instance support). Newtonsoft.Json + UnityColorConverter. **S65:** Métodos de persistencia del historial de afinidad social (SaveSocialGraph, LoadSocialGraph).
+**Responsabilidad:** I/O de persistencia local (JSON) para CreatureRegistry, FurnitureRegistry, PlayerInventory y SocialGraph aislados por scope de jugador (multi-instancia). **S128:** Toda lectura/escritura pasa por [[SaveMigrations]] (sobre con versión y timestamp). Métodos públicos: `SetUserScope()`, `SaveDatabase()`, `LoadInto()`, `Save/Load` de muebles/inventario/grafo social, `SerializeSocialGraph()`, `LatestLocalSavedAt()`, `BackupLocal()`, `LoadDatabaseCopy()` (lectura sin registro).
 
 ## Métodos Públicos
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
-| `SetUserScope(string playerId)` | void | Namespaces el archivo de save. Sin scope → "creature_database.json"; con scope → "creature_database_{playerId}.json" |
-| `SaveDatabase(CreatureRegistrySO registry)` | void | Serializa registry entero → JSON archivo |
-| `LoadInto(CreatureRegistrySO registry)` | void | Deserializa JSON → `registry.LoadFrom(data)`. Hereda save viejo si es primer login con scope |
-| `Serialize(Dictionary<string, CreatureDNA> data)` | `string` | JSON string de diccionario |
-| `Serialize(CreatureDNA dna)` | `string` | JSON string de una criatura |
-| `Deserialize(string json)` | `Dictionary<string, CreatureDNA>` | JSON string → diccionario |
-| `SerializeFurniture(FurnitureRegistrySO registry)` | `string` | JSON de furniture registry |
-| `DeserializeFurniture(string json)` | `Dictionary<string, PlacedFurniture>` | JSON → furniture dict |
-| `SaveFurniture(FurnitureRegistrySO registry)` | `void` | Guarda placed furniture scoped por jugador |
-| `LoadFurniture(FurnitureRegistrySO registry)` | `void` | Carga placed furniture; empty start si no existe |
-| `SerializeInventory(PlayerInventorySO inventory)` | `string` | JSON de inventario |
-| `DeserializeInventory(string json)` | `PlayerInventorySO.InventoryData` | JSON → inventory data |
-| `SaveInventory(PlayerInventorySO inventory)` | `void` | Guarda inventario scoped |
-| `LoadInventory(PlayerInventorySO inventory)` | `void` | Carga inventario; empty start si no existe |
-| `SaveSocialGraph()` | `void` | **S65 NUEVO** Exporta deltas de SocialGraphService a social_graph_<playerId>.json |
-| `LoadSocialGraph(CreatureRegistrySO registry)` | `void` | **S65 NUEVO** Carga social_graph_<playerId>.json e importa a SocialGraphService con poda de huérfanos (criaturas ya eliminadas) |
+| `SetUserScope(string playerId)` | `void` | Scope para archivos (sin scope → "file.json"; con scope → "file_{userId}.json") |
+| `SaveDatabase(CreatureRegistrySO registry)` | `void` | Guarda registry completo → JSON sobre v2 |
+| `LoadInto(CreatureRegistrySO registry)` | `void` | Carga JSON → registry.LoadFrom(); hereda legado si primer login |
+| `Serialize(Dictionary)` | `string` | Serializa diccionario criaturas → JSON sobre |
+| `Serialize(CreatureDNA)` | `string` | Serializa una criatura → JSON (no sobre) |
+| `Deserialize(string json)` | `Dictionary<string, CreatureDNA>` | JSON → diccionario (migra si es v1) |
+| `SerializeFurniture(registry)` | `string` | Serializa muebles → JSON sobre |
+| `DeserializeFurniture(json)` | `Dictionary<string, PlacedFurniture>` | JSON → muebles dict |
+| `SaveFurniture(registry)` | `void` | Guarda muebles disco |
+| `LoadFurniture(registry)` | `void` | Carga muebles; empty start si no existe |
+| `SerializeInventory(inventory)` | `string` | Serializa inventario → JSON sobre |
+| `DeserializeInventory(json)` | `PlayerInventorySO.InventoryData` | JSON → inventory data (migra si v1) |
+| `SaveInventory(inventory)` | `void` | Guarda inventario disco |
+| `LoadInventory(inventory)` | `void` | Carga inventario; empty start si no existe |
+| `SaveSocialGraph()` | `void` | **S128 NUEVO** Exporta grafo social → JSON sobre |
+| `LoadSocialGraph(registry)` | `void` | Carga grafo social, filtra huérfanos |
+| `SerializeSocialGraph()` | `string` | JSON string del grafo |
+| `DeserializeSocialGraph(json)` | `Dictionary<string, float>` | JSON → grafo dict |
+| `LatestLocalSavedAt()` | `long` | **S128 NUEVO** Retorna timestamp (ticks) del archivo más reciente modificado |
+| `BackupLocal(string suffix)` | `void` | **S128 NUEVO** Respalda los 4 archivos con sufijo: `file.{suffix}.bak.json` |
+| `LoadDatabaseCopy()` | `Dictionary<string, CreatureDNA>` | **S119 NUEVO** Lee copy sin tocar registry ni disparar eventos |
 
 ## Rutas & Scoping
 
@@ -43,32 +48,45 @@ tags: [persistence, io, serialization]
 ```csharp
 private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
 {
-    Converters = new List<JsonConverter> { new UnityColorConverter(), new StringEnumConverter() },
+    Converters = new List<JsonConverter> { 
+        new UnityColorConverter(),  // Color → hex
+        new StringEnumConverter()   // enums → string
+    },
     Formatting = Formatting.Indented,
     NullValueHandling = NullValueHandling.Ignore,
 };
 ```
 
-- `UnityColorConverter` — serializa `Color` a hex
-- `StringEnumConverter` — enums como strings (ej. `Tier.Tier1` → `"Tier1"`)
-- `Indented` — legible para debug
-- `IgnoreNull` — omite campos null
+## Sobre (SaveEnvelope)
+
+**S128:** Toda lectura/escritura pasa por [[SaveMigrations]]:
+- `Write()`: envuelve data en `{ Version: 2, SavedAtTicks: UtcNow.Ticks, Data: ... }`
+- `Read()`: deserializa, detecta versión, migra si es necesario (v1 → v2 para Inventory)
 
 ## Social Graph (S65)
 
-**SaveSocialGraph():** Llama `SocialGraphService.ExportData()`, serializa el diccionario `Dictionary<string, float>` (PairKey → delta) a JSON en ruta scoped.
+**SaveSocialGraph():** Llama `SocialGraphService.ExportData()` → diccionario (PairKey → delta) → JSON sobre scoped.
 
-**LoadSocialGraph(CreatureRegistrySO registry):** Lee social_graph_<playerId>.json, deserializa a diccionario, luego llama `SocialGraphService.ImportData(data, id => registry.TryGet(id, out _))` para poda de huérfanos. Si no existe archivo, llama `SocialGraphService.Clear()`.
+**LoadSocialGraph():** Lee social_graph_<playerId>.json, deserializa, filtra huérfanos (criaturas eliminadas), importa a SocialGraphService. Sin archivo → `Clear()`.
+
+## Nuevos en S128
+
+| Método | Uso |
+|--------|-----|
+| `LatestLocalSavedAt()` | [[CloudSyncOps]] para detectar cambios locales vs nube |
+| `BackupLocal(suffix)` | Crea respaldos `*.conflict.bak.json` antes de aplicar merge en conflictos |
+| `SerializeSocialGraph()` / `DeserializeSocialGraph()` | Encapsulan lógica del grafo social |
+
+## Invariantes S128+
+
+- Nunca lanza si JSON es nulo/corrupto → sobre vacío
+- Todos los archivos usan sobre (Version/SavedAtTicks/Data)
+- Timestamp: `DateTime.UtcNow.Ticks` al escribir, extraído al leer para reconciliación
+- Scoping: `_userScope` centralizado, heredado sin scope si primer login
 
 ## Vinculado a
 
-- [[Index/07 - Persistence & Identity]]
-- [[GameManager]] — orquesta persistencia vía eventos
-- [[CloudSyncService]] — sincroniza local ↔ cloud
-- [[SocialGraphService]] — guarda/carga history de interacciones
+[[Index/07 - Persistence & Identity]]
 
-**Conexiones:** [[GameManager]], [[CloudSyncService]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[SocialGraphService]]
+**Conexiones:** [[GameManager]], [[CloudSyncOps]], [[CloudSyncService]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[SocialGraphService]], [[SaveMigrations]], [[SaveEnvelope]]
 
-
-## S119 · Lectura sin registro para la arena
-- `LoadDatabaseCopy()`: devuelve el diccionario del save del scope actual (o el no scoped si el scoped no existe, sin copiarlo); `null` si no hay scope o no hay archivo. No toca `CreatureRegistrySO` ni dispara eventos. Lo consume [[ArenaCastSource]] para que la arena lea las criaturas de la cuenta activa tras venir de la tienda ([[ExpeditionHandoff]]).

@@ -28,11 +28,12 @@ public class StoreManager : MonoBehaviour
 
         var now   = GameManager.Now;
         int price = catalog.FinalPrice(shop, now);
-        if (price > 0 && !inventory.SpendDabloons(price)) return BuyResult.InsufficientFunds;
+        if (price > 0 && Wallet.Balance(Currency.Dabloons) < price) return BuyResult.InsufficientFunds;
 
         shop.TryConsume();
         inventory.AddFurniture(def.Id);
-        GameEvents.InventoryChanged(inventory);
+        if (price > 0) Wallet.TrySpend(Currency.Dabloons, price, "store");
+        else           GameEvents.InventoryChanged(inventory);
         Debug.Log($"[StoreManager] Bought furniture '{def.DisplayName}' ({def.Id}) for {price} Dabloons.");
         return BuyResult.Success;
     }
@@ -59,7 +60,7 @@ public class StoreManager : MonoBehaviour
 
         var now   = GameManager.Now;
         int price = catalog.FinalPrice(shop, now);
-        if (price > 0 && !inventory.SpendDabloons(price)) return BuyResult.InsufficientFunds;
+        if (price > 0 && !Wallet.TrySpend(Currency.Dabloons, price, "store")) return BuyResult.InsufficientFunds;
 
         shop.TryConsume();
 
@@ -69,11 +70,11 @@ public class StoreManager : MonoBehaviour
         {
             Debug.LogError("[StoreManager] deliveryBoxPrefab has no DeliveryBox component.");
             Destroy(go);
-            if (price > 0) { inventory.AddDabloons(price); shop.CurrentStock++; }
+            if (price > 0) { Wallet.Add(Currency.Dabloons, price, "store-refund"); shop.CurrentStock++; }
             return BuyResult.OutOfStock;
         }
         box.Configure(def);
-        GameEvents.InventoryChanged(inventory);
+        if (price <= 0) GameEvents.InventoryChanged(inventory);
         Debug.Log($"[StoreManager] Ordered '{def.DisplayName}' ({def.Id}) for {price} Dabloons.");
         return BuyResult.Success;
     }

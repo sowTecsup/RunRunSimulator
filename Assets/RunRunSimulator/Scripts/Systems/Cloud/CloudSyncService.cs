@@ -55,6 +55,7 @@ public class CloudSyncService : MonoBehaviour
     public Task InitializeAsync() => auth.InitializeAsync();
     public Task PushAsync() => syncOps.PushAsync();
     public Task PullAsync() => syncOps.PullAsync();
+    public Task SyncOnStartupAsync() => syncOps.SyncOnStartupAsync();
     public Task ResetProgressAsync() => syncOps.ResetProgressAsync();
     public Task UpdatePlayerNameAsync(string newName) => auth.UpdatePlayerNameAsync(newName);
 
@@ -94,7 +95,7 @@ public class CloudSyncService : MonoBehaviour
         await auth.FetchServerTimeAsync();
         try
         {
-            await syncOps.PullAsync();
+            await syncOps.SyncOnStartupAsync();
         }
         finally
         {

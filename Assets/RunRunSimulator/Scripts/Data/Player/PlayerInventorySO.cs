@@ -32,14 +32,8 @@ public class PlayerInventorySO : SerializedScriptableObject
     [OdinSerialize, ReadOnly]
     private int dabloons;
 
-    [OdinSerialize, ReadOnly]
-    private int adventureMaterial;
-
-    [OdinSerialize, ReadOnly]
-    private int passiveMaterial;
-
-    [OdinSerialize, ReadOnly]
-    private int evolutionEssence;
+    [OdinSerialize, ReadOnly, PreviouslySerializedAs("adventureMaterial")]
+    private int minerita;
 
     public bool AddFurniture(string id)
     {
@@ -136,41 +130,48 @@ public class PlayerInventorySO : SerializedScriptableObject
             list.RemoveAt(list.Count - 1);
     }
 
-    public int Dabloons => dabloons;
+    public int Balance(Currency c)
+    {
+        switch (c)
+        {
+            case Currency.Dabloons: return dabloons;
+            case Currency.Minerita: return minerita;
+            default: return 0;
+        }
+    }
 
-    public void AddDabloons(int amount)
+    public void Add(Currency c, int amount)
     {
         if (amount <= 0) return;
-        dabloons += amount;
+        switch (c)
+        {
+            case Currency.Dabloons: dabloons += amount; break;
+            case Currency.Minerita: minerita += amount; break;
+        }
         MarkDirty();
     }
 
-    public bool SpendDabloons(int amount)
+    public bool TrySpend(Currency c, int amount)
     {
-        if (amount <= 0 || dabloons < amount) return false;
-        dabloons -= amount;
+        if (amount <= 0 || Balance(c) < amount) return false;
+        switch (c)
+        {
+            case Currency.Dabloons: dabloons -= amount; break;
+            case Currency.Minerita: minerita -= amount; break;
+        }
         MarkDirty();
         return true;
     }
 
-    public void ResetDabloons()
+    public void ResetCurrency(Currency c)
     {
-        dabloons = 0;
+        switch (c)
+        {
+            case Currency.Dabloons: dabloons = 0; break;
+            case Currency.Minerita: minerita = 0; break;
+        }
         MarkDirty();
     }
-
-    public int AdventureMaterial => adventureMaterial;
-
-    public void AddAdventureMaterial(int amount)
-    {
-        if (amount <= 0) return;
-        adventureMaterial += amount;
-        MarkDirty();
-    }
-
-    public int PassiveMaterial => passiveMaterial;
-
-    public int EvolutionEssence => evolutionEssence;
 
     public void ClearFurnitureOwned()
     {
@@ -218,9 +219,7 @@ public class PlayerInventorySO : SerializedScriptableObject
         public Dictionary<EquipmentSlot, List<string>> EquipmentGrids = new Dictionary<EquipmentSlot, List<string>>();
         public string[]      HotbarSlots      = new string[HotbarSize];
         public int           Dabloons         = 0;
-        public int           AdventureMaterial = 0;
-        public int           PassiveMaterial   = 0;
-        public int           EvolutionEssence  = 0;
+        public int           Minerita         = 0;
     }
 
     public InventoryData GetData() => new InventoryData
@@ -230,9 +229,7 @@ public class PlayerInventorySO : SerializedScriptableObject
         EquipmentGrids   = equipmentGrids.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value)),
         HotbarSlots      = (string[])hotbarSlots.Clone(),
         Dabloons         = dabloons,
-        AdventureMaterial = adventureMaterial,
-        PassiveMaterial   = passiveMaterial,
-        EvolutionEssence  = evolutionEssence,
+        Minerita         = minerita,
     };
 
     public void LoadFrom(InventoryData data)
@@ -244,9 +241,7 @@ public class PlayerInventorySO : SerializedScriptableObject
             : new Dictionary<EquipmentSlot, List<string>>();
         hotbarSlots      = NormalizeHotbar(data?.HotbarSlots);
         dabloons         = data?.Dabloons ?? 0;
-        adventureMaterial = data?.AdventureMaterial ?? 0;
-        passiveMaterial   = data?.PassiveMaterial   ?? 0;
-        evolutionEssence  = data?.EvolutionEssence  ?? 0;
+        minerita         = data?.Minerita ?? 0;
         MarkDirty();
     }
 

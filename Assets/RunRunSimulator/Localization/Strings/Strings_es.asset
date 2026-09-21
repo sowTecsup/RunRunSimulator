@@ -326,30 +326,6 @@ MonoBehaviour:
     m_Localized: "{0} \xB7 {1}d"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172476088392
-    m_Localized: Disponibles
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088393
-    m_Localized: Equipo
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088394
-    m_Localized: "Pr\xF3ximamente"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088395
-    m_Localized: "Pr\xF3ximo combate en"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088396
-    m_Localized: Equipo A
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088397
-    m_Localized: Equipo B
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172476088398
     m_Localized: "Cr\xEDa"
     m_Metadata:
@@ -412,64 +388,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172476088413
     m_Localized: ES
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088414
-    m_Localized: Combate
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088415
-    m_Localized: Batalla Online
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088416
-    m_Localized: Resultados
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088417
-    m_Localized: Historial
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088418
-    m_Localized: Equipo 3v3
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088419
-    m_Localized: "Batalla Instant\xE1nea"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088420
-    m_Localized: Encolar (Timer)
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088421
-    m_Localized: Selecciona un MoriMochi
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088422
-    m_Localized: "{0}  \xB7  {1} {2:0} {3} {4:0} {5} {6:0} {7} {8:0} {9} {10:0} {11}
-      {12:0}  \xB7  {13}/{14}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088423
-    m_Localized: '{0} {1:0}   {2} {3:0}   {4} {5:0}   {6} {7:0}   {8} {9:0}   {10}
-      {11:0}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088424
-    m_Localized: Revisando...
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088425
-    m_Localized: Revisar resultados
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088426
-    m_Localized: No hay MoriMonchis en cola.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088427
-    m_Localized: encolado {0:HH:mm}
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088428
@@ -1490,120 +1408,8 @@ MonoBehaviour:
     m_Localized: "\u25C0 Volver"
     m_Metadata:
       m_Items: []
-  - m_Id: 13877808261791744
-    m_Localized: PELEA NOCTURNA
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317696
-    m_Localized: "ELEG\xCD A TU LUCHADOR"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317697
-    m_Localized: Pelear
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317698
-    m_Localized: Cerrar
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317699
-    m_Localized: Otra pelea
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317700
-    m_Localized: Descansa hasta las {0}
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317701
-    m_Localized: Ocupado
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317702
-    m_Localized: "Sin energ\xEDa"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317703
-    m_Localized: Cuernos
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317704
-    m_Localized: Alas
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317705
-    m_Localized: Espalda
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317706
-    m_Localized: POTENCIA
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512000
-    m_Localized: INTACTAS
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512001
-    m_Localized: GOLPES
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512002
-    m_Localized: "Eleg\xED con qu\xE9 parte golpear"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512003
-    m_Localized: 'Vos: {0} rompe {1}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512004
-    m_Localized: 'Rival: {0} rompe {1}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512005
-    m_Localized: 'Espejo de {0}: potencia {1} contra {2}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512006
-    m_Localized: Nadie cede
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512007
-    m_Localized: Golpe tuyo
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512008
-    m_Localized: Golpe del rival
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512009
-    m_Localized: Se rearman
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512010
-    m_Localized: VICTORIA
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512011
-    m_Localized: DERROTA
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512012
-    m_Localized: '{0} - {1} en {2} rondas'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512013
-    m_Localized: +{0} material de aventura
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512014
-    m_Localized: '{0} descansa hasta las {1}'
-    m_Metadata:
-      m_Items: []
   - m_Id: 13881322518118400
-    m_Localized: 'Material: {0:N0}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13881322526507008
-    m_Localized: Descansa hasta las {0}
+    m_Localized: 'Minerita: {0:N0}'
     m_Metadata:
       m_Items: []
   - m_Id: 13881322526507009
@@ -1695,7 +1501,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674631
-    m_Localized: "Volviste del piso {0} \xB7 +{1} material \xB7 {2} vida"
+    m_Localized: "Volviste del piso {0} \xB7 +{1} Minerita \xB7 {2} vida"
     m_Metadata:
       m_Items: []
   - m_Id: 19241043774464000

@@ -69,6 +69,12 @@ public enum BuyResult
     AlreadyOwned      = 3,
 }
 
+public enum Currency
+{
+    Dabloons = 0,
+    Minerita = 1,
+}
+
 [System.Flags]
 public enum StoreItemTypeFilter
 {
@@ -77,11 +83,4 @@ public enum StoreItemTypeFilter
     WorldProp = 1 << 1,
 }
 
-public enum ItemTriggerKind
-{
-    None      = 0,
-    LowHealth = 1,
-    Collision = 2,
-    Collected = 3,
-}
 }

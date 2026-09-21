@@ -268,10 +268,9 @@ namespace MoriMonchiSimulator
             var gm = GameManager.Instance;
             if (gm != null)
             {
-                gm.Inventory?.AddDabloons(CurrentOffer);
+                Wallet.Add(Currency.Dabloons, CurrentOffer, "adoption");
                 GameEvents.CustomerSold(this, TargetMM, CurrentOffer);
                 GameEvents.RegistryChanged(gm.Registry);
-                GameEvents.InventoryChanged(gm.Inventory);
             }
             TransitionTo(NpcState.Leaving);
         }

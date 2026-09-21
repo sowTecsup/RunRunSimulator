@@ -2,11 +2,11 @@
 tags: [script, ui]
 ---
 
-# InfoOverlayUITK.cs
+# InfoOverlayUITK
 
 **Ruta:** `UI/InfoOverlayUITK.cs`
 
-**Responsabilidad:** Overlay contextual siempre-visible (top-left hints leyenda, top-right fecha/dabloons/material, **S121:** toast de retorno expedición). **S68:** InputHint.Action renombrado a ActionKey. **S68 (addendum):** Selector de idioma v1 (botones EN/ES). **S93:** Usa `UiPanels.RootOf()`. **S95:** Agregado `materialLabel`. **S121:** Suscriptor de `GameEvents.OnExpeditionReturned`. **S124:** Toast diferencia entre Lost (derrota) y retorno exitoso; muestra Floors + HealthLost.
+**Responsabilidad:** Overlay contextual siempre-visible (top-left hints de controles, top-right fecha/dabloons/**Minerita**, toast de retorno expedición). **S128:** actualiza labels de monedas para reflejar dos divisas (Dabloons + Minerita en lugar de "material de aventura").
 
 ## Campos Serializados
 
@@ -16,87 +16,50 @@ tags: [script, ui]
 | `hints` | `InputHint[]` | Array de controles mostrados top-left |
 | `toastSeconds` | `float` | Duración del toast expedición (default 6s) |
 
-## Campos Privados (S121+S124)
+## Campos Privados (S128+)
 
 - `Label dateLabel` — hora y fecha top-right
 - `Label dabloonsLabel` — cantidad de dabloons
-- `Label materialLabel` — cantidad de material de aventura
+- `Label mineritaLabel` — **S128** cantidad de Minerita (antes "material de aventura") |
 - `Label expeditionToastLabel` — toast de retorno expedición
-- `float toastTimer` — cuenta atrás del toast (se decrementa cada frame)
+- `float toastTimer` — cuenta atrás del toast
 - `ExpeditionReturn? pendingToast` — resultado en cola si toast label no está wired aún
 
-## Lifecycle (S121-S124)
+## Lifecycle
 
 | Método | Descripción |
 |--------|-------------|
 | `OnEnable()` | Suscribe a `GameEvents.OnInventoryChanged`, `InventoryReloaded`, `OnExpeditionReturned` |
-| `Start()` | Resuelve labels (date, dabloons, material, expeditionToast). Si hay `pendingToast` muestra |
-| `Update()` | Decrementa `toastTimer`; si ≤0 oculta toast label |
+| `Start()` | Resuelve labels (date, dabloons, minerita, expeditionToast) |
+| `Update()` | Decrementa `toastTimer`; si ≤0 oculta toast |
 | `OnDisable()` | Desuscribe todos |
-| `HandleExpeditionReturned(ExpeditionReturn r)` | **(S121+S124)** Callback. Si toast label wired: `ShowExpeditionToast(r)`. Si no: guarda en `pendingToast` |
-| `ShowExpeditionToast(ExpeditionReturn r)` | **(S121+S124)** Renderiza toast diferente según r.Lost |
+| `HandleExpeditionReturned(ExpeditionReturn r)` | Callback; renderiza toast |
+| `ShowExpeditionToast(ExpeditionReturn r)` | Toast diferente según Lost |
 
-## Toast Expedición (S121-S124)
-
-**Dos formatos de toast:**
+## Toast Expedición (S124)
 
 ### Derrota (Lost=true)
-
 ```
-Localizador: "ui.overlay.expedition.lost"
-Params: Floors, HealthLost
-Ejemplo: "Perdiste en el piso 3 · −45 vida"
+"Perdiste en el piso N · −M vida"
 Clase: "toast--lose" (rojo)
 ```
 
 ### Retorno exitoso (Lost=false)
-
 ```
-Localizador: "ui.overlay.expedition.return"
-Params: Floors, MaterialGained, HealthLost
-Ejemplo: "Volviste: 5 pisos · +45 material · −12 vida"
-Clase: "toast--win" (azul, si Winner==Player) o "toast--lose" (rojo, si Winner==Rival) o "toast--draw" (gris, si empate)
+"Volviste: N pisos · +M Minerita · −K vida"
+Clase: "toast--win" (azul si victoria), "toast--lose" (rojo si derrota)
 ```
 
-**Construcción de energy string:**
-```csharp
-string energy = r.HealthLost > 0 ? "−" + r.HealthLost : "+" + (-r.HealthLost);
-```
+## Integración S128
 
-**Renderización:**
-1. Limpia clases previas (toast--win/lose/draw)
-2. Si r.Lost: usa ExpeditionLostKey + "toast--lose"
-3. Si !r.Lost: usa ExpeditionReturnKey + clase según Winner
-4. Fija displayStyle=Flex, toastTimer=toastSeconds
-
-**Duración:** 6 segundos (configurable); Update decrementa toastTimer y oculta cuando ≤0.
-
-## Flujo S124
-
-1. `ExpeditionBridge.ApplyResult()` calcula HealthLost, Floors, Lost → `GameEvents.ExpeditionReturned(return)`
-2. `InfoOverlayUITK.HandleExpeditionReturned(r)` recibe evento
-3. `ShowExpeditionToast(r)`:
-   - Si Lost: texto de derrota + clase rojo
-   - Si !Lost: texto con Floors + MaterialGained + HealthLost + color por Winner
-4. `Update()`: decrementa toastTimer, oculta cuando ≤0
-
-## Cambios por Sesión
-
-- **S68:** InputHint.ActionKey renombrado
-- **S93:** UiPanels.RootOf() helper
-- **S95:** materialLabel para AdventureMaterial
-- **S121:** Toast expedición (evento OnExpeditionReturned)
-- **S124:** Diferencia Lost vs retorno; ExpeditionLostKey; HealthLost en lugar de EnergySpent; Floors ahora en ambos textos
-
-## Invariantes
-
-- Toast label puede ser null (edición o docs sin UXML); pendingToast guarda para mostrar después
-- Textos localizados vía Loc
-- Suscripción/desuscripción simétrica OnEnable/OnDisable
-- HealthLost negativo = ganancia de vida (poco probable, pero soportado)
+- `mineritaLabel` reemplaza `materialLabel` (dos monedas distintas)
+- Toast muestra `MineritaGained` en lugar de genérico "material"
+- Ambos labels actualizados vía `GameEvents.InventoryChanged`
 
 ## Vinculado a
 
-[[Index/05 - UI System]], [[Index/14 - Localization]], [[Index/24 - Puente Tienda-Arena]], [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
+[[Index/05 - UI System]]
+[[Index/26 - Plan H0 - Bajada por pisos]] (S124)
 
-**Conexiones:** [[Loc]], [[GameManager]], [[GameEvents]], [[ExpeditionBridge]], [[UiPanels]], [[ArenaRunDirector]] (S124)
+**Conexiones:** [[Loc]], [[GameManager]], [[GameEvents]], [[ExpeditionBridge]], [[UiPanels]]
+

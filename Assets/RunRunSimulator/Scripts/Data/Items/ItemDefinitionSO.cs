@@ -11,7 +11,6 @@ public class ItemDefinitionSO : SerializedScriptableObject
     [ReadOnly] public string Id;
     public string DisplayName = "";
     public WorldPropCategory Category = WorldPropCategory.Tool;
-    public ItemTriggerKind Trigger = ItemTriggerKind.None;
 
     [Title("World Prop")]
     [Required, AssetsOnly]

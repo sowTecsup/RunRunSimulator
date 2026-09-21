@@ -77,12 +77,7 @@ public class ExpeditionBridge : MonoBehaviour
         if (!ExpeditionHandoff.TryConsumeResult(out ExpeditionResult result)) yield break;
 
         int material = result.Lost ? 0 : result.PlayerSecured;
-        var inventory = GameManager.CurrentInventory;
-        if (inventory != null && material > 0)
-        {
-            inventory.AddAdventureMaterial(material);
-            GameEvents.InventoryChanged(inventory);
-        }
+        if (material > 0) Wallet.Add(Currency.Minerita, material, "expedition");
 
         int net = 0;
         int creatures = 0;
@@ -110,7 +105,7 @@ public class ExpeditionBridge : MonoBehaviour
             Winner = result.Winner,
             PlayerSecured = material,
             RivalSecured = result.RivalSecured,
-            MaterialGained = material,
+            MineritaGained = material,
             HealthLost = -net,
             Fallen = result.Fallen,
             Creatures = creatures,

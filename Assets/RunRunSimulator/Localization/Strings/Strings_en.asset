@@ -326,30 +326,6 @@ MonoBehaviour:
     m_Localized: "{0} \xB7 {1}d"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172476088392
-    m_Localized: Available
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088393
-    m_Localized: Team
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088394
-    m_Localized: Coming soon
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088395
-    m_Localized: Next combat in
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088396
-    m_Localized: Team A
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088397
-    m_Localized: Team B
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172476088398
     m_Localized: Breeding
     m_Metadata:
@@ -412,64 +388,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172476088413
     m_Localized: EN
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088414
-    m_Localized: Combat
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088415
-    m_Localized: Online Battle
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088416
-    m_Localized: Results
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088417
-    m_Localized: History
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088418
-    m_Localized: 3v3 Team
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088419
-    m_Localized: Instant Battle
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088420
-    m_Localized: Queue (Timer)
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088421
-    m_Localized: Select a MoriMochi
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088422
-    m_Localized: "{0}  \xB7  {1} {2:0} {3} {4:0} {5} {6:0} {7} {8:0} {9} {10:0} {11}
-      {12:0}  \xB7  {13}/{14}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088423
-    m_Localized: '{0} {1:0}   {2} {3:0}   {4} {5:0}   {6} {7:0}   {8} {9:0}   {10}
-      {11:0}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088424
-    m_Localized: Checking...
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088425
-    m_Localized: Check results
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088426
-    m_Localized: No MoriMonchis in queue.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088427
-    m_Localized: queued {0:HH:mm}
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088428
@@ -1493,120 +1411,8 @@ MonoBehaviour:
     m_Localized: "\u25C0 Back"
     m_Metadata:
       m_Items: []
-  - m_Id: 13877808261791744
-    m_Localized: NIGHT FIGHT
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317696
-    m_Localized: CHOOSE YOUR FIGHTER
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317697
-    m_Localized: Fight
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317698
-    m_Localized: Close
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317699
-    m_Localized: Fight again
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317700
-    m_Localized: Resting until {0}
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317701
-    m_Localized: Busy
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317702
-    m_Localized: Too tired
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317703
-    m_Localized: Horns
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317704
-    m_Localized: Wings
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317705
-    m_Localized: Back
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808316317706
-    m_Localized: POWER
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512000
-    m_Localized: INTACT
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512001
-    m_Localized: HITS
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512002
-    m_Localized: Pick a part to strike with
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512003
-    m_Localized: 'You: {0} breaks {1}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512004
-    m_Localized: 'Rival: {0} breaks {1}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512005
-    m_Localized: 'Mirror of {0}: power {1} vs {2}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512006
-    m_Localized: Nobody yields
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512007
-    m_Localized: Your hit
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512008
-    m_Localized: Rival hits
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512009
-    m_Localized: Both regroup
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512010
-    m_Localized: VICTORY
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512011
-    m_Localized: DEFEAT
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512012
-    m_Localized: '{0} - {1} in {2} rounds'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512013
-    m_Localized: +{0} adventure material
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13877808320512014
-    m_Localized: '{0} rests until {1}'
-    m_Metadata:
-      m_Items: []
   - m_Id: 13881322518118400
-    m_Localized: 'Material: {0:N0}'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13881322526507008
-    m_Localized: Resting until {0}
+    m_Localized: 'Minerita: {0:N0}'
     m_Metadata:
       m_Items: []
   - m_Id: 13881322526507009
@@ -1698,7 +1504,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674631
-    m_Localized: "Back from floor {0} \xB7 +{1} material \xB7 {2} health"
+    m_Localized: "Back from floor {0} \xB7 +{1} Minerita \xB7 {2} health"
     m_Metadata:
       m_Items: []
   - m_Id: 19241043774464000

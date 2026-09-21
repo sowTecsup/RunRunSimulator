@@ -84,3 +84,6 @@ Tools/*.key
 
 # Referencias de Juan (videos e imagenes, no van al repo)
 /referencias/
+
+# Respaldos de guardado (locales, no versionar)
+_SaveBackups/

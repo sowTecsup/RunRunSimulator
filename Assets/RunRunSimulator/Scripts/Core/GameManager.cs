@@ -49,9 +49,14 @@ public class GameManager : MonoBehaviour
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
 
+    [SerializeField, Min(1f)] private float pushDelaySeconds = 5f;
+
     [ShowInInspector, ReadOnly, LabelText("Last Minted ID")]
     [BoxGroup("Mint")]
     private string lastMintedID = "---";
+
+    private bool  pushPending;
+    private float pushDeadline;
 
     private void Awake() => Instance = this;
 
@@ -77,11 +82,33 @@ public class GameManager : MonoBehaviour
     private void Persist(CreatureRegistrySO registry)
     {
         SaveSystem.SaveDatabase(registry);
-        PushToCloud();
+        RequestPush();
     }
 
-    private void PersistFurniture(FurnitureRegistrySO registry) => SaveSystem.SaveFurniture(registry);
-    private void PersistInventory(PlayerInventorySO inv)        => SaveSystem.SaveInventory(inv);
+    private void PersistFurniture(FurnitureRegistrySO registry)
+    {
+        SaveSystem.SaveFurniture(registry);
+        RequestPush();
+    }
+
+    private void PersistInventory(PlayerInventorySO inv)
+    {
+        SaveSystem.SaveInventory(inv);
+        RequestPush();
+    }
+
+    private void RequestPush()
+    {
+        pushPending  = true;
+        pushDeadline = Time.unscaledTime + pushDelaySeconds;
+    }
+
+    private void Update()
+    {
+        if (!pushPending || Time.unscaledTime < pushDeadline) return;
+        pushPending = false;
+        PushToCloud();
+    }
 
     private void OnApplicationQuit()
     {
@@ -116,6 +143,7 @@ public class GameManager : MonoBehaviour
 
     public Task FlushToCloudAsync()
     {
+        pushPending = false;
         SaveSystem.SaveDatabase(creatureRegistry);
         SaveSystem.SaveSocialGraph();
         return cloudSync != null ? cloudSync.PushAsync() : Task.CompletedTask;

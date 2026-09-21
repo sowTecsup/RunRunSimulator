@@ -13,5 +13,7 @@
   <Project Path="Lofelt.NiceVibrations.Editor.csproj" />
   <Project Path="Sirenix.OdinInspector.Modules.UnityMathematics.csproj" />
   <Project Path="Sirenix.OdinInspector.Modules.UnityLocalization.csproj" />
+  <Project Path="MoriMonchi.Logic.csproj" />
+  <Project Path="MoriMonchi.Logic.Tests.csproj" />
   <Project Path="UnityChan.Editor.csproj" />
 </Solution>

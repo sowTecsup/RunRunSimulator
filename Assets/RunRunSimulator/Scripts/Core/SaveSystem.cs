@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 namespace MoriMonchiSimulator
 {
@@ -39,30 +40,47 @@ public static class SaveSystem
 
     public static void SaveDatabase(CreatureRegistrySO registry)
     {
-        string json = JsonConvert.SerializeObject(registry.GetAll(), Settings);
-        File.WriteAllText(DbPath, json);
+        File.WriteAllText(DbPath, Serialize(registry.GetAll()));
     }
 
     public static string Serialize(Dictionary<string, CreatureDNA> data) =>
-        JsonConvert.SerializeObject(data, Settings);
+        SaveMigrations.Write(JToken.FromObject(data, JsonSerializer.Create(Settings)), DateTime.UtcNow.Ticks);
 
     public static string Serialize(CreatureDNA dna) =>
         JsonConvert.SerializeObject(dna, Settings);
 
-    public static Dictionary<string, CreatureDNA> Deserialize(string json) =>
-        JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(json, Settings);
+    public static Dictionary<string, CreatureDNA> Deserialize(string json)
+    {
+        SaveEnvelope env = SaveMigrations.Read(json, SaveKind.Registry);
+        if (env.Data == null || env.Data.Type == JTokenType.Null)
+            return new Dictionary<string, CreatureDNA>();
+
+        return env.Data.ToObject<Dictionary<string, CreatureDNA>>(JsonSerializer.Create(Settings));
+    }
 
     public static string SerializeFurniture(FurnitureRegistrySO registry) =>
-        JsonConvert.SerializeObject(registry.GetAll(), Settings);
+        SaveMigrations.Write(JToken.FromObject(registry.GetAll(), JsonSerializer.Create(Settings)), DateTime.UtcNow.Ticks);
 
-    public static Dictionary<string, PlacedFurniture> DeserializeFurniture(string json) =>
-        JsonConvert.DeserializeObject<Dictionary<string, PlacedFurniture>>(json, Settings);
+    public static Dictionary<string, PlacedFurniture> DeserializeFurniture(string json)
+    {
+        SaveEnvelope env = SaveMigrations.Read(json, SaveKind.Furniture);
+        if (env.Data == null || env.Data.Type == JTokenType.Null)
+            return new Dictionary<string, PlacedFurniture>();
+
+        return env.Data.ToObject<Dictionary<string, PlacedFurniture>>(JsonSerializer.Create(Settings));
+    }
 
     public static string SerializeInventory(PlayerInventorySO inventory) =>
-        JsonConvert.SerializeObject(inventory.GetData(), Settings);
+        SaveMigrations.Write(JToken.FromObject(inventory.GetData(), JsonSerializer.Create(Settings)), DateTime.UtcNow.Ticks);
 
-    public static PlayerInventorySO.InventoryData DeserializeInventory(string json) =>
-        JsonConvert.DeserializeObject<PlayerInventorySO.InventoryData>(json, Settings);
+    public static PlayerInventorySO.InventoryData DeserializeInventory(string json)
+    {
+        SaveEnvelope env = SaveMigrations.Read(json, SaveKind.Inventory);
+        if (env.Data == null || env.Data.Type == JTokenType.Null)
+            return null;
+
+        return env.Data.ToObject<PlayerInventorySO.InventoryData>(JsonSerializer.Create(Settings));
+    }
 
     public static void LoadInto(CreatureRegistrySO registry)
     {
@@ -82,10 +100,7 @@ public static class SaveSystem
             return;
         }
 
-        var data = JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(
-            File.ReadAllText(path), Settings);
-
-        registry.LoadFrom(data);
+        registry.LoadFrom(Deserialize(File.ReadAllText(path)));
     }
 
     public static Dictionary<string, CreatureDNA> LoadDatabaseCopy()
@@ -100,14 +115,13 @@ public static class SaveSystem
             else return null;
         }
 
-        return JsonConvert.DeserializeObject<Dictionary<string, CreatureDNA>>(
-            File.ReadAllText(path), Settings);
+        return Deserialize(File.ReadAllText(path));
     }
 
     public static void SaveFurniture(FurnitureRegistrySO registry)
     {
         string path = ScopedPath(FURNITURE_FILENAME);
-        File.WriteAllText(path, JsonConvert.SerializeObject(registry.GetAll(), Settings));
+        File.WriteAllText(path, SerializeFurniture(registry));
         Debug.Log($"[SaveSystem] Saved {registry.Count} placed furniture → {path}");
     }
 
@@ -121,15 +135,13 @@ public static class SaveSystem
             return;
         }
 
-        var data = JsonConvert.DeserializeObject<Dictionary<string, PlacedFurniture>>(
-            File.ReadAllText(path), Settings);
-        registry.LoadFrom(data);
+        registry.LoadFrom(DeserializeFurniture(File.ReadAllText(path)));
     }
 
     public static void SaveInventory(PlayerInventorySO inventory)
     {
         string path = ScopedPath(INVENTORY_FILENAME);
-        File.WriteAllText(path, JsonConvert.SerializeObject(inventory.GetData(), Settings));
+        File.WriteAllText(path, SerializeInventory(inventory));
         Debug.Log($"[SaveSystem] Saved inventory → {path}");
     }
 
@@ -143,15 +155,13 @@ public static class SaveSystem
             return;
         }
 
-        var data = JsonConvert.DeserializeObject<PlayerInventorySO.InventoryData>(
-            File.ReadAllText(path), Settings);
-        inventory.LoadFrom(data);
+        inventory.LoadFrom(DeserializeInventory(File.ReadAllText(path)));
     }
 
     public static void SaveSocialGraph()
     {
         string path = ScopedPath(SOCIAL_FILENAME);
-        File.WriteAllText(path, JsonConvert.SerializeObject(SocialGraphService.ExportData(), Settings));
+        File.WriteAllText(path, SerializeSocialGraph());
     }
 
     public static void LoadSocialGraph(CreatureRegistrySO registry)
@@ -163,9 +173,69 @@ public static class SaveSystem
             return;
         }
 
-        var data = JsonConvert.DeserializeObject<Dictionary<string, float>>(
-            File.ReadAllText(path), Settings);
+        var data = DeserializeSocialGraph(File.ReadAllText(path));
         SocialGraphService.ImportData(data, id => registry != null && registry.TryGet(id, out _));
+    }
+
+    public static string SerializeSocialGraph() =>
+        SaveMigrations.Write(JToken.FromObject(SocialGraphService.ExportData(), JsonSerializer.Create(Settings)), DateTime.UtcNow.Ticks);
+
+    public static Dictionary<string, float> DeserializeSocialGraph(string json)
+    {
+        SaveEnvelope env = SaveMigrations.Read(json, SaveKind.Social);
+        if (env.Data == null || env.Data.Type == JTokenType.Null)
+            return new Dictionary<string, float>();
+
+        return env.Data.ToObject<Dictionary<string, float>>(JsonSerializer.Create(Settings));
+    }
+
+    public static long LatestLocalSavedAt()
+    {
+        long latest = 0;
+
+        long registryAt  = SavedAtOf(DbPath, SaveKind.Registry);
+        long furnitureAt = SavedAtOf(ScopedPath(FURNITURE_FILENAME), SaveKind.Furniture);
+        long inventoryAt = SavedAtOf(ScopedPath(INVENTORY_FILENAME), SaveKind.Inventory);
+        long socialAt    = SavedAtOf(ScopedPath(SOCIAL_FILENAME), SaveKind.Social);
+
+        if (registryAt  > latest) latest = registryAt;
+        if (furnitureAt > latest) latest = furnitureAt;
+        if (inventoryAt > latest) latest = inventoryAt;
+        if (socialAt    > latest) latest = socialAt;
+
+        return latest;
+    }
+
+    private static long SavedAtOf(string path, SaveKind kind)
+    {
+        if (!File.Exists(path)) return 0;
+
+        try { return SaveMigrations.Read(File.ReadAllText(path), kind).SavedAtTicks; }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[SaveSystem] Could not read save date of {path}: {e.Message}");
+            return 0;
+        }
+    }
+
+    public static void BackupLocal(string suffix)
+    {
+        BackupFile(DbPath, suffix);
+        BackupFile(ScopedPath(FURNITURE_FILENAME), suffix);
+        BackupFile(ScopedPath(INVENTORY_FILENAME), suffix);
+        BackupFile(ScopedPath(SOCIAL_FILENAME), suffix);
+    }
+
+    private static void BackupFile(string path, string suffix)
+    {
+        if (!File.Exists(path)) return;
+
+        string ext  = Path.GetExtension(path);
+        string stem = path.Substring(0, path.Length - ext.Length);
+        string backupPath = $"{stem}.{suffix}.bak.json";
+
+        try { File.Copy(path, backupPath, true); }
+        catch (Exception e) { Debug.LogWarning($"[SaveSystem] Backup failed for {path}: {e.Message}"); }
     }
 
     private class UnityColorConverter : JsonConverter<Color>

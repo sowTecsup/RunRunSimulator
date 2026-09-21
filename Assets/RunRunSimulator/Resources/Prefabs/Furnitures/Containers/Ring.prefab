@@ -44,7 +44,6 @@ GameObject:
   - component: {fileID: 2511236559431706174}
   - component: {fileID: 5635060040132852720}
   - component: {fileID: 4830657465816479830}
-  - component: {fileID: 6448453062456255297}
   m_Layer: 0
   m_Name: Ring
   m_TagString: Untagged
@@ -105,19 +104,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3, y: 1, z: 3}
   m_Center: {x: 0, y: 0.54, z: 0}
---- !u!114 &6448453062456255297
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1586670109088560905}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa8ea4ed7c8d0284c82694ca7356033e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.PanelTrigger
-  panel: 4
 --- !u!1 &6829279392159911093
 GameObject:
   m_ObjectHideFlags: 0
