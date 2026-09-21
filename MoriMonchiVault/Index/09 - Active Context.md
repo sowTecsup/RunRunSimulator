@@ -4,6 +4,26 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-21 (Session 127 — **INFORME DE ESTADO + HITO NUEVO "HC · CIMIENTOS" + PLAN EJECUTABLE `Index/29`** — 0 scripts tocados; vault-documenter NO corre; ✅ CERRADA por `/cerrar-sesion`)
+
+**Focus:** Juan pidió plantear la infraestructura para que tienda, crianza y aventura funcionen unidas, y medir cuánto falta para game ready. Cinco auditorías de solo lectura contra el código (tienda/economía · crianza/ciclo de vida/guardado · mundo vivo · habilidades/evolución · UI/tienda online/producción).
+
+1. **Hallazgo:** hay tres juegos que funcionan por separado y un solo hilo que los une (el puente, que trae un número que nunca se gasta). De 25 sistemas: 2 en verde, 15 a medias, 6 ausentes (evolución, trabajos, rival real, reloj, arranque, audio, pruebas), 2 muertos (RPS, stats/equipo).
+2. **[[Index/28 - Cimientos y camino a Game Ready]]** (NUEVA): contrato de dos monedas, inventario de sistemas, hito **HC** con 7 piezas (C1 limpieza RPS · C2 guardado · C3 cartera · C4 ciclo de vida · C5 catálogo · C6 reloj · C7 cáscara y arranque), etapas E1 tienda · E2 evolución · E3 actividades pasivas · E4 aventura, estimación (loop mostrable ≈ 16-22 sesiones; lanzamiento ≈ 52-82).
+3. **Decisiones de Juan ⭐:** la segunda moneda es **Minerita** (el material de la bajada, renombrado; se borran las otras dos); **solo la exploración da Minerita**; **solo un MoriMochi bien cuidado puede bajar** y dentro de la exploración las necesidades no influyen; evolucionar = **subir el nivel de la parte**, con la regla en un **ScriptableObject ejecutable**.
+4. **[[Index/29 - Plan HC - Cimientos (ejecutable)]]** (NUEVA): contratos de C1-C5 escritos leyendo el código (sobre con versión y cadena de migraciones, reconciliación nube/local por fecha, push agrupado, `Wallet`, registro con dos estantes vivas/idas, `CreatureLifecycle`, `CreatureAvailability` + `CareGateSO`, propiedad de muebles por desbloqueo, caja de MoriMonchis, `EvolutionEffectSO`), reparto en sesiones HC-1 a HC-4.
+5. `Index/25`: fila **HC** insertada entre H0 y H1; H1 pasa a ser el loop de dos monedas. `00 - Index`: fila de ruteo nueva.
+
+**Pendiente heredado sin tocar:** revisión del paquete `com.sowtank.minishapes` (S126: compilar, 3 `.mat`, demo) y los 8 `.meta` que Unity regeneró (van en este commit); H0 sigue esperando las 5 bajadas de Juan a 1×.
+
+**Siguiente paso:** sesión **HC-1 con Opus** (C1 + C2 + C3) siguiendo `Index/29`; antes, respaldar el guardado de Juan (§0.4). Abiertas para HC-3 y HC-4 (`Index/29` §9): cría y reloj · suciedad · stats y equipo · arranque con caja de regalo o comprada.
+
+**Archivos `.cs` modificados/creados:** ninguno.
+
+**Otros archivos tocados:** `Index/28` y `Index/29` (NUEVAS), `Index/25`, `00 - Index`.
+
+---
+
 **Session:** 2026-09-17 (Session 126 — **EXTRACCIÓN DEL "MINI SHAPES" A PAQUETE UPM REUTILIZABLE** — ⏸️ pendiente de revisión)
 
 **Focus:** Juan pidió sacar nuestro dibujante de guías como paquete independiente de MoriMonchi para llevarlo a otros proyectos. Copia aparte: el juego sigue usando `CueDrawer`/`MonchiCue.shader` sin cambios.
