@@ -40,22 +40,22 @@ public static class SaveSystem
 
     public static void SaveDatabase(CreatureRegistrySO registry)
     {
-        File.WriteAllText(DbPath, Serialize(registry.GetAll()));
+        File.WriteAllText(DbPath, Serialize(registry.GetData()));
     }
 
-    public static string Serialize(Dictionary<string, CreatureDNA> data) =>
+    public static string Serialize(RegistryData data) =>
         SaveMigrations.Write(JToken.FromObject(data, JsonSerializer.Create(Settings)), DateTime.UtcNow.Ticks);
 
     public static string Serialize(CreatureDNA dna) =>
         JsonConvert.SerializeObject(dna, Settings);
 
-    public static Dictionary<string, CreatureDNA> Deserialize(string json)
+    public static RegistryData Deserialize(string json)
     {
         SaveEnvelope env = SaveMigrations.Read(json, SaveKind.Registry);
         if (env.Data == null || env.Data.Type == JTokenType.Null)
-            return new Dictionary<string, CreatureDNA>();
+            return new RegistryData { Alive = new Dictionary<string, CreatureDNA>(), Departed = new Dictionary<string, CreatureDNA>() };
 
-        return env.Data.ToObject<Dictionary<string, CreatureDNA>>(JsonSerializer.Create(Settings));
+        return env.Data.ToObject<RegistryData>(JsonSerializer.Create(Settings));
     }
 
     public static string SerializeFurniture(FurnitureRegistrySO registry) =>
@@ -115,7 +115,7 @@ public static class SaveSystem
             else return null;
         }
 
-        return Deserialize(File.ReadAllText(path));
+        return Deserialize(File.ReadAllText(path)).Alive;
     }
 
     public static void SaveFurniture(FurnitureRegistrySO registry)

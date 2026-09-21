@@ -46,18 +46,6 @@ MonoBehaviour:
     m_Localized: Planta
     m_Metadata:
       m_Items: []
-  - m_Id: 4172476088323
-    m_Localized: Arma
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088324
-    m_Localized: Armadura
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088325
-    m_Localized: Amuleto
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172476088326
     m_Localized: Cuerpo
     m_Metadata:
@@ -192,30 +180,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172476088358
     m_Localized: Empate
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088359
-    m_Localized: CON
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088360
-    m_Localized: ATK
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088361
-    m_Localized: SPD
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088362
-    m_Localized: DEF
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088363
-    m_Localized: LCK
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088364
-    m_Localized: EVA
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088365
@@ -496,60 +460,60 @@ MonoBehaviour:
     m_Localized: "{0}: \u2014"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282636
-    m_Localized: "Combate antiguo \u2014 sin stats registradas"
+  - m_Id: 21042558734491660
+    m_Localized: No lista
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282637
-    m_Localized: "Victoria \u2014 sin mejora"
+  - m_Id: 21042558734491659
+    m_Localized: Afecto
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282638
-    m_Localized: "Se mejor\xF3 {0}"
+  - m_Id: 21042558734491658
+    m_Localized: "Energ\xEDa"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282639
-    m_Localized: "Muri\xF3 en combate"
+  - m_Id: 21042558734491657
+    m_Localized: Vida
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282640
-    m_Localized: "Regres\xF3 derrotado"
+  - m_Id: 21042558734491656
+    m_Localized: "{0}: \u2014  \xB7  Nv {1}/{2}"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282641
-    m_Localized: "Empate \u2014 sin consecuencias"
+  - m_Id: 21042558734491655
+    m_Localized: "{0}: {1}  \xB7  {2} \xB7 {3} \xB7 Nv {4}/{5}"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282642
-    m_Localized: "T\xFA"
+  - m_Id: 21042558734491654
+    m_Localized: No apta
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282643
-    m_Localized: Rival
+  - m_Id: 21042558734491653
+    m_Localized: Apta para bajar
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282644
-    m_Localized: '{0} T{1}'
+  - m_Id: 21042558734491652
+    m_Localized: Afecto
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282645
-    m_Localized: "vs {0} \xB7 local"
+  - m_Id: 21042558734491651
+    m_Localized: "Energ\xEDa"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282646
-    m_Localized: "vs {0} \xB7 de {1}"
+  - m_Id: 21042558734491650
+    m_Localized: Vida
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282647
-    m_Localized: Victoria
+  - m_Id: 21042558734491649
+    m_Localized: Cuidado
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282648
-    m_Localized: Derrota
+  - m_Id: 21042558734491648
+    m_Localized: "{0} no volvi\xF3"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282649
-    m_Localized: Empate
+  - m_Id: 21042558671577088
+    m_Localized: '{0} fue adoptada'
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282650
@@ -576,28 +540,8 @@ MonoBehaviour:
     m_Localized: "\xBF?"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282656
-    m_Localized: Sin equipar
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282657
-    m_Localized: Ninguno
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282658
-    m_Localized: "{0}: vac\xEDo"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282659
-    m_Localized: "{0} \xB7 {1}"
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172480282660
     m_Localized: Info
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282661
-    m_Localized: Combate
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282662
@@ -606,10 +550,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172480282663
     m_Localized: Linaje
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282664
-    m_Localized: Equipo
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282665
@@ -632,20 +572,12 @@ MonoBehaviour:
     m_Localized: "Progresi\xF3n"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282670
-    m_Localized: Stats
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172480282671
     m_Localized: Le caen bien
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282672
     m_Localized: Le caen mal
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282673
-    m_Localized: Sin combates registrados.
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282674
@@ -1476,20 +1408,12 @@ MonoBehaviour:
     m_Localized: Elige hasta {0} MoriMonchis para bajar a la sala
     m_Metadata:
       m_Items: []
-  - m_Id: 19177877371674625
-    m_Localized: Vida {0}
-    m_Metadata:
-      m_Items: []
-  - m_Id: 19177877371674626
-    m_Localized: "Sin vida \xB7 {0}"
-    m_Metadata:
-      m_Items: []
   - m_Id: 19177877371674627
     m_Localized: Ocupado
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674628
-    m_Localized: No tienes MoriMonchis con vida para bajar
+    m_Localized: "Ninguna MoriMonchi est\xE1 lo bastante cuidada para bajar"
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674629
@@ -1501,11 +1425,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674631
-    m_Localized: "Volviste del piso {0} \xB7 +{1} Minerita \xB7 {2} vida"
+    m_Localized: "Volviste del piso {0} \xB7 +{1} Minerita \xB7 {2} ca\xEDdas"
     m_Metadata:
       m_Items: []
   - m_Id: 19241043774464000
-    m_Localized: "Perdiste en el piso {0} \xB7 sin bot\xEDn \xB7 {1} vida"
+    m_Localized: "Perdiste en el piso {0} \xB7 sin bot\xEDn \xB7 {1} ca\xEDdas"
     m_Metadata:
       m_Items: []
   references:

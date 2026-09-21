@@ -262,15 +262,13 @@ namespace MoriMonchiSimulator
         public void AcceptCurrentOffer()
         {
             if (TargetMM == null) { TransitionTo(NpcState.Leaving); return; }
-            TargetMM.BusyState = BusyReason.Sold;
-            TargetMM.SaleDate  = DateTime.UtcNow;
             Reason = LeaveReason.Purchased;
             var gm = GameManager.Instance;
             if (gm != null)
             {
                 Wallet.Add(Currency.Dabloons, CurrentOffer, "adoption");
+                CreatureLifecycle.Adopt(TargetMM);
                 GameEvents.CustomerSold(this, TargetMM, CurrentOffer);
-                GameEvents.RegistryChanged(gm.Registry);
             }
             TransitionTo(NpcState.Leaving);
         }
@@ -348,7 +346,7 @@ namespace MoriMonchiSimulator
             {
                 var dna = occ?.DNA;
                 if (dna == null) continue;
-                if (dna.IsBusy) continue;
+                if (!CreatureAvailability.IsFree(dna)) continue;
                 int price = svc.Valuation.Estimate(dna, Archetype, svc.Pricing);
                 if (price > bestPrice) { bestPrice = price; best = dna; }
             }

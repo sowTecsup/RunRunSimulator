@@ -15,14 +15,8 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     [Tooltip("Resolves part names/sets/rarity and effective stats. Shared SO asset.")]
     [SerializeField] private CreatureDatabaseSO database;
 
-    [Tooltip("Resolves equipped item IDs to their EquipmentSO (icon, rarity, effects) for the Equipo tab.")]
-    [SerializeField] private EquipmentDatabaseSO equipmentDatabase;
-
-    [Tooltip("Colores por rareza (pastel, nombre del ítem) y por slot (acento de la card).")]
-    [SerializeField] private EquipmentPaletteSO equipmentPalette;
-
-    [Tooltip("Popup mochila para equipar desde la tab Equipo.")]
-    [SerializeField] private EquipmentBackpackUITK backpack;
+    [Tooltip("Umbral de necesidades para poder bajar (marca de apta en la ficha).")]
+    [SerializeField] private CareGateSO careGate;
 
     [Tooltip("Draw order; higher keeps this modal above the grid panel.")]
     [SerializeField] private int sortingOrder = 100;
@@ -35,7 +29,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
     private DetailInfoTabPresenter info;
     private DetailTreesPresenter trees;
-    private DetailEquipTabPresenter equip;
     private DetailRelationsPresenter relations;
 
     private CreatureRegistrySO registry;
@@ -100,9 +93,8 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
         WireStaticLabels(root);
 
-        info   = new DetailInfoTabPresenter(root, database, equipmentDatabase);
+        info   = new DetailInfoTabPresenter(root, database, careGate);
         trees  = new DetailTreesPresenter(root, database, () => registry);
-        equip  = new DetailEquipTabPresenter(root, database, equipmentDatabase, equipmentPalette, backpack, () => registry);
         relations = new DetailRelationsPresenter(root, () => registry);
 
         wired = true;
@@ -113,14 +105,16 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
         SetTabLabel(root, "tab-info", "ui.detail.tab.info");
         SetTabLabel(root, "tab-breed", "ui.detail.tab.breed");
         SetTabLabel(root, "tab-lineage", "ui.detail.tab.lineage");
-        SetTabLabel(root, "tab-team", "ui.detail.tab.equipment");
         SetTabLabel(root, "tab-relations", "ui.detail.tab.relations");
 
         SetSectionTitles(root, "tab-info", "ui.detail.section.identity", "ui.detail.section.role_element",
             "ui.detail.section.parts", "ui.detail.section.progression");
-        SetSectionTitles(root, "tab-team", "ui.detail.section.stats");
         SetSectionTitles(root, "tab-relations", "ui.detail.section.friends", "ui.detail.section.foes");
 
+        SetLabelText(root, "care-title", "ui.detail.section.care");
+        SetLabelText(root, "need-health-label", "ui.detail.need.health");
+        SetLabelText(root, "need-energy-label", "ui.detail.need.energy");
+        SetLabelText(root, "need-affect-label", "ui.detail.need.affect");
         SetLabelText(root, "breed-empty", "ui.detail.placeholder.breed_empty");
         SetLabelText(root, "lineage-empty", "ui.detail.placeholder.lineage_empty");
         SetLabelText(root, "relations-empty", "ui.detail.placeholder.relations_empty");
@@ -160,7 +154,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
     private void OnClose()
     {
         UIManager.RequestPanelSet(panel, false);
-        backpack?.Close();
     }
 
     private void OnRegistryChanged(CreatureRegistrySO _)
@@ -183,7 +176,6 @@ public class MorimonchiDetailInfoUITK : MonoBehaviour, IUINavigable
 
         info.Rebuild(dna);
         trees.Rebuild(dna);
-        equip.Rebuild(dna);
         relations.Rebuild(dna);
     }
 }

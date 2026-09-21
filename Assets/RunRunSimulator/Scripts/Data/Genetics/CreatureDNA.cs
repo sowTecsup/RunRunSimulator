@@ -40,6 +40,7 @@ public class CreatureDNA
     public float Boldness    = 0.5f;
 
     public int BreedCount = 0;
+    public int Generation;
 
     public Tier BodyTier = Tier.Tier1;
     public Tier HornTier = Tier.Tier1;
@@ -49,14 +50,6 @@ public class CreatureDNA
     public int HornPotential = 1;
     public int BackPotential = 1;
     public int WingPotential = 1;
-
-    public float BaseConstitution = 0f;
-    public float BaseAttack       = 0f;
-    public float BaseSpeed        = 0f;
-
-    public float BaseDefense  = 0f;
-    public float BaseLuck     = 0f;
-    public float BaseEvasion  = 0f;
 
     public bool IsDead = false;
 
@@ -72,33 +65,6 @@ public class CreatureDNA
     public string BreedPartnerID = "";
     public string LocationKey  = "";
     public int    LocationSlot = -1;
-
-    [HideInInspector]
-    public Dictionary<EquipmentSlot, string> Equipped = new Dictionary<EquipmentSlot, string>();
-
-#if UNITY_EDITOR
-    [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.BoxGroup("Equipment"), Sirenix.OdinInspector.AssetsOnly, Sirenix.OdinInspector.LabelText("Weapon")]
-    private EquipmentSO WeaponSlotEditor { get => ResolveSlot(EquipmentSlot.Weapon); set => AssignSlot(EquipmentSlot.Weapon, value); }
-    [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.BoxGroup("Equipment"), Sirenix.OdinInspector.AssetsOnly, Sirenix.OdinInspector.LabelText("Armor")]
-    private EquipmentSO ArmorSlotEditor  { get => ResolveSlot(EquipmentSlot.Armor);  set => AssignSlot(EquipmentSlot.Armor, value); }
-    [Sirenix.OdinInspector.ShowInInspector, Sirenix.OdinInspector.BoxGroup("Equipment"), Sirenix.OdinInspector.AssetsOnly, Sirenix.OdinInspector.LabelText("Amulet")]
-    private EquipmentSO AmuletSlotEditor { get => ResolveSlot(EquipmentSlot.Amulet); set => AssignSlot(EquipmentSlot.Amulet, value); }
-
-    private EquipmentSO ResolveSlot(EquipmentSlot slot) =>
-        Equipped != null && Equipped.TryGetValue(slot, out var id) ? EquipmentDatabaseSO.Editor?.GetByID(id) : null;
-
-    private void AssignSlot(EquipmentSlot slot, EquipmentSO so)
-    {
-        Equipped ??= new Dictionary<EquipmentSlot, string>();
-        if (so == null) { Equipped.Remove(slot); return; }
-        if (so.Slot != slot)
-        {
-            Debug.LogWarning($"[CreatureDNA] '{so.Name}' es de slot {so.Slot}, no encaja en {slot}.");
-            return;
-        }
-        Equipped[slot] = so.ID;
-    }
-#endif
 
     public int AgeDays => BirthDate == default ? 0 : Mathf.Max(0, (int)(DateTime.UtcNow - BirthDate).TotalDays);
 

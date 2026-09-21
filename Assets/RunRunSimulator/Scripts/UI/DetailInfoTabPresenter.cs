@@ -6,22 +6,25 @@ namespace MoriMonchiSimulator
 public class DetailInfoTabPresenter
 {
     private readonly CreatureDatabaseSO database;
-    private readonly EquipmentDatabaseSO equipmentDatabase;
+    private readonly CareGateSO careGate;
 
-    private readonly Label statCon, statAtk, statSpd, statDef, statLck, statEva, identityLabel, roleElementLabel, progressionLabel;
+    private readonly VisualElement needHealthFill, needEnergyFill, needAffectFill;
+    private readonly VisualElement needHealthRow, needEnergyRow, needAffectRow;
+    private readonly Label exploreStatus, identityLabel, roleElementLabel, progressionLabel;
     private readonly VisualElement partsContainer;
 
-    public DetailInfoTabPresenter(VisualElement root, CreatureDatabaseSO database, EquipmentDatabaseSO equipmentDatabase)
+    public DetailInfoTabPresenter(VisualElement root, CreatureDatabaseSO database, CareGateSO careGate)
     {
         this.database = database;
-        this.equipmentDatabase = equipmentDatabase;
+        this.careGate = careGate;
 
-        statCon          = root.Q<Label>("stat-con");
-        statAtk          = root.Q<Label>("stat-atk");
-        statSpd          = root.Q<Label>("stat-spd");
-        statDef          = root.Q<Label>("stat-def");
-        statLck          = root.Q<Label>("stat-lck");
-        statEva          = root.Q<Label>("stat-eva");
+        needHealthRow    = root.Q<VisualElement>("need-health");
+        needEnergyRow    = root.Q<VisualElement>("need-energy");
+        needAffectRow    = root.Q<VisualElement>("need-affect");
+        needHealthFill   = root.Q<VisualElement>("need-health-fill");
+        needEnergyFill   = root.Q<VisualElement>("need-energy-fill");
+        needAffectFill   = root.Q<VisualElement>("need-affect-fill");
+        exploreStatus    = root.Q<Label>("explore-status");
         identityLabel    = root.Q<Label>("identity");
         roleElementLabel = root.Q<Label>("role-element");
         partsContainer   = root.Q<VisualElement>("parts");
@@ -32,17 +35,23 @@ public class DetailInfoTabPresenter
     {
         if (dna == null) return;
 
-        var baseEff = database != null
-            ? CreatureStats.GetEffectiveStats(dna, database)
-            : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
-        var eff = EquipmentStats.Apply(baseEff, dna, equipmentDatabase);
+        SetNeedBar(needHealthFill, NeedType.Health, dna.Needs.Health);
+        SetNeedBar(needEnergyFill, NeedType.Energy, dna.Needs.Energy);
+        SetNeedBar(needAffectFill, NeedType.Affect, dna.Needs.Affect);
 
-        SetStat(statCon, "CON", eff.Constitution, dna.BaseConstitution);
-        SetStat(statAtk, "ATK", eff.Attack,       dna.BaseAttack);
-        SetStat(statSpd, "SPD", eff.Speed,        dna.BaseSpeed);
-        SetStat(statDef, "DEF", eff.Defense,      dna.BaseDefense);
-        SetStat(statLck, "LCK", eff.Luck,         dna.BaseLuck);
-        SetStat(statEva, "EVA", eff.Evasion,      dna.BaseEvasion);
+        bool canExplore = careGate != null && CreatureAvailability.CanExplore(dna, careGate);
+        NeedType? weakest = careGate != null ? CreatureAvailability.WeakestNeed(dna, careGate) : null;
+
+        SetNeedHighlight(needHealthRow, weakest == NeedType.Health);
+        SetNeedHighlight(needEnergyRow, weakest == NeedType.Energy);
+        SetNeedHighlight(needAffectRow, weakest == NeedType.Affect);
+
+        if (exploreStatus != null)
+        {
+            exploreStatus.text = canExplore ? Loc.Tr("ui.detail.explore.ready") : Loc.Tr("ui.detail.explore.blocked");
+            exploreStatus.EnableInClassList("explore-status--ready", canExplore);
+            exploreStatus.EnableInClassList("explore-status--blocked", !canExplore);
+        }
 
         if (identityLabel != null)
             identityLabel.text = Loc.Tr("ui.detail.identity", LocEnumMaps.GenderName(dna.Gender), CreatureDisplay.StateOf(dna), Born(dna));
@@ -56,12 +65,18 @@ public class DetailInfoTabPresenter
             progressionLabel.text = Loc.Tr("ui.detail.progression", dna.BreedCount);
     }
 
-    private static void SetStat(Label label, string name, float final, float baseVal)
+    private static void SetNeedBar(VisualElement fill, NeedType need, float value)
     {
-        if (label == null) return;
-        float bonus = final - baseVal;
-        label.text = $"{name}  {final:0}   ({baseVal:0} + {bonus:0})";
+        if (fill == null) return;
+        fill.style.width = Length.Percent(NeedsDisplay.Fill01(need, value) * 100f);
+        fill.RemoveFromClassList("exp-bar--good");
+        fill.RemoveFromClassList("exp-bar--warn");
+        fill.RemoveFromClassList("exp-bar--crit");
+        fill.AddToClassList(NeedsDisplay.ColorClass(need, value));
     }
+
+    private static void SetNeedHighlight(VisualElement row, bool highlight) =>
+        row?.EnableInClassList("detail-need--blocked", highlight);
 
     private void BuildParts(CreatureDNA dna)
     {
@@ -69,14 +84,14 @@ public class DetailInfoTabPresenter
         partsContainer.Clear();
         if (database == null) return;
 
-        AddPartRow(PartRole.Body, database.GetBodyShape(dna.BodyShapeID), 0);
-        AddPartRow(PartRole.Horn, database.GetHorn(dna.HornID),           dna.HornPotential);
-        AddPartRow(PartRole.Back, database.GetBack(dna.BackID),           dna.BackPotential);
-        AddPartRow(PartRole.Wing, database.GetWing(dna.WingID),           dna.WingPotential);
-        AddPartRow(PartRole.Face, database.GetFace(dna.FaceID),           0);
+        AddPartRow(PartRole.Body, database.GetBodyShape(dna.BodyShapeID));
+        AddEvolvablePartRow(PartRole.Horn, database.GetHorn(dna.HornID), dna.HornTier, dna.HornPotential);
+        AddEvolvablePartRow(PartRole.Back, database.GetBack(dna.BackID), dna.BackTier, dna.BackPotential);
+        AddEvolvablePartRow(PartRole.Wing, database.GetWing(dna.WingID), dna.WingTier, dna.WingPotential);
+        AddPartRow(PartRole.Face, database.GetFace(dna.FaceID));
     }
 
-    private void AddPartRow(PartRole slot, BodyPart part, int potential)
+    private void AddPartRow(PartRole slot, BodyPart part)
     {
         var row = new VisualElement();
         row.AddToClassList("part-row");
@@ -89,11 +104,33 @@ public class DetailInfoTabPresenter
         var text = new Label();
         text.AddToClassList("part-text");
         text.text = part != null
-            ? (potential > 0
-                ? Loc.Tr("ui.detail.partrow.potential", SlotName(slot), part.Name, part.Set, LocEnumMaps.RarityName(part.Rarity), potential)
-                : Loc.Tr("ui.detail.partrow", SlotName(slot), part.Name, part.Set, LocEnumMaps.RarityName(part.Rarity)))
-            : potential > 0 ? Loc.Tr("ui.detail.partrow.potential.empty", SlotName(slot), potential) : Loc.Tr("ui.detail.partrow.empty", SlotName(slot));
+            ? Loc.Tr("ui.detail.partrow", SlotName(slot), part.Name, part.Set, LocEnumMaps.RarityName(part.Rarity))
+            : Loc.Tr("ui.detail.partrow.empty", SlotName(slot));
         row.Add(text);
+
+        partsContainer.Add(row);
+    }
+
+    private void AddEvolvablePartRow(PartRole slot, BodyPart part, Tier tier, int potential)
+    {
+        var row = new VisualElement();
+        row.AddToClassList("part-row");
+
+        var swatch = new VisualElement();
+        swatch.AddToClassList("part-swatch");
+        swatch.style.backgroundColor = part != null ? BodyPart.SetColor(part.Set) : Color.gray;
+        row.Add(swatch);
+
+        var text = new Label();
+        text.AddToClassList("part-text");
+        text.text = part != null
+            ? Loc.Tr("ui.detail.partrow.level", SlotName(slot), part.Name, part.Set, LocEnumMaps.RarityName(part.Rarity), (int)tier, potential)
+            : Loc.Tr("ui.detail.partrow.level.empty", SlotName(slot), (int)tier, potential);
+        row.Add(text);
+
+        var action = new VisualElement();
+        action.AddToClassList("part-action");
+        row.Add(action);
 
         partsContainer.Add(row);
     }

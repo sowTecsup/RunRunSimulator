@@ -20,12 +20,6 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
 
     [SerializeField] private Vector2 cardSize = new Vector2(120f, 150f);
 
-    [Header("Equipment")]
-
-    [SerializeField] private EquipmentDatabaseSO equipmentDatabase;
-
-    [SerializeField] private EquipmentPaletteSO equipmentPalette;
-
     private const string SelectedClass = "card--selected";
 
     private ScrollView scroll;
@@ -129,35 +123,6 @@ public class CreatureGridUITK : MonoBehaviour, IUINavigable
         var stateLabel = card.Q<Label>("state-label");
         if (stateLabel != null)
             stateLabel.text = CreatureDisplay.StateOf(dna);
-
-        BindEquipSlot(card, dna, "equip-weapon", EquipmentSlot.Weapon);
-        BindEquipSlot(card, dna, "equip-armor",  EquipmentSlot.Armor);
-        BindEquipSlot(card, dna, "equip-amulet", EquipmentSlot.Amulet);
-    }
-
-    private void BindEquipSlot(VisualElement card, CreatureDNA dna, string elementName, EquipmentSlot slot)
-    {
-        var el = card.Q<VisualElement>(elementName);
-        if (el == null) return;
-
-        EquipmentSO item = dna.Equipped != null && dna.Equipped.TryGetValue(slot, out var id)
-            ? equipmentDatabase?.GetByID(id)
-            : null;
-
-        if (item != null)
-        {
-            el.RemoveFromClassList("card__equip-slot--empty");
-            CreatureDisplay.ApplyIconVisual(el, item);
-            CreatureDisplay.ApplyRarityBorder(el, CreatureDisplay.RarityColor(item.Rarity, equipmentPalette));
-        }
-        else
-        {
-            el.AddToClassList("card__equip-slot--empty");
-            el.style.backgroundImage = StyleKeyword.Null;
-            el.style.backgroundColor = StyleKeyword.Null;
-
-            CreatureDisplay.ApplyRarityBorder(el, equipmentPalette != null ? equipmentPalette.SlotColor(slot) : new Color(0.35f, 0.35f, 0.43f));
-        }
     }
 
     private void Select(int idx, bool scrollIntoView = true)

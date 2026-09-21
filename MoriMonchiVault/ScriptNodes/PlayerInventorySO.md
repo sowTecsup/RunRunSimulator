@@ -6,7 +6,7 @@ tags: [scriptable-object, inventory, persistence]
 
 **Ruta:** `Data/Player/PlayerInventorySO.cs`
 
-**Responsabilidad:** Dato persistente del jugador (SO). Contiene dos monedas (`Dabloons`, `Minerita`), muebles desbloqueados, props del mundo, grillas de equipo y slots hotbar. **S128:** métodos públicos `Balance()`, `Add()`, `TrySpend()`, `ResetCurrency()`; `adventureMaterial` renombrada a `minerita` con `[PreviouslySerializedAs]`. Nunca llama `SaveSystem` ni dispara eventos; lo hace [[Wallet]] (puerta única de mutaciones).
+**Responsabilidad:** Dato persistente del jugador (SO). Contiene dos monedas (`Dabloons`, `Minerita`), muebles desbloqueados, props del mundo, y slots hotbar. **S128:** métodos públicos `Balance()`, `Add()`, `TrySpend()`, `ResetCurrency()`; `adventureMaterial` renombrada a `minerita` con `[PreviouslySerializedAs]`. Nunca llama `SaveSystem` ni dispara eventos; lo hace [[Wallet]] (puerta única de mutaciones). **S129:** Eliminadas grillas de equipo y métodos de equipo (HC-1).
 
 ## Campos Públicos (Serializados Odin)
 
@@ -14,14 +14,13 @@ tags: [scriptable-object, inventory, persistence]
 |-------|------|-------------|
 | `furnitureOwned` | `List<string>` | IDs de muebles desbloqueados (set: sin duplicados) |
 | `worldPropsStored` | `List<string>` | IDs de props del mundo (list: permite dupes) |
-| `equipmentGrids` | `Dictionary<EquipmentSlot, List<string>>` | Grillas de equipo por slot |
 | `hotbarSlots` | `string[6]` | 6 slots hotbar (I# ids, persisten) |
 | `dabloons` | `int` | Primera moneda (compras, venta, reembolso) |
 | `minerita` | `int` | Segunda moneda (exploración, evolución); migrada de `adventureMaterial` (v1→v2) |
 
 ## Métodos Públicos
 
-### Monedas (S128 NUEVO)
+### Monedas (S128+)
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
@@ -45,16 +44,6 @@ tags: [scriptable-object, inventory, persistence]
 | `AddWorldProp(string id)` | `void` | Añade prop (permite dupes) |
 | `RemoveWorldProp(string id)` | `bool` | Remueve primera instancia de prop |
 | `WorldPropsStored` (property) | `IReadOnlyList<string>` | Read-only lista de props |
-
-### Equipo
-
-| Método | Retorna | Descripción |
-|--------|---------|-------------|
-| `AddEquipment(EquipmentSlot slot, string id)` | `void` | Añade equipo al primer slot vacío de grilla; si no hay → añade al final |
-| `RemoveEquipmentAt(EquipmentSlot slot, int index)` | `bool` | Remueve equipo en celda; retorna false si vacía |
-| `EquipmentAt(EquipmentSlot slot, int index)` | `string` | Lee equipo en celda (null si vacía) |
-| `GridFor(EquipmentSlot slot)` | `List<string>` | Acceso directo a grilla de slot (lazy-init) |
-| `CellCountOf(EquipmentSlot slot)` | `int` | Cantidad de celdas en grilla |
 
 ### Hotbar
 
@@ -93,6 +82,12 @@ Odin `[PreviouslySerializedAs]` + [[SaveMigrations]] v1→v2 renombran `Adventur
 
 **Borrados:** `PassiveMaterial`, `EvolutionEssence` (v1 solo).
 
+## Cambios S129
+
+- **ELIMINADO:** Campo `equipmentGrids` y métodos de equipo (HC-1)
+- **ELIMINADO:** `AddEquipment()`, `RemoveEquipmentAt()`, `EquipmentAt()`, `GridFor()`, `CellCountOf()`
+- **MANTIENE:** Monedas, muebles, props, hotbar
+
 ## Patrón de Acceso
 
 **Nunca mutación directa:**
@@ -117,4 +112,3 @@ Wallet.TrySpend(Currency.Dabloons, 50, "buy_ring");
 [[Index/29 - Plan HC - Cimientos (ejecutable)]] (§5 · C3 cartera)
 
 **Conexiones:** [[Wallet]], [[GameManager]], [[SaveSystem]], [[StoreManager]], [[GameEvents]], [[CreatureDisplay]], [[StorePanelUITK]]
-

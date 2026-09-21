@@ -71,9 +71,7 @@ public static class BreedingService
                 : (Random.value < 0.5f ? mother.Element : father.Element),
             MotherID     = motherID,
             FatherID     = fatherID,
-            BaseConstitution = InheritStat(mother.BaseConstitution, father.BaseConstitution),
-            BaseAttack       = InheritStat(mother.BaseAttack,       father.BaseAttack),
-            BaseSpeed        = InheritStat(mother.BaseSpeed,        father.BaseSpeed),
+            Generation   = Mathf.Max(mother.Generation, father.Generation) + 1,
             HornPotential    = InheritPotential(mother.HornPotential, father.HornPotential),
             BackPotential    = InheritPotential(mother.BackPotential, father.BackPotential),
             WingPotential    = InheritPotential(mother.WingPotential, father.WingPotential),
@@ -165,13 +163,6 @@ public static class BreedingService
         PartRole.Face => partDb.Faces?.GetRandomPart()?.ID      ?? "",
         _             => ""
     };
-
-    private static float InheritStat(float motherStat, float fatherStat)
-    {
-        float inherited = Random.value < 0.5f ? motherStat : fatherStat;
-        int   delta     = Random.Range(-1, 2);
-        return Mathf.Clamp(inherited + delta, CreatureGenerator.StatMin, CreatureGenerator.StatMax);
-    }
 
     private static int InheritPotential(int motherPotential, int fatherPotential)
     {

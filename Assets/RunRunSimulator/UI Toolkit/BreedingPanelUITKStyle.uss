@@ -213,7 +213,6 @@
 }
 
 .preview-name { font-size: 18px; -unity-font-style: bold; color: var(--mm-ink); margin-bottom: 4px; white-space: normal; }
-.preview-stats { font-size: 15px; -unity-font-style: bold; color: var(--mm-ink-soft); margin-bottom: 6px; }
 .preview-part-row { flex-direction: row; align-items: center; margin-bottom: 3px; }
 .preview-swatch { width: 16px; height: 16px; border-radius: 4px; margin-right: 6px; }
 .preview-part-text { flex-grow: 1; font-size: 13px; color: var(--mm-ink); white-space: normal; }

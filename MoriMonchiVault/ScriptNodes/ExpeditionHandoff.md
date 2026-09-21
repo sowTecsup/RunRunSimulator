@@ -18,7 +18,7 @@ tags: [script, core, handoff, expedition]
 | `RunSeed` | `int` | Semilla raíz de bajada (generada en GoToArena) |
 | `SelectedIds` | `List<string>` | IDs del equipo elegido pre-expedición |
 
-## Struct ExpeditionResult
+## Struct ExpeditionResult (S129)
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
@@ -28,10 +28,11 @@ tags: [script, core, handoff, expedition]
 | `RivalSecured` | `int` | Material rival (siempre 0 en v1) |
 | `Floors` | `int` | Pisos totales completados |
 | `Lost` | `bool` | True si rival ganó piso de Enemies |
-| `HealthById` | `Dictionary<string, int>` | Delta vida por criatura (actual - inicio) |
+| `FallenIds` | `List<string>` | **S129:** IDs de criaturas caídas (health ≤ 0) |
 | `Fallen` | `int` | Criaturas con health <= 0 |
+| `TeamIds` | `List<string>` | **S129:** IDs del equipo del jugador que entró en la bajada |
 
-## Struct ExpeditionReturn (S128)
+## Struct ExpeditionReturn (S129)
 
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
@@ -39,12 +40,12 @@ tags: [script, core, handoff, expedition]
 | `Winner` | `ExpeditionTeam` | Equipo ganador |
 | `PlayerSecured` | `int` | Material asegurado jugador |
 | `RivalSecured` | `int` | Material rival |
-| `MineritaGained` | `int` | **S128** Minerita ingresada al inventario (renamed de MaterialGained) |
-| `HealthLost` | `int` | Salud total perdida |
+| `MineritaGained` | `int` | Minerita ingresada al inventario |
 | `Fallen` | `int` | Criaturas caídas |
-| `Creatures` | `int` | Cantidad equipo |
 | `Floors` | `int` | Pisos completados |
 | `Lost` | `bool` | Derrota |
+
+**S129:** Se removieron `HealthLost` y `Creatures`.
 
 ## Métodos Públicos
 
@@ -52,6 +53,7 @@ tags: [script, core, handoff, expedition]
 |--------|---------|-------------|
 | `GoToArena(IReadOnlyList<string> ids)` | `void` | Copia ids a SelectedIds, genera RunSeed, fija CameFromStore=true, carga ArenaSandbox |
 | `ReturnToStore(ExpeditionResult?)` | `void` | Fija Result si hay valor, timeScale=1, carga GameScene; sin valor → CameFromStore=false |
+| `TryConsumeResult(out ExpeditionResult)` | `bool` | Intenta consumir resultado; limpia SelectedIds, retorna true si había resultado |
 
 ## Ciclo Tienda → Arena → Tienda
 
@@ -66,17 +68,19 @@ tags: [script, core, handoff, expedition]
    - Piso Buff cada 3: +30 vida a vivas
    - Piso Enemies: si pierde → Lost=true, PlayerSecured=0
    - `Retreat()` → `ReturnToStore(run.ToExpeditionResult())`
+   - `ToResult()` arma `FallenIds` (criaturas con health ≤ 0) y `TeamIds` (elenco original)
 
 3. **Retorno (GameScene):**
    - `ExpeditionBridge` lee HasResult
-   - `ApplyResult()`: suma Minerita, aplica deltas vida, persiste
+   - `ApplyResult()`: suma Minerita, aplica cambios, persiste
 
-## Invariantes S128
+## Invariantes S129
 
 - **RunSeed:** generado en GoToArena, no modificado
 - **SelectedIds:** limpiados al consumir resultado o volver sin resultado
 - **Lost:** anula PlayerSecured (material perdido)
-- **HealthById:** delta = actual - inicio (negativo si dañada)
+- **FallenIds:** lista de IDs con health ≤ 0 al retornar
+- **TeamIds:** copia del elenco original que entró (no cambia durante la bajada)
 - **Fallen:** criaturas health <= 0 (no permanencia, solo estado de piso)
 - **Moneda:** `MineritaGained` refleja ganancias de expedición
 
@@ -86,4 +90,3 @@ tags: [script, core, handoff, expedition]
 [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
 
 **Conexiones:** [[ExpeditionBridge]], [[ArenaRunDirector]], [[ArenaRun]], [[ArenaSandbox]], [[GameEvents]], [[GameManager]]
-

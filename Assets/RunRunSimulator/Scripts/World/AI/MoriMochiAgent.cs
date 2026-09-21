@@ -455,57 +455,6 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
     [Tooltip("Segundos antes de volver a buscar comida de la mano tras un bocado.")]
     [SerializeField, Min(0f)] internal float feedCooldown = 20f;
 
-    [TabGroup("Tuning", "Stats"), Title("Base (con partes) → Final (con equipo) — play mode")]
-    [ShowInInspector, ReadOnly, LabelText("CON")] private string StatCon => StatLine(StatType.Constitution);
-    [TabGroup("Tuning", "Stats")]
-    [ShowInInspector, ReadOnly, LabelText("ATK")] private string StatAtk => StatLine(StatType.Attack);
-    [TabGroup("Tuning", "Stats")]
-    [ShowInInspector, ReadOnly, LabelText("SPD")] private string StatSpd => StatLine(StatType.Speed);
-    [TabGroup("Tuning", "Stats")]
-    [ShowInInspector, ReadOnly, LabelText("DEF")] private string StatDef => StatLine(StatType.Defense);
-    [TabGroup("Tuning", "Stats")]
-    [ShowInInspector, ReadOnly, LabelText("LCK")] private string StatLck => StatLine(StatType.Luck);
-    [TabGroup("Tuning", "Stats")]
-    [ShowInInspector, ReadOnly, LabelText("EVA")] private string StatEva => StatLine(StatType.Evasion);
-
-    private EffectiveStats StatsBase()
-    {
-        if (ctx?.Dna == null) return default;
-        var db = GameManager.Instance != null ? GameManager.Instance.Database : null;
-        return db != null
-            ? CreatureStats.GetEffectiveStats(ctx.Dna, db)
-            : new EffectiveStats(ctx.Dna.BaseConstitution, ctx.Dna.BaseAttack, ctx.Dna.BaseSpeed, ctx.Dna.BaseDefense, ctx.Dna.BaseLuck, ctx.Dna.BaseEvasion);
-    }
-
-    private EffectiveStats StatsFinal()
-    {
-        if (ctx?.Dna == null) return default;
-        var equip = GameManager.Instance != null ? GameManager.Instance.EquipmentDatabase : null;
-        return EquipmentStats.Apply(StatsBase(), ctx.Dna, equip);
-    }
-
-    private string StatLine(StatType t)
-    {
-        if (ctx?.Dna == null) return "—";
-        float b = StatValue(StatsBase(), t);
-        float f = StatValue(StatsFinal(), t);
-        float d = f - b;
-        return Mathf.Approximately(d, 0f)
-            ? $"{b:0.#}"
-            : $"{b:0.#} → {f:0.#} ({(d > 0 ? "+" : "")}{d:0.#})";
-    }
-
-    private static float StatValue(EffectiveStats s, StatType t) => t switch
-    {
-        StatType.Constitution => s.Constitution,
-        StatType.Attack       => s.Attack,
-        StatType.Speed        => s.Speed,
-        StatType.Defense      => s.Defense,
-        StatType.Luck         => s.Luck,
-        StatType.Evasion      => s.Evasion,
-        _                     => 0f,
-    };
-
     [TabGroup("Tuning", "Physics"), Title("Hold feel (while carried)")]
     [Tooltip("How snappily the body chases the hold anchor while carried.")]
     [SerializeField] internal float followSpeed = 15f;

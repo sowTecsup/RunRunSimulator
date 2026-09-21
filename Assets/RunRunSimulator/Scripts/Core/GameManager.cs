@@ -43,9 +43,6 @@ public class GameManager : MonoBehaviour
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private FurTypeDatabaseSO furTypeDatabase;
 
-    [AssetsOnly, BoxGroup("Setup")]
-    [SerializeField] private EquipmentDatabaseSO equipmentDatabase;
-
     [BoxGroup("Setup")]
     [SerializeField] private CloudSyncService cloudSync;
 
@@ -158,7 +155,7 @@ public class GameManager : MonoBehaviour
         dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
         dna.Element = CreatureGenerator.RandomElement();
         dna.Role = CreatureGenerator.RandomRole();
-        (dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed) = CreatureGenerator.RandomBaseStats();
+        dna.Generation = 1;
         dna.Sociability = CreatureGenerator.RandomDial();
         dna.Boldness    = CreatureGenerator.RandomDial();
         dna.CustomName = CreatureNameBank.GetRandomName();
@@ -184,7 +181,6 @@ public class GameManager : MonoBehaviour
     public RoleWorldProfileSO     RoleWorldProfiles    => roleWorldProfiles;
     public MonchiVisualBankSO     MonchiVisualBank     => monchiVisualBank;
     public FurTypeDatabaseSO      FurTypeDatabase      => furTypeDatabase;
-    public EquipmentDatabaseSO    EquipmentDatabase    => equipmentDatabase;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures"), BoxGroup("Registry")]
     public int RegistryCount => creatureRegistry?.Count ?? 0;

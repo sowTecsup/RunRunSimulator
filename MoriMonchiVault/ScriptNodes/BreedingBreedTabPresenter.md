@@ -6,7 +6,7 @@ tags: [script, ui, presenter]
 
 **Ruta:** `UI/BreedingBreedTabPresenter.cs`
 
-**Responsabilidad (S54):** Presenter de Tab 0 "Criar" (seleccionar padre + madre, preview ambos, ver duración, iniciar breed async). Implementa `ITabPresenter`. Almacena estado UI-only: foco interno entre 3 SubFocus (Slots, FatherList, MotherList), índices de selección + IDs padre/madre guardados. **S93:** Usa `UiPanels.SetActiveIndex()`.
+**Responsabilidad (S54):** Presenter de Tab 0 "Criar" (seleccionar padre + madre, preview ambos, ver duración, iniciar breed async). Implementa `ITabPresenter`. Almacena estado UI-only: foco interno entre 3 SubFocus (Slots, FatherList, MotherList), índices de selección + IDs padre/madre guardados. **S93:** Usa `UiPanels.SetActiveIndex()`. **S129:** Eliminada comparación de stats; muestra solo partes genéticas.
 
 **Navegación (jerarquía de foco):**
 - **SubFocus.Slots** (3 slots: padre, madre, botón Breed) — h/v se mueven entre slots, v-down entra a lista correspondiente
@@ -33,11 +33,17 @@ tags: [script, ui, presenter]
 - `Teardown()` — desuscribe breedButton.clicked
 
 **Métodos privados:**
-- `MakeCandidate(dna, bucket, isFather)` — fila con nombre + 6 stats + contador BreedCount/Max. **S75:** usa `CreatureStats.GetEffectiveStats()` en lugar de CombatStats. Retrato fotomatón vía [[MonchiPortraitUI]].Apply()
+- `MakeCandidate(dna, bucket, isFather)` — fila con nombre + 5 partes genéticas + contador BreedCount/Max. Retrato fotomatón vía [[MonchiPortraitUI]].Apply()
 - `RefreshSlots()` — SetSlot (nombre + retrato fotomatón) + BuildPreview
-- `BuildPreview()` — muestra resumen columnar de padre/madre + duración ≈X min via InheritanceOdds. **S75:** Agrega 5 filas de partes genéticas: `GetBodyShape()`, `GetHorn()`, `GetBack()`, `GetWing()`, `GetFace()` (cada una es un BodyPart con swatch color Set + nombre + Set name)
-- `ParentSummary()` — resumen de una criatura para preview (nombre + 6 stats + 5 partes)
+- `BuildPreview()` — muestra resumen columnar de padre/madre + duración ≈X min via InheritanceOdds. Agrega 5 filas de partes genéticas: `GetBodyShape()`, `GetHorn()`, `GetBack()`, `GetWing()`, `GetFace()` (cada una es un BodyPart con swatch color + nombre + Set name)
+- `ParentSummary()` — resumen de una criatura para preview (nombre + 5 partes genéticas)
 - `AddPartRow()` — fila visual de parte: swatch (color Set) + nombre parte y Set
 - `TryBreed()` — await `asyncBreedingService.StartBreedingAsync()`, clearear slots, invocar `onBred()` callback si éxito (madre en estado Breeding)
 
-**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CreatureStats]], [[CreatureDatabaseSO]], [[MonchiPortraitUI]], [[BodyPart]], [[UiPanels]]
+## Cambios S129
+
+- **ELIMINADO:** Fila de stats (Constitution, Attack, Speed, Defense, Luck, Evasion)
+- **ELIMINADO:** Método `ParentSummary()` con stats; ahora solo muestra nombre + partes
+- **MANTIENE:** 5 partes genéticas, duración, BreedCount, retrato
+
+**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CreatureDatabaseSO]], [[MonchiPortraitUI]], [[BodyPart]], [[UiPanels]]

@@ -153,7 +153,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
     }
 
     private static IEnumerable<CreatureDNA> Eligible(IEnumerable<CreatureDNA> all, CreatureGender gender) =>
-        all.Where(d => !d.IsDead && !d.IsBusy && d.Gender == gender && d.BreedCount < BreedingService.MaxBreedCount)
+        all.Where(d => CreatureAvailability.IsFree(d) && d.Gender == gender && d.BreedCount < BreedingService.MaxBreedCount)
            .OrderBy(d => d.CustomName);
 
     private VisualElement MakeCandidate(CreatureDNA dna, List<VisualElement> bucket, bool isFather)
@@ -162,11 +162,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
         row.AddToClassList("breed-candidate");
         row.userData = dna.UniqueID;
 
-        var eff = database != null
-            ? CreatureStats.GetEffectiveStats(dna, database)
-            : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
-
-        var l = new Label($"{dna.CustomName}  ·  CON {eff.Constitution:0} ATK {eff.Attack:0} SPD {eff.Speed:0} DEF {eff.Defense:0} LCK {eff.Luck:0} EVA {eff.Evasion:0}  ·  {dna.BreedCount}/{BreedingService.MaxBreedCount}");
+        var l = new Label($"{dna.CustomName}  ·  {dna.BreedCount}/{BreedingService.MaxBreedCount}");
         l.AddToClassList("breed-candidate-text");
         row.Add(l);
 
@@ -222,13 +218,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
         var name = new Label(dna.CustomName);
         name.AddToClassList("preview-name");
         col.Add(name);
-
-        var eff = database != null
-            ? CreatureStats.GetEffectiveStats(dna, database)
-            : new EffectiveStats(dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed, dna.BaseDefense, dna.BaseLuck, dna.BaseEvasion);
-        var stats = new Label($"CON {eff.Constitution:0}   ATK {eff.Attack:0}   SPD {eff.Speed:0}   DEF {eff.Defense:0}   LCK {eff.Luck:0}   EVA {eff.Evasion:0}");
-        stats.AddToClassList("preview-stats");
-        col.Add(stats);
 
         if (database != null)
         {

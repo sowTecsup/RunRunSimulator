@@ -79,25 +79,33 @@ public class ExpeditionBridge : MonoBehaviour
         int material = result.Lost ? 0 : result.PlayerSecured;
         if (material > 0) Wallet.Add(Currency.Minerita, material, "expedition");
 
-        int net = 0;
-        int creatures = 0;
-        bool touched = false;
         var registry = GameManager.Instance != null ? GameManager.Instance.Registry : null;
-        if (registry != null && result.HealthById != null)
+        bool touched = false;
+
+        if (permadeathEnabled && registry != null)
         {
-            foreach (var pair in result.HealthById)
+            if (result.FallenIds != null)
             {
-                if (!registry.TryGet(pair.Key, out var dna) || dna == null || dna.IsDead) continue;
-
-                dna.Needs.AddHealth(pair.Value);
-                net += pair.Value;
-                creatures++;
-                touched = true;
-
-                if (permadeathEnabled && (result.Lost || dna.Needs.Health <= 0f)) dna.IsDead = true;
+                foreach (var id in result.FallenIds)
+                {
+                    if (!registry.TryGet(id, out var dna) || dna == null || dna.IsDead) continue;
+                    CreatureLifecycle.Kill(dna);
+                    touched = true;
+                }
             }
-            if (touched) GameEvents.RegistryChanged(registry);
+
+            if (result.Lost && result.TeamIds != null)
+            {
+                foreach (var id in result.TeamIds)
+                {
+                    if (!registry.TryGet(id, out var dna) || dna == null || dna.IsDead) continue;
+                    CreatureLifecycle.Kill(dna);
+                    touched = true;
+                }
+            }
         }
+
+        if (touched) GameEvents.RegistryChanged(registry);
 
         GameEvents.ExpeditionReturned(new ExpeditionReturn
         {
@@ -106,14 +114,12 @@ public class ExpeditionBridge : MonoBehaviour
             PlayerSecured = material,
             RivalSecured = result.RivalSecured,
             MineritaGained = material,
-            HealthLost = -net,
             Fallen = result.Fallen,
-            Creatures = creatures,
             Floors = result.Floors,
             Lost = result.Lost
         });
 
-        Debug.Log($"[ExpeditionBridge] run {result.Seed}: {result.Floors} pisos, perdida={result.Lost} → +{material} material, {-net} vida ({creatures} MoriMonchis, {result.Fallen} caídas)");
+        Debug.Log($"[ExpeditionBridge] run {result.Seed}: {result.Floors} pisos, perdida={result.Lost} → +{material} material, {result.Fallen} caídas");
     }
 }
 }

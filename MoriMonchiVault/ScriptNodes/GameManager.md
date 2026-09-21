@@ -6,7 +6,7 @@ tags: [script, core, singleton]
 
 **Ruta:** `Core/GameManager.cs`
 
-**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a databases y registries. **Único orquestador de persistencia local:** escucha `GameEvents.OnRegistryChanged`, `OnFurnitureChanged`, `OnInventoryChanged` e invoca `SaveSystem` a disco. **S128:** Push agrupado a nube con `pushDelaySeconds` (default 5); se cancela y sube ya en quit/pause; `Time.unscaledTime` para que pausa no congele timer.
+**Responsabilidad:** Ciclo de vida del juego. Singleton que centraliza acceso a databases y registries. **Único orquestador de persistencia local:** escucha `GameEvents.OnRegistryChanged`, `OnFurnitureChanged`, `OnInventoryChanged` e invoca `SaveSystem` a disco. **S128:** Push agrupado a nube con `pushDelaySeconds` (default 5); se cancela y sube ya en quit/pause; `Time.unscaledTime` para que pausa no congele timer. **S129:** Propulsada por eventos `OnCreatureDeparted` indirectamente vía `RegistryChanged`.
 
 ## Métodos Públicos
 
@@ -14,7 +14,7 @@ tags: [script, core, singleton]
 |--------|-------------|
 | `PushToCloud()` | Dispara `cloudSync.PushAsync()` (fire-and-forget) |
 | `FlushToCloudAsync()` | Guarda ALL a disco + espera push cloud (síncrono de persist) |
-| `MintRandomCreature()` | Genera random, asigna género/elemento/rol/stats/diales/nombre, registra, retorna ID |
+| `MintRandomCreature()` | Genera random, asigna género/elemento/rol/diales/nombre, registra, retorna ID |
 | `CollectLooseWorldProps()` | Busca en escena props sueltos (debug) |
 
 ## Propiedades Estáticas
@@ -32,12 +32,11 @@ tags: [script, core, singleton]
 - `FurnitureRegistry` — FurnitureRegistrySO
 - `Inventory` — PlayerInventorySO
 - `FurTypeDatabase` — FurTypeDatabaseSO
-- `EquipmentDatabase` — EquipmentDatabaseSO
 - `RarityOddsTable` — RarityOddsTableSO
 - `MonchiVisualBank` — MonchiVisualBankSO
 - `RoleWorldProfiles` — RoleWorldProfileSO
 
-## Persistencia S128
+## Persistencia S128+
 
 **Push agrupado:**
 1. Evento gameplay → `Persist()` / `PersistFurniture()` / `PersistInventory()`
@@ -48,6 +47,7 @@ tags: [script, core, singleton]
 **Flush forzado:**
 - `OnApplicationQuit()` y `OnApplicationPause(paused: true)` → `FlushToCloudAsync()` (guarda a disco + espera push)
 - Expedición retorno: [[ExpeditionBridge]] aplica `RegistryChanged` → GameManager persiste
+- CreatureLifecycle.Kill/Adopt → RegistryChanged → persist
 
 **Variación S128 vs S93:** Timer usa `Time.unscaledTime` (no `Time.time`), así pausa no bloquea el push.
 
@@ -68,10 +68,11 @@ tags: [script, core, singleton]
 - Persistencia order: Disco (SaveSystem) → Nube (PushAsync) — nunca inversión
 - Push agrupado: múltiples mutaciones → un solo push en 5 s
 - Sin escala de tiempo: push no se congela con pausa
+- S129: Indirecto vía RegistryChanged cuando CreatureLifecycle mata/vende
 
 ## Vinculado a
 
 [[Index/07 - Persistence & Identity]]
+[[Index/28 - Cimientos y camino a Game Ready]]
 
-**Conexiones:** [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[CloudSyncService]], [[CreatureGenerator]], [[GameEvents]], [[SaveSystem]]
-
+**Conexiones:** [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[CloudSyncService]], [[CreatureGenerator]], [[GameEvents]], [[SaveSystem]], [[CreatureLifecycle]]

@@ -18,16 +18,13 @@ namespace MoriMonchiSimulator
               + pricing.BasePricePerTier.GetValueOrDefault(dna.WingTier, 0);
 
             float wBreed    = archetype != null ? archetype.WeightBreed    : 1f;
-            float wStats    = archetype != null ? archetype.WeightStats    : 1f;
             float wTier     = archetype != null ? archetype.WeightTier     : 1f;
             float budgetMul = archetype != null ? archetype.BudgetMultiplier : 1f;
 
-            float statsBonus  = (dna.BaseConstitution + dna.BaseAttack + dna.BaseSpeed
-                               + dna.BaseDefense + dna.BaseLuck + dna.BaseEvasion) * wStats * pricing.StatsMultiplier;
             float breedBonus  = dna.BreedCount * wBreed * pricing.BreedCountMultiplier;
             float tierBonus   = ((int)dna.BodyTier + (int)dna.HornTier + (int)dna.BackTier + (int)dna.WingTier) * wTier * pricing.TierMultiplier;
 
-            float objective = basePrice + statsBonus + breedBonus + tierBonus;
+            float objective = basePrice + breedBonus + tierBonus;
             return Mathf.Max(0, Mathf.RoundToInt(objective * budgetMul));
         }
     }

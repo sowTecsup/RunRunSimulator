@@ -23373,7 +23373,6 @@ MonoBehaviour:
   inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
   monchiVisualBank: {fileID: 11400000, guid: bde04aae719e5854687df754fb9d2b93, type: 2}
   furTypeDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
-  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
   cloudSync: {fileID: 1443145214}
   pushDelaySeconds: 5
 --- !u!4 &1046970363
@@ -23413,7 +23412,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cdb3e8f493a83047825db0b705171c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureGridView
-  equipmentDb: {fileID: 0}
   rows: []
 --- !u!114 &1046970365
 MonoBehaviour:
@@ -23430,8 +23428,6 @@ MonoBehaviour:
   gameManager: {fileID: 1046970362}
   expeditionBridge: {fileID: 1038142490}
   devDabloonsAmount: 500
-  devEquipmentItem: {fileID: 0}
-  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
 --- !u!1 &1047145380
 GameObject:
   m_ObjectHideFlags: 0
@@ -26388,8 +26384,6 @@ MonoBehaviour:
   gameManager: {fileID: 1046970362}
   expeditionBridge: {fileID: 0}
   devDabloonsAmount: 500
-  devEquipmentItem: {fileID: 0}
-  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
 --- !u!1 &1218711422
 GameObject:
   m_ObjectHideFlags: 0
@@ -26440,7 +26434,6 @@ Transform:
   - {fileID: 1828995159}
   - {fileID: 1023503745}
   - {fileID: 464847835}
-  - {fileID: 1478376637}
   - {fileID: 1887204491}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -26598,8 +26591,6 @@ MonoBehaviour:
   panel: 1
   cardTemplate: {fileID: 9197481963319205126, guid: aa0ae336bdfff4a4ca138ba64184db18, type: 3}
   cardSize: {x: 360, y: 450}
-  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
-  equipmentPalette: {fileID: 11400000, guid: 52152e99c2aa6924f92727b5f41fbf38, type: 2}
 --- !u!114 &1218711426
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26615,9 +26606,7 @@ MonoBehaviour:
   document: {fileID: 937280821}
   panel: 2
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
-  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
-  equipmentPalette: {fileID: 11400000, guid: 52152e99c2aa6924f92727b5f41fbf38, type: 2}
-  backpack: {fileID: 1478376636}
+  careGate: {fileID: 11400000, guid: fa022355e5f7d0f42ad25fd7ca3e41f3, type: 2}
   sortingOrder: 100
 --- !u!114 &1218711427
 MonoBehaviour:
@@ -28772,56 +28761,6 @@ Transform:
   - {fileID: 3045775183304592829}
   - {fileID: 276339540}
   m_Father: {fileID: 1224935785}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1478376635
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1478376637}
-  - component: {fileID: 1478376636}
-  m_Layer: 0
-  m_Name: EquipmentBackpackUITK
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1478376636
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1478376635}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0032a63f4ae6b24488f764200c9d643, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.EquipmentBackpackUITK
-  inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
-  equipmentDatabase: {fileID: 11400000, guid: 46263b838e7c2a64fbddc83f516e2526, type: 2}
-  equipmentPalette: {fileID: 11400000, guid: 52152e99c2aa6924f92727b5f41fbf38, type: 2}
-  styleSheet: {fileID: 7433441132597879392, guid: 636afbc14d186ce488475f459f193316, type: 3}
-  themeStyleSheet: {fileID: 7433441132597879392, guid: 812977d5e80a9fa47be5fec78c996145, type: 3}
-  devNoConsume: 1
---- !u!4 &1478376637
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1478376635}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1218711423}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!43 &1500893037
 Mesh:
@@ -34226,6 +34165,7 @@ MonoBehaviour:
   document: {fileID: 1887204490}
   panel: 8
   maxPick: 3
+  careGate: {fileID: 11400000, guid: fa022355e5f7d0f42ad25fd7ca3e41f3, type: 2}
 --- !u!114 &1887204490
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35443,6 +35383,7 @@ MonoBehaviour:
     Sociability: 0.5
     Boldness: 0.5
     BreedCount: 0
+    Generation: 0
     BodyTier: 1
     HornTier: 1
     BackTier: 1
@@ -35450,12 +35391,6 @@ MonoBehaviour:
     HornPotential: 1
     BackPotential: 1
     WingPotential: 1
-    BaseConstitution: 0
-    BaseAttack: 0
-    BaseSpeed: 0
-    BaseDefense: 0
-    BaseLuck: 0
-    BaseEvasion: 0
     IsDead: 0
     Needs:
       Health: 100

@@ -47,17 +47,17 @@ Se borran `passiveMaterial` y `evolutionEssence` (declarados, guardados, sin fue
 | Evolución de la criatura | 🔴 | — | No existe nada que transforme a una criatura ya nacida |
 | Habilidades | 🟡 | 7 habilidades, 3 por criatura, derivadas de la parte | Ningún dato de habilidad por criatura: no se puede cambiar ni rerollear; 1 sola opción de cuerno |
 | Stats y equipo | 🪦 | UI de detalle y mochila de equipo | Los stats no afectan la arena ni la tienda; el equipo solo alimenta stats que nadie lee; 3 de 6 stats siempre en 0 |
-| Necesidades y cuidado | 🟡 | Vida, energía, afecto; estaciones; enfermo por vida baja | No pagan (ni precio ni cría); casi sin UI; **la vida se drena sola hasta 0 y bloquea bajar** |
+| Necesidades y cuidado | 🟡 | Vida, energía, afecto; estaciones; enfermo por vida baja. **S129:** son la puerta de la bajada (`CareGateSO` 60/60/0) y se ven como barras de color en la ficha y en el panel de bajada | No pagan (ni precio ni cría); **los umbrales están sin calibrar: hoy ninguna criatura pasa** porque la vida se drena sola hasta 0 |
 | Vida social | 🟡 | Juego, siesta, peleas, grafo de afinidad | Se guarda solo en local (se pierde al cambiar de PC); no afecta nada fuera de sí mismo |
 | Actividades pasivas / trabajos | 🔴 | — | Ninguna conducta produce nada; no hay trabajos asignables; los diales nunca cambian |
 | Bajada (arena) | 🟡 | Sala por semilla, ocupaciones, choque, súper, run por pisos con vida en riesgo, puente ida y vuelta | Falta la prueba de Juan (5 bajadas a 1×); un solo tipo de sala más buffo; permadeath apagado; intenciones en vivo ([[Index/27 - Intenciones en vivo (Draft)]]) reemplazarían las órdenes (~20 archivos) |
 | Rival real | 🔴 | Auth, Cloud Save, patrón asíncrono conocido | Snapshots ajenos, ferales, caverna del día |
-| Guardado local y nube | 🟢 | **S128:** sobre `{Version, SavedAtTicks, Data}` con cadena de migraciones, reconciliación por fecha con respaldo de conflicto, push agrupado (5 s, tiempo sin escala), 5 claves en la nube (entra `socialgraph`) | Muertas y vendidas todavía no salen del registro (C4) |
-| Muerte | 🟡 | Un único punto que mata (el puente), apagado | Sin evento, sin despedida, sin memorial; "muerto" es solo un texto |
+| Guardado local y nube | 🟢 | **S128:** sobre `{Version, SavedAtTicks, Data}` con cadena de migraciones, reconciliación por fecha con respaldo de conflicto, push agrupado (5 s, tiempo sin escala), 5 claves en la nube (entra `socialgraph`). **S129:** guardado en `v3` con dos estantes (`Alive`/`Departed`) | Una build vieja no puede leer un guardado v3 (la cadena es hacia adelante) |
+| Muerte | 🟢 | **S129:** `CreatureLifecycle.Kill`/`Adopt` son la única salida; evento `OnCreatureDeparted` con aviso en el overlay y borrado de aristas sociales; las idas salen del registro vivo pero siguen resolviendo ancestros | Sin despedida ni memorial; permadeath sigue apagado |
 | Reloj de juego | 🔴 | — | Edad, restock, descuentos y cría corren en tiempo real |
 | Arranque del jugador | 🔴 | — | Save vacío = 0 criaturas y ningún camino para conseguir la primera; sin menú, pausa, ajustes ni salir |
 | Combate RPS | ✅ | **S128: borrado.** 18 `.cs`, su UXML/USS, `CombatTuning.asset`, el `PanelTrigger` del Ring, 45 claves de la tabla `Strings` y el valor `Combat` del enum de paneles | — |
-| Localización | 🟡 | 419 claves en/es completas en la tienda | La arena entera (48 archivos) con texto fijo en español |
+| Localización | 🟡 | 352 claves en/es completas en la tienda (S128-S129 podaron 78 huérfanas) | La arena entera (48 archivos) con texto fijo en español |
 | Audio | 🔴 | — | El juego es mudo: cero fuentes, clips y mezcladores propios |
 | Input | 🟡 | 3 mapas, bindings de gamepad | Sin rebind; leyenda de controles solo de teclado |
 | Build | 🟡 | 2 escenas, PC | 257 assets en `Resources`; NavMesh en runtime con mallas no legibles; nunca se probó una build |
@@ -73,7 +73,7 @@ Siete piezas. El orden es de dependencias: primero se achica la superficie, desp
 ### C1 · Limpieza del combate viejo ✅ (S128)
 - **Regla:** lo que no es del juego vigente no viaja más.
 - **Alcance:** borrar Dragon RPS completo (lógica, servicio, UI de combate, tuning), el disparador de combate del mueble Ring, el cooldown de combate del ADN, el peso de combate huérfano de los arquetipos, el campo de ítem sostenido que nadie lee y el disparador de ítem sin lector.
-- **Stats y equipo (Juan S127): se borran** porque no afectan nada, y la ficha pasa a mostrar necesidades y nivel de partes (pieza C1b de `Index/29` §12).
+- **Stats y equipo (Juan S127): se borran** porque no afectan nada, y la ficha pasa a mostrar necesidades y nivel de partes (pieza C1b de `Index/29` §12). **✅ S129:** 12 `.cs` y 11 assets fuera; la ficha muestra cuidado (tres barras + apta para bajar) y las tres partes con nivel y techo. La valuación perdió el bonus de stats y quedó en tiers + crías: **los precios bajaron** hasta que E1 la rehaga.
 - **Desbloquea:** C3 (una moneda menos pagada por un sistema muerto), panel `Combat` fuera del enum de paneles.
 - **Muta fuera de código (OK de Juan):** prefab del Ring, assets de arquetipos, `CombatTuning.asset`, entradas del diccionario de paneles.
 
@@ -93,7 +93,7 @@ Siete piezas. El orden es de dependencias: primero se achica la superficie, desp
 - **Desbloquea:** evolución, reroll, mejoras, cosméticos, caja de MoriMonchis.
 - **Muta fuera de código:** `PlayerInventory.asset`, UXML/USS del overlay, claves en/es.
 
-### C4 · Ciclo de vida de la criatura
+### C4 · Ciclo de vida de la criatura ✅ (S129)
 - **Regla:** una sola respuesta a "¿dónde está esta criatura y se puede usar?", y una sola forma de irse.
 - **Subetapas:**
   1. **Disponibilidad única:** hoy cría, venta y bajada preguntan cada una a su manera. Una consulta común (libre · criando · de bajada · trabajando · vendida · muerta) que usan todos los paneles.
@@ -189,7 +189,7 @@ Linaje y marcas (H2) · fenotipo y feel (H4) · contenido (H6) · localización 
 
 ```
 H0 (prueba de Juan) ─┐
-                     ├─ HC: C1 ✅ → C2 ✅ → C3 ✅ → C4 → C5 → C6 → C7
+                     ├─ HC: C1 ✅ → C2 ✅ → C3 ✅ → C4 ✅ → C5 → C6 → C7
                      │          (pruebas y build al cerrar)
                      └─ E4.2 intenciones (paralelo: no toca el guardado)
 HC ─→ H1 loop cerrado = E1.1-E1.2 + E2.1-E2.3 + E3.1 + E4.3

@@ -43,18 +43,6 @@ MonoBehaviour:
     m_Key: element.planta
     m_Metadata:
       m_Items: []
-  - m_Id: 4172476088323
-    m_Key: equipslot.weapon
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088324
-    m_Key: equipslot.armor
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088325
-    m_Key: equipslot.amulet
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172476088326
     m_Key: part.body
     m_Metadata:
@@ -189,30 +177,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172476088358
     m_Key: outcome.draw
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088359
-    m_Key: stat.constitution
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088360
-    m_Key: stat.attack
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088361
-    m_Key: stat.speed
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088362
-    m_Key: stat.defense
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088363
-    m_Key: stat.luck
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088364
-    m_Key: stat.evasion
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088365
@@ -491,62 +455,6 @@ MonoBehaviour:
     m_Key: ui.detail.partrow.empty
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282636
-    m_Key: ui.detail.combat.nostats
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282637
-    m_Key: ui.detail.combat.win.noupgrade
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282638
-    m_Key: ui.detail.combat.win.upgraded
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282639
-    m_Key: ui.detail.combat.died
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282640
-    m_Key: ui.detail.combat.retreated
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282641
-    m_Key: ui.detail.combat.draw
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282642
-    m_Key: ui.detail.combat.you
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282643
-    m_Key: ui.detail.combat.rival
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282644
-    m_Key: ui.detail.combat.tierchip
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282645
-    m_Key: ui.detail.combat.opponent.local
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282646
-    m_Key: ui.detail.combat.opponent.online
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282647
-    m_Key: ui.detail.combat.badge.won
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282648
-    m_Key: ui.detail.combat.badge.lost
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282649
-    m_Key: ui.detail.combat.badge.draw
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172480282650
     m_Key: ui.detail.tree.self
     m_Metadata:
@@ -571,28 +479,8 @@ MonoBehaviour:
     m_Key: ui.detail.tree.unknown
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282656
-    m_Key: ui.equip.empty
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282657
-    m_Key: ui.equip.none
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282658
-    m_Key: ui.equip.slot_empty
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282659
-    m_Key: ui.equip.slot_rarity
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172480282660
     m_Key: ui.detail.tab.info
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282661
-    m_Key: ui.detail.tab.combat
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282662
@@ -601,10 +489,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172480282663
     m_Key: ui.detail.tab.lineage
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282664
-    m_Key: ui.detail.tab.equipment
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282665
@@ -627,20 +511,12 @@ MonoBehaviour:
     m_Key: ui.detail.section.progression
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282670
-    m_Key: ui.detail.section.stats
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172480282671
     m_Key: ui.detail.section.friends
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282672
     m_Key: ui.detail.section.foes
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282673
-    m_Key: ui.detail.placeholder.combat_empty
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282674
@@ -1467,14 +1343,6 @@ MonoBehaviour:
     m_Key: ui.expedition.subtitle
     m_Metadata:
       m_Items: []
-  - m_Id: 19177877371674625
-    m_Key: ui.expedition.energy
-    m_Metadata:
-      m_Items: []
-  - m_Id: 19177877371674626
-    m_Key: ui.expedition.tired
-    m_Metadata:
-      m_Items: []
   - m_Id: 19177877371674627
     m_Key: ui.expedition.busy
     m_Metadata:
@@ -1497,6 +1365,62 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 19241043774464000
     m_Key: ui.overlay.expedition.lost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558671577088
+    m_Key: ui.overlay.creature.adopted
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491648
+    m_Key: ui.overlay.creature.lost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491649
+    m_Key: ui.detail.section.care
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491650
+    m_Key: ui.detail.need.health
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491651
+    m_Key: ui.detail.need.energy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491652
+    m_Key: ui.detail.need.affect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491653
+    m_Key: ui.detail.explore.ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491654
+    m_Key: ui.detail.explore.blocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491655
+    m_Key: ui.detail.partrow.level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491656
+    m_Key: ui.detail.partrow.level.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491657
+    m_Key: ui.expedition.needs.health
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491658
+    m_Key: ui.expedition.needs.energy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491659
+    m_Key: ui.expedition.needs.affect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21042558734491660
+    m_Key: ui.expedition.notready
     m_Metadata:
       m_Items: []
   m_Metadata:

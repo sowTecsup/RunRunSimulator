@@ -8,6 +8,8 @@ tags: [script, world, npc, core]
 
 **Responsabilidad:** Componente MonoBehaviour que encarna un cliente NPC en la tienda: navega entre estantes inspeccionando criaturas, se posiciona en la fila de caja, negocia precio, compra o se va. Dueño de su máquina de estados (`NpcState`, 8 estados) y motivo de salida (`LeaveReason`, 4 valores). Genera "personalidad" per-instancia sorteando variación en velocidad, prioridad de colisión y delay de reacción. Se suscribe a `GameEvents.OnCustomerSold` para detectar si otro cliente le arrebató su objetivo (Outbid).
 
+**S129:** `AcceptCurrentOffer()` delega en `CreatureLifecycle.Adopt()` en lugar de escribir `BusyState`/`SaleDate` a mano. `BestPickFromContainer()` usa `CreatureAvailability.IsFree()` para validación.
+
 **Datos públicos:**
 - `Archetype` (CustomerArchetypeSO): perfil del cliente (min/max inspecciones, duración inspección, timeout espera).
 - `DisplayName` (string): nombre generado al instanciar vía `NpcNameBank.GetRandomName()`, ej. "Carmen Pérez".
@@ -26,7 +28,7 @@ tags: [script, world, npc, core]
 
 **Métodos públicos:**
 - `Initialize(CustomerArchetypeSO archetype, IReadOnlyList<StoreContainer> shopDisplays, CashRegister cashRegister, NpcController owner)` — inicializa, genera nombre, obtiene NavMeshAgent, llama a `ApplyWalkableAreas()` + `ApplyInstanceVariation()`, transiciona a Wandering.
-- `AcceptCurrentOffer()` — marca MM como Sold + estampa `SaleDate`, setea `Reason = Purchased`, emite `GameEvents.CustomerSold`, suma dabloons, emite `RegistryChanged`/`InventoryChanged`, transiciona a Leaving.
+- `AcceptCurrentOffer()` — **(S129)** delega en `CreatureLifecycle.Adopt(dna, this)` (escribe estado, persiste), setea `Reason = Purchased`, emite `GameEvents.CustomerSold`, suma dabloons, emite `RegistryChanged`/`InventoryChanged`, transiciona a Leaving.
 - `TryCounterOffer()` — si `!HasCounteredOnce`, estima y evalúa contraoferta. Si acepta, actualiza `CurrentOffer` y devuelve true. Si rechaza, transiciona a Leaving y devuelve false.
 - `RejectByPlayer()` — transiciona a Leaving.
 - `EnterNegotiating()` → Negotiating.
@@ -46,6 +48,7 @@ tags: [script, world, npc, core]
 - `OnEnable()` — suscribe a `GameEvents.OnCustomerSold`.
 - `OnDisable()` — desuscribe, libera slots.
 - `OnSomeoneSold(buyer, mm, price)` — si otro cliente (≠ this) compró su `TargetMM`, setea `Reason = Outbid` y transiciona a Leaving.
+- `BestPickFromContainer(container)` — **(S129)** usa `CreatureAvailability.IsFree(dna)` en lugar de comprobaciones manuales de BusyState/IsDead/IsSold.
 
 **Serialized (Odin Inspector):**
 - `[Title("Movement")]` `arriveDistance` (float, 0.5): tolerancia de distancia para "llegué".
@@ -66,10 +69,14 @@ tags: [script, world, npc, core]
 **Cambios S93:**
 - Ya NO dispara eventos `OnCustomerSpawned`, `OnCustomerDecided`, `OnCustomerArrivedAtRegister`, `OnCustomerLeft` a nivel de `GameEvents` (fueron removidos). Los únicos eventos son `OnCustomerSold`.
 
+**Cambios S129:**
+- `AcceptCurrentOffer()` delega en `CreatureLifecycle.Adopt(dna, this)` en lugar de escribir estado a mano.
+- `BestPickFromContainer()` usa `CreatureAvailability.IsFree()` para validación.
+
 **Eventos (solo OnCustomerSold):**
 - `GameEvents.OnCustomerSold(this, mm, offer)` — aceptó compra.
 - `GameEvents.OnCustomerSold` — escucha (suscrito en OnEnable): otro cliente compró su objetivo.
 
 **Vinculado a:** [[Index/04 - Customer System]]
 
-**Conexiones:** [[NpcController]], [[NpcNameBank]], [[NpcDialogueBank]], [[NpcThoughtTag]], [[StoreContainer]], [[CashRegister]] (lee `AreaMask` para la cola), [[CustomerArchetypeSO]], [[CustomerService]], [[CreatureDNA]], [[GameEvents]], [[GameManager]], [[MoriMochiAgent]] (mismo patrón de `walkableAreaNames` + dropdown editor)
+**Conexiones:** [[NpcController]], [[NpcNameBank]], [[NpcDialogueBank]], [[NpcThoughtTag]], [[StoreContainer]], [[CashRegister]] (lee `AreaMask` para la cola), [[CustomerArchetypeSO]], [[CustomerService]], [[CreatureDNA]], [[GameEvents]], [[GameManager]], [[MoriMochiAgent]] (mismo patrón de `walkableAreaNames` + dropdown editor), [[CreatureLifecycle]], [[CreatureAvailability]]

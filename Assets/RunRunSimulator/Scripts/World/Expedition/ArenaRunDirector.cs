@@ -38,7 +38,6 @@ public class ArenaRunDirector : MonoBehaviour
         foreach (var dna in pool)
         {
             if (dna == null || !run.TeamIds.Contains(dna.UniqueID)) continue;
-            run.SetStartHealth(dna.UniqueID, dna.Needs.Health);
             names[dna.UniqueID] = dna.CustomName;
         }
     }

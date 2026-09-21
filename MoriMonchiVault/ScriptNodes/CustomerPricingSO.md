@@ -6,12 +6,13 @@ tags: [script, data, customer]
 
 **Ruta:** `Data/Customers/CustomerPricingSO.cs`
 
-**Responsabilidad:** SO que centraliza parámetros de valuación de MoriMonchis. `BasePricePerTier` (dict Tier→int), multiplicadores (`StatsMultiplier`, `BreedCountMultiplier`, `TierMultiplier`), `RenegotiationStep`. **S75:** Sin `CombatWinrateMultiplier` (demolición del combate).
+**Responsabilidad:** SO que centraliza parámetros de valuación de MoriMonchis. `BasePricePerTier` (dict Tier→int), multiplicadores (`BreedCountMultiplier`, `TierMultiplier`), `RenegotiationStep`. **S75:** Sin `CombatWinrateMultiplier` (demolición del combate). **S129:** Sin `StatsMultiplier`.
 
-## Cambios en S75
+## Cambios
 
-- **ELIMINADO:** `CombatWinrateMultiplier`
-- **MANTIENE:** BasePricePerTier, StatsMultiplier, BreedCountMultiplier, TierMultiplier
+- **S75:** Eliminado `CombatWinrateMultiplier`
+- **S129:** Eliminado `StatsMultiplier`
+- **MANTIENE:** BasePricePerTier, BreedCountMultiplier, TierMultiplier, RenegotiationStep
 
 ## Vinculado a
 

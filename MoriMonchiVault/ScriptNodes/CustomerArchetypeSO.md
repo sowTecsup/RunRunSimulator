@@ -6,18 +6,18 @@ tags: [script, data, customer]
 
 **Ruta:** `Data/Customers/CustomerArchetypeSO.cs`
 
-**Responsabilidad:** Define un arquetipo NPC único (persona en la tienda). `DisplayName`, `Icon`, `AgentPrefab`. Pesos de preferencia: `WeightBreed`, `WeightStats`, `WeightTier` (afectan valuación). `BudgetMultiplier`, `RenegotiationTolerance`. Comportamiento: `MinInspections`, `MaxInspections`, `InspectionDuration`, `WaitTimeoutSeconds`.
+**Responsabilidad:** Define un arquetipo NPC único (persona en la tienda). `DisplayName`, `Icon`, `AgentPrefab`. Pesos de preferencia: `WeightBreed`, `WeightTier` (afectan valuación). `BudgetMultiplier`, `RenegotiationTolerance`. Comportamiento: `MinInspections`, `MaxInspections`, `InspectionDuration`, `WaitTimeoutSeconds`.
 
 ## Pesos (Reemplazados en S75)
 
 - **WeightBreed** — Preferencia por criados más veces
-- **WeightStats** — Preferencia por stats altos
 - **WeightTier** — Preferencia por tiers altos
-- **SIN:** WeightCombat (demolición del combate)
+- **SIN:** WeightCombat (demolición del combate), WeightStats (S129)
 
-## Cambios en S75
+## Cambios
 
-- **ELIMINADO:** `WeightCombat`
+- **S75:** Eliminado `WeightCombat`
+- **S129:** Eliminado `WeightStats`
 
 ## Vinculado a
 

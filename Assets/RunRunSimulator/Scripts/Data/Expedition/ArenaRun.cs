@@ -11,7 +11,6 @@ public class ArenaRun
     public const int BuffEvery = 3;
 
     private readonly List<string> teamIds = new();
-    private readonly Dictionary<string, float> startHealth = new();
     private readonly Dictionary<string, float> health = new();
 
     public int BaseSeed { get; }
@@ -42,26 +41,13 @@ public class ArenaRun
     public int NextFloor => Floor + 1;
     public ArenaFloorKind NextKind => KindOf(NextFloor);
 
-    public void SetStartHealth(string id, float value)
-    {
-        if (string.IsNullOrEmpty(id)) return;
-        float v = Mathf.Clamp(value, 0f, MaxHealth);
-        startHealth[id] = v;
-        health[id] = v;
-        if (!teamIds.Contains(id)) teamIds.Add(id);
-    }
-
     public float HealthOf(string id) => health.TryGetValue(id, out float value) ? value : MaxHealth;
 
     public bool IsDown(string id) => HealthOf(id) <= 0f;
 
     private void Change(string id, float delta)
     {
-        if (!startHealth.ContainsKey(id))
-        {
-            startHealth[id] = MaxHealth;
-            health[id] = MaxHealth;
-        }
+        if (!health.ContainsKey(id)) health[id] = MaxHealth;
         if (IsDown(id)) return;
         health[id] = Mathf.Clamp(HealthOf(id) + delta, 0f, MaxHealth);
     }
@@ -108,13 +94,10 @@ public class ArenaRun
 
     public ExpeditionResult ToResult()
     {
-        var healthById = new Dictionary<string, int>();
-        int fallen = 0;
+        var fallenIds = new List<string>();
         foreach (var pair in health)
         {
-            float start = startHealth.TryGetValue(pair.Key, out float s) ? s : MaxHealth;
-            healthById[pair.Key] = Mathf.RoundToInt(pair.Value - start);
-            if (pair.Value <= 0f) fallen++;
+            if (pair.Value <= 0f) fallenIds.Add(pair.Key);
         }
 
         return new ExpeditionResult
@@ -125,8 +108,9 @@ public class ArenaRun
             RivalSecured = 0,
             Floors = FloorsCompleted,
             Lost = Lost,
-            HealthById = healthById,
-            Fallen = fallen
+            FallenIds = fallenIds,
+            Fallen = fallenIds.Count,
+            TeamIds = new List<string>(teamIds)
         };
     }
 }

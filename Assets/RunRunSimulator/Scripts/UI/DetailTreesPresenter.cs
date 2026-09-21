@@ -139,7 +139,7 @@ public class DetailTreesPresenter
         var order     = new List<string>();
 
         if (registry != null && !string.IsNullOrEmpty(selfId))
-            foreach (var c in registry.GetAll().Values)
+            foreach (var c in registry.GetAllKnown().Values)
             {
                 bool isMom = c.MotherID == selfId;
                 bool isDad = c.FatherID == selfId;

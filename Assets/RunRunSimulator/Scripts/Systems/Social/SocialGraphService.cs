@@ -10,6 +10,31 @@ public static class SocialGraphService
 
     public static bool Dirty { get; private set; }
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void Subscribe()
+    {
+        GameEvents.OnCreatureDeparted -= HandleCreatureDeparted;
+        GameEvents.OnCreatureDeparted += HandleCreatureDeparted;
+    }
+
+    private static void HandleCreatureDeparted(CreatureDNA dna)
+    {
+        if (dna == null || string.IsNullOrEmpty(dna.UniqueID)) return;
+
+        var keysToRemove = new List<string>();
+        foreach (var key in deltas.Keys)
+        {
+            string[] ids = key.Split('|');
+            if (ids.Length == 2 && (ids[0] == dna.UniqueID || ids[1] == dna.UniqueID))
+                keysToRemove.Add(key);
+        }
+
+        foreach (var key in keysToRemove)
+            deltas.Remove(key);
+
+        if (keysToRemove.Count > 0) Dirty = true;
+    }
+
     public static float EffectiveAffinity(CreatureDNA a, CreatureDNA b, SocialTuningSO t)
     {
         float seed = SocialAffinity.Compute(a, b, t);

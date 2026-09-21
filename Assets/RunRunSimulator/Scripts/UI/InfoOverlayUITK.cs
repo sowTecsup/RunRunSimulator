@@ -36,6 +36,8 @@ public class InfoOverlayUITK : MonoBehaviour
     private const string MaterialKey   = "ui.overlay.material";
     private const string ExpeditionReturnKey = "ui.overlay.expedition.return";
     private const string ExpeditionLostKey = "ui.overlay.expedition.lost";
+    private const string CreatureAdoptedKey = "ui.overlay.creature.adopted";
+    private const string CreatureLostKey = "ui.overlay.creature.lost";
 
     [SerializeField, Min(0f)] private float toastSeconds = 6f;
 
@@ -53,6 +55,7 @@ public class InfoOverlayUITK : MonoBehaviour
         GameEvents.OnInventoryChanged  += RefreshDabloons;
         GameEvents.OnInventoryReloaded += RefreshDabloons;
         GameEvents.OnExpeditionReturned += HandleExpeditionReturned;
+        GameEvents.OnCreatureDeparted += HandleCreatureDeparted;
         UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged += HandleLocaleChanged;
     }
 
@@ -61,6 +64,7 @@ public class InfoOverlayUITK : MonoBehaviour
         GameEvents.OnInventoryChanged  -= RefreshDabloons;
         GameEvents.OnInventoryReloaded -= RefreshDabloons;
         GameEvents.OnExpeditionReturned -= HandleExpeditionReturned;
+        GameEvents.OnCreatureDeparted -= HandleCreatureDeparted;
         UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged -= HandleLocaleChanged;
     }
 
@@ -148,26 +152,38 @@ public class InfoOverlayUITK : MonoBehaviour
 
     private void ShowExpeditionToast(ExpeditionReturn r)
     {
-        string energy = r.HealthLost > 0 ? "−" + r.HealthLost : "+" + (-r.HealthLost);
-
         expeditionToastLabel.RemoveFromClassList("toast--win");
         expeditionToastLabel.RemoveFromClassList("toast--lose");
         expeditionToastLabel.RemoveFromClassList("toast--draw");
 
         if (r.Lost)
         {
-            expeditionToastLabel.text = Loc.Tr(ExpeditionLostKey, r.Floors, energy);
+            expeditionToastLabel.text = Loc.Tr(ExpeditionLostKey, r.Floors, r.Fallen);
             expeditionToastLabel.AddToClassList("toast--lose");
         }
         else
         {
-            expeditionToastLabel.text = Loc.Tr(ExpeditionReturnKey, r.Floors, r.MineritaGained, energy);
+            expeditionToastLabel.text = Loc.Tr(ExpeditionReturnKey, r.Floors, r.MineritaGained, r.Fallen);
             string resultClass = r.Winner == ExpeditionTeam.Player ? "toast--win"
                 : r.Winner == ExpeditionTeam.Rival ? "toast--lose"
                 : "toast--draw";
             expeditionToastLabel.AddToClassList(resultClass);
         }
 
+        expeditionToastLabel.style.display = DisplayStyle.Flex;
+        toastTimer = toastSeconds;
+    }
+
+    private void HandleCreatureDeparted(CreatureDNA dna)
+    {
+        if (dna == null || expeditionToastLabel == null) return;
+        string name = !string.IsNullOrEmpty(dna.CustomName) ? dna.CustomName : dna.ToStringID();
+
+        expeditionToastLabel.RemoveFromClassList("toast--win");
+        expeditionToastLabel.RemoveFromClassList("toast--lose");
+        expeditionToastLabel.RemoveFromClassList("toast--draw");
+
+        expeditionToastLabel.text = dna.IsSold ? Loc.Tr(CreatureAdoptedKey, name) : Loc.Tr(CreatureLostKey, name);
         expeditionToastLabel.style.display = DisplayStyle.Flex;
         toastTimer = toastSeconds;
     }

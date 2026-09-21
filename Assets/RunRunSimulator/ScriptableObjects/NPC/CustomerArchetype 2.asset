@@ -25,7 +25,6 @@ MonoBehaviour:
   Icon: {fileID: 0}
   AgentPrefab: {fileID: 0}
   WeightBreed: 1
-  WeightStats: 1
   WeightTier: 1
   BudgetMultiplier: 1
   RenegotiationTolerance: 0.5

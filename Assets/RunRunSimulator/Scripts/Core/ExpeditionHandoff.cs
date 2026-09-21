@@ -12,8 +12,9 @@ public struct ExpeditionResult
     public int RivalSecured;
     public int Floors;
     public bool Lost;
-    public Dictionary<string, int> HealthById;
+    public List<string> FallenIds;
     public int Fallen;
+    public List<string> TeamIds;
 }
 
 public struct ExpeditionReturn
@@ -23,9 +24,7 @@ public struct ExpeditionReturn
     public int PlayerSecured;
     public int RivalSecured;
     public int MineritaGained;
-    public int HealthLost;
     public int Fallen;
-    public int Creatures;
     public int Floors;
     public bool Lost;
 }

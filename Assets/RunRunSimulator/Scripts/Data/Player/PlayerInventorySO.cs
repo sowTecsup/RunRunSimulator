@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
@@ -19,10 +18,6 @@ public class PlayerInventorySO : SerializedScriptableObject
     [Title("World props stored (I# ids — list, dupes = multiple instances)")]
     [OdinSerialize, ReadOnly]
     private List<string> worldPropsStored = new List<string>();
-
-    [Title("Equipment grids (EQ# ids per slot — null entry = empty cell, index = cell)")]
-    [OdinSerialize, ReadOnly]
-    private Dictionary<EquipmentSlot, List<string>> equipmentGrids = new Dictionary<EquipmentSlot, List<string>>();
 
     [Title("Hotbar (I# ids, 6 slots — persists)")]
     [OdinSerialize, ReadOnly]
@@ -62,73 +57,6 @@ public class PlayerInventorySO : SerializedScriptableObject
     }
 
     public IReadOnlyList<string> WorldPropsStored => worldPropsStored;
-
-    private List<string> GridFor(EquipmentSlot slot)
-    {
-        if (!equipmentGrids.TryGetValue(slot, out var list))
-        {
-            list = new List<string>();
-            equipmentGrids[slot] = list;
-        }
-        return list;
-    }
-
-    public void AddEquipment(EquipmentSlot slot, string id)
-    {
-        if (string.IsNullOrEmpty(id)) return;
-        var grid = GridFor(slot);
-        for (int i = 0; i < grid.Count; i++)
-        {
-            if (string.IsNullOrEmpty(grid[i]))
-            {
-                grid[i] = id;
-                MarkDirty();
-                return;
-            }
-        }
-        grid.Add(id);
-        MarkDirty();
-    }
-
-    public bool RemoveEquipmentAt(EquipmentSlot slot, int index)
-    {
-        var grid = GridFor(slot);
-        if (index < 0 || index >= grid.Count || string.IsNullOrEmpty(grid[index])) return false;
-        grid[index] = null;
-        TrimTrailing(grid);
-        MarkDirty();
-        return true;
-    }
-
-    public void MoveEquipment(EquipmentSlot slot, int from, int to)
-    {
-        var grid = GridFor(slot);
-        if (from < 0 || from >= grid.Count || string.IsNullOrEmpty(grid[from])) return;
-        if (from == to) return;
-        if (to >= grid.Count)
-        {
-            while (grid.Count <= to) grid.Add(null);
-        }
-        if (string.IsNullOrEmpty(grid[to]))
-        {
-            grid[to] = grid[from];
-            grid[from] = null;
-        }
-        else
-        {
-            (grid[from], grid[to]) = (grid[to], grid[from]);
-        }
-        TrimTrailing(grid);
-        MarkDirty();
-    }
-
-    public IReadOnlyList<string> GetEquipment(EquipmentSlot slot) => GridFor(slot);
-
-    private static void TrimTrailing(List<string> list)
-    {
-        while (list.Count > 0 && string.IsNullOrEmpty(list[list.Count - 1]))
-            list.RemoveAt(list.Count - 1);
-    }
 
     public int Balance(Currency c)
     {
@@ -185,12 +113,6 @@ public class PlayerInventorySO : SerializedScriptableObject
         MarkDirty();
     }
 
-    public void ClearEquipmentOwned()
-    {
-        equipmentGrids.Clear();
-        MarkDirty();
-    }
-
     public void ClearHotbar()
     {
         for (int i = 0; i < hotbarSlots.Length; i++) hotbarSlots[i] = null;
@@ -216,7 +138,6 @@ public class PlayerInventorySO : SerializedScriptableObject
     {
         public List<string> FurnitureOwned   = new List<string>();
         public List<string> WorldPropsStored = new List<string>();
-        public Dictionary<EquipmentSlot, List<string>> EquipmentGrids = new Dictionary<EquipmentSlot, List<string>>();
         public string[]      HotbarSlots      = new string[HotbarSize];
         public int           Dabloons         = 0;
         public int           Minerita         = 0;
@@ -226,7 +147,6 @@ public class PlayerInventorySO : SerializedScriptableObject
     {
         FurnitureOwned   = new List<string>(furnitureOwned),
         WorldPropsStored = new List<string>(worldPropsStored),
-        EquipmentGrids   = equipmentGrids.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value)),
         HotbarSlots      = (string[])hotbarSlots.Clone(),
         Dabloons         = dabloons,
         Minerita         = minerita,
@@ -236,9 +156,6 @@ public class PlayerInventorySO : SerializedScriptableObject
     {
         furnitureOwned   = data?.FurnitureOwned   ?? new List<string>();
         worldPropsStored = data?.WorldPropsStored ?? new List<string>();
-        equipmentGrids   = data?.EquipmentGrids != null
-            ? data.EquipmentGrids.ToDictionary(kv => kv.Key, kv => new List<string>(kv.Value))
-            : new Dictionary<EquipmentSlot, List<string>>();
         hotbarSlots      = NormalizeHotbar(data?.HotbarSlots);
         dabloons         = data?.Dabloons ?? 0;
         minerita         = data?.Minerita ?? 0;

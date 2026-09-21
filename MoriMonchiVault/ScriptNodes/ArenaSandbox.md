@@ -6,14 +6,14 @@ tags: [script, world, expedition, sandbox]
 
 **Ruta:** `World/Expedition/ArenaSandbox.cs`
 
-**Responsabilidad:** Escena sandbox de arena que encapsula flujo: BuildRoom (layout con forma, minerales, pizarrones, planner.Prepare) → SpawnCast → ResetRoom. S120: lee SelectedIds de ExpeditionHandoff; si no vacío, fuerza esas 3 criaturas del jugador. S122: asigna Role a rivales (que abre 2 bases). **S124:** Expone FloorKind (Enemies/Buff) y AllMaterialTaken; SetFloor(floorSeed, kind) configura tipo de piso; Buff pisos no spawean salida rival.
+**Responsabilidad:** Escena sandbox de arena que encapsula flujo: BuildRoom (layout con forma, minerales, pizarrones, planner.Prepare) → SpawnCast → ResetRoom. S120: lee SelectedIds de ExpeditionHandoff; si no vacío, fuerza esas 3 criaturas del jugador. S122: asigna Role a rivales (que abre 2 bases). **S124:** Expone FloorKind (Enemies/Buff) y AllMaterialTaken; SetFloor(floorSeed, kind) configura tipo de piso; Buff pisos no spawean salida rival. **S129:** Rivales minteados nacen con `Generation = 1` sin roleteo de stats.
 
 **Métodos clave:**
 
 | Método | Descripción |
-|--------|-------------|
+|--------|--------|
 | `void BuildRoom()` | Construye sala. Planner.Prepare(activeSeed, castSeed, count) respeta SelectedIds |
-| `void SpawnCast()` | Spawnea elenco. Lee Role, asigna base abierta |
+| `void SpawnCast()` | Spawnea elenco. Lee Role, asigna base abierta. **S129:** Rivales minteados = Generation 1 |
 | `void ResetRoom(bool newSeed)` | Limpia cast/minerales/exits; genera nueva semilla si newSeed=true |
 | `void SetFloor(int floorSeed, ArenaFloorKind kind)` | **(S124)** Configura semilla y tipo piso; deshabilita rivales si Buff |
 | `void SetCastMode(ArenaCastMode mode)` | Setter explícito de modo (Roster vs LocalSave) |
@@ -78,20 +78,34 @@ if (FloorKind == ArenaFloorKind.Enemies)
     SpawnExit(ExpeditionTeam.Rival, new Vector3(1f, 0f, 1f));
 ```
 
-## Ciclo de Vida S124
+## S129 Cambios
+
+### MintRandom (Rivales)
+
+Rivales minteados en Roster/Roster+Rivals ahora:
+- No roletean stats (nacen con valores base de su Role)
+- `Generation = 1` (en lugar de generado/derivado)
+
+```csharp
+// MintRandom usa CreatureGenerator.Mint(role, generation: 1)
+// No aplica variación de stats post-mint
+```
+
+## Ciclo de Vida S124-S129
 
 1. **Start():** Si CameFromStore, llama `SetFloor(FloorSeedOf(RunSeed, 1), Enemies)` → piso 1 de la bajada
 2. **BuildRoom():** Construye layout, minerales, planner
-3. **SpawnCast():** Genera elenco
+3. **SpawnCast():** Genera elenco. Rivales = Generation 1, sin variación de stats
 4. **Durante ronda:** ArenaRound monitorea FloorKind + AllMaterialTaken
 5. **Fin piso:** ArenaRunDirector.Continue() llama `SetFloor(nextFloorSeed, nextFloorKind)` + ResetRoom
 
-## Invariantes S120-S124
+## Invariantes S120-S129
 
 - SelectedIds no vacío = elenco forzado (3 criaturas jugador + 2 rivales minteados)
 - Buff pisos: RivalsEnabled=false (Planner.RivalsEnabled = false)
 - AllMaterialTaken evalúa cada frame (O(n) pero pequeño)
 - FloorKind determina lógica de salidas y fin anticipado
+- Rivales minteados: Generation 1, stats base sin roleteo
 
 ## Campos Serializados Clave
 
@@ -107,4 +121,4 @@ if (FloorKind == ArenaFloorKind.Enemies)
 
 [[Index/24 - Puente Tienda-Arena]], [[Index/22 - Bajada Nocturna y Linaje]], [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
 
-**Conexiones:** [[ExpeditionHandoff]], [[ArenaCastPlanner]], [[ArenaBases]], [[ArenaRound]], [[ArenaRunDirector]] (S124), [[MoriMochiAgent]], [[WorldEnums]]
+**Conexiones:** [[ExpeditionHandoff]], [[ArenaCastPlanner]], [[ArenaBases]], [[ArenaRound]], [[ArenaRunDirector]] (S124), [[MoriMochiAgent]], [[WorldEnums]], [[CreatureGenerator]]

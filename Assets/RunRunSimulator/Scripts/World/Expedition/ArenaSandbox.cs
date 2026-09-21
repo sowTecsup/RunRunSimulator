@@ -377,7 +377,7 @@ public class ArenaSandbox : MonoBehaviour
         dna.Gender = Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
         dna.Element = CreatureGenerator.RandomElement();
         dna.Role = CreatureGenerator.RandomRole();
-        (dna.BaseConstitution, dna.BaseAttack, dna.BaseSpeed) = CreatureGenerator.RandomBaseStats();
+        dna.Generation = 1;
         dna.Sociability = CreatureGenerator.RandomDial();
         dna.Boldness = CreatureGenerator.RandomDial();
         dna.CustomName = CreatureNameBank.GetRandomName();

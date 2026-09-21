@@ -83,8 +83,6 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
-  StatsMultiplier: 1
   BreedCountMultiplier: 2
-  CombatWinrateMultiplier: 30
   TierMultiplier: 5
   RenegotiationStep: 0.2

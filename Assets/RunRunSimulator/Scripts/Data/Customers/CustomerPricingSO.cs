@@ -13,7 +13,6 @@ public class CustomerPricingSO : SerializedScriptableObject
     [OdinSerialize] public Dictionary<Tier, int> BasePricePerTier = new();
 
     [Title("Multipliers")]
-    [MinValue(0)] public float StatsMultiplier = 1f;
     [MinValue(0)] public float BreedCountMultiplier = 2f;
     [MinValue(0)] public float TierMultiplier = 5f;
 

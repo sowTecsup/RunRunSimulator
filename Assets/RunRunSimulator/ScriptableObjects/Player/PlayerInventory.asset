@@ -26,7 +26,10 @@ MonoBehaviour:
       Data: 0|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 0
+      Data: 1
+    - Name: 
+      Entry: 1
+      Data: F4
     - Name: 
       Entry: 13
       Data: 
@@ -38,7 +41,7 @@ MonoBehaviour:
       Data: 1|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
     - Name: 
       Entry: 12
-      Data: 19
+      Data: 24
     - Name: 
       Entry: 1
       Data: I1
@@ -97,53 +100,20 @@ MonoBehaviour:
       Entry: 1
       Data: I1
     - Name: 
-      Entry: 13
-      Data: 
+      Entry: 1
+      Data: I1
     - Name: 
-      Entry: 8
-      Data: 
-    - Name: equipmentGrids
-      Entry: 7
-      Data: 2|System.Collections.Generic.Dictionary`2[[MoriMonchiSimulator.EquipmentSlot,
-        Assembly-CSharp],[System.Collections.Generic.List`1[[System.String, mscorlib]],
-        mscorlib]], mscorlib
-    - Name: comparer
-      Entry: 7
-      Data: 3|System.Collections.Generic.EnumEqualityComparer`1[[MoriMonchiSimulator.EquipmentSlot,
-        Assembly-CSharp]], mscorlib
+      Entry: 1
+      Data: I1
     - Name: 
-      Entry: 12
-      Data: 0
+      Entry: 1
+      Data: I1
     - Name: 
-      Entry: 13
-      Data: 
+      Entry: 1
+      Data: I1
     - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 3
-      Data: 0
-    - Name: $v
-      Entry: 7
-      Data: 4|System.Collections.Generic.List`1[[System.String, mscorlib]], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
+      Entry: 1
+      Data: I1
     - Name: 
       Entry: 13
       Data: 
@@ -152,7 +122,7 @@ MonoBehaviour:
       Data: 
     - Name: hotbarSlots
       Entry: 7
-      Data: 5|System.String[], mscorlib
+      Data: 2|System.String[], mscorlib
     - Name: 
       Entry: 12
       Data: 6
@@ -182,13 +152,7 @@ MonoBehaviour:
       Data: 
     - Name: dabloons
       Entry: 3
-      Data: 84
-    - Name: adventureMaterial
+      Data: 136
+    - Name: minerita
       Entry: 3
-      Data: 84
-    - Name: passiveMaterial
-      Entry: 3
-      Data: 0
-    - Name: evolutionEssence
-      Entry: 3
-      Data: 0
+      Data: 128

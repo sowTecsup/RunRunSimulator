@@ -6,9 +6,9 @@ tags: [data, genetics, serializable]
 
 **Ruta:** `Data/Genetics/CreatureDNA.cs`
 
-**Responsabilidad:** Dato serializable que representa genética y estado de un MoriMochi. Contiene: partes genéticas (BodyShapeID/HornID/BackID/WingID/FaceID con tiers), colores (BaseColor/SecondaryColor), pelaje (FurType 33 patrones, IsShiny), identidad (CustomName, Timestamp, BirthDate, UniqueID), parentesco (MotherID/FatherID/ChildrenIDs), demografía (Gender), rol/elemento (Role, Element), personalidad (Sociability, Boldness), stats base (Constitution/Attack/Speed/Defense/Luck/Evasion), potenciales de partes (HornPotential/BackPotential/WingPotential 1-10), necesidades (Needs), estado (BusyReason, IsDead, BreedCount, SaleDate), reproducción (BreedReadyAt, BreedPartnerID), ubicación (LocationKey, LocationSlot), equipamiento (Equipped).
+**Responsabilidad:** Dato serializable que representa genética y estado de un MoriMochi. Contiene: partes genéticas (BodyShapeID/HornID/BackID/WingID/FaceID con tiers), colores (BaseColor/SecondaryColor), pelaje (FurType 33 patrones, IsShiny), identidad (CustomName, Timestamp, BirthDate, UniqueID), parentesco (MotherID/FatherID/ChildrenIDs), demografía (Gender), rol/elemento (Role, Element), personalidad (Sociability, Boldness), potenciales de partes (HornPotential/BackPotential/WingPotential 1-10), necesidades (Needs), estado (BusyReason, IsDead, BreedCount, SaleDate), reproducción (BreedReadyAt, BreedPartnerID), ubicación (LocationKey, LocationSlot).
 
-**S128:** Eliminados `CombatCooldownUntil` y `HeldItemId` (demolición RPS). Mantiene potenciales de partes (techos para evolución).
+**S129:** Eliminados stats base (`BaseConstitution/Attack/Speed/Defense/Luck/Evasion`), campo `Equipped`. Agregado `Generation` para tracking de generación (usada en ReconcileColors + lógica HC).
 
 ## Campos Principales
 
@@ -27,16 +27,15 @@ tags: [data, genetics, serializable]
 | `Element` | Element | Agua/Fuego/Electricidad/Planta |
 | `Sociability` / `Boldness` | float | Diales (0-1) |
 | `BreedCount` | int | Cantidad reproducida |
+| `Generation` | int | Generación (HC tracking) |
 | `{Body/Horn/Back/Wing}Tier` | Tier | Rareza (Tier1/2/3) |
-| `Base{Constitution/Attack/Speed/...}` | float | Stats base (6 stats) |
-| `{Horn/Back/Wing}Potential` | int | Techo de nivel de parte (1-10, evolución) |
+| `{Horn/Back/Wing}Potential` | int | Techo de nivel de parte (1-10, evolución HC) |
 | `IsDead` | bool | Muerte permanente |
 | `Needs` | NeedsState | Health/Energy/Affect |
 | `BusyReason` | BusyReason | None/Breeding/Sold |
 | `SaleDate` | DateTime | Cuándo vendida |
-| `BreedReadyAt` / `BreedPartnerID` | long / string | Reprodución (reloj) |
+| `BreedReadyAt` / `BreedPartnerID` | long / string | Reproducción (reloj) |
 | `LocationKey` / `LocationSlot` | string / int | Ubicación mundo |
-| `Equipped` | Dict | Equipo (slot → ID); **S128 pendiente borado HC-2** |
 
 ## Métodos & Propiedades
 
@@ -57,11 +56,11 @@ tags: [data, genetics, serializable]
 - BaseColor derivado de hex final (RRGGBB)
 - Timestamp genera UniqueID única (evita colisiones)
 
-## Cambios S128
+## Cambios S129
 
-- **Eliminados:** `CombatCooldownUntil`, `HeldItemId` (ambos de demolición RPS S128)
+- **Eliminados:** Stats base (`BaseConstitution/Attack/Speed/Defense/Luck/Evasion`), campo `Equipped`
+- **Agregado:** `int Generation` (tracking de generación, usado en `ReconcileColors()`)
 - **Mantiene:** `{Horn/Back/Wing}Potential` como techo de evolución (HC-2)
-- **Equipamiento:** `Equipped` se borra en HC-2; actualmente persiste
 
 ## Cambios Históricos
 
@@ -69,11 +68,11 @@ tags: [data, genetics, serializable]
 **S93:** Enums a archivos dedicados.
 **S95:** Potenciales de combate agregados.
 **S128:** Cooldown y HeldItem borrados (RPS demolido).
+**S129:** Stats y Equipped borrados (demolición HC-1).
 
 ## Vinculado a
 
 [[Index/01 - Creature Genetics & System]]
 [[Index/28 - Cimientos y camino a Game Ready]]
 
-**Conexiones:** [[CreatureRegistrySO]], [[CreatureGenerator]], [[NeedsState]], [[PartDatabaseSO]], [[BreedingService]], [[CreatureDisplay]]
-
+**Conexiones:** [[CreatureRegistrySO]], [[CreatureGenerator]], [[NeedsState]], [[PartDatabaseSO]], [[BreedingService]], [[CreatureDisplay]], [[CreatureLifecycle]], [[CreatureAvailability]]

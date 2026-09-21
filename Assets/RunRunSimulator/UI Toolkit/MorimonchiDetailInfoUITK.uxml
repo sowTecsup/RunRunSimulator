@@ -21,14 +21,28 @@
 
                         <ui:VisualElement class="info-left">
                             <ui:VisualElement name="portrait" class="portrait" />
-                            <ui:VisualElement name="stats" class="stats">
-                                <ui:Label name="stat-con" class="stat stat--con" />
-                                <ui:Label name="stat-atk" class="stat stat--atk" />
-                                <ui:Label name="stat-spd" class="stat stat--spd" />
-                                <ui:Label name="stat-def" class="stat stat--def" />
-                                <ui:Label name="stat-lck" class="stat stat--lck" />
-                                <ui:Label name="stat-eva" class="stat stat--eva" />
+                            <ui:Label name="care-title" text="Cuidado" class="care-title" />
+                            <ui:VisualElement name="needs" class="needs">
+                                <ui:VisualElement name="need-health" class="detail-need">
+                                    <ui:Label name="need-health-label" text="Vida" class="detail-need__label" />
+                                    <ui:VisualElement class="detail-need__bar-track">
+                                        <ui:VisualElement name="need-health-fill" class="detail-need__bar-fill" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="need-energy" class="detail-need">
+                                    <ui:Label name="need-energy-label" text="Energía" class="detail-need__label" />
+                                    <ui:VisualElement class="detail-need__bar-track">
+                                        <ui:VisualElement name="need-energy-fill" class="detail-need__bar-fill" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
+                                <ui:VisualElement name="need-affect" class="detail-need">
+                                    <ui:Label name="need-affect-label" text="Afecto" class="detail-need__label" />
+                                    <ui:VisualElement class="detail-need__bar-track">
+                                        <ui:VisualElement name="need-affect-fill" class="detail-need__bar-fill" />
+                                    </ui:VisualElement>
+                                </ui:VisualElement>
                             </ui:VisualElement>
+                            <ui:Label name="explore-status" text="Apta para bajar" class="explore-status" />
                         </ui:VisualElement>
 
                         <ui:ScrollView name="info-right" class="info-right" mode="Vertical">
@@ -59,17 +73,6 @@
                         <ui:VisualElement name="lineage-tree" class="lineage-tree" />
                         <ui:Label name="lineage-empty" text="Sin ascendencia registrada (linaje silvestre)." class="placeholder" />
                     </ui:ScrollView>
-                </ui:Tab>
-
-                <ui:Tab label="Equipo" name="tab-team">
-                    <ui:VisualElement class="equip-body">
-                        <ui:ScrollView name="equip-cards" class="equip-cards" mode="Vertical" />
-                        <ui:VisualElement class="equip-right">
-                            <ui:VisualElement name="equip-portrait" class="equip-portrait" />
-                            <ui:Label text="Stats" class="section-title" />
-                            <ui:VisualElement name="equip-stats" class="equip-stats" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
                 </ui:Tab>
 
                 <!-- Social relations: who this MoriMochi likes and dislikes, read

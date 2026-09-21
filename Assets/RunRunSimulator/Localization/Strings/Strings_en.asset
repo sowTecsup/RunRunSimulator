@@ -46,18 +46,6 @@ MonoBehaviour:
     m_Localized: Plant
     m_Metadata:
       m_Items: []
-  - m_Id: 4172476088323
-    m_Localized: Weapon
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088324
-    m_Localized: Armor
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088325
-    m_Localized: Amulet
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172476088326
     m_Localized: Body
     m_Metadata:
@@ -192,30 +180,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172476088358
     m_Localized: Draw
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088359
-    m_Localized: CON
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088360
-    m_Localized: ATK
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088361
-    m_Localized: SPD
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088362
-    m_Localized: DEF
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088363
-    m_Localized: LCK
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088364
-    m_Localized: EVA
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088365
@@ -500,60 +464,60 @@ MonoBehaviour:
     m_Localized: "{0}: \u2014"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282636
-    m_Localized: "Old combat \u2014 no stats recorded"
+  - m_Id: 21042558734491660
+    m_Localized: Not ready
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282637
-    m_Localized: "Victory \u2014 no upgrade"
+  - m_Id: 21042558734491659
+    m_Localized: Affect
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282638
-    m_Localized: Upgraded {0}
+  - m_Id: 21042558734491658
+    m_Localized: Energy
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282639
-    m_Localized: Died in combat
+  - m_Id: 21042558734491657
+    m_Localized: Health
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282640
-    m_Localized: Returned defeated
+  - m_Id: 21042558734491656
+    m_Localized: "{0}: \u2014  \xB7  Lv {1}/{2}"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282641
-    m_Localized: "Draw \u2014 no consequences"
+  - m_Id: 21042558734491655
+    m_Localized: "{0}: {1}  \xB7  {2} \xB7 {3} \xB7 Lv {4}/{5}"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282642
-    m_Localized: You
+  - m_Id: 21042558734491654
+    m_Localized: Not ready
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282643
-    m_Localized: Opponent
+  - m_Id: 21042558734491653
+    m_Localized: Ready to explore
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282644
-    m_Localized: '{0} T{1}'
+  - m_Id: 21042558734491652
+    m_Localized: Affect
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282645
-    m_Localized: "vs {0} \xB7 local"
+  - m_Id: 21042558734491651
+    m_Localized: Energy
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282646
-    m_Localized: "vs {0} \xB7 from {1}"
+  - m_Id: 21042558734491650
+    m_Localized: Health
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282647
-    m_Localized: Victory
+  - m_Id: 21042558734491649
+    m_Localized: Care
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282648
-    m_Localized: Defeat
+  - m_Id: 21042558734491648
+    m_Localized: '{0} didn''t come back'
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282649
-    m_Localized: Draw
+  - m_Id: 21042558671577088
+    m_Localized: '{0} was adopted'
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282650
@@ -580,28 +544,8 @@ MonoBehaviour:
     m_Localized: '?'
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282656
-    m_Localized: Unequipped
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282657
-    m_Localized: None
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282658
-    m_Localized: '{0}: empty'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282659
-    m_Localized: "{0} \xB7 {1}"
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172480282660
     m_Localized: Info
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282661
-    m_Localized: Combat
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282662
@@ -610,10 +554,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172480282663
     m_Localized: Lineage
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282664
-    m_Localized: Equipment
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282665
@@ -636,20 +576,12 @@ MonoBehaviour:
     m_Localized: Progression
     m_Metadata:
       m_Items: []
-  - m_Id: 4172480282670
-    m_Localized: Stats
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172480282671
     m_Localized: Gets Along With
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282672
     m_Localized: Doesn't Get Along With
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172480282673
-    m_Localized: No battles recorded yet.
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282674
@@ -1479,20 +1411,12 @@ MonoBehaviour:
     m_Localized: Pick up to {0} MoriMonchis to send into the room
     m_Metadata:
       m_Items: []
-  - m_Id: 19177877371674625
-    m_Localized: Health {0}
-    m_Metadata:
-      m_Items: []
-  - m_Id: 19177877371674626
-    m_Localized: "Down \xB7 health {0}"
-    m_Metadata:
-      m_Items: []
   - m_Id: 19177877371674627
     m_Localized: Busy
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674628
-    m_Localized: No MoriMonchis with health left to go down
+    m_Localized: No well-cared MoriMonchi can go down
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674629
@@ -1504,11 +1428,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 19177877371674631
-    m_Localized: "Back from floor {0} \xB7 +{1} Minerita \xB7 {2} health"
+    m_Localized: "Back from floor {0} \xB7 +{1} Minerita \xB7 {2} down"
     m_Metadata:
       m_Items: []
   - m_Id: 19241043774464000
-    m_Localized: "Lost on floor {0} \xB7 no loot \xB7 {1} health"
+    m_Localized: "Lost on floor {0} \xB7 no loot \xB7 {1} down"
     m_Metadata:
       m_Items: []
   references:

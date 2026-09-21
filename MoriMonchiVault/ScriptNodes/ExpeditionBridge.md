@@ -6,7 +6,7 @@ tags: [script, system, expedition, bridge]
 
 **Ruta:** `Systems/Expedition/ExpeditionBridge.cs`
 
-**Responsabilidad:** Componente MonoBehaviour en GameScene que orquesta transiciones tienda ↔ arena. Expone evento estático `OnDepartureRequested` y método `Depart()` para iniciar viaje con equipo elegido. Al retornar, espera startup cloud y aplica rewards: suma **Minerita** vía [[Wallet]], aplica delta vida a criaturas. **S128:** ahora suma Minerita vía `Wallet.Add()` (puerta única).
+**Responsabilidad:** Componente MonoBehaviour en GameScene que orquesta transiciones tienda ↔ arena. Expone evento estático `OnDepartureRequested` y método `Depart()` para iniciar viaje con equipo elegido. Al retornar, espera startup cloud y aplica rewards: suma **Minerita** vía [[Wallet]], mata criaturas caídas vía [[CreatureLifecycle]]. **S128:** suma Minerita vía `Wallet.Add()` (puerta única). **S129:** matar criaturas es responsabilidad de `CreatureLifecycle`, no toca `Needs` ni stats.
 
 ## Campos Serializados
 
@@ -15,7 +15,6 @@ tags: [script, system, expedition, bridge]
 | `cloudSync` | `CloudSyncService` | Ref a sincronización (esperar StartupSyncDone) |
 | `syncTimeoutSeconds` | `float` | Timeout máximo esperando cloud (default 20s) |
 | `departFlushTimeout` | `float` | Timeout flush local antes de arena (default 5s) |
-| `permadeathEnabled` | `bool` | Si true, marca IsDead si Lost o health <= 0 (default false) |
 
 ## Evento Estático
 
@@ -52,7 +51,7 @@ Si `ExpeditionHandoff.HasResult`: inicia `ApplyResult()` coroutine.
 3. ExpeditionHandoff.GoToArena(ids)
 ```
 
-### ApplyResult (Coroutine, S128)
+### ApplyResult (Coroutine, S129)
 
 ```
 1. Esperar cloudSync.StartupSyncDone (max syncTimeoutSeconds)
@@ -60,18 +59,15 @@ Si `ExpeditionHandoff.HasResult`: inicia `ApplyResult()` coroutine.
 3. Minerita = 0 si result.Lost, else result.PlayerSecured
 4. Si Minerita > 0: Wallet.Add(Currency.Minerita, material, "expedition")
    (un solo evento InventoryChanged automático)
-5. Si registry y result.HealthById:
-   - Por cada (id, delta):
-     - Si criatura existe, viva:
-       - dna.Needs.AddHealth(delta)
-       - Acumular net, count
-   - Si cambios: GameEvents.RegistryChanged(registry)
-6. Si permadeathEnabled: marca IsDead si Lost OR health <= 0
-7. Dispara GameEvents.ExpeditionReturned(expReturn) con summary
-8. Debug.Log con piso, material, vida
+5. Matar criaturas caídas (result.FallenIds):
+   - Por cada id en FallenIds:
+     - Si dna existe: CreatureLifecycle.Kill(dna)
+     (dispara OnCreatureDeparted + RegistryChanged)
+6. Dispara GameEvents.ExpeditionReturned(expReturn) con summary
+7. Debug.Log con piso, material, caídos
 ```
 
-## Flujo Tienda ↔ Arena (S124)
+## Flujo Tienda ↔ Arena (S124-S129)
 
 ```
 GameScene (Tienda)
@@ -88,29 +84,23 @@ ArenaSandbox (Arena)
   ↓ Scene Load
 GameScene (Tienda, Start)
   ↓ ApplyResult() coroutine
-    Wallet.Add Minerita + Needs.AddHealth + Registry persistida
+    Wallet.Add Minerita + CreatureLifecycle.Kill(FallenIds) + Registry persistida
   ↓ GameEvents.ExpeditionReturned → UI actualiza
 ```
 
-## Integración S128
+## Cambios S129
 
-| Antes | Ahora |
-|-------|-------|
-| `inventory.AddAdventureMaterial(material)` | `Wallet.Add(Currency.Minerita, material, "expedition")` |
-| Evento manual `InventoryChanged` | Automático de Wallet |
-| Acceso directo SO | Puerta única [[Wallet]] |
+- **ELIMINADO:** Aplicar delta vida (`HealthById` removido de ExpeditionResult)
+- **ELIMINADO:** Tocar `dna.Needs`
+- **AGREGADO:** `CreatureLifecycle.Kill()` para cada ID en `result.FallenIds`
+- **CAMBIO:** `ExpeditionResult.FallenIds` → lista de IDs muertos (antes era diccionario de deltas)
+- **CAMBIO:** `ExpeditionResult.TeamIds` → nuevos, lista de IDs del equipo
 
-**Invariante:** si Lost → material = 0 (riesgo irrevocable).
-
-## Campos Locales
-
-- `departing` — bool; flag para evitar múltiples DepartRoutines simultáneas
-
-## Invariantes S124+
+## Invariantes S129+
 
 - Material anulado si `result.Lost`
-- HealthById aplicado delta por criatura (negativo = daño)
-- Permadeath opcional (false default)
+- Criaturas caídas marcadas `IsDead` vía `CreatureLifecycle`
+- Cargas todas criaturas caídas, no solo algunas
 - Timeout cloud: evita bloqueos indefinidos
 - Cursor desbloqueado al partir (herencia evitada)
 
@@ -119,7 +109,5 @@ GameScene (Tienda, Start)
 [[Index/24 - Puente Tienda-Arena]]
 [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
 [[Index/28 - Cimientos y camino a Game Ready]]
-[[Index/29 - Plan HC - Cimientos (ejecutable)]] (§5 · C3 wallet)
 
-**Conexiones:** [[ExpeditionHandoff]], [[ExpeditionPanelUITK]], [[CloudSyncService]], [[GameManager]], [[Wallet]], [[CreatureRegistrySO]], [[GameEvents]], [[InfoOverlayUITK]], [[ArenaRunDirector]]
-
+**Conexiones:** [[ExpeditionHandoff]], [[ExpeditionPanelUITK]], [[CloudSyncService]], [[GameManager]], [[Wallet]], [[CreatureRegistrySO]], [[GameEvents]], [[InfoOverlayUITK]], [[ArenaRunDirector]], [[CreatureLifecycle]]

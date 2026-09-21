@@ -37,5 +37,8 @@ public static class GameEvents
 
     public static event Action<ExpeditionReturn> OnExpeditionReturned;
     public static void ExpeditionReturned(ExpeditionReturn r) => OnExpeditionReturned?.Invoke(r);
+
+    public static event Action<CreatureDNA> OnCreatureDeparted;
+    public static void CreatureDeparted(CreatureDNA dna) => OnCreatureDeparted?.Invoke(dna);
 }
 }

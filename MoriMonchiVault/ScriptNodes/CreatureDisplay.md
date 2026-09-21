@@ -8,7 +8,7 @@ tags: [script, ui, helper]
 
 **Responsabilidad:** Helper estático con métodos de presentación compartidos para criaturas. Centraliza `StateOf()` localizado (sold/dead/breeding/free), colores de rareza, visuales de iconos y bordes.
 
-**S128:** Eliminado caso `status.cooldown` (demolición RPS). StateOf() retorna solo: sold/dead/breeding/free.
+**S128:** Eliminado caso `status.cooldown` (demolición RPS). **S129:** StateOf() mantiene only: sold/dead/breeding/free.
 
 ## Métodos Públicos
 
@@ -29,6 +29,10 @@ tags: [script, ui, helper]
 
 **Eliminado:** caso `status.cooldown` (CombatCooldownUntil fue borrado de CreatureDNA con demolición RPS).
 
+## Cambios S129
+
+**Mantiene:** StateOf() con cuatro estados. Elimina referencias a DetailEquipTabPresenter (ya no existe).
+
 ## Historial
 
 **S95:** `status.cooldown` agregado para mostrar HH:mm de cooldown post-combate.
@@ -37,6 +41,6 @@ tags: [script, ui, helper]
 ## Vinculado a
 
 [[Index/05 - UI System]]
+[[Index/28 - Cimientos y camino a Game Ready]]
 
-**Conexiones:** [[CreatureGridUITK]], [[DetailEquipTabPresenter]], [[CreatureVisualUI]], [[CreatureDNA]]
-
+**Conexiones:** [[CreatureGridUITK]], [[CreatureVisualUI]], [[CreatureDNA]], [[MorimonchiDetailInfoUITK]]

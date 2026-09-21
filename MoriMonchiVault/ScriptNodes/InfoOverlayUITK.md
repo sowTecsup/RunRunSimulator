@@ -6,7 +6,7 @@ tags: [script, ui]
 
 **Ruta:** `UI/InfoOverlayUITK.cs`
 
-**Responsabilidad:** Overlay contextual siempre-visible (top-left hints de controles, top-right fecha/dabloons/**Minerita**, toast de retorno expedición). **S128:** actualiza labels de monedas para reflejar dos divisas (Dabloons + Minerita en lugar de "material de aventura").
+**Responsabilidad:** Overlay contextual siempre-visible (top-left hints de controles, top-right fecha/dabloons/**Minerita**, toast de retorno expedición, avisos de criatura partida). **S128:** actualiza labels de monedas para reflejar dos divisas (Dabloons + Minerita). **S129:** suscriptor nuevo de `OnCreatureDeparted` para mostrar aviso fade-out cuando criatura muere/vende.
 
 ## Campos Serializados
 
@@ -20,7 +20,7 @@ tags: [script, ui]
 
 - `Label dateLabel` — hora y fecha top-right
 - `Label dabloonsLabel` — cantidad de dabloons
-- `Label mineritaLabel` — **S128** cantidad de Minerita (antes "material de aventura") |
+- `Label mineritaLabel` — **S128** cantidad de Minerita (antes "material de aventura")
 - `Label expeditionToastLabel` — toast de retorno expedición
 - `float toastTimer` — cuenta atrás del toast
 - `ExpeditionReturn? pendingToast` — resultado en cola si toast label no está wired aún
@@ -29,12 +29,13 @@ tags: [script, ui]
 
 | Método | Descripción |
 |--------|-------------|
-| `OnEnable()` | Suscribe a `GameEvents.OnInventoryChanged`, `InventoryReloaded`, `OnExpeditionReturned` |
+| `OnEnable()` | Suscribe a `GameEvents.OnInventoryChanged`, `InventoryReloaded`, `OnExpeditionReturned`, **S129:** `OnCreatureDeparted` |
 | `Start()` | Resuelve labels (date, dabloons, minerita, expeditionToast) |
 | `Update()` | Decrementa `toastTimer`; si ≤0 oculta toast |
 | `OnDisable()` | Desuscribe todos |
 | `HandleExpeditionReturned(ExpeditionReturn r)` | Callback; renderiza toast |
 | `ShowExpeditionToast(ExpeditionReturn r)` | Toast diferente según Lost |
+| **S129:** `HandleCreatureDeparted(CreatureDNA dna)` | Callback; muestra fade-out "Partió" + nombre |
 
 ## Toast Expedición (S124)
 
@@ -50,16 +51,31 @@ Clase: "toast--lose" (rojo)
 Clase: "toast--win" (azul si victoria), "toast--lose" (rojo si derrota)
 ```
 
+## Aviso Criatura Partida (S129)
+
+Cuando `OnCreatureDeparted` dispara (muerte/venta):
+```
+"[Nombre] partió"
+Clase: "departure-notice" (gris/sepia)
+Duración: 4s fade
+```
+
 ## Integración S128
 
 - `mineritaLabel` reemplaza `materialLabel` (dos monedas distintas)
 - Toast muestra `MineritaGained` en lugar de genérico "material"
 - Ambos labels actualizados vía `GameEvents.InventoryChanged`
 
+## Integración S129
+
+- **Nuevo suscriptor:** `OnCreatureDeparted` → muestra aviso de partida
+- Consulta `dna.CustomName` para mostrar nombre en aviso
+- Toast diferente si fue por venta (BusyReason.Sold) vs muerte (IsDead)
+
 ## Vinculado a
 
 [[Index/05 - UI System]]
 [[Index/26 - Plan H0 - Bajada por pisos]] (S124)
+[[Index/28 - Cimientos y camino a Game Ready]]
 
-**Conexiones:** [[Loc]], [[GameManager]], [[GameEvents]], [[ExpeditionBridge]], [[UiPanels]]
-
+**Conexiones:** [[Loc]], [[GameManager]], [[GameEvents]], [[ExpeditionBridge]], [[UiPanels]], [[CreatureLifecycle]]

@@ -6,7 +6,7 @@ tags: [script, systems, social, history, service]
 
 **Ruta:** `Systems/Social/SocialGraphService.cs`
 
-**Responsabilidad:** Servicio estático que mantiene el historial de afinidad social entre pares de MoriMonchis en memoria (S65 Social V2). Almacena deltas de afinidad acumulados por interacción (juego, siesta, pelea) para ajustar dinámicamente la afinidad base (`SocialAffinity.Compute()`). Ownea el diccionario `deltas` (key = PairKey ordenada) y expone métodos para registrar interacciones, importar/exportar data y querying. Usado por AgentSenses para calcular `EffectiveAffinity`, y por SaveSystem/CloudSyncService para persistencia local (social_graph_<playerId>.json).
+**Responsabilidad:** Servicio estático que mantiene el historial de afinidad social entre pares de MoriMonchis en memoria (S65 Social V2). Almacena deltas de afinidad acumulados por interacción (juego, siesta, pelea) para ajustar dinámicamente la afinidad base (`SocialAffinity.Compute()`). Ownea el diccionario `deltas` (key = PairKey ordenada) y expone métodos para registrar interacciones, importar/exportar data y querying. Usado por AgentSenses para calcular `EffectiveAffinity`, y por SaveSystem/CloudSyncService para persistencia local. **S129:** Suscriptor de `OnCreatureDeparted` para limpiar el grafo cuando una criatura parte (muerte/venta).
 
 ## Métodos Públicos
 
@@ -17,12 +17,13 @@ tags: [script, systems, social, history, service]
 | `ExportData()` | `Dictionary<string, float>` | Retorna copia profunda de deltas, setea Dirty=false. Usado por SaveSystem.SaveSocialGraph(). |
 | `ImportData(Dictionary<string, float> data, Func<string, bool> idExists)` | `void` | Limpia deltas, re-popula desde data. Poda de huérfanos: si idExists provisto, salta pares donde algún ID ya no existe en registry. Setea Dirty=false. Usado por SaveSystem.LoadSocialGraph() post-sign-in. |
 | `Clear()` | `void` | Limpia deltas y setea Dirty=false. Usado en reset de progress o cierre. |
+| **S129:** `RemoveFromHistory(string id)` | `void` | Remueve todas las parejas que involucren `id` del grafo (criatura partió). Setea Dirty=true. |
 
 ## Propiedades
 
 | Propiedad | Tipo | Descripción |
 |-----------|------|-------------|
-| `Dirty` | `bool` { get; private set; } | Flag que indica si deltas fue mutado desde último ExportData(). True tras RecordInteraction, False tras ExportData/ImportData/Clear. Usado por CloudSyncService para saber si pushear. |
+| `Dirty` | `bool` { get; private set; } | Flag que indica si deltas fue mutado desde último ExportData(). True tras RecordInteraction/RemoveFromHistory, False tras ExportData/ImportData/Clear. Usado por CloudSyncService para saber si pushear. |
 
 ## Métodos Internos (Private)
 
@@ -45,6 +46,14 @@ tags: [script, systems, social, history, service]
 2. **Diccionario estático:** Vive en memoria runtime; no serializado directamente (lo hace SaveSystem en OnQuit/OnPause).
 3. **Flag Dirty:** Optimización para CloudSync — solo pushea si hubo cambio desde último pull.
 4. **Poda en ImportData:** Evita mantener historia de criaturas ya muertas (orfandad).
+5. **S129 Suscripción:** `OnCreatureDeparted` dispara `RemoveFromHistory()` automáticamente.
+
+## Ciclo de Vida S129
+
+1. `OnCreatureDeparted(CreatureDNA dna)` → dispara suscriptor
+2. `RemoveFromHistory(dna.UniqueID)` → busca y elimina todos los pares con ese ID
+3. `Dirty = true` → próximo push incluye cambios
+4. `GameEvents.RegistryChanged` también dispara persist (redundancia defensiva)
 
 ## Notas
 
@@ -56,7 +65,8 @@ tags: [script, systems, social, history, service]
 ## Vinculado a
 
 - [[Index/06 - Player & World]]
-- [[MoriMonchiVault/Index/14 - Social V2]] (capa de historia)
+- [[Index/14 - Social V2]] (capa de historia)
+- [[Index/28 - Cimientos y camino a Game Ready]]
 
 ## Conexiones
 
@@ -64,6 +74,7 @@ tags: [script, systems, social, history, service]
 - `AgentSocial.CompleteFromPartner()`, `AgentSocial.TickSocializing()` — registran interacciones
 - `SaveSystem.LoadSocialGraph()` — carga history al sign-in
 - `SaveSystem.SaveSocialGraph()` — exporta para persistencia
+- **S129:** `GameEvents.OnCreatureDeparted` — limpia pares huérfanos
 
 **Salida:**
 - `AgentSenses.Tick()` — consulta `EffectiveAffinity()` para cada Monchi percibido

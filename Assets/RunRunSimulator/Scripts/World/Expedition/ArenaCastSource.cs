@@ -29,9 +29,9 @@ public static class ArenaCastSource
         try
         {
             var data = SaveSystem.Deserialize(File.ReadAllText(files[0]));
-            if (data == null) return result;
+            if (data?.Alive == null) return result;
 
-            result = AliveOrdered(data);
+            result = AliveOrdered(data.Alive);
             Debug.Log($"[ArenaCastSource] {result.Count} MoriMonchis vivos en {Path.GetFileName(files[0])}");
         }
         catch (Exception e)

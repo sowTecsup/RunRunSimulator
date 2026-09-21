@@ -43,7 +43,6 @@ public class DetailRelationsPresenter
         {
             if (other == null) continue;
             if (other.UniqueID == dna.UniqueID) continue;
-            if (other.IsDead) continue;
 
             float aff = SocialGraphService.EffectiveAffinity(dna, other, tuning);
             if (aff >= tuning.RelationsFriendThreshold) friends.Add((other, aff));

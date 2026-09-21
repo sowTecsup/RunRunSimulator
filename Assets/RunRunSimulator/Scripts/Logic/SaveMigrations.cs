@@ -13,7 +13,12 @@ public enum SaveKind
 
 public static class SaveMigrations
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
+
+    private static readonly string[] LegacyCreatureStatFields =
+    {
+        "BaseConstitution", "BaseAttack", "BaseSpeed", "BaseDefense", "BaseLuck", "BaseEvasion", "Equipped"
+    };
 
     public static SaveEnvelope Read(string json, SaveKind kind)
     {
@@ -91,6 +96,12 @@ public static class SaveMigrations
             case (SaveKind.Inventory, 1):
                 InventoryV1ToV2(envelope.Data as JObject);
                 break;
+            case (SaveKind.Inventory, 2):
+                InventoryV2ToV3(envelope.Data as JObject);
+                break;
+            case (SaveKind.Registry, 2):
+                envelope.Data = RegistryV2ToV3(envelope.Data as JObject);
+                break;
         }
     }
 
@@ -108,6 +119,43 @@ public static class SaveMigrations
 
         data.Remove("PassiveMaterial");
         data.Remove("EvolutionEssence");
+    }
+
+    private static void InventoryV2ToV3(JObject data)
+    {
+        if (data == null)
+            return;
+
+        data.Remove("EquipmentGrids");
+    }
+
+    private static JToken RegistryV2ToV3(JObject data)
+    {
+        if (data == null)
+            return null;
+
+        JObject alive = new JObject();
+        JObject departed = new JObject();
+
+        foreach (JProperty property in data.Properties())
+        {
+            JObject creature = property.Value as JObject;
+            if (creature == null)
+                continue;
+
+            foreach (string field in LegacyCreatureStatFields)
+                creature.Remove(field);
+
+            bool isDead = creature["IsDead"]?.Value<bool>() ?? false;
+            bool isSold = creature["BusyState"]?.Value<string>() == "Sold";
+
+            if (isDead || isSold)
+                departed[property.Name] = creature;
+            else
+                alive[property.Name] = creature;
+        }
+
+        return new JObject { ["Alive"] = alive, ["Departed"] = departed };
     }
 }
 

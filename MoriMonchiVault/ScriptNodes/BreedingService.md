@@ -6,7 +6,7 @@ tags: [script, genetics]
 
 **Ruta:** `Systems/Breeding/BreedingService.cs`
 
-**Responsabilidad:** Lógica local de cruce. Hereda 5 partes genéticas (BodyShape/Horn/Back/Wing/Face) desde árbol genealógico, colores, FurType, stats base, género, rol, elemento, IsShiny, diales (Sociability/Boldness), y potenciales de partes. Valida género, muerte, busy state, `MaxBreedCount = 4`. Retorna hijo `CreatureDNA` o null si falla validación.
+**Responsabilidad:** Lógica local de cruce. Hereda 5 partes genéticas (BodyShape/Horn/Back/Wing/Face) desde árbol genealógico, colores, FurType, género, rol, elemento, IsShiny, diales (Sociability/Boldness), y potenciales de partes. Valida género, muerte, busy state, `MaxBreedCount = 4`. Retorna hijo `CreatureDNA` o null si falla validación. **S129:** Eliminada herencia de stats base.
 
 ## Método Principal
 
@@ -52,13 +52,17 @@ BodyShapeID, HornID, BackID, WingID, FaceID
 - **Element:** 50/50 de padres + mutación
 - **IsShiny:** Roll nuevo 0.5%
 - **FurType:** 50/50 de padres
-- **Stats base:** Promedio ± jitter
 - **Potenciales de partes:** Promedio ± 1, clamp 1-10
 - **Diales:** Sociability/Boldness con 3 modos
+
+## Cambios S129
+
+- **ELIMINADO:** Herencia de stats base (Constitution, Attack, Speed, Defense, Luck, Evasion)
+- **MANTIENE:** 5 partes genéticas, potenciales, diales
 
 ## Vinculado a
 
 [[Index/02 - Genetics & Breeding]]
+[[Index/28 - Cimientos y camino a Game Ready]]
 
 **Conexiones:** [[CreatureDNA]], [[InheritanceOddsTableSO]], [[CreatureRegistrySO]], [[CreatureDatabaseSO]], [[ColorGenetics]], [[CreatureGenerator]]
-

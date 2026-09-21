@@ -4,10 +4,6 @@ namespace MoriMonchiSimulator
 
 public static class CreatureGenerator
 {
-    public const int StatBudget = 18;
-    public const int StatMin    = 1;
-    public const int StatMax    = 10;
-
     public const int PotentialMin     = 1;
     public const int PotentialMax     = 10;
     public const int MintPotentialMax = 3;
@@ -64,20 +60,6 @@ public static class CreatureGenerator
     public static float RandomDial() => Random.Range(0.15f, 0.85f);
 
     public static int RandomMintPotential() => Random.Range(PotentialMin, MintPotentialMax + 1);
-
-    public static (float hp, float atk, float spd) RandomBaseStats()
-    {
-        int[] stats     = { StatMin, StatMin, StatMin };
-        int   remaining = StatBudget - StatMin * stats.Length;
-        while (remaining > 0)
-        {
-            int i = Random.Range(0, stats.Length);
-            if (stats[i] >= StatMax) continue;
-            stats[i]++;
-            remaining--;
-        }
-        return (stats[0], stats[1], stats[2]);
-    }
 
     private static T Pick<T>(PartDatabaseSO<T> db) where T : BodyPart
     {

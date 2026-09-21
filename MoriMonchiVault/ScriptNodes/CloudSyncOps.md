@@ -6,7 +6,7 @@ tags: [cloud, synchronization, networking]
 
 **Ruta:** `Systems/Cloud/CloudSyncOps.cs`
 
-**Responsabilidad:** Orquestador de sincronización nube/local con reconciliación inteligente. `SyncOnStartupAsync()` reemplaza al pull ciego: compara tres timestamps (`CloudPushedAt` nube, `LocalKnownCloudAt` meta local, `LatestLocalSavedAt()` disco) para decidir subir, bajar o aplicar conflicto con respaldo. `PushAsync()` y `PullAsync()` manejan 4 claves (`creatureregistry`, `furnitureregistry`, `playerinventory`, `socialgraph`). **S128:** Nuevo método startup, timestamps, conflictos.
+**Responsabilidad:** Orquestador de sincronización nube/local con reconciliación inteligente. `SyncOnStartupAsync()` reemplaza al pull ciego: compara tres timestamps (`CloudPushedAt` nube, `LocalKnownCloudAt` meta local, `LatestLocalSavedAt()` disco) para decidir subir, bajar o aplicar conflicto con respaldo. `PushAsync()` y `PullAsync()` manejan 4 claves (`creatureregistry`, `furnitureregistry`, `playerinventory`, `socialgraph`). **S128:** Nuevo método startup, timestamps, conflictos. **S129:** Registry serializa `RegistryData` (Alive + Departed) en versión 3.
 
 ## Métodos Públicos
 
@@ -14,7 +14,7 @@ tags: [cloud, synchronization, networking]
 |--------|---------|-------------|
 | `PushAsync()` | `Task` | Sube los 4 archivos a nube; si otro push en curso → repite al terminar |
 | `PullAsync()` | `Task` | Baja los 4 archivos (no recomendado post-S128) |
-| `SyncOnStartupAsync()` | `Task` | **S128 NUEVO** Reconciliae nube vs local sin perder datos |
+| `SyncOnStartupAsync()` | `Task` | **S128** Reconcilia nube vs local sin perder datos |
 | `ResetProgressAsync()` | `Task` | Borra TODOS datos nube (debug) |
 | `RefreshSecurityDisplay()` | `void` | Actualiza displays de timestamp para debug |
 
@@ -59,12 +59,12 @@ Si CloudPushedAt > LocalKnownCloudAt (otro dispositivo subió):
 
 | Clave | Tipo | Contenido |
 |-------|------|----------|
-| `creatureregistry` | Player Data | Criaturas `{ Version: 2, SavedAtTicks, Data: {...} }` |
+| `creatureregistry` | Player Data | Criaturas `{ Version: 3, SavedAtTicks, Data: RegistryData { Alive, Departed } }` |
 | `furnitureregistry` | Player Data | Muebles colocados |
 | `playerinventory` | Player Data | Inventario dabloons + Minerita |
 | `socialgraph` | Player Data | Grafo de afinidad social |
 
-Todas encapsuladas en [[SaveEnvelope]] (versión + timestamp).
+Todas encapsuladas en [[SaveEnvelope]] (versión + timestamp). **S129:** `creatureregistry` cambió a V3 con estructura `{ Alive, Departed }`.
 
 ## Push (S128)
 
@@ -73,7 +73,7 @@ Todas encapsuladas en [[SaveEnvelope]] (versión + timestamp).
 Flujo:
 1. Valida firma (compare `CloudPushedAt` nube vs `LocalKnownCloudAt` local)
 2. Valida saldo (`LocalPulledAt > 0` = una sincronización pasó)
-3. Sube 4 claves con sobre
+3. Sube 4 claves con sobre (V3 para registry)
 4. Actualiza `sync_meta.json` con `CloudPushedAt = UtcNow.Ticks`
 5. Si `pushAgain` → repite
 
@@ -99,9 +99,13 @@ Se lee/escribe en `Application.persistentDataPath/sync_meta_{playerId}.json`.
 - `SecurityStatus` display: "OK" / "CHEAT ALERT (dev: push allowed)" / "No pull registered — fresh account"
 - Debug log en conflictos
 
+## Cambios S129
+
+- **CAMBIO:** Registry push/pull ahora serializa `RegistryData { Alive, Departed }` (V3)
+- **NO CAMBIO:** Lógica de timestamps y conflictos
+
 ## Vinculado a
 
 [[Index/07 - Persistence & Identity]] (S128 sección)
 
-**Conexiones:** [[CloudSyncService]], [[SaveSystem]], [[CloudAuth]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[GameEvents]]
-
+**Conexiones:** [[CloudSyncService]], [[SaveSystem]], [[CloudAuth]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[GameEvents]], [[RegistryData]]

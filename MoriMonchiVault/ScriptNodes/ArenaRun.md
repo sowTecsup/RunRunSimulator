@@ -10,6 +10,8 @@ tags: [script, data, expedition, state]
 
 **S124:** Creado. Constantes: `HealthPerKnock=15`, `BuffHealth=30`, `MaxHealth=100`, `BuffEvery=3` (cada 3 pisos). Determinismo: `FloorSeedOf()` genera semilla única por piso vía XOR determinista.
 
+**S129:** `ToResult()` construye `FallenIds` y `TeamIds`. Removidos `SetStartHealth` y diccionario `startHealth`; todas las criaturas entran con `MaxHealth`.
+
 ## Propiedades Públicas
 
 | Propiedad | Tipo | Descripción |
@@ -31,30 +33,30 @@ tags: [script, data, expedition, state]
 | `FloorSeedOf(baseSeed, n)` | Estático; genera semilla única para piso n vía XOR determinista |
 | `FloorSeed(n)` | Instancia; atajos FloorSeedOf(BaseSeed, n) |
 | `KindOf(n)` | Estático; piso n es Buff si (n > 0) && (n % 3 == 0) |
-| `SetStartHealth(id, value)` | Establece vida inicial de una criatura (clamped 0-100); auto-añade a TeamIds |
 | `HealthOf(id)` | Retorna vida actual de criatura; default MaxHealth si no existe |
 | `IsDown(id)` | True si HealthOf(id) <= 0 |
 | `EnterFloor()` | Incrementa Floor; si CurrentKind == Buff, +30 vida a todos |
 | `RecordFloor(winner, playerSecured, stats)` | Procesa resultado: acumula material, aplica daño (-15 por golpe), detecta derrota si Rival gana un Enemies |
-| `ToResult()` | Convierte estado a ExpeditionResult (semilla, ganador, material, caídos, delta vida) |
+| `ToResult()` | **(S129)** Construye ExpeditionResult con `FallenIds` (health ≤ 0) y `TeamIds` (elenco) |
 
 ## Ciclo de Vida Típico
 
-1. Constructor: `new ArenaRun(baseSeed, teamIds)` — inicializa con IDs del elenco
-2. `SetStartHealth()` — se llama para cada criatura; guarda inicio para delta posterior
-3. `EnterFloor()` — dispara al entrar a un nuevo piso; Buff auto-cura
-4. Gameplay: Arena sandbox corre combates
-5. `RecordFloor(winner, secured, stats)` — después de cada ronda; aplica daño, acumula material
-6. Repeat 3-5 hasta Lost o retiro manual
-7. `ToResult()` — al retirarse; delta vida = (actual - inicio) por criatura
+1. Constructor: `new ArenaRun(baseSeed, teamIds)` — inicializa con IDs del elenco; todas entran con MaxHealth
+2. `EnterFloor()` — dispara al entrar a un nuevo piso; Buff auto-cura
+3. Gameplay: Arena sandbox corre combates
+4. `RecordFloor(winner, secured, stats)` — después de cada ronda; aplica daño, acumula material
+5. Repeat 2-4 hasta Lost o retiro manual
+6. `ToResult()` — al retirarse; arma FallenIds (health ≤ 0) y TeamIds
 
-## Invariantes S124
+## Invariantes S129
 
+- Vida inicial: todas entran con MaxHealth (sin SetStartHealth)
 - Vida: [0, 100], no energía restaurable — **riesgo irrevocable**
 - Piso 0 inexistente: entradar con `EnterFloor()` incrementa a 1
 - Buff cada 3: piso 3, 6, 9, ...
 - Semilla determinista: misma BaseSeed + Floor = mismo despliegue de enemigos
 - Material: acumula indefinidamente; se anula si Lost
+- FallenIds y TeamIds armados en ToResult() (viajan en ExpeditionResult al retornar)
 
 ## Vinculado a
 

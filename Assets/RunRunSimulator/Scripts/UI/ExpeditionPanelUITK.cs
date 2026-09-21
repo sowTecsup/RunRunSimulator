@@ -10,6 +10,7 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private UIDocument document;
     [SerializeField] private UIPanelType panel = UIPanelType.Expedition;
     [SerializeField, Min(1)] private int maxPick = 3;
+    [SerializeField] private CareGateSO careGate;
 
     private Label emptyLabel;
     private ScrollView list;
@@ -105,7 +106,7 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
 
         foreach (var dna in entries)
         {
-            bool ok = !dna.IsBusy && dna.Needs.Health > 0f;
+            bool ok = CreatureAvailability.CanExplore(dna, careGate);
             var card = BuildCard(dna, ok);
 
             int index = cards.Count;
@@ -130,8 +131,8 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
 
     private int CompareEntries(CreatureDNA a, CreatureDNA b)
     {
-        bool ea = !a.IsBusy && a.Needs.Health > 0f;
-        bool eb = !b.IsBusy && b.Needs.Health > 0f;
+        bool ea = CreatureAvailability.CanExplore(a, careGate);
+        bool eb = CreatureAvailability.CanExplore(b, careGate);
         if (ea != eb) return ea ? -1 : 1;
         return b.Needs.Health.CompareTo(a.Needs.Health);
     }
@@ -162,31 +163,45 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
         state.AddToClassList("exp-card__state");
         card.Add(state);
 
-        var barTrack = new VisualElement();
-        barTrack.AddToClassList("exp-card__bar-track");
-        var barFill = new VisualElement();
-        barFill.AddToClassList("exp-card__bar-fill");
-        barFill.AddToClassList(HealthColorClass(dna.Needs.Health));
-        barFill.style.width = new StyleLength(new Length(Mathf.Clamp(dna.Needs.Health, 0f, 100f), LengthUnit.Percent));
-        barTrack.Add(barFill);
-        card.Add(barTrack);
+        var bars = new VisualElement();
+        bars.AddToClassList("exp-card__bars");
+        NeedType? weak = ok ? null : CreatureAvailability.WeakestNeed(dna, careGate);
+        bars.Add(BuildBar(NeedType.Health, dna.Needs.Health, weak));
+        bars.Add(BuildBar(NeedType.Energy, dna.Needs.Energy, weak));
+        bars.Add(BuildBar(NeedType.Affect, dna.Needs.Affect, weak));
+        card.Add(bars);
 
         return card;
     }
 
-    private string HealthColorClass(float health)
+    private VisualElement BuildBar(NeedType need, float value, NeedType? weak)
     {
-        if (health >= 60f) return "exp-bar--good";
-        if (health >= 30f) return "exp-bar--warn";
-        return "exp-bar--crit";
+        var track = new VisualElement();
+        track.AddToClassList("exp-card__bar-track");
+        track.tooltip = Loc.Tr(NeedsLabelKey(need));
+        if (weak.HasValue && weak.Value == need) track.AddToClassList("exp-card__bar-track--weak");
+
+        var fill = new VisualElement();
+        fill.AddToClassList("exp-card__bar-fill");
+        fill.AddToClassList(NeedsDisplay.ColorClass(need, value));
+        fill.style.width = new StyleLength(new Length(NeedsDisplay.Fill01(need, value) * 100f, LengthUnit.Percent));
+        track.Add(fill);
+
+        return track;
     }
+
+    private static string NeedsLabelKey(NeedType need) => need switch
+    {
+        NeedType.Health => "ui.expedition.needs.health",
+        NeedType.Energy => "ui.expedition.needs.energy",
+        _ => "ui.expedition.needs.affect",
+    };
 
     private string StateTextFor(CreatureDNA dna, bool ok)
     {
-        int health = Mathf.RoundToInt(dna.Needs.Health);
         if (dna.IsBusy) return Loc.Tr("ui.expedition.busy");
-        if (ok) return Loc.Tr("ui.expedition.energy", health);
-        return Loc.Tr("ui.expedition.tired", health);
+        if (!ok) return Loc.Tr("ui.expedition.notready");
+        return string.Empty;
     }
 
     private void ToggleAt(int index)

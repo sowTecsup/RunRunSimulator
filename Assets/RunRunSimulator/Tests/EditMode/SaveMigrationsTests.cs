@@ -19,7 +19,21 @@ public class SaveMigrationsTests
         Assert.IsNull(data["PassiveMaterial"]);
         Assert.IsNull(data["EvolutionEssence"]);
         Assert.IsNotNull(data["FurnitureOwned"]);
-        Assert.IsNotNull(data["EquipmentGrids"]);
+        Assert.IsNull(data["EquipmentGrids"]);
+    }
+
+    [Test]
+    public void LegacyInventory_V1_ReachesV3WithMineritaAndWithoutEquipmentGrids()
+    {
+        string json = "{\"FurnitureOwned\":[],\"WorldPropsStored\":[\"I1\",\"I1\"],\"EquipmentGrids\":{\"Weapon\":[]},\"HotbarSlots\":[null,null],\"Dabloons\":84,\"AdventureMaterial\":93,\"PassiveMaterial\":0,\"EvolutionEssence\":0}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Inventory);
+        JObject data = (JObject)envelope.Data;
+
+        Assert.AreEqual(SaveMigrations.CurrentVersion, envelope.Version);
+        Assert.AreEqual(93, data["Minerita"].Value<int>());
+        Assert.IsNull(data["EquipmentGrids"]);
+        Assert.IsNull(data["AdventureMaterial"]);
     }
 
     [Test]
@@ -57,26 +71,93 @@ public class SaveMigrationsTests
 
         SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Registry);
         JObject data = (JObject)envelope.Data;
+        JObject alive = (JObject)data["Alive"];
+        JObject departed = (JObject)data["Departed"];
 
-        Assert.AreEqual(3, data.Count);
+        Assert.AreEqual(2, alive.Count);
+        Assert.AreEqual(1, departed.Count);
 
-        JObject rex = (JObject)data["BS0-H0-BK2-W1-FC1-8AB3DF-639245585551461158"];
+        JObject rex = (JObject)alive["BS0-H0-BK2-W1-FC1-8AB3DF-639245585551461158"];
         Assert.AreEqual("Rex", rex["CustomName"].Value<string>());
         Assert.AreEqual(639245585551461158L, rex["Timestamp"].Value<long>());
         Assert.AreEqual(87.5, rex["Needs"]["Health"].Value<double>());
         Assert.AreEqual(false, rex["IsDead"].Value<bool>());
 
-        JObject mila = (JObject)data["BS1-H1-BK0-W0-FC0-112233-639245585551461200"];
+        JObject mila = (JObject)departed["BS1-H1-BK0-W0-FC0-112233-639245585551461200"];
         Assert.AreEqual("Mila", mila["CustomName"].Value<string>());
         Assert.AreEqual(639245585551461200L, mila["Timestamp"].Value<long>());
         Assert.AreEqual(42.0, mila["Needs"]["Health"].Value<double>());
         Assert.AreEqual(true, mila["IsDead"].Value<bool>());
 
-        JObject toby = (JObject)data["BS0-H0-BK1-W1-FC1-AABBCC-639245585551461300"];
+        JObject toby = (JObject)alive["BS0-H0-BK1-W1-FC1-AABBCC-639245585551461300"];
         Assert.AreEqual("Toby", toby["CustomName"].Value<string>());
         Assert.AreEqual(639245585551461300L, toby["Timestamp"].Value<long>());
         Assert.AreEqual(100.0, toby["Needs"]["Health"].Value<double>());
         Assert.AreEqual(false, toby["IsDead"].Value<bool>());
+    }
+
+    [Test]
+    public void LegacyRegistry_V1_SplitsIntoAliveAndDepartedAndKeepsGeneration()
+    {
+        string json = "{" +
+            "\"BS0-H0-BK0-W0-FC0-111111-1\":{\"CustomName\":\"Alive1\",\"IsDead\":false,\"Generation\":2}," +
+            "\"BS0-H0-BK0-W0-FC0-222222-2\":{\"CustomName\":\"Alive2\",\"IsDead\":false}," +
+            "\"BS0-H0-BK0-W0-FC0-333333-3\":{\"CustomName\":\"Dead1\",\"IsDead\":true}," +
+            "\"BS0-H0-BK0-W0-FC0-444444-4\":{\"CustomName\":\"Sold1\",\"IsDead\":false,\"BusyState\":\"Sold\"}" +
+            "}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Registry);
+        JObject data = (JObject)envelope.Data;
+        JObject alive = (JObject)data["Alive"];
+        JObject departed = (JObject)data["Departed"];
+
+        Assert.AreEqual(2, alive.Count);
+        Assert.AreEqual(2, departed.Count);
+        Assert.AreEqual(2, alive["BS0-H0-BK0-W0-FC0-111111-1"]["Generation"].Value<int>());
+        Assert.IsNull(alive["BS0-H0-BK0-W0-FC0-222222-2"]["Generation"]);
+        Assert.IsNotNull(departed["BS0-H0-BK0-W0-FC0-333333-3"]);
+        Assert.IsNotNull(departed["BS0-H0-BK0-W0-FC0-444444-4"]);
+    }
+
+    [Test]
+    public void RegistryV2_WithLegacyStatsAndEquipped_RemovesThemFromBothShelves()
+    {
+        string json = "{\"Version\":2,\"SavedAtTicks\":0,\"Data\":{" +
+            "\"BS0-H0-BK0-W0-FC0-111111-1\":{\"CustomName\":\"Alive1\",\"IsDead\":false,\"BaseConstitution\":5.0,\"BaseAttack\":3.0,\"BaseSpeed\":2.0,\"BaseDefense\":1.0,\"BaseLuck\":0.5,\"BaseEvasion\":0.2,\"Equipped\":{\"Weapon\":\"E1\"}}," +
+            "\"BS0-H0-BK0-W0-FC0-222222-2\":{\"CustomName\":\"Dead1\",\"IsDead\":true,\"BaseConstitution\":5.0,\"BaseAttack\":3.0,\"BaseSpeed\":2.0,\"BaseDefense\":1.0,\"BaseLuck\":0.5,\"BaseEvasion\":0.2,\"Equipped\":{\"Weapon\":\"E1\"}}" +
+            "}}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Registry);
+        JObject data = (JObject)envelope.Data;
+        JObject alive = (JObject)data["Alive"];
+        JObject departed = (JObject)data["Departed"];
+
+        string[] legacyFields = { "BaseConstitution", "BaseAttack", "BaseSpeed", "BaseDefense", "BaseLuck", "BaseEvasion", "Equipped" };
+        JObject aliveCreature = (JObject)alive["BS0-H0-BK0-W0-FC0-111111-1"];
+        JObject deadCreature = (JObject)departed["BS0-H0-BK0-W0-FC0-222222-2"];
+        foreach (string field in legacyFields)
+        {
+            Assert.IsNull(aliveCreature[field]);
+            Assert.IsNull(deadCreature[field]);
+        }
+    }
+
+    [Test]
+    public void RegistryV2_NullData_DoesNotThrow()
+    {
+        string json = "{\"Version\":2,\"SavedAtTicks\":0,\"Data\":null}";
+        SaveEnvelope envelope = null;
+        Assert.DoesNotThrow(() => envelope = SaveMigrations.Read(json, SaveKind.Registry));
+        Assert.AreEqual(SaveMigrations.CurrentVersion, envelope.Version);
+    }
+
+    [Test]
+    public void CorruptRegistryJson_DoesNotThrow()
+    {
+        SaveEnvelope envelope = null;
+        Assert.DoesNotThrow(() => envelope = SaveMigrations.Read("{\"Version\":2,\"Data\":{not valid", SaveKind.Registry));
+        Assert.AreEqual(SaveMigrations.CurrentVersion, envelope.Version);
+        Assert.IsNull(envelope.Data);
     }
 
     [Test]

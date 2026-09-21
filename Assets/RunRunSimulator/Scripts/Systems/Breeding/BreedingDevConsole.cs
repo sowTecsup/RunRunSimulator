@@ -56,8 +56,8 @@ public class BreedingDevConsole : MonoBehaviour
         if (gameManager == null) { Debug.LogError("[BreedingDevConsole] GameManager not assigned."); return; }
         var registry = gameManager.Registry;
         var all     = registry.GetAll().Values.ToList();
-        var females = all.Where(d => !d.IsDead && !d.IsBusy && d.Gender == CreatureGender.Female && d.BreedCount < BreedingService.MaxBreedCount).ToList();
-        var males   = all.Where(d => !d.IsDead && !d.IsBusy && d.Gender == CreatureGender.Male   && d.BreedCount < BreedingService.MaxBreedCount).ToList();
+        var females = all.Where(d => CreatureAvailability.IsFree(d) && d.Gender == CreatureGender.Female && d.BreedCount < BreedingService.MaxBreedCount).ToList();
+        var males   = all.Where(d => CreatureAvailability.IsFree(d) && d.Gender == CreatureGender.Male   && d.BreedCount < BreedingService.MaxBreedCount).ToList();
 
         if (females.Count == 0 || males.Count == 0)
         {

@@ -154,7 +154,7 @@ public class CloudSyncOps
 
                 var payload = new Dictionary<string, object>
                 {
-                    { REGISTRY_KEY, SaveSystem.Serialize(registry.GetAll()) },
+                    { REGISTRY_KEY, SaveSystem.Serialize(registry.GetData()) },
                     { META_KEY,     JsonConvert.SerializeObject(new SyncMeta { CloudPushedAt = pushedAt }) },
                     { SOCIAL_KEY,   SaveSystem.SerializeSocialGraph() },
                 };
@@ -328,7 +328,11 @@ public class CloudSyncOps
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY,      new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(SOCIAL_KEY,         new PlayerDeleteOptions()); } catch { }
 
-            registry.LoadFrom(new System.Collections.Generic.Dictionary<string, CreatureDNA>());
+            registry.LoadFrom(new RegistryData
+            {
+                Alive    = new Dictionary<string, CreatureDNA>(),
+                Departed = new Dictionary<string, CreatureDNA>()
+            });
             SaveSystem.SaveDatabase(registry);
             GameEvents.RegistryReloaded(registry);
 

@@ -6,18 +6,18 @@ tags: [persistence, io, serialization]
 
 **Ruta:** `Core/SaveSystem.cs`
 
-**Responsabilidad:** I/O de persistencia local (JSON) para CreatureRegistry, FurnitureRegistry, PlayerInventory y SocialGraph aislados por scope de jugador (multi-instancia). **S128:** Toda lectura/escritura pasa por [[SaveMigrations]] (sobre con versión y timestamp). Métodos públicos: `SetUserScope()`, `SaveDatabase()`, `LoadInto()`, `Save/Load` de muebles/inventario/grafo social, `SerializeSocialGraph()`, `LatestLocalSavedAt()`, `BackupLocal()`, `LoadDatabaseCopy()` (lectura sin registro).
+**Responsabilidad:** I/O de persistencia local (JSON) para CreatureRegistry, FurnitureRegistry, PlayerInventory y SocialGraph aislados por scope de jugador (multi-instancia). **S128:** Toda lectura/escritura pasa por [[SaveMigrations]] (sobre con versión y timestamp). **S129:** Serialización de registry cambió de `Dictionary<string, CreatureDNA>` a `RegistryData` (Alive + Departed). Métodos públicos: `SetUserScope()`, `SaveDatabase()`, `LoadInto()`, `Save/Load` de muebles/inventario/grafo social, `SerializeSocialGraph()`, `LatestLocalSavedAt()`, `BackupLocal()`, `LoadDatabaseCopy()` (lectura sin registro).
 
 ## Métodos Públicos
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
 | `SetUserScope(string playerId)` | `void` | Scope para archivos (sin scope → "file.json"; con scope → "file_{userId}.json") |
-| `SaveDatabase(CreatureRegistrySO registry)` | `void` | Guarda registry completo → JSON sobre v2 |
-| `LoadInto(CreatureRegistrySO registry)` | `void` | Carga JSON → registry.LoadFrom(); hereda legado si primer login |
-| `Serialize(Dictionary)` | `string` | Serializa diccionario criaturas → JSON sobre |
+| `SaveDatabase(CreatureRegistrySO registry)` | `void` | Guarda registry completo → `registry.GetData()` (RegistryData) → JSON sobre v3 |
+| `LoadInto(CreatureRegistrySO registry)` | `void` | Carga JSON → `Deserialize()` → `registry.LoadFrom(RegistryData)`; hereda legado si primer login |
+| `Serialize(RegistryData data)` | `string` | **(S129)** Serializa `RegistryData` (Alive + Departed) → JSON sobre v3 |
 | `Serialize(CreatureDNA)` | `string` | Serializa una criatura → JSON (no sobre) |
-| `Deserialize(string json)` | `Dictionary<string, CreatureDNA>` | JSON → diccionario (migra si es v1) |
+| `Deserialize(string json)` | `RegistryData` | **(S129)** JSON → `RegistryData` (migra si es v1/v2) |
 | `SerializeFurniture(registry)` | `string` | Serializa muebles → JSON sobre |
 | `DeserializeFurniture(json)` | `Dictionary<string, PlacedFurniture>` | JSON → muebles dict |
 | `SaveFurniture(registry)` | `void` | Guarda muebles disco |
@@ -26,13 +26,13 @@ tags: [persistence, io, serialization]
 | `DeserializeInventory(json)` | `PlayerInventorySO.InventoryData` | JSON → inventory data (migra si v1) |
 | `SaveInventory(inventory)` | `void` | Guarda inventario disco |
 | `LoadInventory(inventory)` | `void` | Carga inventario; empty start si no existe |
-| `SaveSocialGraph()` | `void` | **S128 NUEVO** Exporta grafo social → JSON sobre |
+| `SaveSocialGraph()` | `void` | **S128** Exporta grafo social → JSON sobre |
 | `LoadSocialGraph(registry)` | `void` | Carga grafo social, filtra huérfanos |
 | `SerializeSocialGraph()` | `string` | JSON string del grafo |
 | `DeserializeSocialGraph(json)` | `Dictionary<string, float>` | JSON → grafo dict |
-| `LatestLocalSavedAt()` | `long` | **S128 NUEVO** Retorna timestamp (ticks) del archivo más reciente modificado |
-| `BackupLocal(string suffix)` | `void` | **S128 NUEVO** Respalda los 4 archivos con sufijo: `file.{suffix}.bak.json` |
-| `LoadDatabaseCopy()` | `Dictionary<string, CreatureDNA>` | **S119 NUEVO** Lee copy sin tocar registry ni disparar eventos |
+| `LatestLocalSavedAt()` | `long` | **S128** Retorna timestamp (ticks) del archivo más reciente modificado |
+| `BackupLocal(string suffix)` | `void` | **S128** Respalda los 4 archivos con sufijo: `file.{suffix}.bak.json` |
+| `LoadDatabaseCopy()` | `RegistryData` | **(S129)** Lee copy sin tocar registry ni disparar eventos |
 
 ## Rutas & Scoping
 
@@ -60,8 +60,20 @@ private static readonly JsonSerializerSettings Settings = new JsonSerializerSett
 ## Sobre (SaveEnvelope)
 
 **S128:** Toda lectura/escritura pasa por [[SaveMigrations]]:
-- `Write()`: envuelve data en `{ Version: 2, SavedAtTicks: UtcNow.Ticks, Data: ... }`
-- `Read()`: deserializa, detecta versión, migra si es necesario (v1 → v2 para Inventory)
+- `Write()`: envuelve data en `{ Version: 3, SavedAtTicks: UtcNow.Ticks, Data: ... }`
+- `Read()`: deserializa, detecta versión, migra si es necesario (v1/v2 → v3 para Registry)
+
+## S129: RegistryData Serialization
+
+**SaveDatabase():**
+1. Llama `registry.GetData()` → nuevo `RegistryData { Alive, Departed }`
+2. Serializa `RegistryData` a JSON
+3. Envuelve en sobre V3 (SaveMigrations.Write)
+
+**LoadInto():**
+1. Lee JSON, sobre migra si v1/v2
+2. `Deserialize()` → `RegistryData`
+3. `registry.LoadFrom(data)` puebla ambos diccionarios, reconcilia
 
 ## Social Graph (S65)
 
@@ -88,5 +100,4 @@ private static readonly JsonSerializerSettings Settings = new JsonSerializerSett
 
 [[Index/07 - Persistence & Identity]]
 
-**Conexiones:** [[GameManager]], [[CloudSyncOps]], [[CloudSyncService]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[SocialGraphService]], [[SaveMigrations]], [[SaveEnvelope]]
-
+**Conexiones:** [[GameManager]], [[CloudSyncOps]], [[CloudSyncService]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[SocialGraphService]], [[SaveMigrations]], [[SaveEnvelope]], [[RegistryData]]
