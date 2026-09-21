@@ -1423,6 +1423,10 @@ MonoBehaviour:
     m_Key: ui.expedition.notready
     m_Metadata:
       m_Items: []
+  - m_Id: 21057648338722816
+    m_Key: ui.store.tab.creatures
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

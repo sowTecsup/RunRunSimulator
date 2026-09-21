@@ -4,6 +4,31 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-21 (Session 130 — **HC-3 EJECUTADA: C5 catálogo unificado, propiedad de muebles y caja de MoriMonchis** — 0 borrados, 7 modificados, 2 creados; compila 0 errores; verificado en Play con el guardado real)
+
+**Focus:** [[Index/29 - Plan HC - Cimientos (ejecutable)]] §7. Orquestador planea y revisa; tres `morimonchi-coder` en paralelo (A propiedad y minteo · B caja · C pestaña).
+
+**Respaldo previo:** `_SaveBackups/2026-09-21_pre-HC3/`.
+
+**Decisiones de Juan en esta sesión:** la caja trae **5** criaturas; precios **provisionales** (los pone el orquestador); al abrir la caja los MoriMonchis **salen disparados desde la caja**. Idea anotada para HC-4/HC-5 (memoria `project_incubadora_huevos`): huevos que se ponen en una incubadora estilo tutorial y después se tiran al cañón.
+
+1. **Propiedad ✅** — el modo construcción lista solo lo poseído y se refresca con `OnInventoryChanged`/`OnInventoryReloaded`. Relleno único en `GameManager`: tras `OnInventoryReloaded` concede todo `DefId` colocado y dispara `InventoryChanged` solo si agregó algo. **Corrección del orquestador:** NO escucha `OnFurnitureReloaded`, porque al arrancar los muebles se recargan antes que el inventario y el relleno habría guardado el inventario viejo encima del archivo.
+2. **Minteo único ✅** — `GameManager.MintCreature()` registra y devuelve el ADN sin disparar eventos; el botón Odin y la caja lo usan (C7 lo usará para el kit inicial).
+3. **Caja ✅** — `CreatureBoxSO` (Id, DisplayName, Description, Count); `ShopCatalogSO.CreatureBoxListings` (entra en `RestockAll`); `StoreManager.BuyCreatureBox` cobra primero y entrega la `DeliveryBox` (helper `SpawnDeliveryBox` compartido con los props); `DeliveryBox.Configure(CreatureBoxSO)` al abrir mintea `Count`, registra el lanzamiento de cada una con el overload nuevo `MoriMochiSpawner.RegisterBirthLaunch(id, muzzle)` (aterrizaje al azar) y dispara **un** `RegistryChanged`. Mismo prefab `Delivery Box`.
+4. **Pestaña MoriMonchis ✅** — la recolección de filas sale a `UI/StoreRows.cs` (estática: `Tab`, `Row`, `Collect`); `StorePanelUITK` baja de 379 a 317 líneas.
+
+**Medido en Play (guardado real):** al cargar, propiedad `[F4]` → `[F4,F8]` (F8 estaba colocado). Compra del Ring F9 −50 → aparece en Funcional (Decoración 1 · Funcional 2). Caja −50 con línea `[Wallet]` → 36 dabloons; abrirla: vivas 8 → 13, **1** `RegistryChanged`, 13 agentes en el mundo. Sin saldo: `InsufficientFunds`, nada cambia. Pestaña 4 = "MoriMonchis" con la fila "Caja de 5 MoriMonchis". Cero errores. **Detalle abierto:** tras la caja hubo **dos** push a la nube (13 criaturas) en vez de uno; no investigado.
+
+**Mutaciones fuera de código (OK de Juan):** `CreatureBox_5.asset` NUEVO (CB5, 5 criaturas); `ShopCatalog.asset` de 1 a 10 muebles (F0 5 · F1 8 · F2 12 · F5 15 · F6 15 · F7 25 · F8 30 · F3 40 · F9 50, stock ilimitado; F4 sigue 10) + caja 50 ilimitada; tabla `Strings` 352 → **353** (`ui.store.tab.creatures` nueva, `ui.build.empty` reescrita para decir que se compra en la PC de la tienda). **El guardado de Juan quedó con 13 criaturas, 36 dabloons y F9 en propiedad (ya subido a la nube).**
+
+**Siguiente paso:** sesión **HC-4** (C6 reloj y cría local con Minerita, `Index/29` §13; tercer paso de migración v3 → v4). Antes o dentro: **calibrar el cuidado** (§6.7), porque hoy ninguna criatura pasa el `CareGate` 60/60/0. Proponer la incubadora de huevos al planear HC-4. Siguen abiertas las tres decisiones de la demo (¿permadeath?, ¿cuánto aguanta apta?, ¿editor o build?). Los precios son provisionales: revisarlos cuando E1 rehaga la valuación.
+
+**Archivos `.cs` creados (2):** `Data/Store/CreatureBoxSO.cs`, `UI/StoreRows.cs`.
+
+**Archivos `.cs` modificados (7):** `Core/GameManager.cs`, `Systems/Store/DeliveryBox.cs`, `Systems/Store/ShopCatalogSO.cs`, `Systems/Store/StoreManager.cs`, `UI/BuildBrowserUITK.cs`, `UI/StorePanelUITK.cs`, `World/Spawning/MoriMochiSpawner.cs`.
+
+---
+
 **Session:** 2026-09-21 (Session 129 — **HC-2 EJECUTADA: C1b borrado de stats y equipo con la ficha nueva · C4 ciclo de vida de la criatura** — 12 `.cs` borrados, 26 modificados, 5 creados; compila 0 errores; 16/16 pruebas EditMode en verde)
 
 **Focus:** segunda sesión del hito HC siguiendo [[Index/29 - Plan HC - Cimientos (ejecutable)]] §12 y §6. Orquestador Opus planea y revisa; seis `morimonchi-coder` en paralelo escriben (A1 datos de equipo · A2 llamadores de stats · B migración v2→v3 y guardado · C registro y ciclo de vida · D ficha, grilla y cría · E bajada y cuidado).

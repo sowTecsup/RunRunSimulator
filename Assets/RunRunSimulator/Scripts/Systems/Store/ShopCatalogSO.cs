@@ -28,6 +28,16 @@ public class ShopCatalogSO : SerializedScriptableObject
         public StoreShopData Shop;
     }
 
+    [Serializable]
+    public class CreatureBoxListing
+    {
+        [Required, AssetsOnly, HideLabel, HorizontalGroup(220)]
+        public CreatureBoxSO Box;
+
+        [HideLabel]
+        public StoreShopData Shop;
+    }
+
     [Title("Discount schedule (applies to all listings in this shop)")]
     [Tooltip("Weekdays the discount window is open. None / All = every day.")]
     public DiscountDay DiscountDays;
@@ -58,8 +68,13 @@ public class ShopCatalogSO : SerializedScriptableObject
     [TableList(AlwaysExpanded = true)]
     [SerializeField] private List<ItemListing> itemListings = new List<ItemListing>();
 
-    public IReadOnlyList<FurnitureListing> FurnitureListings => furnitureListings;
-    public IReadOnlyList<ItemListing>      ItemListings      => itemListings;
+    [Title("MoriMonchi boxes for sale")]
+    [TableList(AlwaysExpanded = true)]
+    [SerializeField] private List<CreatureBoxListing> creatureBoxListings = new List<CreatureBoxListing>();
+
+    public IReadOnlyList<FurnitureListing>    FurnitureListings    => furnitureListings;
+    public IReadOnlyList<ItemListing>         ItemListings         => itemListings;
+    public IReadOnlyList<CreatureBoxListing>  CreatureBoxListings  => creatureBoxListings;
 
     public bool IsDiscountActive(DateTime now)
     {
@@ -105,8 +120,9 @@ public class ShopCatalogSO : SerializedScriptableObject
         lastRestockMonth  = now.Month;
         lastRestockPeriod = PeriodOf(now);
 
-        foreach (var l in furnitureListings) l?.Shop?.Restock();
-        foreach (var l in itemListings)      l?.Shop?.Restock();
+        foreach (var l in furnitureListings)    l?.Shop?.Restock();
+        foreach (var l in itemListings)         l?.Shop?.Restock();
+        foreach (var l in creatureBoxListings)  l?.Shop?.Restock();
     }
 
     [NonSerialized] private int           lastRestockYear;

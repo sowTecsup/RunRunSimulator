@@ -13,28 +13,12 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private UIPanelType panel = UIPanelType.Store;
     [SerializeField] private StoreManager store;
 
-    private enum Tab { Furniture, WorldProps, Consumables }
-    private static readonly Tab[] Tabs = (Tab[])Enum.GetValues(typeof(Tab));
-
-    private static string TabLabel(Tab tab) => tab switch
-    {
-        Tab.Furniture   => Loc.Tr("ui.store.tab.furniture"),
-        Tab.WorldProps  => Loc.Tr("ui.store.tab.worldprops"),
-        Tab.Consumables => Loc.Tr("ui.store.tab.consumables"),
-        _               => "",
-    };
+    private static readonly StoreRows.Tab[] Tabs = (StoreRows.Tab[])Enum.GetValues(typeof(StoreRows.Tab));
 
     private const string TabClass         = "store-tab";
     private const string TabActiveClass   = "store-tab--active";
     private const string RowClass         = "store-row";
     private const string RowSelectedClass = "store-row--selected";
-
-    private struct Row
-    {
-        public string          Name;
-        public StoreShopData   Shop;
-        public Func<BuyResult> Buy;
-    }
 
     private VisualElement tabsContainer;
     private ScrollView    list;
@@ -45,7 +29,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
     private readonly List<VisualElement> tabEls = new List<VisualElement>();
     private readonly List<VisualElement> rowEls = new List<VisualElement>();
-    private readonly List<Row>           rows   = new List<Row>();
+    private readonly List<StoreRows.Row> rows   = new List<StoreRows.Row>();
 
     private int activeTab;
     private int selectedRow = -1;
@@ -142,7 +126,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         for (int i = 0; i < Tabs.Length; i++)
         {
             int idx = i;
-            var tab = new Label(TabLabel(Tabs[i]));
+            var tab = new Label(StoreRows.TabLabel(Tabs[i]));
             tab.AddToClassList(TabClass);
             tab.RegisterCallback<ClickEvent>(_ => SetTab(idx));
             tabsContainer.Add(tab);
@@ -172,7 +156,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         rowEls.Clear();
         rows.Clear();
 
-        CollectRows((Tab)activeTab);
+        StoreRows.Collect((StoreRows.Tab)activeTab, Catalog, store, rows);
 
         foreach (var row in rows)
         {
@@ -187,51 +171,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         Select(rows.Count == 0 ? -1 : Mathf.Clamp(selectedRow, 0, rows.Count - 1));
     }
 
-    private void CollectRows(Tab tab)
-    {
-        var catalog = Catalog;
-        if (catalog == null) return;
-
-        if (tab == Tab.Furniture)
-        {
-            foreach (var listing in catalog.FurnitureListings)
-            {
-                var def = listing?.Furniture;
-                if (def == null) continue;
-                var capturedDef  = def;
-                var capturedShop = listing.Shop;
-                rows.Add(new Row
-                {
-                    Name = NameOf(def.DisplayName, def.Id),
-                    Shop = capturedShop,
-                    Buy  = () => store.BuyFurniture(capturedDef, capturedShop),
-                });
-            }
-            return;
-        }
-
-        foreach (var listing in catalog.ItemListings)
-        {
-            var def = listing?.Item;
-            if (def == null) continue;
-            if (!MatchesItemTab(tab, def.Category)) continue;
-            var capturedDef  = def;
-            var capturedShop = listing.Shop;
-            rows.Add(new Row
-            {
-                Name = NameOf(def.DisplayName, def.Id),
-                Shop = capturedShop,
-                Buy  = () => store.BuyWorldProp(capturedDef, capturedShop),
-            });
-        }
-    }
-
-    private static bool MatchesItemTab(Tab tab, WorldPropCategory cat) =>
-        tab == Tab.WorldProps
-            ? cat == WorldPropCategory.Tool
-            : cat == WorldPropCategory.Food || cat == WorldPropCategory.Medicine;
-
-    private VisualElement BuildRow(Row row)
+    private VisualElement BuildRow(StoreRows.Row row)
     {
         var  serverNow      = GameManager.Now;
         bool discountActive = Catalog?.IsDiscountActive(serverNow) ?? false;
@@ -302,7 +242,7 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
         return label;
     }
 
-    private void Purchase(Row row)
+    private void Purchase(StoreRows.Row row)
     {
         if (store == null) { Debug.LogWarning("[StorePanelUITK] No StoreManager assigned."); return; }
 
@@ -372,8 +312,5 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
     }
 
     private void OnCloseClicked() => UIManager.RequestPanelToggle(panel);
-
-    private static string NameOf(string display, string id) =>
-        string.IsNullOrEmpty(display) ? id : display;
 }
 }

@@ -169,6 +169,12 @@ public class MoriMochiSpawner : MonoBehaviour
         birthLandingPoints[childId] = landing;
     }
 
+    public void RegisterBirthLaunch(string childId, Vector3 muzzle)
+    {
+        if (string.IsNullOrEmpty(childId)) return;
+        birthLaunchPoints[childId] = muzzle;
+    }
+
     private void OnRegistryReloaded(CreatureRegistrySO registry)
     {
         dataReady = true;

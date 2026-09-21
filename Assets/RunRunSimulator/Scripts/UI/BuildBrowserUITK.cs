@@ -38,12 +38,21 @@ public class BuildBrowserUITK : MonoBehaviour
     {
         BuildingInputs.BrowseToggled           += Toggle;
         BuildModeController.OnBuildModeChanged  += OnBuildModeChanged;
+        GameEvents.OnInventoryChanged           += OnInventoryChanged;
+        GameEvents.OnInventoryReloaded          += OnInventoryChanged;
     }
 
     private void OnDisable()
     {
         BuildingInputs.BrowseToggled           -= Toggle;
         BuildModeController.OnBuildModeChanged  -= OnBuildModeChanged;
+        GameEvents.OnInventoryChanged           -= OnInventoryChanged;
+        GameEvents.OnInventoryReloaded          -= OnInventoryChanged;
+    }
+
+    private void OnInventoryChanged(PlayerInventorySO inv)
+    {
+        if (open) RefreshPieces();
     }
 
     private void Start()
@@ -125,6 +134,7 @@ public class BuildBrowserUITK : MonoBehaviour
             foreach (var def in database.All)
             {
                 if (def == null || def.Category != cat) continue;
+                if (GameManager.CurrentInventory == null || !GameManager.CurrentInventory.HasFurniture(def.Id)) continue;
                 pieces.Add(def);
             }
         }

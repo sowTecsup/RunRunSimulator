@@ -2,11 +2,11 @@
 tags: [script, world, spawner]
 ---
 
-# MoriMochiSpawner.cs
+# MoriMochiSpawner
 
 **Ruta:** `World/Spawning/MoriMochiSpawner.cs`
 
-**Responsabilidad:** Convierte DATA (CreatureRegistrySO) → PRESENCIA (MoriMonchiController vivo en escena). Singleton. Dispara criaturas como proyectiles (ragdoll mid-aire). **S57:** `PrewarmAndStart()` ensambla modelos mientras inactivos pasando `bank=GameManager.MonchiVisualBank` en Initialize (Assemble completo del modelo Suriyun off-screen). `Acquire()` con controller prewarmed pasa `bank=null` A PROPÓSITO (contrato: saltear re-ensamblado — el controller hace `RefreshLook` y CONSERVA el banco guardado en prewarm); cold spawn del pool pasa `bank=MonchiVisualBank` (Assemble completo). Espera World Ready (primer NavMesh bake + furniture cargada), luego pump activa. **Gate `dataReady`**: no puebla hasta primera carga autoritativa (OnRegistryReloaded o timeout `dataReadyTimeout` = 6s default). Cola prioritaria **`anchoredQueue`** (criaturas con LocationKey): se colocan DIRECTAMENTE en su lugar via `AnchorRegistry.TryGet()` + `place.TryReclaim()` (sin cañonazo). Si el lugar desaparece, cae al cañón y limpia LocationKey. Timeout `anchorPlaceTimeout` → si la place no aparece en tiempo, cannon-fire fallback. Criados lanzan desde punto registrado por `RegisterBirthLaunch()`. `OnRegistryReloaded()` re-vincula DNA/profile en spawned via `controller.Rebind()` (rápido, sin re-ensamblar); re-ancla sueltos tras pull nube. Usa ControllerPool para reutilizar, SpawnBallistics para balística.
+**Responsabilidad:** Convierte DATA (CreatureRegistrySO) → PRESENCIA (MoriMonchiController vivo en escena). Singleton. Dispara criaturas como proyectiles (ragdoll mid-aire). **S57:** `PrewarmAndStart()` ensambla modelos mientras inactivos pasando `bank=GameManager.MonchiVisualBank` en Initialize (Assemble completo del modelo Suriyun off-screen). `Acquire()` con controller prewarmed pasa `bank=null` A PROPÓSITO (contrato: saltear re-ensamblado — el controller hace `RefreshLook` y CONSERVA el banco guardado en prewarm); cold spawn del pool pasa `bank=MonchiVisualBank` (Assemble completo). Espera World Ready (primer NavMesh bake + furniture cargada), luego pump activa. **Gate `dataReady`**: no puebla hasta primera carga autoritativa (OnRegistryReloaded o timeout `dataReadyTimeout` = 6s default). Cola prioritaria **`anchoredQueue`** (criaturas con LocationKey): se colocan DIRECTAMENTE en su lugar via `AnchorRegistry.TryGet()` + `place.TryReclaim()` (sin cañonazo). Si el lugar desaparece, cae al cañón y limpia LocationKey. Timeout `anchorPlaceTimeout` → si la place no aparece en tiempo, cannon-fire fallback. Criados lanzan desde punto registrado por `RegisterBirthLaunch()`. `OnRegistryReloaded()` re-vincula DNA/profile en spawned via `controller.Rebind()` (rápido, sin re-ensamblar); re-ancla sueltos tras pull nube. Usa ControllerPool para reutilizar, SpawnBallistics para balística. **S130:** Overload `RegisterBirthLaunch(id, muzzle)` — calcula landing automáticamente desde `LandingCenter` + random dentro de `spawnRadius`.
 
 ## Ciclo de vida (S57)
 
@@ -42,7 +42,8 @@ tags: [script, world, spawner]
 
 **Sincronización:**
 - `Sync(CreatureRegistrySO registry)` — reconcilia spawned vs registry, enqueues deltas
-- `RegisterBirthLaunch(childId, muzzle, landing)` — pen registra punto de salida criado
+- `RegisterBirthLaunch(childId, muzzle, landing)` — registra punto de salida y aterrizaje criado
+- `RegisterBirthLaunch(childId, muzzle)` — registra punto de salida, calcula landing automático (S130 NUEVO)
 
 **Spawner state (read-only, internal accesores para SpawnerDevConsole):**
 - `Instance → MoriMochiSpawner` — singleton
@@ -84,6 +85,10 @@ tags: [script, world, spawner]
 
 **Status (read-only):**
 - `WorldReady`, `DataReady`, `SpawnedCount`, `PooledCount`, `QueuedCount`, `PrewarmedCount`
+
+## Integración S130
+
+`DeliveryBox.Interact()` mintea N criaturas (CreatureBox.Count) y registra cada una con `RegisterBirthLaunch(id, muzzle)` — el overload sin landing point. El spawner calcula landing desde `RandomLandingPoint()` (dentro de `spawnRadius` del área de spawn). Todo N en batch → único `RegistryChanged` → pump dispara las N cuando toque.
 
 ## Gizmos
 
@@ -152,6 +157,11 @@ tags: [script, world, spawner]
 - Antes: `GameManager.PersonalityProfiles` → `GetProfile(dna.Personality)`
 - Ahora: `GameManager.RoleWorldProfiles` → `GetProfile(dna.Role)`
 
+**S130 (RegisterBirthLaunch overload):**
+- Nuevo: `RegisterBirthLaunch(id, muzzle)` (sin landing explícito)
+- Comportamiento: calcula landing desde `RandomLandingPoint()` automáticamente
+- Caso de uso: `DeliveryBox.Interact()` registra N criados sin especificar punto individual
+
 ## Vinculado a
 
 - [[Index/06 - Player & World]], [[Index/10 - Visualization]]
@@ -176,6 +186,7 @@ tags: [script, world, spawner]
 - [[AnchorRegistry]] — búsqueda de IAnchorPlace (pens, store, furniture)
 - [[MoriMochiContainer]] — pen/breeding (registra puntos de salida)
 - [[SpawnBallistics]] — balística
+- [[DeliveryBox]] — registra lanzamientos de criados (S130)
 
 **Dev:**
 - [[SpawnerDevConsole]] — herramientas Odin para testing
@@ -190,3 +201,5 @@ tags: [script, world, spawner]
 - **Prewarm (S57):** El prewarm ensambla el modelo Suriyun completo mientras la criatura está inactiva (bank real). Al activarla, Acquire pasa bank=null para que el controller NO re-ensamble (RefreshLook conservando el banco guardado).
 - **Cold spawn (S57):** Pasa bank=MonchiVisualBank, Initialize hace Assemble completo. Usado si prewarmed agotado.
 - **Rebind (S39+S57):** Via Rebind() con table + furDb; no re-ensambla, solo RefreshLook liviano.
+- **RegisterBirthLaunch (S130):** El overload sin landing es conveniente para multi-spawn (cajas de criaturas): el spawner calcula landing random por cada criatura, evitando que todas caigan en el mismo punto.
+

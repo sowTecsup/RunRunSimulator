@@ -103,7 +103,7 @@ Siete piezas. El orden es de dependencias: primero se achica la superficie, desp
   5. **El cuidado es la puerta de la bajada (Juan S127):** solo un MoriMochi bien cuidado puede bajar; dentro de la exploración las necesidades de la tienda no influyen (todos entran con la vida de la run llena). Hoy 6 de 10 criaturas están en vida 0: hay que calibrar el decaimiento para que una criatura atendida siga apta durante una sesión de tienda.
 - **Desbloquea:** permadeath real (H1), durabilidad con salidas visibles (H5), trabajos (E3), save acotado (H7).
 
-### C5 · Catálogo unificado y propiedad
+### C5 · Catálogo unificado y propiedad ✅ (S130)
 - **Regla:** todo lo que se compra es una fila de catálogo con un tipo, un precio en una de las dos monedas y una forma de entrega; lo comprado se posee.
 - **Subetapas:**
   1. **Tipos de fila:** mueble · ítem/juguete · **caja de MoriMonchis** · cosmético · mejora de tienda. Hoy solo mueble e ítem.
@@ -189,7 +189,7 @@ Linaje y marcas (H2) · fenotipo y feel (H4) · contenido (H6) · localización 
 
 ```
 H0 (prueba de Juan) ─┐
-                     ├─ HC: C1 ✅ → C2 ✅ → C3 ✅ → C4 ✅ → C5 → C6 → C7
+                     ├─ HC: C1 ✅ → C2 ✅ → C3 ✅ → C4 ✅ → C5 ✅ → C6 → C7
                      │          (pruebas y build al cerrar)
                      └─ E4.2 intenciones (paralelo: no toca el guardado)
 HC ─→ H1 loop cerrado = E1.1-E1.2 + E2.1-E2.3 + E3.1 + E4.3

@@ -34,6 +34,78 @@ MonoBehaviour:
       MaxStock: 10
       TypeFilter: 1
       Tags: []
+  - Furniture: {fileID: 11400000, guid: 37aa5aba470a7d34b8accb4a6b47f0dd, type: 2}
+    Shop:
+      BasePrice: 15
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
+  - Furniture: {fileID: 11400000, guid: bad16601457de164fbb50e6991176d49, type: 2}
+    Shop:
+      BasePrice: 5
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
+  - Furniture: {fileID: 11400000, guid: ba68d698d77df2f4c973fdf26d61635f, type: 2}
+    Shop:
+      BasePrice: 8
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
+  - Furniture: {fileID: 11400000, guid: 41ef5d1e02e544b46b035885f14b69c0, type: 2}
+    Shop:
+      BasePrice: 12
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
+  - Furniture: {fileID: 11400000, guid: b2db5f511fc3c0c409bfd64e2d93f89a, type: 2}
+    Shop:
+      BasePrice: 40
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
+  - Furniture: {fileID: 11400000, guid: 9ba4ded41a75ef344808f0c81705d60e, type: 2}
+    Shop:
+      BasePrice: 25
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
+  - Furniture: {fileID: 11400000, guid: e67791997f2dae04e9a7ce8aad8d9d4f, type: 2}
+    Shop:
+      BasePrice: 50
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
+  - Furniture: {fileID: 11400000, guid: 97e15594ff740d84e942830aadb1f1f6, type: 2}
+    Shop:
+      BasePrice: 30
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
+  - Furniture: {fileID: 11400000, guid: 9909d1becec5d104399d8c1f73d7e22f, type: 2}
+    Shop:
+      BasePrice: 15
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 1
+      Tags: []
   itemListings:
   - Item: {fileID: 11400000, guid: c32c36a4dafd59047a5a0c7191796964, type: 2}
     Shop:
@@ -51,3 +123,13 @@ MonoBehaviour:
       MaxStock: 10
       TypeFilter: 0
       Tags: []
+  creatureBoxListings:
+  - Box: {fileID: 11400000, guid: 6053008ed9cb20648b419a8091509803, type: 2}
+    Shop:
+      BasePrice: 50
+      DiscountBase: 0
+      CurrentStock: -1
+      MaxStock: -1
+      TypeFilter: 0
+      Tags:
+      - nuevo

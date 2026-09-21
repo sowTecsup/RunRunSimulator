@@ -67,6 +67,7 @@ public class GameManager : MonoBehaviour
         GameEvents.OnRegistryChanged  += Persist;
         GameEvents.OnFurnitureChanged += PersistFurniture;
         GameEvents.OnInventoryChanged += PersistInventory;
+        GameEvents.OnInventoryReloaded += GrantPlacedFurniture;
     }
 
     private void OnDisable()
@@ -74,6 +75,19 @@ public class GameManager : MonoBehaviour
         GameEvents.OnRegistryChanged  -= Persist;
         GameEvents.OnFurnitureChanged -= PersistFurniture;
         GameEvents.OnInventoryChanged -= PersistInventory;
+        GameEvents.OnInventoryReloaded -= GrantPlacedFurniture;
+    }
+
+    private void GrantPlacedFurniture(PlayerInventorySO _)
+    {
+        if (furnitureRegistry == null || inventory == null) return;
+        bool changed = false;
+        foreach (var p in furnitureRegistry.GetAll().Values)
+        {
+            if (p == null || string.IsNullOrEmpty(p.DefId)) continue;
+            if (inventory.AddFurniture(p.DefId)) changed = true;
+        }
+        if (changed) GameEvents.InventoryChanged(inventory);
     }
 
     private void Persist(CreatureRegistrySO registry)
@@ -151,6 +165,11 @@ public class GameManager : MonoBehaviour
     [Button("Mint Random Creature", ButtonSizes.Large), GUIColor(0.55f, 1f, 0.7f), BoxGroup("Mint")]
     public void MintRandomCreature()
     {
+        if (MintCreature() != null) GameEvents.RegistryChanged(creatureRegistry);
+    }
+
+    public CreatureDNA MintCreature()
+    {
         var dna        = CreatureGenerator.GenerateRandom(database, furTypeDatabase);
         dna.Gender     = UnityEngine.Random.value < 0.5f ? CreatureGender.Male : CreatureGender.Female;
         dna.Element = CreatureGenerator.RandomElement();
@@ -161,11 +180,11 @@ public class GameManager : MonoBehaviour
         dna.CustomName = CreatureNameBank.GetRandomName();
         dna.Stamp();
 
-        if (!creatureRegistry.Register(dna)) return;
+        if (!creatureRegistry.Register(dna)) return null;
 
-        GameEvents.RegistryChanged(creatureRegistry);
         lastMintedID = dna.UniqueID;
         Debug.Log($"[GameManager] Minted: \"{dna.CustomName}\"  {dna.UniqueID}  ({dna.Gender})");
+        return dna;
     }
 
     public DateTime ServerNow =>

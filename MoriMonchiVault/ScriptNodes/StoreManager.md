@@ -6,7 +6,7 @@ tags: [script, store, transactions]
 
 **Ruta:** `Systems/Store/StoreManager.cs`
 
-**Responsabilidad:** Orquestador de compras. Valida saldo vía [[Wallet]], stock, ownership. Muta inventario y dispara eventos. Crea `DeliveryBox` para entregas. **S128:** ahora valida saldo con `Wallet.Balance()` y cobra con `Wallet.TrySpend()` (puerta única); orden de operaciones fija: comprueba saldo → concede mueble/prop → cobra al final (un solo evento de persistencia).
+**Responsabilidad:** Orquestador de compras. Valida saldo vía [[Wallet]], stock, ownership. Muta inventario y dispara eventos. Crea `DeliveryBox` para entregas (props y cajas de criaturas). **S128:** ahora valida saldo con `Wallet.Balance()` y cobra con `Wallet.TrySpend()` (puerta única); orden de operaciones fija: comprueba saldo → concede mueble/prop → cobra al final (un solo evento de persistencia). **S130:** añade `BuyCreatureBox()` con flujo idéntico a props.
 
 ## Métodos Públicos
 
@@ -14,6 +14,15 @@ tags: [script, store, transactions]
 |--------|---------|-------------|
 | `BuyFurniture(FurnitureDefinitionSO def, StoreShopData shop)` | `BuyResult` | Compra mueble; valida stock/saldo/ownership, añade al inventario, cobra |
 | `BuyWorldProp(ItemDefinitionSO def, StoreShopData shop)` | `BuyResult` | Compra prop; instancia `DeliveryBox`, spawna en punto, cobra |
+| `BuyCreatureBox(CreatureBoxSO box, StoreShopData shop)` | `BuyResult` | Compra caja de criaturas; instancia `DeliveryBox`, configura caja, cobra (S130 NUEVO) |
+| `RestockIfNeeded()` | `void` | Comprueba schedule en catálogo, recarga si aplica |
+
+## BuyResult (enum)
+
+- `Success` — transacción completada
+- `OutOfStock` — no hay en stock o sistema no disponible
+- `AlreadyOwned` — mueble ya poseído (furniture solo)
+- `InsufficientFunds` — saldo insuficiente
 
 ## Flujo BuyFurniture (S128)
 
@@ -41,32 +50,55 @@ tags: [script, store, transactions]
 4. Calcula precio
 5. Cobra primero (BuyResult si insuficiente)
 6. TryConsume stock
-7. Instancia DeliveryBox
-8. Configure prop
+7. Instancia DeliveryBox via SpawnDeliveryBox()
+8. Configure(item)
 9. Si price == 0: dispara InventoryChanged manualmente
 ```
 
 **Nota:** Props cobran ANTES de instanciar (distinto de muebles); si falla al crear box → reembolso vía `Wallet.Add()`.
 
-## BuyResult (enum)
+## Flujo BuyCreatureBox (S130 NUEVO)
 
-- `Success` — transacción completada
-- `OutOfStock` — no hay en stock o sistema no disponible
-- `AlreadyOwned` — mueble ya poseído (furniture solo)
-- `InsufficientFunds` — saldo insuficiente
+```
+1. Valida args (box, shop)
+2. Valida stock (shop.InStock)
+3. Valida inventario no-nulo
+4. Calcula precio
+5. Cobra primero (BuyResult si insuficiente)
+6. TryConsume stock
+7. Instancia DeliveryBox via SpawnDeliveryBox()
+8. Configure(box)
+9. Si price == 0: dispara InventoryChanged manualmente
+```
+
+**Identidad a BuyWorldProp:** cobro anterior a spawn, reembolso si falla.
+
+## Helper SpawnDeliveryBox
+
+```csharp
+private DeliveryBox SpawnDeliveryBox(int price, StoreShopData shop)
+{
+    var go  = Instantiate(deliveryBoxPrefab, deliverySpawnPoint.position, rotation);
+    var box = go.GetComponent<DeliveryBox>();
+    if (box == null)
+    {
+        Destroy(go);
+        if (price > 0) { Wallet.Add(price, "store-refund"); shop.CurrentStock++; }
+        return null;
+    }
+    return box;
+}
+```
+
+Centraliza validación y reembolso ante fallo de spawn.
 
 ## Referencias
 
 | Referencia | Tipo | Uso |
 |-----------|------|-----|
 | `catalog` | `ShopCatalogSO` | Catálogo, precios finales, cálculo restock |
-| `deliveryBoxPrefab` | `DeliveryBox` (prefab) | Instancia para props del mundo |
+| `deliveryBoxPrefab` | `DeliveryBox` (prefab) | Instancia para props + cajas de criaturas |
 | `deliverySpawnPoint` | `Transform` | Punto de spawn de cajas |
-
-## Métodos Helper
-
-- Precio: `catalog.FinalPrice(shop, GameManager.Now)` → aplica descuentos
-- Stock: `shop.InStock` (propiedad booleana) y `shop.TryConsume()`
 
 ## Integración S128
 
@@ -80,5 +112,5 @@ tags: [script, store, transactions]
 [[Index/28 - Cimientos y camino a Game Ready]] (§3 · two currencies)
 [[Index/29 - Plan HC - Cimientos (ejecutable)]] (§5 · C3 wallet)
 
-**Conexiones:** [[Wallet]], [[GameManager]], [[PlayerInventorySO]], [[ShopCatalogSO]], [[StoreShopData]], [[DeliveryBox]], [[StorePanelUITK]], [[GameEvents]]
+**Conexiones:** [[Wallet]], [[GameManager]], [[PlayerInventorySO]], [[ShopCatalogSO]], [[StoreShopData]], [[DeliveryBox]], [[StorePanelUITK]], [[GameEvents]], [[CreatureBoxSO]]
 

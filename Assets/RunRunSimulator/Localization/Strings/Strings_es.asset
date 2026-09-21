@@ -666,7 +666,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282695
-    m_Localized: "No tienes muebles en esta categor\xEDa."
+    m_Localized: "No tienes muebles en esta categor\xEDa. C\xF3mpralos en la PC de
+      la tienda."
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282696
@@ -1430,6 +1431,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 19241043774464000
     m_Localized: "Perdiste en el piso {0} \xB7 sin bot\xEDn \xB7 {1} ca\xEDdas"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21057648338722816
+    m_Localized: MoriMonchis
     m_Metadata:
       m_Items: []
   references:

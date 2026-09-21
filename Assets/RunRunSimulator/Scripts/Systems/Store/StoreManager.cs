@@ -64,6 +64,52 @@ public class StoreManager : MonoBehaviour
 
         shop.TryConsume();
 
+        var box = SpawnDeliveryBox(price, shop);
+        if (box == null) return BuyResult.OutOfStock;
+
+        box.Configure(def);
+        if (price <= 0) GameEvents.InventoryChanged(inventory);
+        Debug.Log($"[StoreManager] Ordered '{def.DisplayName}' ({def.Id}) for {price} Dabloons.");
+        return BuyResult.Success;
+    }
+
+    public BuyResult BuyCreatureBox(CreatureBoxSO box, StoreShopData shop)
+    {
+        if (box == null || shop == null) { Debug.LogWarning("[StoreManager] BuyCreatureBox: null arg."); return BuyResult.OutOfStock; }
+
+        if (!shop.InStock) return BuyResult.OutOfStock;
+
+        if (deliveryBoxPrefab == null || deliverySpawnPoint == null)
+        {
+            Debug.LogError("[StoreManager] Assign deliveryBoxPrefab + deliverySpawnPoint first.");
+            return BuyResult.OutOfStock;
+        }
+        if (!Application.isPlaying)
+        {
+            Debug.LogWarning("[StoreManager] Enter Play mode to buy (spawns a DeliveryBox).");
+            return BuyResult.OutOfStock;
+        }
+
+        var inventory = GameManager.CurrentInventory;
+        if (inventory == null) { Debug.LogError("[StoreManager] No PlayerInventory available."); return BuyResult.OutOfStock; }
+
+        var now   = GameManager.Now;
+        int price = catalog.FinalPrice(shop, now);
+        if (price > 0 && !Wallet.TrySpend(Currency.Dabloons, price, "store")) return BuyResult.InsufficientFunds;
+
+        shop.TryConsume();
+
+        var deliveryBox = SpawnDeliveryBox(price, shop);
+        if (deliveryBox == null) return BuyResult.OutOfStock;
+
+        deliveryBox.Configure(box);
+        if (price <= 0) GameEvents.InventoryChanged(inventory);
+        Debug.Log($"[StoreManager] Ordered creature box '{box.DisplayName}' ({box.Id}) for {price} Dabloons.");
+        return BuyResult.Success;
+    }
+
+    private DeliveryBox SpawnDeliveryBox(int price, StoreShopData shop)
+    {
         var go  = Instantiate(deliveryBoxPrefab, deliverySpawnPoint.position, deliverySpawnPoint.rotation);
         var box = go.GetComponent<DeliveryBox>();
         if (box == null)
@@ -71,12 +117,9 @@ public class StoreManager : MonoBehaviour
             Debug.LogError("[StoreManager] deliveryBoxPrefab has no DeliveryBox component.");
             Destroy(go);
             if (price > 0) { Wallet.Add(Currency.Dabloons, price, "store-refund"); shop.CurrentStock++; }
-            return BuyResult.OutOfStock;
+            return null;
         }
-        box.Configure(def);
-        if (price <= 0) GameEvents.InventoryChanged(inventory);
-        Debug.Log($"[StoreManager] Ordered '{def.DisplayName}' ({def.Id}) for {price} Dabloons.");
-        return BuyResult.Success;
+        return box;
     }
 
     public void RestockIfNeeded()

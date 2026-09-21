@@ -670,7 +670,8 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282695
-    m_Localized: You don't have any furniture in this category.
+    m_Localized: You don't own furniture in this category. Buy more at the store
+      PC.
     m_Metadata:
       m_Items: []
   - m_Id: 4172480282696
@@ -1433,6 +1434,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 19241043774464000
     m_Localized: "Lost on floor {0} \xB7 no loot \xB7 {1} down"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21057648338722816
+    m_Localized: MoriMonchis
     m_Metadata:
       m_Items: []
   references:
