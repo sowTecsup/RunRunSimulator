@@ -26,8 +26,12 @@ tags: [index, plan, cimientos, hc]
 | 2 | **Solo la exploración da Minerita.** Ningún trabajo de tienda la produce. |
 | 3 | **Solo un MoriMochi bien cuidado puede bajar.** El cuidado es la puerta; dentro de la exploración las necesidades de la tienda **no influyen** (todos entran con la vida de la run llena). |
 | 4 | Evolucionar = **subir el nivel de la parte**. La decisión vive en un **ScriptableObject ejecutable** para poder cambiarla por otra (ver §8). |
+| 5 | **La cría pasa al reloj de juego** (local, sin Cloud Code), y **para eclosionar el huevo hace falta Minerita** (ver §13). |
+| 6 | **La suciedad entra** como uno de los sistemas de entretenimiento de la tienda (mantener ocupado al jugador). No es cimiento: va en E1 (`Index/28`). |
+| 7 | **Stats y equipo se borran** porque no se usan, y **se actualiza la UI** (ver §12). |
+| 8 | **El tutorial guía al jugador hasta comprar su primera caja de MoriMonchis en la PC, que está gratis con 100 % de descuento** (ver §14). |
 
-Siguen abiertas (bloquean solo C6 y C7, ver §9): cría y reloj · suciedad · stats y equipo · arranque.
+Quedan tres confirmaciones menores en §9.
 
 ---
 
@@ -36,11 +40,12 @@ Siguen abiertas (bloquean solo C6 y C7, ver §9): cría y reloj · suciedad · s
 | Sesión | Piezas | Por qué juntas |
 |---|---|---|
 | **HC-1** | C1 limpieza · C2 guardado · C3 cartera | C2 crea la cadena de migraciones y C3 es su primer paso (v1 → v2) |
-| **HC-2** | C4 ciclo de vida · C5 catálogo | C4 es el segundo paso (v2 → v3); C5 no toca el formato |
-| **HC-3** | C6 reloj | Necesita la decisión de cría (§9.1) |
-| **HC-4** | C7 cáscara y arranque · primera build | Necesita la decisión de arranque (§9.4) |
+| **HC-2** | C1b borrado de stats y equipo (§12) · C4 ciclo de vida | Comparten el segundo paso de migración (v2 → v3) y la ficha de la criatura |
+| **HC-3** | C5 catálogo y caja de MoriMonchis | No toca el formato; es requisito del tutorial |
+| **HC-4** | C6 reloj y cría local con Minerita (§13) | Tercer paso de migración (v3 → v4) |
+| **HC-5** | C7 cáscara, arranque y tutorial (§14) · primera build | Usa C5 (caja gratis) y el estado de mundo de C6 |
 
-Si falta tiempo se corta **C6**. Nunca C2.
+El orquestador puede fundir dos sesiones si el ritmo lo permite. Si falta tiempo se corta **C6** (C7 crea entonces el archivo de estado de mundo, ver §14.1). Nunca C2.
 
 ---
 
@@ -70,7 +75,7 @@ Si falta tiempo se corta **C6**. Nunca C2.
 5. Tabla `Strings`: borrar las claves `ui.combat.*` y `status.*` de cooldown si quedan sin uso.
 
 ### No se toca en C1
-Stats y equipo (decisión abierta §9.3): ni se borran ni se esconden todavía.
+Stats y equipo se borran en **C1b (§12, sesión HC-2)**, no aquí: su borrado cambia el guardado y la ficha de la criatura.
 
 ### Verificación
 Compila con 0 errores; grep limpio; Play en `GameScene`: los 6 disparadores de panel restantes abren; ningún `Missing Script` en escena (`execute_code` contando componentes nulos); un Ring colocado no abre nada y no lanza excepción.
@@ -311,14 +316,11 @@ public abstract class EvolutionEffectSO : SerializedScriptableObject
 
 ---
 
-## 9 · Decisiones abiertas (bloquean HC-3 y HC-4)
+## 9 · Confirmaciones menores (no bloquean HC-1 ni HC-2)
 
-1. **Cría y reloj (C6):** ¿la cría pasa al reloj de juego (local, sin Cloud Code) o sigue en 30 min reales autorizados por el servidor?
-2. **Suciedad (E1):** ¿sistema con consecuencia, o se borra el trapeador?
-3. **Stats y equipo:** ¿congelados hasta H2, o se borran ya? (hoy no afectan nada del juego).
-4. **Arranque (C7):** ¿el jugador nuevo recibe una caja de regalo con 2 MoriMonchis, o la compra con los dabloons iniciales?
-
-C6 y C7 reciben su sección de contratos en esta misma nota cuando Juan responda; hasta entonces valen las subetapas de `Index/28` §3.
+1. **Potenciales de parte** (`HornPotential`/`BackPotential`/`WingPotential`, 1-10, se heredan): muerto el RPS solo los lee la ficha. Propuesta: **se conservan como techo del nivel de la parte en E2** (criar para subir el techo, Minerita para alcanzarlo). Si Juan dice que no, se borran en C1b.
+2. **Costo de eclosión:** número de partida 10 de Minerita, plano (§13.4). ¿Plano, o sube con la generación?
+3. **Volver de la bajada salta al día siguiente** (la noche es la bajada, `Index/18` Parte 3): propuesta del §13.2.
 
 ---
 
@@ -336,3 +338,134 @@ C6 y C7 reciben su sección de contratos en esta misma nota cuando Juan responda
 - Algún lector de `registry.GetAll()` necesitaba ver muertas o vendidas (historial de ventas, estadísticas) y se rompe con 6.1.
 - El diccionario de paneles de `UIManager` no admite quitar `Combat` sin perder las otras entradas (C1).
 - Los precios del catálogo (7.4) o los umbrales del cuidado (6.5).
+
+---
+
+## 12 · C1b · Borrado de stats y equipo (decisión 7 · sesión HC-2)
+
+**Regla:** lo que no afecta el juego no se guarda, no se hereda y no se muestra. La ficha de la criatura pasa a mostrar lo que sí importa.
+
+### Borrar (archivos completos)
+`Data/Equipment/` (3), `Data/Databases/EquipmentDatabaseSO.cs`, `Systems/Stats/` (`CreatureStats`, `EquipmentStats`), `UI/DetailEquipTabPresenter.cs`, `UI/EquipmentBackpackUITK.cs`, y los assets de `ScriptableObjects/Equipment/` (9 ítems, paleta, base de datos) con sus UXML/USS.
+
+### Editar
+- `CreatureDNA`: fuera `BaseConstitution`, `BaseAttack`, `BaseSpeed`, `BaseDefense`, `BaseLuck`, `BaseEvasion`, `Equipped` y todo el bloque `#if UNITY_EDITOR` de ranuras de equipo. Los **tiers se quedan** (son el nivel de la parte de E2). Potenciales: según §9.1.
+- `Core/Enums/ItemEnums.cs`: fuera `StatType` y `EquipmentSlot`; `LocEnumMaps.EquipmentSlotName` también.
+- `PlayerInventorySO`: fuera `equipmentGrids`, su API (`AddEquipment`, `RemoveEquipmentAt`, `MoveEquipment`, `GetEquipment`, `ClearEquipmentOwned`) e `InventoryData.EquipmentGrids`.
+- `CreatureGenerator.RandomBaseStats` y sus llamadas (`GameManager.MintRandomCreature`, `ArenaSandbox` ~380); `BreedingService.InheritStat` y las tres líneas de herencia de stats.
+- `GameManager`: fuera `equipmentDatabase` y su getter.
+- `ValuationHandler`: fuera `statsBonus`; `CustomerPricingSO.StatsMultiplier` y `CustomerArchetypeSO.WeightStats` también. La valuación queda en tiers + crías hasta que E1 la rehaga.
+- `MoriMochiAgent`: fuera el bloque de inspector de stats (~459-498: `StatCon…StatEva`, `StatsBase`, `StatsFinal`, `StatLine`, `StatValue`); baja de 714 líneas.
+- `DevToolsConsole`: fuera el botón que toca stats o potenciales (~140) si queda sin sentido.
+
+### La UI (pedido explícito de Juan)
+- **Ficha (`MorimonchiDetailInfoUITK` + `DetailInfoTabPresenter`)**: desaparece la pestaña Equipo y el bloque CON/ATK/SPD. En su lugar: **las tres necesidades como barras de color** (vida, energía, afecto) con la marca de "apta para bajar" de `CreatureAvailability` (C4), y las **tres partes con su nivel** (y su techo si se conservan los potenciales). Es el mismo lugar donde E2 pondrá el botón de evolucionar.
+- **Grilla (`CreatureGridUITK`, `CreatureGridView`)**: fuera las tres ranuras de equipo por tarjeta, las columnas CON/ATK/SPD y el resumen de equipo.
+- **Cría (`BreedingBreedTabPresenter` ~166 y ~227)**: fuera la comparación de stats de los padres; queda partes, rol, rasgos y crías restantes.
+- Color antes que texto; paleta `--mm-*`.
+
+### Migración (mismo salto v2 → v3 que C4)
+`Inventory`: se elimina `EquipmentGrids`. `Registry`: se eliminan de cada criatura los seis stats y `Equipped` (para que el archivo no arrastre basura). Pruebas EditMode de ambos pasos.
+
+### Muta fuera de código (OK de Juan)
+UXML/USS de la ficha, la grilla y la cría; assets de equipo borrados; assets de arquetipos y de pricing re-guardados; claves `equipslot.*` y de stats fuera de la tabla `Strings`; refs de `equipmentDatabase` en `GameScene` (`GameManager`, `CreatureGridUITK`, `CreatureGridView`, `MorimonchiDetailInfoUITK`).
+
+### Verificación
+Grep limpio de `EquipmentSO`, `EquipmentSlot`, `StatType`, `CreatureStats`, `EquipmentStats`, `BaseConstitution`, `Equipped`; compila con 0 errores; ficha, grilla y panel de cría abren sin excepciones y sin elementos huérfanos (`execute_code` buscando por nombre los elementos borrados); mintear, criar y vender siguen funcionando; el guardado migrado ya no contiene las claves.
+
+---
+
+## 13 · C6 · Reloj de juego y cría local con Minerita (decisión 5 · sesión HC-4)
+
+**Regla:** el tiempo del juego es del juego: un día con bloques, que se guarda y se pausa. Nada de gameplay mira el calendario real. La cría corre en ese reloj y **eclosionar cuesta Minerita**.
+
+### 13.1 Estado de mundo — nuevo tipo de guardado
+`SaveKind.World` → `world_state.json` + clave de nube `worldstate`.
+```
+public class WorldStateData { public int Day = 1; public float MinuteOfDay = 360f; public int TutorialStep = 0; }
+```
+Dueño: `GameManager` lo carga y lo guarda como los otros (evento `GameEvents.WorldStateChanged`, suscriptor `GameManager`). `TutorialStep` lo usa C7.
+
+### 13.2 El reloj — `Systems/Time/GameClock.cs` (NUEVO, servicio de `GameScene`, ≤ 150 líneas)
+```
+public static GameClock Instance;
+public int   Day { get; }            public float MinuteOfDay { get; }     // 0-1440
+public long  TotalMinutes { get; }   // Day * 1440 + MinuteOfDay
+public DayBlockDef Block { get; }    public float GameMinutesPerRealSecond { get; }
+public bool  Paused { get; set; }
+public void  AdvanceToNextBlock();   public void AdvanceToNextDay();      // desarrollo y "volver de la bajada"
+```
+- `Data/Time/DayScheduleSO.cs` (NUEVO): `RealSecondsPerDay` y lista de bloques `{ NameKey, StartHour, CustomersOpen, ExpeditionOpen }`. **El diseño de los bloques es un dato.** Asset inicial: los 4 bloques de `Index/18` 1.2 (6-9 libre · 9-18 tienda · 18-23 gestión · 23-6 noche con `ExpeditionOpen`).
+- Eventos en `GameEvents`: `OnDayStarted(int day)` y `OnDayBlockChanged(DayBlockDef block)`. Suscriptores reales: `InfoOverlayUITK` (reloj arriba a la derecha), `NpcController` (clientes solo con `CustomersOpen`), `StoreManager` (restock por día), `ExpeditionPanelUITK` (bajar solo con `ExpeditionOpen`).
+- Se pausa con el menú de pausa (C7). No corre en la arena: al salir se guarda; **al volver de la bajada salta al inicio del día siguiente** (§9.3).
+- `DevToolsConsole`: botones "siguiente bloque" y "siguiente día", para que el reloj no estorbe las pruebas.
+
+### 13.3 Lo que deja el tiempo real
+| Hoy | Pasa a |
+|---|---|
+| `CreatureDNA.AgeDays` (días reales desde `BirthDate`) | `int BirthDay` (día de juego) + `AgeDays(int today)`; `BirthDate` y `Timestamp` se quedan (identidad). Migración v3 → v4: `BirthDay = díaActual − edadRealEnDías`, mínimo 1. Llamadores: `BreedingContainer.IsAdult`, `NameTag`, `TransactionPanelUITK`. |
+| `ShopCatalogSO`: descuentos por día de la semana y mes, restock por tercio de mes, `GameManager.Now` | `RestockEveryDays` y `DiscountEveryDays` sobre `Day`; fuera `DiscountDay`/`DiscountMonth`/`RestockPeriod`. Llamadores: `StoreManager`, `StorePanelUITK`. |
+| `NpcController` con `Time.time` | sigue en segundos, pero solo aparece con `CustomersOpen`. |
+| Decaimiento de necesidades por segundo real (`AgentBrain` ~190) | multiplicado por `GameMinutesPerRealSecond` contra valores por hora de juego; a velocidad por defecto da lo mismo que hoy. La calibración es la de §6.7. |
+| `SaleDate`, push, `sync_meta` | siguen en tiempo real (no son gameplay). |
+
+### 13.4 Cría local con Minerita
+- `Systems/Breeding/AsyncBreedingService.cs` → se reemplaza por **`IncubationService`** (mismo objeto de escena, sin red): `StartBreeding(motherId, fatherId)`, `CancelBreeding(...)`, `TryHatch(motherId, fatherId)`. Valida con `CreatureAvailability.IsFree`, cobra la energía de hoy, marca `BusyReason.Breeding` y fija `BreedReadyAt = GameClock.TotalMinutes + duración`.
+- `CreatureDNA.BreedReadyAt` cambia de significado: **minutos de juego** (antes, milisegundos reales). Migración v3 → v4: todo huevo en curso queda listo ya.
+- `InheritanceOddsTableSO`: `BreedDurationMinutes` (hoy decorativo) pasa a ser la duración real **en minutos de juego**; campo nuevo `HatchMineritaCost = 10`.
+- `TryHatch`: exige huevo listo **y** `Wallet.TrySpend(Currency.Minerita, HatchMineritaCost, "hatch")`; si no alcanza, no eclosiona y el huevo espera (no se pierde). Después, el `HatchLocally` de hoy, que además fija `BirthDay` y `Generation`.
+- `BreedingEggsTabPresenter` y `NameTag`: tiempo restante en horas de juego; el botón de eclosionar muestra el costo con el color de la Minerita y se apaga si no alcanza (color antes que texto).
+- Se retira Cloud Code de cría: `BreedingContainer`/`BreedingController` llaman al servicio local; `CloudSyncOps.ResetProgressAsync` deja de llamar `cancel-all-breeding`; los cuatro `.js` de cría se marcan "retirados" en `CloudCode/README.md` para que Juan los despublique. El límite "un huevo por jugador" que imponía el servidor pasa a ser **un huevo por corral de cría** (ya es así en el mundo).
+- **Candado que hay que evitar:** eclosionar pide Minerita, la Minerita sale solo de bajar y bajar pide criaturas. No se traba mientras el jugador tenga criaturas o dabloons; la red de seguridad final es la caja gratis de §14.2.
+
+### Muta fuera de código (OK de Juan)
+`GameScene`: objeto `GameClock`, reloj en el UXML del overlay, refs; asset `DaySchedule`; `InheritanceOddsTable.asset`; `ShopCatalog.asset` (campos de calendario); tabla `Strings`.
+
+### Verificación
+Pruebas EditMode: migración v3 → v4, cálculo de bloque por minuto, `AgeDays`. Play: el reloj avanza, cambia de bloque, se guarda y reaparece igual tras reiniciar; clientes solo de día; bajar solo de noche (y por el botón de desarrollo a cualquier hora); ida y vuelta a la arena amanece al día siguiente; cría sin sesión en la nube funciona; huevo listo con 0 de Minerita no eclosiona y con saldo sí, con línea `[Wallet] -10 Minerita (hatch)`; ninguna llamada a `start-breeding`/`hatch-breeding` en consola.
+
+---
+
+## 14 · C7 · Cáscara, arranque y tutorial (decisión 8 · sesión HC-5)
+
+**Regla:** se puede abrir el juego, empezar de cero, ser guiado hasta tener los primeros MoriMonchis, pausar, ajustar y salir, sin el editor.
+
+### 14.1 Flujo de escenas y cáscara
+- Escena nueva **`Title`**, primera en la build: Continuar · Nueva partida (con confirmación; usa el reset que ya existe) · Ajustes · Salir.
+- `Core/SceneFlow.cs` (NUEVO, estática): único dueño de los nombres de escena y de los saltos (título → tienda; la ida y vuelta a la arena sigue en `ExpeditionHandoff`, que toma los nombres de aquí).
+- **Pausa** (Escape sin panel abierto): continuar · ajustes · volver al título. Pausa `GameClock` y `Time.timeScale`; volver al título vuelca y sube antes de cargar.
+- **Ajustes** (`PlayerPrefs`, son del dispositivo y no del guardado): volumen general, calidad, pantalla completa, idioma (`Loc`), y la leyenda de controles según el dispositivo activo (hoy está fija en teclado dentro de `InfoOverlayUITK`).
+- **Salir:** `FlushToCloudAsync` con tope y `Application.Quit`.
+- Si C6 se cortó, el archivo de estado de mundo de §13.1 se crea aquí (solo con `TutorialStep`).
+
+### 14.2 La caja gratis (decisión 8)
+- `CreatureBoxListing` gana `FreeWhileNoCreatures` (bool). `StoreManager` calcula precio 0 para esa fila **mientras el registro no tenga ninguna criatura viva**; la tienda la muestra con la etiqueta de oferta "GRATIS · -100 %".
+- Cubre dos casos con una sola regla: el jugador nuevo, y el jugador que lo perdió todo (sin criaturas y sin dabloons no hay forma de conseguir Minerita).
+- `StoreManager` avisa la compra con `GameEvents.StorePurchased(string listingId)` (suscriptor real: el tutorial). Una compra a precio 0 no pasa por `Wallet`.
+
+### 14.3 Estado inicial — `Data/Player/StarterKitSO.cs` (NUEVO)
+Dabloons iniciales, muebles poseídos de arranque y **una distribución mínima ya colocada** (un corral y un comedero) para que las criaturas de la caja tengan dónde vivir. Se aplica una sola vez, cuando `SyncOnStartupAsync` (C2) confirma que no hay guardado local ni datos en la nube.
+
+### 14.4 El tutorial — `Systems/Tutorial/TutorialDirector.cs` + `Data/Tutorial/TutorialStepSO.cs` (NUEVOS)
+Un paso = clave de texto de una línea, objetivo en el mundo (opcional) y la señal que lo completa. El director escucha, avanza, guarda `TutorialStep` y dibuja la guía; los pasos son assets.
+
+| # | Paso | Se completa con |
+|---|---|---|
+| 1 | Moverse y mirar | el jugador se desplaza |
+| 2 | Ir a la PC (guía curva en el piso hasta la terminal) | entra en el radio de la PC |
+| 3 | Abrir la tienda online | `UIManager` abre `UIPanelType.Store` |
+| 4 | Ir a la pestaña MoriMonchis | la pestaña queda activa |
+| 5 | Comprar la caja gratis | `GameEvents.OnStorePurchased` con la fila de la caja |
+| 6 | Abrir la caja de entrega (guía hasta la caja) | `OnRegistryChanged` con criaturas nuevas |
+
+- La guía usa el dibujante que ya existe (`CuePathDrawer`/`CueDrawer`), a la vara Shapes desde el primer intento (memoria `guias-visuales-vara-shapes`): punteado, puntas redondas, movimiento, curva y transición.
+- Una línea de texto por paso como máximo; el resto es guía y color. Saltable desde pausa. Los pasos siguientes (corral, alimentar, primera bajada) son de H6 y se agregan como assets.
+
+### 14.5 Primera build de PC
+Por Unity CLI. Lista a destapar: NavMesh en runtime con mallas no legibles (tienda y arena), 257 assets en `Resources`, serialización de Odin en build, orden de escenas (`Title`, `GameScene`, `ArenaSandbox`). Lo que falle se anota en `Index/08`; no se arregla todo aquí.
+
+### Muta fuera de código (OK de Juan)
+Escena `Title` y build settings; objetos de pausa, ajustes y tutorial en `GameScene`; UXML/USS nuevos; assets `StarterKit`, pasos del tutorial y la fila de la caja gratis en `ShopCatalog.asset`; tabla `Strings` en/es.
+
+### Verificación
+Borrar el guardado local y usar una cuenta sin datos: título → nueva partida → tienda con el kit colocado → el tutorial lleva a la PC, la caja figura gratis, se compra, se abre y nacen los MoriMonchis → `TutorialStep` guardado; reiniciar no repite el tutorial. Con criaturas vivas la caja vuelve a su precio. Pausa congela reloj y criaturas. Salir deja `[CloudSync] Pushed` antes de cerrar. La build de PC arranca y llega a la tienda.

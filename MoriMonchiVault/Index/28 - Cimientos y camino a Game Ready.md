@@ -24,7 +24,7 @@ Prueba de que un cimiento está bien hecho: vender o dar en adopción, poner un 
 |---|---|---|
 | Fantasía | El negocio | La criatura |
 | Entra por | Adopción/venta · actividades pasivas de la tienda | **Solo la exploración** (lo asegurado al retirarse) — decisión de Juan S127 |
-| Sale por | Muebles · ítems y juguetes · cosméticos · mejoras de la tienda · caja de MoriMonchis | Evolución de partes · cambio y reroll de habilidad |
+| Sale por | Muebles · ítems y juguetes · cosméticos · mejoras de la tienda · caja de MoriMonchis | **Eclosionar huevos** · evolución de partes · cambio y reroll de habilidad |
 | Hoy en el código | Ciclo completo (entra por venta, sale por compra) | Existe como `adventureMaterial`: **se suma y nunca se gasta** |
 
 Se borran `passiveMaterial` y `evolutionEssence` (declarados, guardados, sin fuente ni gasto). Regla: **todo gasto y todo ingreso pasa por una sola puerta** (intentar gastar / sumar, con motivo), dueña del evento de inventario. Ninguna pantalla resta monedas por su cuenta. El motivo se registra para balancear después (cuánto entra y sale por cada vía).
@@ -73,7 +73,7 @@ Siete piezas. El orden es de dependencias: primero se achica la superficie, desp
 ### C1 · Limpieza del combate viejo
 - **Regla:** lo que no es del juego vigente no viaja más.
 - **Alcance:** borrar Dragon RPS completo (lógica, servicio, UI de combate, tuning), el disparador de combate del mueble Ring, el cooldown de combate del ADN, el peso de combate huérfano de los arquetipos, el campo de ítem sostenido que nadie lee y el disparador de ítem sin lector.
-- **Stats y equipo:** se **congelan** (pestaña de equipo oculta, sin borrar datos) hasta que H2 decida si las Cutie Marks los reemplazan, como pedía [[Index/18 - Pilares del Rediseno (Draft)]] 1.5. No se construye nada nuevo encima.
+- **Stats y equipo (Juan S127): se borran** porque no afectan nada, y la ficha pasa a mostrar necesidades y nivel de partes (pieza C1b de `Index/29` §12).
 - **Desbloquea:** C3 (una moneda menos pagada por un sistema muerto), panel `Combat` fuera del enum de paneles.
 - **Muta fuera de código (OK de Juan):** prefab del Ring, assets de arquetipos, `CombatTuning.asset`, entradas del diccionario de paneles.
 
@@ -151,7 +151,7 @@ Assembly de lógica pura con pruebas de EditMode, creciendo con cada cimiento: m
 3. **Mejoras de la tienda (dabloons):** capacidad de corrales, lugares de vitrina, clientes simultáneos, tamaño del almacén, velocidad de entrega.
 4. **Cosméticos (dabloons):** paletas y piezas de la tienda, accesorios visibles.
 5. **Muebles con efecto:** cada categoría hace algo enunciable en una frase (descanso más rápido, juego que sube afecto, estación de trabajo de E3).
-6. **Limpieza:** o existe la suciedad con consecuencia, o el trapeador se borra (decisión 6).
+6. **Suciedad y limpieza (Juan S127: entra):** es uno de los **sistemas de entretenimiento de la tienda**, pensados para mantener ocupado al jugador durante el día junto a alimentar, separar peleas y atender clientes. Las criaturas ensucian con el tiempo, el trapeador limpia, y una tienda sucia baja el afecto y lo que ofrecen los clientes.
 
 ### E2 · Evolución con Minerita
 1. **Habilidad como dato de la criatura:** tres habilidades guardadas (cuerno, alas, espalda), iniciadas desde la parte al nacer; viajan junto al ADN en texto como metadatos, no dentro de él (regla 5).
@@ -218,13 +218,14 @@ H1 cambia de contenido: deja de ser "usar el material en la cría" y pasa a ser 
 3. **Solo un MoriMochi bien cuidado puede bajar**; dentro de la exploración las necesidades que se cuidan en la tienda no influyen.
 4. Evolucionar = **subir el nivel de la parte**, con la regla en un **ScriptableObject ejecutable** para poder cambiarla.
 
-**Abiertas:**
-5. **Cría y reloj:** ¿la cría pasa al reloj de juego (local, sin Cloud Code) o sigue en 30 min reales autorizados por el servidor? (bloquea C6)
-6. **Suciedad:** ¿entra como sistema con consecuencia, o se borra el trapeador? (E1)
-7. **Stats y equipo:** ¿congelados hasta H2 (propuesta) o se borran ya?
-8. **Arranque:** ¿el jugador nuevo recibe una caja de regalo con 2 MoriMonchis, o la compra con los dabloons iniciales? (bloquea C7)
+5. **La cría pasa al reloj de juego** (local, sin Cloud Code) y **eclosionar el huevo cuesta Minerita**: segundo sumidero de la Minerita y el lazo directo bajada → crianza.
+6. **La suciedad entra** como sistema de entretenimiento de la tienda (E1).
+7. **Stats y equipo se borran** y se actualiza la UI: la ficha muestra necesidades y nivel de partes.
+8. **El tutorial guía hasta comprar la primera caja de MoriMonchis en la PC, gratis con 100 % de descuento**; la misma regla rescata al jugador que se quedó sin criaturas.
 
-**Plan ejecutable de los cimientos:** [[Index/29 - Plan HC - Cimientos (ejecutable)]] (C1-C5 con contratos; C6-C7 esperan las decisiones 5 y 8).
+**Confirmaciones menores** (`Index/29` §9): potenciales como techo del nivel de parte · costo de eclosión plano o por generación · volver de la bajada amanece al día siguiente.
+
+**Plan ejecutable de los cimientos:** [[Index/29 - Plan HC - Cimientos (ejecutable)]] (C1-C7 con contratos, sesiones HC-1 a HC-5).
 
 ---
 
