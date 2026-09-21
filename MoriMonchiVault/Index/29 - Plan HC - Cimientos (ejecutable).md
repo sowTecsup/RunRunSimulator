@@ -31,7 +31,7 @@ tags: [index, plan, cimientos, hc]
 | 7 | **Stats y equipo se borran** porque no se usan, y **se actualiza la UI** (ver §12). |
 | 8 | **El tutorial guía al jugador hasta comprar su primera caja de MoriMonchis en la PC, que está gratis con 100 % de descuento** (ver §14). |
 
-Quedan tres confirmaciones menores en §9.
+Confirmaciones menores resueltas en §9.
 
 ---
 
@@ -316,11 +316,11 @@ public abstract class EvolutionEffectSO : SerializedScriptableObject
 
 ---
 
-## 9 · Confirmaciones menores (no bloquean HC-1 ni HC-2)
+## 9 · Confirmaciones de Juan (S127, resueltas)
 
-1. **Potenciales de parte** (`HornPotential`/`BackPotential`/`WingPotential`, 1-10, se heredan): muerto el RPS solo los lee la ficha. Propuesta: **se conservan como techo del nivel de la parte en E2** (criar para subir el techo, Minerita para alcanzarlo). Si Juan dice que no, se borran en C1b.
-2. **Costo de eclosión:** número de partida 10 de Minerita, plano (§13.4). ¿Plano, o sube con la generación?
-3. **Volver de la bajada salta al día siguiente** (la noche es la bajada, `Index/18` Parte 3): propuesta del §13.2.
+1. **Los potenciales de parte se conservan**: son el techo del nivel de la parte en E2 (criar sube el techo, la Minerita lo alcanza). **El proyecto Cutie Marks se mantiene** (H2): borrar el equipo no lo cancela; las marcas ocuparán ese lugar con su propio diseño.
+2. **El costo de eclosionar sube con cada parte**: no es plano ni por generación. Lectura del orquestador, a confirmar por Juan al ejecutar HC-4: costo = base + un extra por cada nivel de parte por encima de 1, sumando cuerno, alas y espalda de los dos padres. Los dos números viven en el asset (§13.4), así que cambiar la fórmula es cambiar datos.
+3. **Volver de la bajada amanece al día siguiente** (§13.2).
 
 ---
 
@@ -349,17 +349,17 @@ public abstract class EvolutionEffectSO : SerializedScriptableObject
 `Data/Equipment/` (3), `Data/Databases/EquipmentDatabaseSO.cs`, `Systems/Stats/` (`CreatureStats`, `EquipmentStats`), `UI/DetailEquipTabPresenter.cs`, `UI/EquipmentBackpackUITK.cs`, y los assets de `ScriptableObjects/Equipment/` (9 ítems, paleta, base de datos) con sus UXML/USS.
 
 ### Editar
-- `CreatureDNA`: fuera `BaseConstitution`, `BaseAttack`, `BaseSpeed`, `BaseDefense`, `BaseLuck`, `BaseEvasion`, `Equipped` y todo el bloque `#if UNITY_EDITOR` de ranuras de equipo. Los **tiers se quedan** (son el nivel de la parte de E2). Potenciales: según §9.1.
+- `CreatureDNA`: fuera `BaseConstitution`, `BaseAttack`, `BaseSpeed`, `BaseDefense`, `BaseLuck`, `BaseEvasion`, `Equipped` y todo el bloque `#if UNITY_EDITOR` de ranuras de equipo. Los **tiers se quedan** (son el nivel de la parte de E2) y los **potenciales también** (son su techo, §9.1).
 - `Core/Enums/ItemEnums.cs`: fuera `StatType` y `EquipmentSlot`; `LocEnumMaps.EquipmentSlotName` también.
 - `PlayerInventorySO`: fuera `equipmentGrids`, su API (`AddEquipment`, `RemoveEquipmentAt`, `MoveEquipment`, `GetEquipment`, `ClearEquipmentOwned`) e `InventoryData.EquipmentGrids`.
 - `CreatureGenerator.RandomBaseStats` y sus llamadas (`GameManager.MintRandomCreature`, `ArenaSandbox` ~380); `BreedingService.InheritStat` y las tres líneas de herencia de stats.
 - `GameManager`: fuera `equipmentDatabase` y su getter.
 - `ValuationHandler`: fuera `statsBonus`; `CustomerPricingSO.StatsMultiplier` y `CustomerArchetypeSO.WeightStats` también. La valuación queda en tiers + crías hasta que E1 la rehaga.
 - `MoriMochiAgent`: fuera el bloque de inspector de stats (~459-498: `StatCon…StatEva`, `StatsBase`, `StatsFinal`, `StatLine`, `StatValue`); baja de 714 líneas.
-- `DevToolsConsole`: fuera el botón que toca stats o potenciales (~140) si queda sin sentido.
+- `DevToolsConsole`: fuera lo que toque stats; el botón de potenciales (~140) se queda.
 
 ### La UI (pedido explícito de Juan)
-- **Ficha (`MorimonchiDetailInfoUITK` + `DetailInfoTabPresenter`)**: desaparece la pestaña Equipo y el bloque CON/ATK/SPD. En su lugar: **las tres necesidades como barras de color** (vida, energía, afecto) con la marca de "apta para bajar" de `CreatureAvailability` (C4), y las **tres partes con su nivel** (y su techo si se conservan los potenciales). Es el mismo lugar donde E2 pondrá el botón de evolucionar.
+- **Ficha (`MorimonchiDetailInfoUITK` + `DetailInfoTabPresenter`)**: desaparece la pestaña Equipo y el bloque CON/ATK/SPD. En su lugar: **las tres necesidades como barras de color** (vida, energía, afecto) con la marca de "apta para bajar" de `CreatureAvailability` (C4), y las **tres partes con su nivel** y su techo (el potencial). Es el mismo lugar donde E2 pondrá el botón de evolucionar.
 - **Grilla (`CreatureGridUITK`, `CreatureGridView`)**: fuera las tres ranuras de equipo por tarjeta, las columnas CON/ATK/SPD y el resumen de equipo.
 - **Cría (`BreedingBreedTabPresenter` ~166 y ~227)**: fuera la comparación de stats de los padres; queda partes, rol, rasgos y crías restantes.
 - Color antes que texto; paleta `--mm-*`.
@@ -412,8 +412,8 @@ public void  AdvanceToNextBlock();   public void AdvanceToNextDay();      // des
 ### 13.4 Cría local con Minerita
 - `Systems/Breeding/AsyncBreedingService.cs` → se reemplaza por **`IncubationService`** (mismo objeto de escena, sin red): `StartBreeding(motherId, fatherId)`, `CancelBreeding(...)`, `TryHatch(motherId, fatherId)`. Valida con `CreatureAvailability.IsFree`, cobra la energía de hoy, marca `BusyReason.Breeding` y fija `BreedReadyAt = GameClock.TotalMinutes + duración`.
 - `CreatureDNA.BreedReadyAt` cambia de significado: **minutos de juego** (antes, milisegundos reales). Migración v3 → v4: todo huevo en curso queda listo ya.
-- `InheritanceOddsTableSO`: `BreedDurationMinutes` (hoy decorativo) pasa a ser la duración real **en minutos de juego**; campo nuevo `HatchMineritaCost = 10`.
-- `TryHatch`: exige huevo listo **y** `Wallet.TrySpend(Currency.Minerita, HatchMineritaCost, "hatch")`; si no alcanza, no eclosiona y el huevo espera (no se pierde). Después, el `HatchLocally` de hoy, que además fija `BirthDay` y `Generation`.
+- `InheritanceOddsTableSO`: `BreedDurationMinutes` (hoy decorativo) pasa a ser la duración real **en minutos de juego**; campos nuevos `HatchCostBase = 10` y `HatchCostPerPartLevel = 5`, con `int HatchCost(CreatureDNA mother, CreatureDNA father)` = base + extra × niveles de parte por encima de 1 entre los dos padres (§9.2).
+- `TryHatch`: exige huevo listo **y** `Wallet.TrySpend(Currency.Minerita, odds.HatchCost(mother, father), "hatch")`; si no alcanza, no eclosiona y el huevo espera (no se pierde). Después, el `HatchLocally` de hoy, que además fija `BirthDay` y `Generation`.
 - `BreedingEggsTabPresenter` y `NameTag`: tiempo restante en horas de juego; el botón de eclosionar muestra el costo con el color de la Minerita y se apaga si no alcanza (color antes que texto).
 - Se retira Cloud Code de cría: `BreedingContainer`/`BreedingController` llaman al servicio local; `CloudSyncOps.ResetProgressAsync` deja de llamar `cancel-all-breeding`; los cuatro `.js` de cría se marcan "retirados" en `CloudCode/README.md` para que Juan los despublique. El límite "un huevo por jugador" que imponía el servidor pasa a ser **un huevo por corral de cría** (ya es así en el mundo).
 - **Candado que hay que evitar:** eclosionar pide Minerita, la Minerita sale solo de bajar y bajar pide criaturas. No se traba mientras el jugador tenga criaturas o dabloons; la red de seguridad final es la caja gratis de §14.2.

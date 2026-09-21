@@ -223,7 +223,9 @@ H1 cambia de contenido: deja de ser "usar el material en la cría" y pasa a ser 
 7. **Stats y equipo se borran** y se actualiza la UI: la ficha muestra necesidades y nivel de partes.
 8. **El tutorial guía hasta comprar la primera caja de MoriMonchis en la PC, gratis con 100 % de descuento**; la misma regla rescata al jugador que se quedó sin criaturas.
 
-**Confirmaciones menores** (`Index/29` §9): potenciales como techo del nivel de parte · costo de eclosión plano o por generación · volver de la bajada amanece al día siguiente.
+9. **Los potenciales de parte se conservan** como techo del nivel de la parte, y **el proyecto Cutie Marks se mantiene** (H2).
+10. **El costo de eclosionar sube con cada parte** (con el nivel de las partes de los padres; fórmula en datos, `Index/29` §9.2).
+11. **Volver de la bajada amanece al día siguiente.**
 
 **Plan ejecutable de los cimientos:** [[Index/29 - Plan HC - Cimientos (ejecutable)]] (C1-C7 con contratos, sesiones HC-1 a HC-5).
 

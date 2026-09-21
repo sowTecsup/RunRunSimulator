@@ -18,7 +18,7 @@ tags: [index, core]
 
 6. **Segunda tanda de decisiones de Juan ⭐ (tras el cierre):** la cría pasa al **reloj de juego** y **eclosionar cuesta Minerita**; la **suciedad entra** como sistema de entretenimiento de la tienda (E1); **stats y equipo se borran** y la ficha pasa a mostrar necesidades y nivel de partes; el **tutorial guía hasta comprar la primera caja de MoriMonchis en la PC, gratis con 100 % de descuento** (la misma regla rescata a quien se queda sin criaturas). `Index/29` ganó §12 (C1b), §13 (C6) y §14 (C7); el hito queda en cinco sesiones HC-1 a HC-5.
 
-**Siguiente paso:** sesión **HC-1 con Opus** (C1 + C2 + C3) siguiendo `Index/29`; antes, respaldar el guardado de Juan (§0.4). Confirmaciones menores en `Index/29` §9 (no bloquean HC-1 ni HC-2): potenciales como techo del nivel de parte · costo de eclosión plano o por generación · volver de la bajada amanece al día siguiente.
+**Siguiente paso:** sesión **HC-1 con Opus** (C1 + C2 + C3) siguiendo `Index/29`; antes, respaldar el guardado de Juan (§0.4). Confirmado por Juan (`Index/29` §9): los potenciales se quedan como techo del nivel de parte y el proyecto Cutie Marks se mantiene · el costo de eclosionar sube con cada parte (lectura del orquestador: nivel de las partes de los padres; confirmar al ejecutar HC-4) · volver de la bajada amanece al día siguiente.
 
 **Archivos `.cs` modificados/creados:** ninguno.
 
