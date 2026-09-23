@@ -1,24 +1,40 @@
 ---
-tags: [script, ui, uitk]
+tags: [script, ui, uitk, store]
 ---
 
 # TransactionPanelUITK.cs
 
 **Ruta:** `UI/TransactionPanelUITK.cs`
 
-**Responsabilidad:** Panel UITK (3 columnas) para negociar venta de MoriMochi con cliente. Muestra: cliente (nombre del archetype) | retrato fotomatón + nombre MM + género/edad | oferta en Dablones. Botones: Cancelar / Aceptar / Pedir más. Detecta abrir/cerrar por el estado real de `display` (Update poll de `IsShown()`) → emite `EnterNegotiating`/`ExitNegotiating` en NpcAgent. **S57b:** Swatch del MoriMochi ahora es retrato fotomatón vía [[MonchiPortraitUI]].Apply(). **S93:** Usa `UiPanels.RootOf()`.
+**Responsabilidad:** Panel UITK negociación de venta (3 columnas: cliente | retrato MM + info | oferta). Actualiza labels dinámicamente. S131: Edad muestra `CreatureDNA.AgeDays(GameClock.Instance.Day)` (días de juego).
 
-**Propiedades y métodos:**
-- `UIDocument document` → source asset con tree UITK.
-- `IsShown()` — chequea si el root tiene `displayStyle != None`.
-- `OnShown()` → llama `EnsureBound()` + `Refresh()` + `currentCustomer.EnterNegotiating()`.
-- `OnHidden()` → si está en state `Negotiating`, sale con `ExitNegotiating()`.
-- `Refresh()` — lee `CashRegister.Instance.CurrentCustomer` y actualiza labels: archetype, retrato MM (via MonchiPortraitUI), nombre MM, género/edad, oferta actual. Habilita botones según `HasCounteredOnce`.
-- Botones: `OnAccept` → `AcceptCurrentOffer()` + cierra. `OnCounter` → `TryCounterOffer()` (si es false, cierra). `OnReject` → `RejectByPlayer()` + cierra.
+## Display (Refresh) S131
 
-**Labels UITK esperados:**
-- `customer-name`, `archetype`, `mm-portrait` (VisualElement retrato), `target-name`, `target-info`, `offer`, `accept` (Button), `counter` (Button), `reject` (Button).
+```csharp
+void Refresh()
+{
+    var mm = currentCreature;
+    int today = GameClock.Instance?.Day ?? 1;
+    int ageDays = mm.AgeDays(today);
+    
+    targetInfo.text = $"{Loc.Tr($"ui.gender.{mm.Gender}")} · {ageDays}d";
+    // ... resto de labels
+}
+```
 
-**Vinculado a:** [[Index/08 - UI System]]
+## Botones
+| Botón | Acción |
+|-------|--------|
+| Accept | Acepta oferta + cierra |
+| Counter | Pide más (si no contraofertó) |
+| Reject | Rechaza + cierra |
 
-**Conexiones:** [[CashRegister]], [[NpcAgent]], [[UIManager]], [[CreatureDNA]], [[CustomerArchetypeSO]], [[MonchiPortraitUI]], [[UiPanels]]
+## Cambio S131
+- Edad dinámica via AgeDays(today)
+- Integración con GameClock
+
+## Conexiones (S131)
+- [[GameClock]] — proporciona Day
+
+## Notas (S131)
+- Edad "Xd" (días).

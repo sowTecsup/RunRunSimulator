@@ -8,11 +8,18 @@ La columna **Publicado** la completa Juan desde el dashboard de Unity Cloud Code
 
 | Script | Quién lo llama (C#) | Publicado | Notas |
 |---|---|---|---|
-| `start-breeding.js` | `Systems/Breeding/AsyncBreedingService.cs:12` | | Duración de cría **hardcodeada en el servidor** (`BREED_DURATION_MS = 30 min`). `InheritanceOddsTableSO.BreedDurationMinutes` es solo display. **Se retira en HC-4** (la cría pasa al reloj de juego local, `Index/29` §13.4). |
-| `hatch-breeding.js` | `Systems/Breeding/AsyncBreedingService.cs:13` | | Valida `readyAt` contra el reloj del servidor. **Se retira en HC-4.** |
-| `cancel-breeding.js` | `Systems/Breeding/AsyncBreedingService.cs:14` | | **Se retira en HC-4.** |
-| `cancel-all-breeding.js` | `Systems/Breeding/AsyncBreedingService.cs:15` · `Systems/Cloud/CloudSyncOps.cs:18` (`ResetProgressAsync`) | | **Se retira en HC-4**; `ResetProgressAsync` deja de llamarlo. |
 | `get-server-time.js` | `Systems/Cloud/CloudAuth.cs:101` | | No usa Cloud Save. Alimenta `GameManager.Now` / `ServerNow` (offset de servidor). **Se queda**: la reconciliación por fecha de C2 y el anti-cheat dependen de una hora que el cliente no elige. |
+
+## RETIRADOS en HC-4 (cría local) — a despublicar
+
+La cría pasó al reloj de juego local (`Index/29` §13.4, `Systems/Breeding/IncubationService.cs`): ya no hay llamadas a Cloud Code para criar. `CloudSyncOps.ResetProgressAsync` dejó de llamar a `cancel-all-breeding`.
+
+| Script | Notas |
+|---|---|
+| `start-breeding.js` | Duración de cría hardcodeada en el servidor (`BREED_DURATION_MS = 30 min`). Sin llamador en C#. |
+| `hatch-breeding.js` | Validaba `readyAt` contra el reloj del servidor. Sin llamador en C#. |
+| `cancel-breeding.js` | Sin llamador en C#. |
+| `cancel-all-breeding.js` | Sin llamador en C#. |
 
 ## Diagnóstico (no son lógica de juego)
 
@@ -25,7 +32,7 @@ La columna **Publicado** la completa Juan desde el dashboard de Unity Cloud Code
 
 No se mezclan, y conviene no confundirlos al depurar:
 
-- **Player Data**, escrito desde C# por `CloudSyncOps`: claves `creatureregistry`, `furnitureregistry`, `playerinventory`, `socialgraph` (nueva en HC-1) y `sync_meta`. Desde HC-1 cada valor es un **sobre** `{ Version, SavedAtTicks, Data }` (`Scripts/Logic/SaveMigrations.cs`).
+- **Player Data**, escrito desde C# por `CloudSyncOps`: claves `creatureregistry`, `furnitureregistry`, `playerinventory`, `socialgraph` (nueva en HC-1), `worldstate` (nueva en HC-4) y `sync_meta`. Desde HC-1 cada valor es un **sobre** `{ Version, SavedAtTicks, Data }` (`Scripts/Logic/SaveMigrations.cs`).
 - **Custom Data**, escrito desde los `.js` de cría: una sola clave `breeding_eggs_{playerId}`. Los `.js` **no leen ni escriben** ninguna clave de Player Data, así que el sobre de HC-1 no los rompe.
 
 ## A despublicar en el dashboard (tarea de Juan)
@@ -36,4 +43,4 @@ Endpoints del **combate asíncrono demolido en S75** y del **Dragon RPS borrado 
 - cualquier endpoint que escriba el buzón de resultados de combate;
 - cualquier endpoint de resolución de combate por semilla.
 
-Si al revisar el dashboard aparece alguno que no figura en las dos primeras tablas de este archivo, es huérfano: despublicarlo y anotarlo aquí.
+Si al revisar el dashboard aparece alguno que no figura en las tablas de este archivo, es huérfano: despublicarlo y anotarlo aquí.

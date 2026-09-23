@@ -187,9 +187,11 @@ internal class AgentBrain
     {
         if (ctx.Profile == null || ctx.Dna == null) return;
 
-        ctx.Dna.Needs.AddHealth(-owner.healthDecayPerSecond * dt);
-        ctx.Dna.Needs.AddAffect(-owner.affectDecayPerSecond * dt);
-        if (ctx.IsMoving) ctx.Dna.Needs.AddEnergy(-owner.energyDecayPerSecond * dt);
+        float scaledDt = dt * (GameClock.Instance != null ? GameClock.Instance.NeedsTimeScale : 1f);
+
+        ctx.Dna.Needs.AddHealth(-owner.healthDecayPerGameMinute * scaledDt);
+        ctx.Dna.Needs.AddAffect(-owner.affectDecayPerGameMinute * scaledDt);
+        if (ctx.IsMoving) ctx.Dna.Needs.AddEnergy(-owner.energyDecayPerGameMinute * scaledDt);
     }
 
     private bool TryEnterNeedSeeking()

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
 {
@@ -14,8 +15,9 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
     [Header("Data / services")]
     [Tooltip("Resolves part names/sets and effective stats. Shared SO asset.")]
     [SerializeField] private CreatureDatabaseSO database;
-    [Tooltip("Starts the server-timed breed and hatches ready eggs.")]
-    [SerializeField] private AsyncBreedingService asyncBreedingService;
+    [Tooltip("Starts and hatches local breeding (no network).")]
+    [FormerlySerializedAs("asyncBreedingService")]
+    [SerializeField] private IncubationService incubation;
 
     private enum Region { TabBar, Content }
     private Region region = Region.TabBar;
@@ -82,8 +84,8 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
 
         WireStaticLabels(root);
 
-        breed = new BreedingBreedTabPresenter(root, () => registry, database, asyncBreedingService, OnBred);
-        eggs  = new BreedingEggsTabPresenter(root, () => registry, asyncBreedingService);
+        breed = new BreedingBreedTabPresenter(root, () => registry, database, incubation, OnBred);
+        eggs  = new BreedingEggsTabPresenter(root, () => registry, incubation);
 
         if (closeButton != null) closeButton.clicked += OnClose;
 
@@ -174,8 +176,6 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
 
     public void OnUINavigate(Vector2 dir)
     {
-        if (breed != null && breed.Busy) return;
-
         int h = dir.x >  0.5f ? 1 : dir.x < -0.5f ? -1 : 0;
         int v = dir.y < -0.5f ? 1 : dir.y >  0.5f ? -1 : 0;
         if (h == 0 && v == 0) return;
@@ -194,16 +194,12 @@ public class BreedingPanelUITK : MonoBehaviour, IUINavigable
 
     public void OnUISubmit()
     {
-        if (breed != null && breed.Busy) return;
-
         if (region == Region.TabBar) EnterContent();
         else ActivePresenter()?.Submit();
     }
 
     public bool OnUICancel()
     {
-        if (breed != null && breed.Busy) return true;
-
         if (region == Region.TabBar) return false;
 
         var p = ActivePresenter();

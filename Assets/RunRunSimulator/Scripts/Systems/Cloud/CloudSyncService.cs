@@ -11,6 +11,7 @@ public class CloudSyncService : MonoBehaviour
     private CreatureRegistrySO  registry;
     private FurnitureRegistrySO furnitureRegistry;
     private PlayerInventorySO   inventory;
+    private WorldStateSO        worldState;
 
     private CloudAuth    auth;
     private CloudSyncOps syncOps;
@@ -64,8 +65,9 @@ public class CloudSyncService : MonoBehaviour
         registry          = GameManager.Instance.Registry;
         furnitureRegistry = GameManager.Instance.FurnitureRegistry;
         inventory         = GameManager.Instance.Inventory;
+        worldState        = GameManager.Instance.WorldState;
         auth    = new CloudAuth(s => status = s, HandleSignedInAsync);
-        syncOps = new CloudSyncOps(auth, registry, furnitureRegistry, inventory, s => status = s);
+        syncOps = new CloudSyncOps(auth, registry, furnitureRegistry, inventory, worldState, s => status = s);
         await auth.InitializeAsync();
         if (!auth.IsSignedIn) StartupSyncDone = true;
     }
@@ -90,6 +92,11 @@ public class CloudSyncService : MonoBehaviour
         {
             SaveSystem.LoadInventory(inventory);
             GameEvents.InventoryReloaded(inventory);
+        }
+        if (worldState != null)
+        {
+            SaveSystem.LoadWorldState(worldState);
+            GameEvents.WorldStateReloaded(worldState);
         }
 
         await auth.FetchServerTimeAsync();

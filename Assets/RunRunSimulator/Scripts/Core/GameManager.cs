@@ -1,5 +1,4 @@
 using Sirenix.OdinInspector;
-using System;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -12,7 +11,6 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     public static PlayerInventorySO CurrentInventory => Instance != null ? Instance.Inventory : null;
-    public static DateTime Now => Instance != null ? Instance.ServerNow : DateTime.Now;
 
     [Required, AssetsOnly]
     [Title("RunRunSimulator — Genetics Lab", "Assign all assets below to begin.", TitleAlignments.Centered)]
@@ -36,6 +34,9 @@ public class GameManager : MonoBehaviour
 
     [Required, AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private PlayerInventorySO inventory;
+
+    [Required, AssetsOnly, BoxGroup("Setup")]
+    [SerializeField] private WorldStateSO worldState;
 
     [AssetsOnly, BoxGroup("Setup")]
     [SerializeField] private MonchiVisualBankSO monchiVisualBank;
@@ -68,6 +69,7 @@ public class GameManager : MonoBehaviour
         GameEvents.OnFurnitureChanged += PersistFurniture;
         GameEvents.OnInventoryChanged += PersistInventory;
         GameEvents.OnInventoryReloaded += GrantPlacedFurniture;
+        GameEvents.OnWorldStateChanged += PersistWorldState;
     }
 
     private void OnDisable()
@@ -76,6 +78,7 @@ public class GameManager : MonoBehaviour
         GameEvents.OnFurnitureChanged -= PersistFurniture;
         GameEvents.OnInventoryChanged -= PersistInventory;
         GameEvents.OnInventoryReloaded -= GrantPlacedFurniture;
+        GameEvents.OnWorldStateChanged -= PersistWorldState;
     }
 
     private void GrantPlacedFurniture(PlayerInventorySO _)
@@ -105,6 +108,12 @@ public class GameManager : MonoBehaviour
     private void PersistInventory(PlayerInventorySO inv)
     {
         SaveSystem.SaveInventory(inv);
+        RequestPush();
+    }
+
+    private void PersistWorldState(WorldStateSO state)
+    {
+        SaveSystem.SaveWorldState(state);
         RequestPush();
     }
 
@@ -157,6 +166,7 @@ public class GameManager : MonoBehaviour
         pushPending = false;
         SaveSystem.SaveDatabase(creatureRegistry);
         SaveSystem.SaveSocialGraph();
+        SaveSystem.SaveWorldState(worldState);
         return cloudSync != null ? cloudSync.PushAsync() : Task.CompletedTask;
     }
 
@@ -178,6 +188,7 @@ public class GameManager : MonoBehaviour
         dna.Sociability = CreatureGenerator.RandomDial();
         dna.Boldness    = CreatureGenerator.RandomDial();
         dna.CustomName = CreatureNameBank.GetRandomName();
+        dna.BirthDay = GameClock.Instance != null ? GameClock.Instance.Day : 1;
         dna.Stamp();
 
         if (!creatureRegistry.Register(dna)) return null;
@@ -187,11 +198,6 @@ public class GameManager : MonoBehaviour
         return dna;
     }
 
-    public DateTime ServerNow =>
-        cloudSync != null
-            ? (DateTime.UtcNow + cloudSync.ServerOffset).ToLocalTime()
-            : DateTime.Now;
-
     public CreatureRegistrySO     Registry             => creatureRegistry;
     public FurnitureRegistrySO    FurnitureRegistry    => furnitureRegistry;
     public PlayerInventorySO      Inventory            => inventory;
@@ -200,6 +206,7 @@ public class GameManager : MonoBehaviour
     public RoleWorldProfileSO     RoleWorldProfiles    => roleWorldProfiles;
     public MonchiVisualBankSO     MonchiVisualBank     => monchiVisualBank;
     public FurTypeDatabaseSO      FurTypeDatabase      => furTypeDatabase;
+    public WorldStateSO           WorldState           => worldState;
 
     [ShowInInspector, ReadOnly, LabelText("Registered Creatures"), BoxGroup("Registry")]
     public int RegistryCount => creatureRegistry?.Count ?? 0;

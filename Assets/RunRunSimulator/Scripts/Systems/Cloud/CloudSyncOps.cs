@@ -16,7 +16,7 @@ public class CloudSyncOps
     private const string FURNITURE_KEY = "furnitureregistry";
     private const string INVENTORY_KEY = "playerinventory";
     private const string SOCIAL_KEY    = "socialgraph";
-    private const string CANCEL_ALL_BREEDING = "cancel-all-breeding";
+    private const string WORLD_KEY     = "worldstate";
 
     [Serializable]
     private class SyncMeta
@@ -30,6 +30,7 @@ public class CloudSyncOps
     private readonly CreatureRegistrySO registry;
     private readonly FurnitureRegistrySO furnitureRegistry;
     private readonly PlayerInventorySO inventory;
+    private readonly WorldStateSO worldState;
     private readonly Action<string> setStatus;
 
     private bool isPushInProgress = false;
@@ -41,12 +42,13 @@ public class CloudSyncOps
 
     public CloudSyncOps(CloudAuth auth, CreatureRegistrySO registry,
         FurnitureRegistrySO furnitureRegistry, PlayerInventorySO inventory,
-        Action<string> setStatus)
+        WorldStateSO worldState, Action<string> setStatus)
     {
         this.auth              = auth;
         this.registry          = registry;
         this.furnitureRegistry = furnitureRegistry;
         this.inventory         = inventory;
+        this.worldState        = worldState;
         this.setStatus         = setStatus;
     }
 
@@ -162,6 +164,8 @@ public class CloudSyncOps
                     payload[FURNITURE_KEY] = SaveSystem.SerializeFurniture(furnitureRegistry);
                 if (inventory != null)
                     payload[INVENTORY_KEY] = SaveSystem.SerializeInventory(inventory);
+                if (worldState != null)
+                    payload[WORLD_KEY] = SaveSystem.SerializeWorldState(worldState);
 
                 await CloudSaveService.Instance.Data.Player.SaveAsync(payload);
 
@@ -193,7 +197,7 @@ public class CloudSyncOps
         {
             setStatus("Pulling...");
             var result = await CloudSaveService.Instance.Data.Player.LoadAsync(
-                new HashSet<string> { REGISTRY_KEY, META_KEY, FURNITURE_KEY, INVENTORY_KEY, SOCIAL_KEY });
+                new HashSet<string> { REGISTRY_KEY, META_KEY, FURNITURE_KEY, INVENTORY_KEY, SOCIAL_KEY, WORLD_KEY });
 
             if (!result.ContainsKey(REGISTRY_KEY))
             {
@@ -227,6 +231,14 @@ public class CloudSyncOps
             {
                 var sData = SaveSystem.DeserializeSocialGraph(result[SOCIAL_KEY].Value.GetAs<string>());
                 SocialGraphService.ImportData(sData, id => registry.TryGet(id, out _));
+            }
+
+            if (result.ContainsKey(WORLD_KEY) && worldState != null)
+            {
+                var wData = SaveSystem.DeserializeWorldState(result[WORLD_KEY].Value.GetAs<string>());
+                worldState.LoadFrom(wData);
+                SaveSystem.SaveWorldState(worldState);
+                GameEvents.WorldStateReloaded(worldState);
             }
 
             long cloudPushedAt = 0;
@@ -319,14 +331,12 @@ public class CloudSyncOps
         {
             setStatus("Resetting...");
 
-            await CloudEndpoint.Guarded("CancelAllBreeding", "CancelAllBreeding",
-                () => CloudEndpoint.CallAsync(CANCEL_ALL_BREEDING, new Dictionary<string, object>()), setStatus);
-
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(REGISTRY_KEY,       new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(META_KEY,           new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(FURNITURE_KEY,      new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(INVENTORY_KEY,      new PlayerDeleteOptions()); } catch { }
             try { await CloudSaveService.Instance.Data.Player.DeleteAsync(SOCIAL_KEY,         new PlayerDeleteOptions()); } catch { }
+            try { await CloudSaveService.Instance.Data.Player.DeleteAsync(WORLD_KEY,          new PlayerDeleteOptions()); } catch { }
 
             registry.LoadFrom(new RegistryData
             {
@@ -347,6 +357,12 @@ public class CloudSyncOps
                 inventory.LoadFrom(null);
                 SaveSystem.SaveInventory(inventory);
                 GameEvents.InventoryReloaded(inventory);
+            }
+            if (worldState != null)
+            {
+                worldState.LoadFrom(null);
+                SaveSystem.SaveWorldState(worldState);
+                GameEvents.WorldStateReloaded(worldState);
             }
 
             if (File.Exists(MetaPath)) File.Delete(MetaPath);

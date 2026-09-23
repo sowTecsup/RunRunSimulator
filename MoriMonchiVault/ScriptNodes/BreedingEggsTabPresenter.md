@@ -6,32 +6,113 @@ tags: [script, ui, presenter]
 
 **Ruta:** `UI/BreedingEggsTabPresenter.cs`
 
-**Responsabilidad (S54):** Presenter de Tab 1 "Incubando" (mostrar huevos en progreso como filas: madre 💗 padre, timer, botón Hatch). Implementa `ITabPresenter`. Almacena lista de `EggView` (por madre en progreso: ReadyAt, Row, Time label, Hatch button). Método público `Tick()` adicional (no en interfaz) — cuenta atrás con throttle 1s (core llama solo si tab visible en Update).
+**Responsabilidad:** Presenter de Tab "Incubando" (mostrar huevos en progreso como filas: madre 💗 padre, timer, botón Hatch). Implementa `ITabPresenter`. Almacena lista de `EggView` (por madre en progreso: ReadyAt, Row, Time label, Hatch button). Método público `Tick()` para cuenta atrás con throttle 1s. S131: Llama `IncubationService.TryHatch()` que retorna `HatchResult` enum.
 
-**Datos UI:**
-- `eggListView` (ScrollView con filas de huevos)
-- Cada fila: "Madre 💗 Padre" + label tiempo + botón Hatch (oculto hasta ReadyAt)
+## Datos UI
 
-**Timer:**
-- `lastTickSecond` — evita recalcular timers cada frame (throttle 1s via `DateTime.UtcNow.Second`)
-- `Tick()` — recorre eggs, actualiza labels con tiempo restante (hh:mm:ss o mm:ss), muestra botón cuando ReadyAt <= now
+- `eggListView` (ScrollView) — filas de huevos
+- Cada fila: "Madre 💗 Padre" + label tiempo + botón Hatch
+- Botón mostrado solo cuando ReadyAt <= now
 
-**Navegación:**
-- v up/down navega lista, v-up sale del tab (retorna false)
-- Submit sobre egg ready → dispara `DoHatch()` async si ReadyAt <= now
+## Timer
 
-**Métodos de interfaz:**
-- `Enter()` — resetea foco, ScrollTo primer huevo
-- `Navigate(h,v):bool` — mueve índice en lista, retorna false si exit
-- `Submit()` — hatch el egg seleccionado si ready
-- `Cancel():bool` — retorna false (cierra tab)
-- `ClearFocus()` — limpia clases visuales
-- `Rebuild()` — rebuildEggs (escanea registry por criaturas en Breeding)
-- `Teardown()` — sin callbacks de botones (se recrean cada rebuild)
+- `lastTickSecond` — throttle 1s (evita recalcular cada frame)
+- `Tick()` — recorre eggs, actualiza labels con tiempo restante (mm:ss o hh:mm:ss)
 
-**Métodos privados:**
-- `RebuildEggs()` — escanea registry, crea fila por madre en `BusyReason.Breeding` (muestra padre por BreedPartnerID)
-- `RefreshEggTimers()` — calcula `ReadyAt - now`, formatea label (mm:ss o hh:mm:ss), muestra botón si ready
-- `DoHatch(motherId, btn)` — await `asyncBreedingService.HatchAsync()`, grisea botón durante, restaura si no_ready (btn aún attached) o lo deja orphaned si éxito
+## Métodos de Interfaz ITabPresenter
 
-**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CreatureRegistrySO]]
+| Método | Retorna | Descripción |
+|--------|---------|-------------|
+| `Enter()` | `void` | Resetea foco, ScrollTo primer huevo |
+| `Navigate(h, v)` | `bool` | Mueve índice en lista; retorna false si exit |
+| `Submit()` | `void` | Hatch el egg seleccionado si ready |
+| `Cancel()` | `bool` | Retorna false (cierra tab) |
+| `ClearFocus()` | `void` | Limpia clases visuales |
+| `Rebuild()` | `void` | RebuildEggs (escanea registry por BusyReason.Breeding) |
+| `Teardown()` | `void` | Limpia callbacks |
+
+## Métodos Privados
+
+| Método | Descripción |
+|--------|-------------|
+| `RebuildEggs()` | Escanea registry, crea fila por madre en Breeding (muestra padre por BreedPartnerID) |
+| `RefreshEggTimers()` | Calcula ReadyAt - now, formatea label, muestra botón si ready |
+| `DoHatch(motherID, fatherID, btn)` | **(S131)** Llama `IncubationService.TryHatch()`, procesa HatchResult |
+
+## DoHatch Flow (S131)
+
+```csharp
+private async void DoHatch(string motherID, string fatherID, Button btn)
+{
+    btn.SetEnabled(false);
+    
+    HatchResult result = incubationService.TryHatch(motherID, fatherID);
+    
+    switch (result)
+    {
+        case HatchResult.Hatched:
+            // Animar eclosión, eliminar fila, toast éxito
+            row.RemoveFromHierarchy();
+            UIManager.Toast("¡Ha nacido!");
+            break;
+            
+        case HatchResult.NotReady:
+            // Toast: "No está listo"
+            UIManager.Toast($"Aún falta tiempo");
+            btn.SetEnabled(true);
+            break;
+            
+        case HatchResult.InsufficientMinerita:
+            // Toast: "Insuficiente Minerita"
+            UIManager.Toast("Insuficiente Minerita");
+            btn.SetEnabled(true);
+            break;
+            
+        case HatchResult.Invalid:
+            // Toast: "Error: estado inválido"
+            UIManager.Toast("Error al eclosar");
+            btn.SetEnabled(true);
+            break;
+    }
+}
+```
+
+## Cambios S131
+
+**Renombrado:**
+- Campo: `asyncBreedingService` → `incubationService` (tipo `IncubationService`)
+
+**Método DoHatch ahora:**
+- Llama `IncubationService.TryHatch()` que retorna `HatchResult`
+- Procesa result switch para animar/toastear según caso
+- No es async (TryHatch es síncrono en S131)
+
+**HatchResult valores:**
+- `Hatched` = éxito, elimina fila
+- `NotReady` = timer no vencido, re-habilita botón
+- `InsufficientMinerita` = sin fondos, re-habilita botón
+- `Invalid` = error de estado, re-habilita botón
+
+## Vinculado a
+
+- [[Index/02 - Genetics & Breeding]]
+- [[Index/09 - Active Context]]
+
+## Conexiones
+
+**UI:**
+- [[ITabPresenter]] — interfaz
+- [[BreedingPanelUITK]] — host del presenter
+
+**Sistemas:**
+- [[IncubationService]] — orquestador de cría (S131, antes AsyncBreedingService)
+- [[CreatureRegistrySO]] — escanea para huevos
+- [[GameClock]] — lee TotalMinutes para ReadyAt comparison
+- [[Wallet]] — deducción de Minerita (en IncubationService)
+
+## Notas (S131 HC-4)
+
+- **HatchResult enum:** Nuevo en S131, permite UI distinguir entre fallos sin exceptions.
+- **Síncrono:** TryHatch es now síncrono (no await), resultado inmediato.
+- **Fila removal:** Si Hatched, elimina fila de lista (registry cambió via RegistryChanged event).
+- **Toast messaging:** Sugere Loc.Tr para i18n de mensajes.

@@ -6,44 +6,73 @@ tags: [script, ui, presenter]
 
 **Ruta:** `UI/BreedingBreedTabPresenter.cs`
 
-**Responsabilidad (S54):** Presenter de Tab 0 "Criar" (seleccionar padre + madre, preview ambos, ver duración, iniciar breed async). Implementa `ITabPresenter`. Almacena estado UI-only: foco interno entre 3 SubFocus (Slots, FatherList, MotherList), índices de selección + IDs padre/madre guardados. **S93:** Usa `UiPanels.SetActiveIndex()`. **S129:** Eliminada comparación de stats; muestra solo partes genéticas.
+**Responsabilidad:** Presenter de Tab 0 "Criar" (seleccionar padre+madre, preview, iniciar breed). Implementa `ITabPresenter`. S131: Cría síncrona; borrados campos `Busy` y `SetBreedBusy()`. Método TryBreed ahora retorna bool (éxito) sin async.
 
-**Navegación (jerarquía de foco):**
-- **SubFocus.Slots** (3 slots: padre, madre, botón Breed) — h/v se mueven entre slots, v-down entra a lista correspondiente
-- **SubFocus.FatherList** (scroll left) / **SubFocus.MotherList** (scroll right) — h/v navegan lista, Submit selecciona, Cancel vuelve a Slots
-- Al seleccionar padre/madre, el foco se devuelve a Slots (SubFocus.Slots) para permitir cambios rápidos antes de pulsar Breed
+## Cambios S131
 
-**Estado de bloqueo (Busy):**
-- Campo público `Busy:bool` — `true` durante `StartBreedingAsync()` en vuelo (congelados todos los inputs, botón gris "Breeding...")
-- `Navigate()`, `Submit()`, `Cancel()` devuelven sin cambio de estado si Busy==true (consume input sin hacer nada)
-- Core (BreedingPanelUITK) chequea `breed.Busy` antes de procesar input global
+**Borrados:**
+- `public bool Busy` — cría ahora síncrona (no hay estado "en vuelo")
+- `private void SetBreedBusy(bool)` — sin manejo de estado async
 
-**Datos UI:**
-- `fatherSlot`, `motherSlot` (botones/clicks → abren lista), `preview` (resumen padres + duración)
-- `fatherList`, `motherList` (ScrollView con candidatos elegibles: vivos, no ocupados, BreedCount < Max)
-- `breedButton` (dispara TryBreed async)
+**TryBreed signature:**
+```csharp
+// Antes (async):
+private async Task TryBreedAsync()
+{
+    Busy = true;
+    await BreedingController.Instance.StartBreedingAsync(motherID, fatherID);
+    Busy = false;
+}
 
-**Métodos de interfaz:**
-- `Enter()` — resetea foco a criarIndex=0 (padre)
-- `Navigate(h,v):bool` — maneja subfocus + índices, retorna false si sale del tab (v-up desde Slots)
-- `Submit()` — En Slots: abre lista o dispara TryBreed. En listas: selecciona candidato
-- `Cancel():bool` — Si lista: cierra y vuelve a Slots (true). Si Slots: retorna false (cierra tab)
-- `ClearFocus()` — limpia clases visuales
-- `Rebuild()` — rebuildCandidates + refreshSlots (datos + UI)
-- `Teardown()` — desuscribe breedButton.clicked
+// Ahora (síncrono):
+private void TryBreed()
+{
+    bool success = BreedingController.Instance.StartBreeding(motherID, fatherID);
+    if (success)
+    {
+        UIManager.Toast("¡Crianza iniciada!");
+        SaltarATabEggs();
+    }
+    else
+    {
+        UIManager.Toast("No se pudo iniciar la cría");
+    }
+}
+```
 
-**Métodos privados:**
-- `MakeCandidate(dna, bucket, isFather)` — fila con nombre + 5 partes genéticas + contador BreedCount/Max. Retrato fotomatón vía [[MonchiPortraitUI]].Apply()
-- `RefreshSlots()` — SetSlot (nombre + retrato fotomatón) + BuildPreview
-- `BuildPreview()` — muestra resumen columnar de padre/madre + duración ≈X min via InheritanceOdds. Agrega 5 filas de partes genéticas: `GetBodyShape()`, `GetHorn()`, `GetBack()`, `GetWing()`, `GetFace()` (cada una es un BodyPart con swatch color + nombre + Set name)
-- `ParentSummary()` — resumen de una criatura para preview (nombre + 5 partes genéticas)
-- `AddPartRow()` — fila visual de parte: swatch (color Set) + nombre parte y Set
-- `TryBreed()` — await `asyncBreedingService.StartBreedingAsync()`, clearear slots, invocar `onBred()` callback si éxito (madre en estado Breeding)
+**Flujo:**
+1. Submit en breedButton → TryBreed()
+2. TryBreed() → BreedingController.StartBreeding() (blocking)
+3. Si ok: toast + saltar a Tab 1 (Eggs)
+4. Si fallo: toast error, permanece en Tab 0
 
-## Cambios S129
+## Duración Display
 
-- **ELIMINADO:** Fila de stats (Constitution, Attack, Speed, Defense, Luck, Evasion)
-- **ELIMINADO:** Método `ParentSummary()` con stats; ahora solo muestra nombre + partes
-- **MANTIENE:** 5 partes genéticas, duración, BreedCount, retrato
+```csharp
+// Tab 0 preview muestra:
+int hours = BreedingController.Instance?.InheritanceOdds?.BreedDurationMinutes / 60 ?? 6;
+durationLabel.text = $"Incubación: {hours}h";
+```
 
-**Conexiones:** [[ITabPresenter]], [[BreedingPanelUITK]], [[AsyncBreedingService]], [[CreatureDatabaseSO]], [[MonchiPortraitUI]], [[BodyPart]], [[UiPanels]]
+## Navegación S131
+
+- SubFocus.Slots / SubFocus.FatherList / SubFocus.MotherList (sin cambios)
+- Sin bloqueo de input (no hay async en vuelo)
+
+## Vinculado a
+
+- [[Index/02 - Genetics & Breeding]]
+- [[Index/09 - Active Context]]
+
+## Conexiones
+
+- [[ITabPresenter]]
+- [[BreedingPanelUITK]] — anfitrión
+- [[BreedingController]] — StartBreeding() síncrono
+- [[IncubationService]] (vía BreedingController)
+
+## Notas (S131 HC-4)
+
+- **Sin Busy:** TryBreed() retorna inmediatamente (no async/await).
+- **Duración horas:** Minutos / 60 para display (ej: 360 min = 6h).
+- **Éxito/error:** Toast + salto de tab vs toast error + permanencia.

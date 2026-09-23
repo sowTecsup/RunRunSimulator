@@ -19,8 +19,10 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
     private float TotalWeight =>
         ParentWeight + GrandparentWeight + GreatGrandparentWeight + MutationWeight + BaseWeight;
 
-    [InfoBox("Solo display/referencia. La duración real está hardcoded en start-breeding.js (server-side).")]
-    [LabelWidth(190)] public int BreedDurationMinutes = 30;
+    [LabelWidth(190)] public int BreedDurationMinutes = 360;
+
+    [LabelWidth(190)] public int HatchCostBase = 10;
+    [LabelWidth(190)] public int HatchCostPerPartLevel = 5;
 
     [LabelWidth(190), Range(0f, 1f)] public float ElementMutationChance = 0.10f;
 
@@ -55,5 +57,11 @@ public class InheritanceOddsTableSO : SerializedScriptableObject
         c += MutationWeight;          if (roll < c) return Slot.Mutation;
         return Slot.Base;
     }
+
+    public int HatchCost(CreatureDNA mother, CreatureDNA father) =>
+        HatchCostBase + HatchCostPerPartLevel * (PartLevels(mother) + PartLevels(father));
+
+    private static int PartLevels(CreatureDNA dna) =>
+        dna == null ? 0 : ((int)dna.HornTier - 1) + ((int)dna.BackTier - 1) + ((int)dna.WingTier - 1);
 }
 }

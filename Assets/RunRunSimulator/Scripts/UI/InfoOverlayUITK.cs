@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using UnityEngine;
 using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
@@ -29,9 +28,9 @@ public class InfoOverlayUITK : MonoBehaviour
         new InputHint { Key = "Tab",   ActionKey = "ui.overlay.hint.catalog" },
     };
 
-    private const float DateRefreshInterval = 1f;
+    private const float ClockRefreshInterval = 1f;
 
-    private const string DateFormatKey = "ui.overlay.date.format";
+    private const string ClockKey      = "ui.overlay.clock";
     private const string DabloonsKey   = "ui.overlay.dabloons";
     private const string MaterialKey   = "ui.overlay.material";
     private const string ExpeditionReturnKey = "ui.overlay.expedition.return";
@@ -47,7 +46,7 @@ public class InfoOverlayUITK : MonoBehaviour
     private Label expeditionToastLabel;
     private float refreshTimer;
     private float toastTimer;
-    private string lastDateText;
+    private string lastClockText;
     private ExpeditionReturn? pendingToast;
 
     private void OnEnable()
@@ -56,6 +55,8 @@ public class InfoOverlayUITK : MonoBehaviour
         GameEvents.OnInventoryReloaded += RefreshDabloons;
         GameEvents.OnExpeditionReturned += HandleExpeditionReturned;
         GameEvents.OnCreatureDeparted += HandleCreatureDeparted;
+        GameEvents.OnDayBlockChanged += HandleDayBlockChanged;
+        GameEvents.OnDayStarted += HandleDayStarted;
         UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged += HandleLocaleChanged;
     }
 
@@ -65,6 +66,8 @@ public class InfoOverlayUITK : MonoBehaviour
         GameEvents.OnInventoryReloaded -= RefreshDabloons;
         GameEvents.OnExpeditionReturned -= HandleExpeditionReturned;
         GameEvents.OnCreatureDeparted -= HandleCreatureDeparted;
+        GameEvents.OnDayBlockChanged -= HandleDayBlockChanged;
+        GameEvents.OnDayStarted -= HandleDayStarted;
         UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocaleChanged -= HandleLocaleChanged;
     }
 
@@ -81,7 +84,7 @@ public class InfoOverlayUITK : MonoBehaviour
         expeditionToastLabel = root.Q<Label>("expedition-toast");
 
         BuildHints(root.Q<VisualElement>("hints"));
-        RefreshDate(force: true);
+        RefreshClock(force: true);
 
         var inv = GameManager.CurrentInventory;
         if (inv != null) RefreshDabloons(inv);
@@ -100,10 +103,10 @@ public class InfoOverlayUITK : MonoBehaviour
     private void Update()
     {
         refreshTimer += Time.unscaledDeltaTime;
-        if (refreshTimer >= DateRefreshInterval)
+        if (refreshTimer >= ClockRefreshInterval)
         {
             refreshTimer = 0f;
-            RefreshDate(force: false);
+            RefreshClock(force: false);
         }
 
         if (toastTimer > 0f)
@@ -114,24 +117,32 @@ public class InfoOverlayUITK : MonoBehaviour
         }
     }
 
-    private void RefreshDate(bool force)
+    private void RefreshClock(bool force)
     {
         if (dateLabel == null) return;
-        var now = DateTime.Now;
-        var culture = Loc.Culture;
-        string dayName = Capitalize(culture.DateTimeFormat.GetDayName(now.DayOfWeek), culture);
-        string monthName = Capitalize(culture.DateTimeFormat.GetMonthName(now.Month), culture);
-        string text = Loc.Tr(DateFormatKey, dayName, now.Day, monthName, now.Year);
-        if (!force && text == lastDateText) return;
-        lastDateText = text;
+
+        var clock = GameClock.Instance;
+        if (clock == null)
+        {
+            dateLabel.style.display = DisplayStyle.None;
+            lastClockText = null;
+            return;
+        }
+
+        dateLabel.style.display = DisplayStyle.Flex;
+        var block = clock.Block;
+        int hour = Mathf.Clamp((int)(clock.MinuteOfDay / 60f), 0, 23);
+        int minute = Mathf.Clamp((int)(clock.MinuteOfDay % 60f), 0, 59);
+        string blockName = block != null ? Loc.Tr(block.NameKey) : string.Empty;
+        string text = Loc.Tr(ClockKey, clock.Day, hour, minute, blockName);
+        if (!force && text == lastClockText) return;
+        lastClockText = text;
         dateLabel.text = text;
     }
 
-    private static string Capitalize(string value, CultureInfo culture)
-    {
-        if (string.IsNullOrEmpty(value)) return value;
-        return char.ToUpper(value[0], culture) + value.Substring(1);
-    }
+    private void HandleDayBlockChanged(DayBlockDef block) => RefreshClock(force: true);
+
+    private void HandleDayStarted(int day) => RefreshClock(force: true);
 
     private void RefreshDabloons(PlayerInventorySO inv)
     {
@@ -229,7 +240,7 @@ public class InfoOverlayUITK : MonoBehaviour
         var root = UiPanels.RootOf(document);
         if (root == null) return;
         BuildHints(root.Q<VisualElement>("hints"));
-        RefreshDate(force: true);
+        RefreshClock(force: true);
         var inv = GameManager.CurrentInventory;
         if (inv != null) RefreshDabloons(inv);
     }

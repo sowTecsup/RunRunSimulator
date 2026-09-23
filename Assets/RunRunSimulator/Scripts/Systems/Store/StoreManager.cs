@@ -15,6 +15,13 @@ public class StoreManager : MonoBehaviour
 
     public ShopCatalogSO Catalog => catalog;
 
+    private static int Today => GameClock.Instance != null ? GameClock.Instance.Day : 1;
+
+    private void OnEnable()  => GameEvents.OnDayStarted += OnDayStarted;
+    private void OnDisable() => GameEvents.OnDayStarted -= OnDayStarted;
+
+    private void OnDayStarted(int day) => RestockIfNeeded();
+
     public BuyResult BuyFurniture(FurnitureDefinitionSO def, StoreShopData shop)
     {
         if (def == null || shop == null) { Debug.LogWarning("[StoreManager] BuyFurniture: null arg."); return BuyResult.OutOfStock; }
@@ -26,8 +33,7 @@ public class StoreManager : MonoBehaviour
 
         if (inventory.HasFurniture(def.Id)) return BuyResult.AlreadyOwned;
 
-        var now   = GameManager.Now;
-        int price = catalog.FinalPrice(shop, now);
+        int price = catalog.FinalPrice(shop, Today);
         if (price > 0 && Wallet.Balance(Currency.Dabloons) < price) return BuyResult.InsufficientFunds;
 
         shop.TryConsume();
@@ -58,8 +64,7 @@ public class StoreManager : MonoBehaviour
         var inventory = GameManager.CurrentInventory;
         if (inventory == null) { Debug.LogError("[StoreManager] No PlayerInventory available."); return BuyResult.OutOfStock; }
 
-        var now   = GameManager.Now;
-        int price = catalog.FinalPrice(shop, now);
+        int price = catalog.FinalPrice(shop, Today);
         if (price > 0 && !Wallet.TrySpend(Currency.Dabloons, price, "store")) return BuyResult.InsufficientFunds;
 
         shop.TryConsume();
@@ -93,8 +98,7 @@ public class StoreManager : MonoBehaviour
         var inventory = GameManager.CurrentInventory;
         if (inventory == null) { Debug.LogError("[StoreManager] No PlayerInventory available."); return BuyResult.OutOfStock; }
 
-        var now   = GameManager.Now;
-        int price = catalog.FinalPrice(shop, now);
+        int price = catalog.FinalPrice(shop, Today);
         if (price > 0 && !Wallet.TrySpend(Currency.Dabloons, price, "store")) return BuyResult.InsufficientFunds;
 
         shop.TryConsume();
@@ -125,8 +129,8 @@ public class StoreManager : MonoBehaviour
     public void RestockIfNeeded()
     {
         if (catalog == null) return;
-        var now = GameManager.Now;
-        if (catalog.NeedsRestock(now)) catalog.RestockAll(now);
+        int day = Today;
+        if (catalog.NeedsRestock(day)) catalog.RestockAll(day);
     }
 }
 }

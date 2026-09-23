@@ -4,6 +4,34 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-22 (Session 131 — **HC-4 EJECUTADA: C6 reloj de juego, estado de mundo, migración v3 → v4 y cría local con Minerita** — 0 borrados, 29 modificados, 3 creados; compila 0 errores; 22/22 pruebas EditMode en verde; verificado en Play con el guardado real)
+
+**Focus:** [[Index/29 - Plan HC - Cimientos (ejecutable)]] §13 + calibración §6.7. Juan pidió ejecutar todo con placeholders en `/loop`. Cuatro `morimonchi-coder` en paralelo contra un contrato compartido (A reloj · B guardado y migración · C cría · D tienda, horario y decaimiento); el orquestador revisó, corrigió y verificó por MCP.
+
+**Respaldo previo:** `_SaveBackups/2026-09-22_pre-HC4/`.
+
+**Placeholders (provisionales, pedido de Juan):** día de juego = 24 min reales (1 min de juego = 1 s real, `DaySchedule.RealSecondsPerDay = 1440`); huevo 6 h de juego (`BreedDurationMinutes = 360`); eclosión = 10 + 5 por nivel de parte > 1 de cuerno/espalda/alas de ambos padres; bloques de `Index/18` 1.2 (6-9 libre · 9-18 tienda · 18-23 gestión · 23-6 noche); restock cada 3 días, descuento cada 7; decaimiento vida 0,07 · energía 0,1 (al moverse) · afecto 0,1 por minuto de juego. La incubadora queda para HC-5.
+
+1. **Reloj ✅** — `GameClock` (servicio de `GameScene`) avanza `WorldStateSO` (Día, MinuteOfDay, TutorialStep); no corre hasta `OnWorldStateReloaded`; guarda al cambiar de bloque (`WorldStateChanged` → `GameManager`). Eventos nuevos `OnDayStarted`/`OnDayBlockChanged`/`OnWorldStateChanged`/`OnWorldStateReloaded`. `OnExpeditionReturned` → amanecer (6:00; si ya pasó medianoche no suma otro día — corrección del orquestador, igual que saltar la noche después de medianoche). Reloj en el label `date` del overlay; botones DEV "siguiente bloque/día". `GameManager.Now`/`ServerNow` borrados.
+2. **Guardado ✅** — `SaveKind.World` → `world_state.json` + clave de nube `worldstate` (push, pull, reset). `CurrentVersion = 4`. Migración Registry v3 → v4: `BirthDay = 1 − edad real` (**sin clamp a 1**, desvío del plan: así se conserva la edad en un mundo que arranca en Día 1) y huevo en curso → `BreedReadyAt = 1` (listo). 7 pruebas nuevas.
+3. **Cría local ✅** — `AsyncBreedingService` → `IncubationService` (git mv, mismo GUID; refs de escena intactas). Síncrono, sin red: `StartBreeding`, `TryHatch` → `HatchResult` (NotReady / InsufficientMinerita / Hatched), cobra con `Wallet.TrySpend(Minerita, "hatch")`. `CreatureDNA.BirthDay` + `AgeDays(today)`. Botón de eclosionar con el costo y color Minerita (`.egg-hatch--minerita`, teal). Fuera la llamada `cancel-all-breeding`; `CloudCode/README.md` marca retirados los 4 `.js` de cría.
+4. **Tienda y horario ✅** — `ShopCatalogSO` por día de juego (`RestockEveryDays`, `DiscountEveryDays`; la primera revisión siempre repone — corrección del orquestador); enums `DiscountDay`/`DiscountMonth`/`RestockPeriod` borrados. Clientes solo con `CustomersOpen`; bajar solo con `ExpeditionOpen` (el subtítulo del panel lo avisa). Decaimiento × `GameClock.NeedsTimeScale` (se detiene en pausa).
+5. **Calibración ✅ (placeholder)** — medido en Play: con los valores viejos una criatura llena perdía la aptitud en ~40-80 s. Nuevos valores en el prefab `MorimonchiAgent`: ~9 min reales (un bloque de tienda) apta. **Hallazgo:** el afecto se desploma por eventos (lanzamiento al nacer, choques, peleas), no por el decaimiento: una recién nacida quedó en afecto −21 a los 33 s y no apta (`CareGate` pide afecto ≥ 0).
+
+**Medido en Play (guardado real):** reloj carga en Día 1 06:30 "Libre"; cuatro saltos de bloque → Día 2 06:00 con `world_state` v4 en disco; registro e inventario migrados a v4 con edades 13 y 1 día. Cría: `StartBreeding` ok, eclosión temprana → NotReady, con 0 de Minerita → InsufficientMinerita (el huevo espera), con saldo → `[Wallet] -10 Minerita (hatch) → 118`, cría "Prickly Smudge" gen 2, BirthDay 2. Cero llamadas a Cloud Code de cría. Reingreso a Play retoma el Día 2. Cero errores. **El guardado de Juan quedó con 14 criaturas, 118 Minerita, Día 2.**
+
+**Mutaciones fuera de código (OK de Juan):** `ScriptableObjects/World/WorldState.asset` y `DaySchedule.asset` NUEVOS; `GameScene`: objeto `GameClock` + ref `worldState` en `GameManager`; `InheritanceOddsTable.asset` (360 min, costos 10/5); prefab `MorimonchiAgent` (decaimiento); `BreedingPanelUITKStyle.uss`; tabla `Strings` 353 → **357** (+8: `ui.overlay.clock`, `ui.clock.block.*` ×4, `ui.expedition.night_only`, `ui.breeding.hatch.cost`, `ui.breeding.time.estimate.hours`; −4 huérfanas: `ui.breeding.time.estimate`, `ui.breeding.hatch.action`, `ui.breeding.hatch.busy`, `ui.overlay.date.format`).
+
+**Pendientes:** (1) afecto por eventos vs. `CareGate` — decidir con Juan (¿el lanzamiento no cuesta afecto?, ¿umbral?); (2) `BreedingContainer.cs` en 416 líneas (> 400); (3) Juan despublica los 4 `.js` de cría en UGS; (4) panel de cría no ejercitado por UI (solo por código); (5) `WorldState.asset` guarda valores de runtime en el editor (como los otros SO de registro); (6) sigue abierto el doble push tras la caja (S130).
+
+**Siguiente paso:** sesión **HC-5** (C7 cáscara, arranque y tutorial, `Index/29` §14): proponer la incubadora de huevos como paso del tutorial. Antes, revisar con Juan los placeholders de HC-4 y el hallazgo del afecto.
+
+**Archivos `.cs` creados (3):** `Data/World/WorldStateSO.cs`, `Data/Time/DayScheduleSO.cs`, `Systems/Time/GameClock.cs`.
+
+**Archivos `.cs` modificados (29):** `Core/DevToolsConsole.cs`, `Core/Enums/CreatureEnums.cs`, `Core/Enums/StoreEnums.cs`, `Core/GameEvents.cs`, `Core/GameManager.cs`, `Core/SaveSystem.cs`, `Data/Breeding/InheritanceOddsTableSO.cs`, `Data/Genetics/CreatureDNA.cs`, `Logic/SaveMigrations.cs`, `Systems/Breeding/BreedingController.cs`, `Systems/Breeding/BreedingDevConsole.cs`, `Systems/Breeding/IncubationService.cs` (renombrado desde `AsyncBreedingService.cs`), `Systems/Cloud/CloudSyncOps.cs`, `Systems/Cloud/CloudSyncService.cs`, `Systems/Store/ShopCatalogSO.cs`, `Systems/Store/StoreManager.cs`, `UI/BreedingBreedTabPresenter.cs`, `UI/BreedingEggsTabPresenter.cs`, `UI/BreedingPanelUITK.cs`, `UI/ExpeditionPanelUITK.cs`, `UI/InfoOverlayUITK.cs`, `UI/StorePanelUITK.cs`, `UI/TransactionPanelUITK.cs`, `World/AI/AgentBrain.cs`, `World/AI/MoriMochiAgent.cs`, `World/Containers/BreedingContainer.cs`, `World/Creatures/NameTag.cs`, `World/Npc/NpcController.cs`, `Tests/EditMode/SaveMigrationsTests.cs`.
+
+---
+
 **Session:** 2026-09-21 (Session 130 — **HC-3 EJECUTADA: C5 catálogo unificado, propiedad de muebles y caja de MoriMonchis** — 0 borrados, 7 modificados, 2 creados; compila 0 errores; verificado en Play con el guardado real)
 
 **Focus:** [[Index/29 - Plan HC - Cimientos (ejecutable)]] §7. Orquestador planea y revisa; tres `morimonchi-coder` en paralelo (A propiedad y minteo · B caja · C pestaña).

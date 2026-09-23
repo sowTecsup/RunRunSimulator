@@ -139,7 +139,8 @@ public class TransactionPanelUITK : MonoBehaviour
         if (archetypeLbl    != null) archetypeLbl.text    = arch != null ? arch.DisplayName : "";
         if (mmSwatch        != null) MonchiPortraitUI.Apply(mmSwatch, mm);
         if (targetNameLbl   != null) targetNameLbl.text   = string.IsNullOrEmpty(mm.CustomName) ? Loc.Tr("ui.transaction.default_mm_name") : mm.CustomName;
-        if (targetInfoLbl   != null) targetInfoLbl.text   = Loc.Tr("ui.transaction.target_info", GenderGlyph(mm.Gender), mm.AgeDays);
+        int today = GameClock.Instance != null ? GameClock.Instance.Day : 1;
+        if (targetInfoLbl   != null) targetInfoLbl.text   = Loc.Tr("ui.transaction.target_info", GenderGlyph(mm.Gender), mm.AgeDays(today));
         if (offerLbl        != null) offerLbl.text        = Loc.Tr("ui.transaction.offer_amount", currentCustomer.CurrentOffer);
         if (acceptBtn  != null) acceptBtn.SetEnabled(true);
         if (counterBtn != null) counterBtn.SetEnabled(!currentCustomer.HasCounteredOnce);

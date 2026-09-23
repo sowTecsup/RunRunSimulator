@@ -322,10 +322,6 @@ MonoBehaviour:
     m_Localized: "Vac\xEDo"
     m_Metadata:
       m_Items: []
-  - m_Id: 4172476088406
-    m_Localized: "\u2248 {0} min"
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172476088407
     m_Localized: Cruzar
     m_Metadata:
@@ -340,14 +336,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172476088410
     m_Localized: ???
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088411
-    m_Localized: Eclosionar
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088412
-    m_Localized: Eclosionando...
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088413
@@ -982,10 +970,6 @@ MonoBehaviour:
     m_Localized: ese
     m_Metadata:
       m_Items: []
-  - m_Id: 4172484476966
-    m_Localized: '{0} {1} de {2}, {3}'
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172484476967
     m_Localized: 'Dabloons: {0:N0}'
     m_Metadata:
@@ -1435,6 +1419,38 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 21057648338722816
     m_Localized: MoriMonchis
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665513914368
+    m_Localized: "D\xEDa {0} \xB7 {1:00}:{2:00} \xB7 {3}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246016
+    m_Localized: Libre
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246017
+    m_Localized: Tienda
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246018
+    m_Localized: "Gesti\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246019
+    m_Localized: Noche
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246020
+    m_Localized: Se baja de noche (23:00-6:00)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246021
+    m_Localized: Eclosionar ({0} Minerita)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246022
+    m_Localized: Listo en ~{0}
     m_Metadata:
       m_Items: []
   references:

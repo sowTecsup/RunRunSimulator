@@ -82,3 +82,11 @@ Mutacion GameEvents.OnRegistryChanged GameManager.SaveDatabase (disco) CloudSync
 **Una sola respuesta a "se puede usar".** `CreatureAvailability` (estatica pura) con `IsFree` / `IsWellCared` / `CanExplore` / `WeakestNeed`, contra el asset `CareGate.asset` (`CareGateSO`: `MinHealth = 60`, `MinEnergy = 60`, `MinAffect = 0`, **sin calibrar**). Con `gate == null` no bloquea.
 
 **`CreatureDNA.Generation`** (int): minteada 1, cria `max(madre, padre) + 1`, y relleno unico al cargar dentro de `CreatureRegistrySO.ReconcileColors()` (memoizado, con corte de ciclo) para todo lo que venga en 0.
+
+## S131 · Guardado v4: estado de mundo y tiempo de juego (hito HC, pieza C6)
+
+- **Quinto tipo de guardado:** `SaveKind.World` → `world_state.json` (con scope de usuario) + clave de nube `worldstate`. Contenido: `WorldStateData { Day = 1, MinuteOfDay = 360, TutorialStep = 0 }`, vivo en el asset `WorldStateSO` (`ScriptableObjects/World/WorldState.asset`, ref en `GameManager.worldState`). Dueño de la persistencia: `GameManager` (escucha `OnWorldStateChanged`, y `FlushToCloudAsync` tambien lo guarda). Carga: `CloudSyncService.HandleSignedInAsync` despues del inventario → `GameEvents.WorldStateReloaded`. Entra en push, pull, reset, `LatestLocalSavedAt` y `BackupLocal`.
+- **Quien lo muta:** solo `GameClock` (`Systems/Time/`), que guarda al cambiar de bloque, no cada frame.
+- **Paso v3 a v4 (`SaveKind.Registry`):** `BirthDay = 1 − edad real en dias` (desde `BirthDate`, puede quedar ≤ 0 a proposito para conservar la edad en un mundo que arranca en Dia 1) y todo huevo en curso queda listo (`BreedReadyAt = 1`). `SaveMigrations.Read(json, kind, nowTicks)` hace la migracion testeable. `CurrentVersion = 4`.
+- **Cambio de significado:** `CreatureDNA.BreedReadyAt` pasa de milisegundos reales a **minutos de juego** (`GameClock.TotalMinutes = Day × 1440 + MinuteOfDay`); `CreatureDNA.AgeDays(today)` usa `BirthDay` (dia de juego). `BirthDate`, `Timestamp` y `SaleDate` siguen en tiempo real (identidad y metadata).
+- La cria ya no toca Cloud Code: `ResetProgressAsync` dejo de llamar `cancel-all-breeding`.

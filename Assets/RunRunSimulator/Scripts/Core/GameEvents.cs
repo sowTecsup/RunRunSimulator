@@ -40,5 +40,17 @@ public static class GameEvents
 
     public static event Action<CreatureDNA> OnCreatureDeparted;
     public static void CreatureDeparted(CreatureDNA dna) => OnCreatureDeparted?.Invoke(dna);
+
+    public static event Action<WorldStateSO> OnWorldStateChanged;
+    public static void WorldStateChanged(WorldStateSO state) => OnWorldStateChanged?.Invoke(state);
+
+    public static event Action<WorldStateSO> OnWorldStateReloaded;
+    public static void WorldStateReloaded(WorldStateSO state) => OnWorldStateReloaded?.Invoke(state);
+
+    public static event Action<int> OnDayStarted;
+    public static void DayStarted(int day) => OnDayStarted?.Invoke(day);
+
+    public static event Action<DayBlockDef> OnDayBlockChanged;
+    public static void DayBlockChanged(DayBlockDef block) => OnDayBlockChanged?.Invoke(block);
 }
 }

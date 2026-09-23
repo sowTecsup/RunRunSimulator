@@ -11,7 +11,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
     private const string Focus = "breed-focus";
 
     private readonly Func<CreatureRegistrySO> getRegistry;
-    private readonly AsyncBreedingService asyncBreedingService;
+    private readonly IncubationService incubation;
 
     private readonly ScrollView eggListView;
 
@@ -23,6 +23,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
     private class EggView
     {
         public string MotherId;
+        public string FatherId;
         public long ReadyAt;
         public VisualElement Row;
         public Label Time;
@@ -30,10 +31,10 @@ public class BreedingEggsTabPresenter : ITabPresenter
     }
 
     public BreedingEggsTabPresenter(VisualElement root, Func<CreatureRegistrySO> getRegistry,
-        AsyncBreedingService asyncBreedingService)
+        IncubationService incubation)
     {
         this.getRegistry = getRegistry;
-        this.asyncBreedingService = asyncBreedingService;
+        this.incubation = incubation;
 
         eggListView = root.Q<ScrollView>("egg-list");
     }
@@ -108,15 +109,16 @@ public class BreedingEggsTabPresenter : ITabPresenter
             var time = new Label();
             time.AddToClassList("egg-time");
 
-            var hatch = new Button { text = Loc.Tr("ui.breeding.hatch.action") };
+            var hatch = new Button();
             hatch.AddToClassList("egg-hatch");
-            hatch.style.display = DisplayStyle.None;
+            hatch.AddToClassList("egg-hatch--minerita");
             string motherId = mother.UniqueID;
-            hatch.clicked += () => DoHatch(motherId, hatch);
+            string fatherId = mother.BreedPartnerID;
+            hatch.clicked += () => DoHatch(motherId, fatherId);
 
             row.Add(pair); row.Add(time); row.Add(hatch);
             eggListView.Add(row);
-            eggs.Add(new EggView { MotherId = motherId, ReadyAt = mother.BreedReadyAt, Row = row, Time = time, Hatch = hatch });
+            eggs.Add(new EggView { MotherId = motherId, FatherId = fatherId, ReadyAt = mother.BreedReadyAt, Row = row, Time = time, Hatch = hatch });
         }
 
         eggIndex = Mathf.Clamp(eggIndex, 0, Mathf.Max(0, eggs.Count - 1));
@@ -125,44 +127,44 @@ public class BreedingEggsTabPresenter : ITabPresenter
 
     private void RefreshEggTimers()
     {
-        long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        long now = GameClock.Instance != null ? GameClock.Instance.TotalMinutes : 0;
         foreach (var e in eggs)
         {
-            long rem = e.ReadyAt - now;
-            if (rem <= 0)
-            {
-                e.Time.text = Loc.Tr("ui.breeding.eggs.ready");
-                e.Hatch.style.display = DisplayStyle.Flex;
-            }
-            else
-            {
-                var t = TimeSpan.FromMilliseconds(rem);
-                e.Time.text = rem >= 3600000 ? t.ToString(@"hh\:mm\:ss") : t.ToString(@"mm\:ss");
-                e.Hatch.style.display = DisplayStyle.None;
-            }
+            bool ready = e.ReadyAt <= now;
+            e.Time.text = ready ? Loc.Tr("ui.breeding.eggs.ready") : FormatGameDuration(e.ReadyAt - now);
+            RefreshHatchButton(e, ready);
         }
     }
 
-    private async void DoHatch(string motherId, Button btn)
+    private void RefreshHatchButton(EggView e, bool ready)
     {
-        if (asyncBreedingService == null) { Debug.LogError("[BreedingPanel] AsyncBreedingService not assigned."); return; }
-        var registry = getRegistry();
-        if (registry == null || !registry.TryGet(motherId, out var mother)) return;
+        int cost = incubation != null ? incubation.HatchCostFor(e.MotherId, e.FatherId) : 0;
+        bool canAfford = Wallet.Balance(Currency.Minerita) >= cost;
+        bool enabled = ready && canAfford;
+        e.Hatch.text = Loc.Tr("ui.breeding.hatch.cost", cost);
+        e.Hatch.SetEnabled(enabled);
+        e.Hatch.EnableInClassList("egg-hatch--busy", !enabled);
+    }
 
-        if (btn != null)
+    private void DoHatch(string motherId, string fatherId)
+    {
+        if (incubation == null) { Debug.LogError("[BreedingPanel] IncubationService not assigned."); return; }
+
+        var result = incubation.TryHatch(motherId, fatherId);
+        switch (result)
         {
-            btn.SetEnabled(false);
-            btn.text = Loc.Tr("ui.breeding.hatch.busy");
-            btn.AddToClassList("egg-hatch--busy");
-        }
-
-        await asyncBreedingService.HatchAsync(motherId, mother.BreedPartnerID);
-
-        if (btn != null && btn.panel != null)
-        {
-            btn.SetEnabled(true);
-            btn.text = Loc.Tr("ui.breeding.hatch.action");
-            btn.RemoveFromClassList("egg-hatch--busy");
+            case HatchResult.Hatched:
+                RebuildEggs();
+                break;
+            case HatchResult.NotReady:
+                Debug.Log("[BreedingPanel] Egg not ready yet.");
+                break;
+            case HatchResult.InsufficientMinerita:
+                Debug.Log("[BreedingPanel] Not enough Minerita to hatch.");
+                break;
+            default:
+                Debug.LogWarning("[BreedingPanel] Hatch failed.");
+                break;
         }
     }
 
@@ -170,7 +172,7 @@ public class BreedingEggsTabPresenter : ITabPresenter
     {
         if (!InRange2(eggs, eggIndex)) return;
         var e = eggs[eggIndex];
-        if (DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() >= e.ReadyAt) DoHatch(e.MotherId, e.Hatch);
+        DoHatch(e.MotherId, e.FatherId);
     }
 
     private void HighlightEggs()
@@ -184,5 +186,13 @@ public class BreedingEggsTabPresenter : ITabPresenter
     }
 
     private static bool InRange2(List<EggView> list, int i) => i >= 0 && i < list.Count;
+
+    private static string FormatGameDuration(long minutes)
+    {
+        minutes = Math.Max(0, minutes);
+        long h = minutes / 60;
+        long m = minutes % 60;
+        return $"{h}h {m:00}m";
+    }
 }
 }

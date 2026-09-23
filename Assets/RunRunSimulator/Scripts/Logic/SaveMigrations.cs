@@ -1,3 +1,5 @@
+using System;
+using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 namespace MoriMonchiSimulator
@@ -8,19 +10,22 @@ public enum SaveKind
     Registry,
     Furniture,
     Inventory,
-    Social
+    Social,
+    World
 }
 
 public static class SaveMigrations
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     private static readonly string[] LegacyCreatureStatFields =
     {
         "BaseConstitution", "BaseAttack", "BaseSpeed", "BaseDefense", "BaseLuck", "BaseEvasion", "Equipped"
     };
 
-    public static SaveEnvelope Read(string json, SaveKind kind)
+    public static SaveEnvelope Read(string json, SaveKind kind) => Read(json, kind, DateTime.UtcNow.Ticks);
+
+    public static SaveEnvelope Read(string json, SaveKind kind, long nowTicks)
     {
         JToken root = TryParse(json);
         if (root == null)
@@ -32,7 +37,7 @@ public static class SaveMigrations
             return envelope;
 
         for (int fromVersion = envelope.Version; fromVersion < CurrentVersion; fromVersion++)
-            Migrate(kind, fromVersion, envelope);
+            Migrate(kind, fromVersion, envelope, nowTicks);
 
         envelope.Version = CurrentVersion;
         return envelope;
@@ -89,7 +94,7 @@ public static class SaveMigrations
         return new SaveEnvelope { Version = 1, SavedAtTicks = 0, Data = root };
     }
 
-    private static void Migrate(SaveKind kind, int fromVersion, SaveEnvelope envelope)
+    private static void Migrate(SaveKind kind, int fromVersion, SaveEnvelope envelope, long nowTicks)
     {
         switch (kind, fromVersion)
         {
@@ -101,6 +106,9 @@ public static class SaveMigrations
                 break;
             case (SaveKind.Registry, 2):
                 envelope.Data = RegistryV2ToV3(envelope.Data as JObject);
+                break;
+            case (SaveKind.Registry, 3):
+                RegistryV3ToV4(envelope.Data as JObject, nowTicks);
                 break;
         }
     }
@@ -156,6 +164,60 @@ public static class SaveMigrations
         }
 
         return new JObject { ["Alive"] = alive, ["Departed"] = departed };
+    }
+
+    private static void RegistryV3ToV4(JObject data, long nowTicks)
+    {
+        if (data == null)
+            return;
+
+        MigrateCreatureBucket(data["Alive"] as JObject, nowTicks);
+        MigrateCreatureBucket(data["Departed"] as JObject, nowTicks);
+    }
+
+    private static void MigrateCreatureBucket(JObject bucket, long nowTicks)
+    {
+        if (bucket == null)
+            return;
+
+        foreach (JProperty property in bucket.Properties())
+        {
+            JObject creature = property.Value as JObject;
+            if (creature == null)
+                continue;
+
+            int ageRealDays = RealDaysSinceBirth(creature["BirthDate"], nowTicks);
+            creature["BirthDay"] = 1 - ageRealDays;
+
+            long breedReadyAt = creature["BreedReadyAt"]?.Value<long>() ?? 0;
+            if (breedReadyAt > 0)
+                creature["BreedReadyAt"] = 1;
+        }
+    }
+
+    private static int RealDaysSinceBirth(JToken birthDateToken, long nowTicks)
+    {
+        DateTime? birthDate = ParseBirthDate(birthDateToken);
+        if (birthDate == null)
+            return 0;
+
+        int days = (int)(new DateTime(nowTicks, DateTimeKind.Utc) - birthDate.Value).TotalDays;
+        return days < 0 ? 0 : days;
+    }
+
+    private static DateTime? ParseBirthDate(JToken token)
+    {
+        if (token == null)
+            return null;
+
+        if (token.Type == JTokenType.Date)
+            return token.Value<DateTime>();
+
+        if (token.Type == JTokenType.String &&
+            DateTime.TryParse(token.Value<string>(), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime parsed))
+            return parsed;
+
+        return null;
     }
 }
 

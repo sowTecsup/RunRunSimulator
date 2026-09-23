@@ -40,9 +40,17 @@ namespace MoriMonchiSimulator
             if (Instance == this) Instance = null;
         }
 
+        private static bool CustomersOpen =>
+            GameClock.Instance == null || GameClock.Instance.Block == null || GameClock.Instance.Block.CustomersOpen;
+
         private void Update()
         {
             if (Time.time < nextSpawnAt) return;
+            if (!CustomersOpen)
+            {
+                nextSpawnAt = Time.time + Random.Range(minSpawnInterval, maxSpawnInterval);
+                return;
+            }
             if (active.Count >= maxSimultaneous)
             {
                 nextSpawnAt = Time.time + Random.Range(minSpawnInterval, maxSpawnInterval);

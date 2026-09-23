@@ -123,9 +123,9 @@ MonoBehaviour:
   courtRepath: 0.12
   courtTendRadius: 0.35
   courtTendInterval: 0.5
-  healthDecayPerSecond: 0.5
-  energyDecayPerSecond: 1
-  affectDecayPerSecond: 0.5
+  healthDecayPerGameMinute: 0.07
+  energyDecayPerGameMinute: 0.1
+  affectDecayPerGameMinute: 0.1
   criticalHealth: 25
   criticalEnergy: 25
   criticalAffect: -30

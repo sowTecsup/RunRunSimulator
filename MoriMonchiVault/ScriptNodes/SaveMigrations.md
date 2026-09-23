@@ -6,23 +6,35 @@ tags: [persistence, serialization, versioning]
 
 **Ruta:** `Scripts/Logic/SaveMigrations.cs` (assembly `MoriMonchi.Logic`)
 
-**Responsabilidad:** Cadena de transformaciones JSON que mantiene guardados vigentes entre versiones. `Read(json, kind)` deserializa, detecta versión, migra si es necesario, y devuelve [[SaveEnvelope]]. `Write(data, ticks)` envuelve el payload con versión y timestamp. **Nunca lanza excepciones:** JSON nulo, vacío o corrupto devuelven sobre vacío. Un guardado futuro se devuelve intacto.
-
-**S128:** Introducida para soportar evolución de persistencia sin datos perdidos. **S129:** CurrentVersion = 3; migrations v1→v2 (Inventory renombramiento) y v2→v3 (Registry + CreatureDNA legacy field stripping).
+**Responsabilidad:** Cadena de transformaciones JSON que mantiene guardados vigentes entre versiones. `Read(json, kind)` deserializa, detecta versión, migra si es necesario, y devuelve [[SaveEnvelope]]. `Write(data, ticks)` envuelve el payload con versión y timestamp. **Nunca lanza excepciones:** JSON nulo, vacío o corrupto devuelven sobre vacío. S131: Agregado SaveKind.World para persistencia de estado de mundo.
 
 ## Métodos Públicos
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
 | `Read(string json, SaveKind kind)` | `SaveEnvelope` | Lee JSON, detecta versión, migra si es necesario; **nunca lanza** |
-| `Write(JToken data, long ticks)` | `string` | Envuelve data en sobre v3 con timestamp; retorna JSON string |
+| `Read(string json, SaveKind kind, long nowTicks)` | `SaveEnvelope` | (overload) igual, pero con timestamp personalizado |
+| `Write(JToken data, long savedAtTicks)` | `string` | Envuelve data en sobre v4 con timestamp; retorna JSON string |
+
+## Enum SaveKind
+
+```csharp
+public enum SaveKind
+{
+    Registry,   // CreatureRegistrySO (Alive + Departed DNAs)
+    Furniture,  // FurnitureRegistrySO (placed furniture)
+    Inventory,  // PlayerInventorySO
+    Social,     // SocialGraphService (pairwise relationships)
+    World       // WorldStateSO (day, minute, tutorial) — S131
+}
+```
 
 ## Constantes
 
 | Constante | Valor | Descripción |
 |-----------|-------|-------------|
-| `CurrentVersion` | 3 | **(S129)** Versión activa; todos los Write generan v3 |
-| `LegacyCreatureStatFields` | string[] | Campos removidos: `BaseConstitution`, `BaseAttack`, `BaseSpeed`, `BaseDefense`, `BaseLuck`, `BaseEvasion`, `Equipped` |
+| `CurrentVersion` | 4 | **(S131)** Versión activa; todos los Write generan v4 |
+| `LegacyCreatureStatFields` | string[] | Campos removidos S129: `BaseConstitution`, `BaseAttack`, `BaseSpeed`, `BaseDefense`, `BaseLuck`, `BaseEvasion`, `Equipped` |
 
 ## Logica de Read
 
@@ -42,7 +54,7 @@ Borra: PassiveMaterial, EvolutionEssence
 Deja intacto: Dabloons, FurnitureOwned, WorldPropsStored, EquipmentGrids, HotbarSlots
 ```
 
-Otros `SaveKind` (`Registry`, `Furniture`, `Social`) pasan sin cambios.
+Otros `SaveKind` (`Registry`, `Furniture`, `Social`, `World`) pasan sin cambios.
 
 ### v2 → v3 (Registry + CreatureDNA legacy cleanup)
 
@@ -69,7 +81,31 @@ Borra campos legacy de CreatureDNA dentro de diccionarios:
 Por cada DNA en Alive + Departed, quita esos campos antes de retornar
 ```
 
-**Inventory, Furniture, Social:** pasan intactos.
+**Inventory, Furniture, Social, World:** pasan intactos.
+
+### v3 → v4 (S131 World intro)
+
+**(S131)** No hay transformación de datos existentes. v4 solo añade nueva capability (SaveKind.World) para persistencia de estado mundo. Guardados v3 siguen siendo válidos; Write solo genera v4.
+
+## SaveEnvelope Estructura
+
+```csharp
+public class SaveEnvelope
+{
+    public int Version = 0;
+    public long SavedAtTicks = 0;
+    public JToken Data = null;
+}
+```
+
+**Write result (v4):**
+```json
+{
+  "Version": 4,
+  "SavedAtTicks": 638475942000000000,
+  "Data": { ... }
+}
+```
 
 ## Casos de Borde (nunca lanzan)
 
@@ -80,26 +116,53 @@ Por cada DNA en Alive + Departed, quita esos campos antes de retornar
 - Array en vez de Object → se preserva intacto
 - Versión futura (`> CurrentVersion`) → se devuelve intacto sin migrar
 - Data null → sobre con `Data = null`
+- SaveKind.World + v3 legacy → pasa intacto
 
 ## Ciclo de Vida
 
-1. [[SaveSystem.Deserialize*]] llama `SaveMigrations.Read()` para cada tipo
-2. [[SaveSystem.Serialize*]] llama `SaveMigrations.Write()`
+1. [[SaveSystem.Deserialize*]] llama `SaveMigrations.Read(json, kind)` para cada tipo
+2. [[SaveSystem.Serialize*]] llama `SaveMigrations.Write(data, ticks)`
 3. [[GameManager]] desencadena persistencia vía eventos
-4. Arranque: [[CloudSyncOps.SyncOnStartupAsync]] lee locales vía deseriadores
+4. [[GameManager.FlushToCloudAsync()]] guarda registry, furniture, inventory, social graph y **world state** (S131)
+5. Arranque: [[CloudSyncOps.SyncOnStartupAsync]] lee locales vía deseriadores
+
+## Invariantes S131
+
+- **Versionado en cada serialización:** Cambios menores usan pases silenciosos (v3 → v4).
+- **SaveKind dispatch:** `Migrate()` toma `kind` para decidir lógica.
+- **Backward compat:** v1/v2/v3 seguirán migrando a v4 sin pérdida.
 
 ## Pruebas (EditMode)
 
 Tests en [[SaveMigrationsTests]]:
-- v1 → v2 → v3 chain migrations
+- v1 → v2 → v3 → v4 chain migrations
 - v2 → v3 Registry transform
 - v2 → v3 CreatureDNA legacy field stripping
-- Round-trip v3 (Write → Read)
+- Round-trip v4 (Write → Read)
 - Casos de borde (null, empty, whitespace, malformed, array, null data)
 
 ## Vinculado a
 
-[[Index/07 - Persistence & Identity]] (S128-S129 sección)
-[[Index/28 - Cimientos y camino a Game Ready]]
+- [[Index/07 - Persistence & Identity]]
+- [[Index/09 - Active Context]]
 
-**Conexiones:** [[SaveEnvelope]], [[SaveSystem]], [[SaveMigrationsTests]], [[RegistryData]], [[CreatureDNA]]
+## Conexiones
+
+**I/O:**
+- [[SaveSystem]] — punto de entrada, llama Read/Write para todos los tipos
+
+**Data:**
+- [[SaveEnvelope]] — estructura de sobre
+- [[RegistryData]], [[WorldStateData]] — payloads principales
+
+**Sistemas:**
+- [[GameManager]] — dispara persistencia
+- [[CloudSyncOps]] — carga iniciales
+- [[CloudSyncService]] — push a nube
+
+## Notas (S131 HC-4)
+
+- **CurrentVersion = 4:** S131 incrementó sin cambio de formato (preparando para futuro).
+- **SaveKind.World:** Nuevo kind, pero sin migraciones v3→v4 de contenido (World es nuevo SO).
+- **Timestamp:** Todas las serializaciones incluyen DateTime.UtcNow.Ticks para tracking.
+- **Roundtrip:** Leer v3, escribir v4, releer v4 produce datos idénticos.

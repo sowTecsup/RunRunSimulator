@@ -322,10 +322,6 @@ MonoBehaviour:
     m_Localized: Empty
     m_Metadata:
       m_Items: []
-  - m_Id: 4172476088406
-    m_Localized: "\u2248 {0} min"
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172476088407
     m_Localized: Breed
     m_Metadata:
@@ -340,14 +336,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172476088410
     m_Localized: ???
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088411
-    m_Localized: Hatch
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088412
-    m_Localized: Hatching...
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088413
@@ -986,10 +974,6 @@ MonoBehaviour:
     m_Localized: that one
     m_Metadata:
       m_Items: []
-  - m_Id: 4172484476966
-    m_Localized: '{0}, {2} {1}, {3}'
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172484476967
     m_Localized: 'Dabloons: {0:N0}'
     m_Metadata:
@@ -1438,6 +1422,38 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 21057648338722816
     m_Localized: MoriMonchis
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665513914368
+    m_Localized: "Day {0} \xB7 {1:00}:{2:00} \xB7 {3}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246016
+    m_Localized: Free time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246017
+    m_Localized: Shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246018
+    m_Localized: Management
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246019
+    m_Localized: Night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246020
+    m_Localized: Descents happen at night (23:00-6:00)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246021
+    m_Localized: Hatch ({0} Minerita)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246022
+    m_Localized: Ready in ~{0}
     m_Metadata:
       m_Items: []
   references:

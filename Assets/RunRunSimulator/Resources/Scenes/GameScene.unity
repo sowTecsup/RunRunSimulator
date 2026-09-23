@@ -23371,6 +23371,7 @@ MonoBehaviour:
   creatureRegistry: {fileID: 11400000, guid: 7a992ad405196fa48857c4a2b606b70e, type: 2}
   furnitureRegistry: {fileID: 11400000, guid: 065d7cb988feefa4db35e5ec9e276bd2, type: 2}
   inventory: {fileID: 11400000, guid: c6b5395f0df773044a7b71eef51a746f, type: 2}
+  worldState: {fileID: 11400000, guid: 9b4ea237bea2eec4b87dfa149e8628d6, type: 2}
   monchiVisualBank: {fileID: 11400000, guid: bde04aae719e5854687df754fb9d2b93, type: 2}
   furTypeDatabase: {fileID: 11400000, guid: 0942f13ed5b895d41816512ea15bd883, type: 2}
   cloudSync: {fileID: 1443145214}
@@ -26636,7 +26637,7 @@ MonoBehaviour:
   panel: 3
   sortingOrder: 100
   database: {fileID: 11400000, guid: cd17ebdc5dc5d1b49b91eaadaa267809, type: 2}
-  asyncBreedingService: {fileID: 1227227761}
+  incubation: {fileID: 1227227761}
 --- !u!114 &1218711430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26804,7 +26805,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BreedingController
   inheritanceOddsTable: {fileID: 11400000, guid: 3caa3387d801dc247b3c9672e526be74, type: 2}
-  asyncBreedingService: {fileID: 1227227761}
+  incubation: {fileID: 1227227761}
   affinityTable: {fileID: 11400000, guid: 385ff62d28fcc1b428b55a9f8e9f9c19, type: 2}
   lifeStageTable: {fileID: 11400000, guid: 54bc3ef92a2cf7f45a86f9df179ec2ee, type: 2}
 --- !u!4 &1227227760
@@ -30593,6 +30594,51 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &1709463049
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1709463051}
+  - component: {fileID: 1709463050}
+  m_Layer: 0
+  m_Name: GameClock
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1709463050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709463049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2c83bbee77c9f44fb0da0e9220f61ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MoriMonchiSimulator.GameClock
+  schedule: {fileID: 11400000, guid: 3093fb4b8379c8d4c801b58af482bb64, type: 2}
+--- !u!4 &1709463051
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709463049}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1722344123
 GameObject:
   m_ObjectHideFlags: 0
@@ -35374,6 +35420,7 @@ MonoBehaviour:
     IsShiny: 0
     CustomName: 
     Timestamp: 0
+    BirthDay: 0
     MotherID: 
     FatherID: 
     ChildrenIDs: []
@@ -36486,3 +36533,4 @@ SceneRoots:
   - {fileID: 1102137020}
   - {fileID: 3273127015860121874}
   - {fileID: 1038142491}
+  - {fileID: 1709463051}

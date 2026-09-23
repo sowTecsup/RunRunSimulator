@@ -25,6 +25,7 @@ public class CreatureDNA
     public string   CustomName = "";
     public long     Timestamp = 0;
     public DateTime BirthDate;
+    public int      BirthDay = 0;
 
     public string       MotherID    = "";
     public string       FatherID    = "";
@@ -66,7 +67,7 @@ public class CreatureDNA
     public string LocationKey  = "";
     public int    LocationSlot = -1;
 
-    public int AgeDays => BirthDate == default ? 0 : Mathf.Max(0, (int)(DateTime.UtcNow - BirthDate).TotalDays);
+    public int AgeDays(int today) => Mathf.Max(0, today - BirthDay);
 
     public string UniqueID => Timestamp > 0 ? $"{ToStringID()}-{Timestamp}" : "";
 

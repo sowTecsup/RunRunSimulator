@@ -1,81 +1,50 @@
 ---
-tags: [script, ui]
+tags: [script, ui, overlay]
 ---
 
-# InfoOverlayUITK
+# InfoOverlayUITK.cs
 
 **Ruta:** `UI/InfoOverlayUITK.cs`
 
-**Responsabilidad:** Overlay contextual siempre-visible (top-left hints de controles, top-right fecha/dabloons/**Minerita**, toast de retorno expedición, avisos de criatura partida). **S128:** actualiza labels de monedas para reflejar dos divisas (Dabloons + Minerita). **S129:** suscriptor nuevo de `OnCreatureDeparted` para mostrar aviso fade-out cuando criatura muere/vende.
+**Responsabilidad:** Overlay contextual siempre-visible. S131: Label "reloj" muestra día/minuto de juego (ej "Día 5 · 09:45"). Escucha `OnDayBlockChanged` / `OnDayStarted` para actualizar. String localización "ui.overlay.clock".
 
-## Campos Serializados
+## Display Clock (S131)
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `document` | `UIDocument` | UIToolkit doc tree (overlay siempre visible) |
-| `hints` | `InputHint[]` | Array de controles mostrados top-left |
-| `toastSeconds` | `float` | Duración del toast expedición (default 6s) |
-
-## Campos Privados (S128+)
-
-- `Label dateLabel` — hora y fecha top-right
-- `Label dabloonsLabel` — cantidad de dabloons
-- `Label mineritaLabel` — **S128** cantidad de Minerita (antes "material de aventura")
-- `Label expeditionToastLabel` — toast de retorno expedición
-- `float toastTimer` — cuenta atrás del toast
-- `ExpeditionReturn? pendingToast` — resultado en cola si toast label no está wired aún
-
-## Lifecycle
-
-| Método | Descripción |
-|--------|-------------|
-| `OnEnable()` | Suscribe a `GameEvents.OnInventoryChanged`, `InventoryReloaded`, `OnExpeditionReturned`, **S129:** `OnCreatureDeparted` |
-| `Start()` | Resuelve labels (date, dabloons, minerita, expeditionToast) |
-| `Update()` | Decrementa `toastTimer`; si ≤0 oculta toast |
-| `OnDisable()` | Desuscribe todos |
-| `HandleExpeditionReturned(ExpeditionReturn r)` | Callback; renderiza toast |
-| `ShowExpeditionToast(ExpeditionReturn r)` | Toast diferente según Lost |
-| **S129:** `HandleCreatureDeparted(CreatureDNA dna)` | Callback; muestra fade-out "Partió" + nombre |
-
-## Toast Expedición (S124)
-
-### Derrota (Lost=true)
-```
-"Perdiste en el piso N · −M vida"
-Clase: "toast--lose" (rojo)
+```csharp
+void UpdateClock()
+{
+    if (GameClock.Instance == null) return;
+    
+    int day = GameClock.Instance.Day;
+    float minute = GameClock.Instance.MinuteOfDay;
+    int hour = (int)(minute / 60);
+    int min = (int)(minute % 60);
+    
+    clockLabel.text = $"{Loc.Tr("ui.overlay.clock")} {day} · {hour:D2}:{min:D2}";
+}
 ```
 
-### Retorno exitoso (Lost=false)
-```
-"Volviste: N pisos · +M Minerita · −K vida"
-Clase: "toast--win" (azul si victoria), "toast--lose" (rojo si derrota)
-```
+## Suscripciones S131
 
-## Aviso Criatura Partida (S129)
+```csharp
+void OnEnable()
+{
+    GameEvents.OnDayBlockChanged += HandleBlockChanged;
+    GameEvents.OnDayStarted += HandleDayStarted;
+}
 
-Cuando `OnCreatureDeparted` dispara (muerte/venta):
-```
-"[Nombre] partió"
-Clase: "departure-notice" (gris/sepia)
-Duración: 4s fade
+void HandleBlockChanged(DayBlockDef block) => UpdateClock();
+void HandleDayStarted(int day) => UpdateClock();
 ```
 
-## Integración S128
+## Cambios S131
+- Label reloj con día/hora/minuto de juego
+- Actualización dinámica en cambios de día/bloque
 
-- `mineritaLabel` reemplaza `materialLabel` (dos monedas distintas)
-- Toast muestra `MineritaGained` en lugar de genérico "material"
-- Ambos labels actualizados vía `GameEvents.InventoryChanged`
+## Conexiones (S131)
+- [[GameClock]] — proporciona Day, MinuteOfDay
+- [[GameEvents]] — OnDayBlockChanged, OnDayStarted
 
-## Integración S129
-
-- **Nuevo suscriptor:** `OnCreatureDeparted` → muestra aviso de partida
-- Consulta `dna.CustomName` para mostrar nombre en aviso
-- Toast diferente si fue por venta (BusyReason.Sold) vs muerte (IsDead)
-
-## Vinculado a
-
-[[Index/05 - UI System]]
-[[Index/26 - Plan H0 - Bajada por pisos]] (S124)
-[[Index/28 - Cimientos y camino a Game Ready]]
-
-**Conexiones:** [[Loc]], [[GameManager]], [[GameEvents]], [[ExpeditionBridge]], [[UiPanels]], [[CreatureLifecycle]]
+## Notas (S131)
+- String "ui.overlay.clock" para localización.
+- Formato "Día X · HH:MM".

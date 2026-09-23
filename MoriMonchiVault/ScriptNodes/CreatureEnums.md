@@ -6,9 +6,9 @@ tags: [enum, creature, core, expedition]
 
 **Ruta:** `Core/Enums/CreatureEnums.cs`
 
-**Responsabilidad:** Enumeraciones centrales de comportamiento y estado. CreatureGender, LifeStage, MonchiMood, Tier, BusyReason, NeedType, CreatureCondition, CreatureIntent (S103: 30 valores), ProximityReaction, EmoteKind, SocialInteractionKind. **S103:** Agrega `CreatureIntent.Exploring = 28` (scout navega) y `CreatureIntent.Reporting = 29` (scout reporta veta).
+**Responsabilidad:** Enumeraciones centrales de comportamiento y estado. CreatureGender, LifeStage, MonchiMood, Tier, BusyReason, NeedType, CreatureCondition, CreatureIntent (S103: 30 valores), ProximityReaction, EmoteKind, SocialInteractionKind, HatchResult (S131). S131: Agregado HatchResult enum para flujo de cría local.
 
-**Enumeraciones:**
+## Enumeraciones
 
 | Enum | Valores |
 |------|---------|
@@ -23,8 +23,10 @@ tags: [enum, creature, core, expedition]
 | ProximityReaction | Ignore, Flee, Approach, Follow, Retreat |
 | EmoteKind | Curioso, Feliz, Jugando, Molesto, Corazon, Zzz |
 | SocialInteractionKind | PlayChase, SleepTogether, GremlinFight |
+| **HatchResult** | **(S131)** Hatched, NotReady, InsufficientMinerita, Invalid |
 
-**CreatureIntent S103 (30 valores):**
+## CreatureIntent S103 (30 valores)
+
 ```
 Idle = 0
 Wandering = 1
@@ -58,54 +60,84 @@ Exploring = 28         (S103: scout navega a veta NUEVO)
 Reporting = 29         (S103: scout reporta veta NUEVO)
 ```
 
-**S103 Cambios:**
+## HatchResult S131 (NUEVO)
+
+```csharp
+public enum HatchResult
+{
+    Hatched              = 0,
+    NotReady             = 1,
+    InsufficientMinerita = 2,
+    Invalid              = 3,
+}
+```
+
+**Propósito:** Retorno de `IncubationService.TryHatch()` para indicar éxito o tipo de falla.
+
+| Valor | Significado | Acción UI |
+|-------|-------------|-----------|
+| **Hatched** | Eclosión exitosa; criatura mintada y registrada | Animar hatching, mostrar criatura nueva |
+| **NotReady** | Huevo aún incubando; BreedReadyAt no alcanzado | Toast "No está listo" + mostrar tiempo faltante |
+| **InsufficientMinerita** | Cartera insuficiente para pagar eclosión | Toast "Insuficiente Minerita" + mostrar costo |
+| **Invalid** | Padres no encontrados o estado corrupto | Toast "Error: estado inválido" + log error |
+
+**Flujo en BreedingEggsTabPresenter:**
+```csharp
+HatchResult result = IncubationService.TryHatch(motherID, fatherID);
+switch (result)
+{
+    case HatchResult.Hatched:
+        // Animar eclosión
+        break;
+    case HatchResult.NotReady:
+        // Mostrar tiempo faltante
+        break;
+    case HatchResult.InsufficientMinerita:
+        // Pedir más Minerita
+        break;
+    case HatchResult.Invalid:
+        // Log error
+        break;
+}
+```
+
+## S103 Cambios: Exploring & Reporting
 
 **Exploring = 28** — scout viajando a veta descubierta
 - Generado por: AgentScout.Step=Traveling
 - Gesto: locomotion normal (no mapeado)
 - Mood: Neutral (exploración tranquila)
 - Color Cue: verde azulado (0.55, 0.9, 0.6)
-- Duración: hasta arribo
 
 **Reporting = 29** — scout reportando veta al pizarrón
 - Generado por: AgentScout.Step=Reporting
 - Gesto: "Yes" (celebración reporte, S103)
 - Mood: Emocionado (descubrimiento exitoso)
 - Color Cue: amarillo-verde (0.75, 1, 0.45)
-- Duración: ReportSeconds
 
-**Ocupación Explore → Fases → Intent:**
-- TryEngage → Exploring (via scout.TryEngage)
-- Traveling → Exploring
-- Reporting → Reporting + EmitEmote(Curioso/Feliz) + gesto "Yes"
+## Cambios S131 (HC-4)
 
-**Mapeo Ocupación Explore (S103):**
-```
-Explore:
-  - Exploring (navegando a sitio reportado por pizarrón)
-  - Reporting (stand + reporte al pizarrón + emote)
-```
+**Agregado:** HatchResult enum (introducido en S131 para cría local síncrona).
 
-**Integración con Drivers S103:**
+**Propósito:** IncubationService.TryHatch() retorna HatchResult en lugar de Task<bool> o void. Permite UI distinguir entre no listo, insuficiente fondos e inválido.
 
-**MonchiMoodDriver:**
-- Exploring → Neutral (calma exploratoria)
-- Reporting → Emocionado (logro de reporte)
+## Vinculado a
 
-**MonchiGestureSetSO:**
-- Reporting → "Yes" (celebración)
-- Exploring → unmapped (locomotion)
+- [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+- [[Index/02 - Genetics & Breeding]] (S131)
+- [[Index/09 - Active Context]] (S131)
 
-**CueStyleSO:**
-- Exploring color: (0.55, 0.9, 0.6)
-- Reporting color: (0.75, 1, 0.45)
+## Conexiones
 
-**Invariantes S103:**
-- Ocupación Explore ≠ Intent Exploring: Ocupación asignada al spawn, Intent es acción viva
-- Scout usa Exploring/Reporting, no Collect/Take/Carry/Secure
-- Exploring delegado a AgentScout (colaborador de AgentExpedition)
-- Reporting incluye emisión de reporte a pizarrón + counter de reportes
+**S103 (Exploración):**
+- [[AgentScout]], [[AgentExpedition]], [[TeamBlackboard]], [[MonchiMoodDriver]], [[MonchiGestureSetSO]], [[CueStyleSO]]
 
-**Vinculado a:** [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+**S131 (Cría local):**
+- [[IncubationService]] — retorna HatchResult
+- [[BreedingEggsTabPresenter]] — consume HatchResult en UI
+- [[Wallet]] — costo de eclosión en Minerita
 
-**Conexiones:** [[AgentScout]], [[AgentExpedition]], [[TeamBlackboard]], [[MonchiMoodDriver]], [[MonchiGestureSetSO]], [[CueStyleSO]], [[CreatureDNA]], [[MoriMochiAgent]]
+## Notas
+
+- **HatchResult orden:** Hatched=0 (éxito), luego fallos en orden de probabilidad (NotReady > InsufficientMinerita > Invalid).
+- **Integración UI:** BreedingEggsTabPresenter usa switch(result) para animar/toastear.

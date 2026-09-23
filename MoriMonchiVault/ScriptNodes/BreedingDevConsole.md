@@ -1,22 +1,72 @@
 ---
-tags: [script, genetics]
+tags: [script, genetics, dev-tools]
 ---
 
 # BreedingDevConsole.cs
 
 **Ruta:** `Systems/Breeding/BreedingDevConsole.cs`
 
-**Responsabilidad:** Componente dev (MonoBehaviour) para testing de cría local y async: Fill Random Breeders, Breed (síncrono, captura childID), Breed Timer (async StartBreedingAsync), Show Eggs / Hatch Egg / Cancel All Eggs (async: HatchAsync, CancelAllBreedingAsync). Despliega info de parejas activas, huevos incubando con timer. Refs serializadas [SerializeField] a GameManager + BreedingController. Solo para desarrollo.
+**Responsabilidad:** Dev component para testing cría. S131: API síncrona: `StartBreeding`, `TryHatch`, `CancelBreeding`. Duración mostrada en minutos de juego. Refs a GameManager + BreedingController. Solo para desarrollo.
 
-**S129:** Criterio de disponibilidad (madre/padre vivos, no vendidos, no ocupados, bajo límite de crianzas) delegado a `CreatureAvailability.IsFree()`.
+## Buttons (S131 síncrono)
 
-## Filtrado de Breeders (S129)
+| Button | Acción |
+|--------|--------|
+| `Fill Random Breeders (DEV)` | Genera 2 criaturas adultas aleatorias para test |
+| `Start Breeding (DEV)` | Llama `BreedingController.StartBreeding()` — retorna bool |
+| `Try Hatch (DEV)` | Llama `BreedingController.TryHatch()` — retorna HatchResult |
+| `Cancel Breeding (DEV)` | Llama `BreedingController.CancelBreeding()` |
+| `Show Eggs (DEV)` | Lista huevos activos |
 
-- Mother/Father: `CreatureAvailability.IsFree(dna) && dna.Gender == ... && dna.BreedCount < MaxBreedCount`
-- IsFree verifica: viva, no vendida, no ocupada (BusyState == Free)
+## Cambios S131
 
-**Vinculado a:** [[Index/02 - Breeding]], [[Index/09 - Dev Tools]]
+**API síncrona:**
+```csharp
+// Antes (async):
+await BreedingController.Instance.StartBreedingAsync(motherID, fatherID);
 
-**Conexiones:** [[GameManager]], [[BreedingController]], [[BreedingContainer]], [[CreatureRegistrySO]], [[BreedingService]], [[AsyncBreedingService]], [[CreatureAvailability]]
+// Ahora:
+bool success = BreedingController.Instance.StartBreeding(motherID, fatherID);
+Debug.Log($"Breeding started: {success}");
+```
 
-**Uso en escena:** Adjuntar a un GameObject con acceso a GameManager + BreedingController. Inspect, configura refs y usa botones para test cría.
+**Duración display:**
+```csharp
+// Muestra en minutos de juego
+int minutes = BreedingController.Instance?.InheritanceOdds?.BreedDurationMinutes ?? 360;
+Debug.Log($"Egg ready in {minutes} game minutes (~{minutes/60}h)");
+```
+
+**HatchResult handling:**
+```csharp
+HatchResult result = BreedingController.Instance.TryHatch(motherID, fatherID);
+switch (result)
+{
+    case HatchResult.Hatched:
+        Debug.Log("Hatched successfully!");
+        break;
+    case HatchResult.NotReady:
+        Debug.Log("Egg not ready yet");
+        break;
+    // ...
+}
+```
+
+## Vinculado a
+
+- [[Index/02 - Genetics & Breeding]]
+- [[Index/09 - Dev Tools]]
+- [[Index/09 - Active Context]]
+
+## Conexiones
+
+- [[BreedingController]] — API síncrona (S131)
+- [[IncubationService]] (vía BreedingController)
+- [[GameManager]], [[CreatureRegistrySO]]
+- [[CreatureAvailability]]
+
+## Notas (S131 HC-4)
+
+- **Síncrono:** Sin async/await; resultados inmediatos.
+- **Duración:** Minutos de juego (360 default = 6 horas si tiempo real 1:1).
+- **HatchResult enum:** Hatched/NotReady/InsufficientMinerita/Invalid.

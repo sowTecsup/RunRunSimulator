@@ -86,5 +86,21 @@ public class DevToolsConsole : MonoBehaviour
         if (expeditionBridge == null) { Debug.LogWarning("[DevToolsConsole] No ExpeditionBridge assigned."); return; }
         expeditionBridge.Depart();
     }
+
+    [Button("Siguiente bloque (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.9f, 1f), BoxGroup("Reloj (DEV)")]
+    private void DevNextBlock()
+    {
+        if (!Application.isPlaying) { Debug.LogWarning("[DevToolsConsole] Solo en Play."); return; }
+        if (GameClock.Instance == null) { Debug.LogWarning("[DevToolsConsole] No hay GameClock en la escena."); return; }
+        GameClock.Instance.AdvanceToNextBlock();
+    }
+
+    [Button("Siguiente día (DEV)", ButtonSizes.Medium), GUIColor(0.6f, 0.9f, 1f), BoxGroup("Reloj (DEV)")]
+    private void DevNextDay()
+    {
+        if (!Application.isPlaying) { Debug.LogWarning("[DevToolsConsole] Solo en Play."); return; }
+        if (GameClock.Instance == null) { Debug.LogWarning("[DevToolsConsole] No hay GameClock en la escena."); return; }
+        GameClock.Instance.AdvanceToNextDay();
+    }
 }
 }

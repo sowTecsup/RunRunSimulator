@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 using MoriMonchiSimulator;
@@ -214,5 +215,93 @@ public class SaveMigrationsTests
     {
         string json = SaveMigrations.Write(null, 0);
         Assert.DoesNotThrow(() => SaveMigrations.Read(json, SaveKind.Registry));
+    }
+
+    [Test]
+    public void RegistryV3_BirthDateAsIsoString_BirthDayFromRealAgeWithFixedNow()
+    {
+        long nowTicks = new DateTime(2024, 1, 11, 0, 0, 0, DateTimeKind.Utc).Ticks;
+        string json = "{\"Version\":3,\"SavedAtTicks\":0,\"Data\":{\"Alive\":{" +
+            "\"BS0-H0-BK0-W0-FC0-111111-1\":{\"CustomName\":\"Rex\",\"BirthDate\":\"2024-01-01T00:00:00Z\",\"IsDead\":false}" +
+            "},\"Departed\":{}}}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Registry, nowTicks);
+        JObject alive = (JObject)((JObject)envelope.Data)["Alive"];
+        JObject rex = (JObject)alive["BS0-H0-BK0-W0-FC0-111111-1"];
+
+        Assert.AreEqual(SaveMigrations.CurrentVersion, envelope.Version);
+        Assert.AreEqual(-9, rex["BirthDay"].Value<int>());
+    }
+
+    [Test]
+    public void RegistryV3_CreatureWithoutBirthDate_BirthDayDefaultsToOne()
+    {
+        string json = "{\"Version\":3,\"SavedAtTicks\":0,\"Data\":{\"Alive\":{" +
+            "\"BS0-H0-BK0-W0-FC0-222222-2\":{\"CustomName\":\"Mila\",\"IsDead\":false}" +
+            "},\"Departed\":{}}}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Registry);
+        JObject alive = (JObject)((JObject)envelope.Data)["Alive"];
+        JObject mila = (JObject)alive["BS0-H0-BK0-W0-FC0-222222-2"];
+
+        Assert.AreEqual(1, mila["BirthDay"].Value<int>());
+    }
+
+    [Test]
+    public void RegistryV3_EggInProgress_BreedReadyAtBecomesOne()
+    {
+        string json = "{\"Version\":3,\"SavedAtTicks\":0,\"Data\":{\"Alive\":{" +
+            "\"BS0-H0-BK0-W0-FC0-333333-3\":{\"CustomName\":\"Toby\",\"IsDead\":false,\"BreedReadyAt\":500000}" +
+            "},\"Departed\":{}}}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Registry);
+        JObject alive = (JObject)((JObject)envelope.Data)["Alive"];
+        JObject toby = (JObject)alive["BS0-H0-BK0-W0-FC0-333333-3"];
+
+        Assert.AreEqual(1, toby["BreedReadyAt"].Value<long>());
+    }
+
+    [Test]
+    public void RegistryV3_NoEgg_BreedReadyAtStaysZero()
+    {
+        string json = "{\"Version\":3,\"SavedAtTicks\":0,\"Data\":{\"Alive\":{" +
+            "\"BS0-H0-BK0-W0-FC0-444444-4\":{\"CustomName\":\"Nina\",\"IsDead\":false,\"BreedReadyAt\":0}" +
+            "},\"Departed\":{}}}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Registry);
+        JObject alive = (JObject)((JObject)envelope.Data)["Alive"];
+        JObject nina = (JObject)alive["BS0-H0-BK0-W0-FC0-444444-4"];
+
+        Assert.AreEqual(0, nina["BreedReadyAt"].Value<long>());
+    }
+
+    [Test]
+    public void RegistryV3_DepartedCreatures_AlsoMigrate()
+    {
+        long nowTicks = new DateTime(2024, 1, 6, 0, 0, 0, DateTimeKind.Utc).Ticks;
+        string json = "{\"Version\":3,\"SavedAtTicks\":0,\"Data\":{\"Alive\":{}," +
+            "\"Departed\":{\"BS0-H0-BK0-W0-FC0-555555-5\":{\"CustomName\":\"Old\",\"IsDead\":true," +
+            "\"BirthDate\":\"2024-01-01T00:00:00Z\",\"BreedReadyAt\":90}}}}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.Registry, nowTicks);
+        JObject departed = (JObject)((JObject)envelope.Data)["Departed"];
+        JObject old = (JObject)departed["BS0-H0-BK0-W0-FC0-555555-5"];
+
+        Assert.AreEqual(-4, old["BirthDay"].Value<int>());
+        Assert.AreEqual(1, old["BreedReadyAt"].Value<long>());
+    }
+
+    [Test]
+    public void WorldEnvelope_AlreadyCurrentVersion_ReadsIntact()
+    {
+        string json = "{\"Version\":" + SaveMigrations.CurrentVersion + ",\"SavedAtTicks\":123,\"Data\":{\"Day\":5,\"MinuteOfDay\":720.0,\"TutorialStep\":2}}";
+
+        SaveEnvelope envelope = SaveMigrations.Read(json, SaveKind.World);
+
+        Assert.AreEqual(SaveMigrations.CurrentVersion, envelope.Version);
+        Assert.AreEqual(123L, envelope.SavedAtTicks);
+        Assert.AreEqual(5, envelope.Data["Day"].Value<int>());
+        Assert.AreEqual(720.0, envelope.Data["MinuteOfDay"].Value<double>());
+        Assert.AreEqual(2, envelope.Data["TutorialStep"].Value<int>());
     }
 }

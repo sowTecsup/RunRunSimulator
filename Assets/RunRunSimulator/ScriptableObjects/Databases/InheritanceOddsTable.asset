@@ -26,3 +26,11 @@ MonoBehaviour:
   GreatGrandparentWeight: 10
   MutationWeight: 20
   BaseWeight: 10
+  BreedDurationMinutes: 360
+  HatchCostBase: 10
+  HatchCostPerPartLevel: 5
+  ElementMutationChance: 0.1
+  DialAverageWeight: 50
+  DialCopyWeight: 30
+  DialMutationWeight: 20
+  DialJitter: 0.05

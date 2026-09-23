@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 namespace MoriMonchiSimulator
@@ -196,7 +195,8 @@ public class NameTag : MonoBehaviour
         }
         if (stageLabel != null)
         {
-            stageLabel.text = StageText(dna.AgeDays);
+            int today = GameClock.Instance != null ? GameClock.Instance.Day : 1;
+            stageLabel.text = StageText(dna.AgeDays(today));
             SetDisplay(stageLabel, true);
         }
         if (breedLabel != null)
@@ -301,10 +301,11 @@ public class NameTag : MonoBehaviour
             : $"{ageDays}d";
     }
 
-    private static string CountdownText(long readyAtMs)
+    private static string CountdownText(long readyAtMinutes)
     {
-        long left = readyAtMs - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        return left <= 0 ? Loc.Tr("nametag.ready") : $"{TimeSpan.FromMilliseconds(left):mm\\:ss}";
+        long now  = GameClock.Instance != null ? GameClock.Instance.TotalMinutes : 0;
+        long left = readyAtMinutes - now;
+        return left <= 0 ? Loc.Tr("nametag.ready") : $"{left / 60}h {left % 60:00}m";
     }
 }
 }

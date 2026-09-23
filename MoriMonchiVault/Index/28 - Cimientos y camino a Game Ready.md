@@ -113,7 +113,7 @@ Siete piezas. El orden es de dependencias: primero se achica la superficie, desp
 - **Desbloquea:** el arranque del jugador (C7), los sumideros de dabloons, la tienda online como contenido.
 - **Muta fuera de código:** `ShopCatalog.asset`, prefab de la caja, UXML de la tienda y del modo construcción.
 
-### C6 · Reloj de juego
+### C6 · Reloj de juego ✅ (S131)
 - **Regla:** el tiempo del juego es del juego: un día con bloques, que se guarda y se puede pausar; nada de gameplay mira el calendario real.
 - **Subetapas:** servicio de reloj (día, hora, bloque, velocidad, pausa con paneles abiertos) con eventos de cambio de bloque y de día; reloj visible; pasar al reloj la edad, el restock, los descuentos, el decaimiento de necesidades y la llegada de clientes; la noche habilita la bajada.
 - **El diseño de los bloques no se decide aquí:** el cimiento entrega el enchufe (bloques configurables por asset). La estructura de 4 bloques de [[Index/18 - Pilares del Rediseno (Draft)]] 1.2 es el primer dato que se carga.
@@ -189,7 +189,7 @@ Linaje y marcas (H2) · fenotipo y feel (H4) · contenido (H6) · localización 
 
 ```
 H0 (prueba de Juan) ─┐
-                     ├─ HC: C1 ✅ → C2 ✅ → C3 ✅ → C4 ✅ → C5 ✅ → C6 → C7
+                     ├─ HC: C1 ✅ → C2 ✅ → C3 ✅ → C4 ✅ → C5 ✅ → C6 ✅ → C7
                      │          (pruebas y build al cerrar)
                      └─ E4.2 intenciones (paralelo: no toca el guardado)
 HC ─→ H1 loop cerrado = E1.1-E1.2 + E2.1-E2.3 + E3.1 + E4.3

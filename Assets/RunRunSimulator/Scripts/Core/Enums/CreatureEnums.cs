@@ -46,6 +46,14 @@ public enum BusyReason
     Sold              = 3,
 }
 
+public enum HatchResult
+{
+    Hatched              = 0,
+    NotReady             = 1,
+    InsufficientMinerita = 2,
+    Invalid              = 3,
+}
+
 public enum NeedType
 {
     Health = 0,

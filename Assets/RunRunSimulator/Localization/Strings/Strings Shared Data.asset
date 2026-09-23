@@ -319,10 +319,6 @@ MonoBehaviour:
     m_Key: ui.breeding.slot.empty
     m_Metadata:
       m_Items: []
-  - m_Id: 4172476088406
-    m_Key: ui.breeding.time.estimate
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172476088407
     m_Key: ui.breeding.breed.action
     m_Metadata:
@@ -337,14 +333,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 4172476088410
     m_Key: ui.breeding.eggs.unknownfather
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088411
-    m_Key: ui.breeding.hatch.action
-    m_Metadata:
-      m_Items: []
-  - m_Id: 4172476088412
-    m_Key: ui.breeding.hatch.busy
     m_Metadata:
       m_Items: []
   - m_Id: 4172476088413
@@ -919,10 +907,6 @@ MonoBehaviour:
     m_Key: npc.unnamed
     m_Metadata:
       m_Items: []
-  - m_Id: 4172484476966
-    m_Key: ui.overlay.date.format
-    m_Metadata:
-      m_Items: []
   - m_Id: 4172484476967
     m_Key: ui.overlay.dabloons
     m_Metadata:
@@ -1425,6 +1409,38 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 21057648338722816
     m_Key: ui.store.tab.creatures
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665513914368
+    m_Key: ui.overlay.clock
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246016
+    m_Key: ui.clock.block.free
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246017
+    m_Key: ui.clock.block.shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246018
+    m_Key: ui.clock.block.manage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246019
+    m_Key: ui.clock.block.night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246020
+    m_Key: ui.expedition.night_only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246021
+    m_Key: ui.breeding.hatch.cost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21463665564246022
+    m_Key: ui.breeding.time.estimate.hours
     m_Metadata:
       m_Items: []
   m_Metadata:

@@ -173,8 +173,8 @@ public class StorePanelUITK : MonoBehaviour, IUINavigable
 
     private VisualElement BuildRow(StoreRows.Row row)
     {
-        var  serverNow      = GameManager.Now;
-        bool discountActive = Catalog?.IsDiscountActive(serverNow) ?? false;
+        int  today          = GameClock.Instance != null ? GameClock.Instance.Day : 1;
+        bool discountActive = Catalog?.IsDiscountActive(today) ?? false;
 
         var el = new VisualElement();
         el.AddToClassList(RowClass);

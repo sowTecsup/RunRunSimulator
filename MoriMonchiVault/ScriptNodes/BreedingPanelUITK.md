@@ -6,24 +6,77 @@ tags: [script, ui, breeding]
 
 **Ruta:** `UI/BreedingPanelUITK.cs`
 
-**Responsabilidad (S54 — Fase 7 composición):** Panel modal de crianza (2 tabs: Criar/Incubando). Núcleo delgado MonoBehaviour que orquesta: Tab 0 "Criar" (seleccionar padre+madre, preview, breed) y Tab 1 "Incubando" (huevos + timers + hatch). Compone `ITabPresenter` (contrato polimórfico) + 2 presenters concretos: `BreedingBreedTabPresenter`, `BreedingEggsTabPresenter`. Implementa `IUINavigable` (foco jerárquico TabBar ↔ Content). **S93:** Usa `UiPanels.RootOf()`. Eventos: `OnRegistry` (rebuild listas), `OnBred()` callback (salta a tab 1 tras breed exitoso). Campo especial: `breed.Busy` — congelado input global mientras async breed en vuelo. `Update()` llama `eggs.Tick()` solo si tab 1 visible. Callbacks async via `AsyncBreedingService` (StartBreedingAsync/HatchAsync).
+**Responsabilidad:** Panel modal de crianza (2 tabs: Criar/Incubando). Orquesta `BreedingBreedTabPresenter` (Tab 0: seleccionar padre+madre, preview, breed) y `BreedingEggsTabPresenter` (Tab 1: huevos + timers + hatch). Implementa `IUINavigable`. S131: Recibe `IncubationService` (antes `asyncBreedingService`). Borrados campos `breedBusy` y `SetBreedBusy()` (cría ahora síncrona). Duración se muestra en horas de juego.
 
-**Organización (S54 composición — Fase 7):**
-- `BreedingPanelUITK.cs` — núcleo MonoBehaviour: lifecycle, navigation, tab bar ↔ content, fachada IUINavigable
-- `ITabPresenter.cs` — contrato polimórfico para presenters (Enter/Navigate/Submit/Cancel/ClearFocus/Rebuild/Teardown)
-- `BreedingBreedTabPresenter.cs` — Tab 0: selección padre/madre + preview + breed async (gestiona Busy)
-- `BreedingEggsTabPresenter.cs` — Tab 1: lista huevos + timers + hatch async (método Tick() externo)
+## Estructura (S54 Composición)
 
-**Eliminadas partials (S54):**
-- `BreedingPanelUITK.Content.cs` — contenido decomposed en BreedingBreedTabPresenter + BreedingEggsTabPresenter
-- `BreedingPanelUITK.Navigation.cs` — navegación reducida a región TabBar⇄Content (delegando al presenter activo)
+- `BreedingPanelUITK.cs` — núcleo MonoBehaviour: lifecycle, tab navigation
+- `ITabPresenter.cs` — contrato polimórfico (Enter/Navigate/Submit/Cancel/ClearFocus/Rebuild/Teardown)
+- `BreedingBreedTabPresenter.cs` — Tab 0: selección, preview, breed
+- `BreedingEggsTabPresenter.cs` — Tab 1: lista, timers, hatch
 
-**Vinculado a:** [[Index/05 - UI System]], [[Index/11 - Technical Debt]] (Fase 7 deuda)
+## Cambios S131
 
-**Conexiones:** [[ITabPresenter]], [[BreedingBreedTabPresenter]], [[BreedingEggsTabPresenter]], [[UIManager]], [[GameManager]], [[GameEvents]], [[AsyncBreedingService]], [[BreedingController]], [[UiPanels]]
+**Renombrado:**
+```csharp
+[FormerlySerializedAs("asyncBreedingService")]
+[SerializeField] private IncubationService incubationService;
+```
 
-**Notas S54:**
-- Presenters son clases planas (no MonoBehaviour) con state UI-only; reciben `Func<CreatureRegistrySO>` para lazy-load (no cachean registry)
-- BreedingBreedTabPresenter.Busy bloquea input global (core chequea antes de procesar input)
-- BreedingEggsTabPresenter.Tick() es método público EXTRA (no en ITabPresenter) — core lo llama desde Update solo si tab 1 visible (throttle 1s)
-- Stats en preview usan `CombatStats.GetEffectiveStats()` (S32)
+**Borrados:**
+- `bool breedBusy` — cría síncrona no necesita flag async
+- `void SetBreedBusy(bool)` — sin cambios de estado global
+- Callbacks await async → ahora síncrono
+
+**Propósito:** IncubationService.StartBreeding() es blocking local; no hay estado "en vuelo".
+
+## Duración Display
+
+```csharp
+int breedDurationMinutes = BreedingController.Instance?.InheritanceOdds?.BreedDurationMinutes ?? 360;
+int hours = breedDurationMinutes / 60;
+label.text = $"{hours}h";  // Ej: 360 min = 6 horas
+```
+
+## Update (Tick EggsTab)
+
+```csharp
+void Update()
+{
+    if (currentTabIndex != 1) return;  // Solo si tab 1 visible
+    eggsPresenter.Tick();
+}
+```
+
+## Métodos Públicos (IUINavigable)
+
+| Método | Descripción |
+|--------|-------------|
+| `Enter()` | Entra panel, inicia tab 0 |
+| `Navigate(h, v)` | Navega entre tabs o content |
+| `Submit()` | Delega a presenter actual |
+| `Cancel()` | Cierra panel |
+
+## Vinculado a
+
+- [[Index/02 - Genetics & Breeding]]
+- [[Index/05 - UI System]]
+- [[Index/09 - Active Context]]
+
+## Conexiones
+
+**Presenters:**
+- [[BreedingBreedTabPresenter]] — Tab 0
+- [[BreedingEggsTabPresenter]] — Tab 1
+
+**Sistemas:**
+- [[IncubationService]] (S131, antes AsyncBreedingService)
+- [[BreedingController]]
+- [[GameEvents]]
+- [[UIManager]]
+
+## Notas (S131 HC-4)
+
+- **Sin breedBusy:** IncubationService.StartBreeding() es síncrono, retorna bool inmediatamente.
+- **Duración horas:** BreedDurationMinutes (360 default) / 60 = 6 horas.
+- **Presenters desacoplados:** No conocen UI global; solo reciben callback para rebuild.

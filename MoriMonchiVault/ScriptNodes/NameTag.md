@@ -1,111 +1,139 @@
 ---
-tags: [script, ui, world-ui]
+tags: [script, ui, world-ui, creature-display]
 ---
 
 # NameTag.cs
 
 **Ruta:** `World/Creatures/NameTag.cs`
 
-**Responsabilidad:** Placa flotante UITK sobre MoriMochi. Muestra nombre, gender, role, life stage, intent, precio (si está en venta), timer de cría (si está criando). **S97:** Expone `ShowDistance` como propiedad pública. **S98:** Renderiza gestos y beating vía cambios en arena (estado visual dinámico). **S99:** `ScreenSizeReferenceDistance` propiedad pública; colores de placa por team. **S107:** Preparada para IntentLabel, SocialLabel (placeholder para sistemas futuros); no cambia en lógica, pero extensible.
+**Responsabilidad:** Placa flotante UITK sobre MoriMochi. Muestra nombre, gender, role, life stage, intent, precio (si está en venta), timer de cría (si está criando). S97: Expone `ShowDistance` como propiedad pública. S98: Renderiza gestos y beating. S99: `ScreenSizeReferenceDistance` propiedad pública; colores de placa por team. S131: Calcula edad en días usando `CreatureDNA.AgeDays(GameClock.Instance.Day)` para actualización dinámica de etapa de vida.
 
 ## Campos Serializados
 
-- **Visibility:**
-  - `showDistance` (float, default 8f) — distancia máxima para mostrar la placa
-  - `uprightOnly` (bool, default true) — mantiene etiqueta vertical (ignora camera pitch) en vez de facing completo
+**Visibility:**
+| Campo | Tipo | Propósito |
+|-------|------|----------|
+| `showDistance` | float | Distancia máxima para mostrar placa (default 8f) |
+| `uprightOnly` | bool | Mantiene etiqueta vertical sin camera pitch (default true) |
 
-- **Pen Layout (cuando penned en el breeding):**
-  - `penRaise` (float, default 0.6) — altura extra en metros cuando está en pen
-  - `penScale` (float, default 0.8) — escala uniforme cuando penned (más compacta)
+**Pen Layout (breeding):**
+| Campo | Tipo | Propósito |
+|-------|------|----------|
+| `penRaise` | float | Altura extra en m cuando penned (default 0.6) |
+| `penScale` | float | Escala uniforme cuando penned (default 0.8) |
+| `screenSizeReferenceDistance` | float | Escala adaptativa por distancia si > 0 (S99) |
+| `allyNameColor` | Color | Color nombre si Team==Player (default verde pastel) |
+| `rivalNameColor` | Color | Color nombre si Team==Rival (default rojo pastel) |
+| `rivalRevealSpeed` | float | Velocidad fade-in de rival (default 4f) |
 
-- **S99 NUEVOS:**
-  - `screenSizeReferenceDistance` (float, min 0, default 0) — si > 0, escala se multiplica por max(1, distancia-a-cámara/referencia)
-  - `allyNameColor` (Color, default verde pastel) — color del nombre si agent.Team == ExpeditionTeam.Player
-  - `rivalNameColor` (Color, default rojo pastel) — color del nombre si agent.Team == ExpeditionTeam.Rival
+## Propiedades Públicas
 
-## Campos Internos
-
-- `document` (UIDocument) — componente del mismo GO
-- `root` (VisualElement) — raíz resuelta del UIDocument
-- `nameLabel`, `priceLabel`, `statusLabel`, `intentLabel`, `petHintLabel`, `genderLabel`, `roleLabel`, `stageLabel`, `breedLabel`, `heartLabel`, `timerLabel` (Label) — elementos queryados del UXML
-- `agent` (MoriMochiAgent) — referencia al agente (wired en `Bind()`)
-- `dna` (CreatureDNA) — referencia al DNA (wired en `Bind()`)
-- `cam` (Transform) — transform de Camera.main (para LOD y facing)
-- `shown` (bool) — bandera de si la placa está visible
-- `baseLocalPos`, `baseLocalScale` (Vector3) — posición y escala guardadas en Awake para restaurar
-
-## Propiedades Públicas (S97, S99)
-
-- `ShowDistance { get; set; }` — S97 propiedad pública sobre `showDistance` para ajuste en runtime
-- `ScreenSizeReferenceDistance { get; set; }` — S99 propiedad pública sobre `screenSizeReferenceDistance`
+| Propiedad | Tipo | Descripción |
+|-----------|------|-------------|
+| `ShowDistance` | float | Getter/setter para `showDistance` (S97) |
+| `ScreenSizeReferenceDistance` | float | Getter/setter para `screenSizeReferenceDistance` (S99) |
 
 ## Métodos Públicos
 
-- `Bind(CreatureDNA creature, MoriMochiAgent agent)` — wireo del DNA y agente. Resuelve elementos UIDocument, carga nombre, aplica color via `NameColor()`, llama `Refresh()`.
+| Método | Descripción |
+|--------|-------------|
+| `Bind(CreatureDNA creature, MoriMochiAgent agent)` | Wireo de DNA y agente. Resuelve UXML, aplica nombre/color, llama Refresh |
 
-## Métodos Privados
+## Métodos Privados (Refresh)
 
-- `ResolveElements()` — queries al UIDocument por labels. Idempotente: si ya resuelto y no cambió root, retorna sin hacer nada.
-- `LateUpdate()` — tick principal:
-  1. Adquiere cámara si falta (lazy ref a Camera.main)
-  2. Calcula distancia a cámara, determina visibilidad según `showDistance`
-  3. Si cambió visibilidad, llama `SetShown()` (actualiza DisplayStyle.Flex/None)
-  4. Si no visible, retorna temprano
-  5. Llama `Refresh()` para actualizar contenido dinámico
-  6. Aplica escala pen si penned (localScale × penScale)
-  7. **S99:** Multiplica escala por max(1, sqrt(distSqr) / screenSizeReferenceDistance) si screenSizeReferenceDistance > 0
-  8. Reposiciona en altura: localPosition.y + penRaise si penned
-  9. Rota hacia cámara (LookRotation), ignorando pitch si uprightOnly
-- `SetShown(bool visible)` — actualiza DisplayStyle del root. Resuelve elementos antes de mutar.
-- `Refresh()` — selecciona contexto y delega: `RefreshStore()` si IsForSale, `RefreshPenned()` si IsPenned, `RefreshDefault()` sino.
-- `RefreshStore()` — muestra solo precio. Oculta gender, role, stage, breed, heart, timer.
-- `RefreshPenned()` — muestra gender, role, stage, breed count, heart+timer si criando. Oculta precio, status, intent, pet hint.
-- `RefreshDefault()` — muestra nombre, status (si dead o breeding), intent (si interesante), pet hint (si tocando/facing). **S99:** Re-aplica nombre si cambió.
-- `NameColor(CreatureDNA) → Color` — **S99** elige color según team: `allyNameColor` si ExpeditionTeam.Player, `rivalNameColor` si ExpeditionTeam.Rival, fallback `GenderColor()`.
-- `GenderColor(CreatureGender) → Color` — azul (macho), rosa (hembra), gris (desconocido).
-- `StatusOf(CreatureDNA) → (string, Color)` — text+color del status (Dead = rojo, Breeding = rosa).
-- `GenderGlyph(CreatureGender) → string` — ♂, ♀, ?.
-- `StageText(int ageDays) → string` — "Life Stage, X días" o fallback "Xd".
-- `CountdownText(long readyAtMs) → string` — "mm:ss" hasta readyAt, o "Ready" si vencido.
-- `SetDisplay(Label, bool) → void` — helper para toggle DisplayStyle de un label.
+| Método | Descripción |
+|--------|-------------|
+| `Refresh()` | Selector: RefreshStore / RefreshPenned / RefreshDefault según estado |
+| `RefreshStore()` | Muestra precio solo |
+| `RefreshPenned()` | Muestra gender/role/stage/breed/heart+timer si criando |
+| `RefreshDefault()` | Muestra nombre/status/intent/pet hint |
+| `StageText(int ageDays)` | **(S131)** Calcula etapa de vida desde días. Usa `CreatureLifeStageTableSO` |
+| `CountdownText(long readyAtTicks)` | Cuenta atrás hasta BreedReadyAt |
+| `NameColor(CreatureDNA)` | Elige color por team (allyNameColor / rivalNameColor / GenderColor) |
 
-## Ciclo de Contenido (Refresh)
+## Ciclo de Vida (LateUpdate)
 
-### RefreshStore
-- Muestra: price (Loc.Tr con CustomerService)
-- Oculta: todo lo demás
+1. Adquiere cámara (lazy ref a Camera.main)
+2. Calcula distancia a cámara, determina visibilidad
+3. Si cambió visibilidad, actualiza DisplayStyle
+4. **Refresh:** actualiza contenido dinámico
+5. Aplica escala pen + screen-size scaling
+6. Rota hacia cámara (LookRotation con upright option)
 
-### RefreshPenned
-- Muestra: gender (glyph + color), role, stage, breed/maxBreed, heart+timer si breeding
-- Oculta: price, status, intent, pet hint
+## S131: Cálculo de Etapa de Vida
 
-### RefreshDefault
-- Muestra: nombre (con `NameColor()` por team o gender)
-- Status (Dead rojo / Breeding rosa): si no pet hint activo y texto no vacío
-- Intent (verbo): si no pet hint, no status, e intent interesante (no Idle/Wandering)
-- Pet hint ("Tocando" / "Tócame"): si being petted OR (friendly + facing player)
-- Oculta: price, gender, role, breed, heart, timer, stage
+**Nuevo flow:**
 
-## Invariantes S99/S107
+```csharp
+// En RefreshPenned/RefreshDefault, calcula edad:
+int ageDays = dna.AgeDays(GameClock.Instance != null ? GameClock.Instance.Day : 1);
+stageLabel.text = StageText(ageDays);
+```
 
-- **Team == color:** `allyNameColor` y `rivalNameColor` se aplican sin fallback si agente tiene equipo explícito (arena S107). Fallback a GenderColor solo si agent.Team no está seteado.
-- **ScreenSizeReferenceDistance perezoso:** si = 0, deshabilitado (sin escalado por distancia). Si > 0, sí escala.
-- **RefreshDefault preserva nombre:** compara nameLabel.text con dna.CustomName antes de reasignar, evitando dirty-mark innecesario del UIDocument.
-- **Bind() dispara Refresh:** al wirearse, se refresca inmediatamente para que la placa sea correcta ese frame.
-- **Idempotencia de visibilidad:** SetShown() es seguro de llamar múltiples frames con el mismo valor.
+**StageText implementación (estimada):**
+```csharp
+private string StageText(int ageDays)
+{
+    if (BreedingController.Instance?.LifeStageTable == null)
+        return $"{ageDays}d";
+    
+    var stage = BreedingController.Instance.LifeStageTable.StageFor(ageDays);
+    if (stage.HasValue)
+        return Loc.Tr($"ui.lifestage.{stage}") + $", {ageDays}d";
+    
+    return $"{ageDays}d";
+}
+```
+
+**Dependencias:**
+- `CreatureDNA.AgeDays(int today)` — `Max(0, today - BirthDay)`
+- `GameClock.Instance.Day` — día actual del juego
+- `CreatureLifeStageTableSO.StageFor(ageDays)` — mapea edad → LifeStage
+
+## Campos Internos
+
+| Campo | Tipo | Propósito |
+|-------|------|----------|
+| `document` | UIDocument | Componente del mismo GO |
+| `root` | VisualElement | Raíz UXML |
+| `nameLabel`, `stageLabel`, `breedLabel`, `timerLabel` | Label | Labels principales |
+| `agent`, `dna` | ref | Wireadas en Bind |
+| `cam` | Transform | Camera.main para LOD |
+| `shown` | bool | Bandera de visibilidad actual |
+| `baseLocalPos`, `baseLocalScale` | Vector3 | Guardadas para restaurar |
+
+## Cambios S131
+
+**Integración con GameClock:**
+- `StageText()` ahora lee `GameClock.Instance.Day` para calcular edad
+- `AgeDays` es método de CreatureDNA: `dna.AgeDays(today)` = `Max(0, today - BirthDay)`
+- Actualización cada frame: edad dinámica mientras pasan días
+
+**Invariantes:**
+- Si GameClock falta, fallback a día=1
+- Si LifeStageTable falta, muestra solo "Xd"
 
 ## Vinculado a
 
-- [[Index/05 - UI System]]
-- [[Index/23 - Arena Sandbox y Expedicion]] (S99: equipos, colores)
+- [[Index/23 - Arena Sandbox & Expedicion (S102-S103)]]
+- [[Index/09 - Active Context]]
 
 ## Conexiones
 
-- [[MoriMochiAgent]] — wired en `Bind()`, leído para agent.Team, agent.IsPenned, agent.IsForSale, agent.IsBeingPetted, agent.IsInFriendlyReaction, agent.IsPlayerFacingMe(), agent.Intent
-- [[CreatureDNA]] — wired en `Bind()`, leído para CustomName, Gender, Role, AgeDays, BusyState, BreedReadyAt, IsDead
-- [[Perceivable]] — en el mismo GO del MoriMochi, para registrar perceptualmente
-- [[LocEnumMaps]] — traducciones de role, intent, stage
-- [[Loc]] — traducción de status, precio, timer, labels
-- [[CustomerService]] — lectura de precio estimado si IsForSale
-- [[BreedingController]] — acceso a LifeStageTable para stage text
-- [[UiPanels]] — resolución de root del UIDocument
+**Data:**
+- [[CreatureDNA]] — lee `AgeDays(int)`
+- [[MoriMochiAgent]] — referencia para lógica
+
+**Sistemas:**
+- [[GameClock]] — proporciona `Day` para cálculo de edad
+- [[BreedingController]] — acceso a LifeStageTable para mapeo edad→etapa
+- [[CreatureLifeStageTableSO]] — lookup etapa por edad
+- [[CustomerService]] — cálculo de precio
+- [[CreatureAvailability]] — determinación de estado
+
+## Notas (S131 HC-4)
+
+- **AgeDays dinámico:** Cada frame recalcula edad si GameClock loaded. La etapa cambia automáticamente cuando se alcanza threshold.
+- **Fallback:** Sin GameClock, asume día=1; sin LifeStageTable, muestra solo "Xd".
+- **Color dinámica:** allyNameColor/rivalNameColor por team (S99+).
+- **Responsive:** LateUpdate adapta escala y posición en tiempo real (LOD + pen layout).

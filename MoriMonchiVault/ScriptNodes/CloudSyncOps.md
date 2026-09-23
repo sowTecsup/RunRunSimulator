@@ -6,106 +6,71 @@ tags: [cloud, synchronization, networking]
 
 **Ruta:** `Systems/Cloud/CloudSyncOps.cs`
 
-**Responsabilidad:** Orquestador de sincronización nube/local con reconciliación inteligente. `SyncOnStartupAsync()` reemplaza al pull ciego: compara tres timestamps (`CloudPushedAt` nube, `LocalKnownCloudAt` meta local, `LatestLocalSavedAt()` disco) para decidir subir, bajar o aplicar conflicto con respaldo. `PushAsync()` y `PullAsync()` manejan 4 claves (`creatureregistry`, `furnitureregistry`, `playerinventory`, `socialgraph`). **S128:** Nuevo método startup, timestamps, conflictos. **S129:** Registry serializa `RegistryData` (Alive + Departed) en versión 3.
+**Responsabilidad:** Orquestador de sincronización nube/local con reconciliación inteligente. `SyncOnStartupAsync()` reconcilia tres timestamps. `PushAsync/PullAsync()` manejan 5 claves (creature/furniture/inventory/social/**world_state**). S131: Constructor recibe `WorldStateSO`; sincroniza estado de mundo con cloud.
 
 ## Métodos Públicos
 
 | Método | Retorna | Descripción |
 |--------|---------|-------------|
-| `PushAsync()` | `Task` | Sube los 4 archivos a nube; si otro push en curso → repite al terminar |
-| `PullAsync()` | `Task` | Baja los 4 archivos (no recomendado post-S128) |
-| `SyncOnStartupAsync()` | `Task` | **S128** Reconcilia nube vs local sin perder datos |
+| `PushAsync()` | `Task` | Sube 5 archivos a nube (+ **worldstate**) |
+| `PullAsync()` | `Task` | Baja 5 archivos (+ **worldstate**) |
+| `SyncOnStartupAsync()` | `Task` | Reconcilia nube vs local (5 claves) |
 | `ResetProgressAsync()` | `Task` | Borra TODOS datos nube (debug) |
-| `RefreshSecurityDisplay()` | `void` | Actualiza displays de timestamp para debug |
+| `RefreshSecurityDisplay()` | `void` | Actualiza displays para debug |
 
-## SyncOnStartupAsync (S128)
+## Claves Sincronizadas (S131)
 
-**Decisión por tres números:**
+| Clave | Contenido | Cambio S131 |
+|-------|-----------|------------|
+| `creatureregistry` | RegistryData (Alive+Departed) | — |
+| `furnitureregistry` | Placed furniture dict | — |
+| `playerinventory` | Cartera (Dabloons/Minerita) | — |
+| `socialgraph` | Pairwise relationships | — |
+| **`worldstate`** | WorldStateData (day/minute/tutorial) | **NUEVO** |
 
-```
-CloudPushedAt = CloudSaveService meta.CloudPushedAt
-LocalKnownCloudAt = sync_meta.json local
-LocalLatestSaved = SaveSystem.LatestLocalSavedAt()
+## Constructor S131
 
-Si CloudPushedAt == 0 (nube vacía):
-  → Sube local a nube (primera vez)
-  → Actualiza meta
-
-Si CloudPushedAt == LocalKnownCloudAt (al día):
-  → Si LocalLatestSaved > LocalKnownCloudAt (hay cambios locales no subidos):
-    → Sube local
-  → Si LocalLatestSaved <= LocalKnownCloudAt (sin cambios):
-    → Nada
-
-Si CloudPushedAt > LocalKnownCloudAt (otro dispositivo subió):
-  → Si LocalLatestSaved > LocalPulledAt (cambios locales PENDIENTES):
-    → CONFLICTO: BackupLocal("conflict"), aplica cloud (gana el más nuevo), actualiza meta
-  → Si LocalLatestSaved <= LocalPulledAt (sin cambios pendientes):
-    → Baja todo de nube
-```
-
-**Timestamps:** todo en `DateTime.UtcNow.Ticks`; metadata en `sync_meta_{playerId}.json` (local).
-
-## Manejo de Conflictos (S128)
-
-1. Detecta: `CloudPushedAt > LocalKnownCloudAt && LocalLatestSaved > LocalPulledAt`
-2. Respalda: `SaveSystem.BackupLocal("conflict")` → 4 archivos `.conflict.bak.json`
-3. Aplica: descarga de nube a archivos locales
-4. Actualiza: `sync_meta.json` con nuevos timestamps
-
-**Invariante:** si ambos lados cambiaron, **gana el más nuevo**. Los respaldos `.conflict.bak.json` preservan lo local descartado.
-
-## Claves Nube (4)
-
-| Clave | Tipo | Contenido |
-|-------|------|----------|
-| `creatureregistry` | Player Data | Criaturas `{ Version: 3, SavedAtTicks, Data: RegistryData { Alive, Departed } }` |
-| `furnitureregistry` | Player Data | Muebles colocados |
-| `playerinventory` | Player Data | Inventario dabloons + Minerita |
-| `socialgraph` | Player Data | Grafo de afinidad social |
-
-Todas encapsuladas en [[SaveEnvelope]] (versión + timestamp). **S129:** `creatureregistry` cambió a V3 con estructura `{ Alive, Departed }`.
-
-## Push (S128)
-
-**En curso:** si llega otro `PushAsync()` mientras uno corre → `pushAgain = true` (antes se descartaba). Al terminar, repite una vez si `pushAgain` está seteado.
-
-Flujo:
-1. Valida firma (compare `CloudPushedAt` nube vs `LocalKnownCloudAt` local)
-2. Valida saldo (`LocalPulledAt > 0` = una sincronización pasó)
-3. Sube 4 claves con sobre (V3 para registry)
-4. Actualiza `sync_meta.json` con `CloudPushedAt = UtcNow.Ticks`
-5. Si `pushAgain` → repite
-
-## Pull (no recomendado en S128+)
-
-Baja todo de nube sin reconciliación. **Usar `SyncOnStartupAsync()` en su lugar para startup.**
-
-## Metadata Local (sync_meta.json)
-
-```json
+```csharp
+public CloudSyncOps(CloudAuth auth, CreatureRegistrySO registry, 
+                    FurnitureRegistrySO furniture, PlayerInventorySO inventory,
+                    WorldStateSO worldState,  // S131
+                    Action<string> setStatus)
 {
-  "LocalPulledAt": 1726956000000,
-  "LocalKnownCloudAt": 1726956000000,
-  "CloudPushedAt": 1726956000000
+    // Guarda referencias
 }
 ```
 
-Se lee/escribe en `Application.persistentDataPath/sync_meta_{playerId}.json`.
+**Propósito:** WorldState se sincroniza junto con otros datos en push/pull.
 
-## Seguridad
+## SyncOnStartupAsync S131
 
-- `ValidateBeforePush()` detecta cheats (si `LocalKnownCloudAt` no coincide con `CloudPushedAt`)
-- `SecurityStatus` display: "OK" / "CHEAT ALERT (dev: push allowed)" / "No pull registered — fresh account"
-- Debug log en conflictos
+- Reconcilia ahora 5 claves (antes 4)
+- `SaveKind.World` para migrations
+- WorldStateReloaded dispara al cargar
 
-## Cambios S129
+## Cambios S131
 
-- **CAMBIO:** Registry push/pull ahora serializa `RegistryData { Alive, Departed }` (V3)
-- **NO CAMBIO:** Lógica de timestamps y conflictos
+**Agregado:**
+- `private WorldStateSO worldState` — referencia
+- `worldstate` clave en push/pull/reset
+- Manejo de `SaveKind.World` en migrations
+
+**Propósito:** Sincronización de día/minuto del juego con cloud.
 
 ## Vinculado a
 
-[[Index/07 - Persistence & Identity]] (S128 sección)
+- [[Index/07 - Persistence & Identity]]
+- [[Index/09 - Active Context]]
 
-**Conexiones:** [[CloudSyncService]], [[SaveSystem]], [[CloudAuth]], [[CreatureRegistrySO]], [[FurnitureRegistrySO]], [[PlayerInventorySO]], [[GameEvents]], [[RegistryData]]
+## Conexiones
+
+- [[CloudAuth]] — autenticación
+- [[SaveSystem]] — serialización (con WorldState)
+- [[CloudSyncService]] — orquestador superior
+- [[GameManager]], [[GameEvents]]
+
+## Notas (S131 HC-4)
+
+- **5 claves:** creature, furniture, inventory, social, **worldstate** (nuevo).
+- **Constructor:** CloudSyncService pasa worldState en new.
+- **Backward compat:** Guardados v3 siguen migrando a v4 sin pérdida.

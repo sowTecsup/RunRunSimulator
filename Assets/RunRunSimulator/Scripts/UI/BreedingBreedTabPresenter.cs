@@ -14,7 +14,7 @@ public class BreedingBreedTabPresenter : ITabPresenter
 
     private readonly Func<CreatureRegistrySO> getRegistry;
     private readonly CreatureDatabaseSO database;
-    private readonly AsyncBreedingService asyncBreedingService;
+    private readonly IncubationService incubation;
     private readonly Action onBred;
 
     private readonly VisualElement fatherSlot, motherSlot, preview, fatherSlotImg, motherSlotImg;
@@ -27,16 +27,13 @@ public class BreedingBreedTabPresenter : ITabPresenter
     private readonly List<VisualElement> motherCards = new List<VisualElement>();
     private int criarIndex, fatherIndex, motherIndex;
     private SubFocus focus = SubFocus.Slots;
-    private bool breedBusy;
-
-    public bool Busy => breedBusy;
 
     public BreedingBreedTabPresenter(VisualElement root, Func<CreatureRegistrySO> getRegistry,
-        CreatureDatabaseSO database, AsyncBreedingService asyncBreedingService, Action onBred)
+        CreatureDatabaseSO database, IncubationService incubation, Action onBred)
     {
         this.getRegistry = getRegistry;
         this.database = database;
-        this.asyncBreedingService = asyncBreedingService;
+        this.incubation = incubation;
         this.onBred = onBred;
 
         fatherSlot     = root.Q<VisualElement>("father-slot");
@@ -65,7 +62,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
 
     public bool Navigate(int h, int v)
     {
-        if (breedBusy) return true;
         int delta = h + v;
 
         switch (focus)
@@ -89,7 +85,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
 
     public void Submit()
     {
-        if (breedBusy) return;
         switch (focus)
         {
             case SubFocus.Slots:
@@ -108,7 +103,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
 
     public bool Cancel()
     {
-        if (breedBusy) return true;
         if (focus == SubFocus.FatherList || focus == SubFocus.MotherList)
         {
             ClearListFocus();
@@ -206,8 +200,16 @@ public class BreedingBreedTabPresenter : ITabPresenter
         preview.Add(ParentSummary(father));
         preview.Add(ParentSummary(mother));
 
-        int mins = (BreedingController.Instance != null && BreedingController.Instance.InheritanceOdds != null) ? BreedingController.Instance.InheritanceOdds.BreedDurationMinutes : 30;
-        if (timeLabel != null) timeLabel.text = Loc.Tr("ui.breeding.time.estimate", mins);
+        int mins = (BreedingController.Instance != null && BreedingController.Instance.InheritanceOdds != null) ? BreedingController.Instance.InheritanceOdds.BreedDurationMinutes : 360;
+        if (timeLabel != null) timeLabel.text = Loc.Tr("ui.breeding.time.estimate.hours", FormatGameDuration(mins));
+    }
+
+    private static string FormatGameDuration(int minutes)
+    {
+        minutes = Mathf.Max(0, minutes);
+        int h = minutes / 60;
+        int m = minutes % 60;
+        return $"{h}h {m:00}m";
     }
 
     private VisualElement ParentSummary(CreatureDNA dna)
@@ -247,8 +249,8 @@ public class BreedingBreedTabPresenter : ITabPresenter
         parent.Add(row);
     }
 
-    private void SelectFather(string id) { if (breedBusy) return; selectedFatherId = id; AfterSelect(0); }
-    private void SelectMother(string id) { if (breedBusy) return; selectedMotherId = id; AfterSelect(1); }
+    private void SelectFather(string id) { selectedFatherId = id; AfterSelect(0); }
+    private void SelectMother(string id) { selectedMotherId = id; AfterSelect(1); }
 
     private void AfterSelect(int slot)
     {
@@ -259,42 +261,29 @@ public class BreedingBreedTabPresenter : ITabPresenter
         ApplyCriarFocus();
     }
 
-    private async void TryBreed()
+    private void TryBreed()
     {
-        if (breedBusy) return;
         if (string.IsNullOrEmpty(selectedFatherId) || string.IsNullOrEmpty(selectedMotherId))
         {
             Debug.LogWarning("[BreedingPanel] Select a Father and a Mother first.");
             return;
         }
-        if (asyncBreedingService == null)
+        if (incubation == null)
         {
-            Debug.LogError("[BreedingPanel] AsyncBreedingService not assigned.");
+            Debug.LogError("[BreedingPanel] IncubationService not assigned.");
             return;
         }
 
         string motherId = selectedMotherId, fatherId = selectedFatherId;
 
-        SetBreedBusy(true);
-        await asyncBreedingService.StartBreedingAsync(motherId, fatherId);
-        SetBreedBusy(false);
+        bool started = incubation.StartBreeding(motherId, fatherId);
 
-        var registry = getRegistry();
-        if (registry != null && registry.TryGet(motherId, out var mother) && mother.BusyState == BusyReason.Breeding)
+        if (started)
         {
             selectedFatherId = selectedMotherId = "";
             RefreshSlots();
             onBred();
         }
-    }
-
-    private void SetBreedBusy(bool busy)
-    {
-        breedBusy = busy;
-        if (breedButton == null) return;
-        breedButton.SetEnabled(!busy);
-        breedButton.text = busy ? Loc.Tr("ui.breeding.breed.busy") : Loc.Tr("ui.breeding.breed.action");
-        breedButton.EnableInClassList("breed-action--busy", busy);
     }
 
     private void MoveList(List<VisualElement> cards, ref int idx, int delta, ScrollView scroll)
@@ -307,7 +296,6 @@ public class BreedingBreedTabPresenter : ITabPresenter
 
     private void OpenList(SubFocus which)
     {
-        if (breedBusy) return;
         ClearListFocus();
         ClearCriarFocus();
         focus = which;

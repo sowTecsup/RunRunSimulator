@@ -3,6 +3,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 namespace MoriMonchiSimulator
 {
 
@@ -381,15 +382,18 @@ public class MoriMochiAgent : MonoBehaviour, IThrowable, IInteractable
         }
     }
 
-    [TabGroup("Tuning", "Needs"), Title("Decay per second (only while spawned)")]
-    [Tooltip("Health lost per second — passive hunger.")]
-    [SerializeField, Min(0f)] internal float healthDecayPerSecond = 0.5f;
+    [TabGroup("Tuning", "Needs"), Title("Decay per game minute (only while spawned)")]
+    [Tooltip("Health lost per game minute — passive hunger.")]
+    [FormerlySerializedAs("healthDecayPerSecond")]
+    [SerializeField, Min(0f)] internal float healthDecayPerGameMinute = 0.5f;
     [TabGroup("Tuning", "Needs")]
-    [Tooltip("Energy lost per second WHILE MOVING (active life).")]
-    [SerializeField, Min(0f)] internal float energyDecayPerSecond = 1f;
+    [Tooltip("Energy lost per game minute WHILE MOVING (active life).")]
+    [FormerlySerializedAs("energyDecayPerSecond")]
+    [SerializeField, Min(0f)] internal float energyDecayPerGameMinute = 1f;
     [TabGroup("Tuning", "Needs")]
-    [Tooltip("Affect lost per second — drifts toward stress (negative) when neglected.")]
-    [SerializeField, Min(0f)] internal float affectDecayPerSecond = 0.5f;
+    [Tooltip("Affect lost per game minute — drifts toward stress (negative) when neglected.")]
+    [FormerlySerializedAs("affectDecayPerSecond")]
+    [SerializeField, Min(0f)] internal float affectDecayPerGameMinute = 0.5f;
 
     [TabGroup("Tuning", "Needs"), Title("Critical thresholds (seek a station, else degrade)")]
     [Tooltip("Health at/below this → seek a Feeder.")]

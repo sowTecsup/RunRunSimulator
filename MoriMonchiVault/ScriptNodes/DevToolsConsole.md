@@ -6,56 +6,50 @@ tags: [script, dev-tools, utility]
 
 **Ruta:** `Core/DevToolsConsole.cs`
 
-**Responsabilidad:** Componente dev (MonoBehaviour) para manipular inventario y expediciones en editor/playtesting sin interfaz de juego. Buttons Odin (BoxGroups): Dabloons, Furniture, World Props, Genetics, Expedition. Cada acción muta `gameManager.Inventory` o `gameManager.Registry` vía su API pública, emite `GameEvents.InventoryChanged()` / `GameEvents.RegistryChanged()`. Solo para desarrollo.
-
-**S128:** Se borran **todos los buttons de combate** (Open Combat Panel, refs a CombatTuningSO). Mantiene Genetics (Reroll Potentials).
-
-**S129:** Se eliminan **todos los buttons de equipo** (Add Equipment Item, Add Full Equipment Catalog, Clear Equipment) y sus campos (`devEquipmentItem`, `equipmentDatabase`). Mantiene Genetics.
+**Responsabilidad:** Dev component para testeo. Buttons: Wallet, Furniture, Props, Genetics, Expedition, **Clock** (S131). Emite eventos para persistencia. Solo para desarrollo.
 
 ## BoxGroups / Buttons
 
-### Setup
-- `GameManager` ref — required
-
-### Dev Tools (Dabloons + Furniture + Props)
-
+### Dev Tools (Wallet + Furniture + Props)
 | Button | Acción |
 |--------|--------|
 | `Add Dabloons (DEV)` | Suma `devDabloonsAmount` vía Wallet |
 | `Reset Dabloons (DEV)` | Vuelve a 0 |
 | `Clear Furniture Owned (DEV)` | Limpia lista |
-| `Clear World Props (DEV)` | Limpia props + hotbar |
+| `Clear World Props (DEV)` | Limpia props |
 
 ### Genetics (DEV)
-
 | Button | Acción |
 |--------|--------|
-| `Reroll Potentials (DEV)` | Cambia HornPotential, BackPotential, WingPotential aleatorio en vivas no vendidas |
+| `Reroll Potentials (DEV)` | Cambia potenciales aleatorio |
 
-### Expedition (DEV) — S119
-
+### **Clock (DEV) — S131**
 | Button | Acción |
 |--------|--------|
-| `Salir de expedición (DEV)` | Dispara ExpeditionBridge.Depart() |
+| `Siguiente bloque (DEV)` | `GameClock.Instance?.AdvanceToNextBlock()` |
+| `Siguiente día (DEV)` | `GameClock.Instance?.AdvanceToNextDay()` |
 
-## Campos Serializados
+### Expedition (DEV)
+| Button | Acción |
+|--------|--------|
+| `Salir de expedición (DEV)` | `ExpeditionBridge.Depart()` |
 
-| Campo | BoxGroup | Tipo | Descripción |
-|-------|----------|------|-------------|
-| `gameManager` | Setup | `GameManager` | Required |
-| `devDabloonsAmount` | Dev Tools | `int` | Monto a agregar (default 500) |
-| `expeditionBridge` | Expedition | `ExpeditionBridge` | Ref al puente |
+## Cambios S131
 
-## Integración S128-S129
+**Agregados:**
+```csharp
+[Button("Siguiente bloque (DEV)")]
+private void AdvanceBlock() => GameClock.Instance?.AdvanceToNextBlock();
 
-- Wallet.Add() en lugar de inventory.AddDabloons() directa
-- Botones de combate removidos completamente (S128)
-- Botones de equipo removidos completamente (S129)
-- Mantiene Genetics (Reroll Potentials)
-- Mantiene Expedition (testeo de flujo tienda/arena)
+[Button("Siguiente día (DEV)")]
+private void AdvanceDay() => GameClock.Instance?.AdvanceToNextDay();
+```
 
-## Vinculado a
+**Propósito:** Testing rápido de bloque horario y cambios de día sin esperar tiempo real.
 
-[[Index/09 - Dev Tools]]
+## Conexiones (S131)
+- [[GameClock]] — AdvanceToNextBlock/AdvanceToNextDay
 
-**Conexiones:** [[GameManager]], [[PlayerInventorySO]], [[CreatureRegistrySO]], [[GameEvents]], [[Wallet]], [[ExpeditionBridge]], [[CreatureGenerator]]
+## Notas (S131 HC-4)
+- Botones Clock solo aparecen si GameClock.Instance existe.
+- Disparan eventos de día/bloque automáticamente.

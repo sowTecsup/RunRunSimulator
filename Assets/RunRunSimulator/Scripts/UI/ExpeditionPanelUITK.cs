@@ -13,6 +13,7 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
     [SerializeField] private CareGateSO careGate;
 
     private Label emptyLabel;
+    private Label subtitleLabel;
     private ScrollView list;
     private Button closeButton;
     private Button goButton;
@@ -28,13 +29,20 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
     {
         UIManager.OnPanelSetRequested    += OnPanelSet;
         UIManager.OnPanelToggleRequested += OnPanelToggle;
+        GameEvents.OnDayBlockChanged     += OnDayBlockChanged;
     }
 
     private void OnDisable()
     {
         UIManager.OnPanelSetRequested    -= OnPanelSet;
         UIManager.OnPanelToggleRequested -= OnPanelToggle;
+        GameEvents.OnDayBlockChanged     -= OnDayBlockChanged;
     }
+
+    private static bool ExpeditionOpen =>
+        GameClock.Instance == null || GameClock.Instance.Block == null || GameClock.Instance.Block.ExpeditionOpen;
+
+    private void OnDayBlockChanged(DayBlockDef block) => RefreshScheduleUI();
 
     private void Start()
     {
@@ -42,7 +50,7 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
         if (root == null) return;
 
         root.Q<Label>("exp-title").text = Loc.Tr("ui.expedition.title");
-        root.Q<Label>("exp-subtitle").text = Loc.Tr("ui.expedition.subtitle", maxPick);
+        subtitleLabel = root.Q<Label>("exp-subtitle");
 
         emptyLabel = root.Q<Label>("exp-empty");
         list = root.Q<ScrollView>("exp-list");
@@ -126,6 +134,13 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
         }
 
         SetFocus(cards.Count == 0 ? -1 : FirstEligible());
+        RefreshScheduleUI();
+    }
+
+    private void RefreshScheduleUI()
+    {
+        if (subtitleLabel != null)
+            subtitleLabel.text = ExpeditionOpen ? Loc.Tr("ui.expedition.subtitle", maxPick) : Loc.Tr("ui.expedition.night_only");
         UpdateGoButton();
     }
 
@@ -235,7 +250,7 @@ public class ExpeditionPanelUITK : MonoBehaviour, IUINavigable
         if (goButton != null)
         {
             goButton.text = Loc.Tr("ui.expedition.go", count, maxPick);
-            goButton.SetEnabled(count >= 1);
+            goButton.SetEnabled(count >= 1 && ExpeditionOpen);
         }
     }
 

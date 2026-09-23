@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -101,14 +100,12 @@ public class BreedingDevConsole : MonoBehaviour
     private static string Clip(string id) => id.Length > 14 ? id[..14] + "…" : id;
 
     [BoxGroup("Breed Timer")]
-    [InfoBox("Varias parejas pueden incubar en paralelo (una pareja = un huevo). El timer es server-side (30 min) y los huevos incuban aunque cierres el juego. 'Show Eggs' lista los huevos con índice; pon el índice en 'Hatch Index' y presiona 'Hatch Egg'.")]
+    [InfoBox("Varias parejas pueden incubar en paralelo (una pareja = un huevo). El timer es local, en minutos de juego (GameClock), y los huevos incuban aunque avances el reloj sin abrir el corral. 'Show Eggs' lista los huevos con índice; pon el índice en 'Hatch Index' y presiona 'Hatch Egg'.")]
     [ShowInInspector, ReadOnly, LabelText("Eggs"), BoxGroup("Breed Timer")]
     private string eggStatus = "No eggs";
 
     [BoxGroup("Breed Timer"), SerializeField, LabelText("Hatch Index")]
     private int hatchIndex = 0;
-
-    private bool isHatching = false;
 
     [Button("Breed Timer", ButtonSizes.Large), GUIColor(0.7f, 0.55f, 1f), BoxGroup("Breed Timer")]
     private void BreedTimerButton()
@@ -119,13 +116,12 @@ public class BreedingDevConsole : MonoBehaviour
             Debug.LogWarning("[BreedingDevConsole] Select a Mother and Father first (use Fill Random Breeders).");
             return;
         }
-        _ = breedingController.StartBreedingAsync(breedMotherID, breedFatherID);
+        breedingController.StartBreeding(breedMotherID, breedFatherID);
     }
 
     [Button("Hatch Egg", ButtonSizes.Large), GUIColor(1f, 0.85f, 0.4f), BoxGroup("Breed Timer")]
-    private async void HatchButton()
+    private void HatchButton()
     {
-        if (isHatching) { Debug.Log("[BreedingDevConsole] A hatch is already in progress."); return; }
         if (breedingController == null) { Debug.LogError("[BreedingDevConsole] BreedingController not assigned."); return; }
         if (gameManager == null) { Debug.LogError("[BreedingDevConsole] GameManager not assigned."); return; }
 
@@ -138,23 +134,16 @@ public class BreedingDevConsole : MonoBehaviour
         }
 
         var mother = eggs[hatchIndex];
-        isHatching = true;
-        try
-        {
-            await breedingController.HatchAsync(mother.UniqueID, mother.BreedPartnerID);
-        }
-        finally
-        {
-            isHatching = false;
-        }
+        var result = breedingController.TryHatch(mother.UniqueID, mother.BreedPartnerID);
+        Debug.Log($"[BreedingDevConsole] Hatch result: {result}");
         RefreshEggStatus();
     }
 
     [Button("Cancel All Eggs", ButtonSizes.Large), GUIColor(1f, 0.5f, 0.45f), BoxGroup("Breed Timer")]
-    private async void CancelAllEggsButton()
+    private void CancelAllEggsButton()
     {
         if (breedingController == null) { Debug.LogError("[BreedingDevConsole] BreedingController not assigned."); return; }
-        await breedingController.CancelAllBreedingAsync();
+        breedingController.CancelAllBreeding();
         RefreshEggStatus();
     }
 
@@ -166,19 +155,25 @@ public class BreedingDevConsole : MonoBehaviour
         var eggs = GetEggs();
         if (eggs.Count == 0) { eggStatus = "No eggs"; Debug.Log("[BreedingDevConsole] No eggs incubating."); return; }
 
-        long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        long now = GameClock.Instance != null ? GameClock.Instance.TotalMinutes : 0;
         var  lines = new List<string>();
         for (int i = 0; i < eggs.Count; i++)
         {
             var mother  = eggs[i];
             var fatherName = registry.TryGet(mother.BreedPartnerID, out var father) ? father.CustomName : "???";
-            string when = nowMs >= mother.BreedReadyAt
-                ? "READY (local) — Hatch to confirm"
-                : $"{TimeSpan.FromMilliseconds(mother.BreedReadyAt - nowMs):mm\\:ss} left";
+            string when = mother.BreedReadyAt <= now
+                ? "READY — Hatch to confirm"
+                : $"{FormatMinutes(mother.BreedReadyAt - now)} left";
             lines.Add($"[{i}] \"{mother.CustomName}\" x \"{fatherName}\" — {when}");
         }
         eggStatus = string.Join("   |   ", lines);
         Debug.Log($"[BreedingDevConsole] {eggs.Count} egg(s) incubating:\n  " + string.Join("\n  ", lines));
+    }
+
+    private static string FormatMinutes(long minutes)
+    {
+        minutes = Math.Max(0, minutes);
+        return $"{minutes / 60}h {minutes % 60:00}m";
     }
 
     private List<CreatureDNA> GetEggs()

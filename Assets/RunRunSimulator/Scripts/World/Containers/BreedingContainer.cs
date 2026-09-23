@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
@@ -226,7 +225,7 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         TryRollPair(true, true);
     }
 
-    private async void TryRollPair(bool verbose, bool ignoreCooldown)
+    private void TryRollPair(bool verbose, bool ignoreCooldown)
     {
         if (Occupants.Count < 2) { Report(verbose, "Hacen falta al menos 2 MoriMonchis en el corral."); return; }
 
@@ -261,9 +260,9 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
 
         onPairFormed?.Invoke();
 
-        await controller.StartBreedingAsync(motherDNA.UniqueID, fatherDNA.UniqueID);
+        bool started = controller.StartBreeding(motherDNA.UniqueID, fatherDNA.UniqueID);
 
-        if (motherDNA.BusyState == BusyReason.Breeding && fatherDNA.BusyState == BusyReason.Breeding)
+        if (started && motherDNA.BusyState == BusyReason.Breeding && fatherDNA.BusyState == BusyReason.Breeding)
         {
             int slot = FindFreeSlot();
             motherDNA.LocationKey = AnchorKey;
@@ -280,8 +279,7 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         }
         else
         {
-            Report(true, $"Dado OK ({pair} — {math}) pero el servidor NO inició la incubación. " +
-                         "Probable huevo previo sin eclosionar/cancelar en el servidor (¿cancel-breeding desplegado?).");
+            Report(true, $"Dado OK ({pair} — {math}) pero no se pudo iniciar la incubación.");
         }
     }
 
@@ -299,7 +297,8 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
     private static bool IsAdult(CreatureDNA d)
     {
         var table = BreedingController.Instance != null ? BreedingController.Instance.LifeStageTable : null;
-        return table == null || table.GetStage(d.AgeDays) >= LifeStage.Adult;
+        int today = GameClock.Instance != null ? GameClock.Instance.Day : 1;
+        return table == null || table.GetStage(d.AgeDays(today)) >= LifeStage.Adult;
     }
 
     public void Interact()
@@ -321,17 +320,26 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
             return;
         }
 
-        long nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        if (nowMs < mother.BreedReadyAt)
+        var result = controller.TryHatch(mother.UniqueID, mother.BreedPartnerID);
+        switch (result)
         {
-            var left = TimeSpan.FromMilliseconds(mother.BreedReadyAt - nowMs);
-            lastRollInfo = $"Huevo de \"{mother.CustomName}\" aún no listo — faltan {left:mm\\:ss}.";
-            Debug.Log($"[BreedingContainer] {lastRollInfo}");
-            return;
+            case HatchResult.Hatched:
+                lastRollInfo = $"¡Eclosionó el huevo de \"{mother.CustomName}\"!";
+                break;
+            case HatchResult.NotReady:
+                long now = GameClock.Instance != null ? GameClock.Instance.TotalMinutes : 0;
+                float hoursLeft = Mathf.Max(0, mother.BreedReadyAt - now) / 60f;
+                lastRollInfo = $"Huevo de \"{mother.CustomName}\" aún no listo — faltan {hoursLeft:0.0} h de juego.";
+                break;
+            case HatchResult.InsufficientMinerita:
+                int cost = controller.Incubation != null ? controller.Incubation.HatchCostFor(mother.UniqueID, mother.BreedPartnerID) : 0;
+                lastRollInfo = $"No hay suficiente Minerita para eclosionar el huevo de \"{mother.CustomName}\" (cuesta {cost}).";
+                break;
+            default:
+                lastRollInfo = $"No se pudo eclosionar el huevo de \"{mother.CustomName}\".";
+                break;
         }
-
-        lastRollInfo = $"Eclosionando huevo de \"{mother.CustomName}\"...";
-        _ = controller.HatchAsync(mother.UniqueID, mother.BreedPartnerID);
+        Debug.Log($"[BreedingContainer] {lastRollInfo}");
     }
 
     public override void Release(MoriMochiAgent agent)
@@ -355,7 +363,7 @@ public class BreedingContainer : MoriMochiContainer, IInteractable
         if (registry != null && !string.IsNullOrEmpty(partnerId) && registry.TryGet(partnerId, out var partner))
             ClearBreed(partner);
 
-        _ = BreedingController.Instance?.CancelBreedingAsync(motherId, fatherId);
+        BreedingController.Instance?.CancelBreeding(motherId, fatherId);
 
         Debug.Log($"[BreedingContainer] Emparejamiento cancelado al retirar \"{dna.CustomName}\" del corral.");
     }

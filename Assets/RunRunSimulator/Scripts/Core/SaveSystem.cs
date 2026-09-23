@@ -14,6 +14,7 @@ public static class SaveSystem
     private const string FURNITURE_FILENAME = "furniture_registry.json";
     private const string INVENTORY_FILENAME = "player_inventory.json";
     private const string SOCIAL_FILENAME    = "social_graph.json";
+    private const string WORLD_FILENAME     = "world_state.json";
 
     private static string _userScope = "";
 
@@ -189,6 +190,37 @@ public static class SaveSystem
         return env.Data.ToObject<Dictionary<string, float>>(JsonSerializer.Create(Settings));
     }
 
+    public static void SaveWorldState(WorldStateSO world)
+    {
+        string path = ScopedPath(WORLD_FILENAME);
+        File.WriteAllText(path, SerializeWorldState(world));
+    }
+
+    public static void LoadWorldState(WorldStateSO world)
+    {
+        string path = ScopedPath(WORLD_FILENAME);
+        if (!File.Exists(path))
+        {
+            Debug.Log("[SaveSystem] No world state save found — starting fresh.");
+            world.LoadFrom(null);
+            return;
+        }
+
+        world.LoadFrom(DeserializeWorldState(File.ReadAllText(path)));
+    }
+
+    public static string SerializeWorldState(WorldStateSO world) =>
+        SaveMigrations.Write(JToken.FromObject(world.GetData(), JsonSerializer.Create(Settings)), DateTime.UtcNow.Ticks);
+
+    public static WorldStateData DeserializeWorldState(string json)
+    {
+        SaveEnvelope env = SaveMigrations.Read(json, SaveKind.World);
+        if (env.Data == null || env.Data.Type == JTokenType.Null)
+            return null;
+
+        return env.Data.ToObject<WorldStateData>(JsonSerializer.Create(Settings));
+    }
+
     public static long LatestLocalSavedAt()
     {
         long latest = 0;
@@ -197,11 +229,13 @@ public static class SaveSystem
         long furnitureAt = SavedAtOf(ScopedPath(FURNITURE_FILENAME), SaveKind.Furniture);
         long inventoryAt = SavedAtOf(ScopedPath(INVENTORY_FILENAME), SaveKind.Inventory);
         long socialAt    = SavedAtOf(ScopedPath(SOCIAL_FILENAME), SaveKind.Social);
+        long worldAt     = SavedAtOf(ScopedPath(WORLD_FILENAME), SaveKind.World);
 
         if (registryAt  > latest) latest = registryAt;
         if (furnitureAt > latest) latest = furnitureAt;
         if (inventoryAt > latest) latest = inventoryAt;
         if (socialAt    > latest) latest = socialAt;
+        if (worldAt     > latest) latest = worldAt;
 
         return latest;
     }
@@ -224,6 +258,7 @@ public static class SaveSystem
         BackupFile(ScopedPath(FURNITURE_FILENAME), suffix);
         BackupFile(ScopedPath(INVENTORY_FILENAME), suffix);
         BackupFile(ScopedPath(SOCIAL_FILENAME), suffix);
+        BackupFile(ScopedPath(WORLD_FILENAME), suffix);
     }
 
     private static void BackupFile(string path, string suffix)

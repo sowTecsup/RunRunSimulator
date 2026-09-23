@@ -1,8 +1,6 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 namespace MoriMonchiSimulator
 {
 
@@ -18,7 +16,9 @@ public class BreedingController : MonoBehaviour
     public InheritanceOddsTableSO InheritanceOdds => inheritanceOddsTable;
 
     [BoxGroup("Setup")]
-    [SerializeField] private AsyncBreedingService asyncBreedingService;
+    [FormerlySerializedAs("asyncBreedingService")]
+    [SerializeField] private IncubationService incubation;
+    public IncubationService Incubation => incubation;
 
     [BoxGroup("Setup")]
     [SerializeField] private BreedingAffinityTableSO affinityTable;
@@ -46,31 +46,15 @@ public class BreedingController : MonoBehaviour
     public float GetAffinity(Role a, Role b) =>
         affinityTable?.GetAffinity(a, b) ?? 0.5f;
 
-    public Task StartBreedingAsync(string motherID, string fatherID) =>
-        asyncBreedingService != null
-            ? asyncBreedingService.StartBreedingAsync(motherID, fatherID)
-            : Fail("AsyncBreedingService not assigned on BreedingController.");
+    public bool StartBreeding(string motherID, string fatherID) =>
+        incubation != null && incubation.StartBreeding(motherID, fatherID);
 
-    public Task HatchAsync(string motherID, string fatherID) =>
-        asyncBreedingService != null
-            ? asyncBreedingService.HatchAsync(motherID, fatherID)
-            : Fail("AsyncBreedingService not assigned on BreedingController.");
+    public HatchResult TryHatch(string motherID, string fatherID) =>
+        incubation != null ? incubation.TryHatch(motherID, fatherID) : HatchResult.Invalid;
 
-    public Task CancelBreedingAsync(string motherID, string fatherID) =>
-        asyncBreedingService != null
-            ? asyncBreedingService.CancelBreedingAsync(motherID, fatherID)
-            : Fail("AsyncBreedingService not assigned on BreedingController.");
+    public void CancelBreeding(string motherID, string fatherID) => incubation?.CancelBreeding(motherID, fatherID);
 
-    public Task CancelAllBreedingAsync() =>
-        asyncBreedingService != null
-            ? asyncBreedingService.CancelAllBreedingAsync()
-            : Fail("AsyncBreedingService not assigned on BreedingController.");
-
-    private static Task Fail(string message)
-    {
-        Debug.LogError($"[BreedingController] {message}");
-        return Task.CompletedTask;
-    }
+    public void CancelAllBreeding() => incubation?.CancelAllBreeding();
 
     public string BreedCreatures(string motherID, string fatherID)
     {
@@ -82,6 +66,7 @@ public class BreedingController : MonoBehaviour
 
         child.CustomName = CreatureNameBank.GetRandomName();
         child.Stamp();
+        child.BirthDay = GameClock.Instance != null ? GameClock.Instance.Day : 1;
         if (!registry.Register(child)) return null;
 
         if (registry.TryGet(motherID, out var mother)) mother.ChildrenIDs.Add(child.UniqueID);

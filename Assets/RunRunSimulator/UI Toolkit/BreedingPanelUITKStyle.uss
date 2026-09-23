@@ -261,11 +261,15 @@
 }
 
 .egg-hatch:hover { background-color: var(--mm-warn); }
+.egg-hatch--minerita { background-color: var(--mm-teal); color: var(--mm-surface); }
+.egg-hatch--minerita:hover { background-color: var(--mm-good); }
 
 /* Hatch in flight — grayed out + non-interactive until the server answers.
    The :hover variant keeps it gray (otherwise the base :hover repaints it yellow). */
 .egg-hatch--busy,
-.egg-hatch--busy:hover {
+.egg-hatch--busy:hover,
+.egg-hatch--minerita.egg-hatch--busy,
+.egg-hatch--minerita.egg-hatch--busy:hover {
     background-color: var(--mm-surface-2);
     color: var(--mm-ink-soft);
 }
