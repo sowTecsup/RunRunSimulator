@@ -4,6 +4,26 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-25 (Session 133 — **Animaciones del slime ✅ (15 clips, mismo sistema que los adultos) + banco de pruebas `SlimeAnimLab` + piel de la panza arreglada + referencia de partes nuevas** — 2 `.cs` creados; compila 0 errores; verificado en Play)
+
+**Focus:** [[Index/30 - Huevos y Slimes (pipeline Blender)]] §5-§6 y [[Index/31 - Partes nuevas (referencia Mega Tiny Dragon)]].
+
+1. **Rig y clips (`Tools/Blender/rig_slime.py`)** — esqueleto de 3 huesos (`Root` → `Body` → `Top`); cuernos y cara pesados por el vértice del cuerpo más cercano (no se despegan). 15 clips procedurales pedidos por Juan: Idle, Move, Attack, Damage, Jump, Happy, Excited, Angry, Yes, No, Stun, Sick, Eating, Die, Die2. Auto-elevación de la base al inclinarse (no se hunde). Damage rehecho a pedido de Juan: golpe en la frente de un dango gelatinoso (base fija, arriba atrás 5 cm, aplastado 27 %, resorte amortiguado, 1,2 s).
+2. **`MonchiSlimeAnimator.controller`** — mismos nombres de estado que `MonchiAnimator` (Walk/Run → Move, Fire → Attack, Roar → Angry, Eat → Eating) + solo-slime Happy, Excited, Stun, Die2 (decisión de Juan). Sin Fly ni giros ni Rest.
+3. **Banco `Resources/Scenes/SlimeAnimLab.unity`** — 15 slimes con cara de ánimo y cartel; `SlimeAnimLabLoop` repite los clips de un disparo; panel UITK (`SlimeAnimLab.uxml`, paleta `--mm-*`) con botón por clip + "Todas". Bug arreglado: el repetidor leía Idle en el primer cuadro y se congelaba.
+4. **Piel** — mosaico de la mitad baja: `FLOOR` del slime 0,3 (costuras de la franja baja 116 → 18) y la **base plana** mapeada a la esquina del atlas (fondo liso de cada patrón; 305 → 57). Sin texturas nuevas.
+5. **Referencia de partes** — capturas del MEGA Tiny Dragon Pack en `MoriMonchiVault/References/MegaTinyDragon/`, catálogo y 3 decisiones abiertas en `Index/31`.
+
+**Siguiente paso:** Juan decide si se compra el pack o se modelan las partes (`Index/31`); después, sesión de diseño de partes nuevas y 3 formas de adulto. Pendientes que siguen: idles del huevo (tintineo, saltitos, bamboleo); el slime no puede usar `MonchiLocomotionAnimator` hasta cubrir Fly (`flyChance` o `HasState`) — va con el ensamblado en HC-5; etapa de vida del slime; placeholders HC-4 y afecto vs. `CareGate`.
+
+**Archivos `.cs` creados (2) · modificados (0):**
+- `Assets/RunRunSimulator/Scripts/World/Creatures/SlimeAnimLabLoop.cs` → NUEVO
+- `Assets/RunRunSimulator/Scripts/UI/SlimeAnimLabPanel.cs` → NUEVO
+
+Fuera de código: `MonchiSlime.fbx` (ahora con rig y clips), `MonchiSlimeAnimator.controller`, `SlimeAnimLab.unity`, `SlimeAnimLab.uxml`/`SlimeAnimLabStyle.uss`, `Tools/Blender/rig_slime.py` (nuevo), `transfer_skin.py` y `build_monchi_eggs.ps1` (modificados), `Index/31`, `References/MegaTinyDragon/`.
+
+---
+
 **Session:** 2026-09-25 (Session 132 — **Prueba Blender: huevos y slimes ("dango dragons") desde las mallas Suriyun + escamas del huevo** — 0 `.cs` tocados; assets nuevos validados por Juan en Unity con shader, paleta y luz de `GameScene`)
 
 **Focus:** [[Index/30 - Huevos y Slimes (pipeline Blender)]]. Juan pidió, antes de la HC-5, (a) evaluar Jev y (b) probar la creación de assets en Blender.

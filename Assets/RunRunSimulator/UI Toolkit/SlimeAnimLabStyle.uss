@@ -1,0 +1,61 @@
+.slime-lab {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.slime-lab__panel {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    translate: -50% 0;
+    align-items: center;
+    max-width: 920px;
+    padding: 10px;
+    border-radius: 12px;
+    border-width: 3px;
+    border-color: var(--mm-frame);
+    background-color: var(--mm-surface);
+}
+
+.slime-lab__title {
+    color: var(--mm-ink);
+    font-size: 18px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+    -unity-text-align: middle-center;
+}
+
+.slime-lab__buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 900px;
+}
+
+.slime-lab__btn {
+    background-color: var(--mm-surface-2);
+    border-width: 2px;
+    border-color: var(--mm-frame-soft);
+    border-radius: 8px;
+    color: var(--mm-ink);
+    font-size: 16px;
+    margin: 4px;
+    padding: 6px 12px;
+}
+
+.slime-lab__btn:hover {
+    background-color: var(--mm-gold);
+}
+
+.slime-lab__btn--all {
+    background-color: var(--mm-coral);
+    color: var(--mm-surface);
+    margin-top: 8px;
+}
+
+.slime-lab__btn--all:hover {
+    background-color: var(--mm-gold);
+}

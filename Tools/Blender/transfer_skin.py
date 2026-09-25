@@ -156,10 +156,46 @@ def dark(mask, uvs):
             return True
     return False
 
+FLOOR = {"egg": 0.25, "slime": 0.3}
+
+
 def floor(p):
-    if MODE == "egg":
-        p.z = 0.25 + 0.75 * p.z
+    f = FLOOR[MODE]
+    p.z = f + (1 - f) * p.z
     return p
+
+
+def plain_bottom(target, corner=(0.03, 0.03), size=0.04):
+    me = target.data
+    uv = me.uv_layers.active.data
+    mw = target.matrix_world
+    lo, hi = world_bbox([mw @ v.co for v in me.vertices])
+    n = 0
+    for poly in me.polygons:
+        if (mw.to_3x3() @ poly.normal).z > -0.5:
+            continue
+        n += 1
+        for li in poly.loop_indices:
+            p = normalize(mw @ me.vertices[me.loops[li].vertex_index].co, lo, hi)
+            uv[li].uv = (corner[0] + (p.x - 0.5) * size, corner[1] + (p.y - 0.5) * size)
+    print("BOTTOM plain faces=%d" % n)
+
+
+def seams(target):
+    me = target.data
+    uv = me.uv_layers.active.data
+    mw = target.matrix_world
+    at = {}
+    for poly in me.polygons:
+        for li in poly.loop_indices:
+            at.setdefault(me.loops[li].vertex_index, []).append(uv[li].uv.copy())
+    bands = {}
+    for vi, us in at.items():
+        b = min(4, int((mw @ me.vertices[vi].co).z / 0.05))
+        split = max((a - c).length for a in us for c in us) > 0.01
+        n, k = bands.get(b, (0, 0))
+        bands[b] = (n + 1, k + split)
+    print("SEAMS " + " ".join("z%.2f:%d/%d" % (b * 0.05, bands[b][1], bands[b][0]) for b in sorted(bands)))
 
 
 def transfer(target, src, mask=None):
@@ -194,6 +230,9 @@ def transfer(target, src, mask=None):
         for li, u in zip(poly.loop_indices, uvs):
             uv[li].uv = u
     print("NOSE faces lifted=%d unresolved=%d" % (moved, unresolved))
+    if MODE == "slime":
+        plain_bottom(target)
+    seams(target)
 
 
 MINI_PARTS = [("A", "HornA", "Egg_Horn_A", 0.55, 0.75, 25), ("B", "HornB", "Egg_Horn_B", 0.55, 0.75, 25),

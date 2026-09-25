@@ -68,9 +68,16 @@ Superelipse de revolución ajustada a la silueta del slime blanco de la referenc
 - En PowerShell `$f` y `$F` son la misma variable, y un argumento `""` se pierde al pasarlo a un ejecutable nativo.
 - Verificación: render ortográfico en `GameScene` a y=-500, capa `MonchiFocus` (10), cámara con post-proceso URP, escena descartada al terminar (no se guarda).
 
-## 5. Pendiente
+## 5. Animaciones del slime (S133)
 
-1. **S133: animaciones** de huevo y slime (Juan).
+- `rig_slime.py` corre sobre `MonchiSlime_Skin.blend` y reescribe `MonchiSlime.fbx` con el esqueleto `Slime_Rig` (`Root` → `Body` → `Top`, cabeza de `Top` a 0,12 m) y 15 acciones. Pesos: `Top` = smoothstep(0,07 → 0,17 m de alto); cuernos y cara copian el peso del vértice del cuerpo más cercano. Cada clip es una función `pose(t)` muestreada cuadro a cuadro a 30 fps.
+- Unity: Generic, clips `Slime_<Nombre>`, bucle solo en Idle/Move/Happy/Excited/Stun/Sick/Eating. `MonchiSlimeAnimator.controller` usa los nombres de estado del adulto (tabla en `09` S133). Banco de pruebas: `Resources/Scenes/SlimeAnimLab.unity`.
+- Quirks: **si cambia el largo de un clip**, el importador conserva el rango viejo en `clipAnimations`; hay que copiar `firstFrame`/`lastFrame` desde `defaultClipAnimations`. Los signos de rotación de `Top` están invertidos respecto de la intuición (pitch negativo = hacia adelante): verificar midiendo `topY` (frente = −Y en Blender).
+- Piel: `FLOOR` del slime = 0,3 y `plain_bottom` mapea la base plana a la esquina del atlas (fondo liso de cada patrón; en 6 de 33 patrones difiere del borde en más de 0,1).
+
+## 6. Pendiente
+
+1. Idles del huevo (tintineo, saltitos, bamboleo).
 2. Componente de ensamblado (leer ADN → prender piezas → tintar), con la incubadora en HC-5.
 3. Ubicar el slime en `CreatureLifeStageTableSO` (decisión de diseño).
 4. Opcional: punta de cuerno en degradado; limpiar parámetros sin uso de `transfer_skin.py` (`marks`, `covers`, `strip_constant_marks`).

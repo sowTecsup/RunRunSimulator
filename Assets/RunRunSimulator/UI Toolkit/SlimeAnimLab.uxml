@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <Style src="Theme.uss" />
+    <Style src="SlimeAnimLabStyle.uss" />
+    <ui:VisualElement name="slime-lab-root" class="mm-theme mm-theme--night slime-lab" picking-mode="Ignore">
+        <ui:VisualElement name="slime-lab__panel" class="slime-lab__panel">
+            <ui:Label text="Banco de slimes" class="slime-lab__title" />
+            <ui:VisualElement name="slime-lab__buttons" class="slime-lab__buttons" />
+            <ui:Button name="slime-lab-all" text="Todas" class="slime-lab__btn slime-lab__btn--all" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
