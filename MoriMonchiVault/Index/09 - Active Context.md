@@ -4,6 +4,27 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-25 (Session 132 — **Prueba Blender: huevos y slimes ("dango dragons") desde las mallas Suriyun + escamas del huevo** — 0 `.cs` tocados; assets nuevos validados por Juan en Unity con shader, paleta y luz de `GameScene`)
+
+**Focus:** [[Index/30 - Huevos y Slimes (pipeline Blender)]]. Juan pidió, antes de la HC-5, (a) evaluar Jev y (b) probar la creación de assets en Blender.
+
+1. **Jev (TypeSafe AI)** — investigado: modelo de decisiones tipadas con probabilidad calibrada, acceso anticipado, API/SDK Python + skill para Claude Code. Veredicto: aporta poco al pipeline de desarrollo; candidato para IA dentro del juego (autómatas, clientes). **Diferido hasta después de la HC.**
+2. **Blender 4.5.3** instalado por winget; se maneja sin ventana por scripts Python.
+3. **Huevo ✅** — cáscara con la piel real del dragón (UV transferidas, `MonchiFur_XX` sin texturas nuevas), lomo real (`BackA/B`) y cachitos suaves derivados del cuerno de cada cuerpo; sin alas ni nariz (regla de Juan: el huevo **insinúa, no copia**). Capa `Egg_Scales` con escamas negras muy ligeras (`Unlit/Transparent`).
+4. **Slime ✅** — forma de dango ajustada midiendo la silueta de la referencia de Juan (error 0,008); cuernos del adulto 1 a 1 (copia rígida ×0,208, hundidos con el mismo % que en el adulto); malla `Face` real al 50 % con materiales de ánimo.
+5. **Limpieza de piel** — fosas, huecos del atlas y costuras resueltos con mapa de islas UV + detector por píxel (detalle en `Index/30` §3.1).
+6. **Organización** — FBX en `Resources/Models/MoriMochi/`, escamas en `Textures|Materials/MoriMochi/Eggs/`, scripts en `Tools/Blender/` (`build_monchi_eggs.ps1` reproduce todo); `_BlenderTest` y la escena de prueba borradas.
+
+**Regla nueva (Juan):** toda parte de un MoriMochi tiene su versión bebé; nunca se inventan piezas.
+
+**Pendientes:** componente de ensamblado (ADN → piezas → tinte) con la incubadora en HC-5; ubicar el slime en `CreatureLifeStageTableSO` (diseño); opcional punta de cuerno en degradado. Siguen abiertos los pendientes de S131 (placeholders HC-4, afecto vs. `CareGate`).
+
+**Siguiente paso:** sesión **S133: animaciones del huevo y del slime** (pedido de Juan). Después, HC-5.
+
+**Archivos `.cs` creados (0) · modificados (0).** Creados fuera de código: `MonchiEgg.fbx`, `MonchiSlime.fbx`, `EggScales.png`, `EggScales.mat`, `Tools/Blender/*` (6 `.py` + 1 `.ps1`), `Index/30`.
+
+---
+
 **Session:** 2026-09-22 (Session 131 — **HC-4 EJECUTADA: C6 reloj de juego, estado de mundo, migración v3 → v4 y cría local con Minerita** — 0 borrados, 29 modificados, 3 creados; compila 0 errores; 22/22 pruebas EditMode en verde; verificado en Play con el guardado real)
 
 **Focus:** [[Index/29 - Plan HC - Cimientos (ejecutable)]] §13 + calibración §6.7. Juan pidió ejecutar todo con placeholders en `/loop`. Cuatro `morimonchi-coder` en paralelo contra un contrato compartido (A reloj · B guardado y migración · C cría · D tienda, horario y decaimiento); el orquestador revisó, corrigió y verificó por MCP.
