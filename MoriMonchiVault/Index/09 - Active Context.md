@@ -14,7 +14,7 @@ tags: [index, core]
 4. **Piel** — mosaico de la mitad baja: `FLOOR` del slime 0,3 (costuras de la franja baja 116 → 18) y la **base plana** mapeada a la esquina del atlas (fondo liso de cada patrón; 305 → 57). Sin texturas nuevas.
 5. **Referencia de partes** — capturas del MEGA Tiny Dragon Pack en `MoriMonchiVault/References/MegaTinyDragon/`, catálogo y 3 decisiones abiertas en `Index/31`.
 
-**Siguiente paso:** Juan decide si se compra el pack o se modelan las partes (`Index/31`); después, sesión de diseño de partes nuevas y 3 formas de adulto. Pendientes que siguen: idles del huevo (tintineo, saltitos, bamboleo); el slime no puede usar `MonchiLocomotionAnimator` hasta cubrir Fly (`flyChance` o `HasState`) — va con el ensamblado en HC-5; etapa de vida del slime; placeholders HC-4 y afecto vs. `CareGate`.
+**Siguiente paso (orden de Juan al cerrar):** sesión **S134: modelado de las partes nuevas de los dragones** (cuernos, espalda, alas) a partir de las capturas de `Index/31` — Juan eligió **modelar** (no comprar el pack). Quedan abiertas las 3 formas de adulto en `BODYSHAPE` y cuántas partes por ranura en la primera tanda. Pendientes que siguen: idles del huevo (tintineo, saltitos, bamboleo); el slime no puede usar `MonchiLocomotionAnimator` hasta cubrir Fly (`flyChance` o `HasState`) — va con el ensamblado en HC-5; etapa de vida del slime; placeholders HC-4 y afecto vs. `CareGate`.
 
 **Archivos `.cs` creados (2) · modificados (0):**
 - `Assets/RunRunSimulator/Scripts/World/Creatures/SlimeAnimLabLoop.cs` → NUEVO

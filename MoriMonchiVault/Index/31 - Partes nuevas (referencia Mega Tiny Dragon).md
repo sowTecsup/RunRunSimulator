@@ -33,6 +33,6 @@ Con esto, según Juan, se completa la variedad que le falta a los MoriMonchis, c
 
 ## Decisiones abiertas (Juan)
 
-1. ¿Se **compra** el pack (mismo autor, así se cumple la regla de derivar de mallas Suriyun reales) o se **modela** en Blender a partir de las capturas?
+1. ~~¿Comprar el pack o modelar?~~ **Resuelto al cerrar S133: se modela** (sesión S134).
 2. ¿Cuáles son las 3 formas de adulto y cómo entran en `BODYSHAPE` del ADN?
 3. ¿Cuántas partes por ranura entran en la primera tanda?
