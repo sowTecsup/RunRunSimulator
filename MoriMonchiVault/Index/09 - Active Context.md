@@ -19,7 +19,7 @@ tags: [index, core]
 
 **Pendientes:** componente de ensamblado (ADN → piezas → tinte) con la incubadora en HC-5; ubicar el slime en `CreatureLifeStageTableSO` (diseño); opcional punta de cuerno en degradado. Siguen abiertos los pendientes de S131 (placeholders HC-4, afecto vs. `CareGate`).
 
-**Siguiente paso:** sesión **S133: animaciones del huevo y del slime** (pedido de Juan). Después, HC-5.
+**Siguiente paso (orden de Juan):** sesión **S133: primero las animaciones del slime y un idle chiquito del huevo**. Después, en este orden, los pendientes: (1) componente de ensamblado huevo/slime (ADN → piezas → tinte) + incubadora en HC-5; (2) etapa de vida del slime en `CreatureLifeStageTableSO` (decide Juan); (3) placeholders de HC-4 y afecto vs. `CareGate` (S131); (4) opcional: punta de cuerno en degradado y limpieza de parámetros sin uso en `transfer_skin.py`.
 
 **Archivos `.cs` creados (0) · modificados (0).** Creados fuera de código: `MonchiEgg.fbx`, `MonchiSlime.fbx`, `EggScales.png`, `EggScales.mat`, `Tools/Blender/*` (6 `.py` + 1 `.ps1`), `Index/30`.
 
