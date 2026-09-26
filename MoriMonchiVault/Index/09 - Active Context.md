@@ -4,6 +4,27 @@ tags: [index, core]
 
 # 09 - Active Context
 
+**Session:** 2026-09-25 (Session 134 — **26 partes nuevas modeladas (referencia Mega Tiny Dragon) + ensamblado modular por injerto + prefabs** — 1 `.cs` creado, 2 modificados; compila 0 errores; injerto verificado en editor sobre los 4 cuerpos y los 24 clips)
+
+**Focus:** [[Index/31 - Partes nuevas (referencia Mega Tiny Dragon)]] (decisión 3 resuelta: todas las de las fotos).
+
+1. **Pipeline de partes (`Tools/Blender/parts/`)** — `part_common.py` (dragón Suriyun, helpers de tubo/bezier/espejo, pesos copiados de la parte horneada del mismo slot con `DATA_TRANSFER`, render Workbench en el ángulo de las fotos), `build_part.py`/`.ps1` (un `p_<Nombre>.py` → FBX + renders), `cmp.py` (recorte de la foto al lado del render), `README_agent.md` (brief y vara de calidad para agentes modeladores). Cada parte se comparó una a una con su foto en `/loop`.
+2. **26 partes** (FBX en `Resources/Models/MoriMochi/Parts/`, prefabs con `MonchiFur_00` en `Resources/Prefabs/MoriMochi/Parts/`): cuernos Unicornio (arcoíris + melena), Astas, Carnero, Antenas, Lana, Rayo, Cometa, Hoz, Orejeras, Cristal, Triceratops, Rinoceronte, Cuernitos, Mechon · espaldas Placas, PuasFinas, PuasGruesas, Cristales, Malvaviscos, Abanico, LomoLana, Borla (penacho arcoíris de la cola) · alas Aletas, Cintas, Plumitas, Murcielago. Importador: sin materiales ni animación.
+3. **Ensamblado** — `MonchiPartGrafter` (estático): instancia la parte, remapea huesos por nombre al cuerpo, recalcula bindposes (`bodyBone.worldToLocal * partBone.localToWorld * bp`, robusto a ejes/escala distintos entre FBX), toma rootBone y bounds del renderer más grande del cuerpo (×2,5). `MonchiVisualBankSO.partMeshes` (ID de parte → prefab). `MonchiVisualizer.Assemble` apaga la parte horneada del slot (`Horn*`/`Back*`/`Wing*`) si el ADN trae una parte con malla y la injerta; `Deco_RRGGBB_*` = color fijo.
+4. **Bugs cazados en la vitrina**: bounds heredados ×100 (la parte se descartaba por culling) y, con 3 injertos seguidos, el 2º tomaba los huesos del esqueleto sobrante del 1º (`Destroy` es diferido). Arreglados: solo huesos activos y gana el primero.
+5. **Vitrina** — 16 dragones armados en editor (escena sin guardar), renders enviados a Juan.
+
+**Quirks:** la convención de nombres es el contrato Blender → Unity (`Horn_`/`Back_`/`Wing_`/`Deco_RRGGBB_`). `execute_code` no ve `Assembly-CSharp` al compilar: invocar por reflexión. Los agentes Sonnet dejaban partes finitas; con Opus + "vara de calidad" salieron bien a la primera o segunda.
+
+**Siguiente paso (orden de Juan):** sesión **S135: encadenar las partes con el ADN** — dar de alta las 26 en las bases de partes (ID sin `-`, nombre, rareza, stats, set), cargar `partMeshes` en el banco, decidir habilidad por parte (`AbilitySO.PartIds`) y verlas en Play en criaturas reales. Siguen abiertas en `Index/31`: las 3 formas de adulto en `BODYSHAPE`. Pendientes viejos: idles del huevo, versión bebé de las partes nuevas en huevo/slime (pipeline de `Index/30`), etapa de vida del slime, placeholders HC-4.
+
+**Archivos `.cs` creados (1) · modificados (2):**
+- `Assets/RunRunSimulator/Scripts/World/Creatures/MonchiPartGrafter.cs` → NUEVO
+- `Assets/RunRunSimulator/Scripts/World/Creatures/MonchiVisualizer.cs` → MODIFICADO
+- `Assets/RunRunSimulator/Scripts/Data/Databases/MonchiVisualBankSO.cs` → MODIFICADO
+
+---
+
 **Session:** 2026-09-25 (Session 133 — **Animaciones del slime ✅ (15 clips, mismo sistema que los adultos) + banco de pruebas `SlimeAnimLab` + piel de la panza arreglada + referencia de partes nuevas** — 2 `.cs` creados; compila 0 errores; verificado en Play)
 
 **Focus:** [[Index/30 - Huevos y Slimes (pipeline Blender)]] §5-§6 y [[Index/31 - Partes nuevas (referencia Mega Tiny Dragon)]].

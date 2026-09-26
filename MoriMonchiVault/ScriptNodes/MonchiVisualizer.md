@@ -6,7 +6,7 @@ tags: [script, visual, component]
 
 **Ruta:** `World/Creatures/MonchiVisualizer.cs`
 
-**Responsabilidad:** Visualizador del modelo Suriyun. Instancia body FBX por BodyShapeID, mapea renderers (Face, Wings, Arms, etc.), aplica tintado por ColorGenetics.BuildHarmony. `SetMood()` swapea material Face. **S61:** `Assemble()` ahora hace `SetActive(false)` a los hijos viejos antes de `Object.Destroy()` — Destroy es diferido a fin de frame y el fotomatón renderiza en el mismo frame, causando superposición del cuerpo viejo en headshots batch. **S110:** Nuevos métodos `SetRimOverride()` y `ClearRimOverride()` para controlar rim light genético (anulable con color/power/mask de rival). **S115:** Assemble() propaga la capa del Root (`modelRoot.gameObject.layer`) a todos los hijos del body instanciado; esto permite la pasada de renderer URP (RenderObjects de `PC_Renderer` con tags CreatureBodyMask/CreatureBodySilhouette sobre capa `CreatureBody`) que filtra por esa capa para dibujo de silueta/stencil.
+**Responsabilidad:** Visualizador del modelo Suriyun. Instancia body FBX por BodyShapeID, mapea renderers (Face, Wings, Arms, etc.), aplica tintado por ColorGenetics.BuildHarmony. `SetMood()` swapea material Face. **S61:** `Assemble()` ahora hace `SetActive(false)` a los hijos viejos antes de `Object.Destroy()` — Destroy es diferido a fin de frame y el fotomatón renderiza en el mismo frame, causando superposición del cuerpo viejo en headshots batch. **S110:** Nuevos métodos `SetRimOverride()` y `ClearRimOverride()` para controlar rim light genético (anulable con color/power/mask de rival). **S115:** Assemble() propaga la capa del Root (`modelRoot.gameObject.layer`) a todos los hijos del body instanciado; esto permite la pasada de renderer URP (RenderObjects de `PC_Renderer` con tags CreatureBodyMask/CreatureBodySilhouette sobre capa `CreatureBody`) que filtra por esa capa para dibujo de silueta/stencil. **S134:** Modular part assembly — Assemble ahora carga partes prefabricadas (HornID, BackID, WingID) desde el banco, desactiva renderers baked de esos prefijos, e injerta partes FBX con su propio Armature usando MonchiPartGrafter.
 
 ## Métodos Públicos
 
@@ -14,8 +14,8 @@ tags: [script, visual, component]
 |--------|-------------|
 | `SetBank(MonchiVisualBankSO)` | Asigna banco visual |
 | `SetFurDatabase(FurTypeDatabaseSO)` | Asigna database de pelajes |
-| `Assemble(CreatureDNA dna)` | Instancia body, mapea renderers, aplica look; desactiva hijos viejos antes de destruir; **S115** propaga capa Root a todos los hijos |
-| `RefreshLook(CreatureDNA dna)` | Retinta sin re-instanciar |
+| `Assemble(CreatureDNA dna)` | **S134 MODIFICADO:** Instancia body, grafia partes modulares (HornID/BackID/WingID) si existen en banco, mapea renderers, aplica look; desactiva hijos viejos antes de destruir; propaga capa Root a todos los hijos. Flujo: Instancia body → SetActive(false)/Destroy hijos previos → PropagaCapa → GraftPart por slot → Recorre SkinnedMeshRenderers activos → ApplyLook → SetMood |
+| `RefreshLook(CreatureDNA dna)` | Retinta sin re-instanciar; llama Assemble si bodyInstance es null |
 | `SetMood(MonchiMood)` | Swapea material Face |
 | `SetRimOverride(Color color, float power, float insideMask)` | **S110 NUEVO** anula rim light genético con color/power/mask de rival |
 | `ClearRimOverride()` | **S110 NUEVO** restaura rim light genético |
@@ -36,13 +36,66 @@ tags: [script, visual, component]
 | `bodyInstance` | `GameObject` | Instancia del body prefab |
 | `animator` | `Animator` | Animator del body |
 | `faceRenderer` | `SkinnedMeshRenderer` | Renderer del rostro |
-| `tintRenderers` | `List<SkinnedMeshRenderer>` | Renderers a teñir (alas, cuernos, espalda, etc.) |
+| `tintRenderers` | `List<SkinnedMeshRenderer>` | Renderers a teñir (alas, cuernos, espalda, etc.); **S134:** incluye renderers injertados de partes |
 | `currentDna` | `CreatureDNA` | DNA vigente |
 | `currentMood` | `MonchiMood` | Mood vigente |
 | `rimOverride` | `bool` | **S110 NUEVO** si se aplica override de rim |
 | `rimOverrideColor` | `Color` | **S110 NUEVO** color override |
 | `rimOverridePower` | `float` | **S110 NUEVO** power override |
 | `rimOverrideInsideMask` | `float` | **S110 NUEVO** inside mask override |
+
+## Flujo Assemble() S134 (Modular Assembly)
+
+1. **Limpia hijos previos:** desactiva visualmente (SetActive(false)), luego destruye diferido
+2. **Reinicia estado:** bodyInstance=null, animator=null, faceRenderer=null, tintRenderers.Clear()
+3. **Valida banco:** si no existe MonchiVisualBankSO → warning y return
+4. **Obtiene body base:** `bank.GetBody(dna.BodyShapeID)` → hash FNV-1a determinístico
+5. **Instancia body:** posición/rotación/escala identity, propaga capa Root a todos hijos (S115)
+6. **Asigna Animator:** obtiene existente o crea; asigna RuntimeAnimatorController del banco
+7. **Grafia partes modulares (S134 NUEVO):**
+   - `GraftPart(dna.HornID, "Horn")` → desactiva renderers "Horn*", injerta si partPrefab existe
+   - `GraftPart(dna.BackID, "Back")` → desactiva renderers "Back*", injerta si partPrefab existe
+   - `GraftPart(dna.WingID, "Wing")` → desactiva renderers "Wing*", injerta si partPrefab existe
+8. **Recorre renderers activos:** busca Face, acumula resto en tintRenderers (solo componentes activos, ignora desactivados)
+9. **Aplica look:** tintado de colores genéticos + override si existe
+10. **Aplica mood:** SetMood(currentMood) para sincronizar facial material
+
+## Método GraftPart() S134 (NUEVO)
+
+```csharp
+private void GraftPart(string partId, string prefix)
+{
+    var partPrefab = bank.GetPartMesh(partId);   // Obtiene FBX de parte
+    if (partPrefab == null)
+        return;                                   // Si no existe, skip
+    
+    // Desactiva renderers baked del prefijo
+    foreach (var renderer in bodyInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+    {
+        if (renderer.gameObject.name.StartsWith(prefix))
+            renderer.gameObject.SetActive(false);
+    }
+    
+    // Injerta parte e inyecta renderers en tintRenderers
+    var grafted = new List<SkinnedMeshRenderer>();
+    MonchiPartGrafter.Graft(partPrefab, bodyInstance, grafted);
+    // grafted no se consume directamente aquí (Assemble() barre renderers luego)
+}
+```
+
+**Responsabilidad:**
+- Obtiene prefab FBX de parte desde banco (identidad única + DNA determinístico)
+- Desactiva los renderers "horneados" del body que coinciden con el prefijo (Horn*/Back*/Wing*)
+- Llama MonchiPartGrafter.Graft() que:
+  - Remapea huesos
+  - Recalcula bindposes al espacio del cuerpo
+  - Reparenta SkinnedMeshRenderers del prefab al bodyInstance
+  - Recoge los renderers en lista `grafted` (actualmente unused, pero reservado para auditoría)
+
+**Impacto visual:**
+- Partes modulares reemplazan completamente los renderers baked (no se superponen)
+- Posibilidad de no grafia (si partId empty o no en banco) → body queda con renderer baked
+- Tintado unificado luego: Assemble() recorre solo renderers activos, incluye injertados
 
 ## Cambios S61
 
@@ -133,6 +186,38 @@ foreach (var childTransform in bodyInstance.GetComponentsInChildren<Transform>(t
 - Guías visuales (rutas, telegrafía, etc.) se dibujan sobre MoriMonchis (prioridad shaders: criaturas > guías > escenario)
 - La capa permite filtrado granular en pass URP para control de profundidad y stencil
 
+## Cambios S134
+
+**Assemble() — Modular Part Grafting (línea 86-88 NUEVO):**
+```csharp
+GraftPart(dna.HornID, "Horn");
+GraftPart(dna.BackID, "Back");
+GraftPart(dna.WingID, "Wing");
+```
+- Tras instanciar body y configurar Animator, injerta partes modulares
+- Cada GraftPart desactiva renderers baked del prefijo, luego injerta si partPrefab existe en banco
+- MonchiPartGrafter maneja remapeo de huesos, bindposes, rootBone y reparentación
+
+**Assemble() — Recolecta renderers (línea 90-96 MODIFICADO):**
+```csharp
+foreach (var renderer in bodyInstance.GetComponentsInChildren<SkinnedMeshRenderer>(false))
+{
+    if (renderer.gameObject.name == "Face")
+        faceRenderer = renderer;
+    else
+        tintRenderers.Add(renderer);
+}
+```
+- Usa `GetComponentsInChildren(..., false)` → solo renderers ACTIVOS
+- Incluye tanto renderers baked como injertados (ambos activos después de Assemble)
+- Resultado: tintRenderers acumula todos excepto Face
+
+**Impacto S134:**
+- Sistema modular: HornID/BackID/WingID cargan FBX independientes con propios Armatures
+- Composición dinámica: no hay limitante de partes activas (nil ID = usa baked, else = injerta)
+- Tintado unificado: ApplyLook() recorre tintRenderers que mezcla baked+injertados sin diferenciar
+- DNA determinístico: cada criatura con mismo BodyShapeID+HornID+BackID+WingID renderiza idéntico
+
 ## Invariantes
 
 - Assemble() desactiva visualmente los hijos viejos inmediatamente (SetActive), luego los destruye diferido
@@ -140,6 +225,7 @@ foreach (var childTransform in bodyInstance.GetComponentsInChildren<Transform>(t
 - Previene artefactos visuales en headshot batch (dos criaturas superpuestas)
 - Override de rim es toggle (bool rimOverride) sin estado gradual — on/off nítido
 - **S115:** Layer propagation es determinístico: todos los hijos heredan exactamente del Root
+- **S134:** GraftPart solo actúa si partPrefab existe; partId nil o no en banco = body baked se mantiene
 
 ## Notas S61
 
@@ -166,12 +252,22 @@ foreach (var childTransform in bodyInstance.GetComponentsInChildren<Transform>(t
 - La capa Root debe estar configurada en el prefab del MoriMochiAgent (se heredará automáticamente)
 - Este cambio es esencial para que URP RenderObjects pass con capa `CreatureBody` funcione correctamente en la pasada de silueta
 
+## Notas S134
+
+- **Modular assembly:** HornID/BackID/WingID cargan prefabs FBX independientes (sin duplicar body base)
+- **Determinismo:** mismo DNA = misma composición visual (hash estable sobre IDs)
+- **GetComponentsInChildren(false):** recorre solo activos, incluye partes injertadas automáticamente
+- **GraftPart fallback:** si partPrefab nil o ID vacío → body mantiene renderer baked de ese slot
+- **Tintado universal:** ApplyLook() no distingue entre baked/injertado, aplica mismo ColorGenetics
+- **MonchiPartGrafter:** utilidad estática que maneja plomería de bindposes y huesos (sin estado, reusable)
+
 ## Vinculado a
 
 - [[Index/10 - Visualization]]
 - [[Index/23 - Arena Sandbox y Expedicion]]
 - [[MonchiVisualBankSO]], [[ColorGenetics]]
 - [[MonchiTeamRim]] — (S110 NUEVO) llamador de SetRimOverride/ClearRimOverride
+- [[MonchiPartGrafter]] — (S134 NUEVO) utilidad de injerto de partes
 
 ## Conexiones
 
@@ -184,4 +280,8 @@ foreach (var childTransform in bodyInstance.GetComponentsInChildren<Transform>(t
 - Modelo visual world-space con capa Root propagada a hijos (S115)
 - Material Face swapped por mood
 - MPB de rim light (genético u override)
+- Partes injertadas integradas en tintRenderers (S134)
 
+**Dependencias S134:**
+- MonchiVisualBankSO.GetPartMesh(partId) → obtiene FBX de parte
+- MonchiPartGrafter.Graft() → injerta y remapea huesos

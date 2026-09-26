@@ -14,6 +14,10 @@ public class MonchiVisualBankSO : SerializedScriptableObject
     [DictionaryDrawerSettings(KeyLabel = "Body Shape ID", ValueLabel = "Body Override")]
     private Dictionary<string, GameObject> bodyOverrides = new Dictionary<string, GameObject>();
 
+    [OdinSerialize]
+    [DictionaryDrawerSettings(KeyLabel = "Part ID", ValueLabel = "Part Mesh")]
+    private Dictionary<string, GameObject> partMeshes = new Dictionary<string, GameObject>();
+
     [SerializeField] private RuntimeAnimatorController animatorController;
     [SerializeField] private List<Material> gemMaterials = new List<Material>();
     [SerializeField] private MonchiMoodSetSO moodSet;
@@ -33,6 +37,17 @@ public class MonchiVisualBankSO : SerializedScriptableObject
         }
 
         return bodies[StableHash(bodyShapeId) % bodies.Count];
+    }
+
+    public GameObject GetPartMesh(string partId)
+    {
+        if (string.IsNullOrEmpty(partId))
+            return null;
+
+        if (partMeshes != null && partMeshes.TryGetValue(partId, out var partMesh))
+            return partMesh;
+
+        return null;
     }
 
     public Material GetGem(string uniqueId)

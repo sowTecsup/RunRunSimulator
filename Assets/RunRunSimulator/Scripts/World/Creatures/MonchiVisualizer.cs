@@ -83,7 +83,11 @@ public class MonchiVisualizer : MonoBehaviour
         if (bank.AnimatorController != null)
             animator.runtimeAnimatorController = bank.AnimatorController;
 
-        foreach (var renderer in bodyInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        GraftPart(dna.HornID, "Horn");
+        GraftPart(dna.BackID, "Back");
+        GraftPart(dna.WingID, "Wing");
+
+        foreach (var renderer in bodyInstance.GetComponentsInChildren<SkinnedMeshRenderer>(false))
         {
             if (renderer.gameObject.name == "Face")
                 faceRenderer = renderer;
@@ -94,6 +98,22 @@ public class MonchiVisualizer : MonoBehaviour
         currentDna = dna;
         ApplyLook();
         SetMood(currentMood);
+    }
+
+    private void GraftPart(string partId, string prefix)
+    {
+        var partPrefab = bank.GetPartMesh(partId);
+        if (partPrefab == null)
+            return;
+
+        foreach (var renderer in bodyInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            if (renderer.gameObject.name.StartsWith(prefix))
+                renderer.gameObject.SetActive(false);
+        }
+
+        var grafted = new List<SkinnedMeshRenderer>();
+        MonchiPartGrafter.Graft(partPrefab, bodyInstance, grafted);
     }
 
     public void RefreshLook(CreatureDNA dna)
@@ -163,7 +183,9 @@ public class MonchiVisualizer : MonoBehaviour
                 renderer.sharedMaterial = furMat;
 
             Color color;
-            if (partName.StartsWith("Wing"))
+            if (partName.Length >= 11 && partName.StartsWith("Deco_") && ColorUtility.TryParseHtmlString("#" + partName.Substring(5, 6), out var decoColor))
+                color = decoColor;
+            else if (partName.StartsWith("Wing"))
                 color = wing;
             else if (partName.StartsWith("Horn") || partName.StartsWith("Back"))
                 color = accent;
