@@ -4,7 +4,7 @@ tags: [index, core]
 
 # 09 - Active Context
 
-**Session:** 2026-09-25 (Session 134 — **26 partes nuevas modeladas (referencia Mega Tiny Dragon) + ensamblado modular por injerto + prefabs** — 1 `.cs` creado, 2 modificados; compila 0 errores; injerto verificado en editor sobre los 4 cuerpos y los 24 clips)
+**Session:** 2026-09-25 (Session 134 — **29 partes nuevas modeladas (referencia Mega Tiny Dragon) + ensamblado modular por injerto + prefabs** — 1 `.cs` creado, 2 modificados; compila 0 errores; injerto verificado en editor sobre los 4 cuerpos y los 24 clips)
 
 **Focus:** [[Index/31 - Partes nuevas (referencia Mega Tiny Dragon)]] (decisión 3 resuelta: todas las de las fotos).
 
@@ -13,10 +13,11 @@ tags: [index, core]
 3. **Ensamblado** — `MonchiPartGrafter` (estático): instancia la parte, remapea huesos por nombre al cuerpo, recalcula bindposes (`bodyBone.worldToLocal * partBone.localToWorld * bp`, robusto a ejes/escala distintos entre FBX), toma rootBone y bounds del renderer más grande del cuerpo (×2,5). `MonchiVisualBankSO.partMeshes` (ID de parte → prefab). `MonchiVisualizer.Assemble` apaga la parte horneada del slot (`Horn*`/`Back*`/`Wing*`) si el ADN trae una parte con malla y la injerta; `Deco_RRGGBB_*` = color fijo.
 4. **Bugs cazados en la vitrina**: bounds heredados ×100 (la parte se descartaba por culling) y, con 3 injertos seguidos, el 2º tomaba los huesos del esqueleto sobrante del 1º (`Destroy` es diferido). Arreglados: solo huesos activos y gana el primero.
 5. **Vitrina** — 16 dragones armados en editor (escena sin guardar), renders enviados a Juan.
+6. **Ronda de correcciones de Juan (hoja numerada)** — Juan juzga cada parte **dentro de su set** (cuerno + espalda + alas como en la foto): nuevo `build_set.py`/`.ps1`. Rehechas: Astas (hojas planas anchas + rama + ceja), Rayo (rayos gruesos que se leen de frente), Rinoceronte (**dos** cuernos laterales al frente), Cuernitos (afuera y punta adentro), Abanico (más chico). Orejeras **rechazada → Senuelo** (un solo apéndice de pez abisal con bola). Nuevas: PuasDobles (espalda en dos hileras, set Cuernitos), Tapones (malvaviscos achatados en la cabeza; las rodajas salieron de `p_Malvaviscos`), AletasCara (aletitas en las mejillas, set Aletas). **Total: 29 partes** (15 cuernos, 10 espaldas, 4 alas), 29 prefabs, las 29 se injertan en el cuerpo sin huesos faltantes. Hoja final de correcciones enviada; Juan todavía no dio veredicto sobre esta ronda.
 
 **Quirks:** la convención de nombres es el contrato Blender → Unity (`Horn_`/`Back_`/`Wing_`/`Deco_RRGGBB_`). `execute_code` no ve `Assembly-CSharp` al compilar: invocar por reflexión. Los agentes Sonnet dejaban partes finitas; con Opus + "vara de calidad" salieron bien a la primera o segunda.
 
-**Siguiente paso (orden de Juan):** sesión **S135: encadenar las partes con el ADN** — dar de alta las 26 en las bases de partes (ID sin `-`, nombre, rareza, stats, set), cargar `partMeshes` en el banco, decidir habilidad por parte (`AbilitySO.PartIds`) y verlas en Play en criaturas reales. Siguen abiertas en `Index/31`: las 3 formas de adulto en `BODYSHAPE`. Pendientes viejos: idles del huevo, versión bebé de las partes nuevas en huevo/slime (pipeline de `Index/30`), etapa de vida del slime, placeholders HC-4.
+**Siguiente paso (orden de Juan):** abrir S135 pidiéndole a Juan el veredicto de la hoja de correcciones (números 2, 6, 10, 11, 13, 14, 16, 20, 21, 23) y rehacer lo que marque; después **encadenar las partes con el ADN** — dar de alta las 29 en las bases de partes (ID sin `-`, nombre, rareza, stats, set), cargar `partMeshes` en el banco, decidir habilidad por parte (`AbilitySO.PartIds`) y verlas en Play en criaturas reales. Siguen abiertas en `Index/31`: las 3 formas de adulto en `BODYSHAPE`. Pendientes viejos: idles del huevo, versión bebé de las partes nuevas en huevo/slime (pipeline de `Index/30`), etapa de vida del slime, placeholders HC-4.
 
 **Archivos `.cs` creados (1) · modificados (2):**
 - `Assets/RunRunSimulator/Scripts/World/Creatures/MonchiPartGrafter.cs` → NUEVO

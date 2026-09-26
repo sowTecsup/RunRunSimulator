@@ -16,3 +16,7 @@
 - Estilo chibi: las partes son GORDAS y GRANDES respecto de la cabeza. Si dudas, mas grande y mas grueso. Nada de palitos finos ni bloques chicos.
 - Puntas afinadas hasta ~0.006 de radio (no cortes planos), transiciones suaves (arrancar la rama DENTRO del tronco).
 - Medir el tamaño contra la foto: comparar el alto de la parte con el alto del cuerpo en el cmp antes de dar por terminado.
+
+## Sets completos (feedback de Juan S134)
+- Juan juzga cada parte DENTRO de su set (cuerno + espalda + alas como en la foto). Renderiza el set: `& "<repo>\Tools\Blender\parts\build_set.ps1" -Names "Rayo,PuasFinas" -Tag Rayo -Out <dir>` → `set_<Tag>_side.png` / `set_<Tag>_front.png`, y compara con `cmp.py` usando esos renders.
+- Referencias ampliadas de las partes corregidas: `scratchpad\parts\refs_zoom.png` (3 celdas por parte).

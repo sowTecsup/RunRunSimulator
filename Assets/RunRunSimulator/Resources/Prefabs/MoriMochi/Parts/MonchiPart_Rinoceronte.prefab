@@ -48,14 +48,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -3577493251568296683, guid: 084a7ac01f512424f9aa2fc0d771b1e4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6a5b714232a53b8439ffe66ba495670f, type: 2}
+    - target: {fileID: 64884902400405137, guid: 084a7ac01f512424f9aa2fc0d771b1e4, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6a5b714232a53b8439ffe66ba495670f, type: 2}
     - target: {fileID: 919132149155446097, guid: 084a7ac01f512424f9aa2fc0d771b1e4, type: 3}
       propertyPath: m_Name
       value: MonchiPart_Rinoceronte
       objectReference: {fileID: 0}
-    - target: {fileID: 8688999519342454060, guid: 084a7ac01f512424f9aa2fc0d771b1e4, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6a5b714232a53b8439ffe66ba495670f, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
